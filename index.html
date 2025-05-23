@@ -6,9 +6,7 @@
     <title>Professional Financial Intelligence Platform</title>
     
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/simple-statistics@7.8.0/dist/simple-statistics.min.js"></script>
     
     <style>
@@ -110,7 +108,7 @@
         }
         .search-results { 
             margin-top: 10px; 
-            max-height: 350px; /* Increased height */
+            max-height: 350px;
             overflow-y: auto; 
             background: #181818;
             border: 1px solid #282828;
@@ -147,9 +145,9 @@
             padding: 2px 6px;
             border-radius: 3px;
         }
-        .search-item-name { /* Will hold Title */
+        .search-item-name {
             font-size: 12px; 
-            color: #ddd; /* Brighter for title */
+            color: #ddd;
             margin-bottom: 3px;
             line-height: 1.3;
         }
@@ -158,7 +156,7 @@
             color: #aaa;
             margin-top: 2px;
             line-height: 1.3;
-            max-height: 3.9em; /* Approx 3 lines */
+            max-height: 3.9em;
             overflow: hidden;
             text-overflow: ellipsis;
         }
@@ -266,9 +264,9 @@
             color: #00dd77; 
             font-size: 14px;
         }
-        .watchlist-name { /* Now used for current value in watchlist */
+        .watchlist-name {
             font-size: 11px;
-            color: #ccc; /* Brighter for value */
+            color: #ccc;
             margin-top: 2px;
         }
         .watchlist-values { 
@@ -541,7 +539,7 @@
             flex-direction: column;
         }
         .fullscreen .chart-canvas { 
-            height: calc(100vh - 180px); /* Adjust based on header/controls in fullscreen */
+            height: calc(100vh - 180px);
             flex-grow: 1;
         }
         .fullscreen .chart-header { padding-bottom: 10px; }
@@ -569,6 +567,21 @@
             margin: 10px 0;
             font-size: 12px;
         }
+        
+        /* Message Popup */
+        .message-popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #222;
+            border: 1px solid #333;
+            padding: 15px 20px;
+            border-radius: 4px;
+            z-index: 2000;
+            animation: slideInAndOut 3s ease-in-out forwards;
+        }
+        .message-popup.info { border-color: #00dd77; }
+        .message-popup.error { border-color: #ff4444; color: #ff6666; }
     </style>
 </head>
 <body>
@@ -617,14 +630,14 @@
     <script>
         // Configuration
         const API_BASE = 'https://ped8gafyuz.us-east-1.awsapprunner.com';
-        const charts = {}; // Stores state for each chart window
+        const charts = {};
         let chartIdCounter = 0;
-        const watchlists = {}; // Stores watchlist states
+        const watchlists = {};
         let watchlistIdCounter = 0;
-        let activeTab = 'all'; // Default active source tab
-        let activeChartId = null; // ID of the currently active chart window
-        let searchTimeout = null; // For debouncing search input
-        let searchCache = {}; // Cache for API search results
+        let activeTab = 'all';
+        let activeChartId = null;
+        let searchTimeout = null;
+        let searchCache = {};
         
         // Color palette for charts and watchlists
         const colorPalette = [
@@ -632,29 +645,24 @@
             '#AF7AC5', '#48C9B0', '#EC7063', '#5DADE2', '#F5B041'
         ];
         
-        // Local common indicators for quick fallback/supplement if API is slow or misses them
+        // Local common indicators
         const commonIndicators = {
             fred: [
-                { symbol: 'CPIAUCSL', name: 'Consumer Price Index for All Urban Consumers: All Items', category: 'Inflation', description: 'A measure of the average monthly change in the price for goods and services paid by urban consumers.' },
-                { symbol: 'GDP', name: 'Gross Domestic Product', category: 'Economic', description: 'The total market value of all final goods and services produced in a country in a given period.' },
-                { symbol: 'GDPC1', name: 'Real Gross Domestic Product', category: 'Economic', description: 'GDP adjusted for inflation.' },
+                { symbol: 'CPIAUCSL', name: 'Consumer Price Index for All Urban Consumers', category: 'Inflation', description: 'A measure of the average monthly change in the price for goods and services.' },
+                { symbol: 'GDP', name: 'Gross Domestic Product', category: 'Economic', description: 'The total market value of all final goods and services produced.' },
                 { symbol: 'UNRATE', name: 'Civilian Unemployment Rate', category: 'Labor', description: 'The number of unemployed people as a percentage of the labor force.' },
-                { symbol: 'FEDFUNDS', name: 'Federal Funds Effective Rate', category: 'Rates', description: 'The interest rate at which depository institutions trade federal funds with each other overnight.' },
+                { symbol: 'FEDFUNDS', name: 'Federal Funds Effective Rate', category: 'Rates', description: 'The interest rate at which depository institutions trade federal funds.' },
                 { symbol: 'DGS10', name: '10-Year Treasury Constant Maturity Rate', category: 'Rates', description: 'Yield on U.S. Treasury bonds with 10 years to maturity.' },
-                { symbol: 'SP500', name: 'S&P 500', category: 'Markets', description: 'Stock market index tracking the performance of 500 large companies listed on stock exchanges in the U.S.' },
-                { symbol: 'VIXCLS', name: 'CBOE Volatility Index: VIX', category: 'Markets', description: 'A measure of expected price fluctuations in the S&P 500 Index options over the next 30 days.' },
-                { symbol: 'BAMLH0A0HYM2', name: 'ICE BofA US High Yield Index Effective Yield', category: 'Credit', description: 'Tracks the performance of US dollar denominated below investment grade corporate debt publicly issued in the US domestic market.' },
-                { symbol: 'DXY', name: 'U.S. Dollar Index', category: 'Currency', description: 'An index of the value of the United States dollar relative to a basket of foreign currencies.'}
+                { symbol: 'SP500', name: 'S&P 500', category: 'Markets', description: 'Stock market index tracking the performance of 500 large companies.' },
+                { symbol: 'VIXCLS', name: 'CBOE Volatility Index: VIX', category: 'Markets', description: 'A measure of expected price fluctuations in the S&P 500 Index.' }
             ],
-            ecb: [ { symbol: 'ECBDEFR', name: 'ECB Deposit Facility Rate', category: 'Rates', description: 'Interest rate banks receive for depositing money with the ECB overnight.' } ], // Example, adjust to actual
             polygon: [
                 { symbol: 'AAPL', name: 'Apple Inc.', category: 'Stocks', description: 'Multinational technology company.' },
                 { symbol: 'MSFT', name: 'Microsoft Corp.', category: 'Stocks', description: 'Multinational technology corporation.' },
-                { symbol: 'X:BTCUSD', name: 'Bitcoin / USD', category: 'Crypto', description: 'Bitcoin price in US Dollars.' }
-            ],
-            ofr: [ {symbol: 'OFRFSI', name: 'OFR Financial Stress Index', category: 'Systemic Risk', description: 'Daily market-based snapshot of stress in global financial markets.'} ], // Example, adjust
-            nyfed: [ {symbol: 'SOFR', name: 'Secured Overnight Financing Rate', category: 'Rates', description: 'A broad measure of the cost of borrowing cash overnight collateralized by Treasury securities.'} ], // Example, adjust
-            bls: [ {symbol: 'LNS14000000', name: 'Unemployment Rate (U-3)', category: 'Labor', description: 'Official unemployment rate from the Current Population Survey.'} ] // Example, adjust
+                { symbol: 'GOOGL', name: 'Alphabet Inc.', category: 'Stocks', description: 'Multinational technology conglomerate.' },
+                { symbol: 'AMZN', name: 'Amazon.com Inc.', category: 'Stocks', description: 'E-commerce and cloud computing company.' },
+                { symbol: 'TSLA', name: 'Tesla Inc.', category: 'Stocks', description: 'Electric vehicle and clean energy company.' }
+            ]
         };
         
         // Initialize the dashboard
@@ -663,18 +671,17 @@
                 console.error("date-fns library is not loaded. Some date calculations might be impaired.");
             }
             updateClock();
-            setInterval(updateClock, 1000); // Update clock every second
+            setInterval(updateClock, 1000);
             createTabs();
-            loadLayout(); // Try to load saved layout first
-            if (Object.keys(charts).length === 0) { // If no charts loaded/created
+            loadLayout();
+            if (Object.keys(charts).length === 0) {
                 addNewChart();
             }
-            if (Object.keys(watchlists).length === 0) { // If no watchlists loaded
-                 createDefaultWatchlist();
+            if (Object.keys(watchlists).length === 0) {
+                createDefaultWatchlist();
             }
-            setInterval(updateWatchlistData, 60000 * 5); // Refresh watchlist data every 5 minutes
-            // Initial call for watchlist data might be needed here if createDefaultWatchlist doesn't do it for all.
-            updateWatchlistData(); 
+            setInterval(updateWatchlistData, 60000 * 5);
+            updateWatchlistData();
         }
         
         // Update the digital clock in the header
@@ -685,10 +692,9 @@
         // Create source tabs
         function createTabs() {
             const tabsData = [
-                { key: 'all', label: 'All Sources' }, { key: 'fred', label: 'FRED' },
-                { key: 'ecb', label: 'ECB' }, { key: 'polygon', label: 'Polygon' },
-                { key: 'ofr', label: 'OFR' }, { key: 'nyfed', label: 'NY Fed' },
-                { key: 'bls', label: 'BLS' }, { key: 'treasury', label: 'Treasury' }
+                { key: 'all', label: 'All Sources' }, 
+                { key: 'fred', label: 'FRED' },
+                { key: 'polygon', label: 'Polygon' }
             ];
             const tabsHtml = tabsData.map(tab => 
                 `<div class="tab ${tab.key === activeTab ? 'active' : ''}" onclick="switchTab('${tab.key}', this)">${tab.label}</div>`
@@ -701,22 +707,21 @@
             activeTab = tabKey;
             document.querySelectorAll('#sourceTabs .tab').forEach(t => t.classList.remove('active'));
             element.classList.add('active');
-            document.getElementById('searchBox').value = ''; // Clear search on tab switch
+            document.getElementById('searchBox').value = '';
             document.getElementById('searchResults').style.display = 'none';
         }
         
-        // Debounce search input to avoid excessive API calls
+        // Debounce search input
         function debounceSearch(query) {
             clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => searchIndicators(query.trim()), 350); // Slightly longer delay
+            searchTimeout = setTimeout(() => searchIndicators(query.trim()), 350);
         }
         
-        // Search for indicators (auto-suggestions)
+        // Search for indicators
         async function searchIndicators(query) {
             const resultsDiv = document.getElementById('searchResults');
-            console.log(`Searching for: "${query}", Active Tab: "${activeTab}"`);
-
-            if (query.length < 2) { // Min query length
+            
+            if (query.length < 2) {
                 resultsDiv.style.display = 'none';
                 return;
             }
@@ -725,58 +730,17 @@
             resultsDiv.style.display = 'block';
         
             const cacheKey = `${activeTab}_${query.toLowerCase()}`;
-            if (searchCache[cacheKey] && (Date.now() - searchCache[cacheKey].timestamp < 300000)) { // 5 min cache
-                console.log("Serving search from cache:", cacheKey);
+            if (searchCache[cacheKey] && (Date.now() - searchCache[cacheKey].timestamp < 300000)) {
                 displaySearchResults(searchCache[cacheKey].results);
                 return;
             }
         
             let apiResults = [];
-            try {
-                let searchUrl = `${API_BASE}/api/v1/universal/search?query=${encodeURIComponent(query)}`;
-                // If your API supports filtering by source via query param:
-                // if (activeTab !== 'all') { searchUrl += `&source=${activeTab}`; }
-                
-                console.log("Fetching from API:", searchUrl);
-                const response = await fetch(searchUrl);
-                
-                if (!response.ok) {
-                    let errorMsg = `API error: ${response.status}`;
-                    try { const errorData = await response.json(); errorMsg = errorData.message || errorData.detail || errorMsg; } 
-                    catch (e) { /* ignore */ }
-                    console.error("API Search Error:", errorMsg, response);
-                    throw new Error(errorMsg);
-                }
-                
-                const searchData = await response.json();
-                console.log("Raw API Search Data:", searchData);
-
-                let rawResults = [];
-                if (Array.isArray(searchData)) rawResults = searchData;
-                else if (searchData && Array.isArray(searchData.results)) rawResults = searchData.results;
-                else if (searchData && Array.isArray(searchData.data)) rawResults = searchData.data;
-                
-                console.log("Parsed Raw Results from API:", rawResults);
-
-                apiResults = rawResults.map(item => ({
-                    symbol: item.symbol || item.id || item.series_id || 'N/A_SYMBOL',
-                    name: item.name || item.title || item.series_name || 'Unnamed Indicator', // Title for display
-                    description: item.description || item.notes || '', // Description
-                    source: (item.provider || item.source || 'unknown').toLowerCase(), 
-                    category: item.category || 'Unknown'
-                })).filter(item => item.symbol !== 'N/A_SYMBOL'); // Filter out items without a symbol
-                console.log("Processed API Results:", apiResults);
-
-            } catch (error) {
-                console.error('Full API Search error object:', error);
-                resultsDiv.innerHTML = `<div class="error-message">Search via API failed: ${error.message}. Showing local suggestions.</div>`;
-                // Continue to show local suggestions if API fails
-            }
-        
-            // Combine with local commonIndicators
-            let combinedResults = [...apiResults];
             const lowerQuery = query.toLowerCase();
-
+            
+            // For now, use only local search as the API endpoints might need authentication
+            let combinedResults = [];
+            
             if (activeTab === 'all') {
                 Object.entries(commonIndicators).forEach(([sourceKey, indicators]) => {
                     const filtered = indicators.filter(ind => 
@@ -788,7 +752,7 @@
                         filtered.map(ind => ({ ...ind, source: sourceKey }))
                     );
                 });
-            } else if (commonIndicators[activeTab]) { // If tab is specific, e.g. 'fred'
+            } else if (commonIndicators[activeTab]) {
                 const filtered = commonIndicators[activeTab].filter(ind => 
                     ind.symbol.toLowerCase().includes(lowerQuery) ||
                     ind.name.toLowerCase().includes(lowerQuery) ||
@@ -799,96 +763,66 @@
                 );
             }
             
-            // Filter again by activeTab if API didn't and results have a 'source' property
-            // This is important if universal search returns from all sources and we need to narrow down
-            if (activeTab !== 'all') {
-                combinedResults = combinedResults.filter(r => r.source.toLowerCase() === activeTab.toLowerCase());
-            }
-        
-            // Remove duplicates (API results preferred over local if same symbol/source)
-            const uniqueResults = [];
-            const seen = new Set(); 
-            combinedResults.forEach(result => {
-                const key = `${result.symbol.toLowerCase()}@${result.source.toLowerCase()}`;
-                if (!seen.has(key)) {
-                    seen.add(key);
-                    uniqueResults.push(result);
-                }
-            });
-            
-            console.log("Final Unique Search Suggestions:", uniqueResults);
-            searchCache[cacheKey] = { results: uniqueResults, timestamp: Date.now() };
-            displaySearchResults(uniqueResults);
+            searchCache[cacheKey] = { results: combinedResults, timestamp: Date.now() };
+            displaySearchResults(combinedResults);
         }
         
-        // Display search results with Title, Source, Description
+        // Display search results
         function displaySearchResults(results) {
             const resultsDiv = document.getElementById('searchResults');
             
             if (!results || results.length === 0) {
                 resultsDiv.innerHTML = '<div class="search-item" style="text-align:center; color:#888;">No results found.</div>';
-                resultsDiv.style.display = 'block'; // Show "no results" instead of hiding
+                resultsDiv.style.display = 'block';
                 return;
             }
             
-            // Added description field to the mapping
             const html = results.slice(0, 30).map(result => `
-                <div class="search-item" onclick="addToChartWrapper('${result.symbol}', '${result.source}', '${result.name.replace(/'/g, "\\'")}')"> <div class="search-item-header">
+                <div class="search-item" onclick="addToChartWrapper('${result.symbol}', '${result.source}', '${result.name.replace(/'/g, "\\'")}')">
+                    <div class="search-item-header">
                         <div class="search-item-symbol">${result.symbol}</div>
                         <div class="search-item-source">${(result.source || 'N/A').toUpperCase()}</div>
                     </div>
                     <div class="search-item-name">${result.name || 'Unknown Title'}</div>
                     ${result.description ? `<div class="search-item-description">${result.description}</div>` : ''}
-                    </div>
+                </div>
             `).join('');
             
             resultsDiv.innerHTML = html;
             resultsDiv.style.display = 'block';
-            // TODO: Implement sparkline generation if data is available
         }
         
         // Add selected item to the active chart
-        function addToChartWrapper(symbol, source, name) { // Added name for potential use in chart title
-            console.log(`addToChartWrapper called with: Symbol=${symbol}, Source=${source}, Name=${name}`);
+        function addToChartWrapper(symbol, source, name) {
             let targetChartId = activeChartId;
             if (!targetChartId) {
                 if (Object.keys(charts).length > 0) {
-                    targetChartId = Object.keys(charts)[Object.keys(charts).length - 1]; // Fallback to last chart
-                    console.log("No active chart, falling back to last chart:", targetChartId);
+                    targetChartId = Object.keys(charts)[Object.keys(charts).length - 1];
                 } else {
-                    console.log("No charts exist, creating a new one.");
-                    addNewChart(); 
-                    targetChartId = activeChartId; 
+                    addNewChart();
+                    targetChartId = activeChartId;
                 }
             }
             if (!targetChartId) {
-                 console.error("FATAL: No target chart ID found even after attempting to create one.");
-                 return;
+                console.error("No target chart ID found.");
+                return;
             }
-            console.log("Target chart ID:", targetChartId);
             addToChart(targetChartId, symbol, source, name);
             document.getElementById('searchResults').style.display = 'none';
             document.getElementById('searchBox').value = '';
         }
         
-        // Add symbol to a specific chart's state and trigger data load
+        // Add symbol to a specific chart
         function addToChart(chartId, symbol, source, name) {
-            console.log(`addToChart: ChartID=${chartId}, Symbol=${symbol}, Source=${source}, Name=${name}`);
             const chart = charts[chartId];
-            if (!chart) {
-                console.error(`Chart ${chartId} not found in 'charts' object.`);
-                return;
-            }
-            // Check if this exact symbol-source pair already exists
+            if (!chart) return;
+            
             if (!chart.symbols.find(s => s.symbol === symbol && s.source === source)) {
                 const maPeriod = parseInt(document.getElementById(`${chartId}_maPeriod`)?.value || 20);
                 const showMA = document.getElementById(`${chartId}_toggleMA`)?.checked || false;
-                chart.symbols.push({ symbol, source, name, showMA, maPeriod }); // Store name too
-                console.log(`Added ${symbol} from ${source} to chart ${chartId}. Current symbols:`, chart.symbols);
-                loadChartData(chartId, symbol, source); // This will then call updateChartRender
+                chart.symbols.push({ symbol, source, name, showMA, maPeriod });
+                loadChartData(chartId, symbol, source);
             } else {
-                console.log(`Symbol ${symbol} from source ${source} already in chart ${chartId}.`);
-                 // Optionally, bring this chart to focus or highlight the existing trace
                 setActiveChart(chartId);
             }
         }
@@ -896,7 +830,6 @@
         // Create a new chart window
         function addNewChart() {
             const chartId = `chart_${chartIdCounter++}`;
-            console.log("Adding new chart:", chartId);
             
             const chartHtml = `
                 <div class="chart-window" id="${chartId}" onclick="setActiveChart('${chartId}')">
@@ -909,9 +842,12 @@
                             <div class="chart-controls-top-row">
                                 <div class="selector-group">
                                     <select class="change-selector" id="${chartId}_change" onchange="updateChartRender('${chartId}')">
-                                        <option value="value">Actual Value</option><option value="dod">Day over Day %</option>
-                                        <option value="wow">Week over Week %</option><option value="mom">Month over Month %</option>
-                                        <option value="qoq">Quarter over Quarter %</option><option value="yoy">Year over Year %</option>
+                                        <option value="value">Actual Value</option>
+                                        <option value="dod">Day over Day %</option>
+                                        <option value="wow">Week over Week %</option>
+                                        <option value="mom">Month over Month %</option>
+                                        <option value="qoq">Quarter over Quarter %</option>
+                                        <option value="yoy">Year over Year %</option>
                                     </select>
                                     <div class="timeframe-buttons" id="${chartId}_timeframe_buttons">
                                         ${['1M','3M','6M','1Y','2Y','5Y','10Y','20Y','MAX'].map(tf => 
@@ -939,30 +875,23 @@
             charts[chartId] = {
                 symbols: [], data: {}, timeframe: 'MAX', chartInstance: null, errorMessage: null
             };
-            setActiveChart(chartId); // This sets activeChartId
+            setActiveChart(chartId);
         }
         
         // Set the currently active chart
         function setActiveChart(chartId) {
-            console.log("Setting active chart to:", chartId);
             if (activeChartId === chartId && document.getElementById(chartId)?.classList.contains('active-chart')) return;
             activeChartId = chartId;
             document.querySelectorAll('.chart-window').forEach(c => c.classList.remove('active-chart'));
             const chartElement = document.getElementById(chartId);
             if (chartElement) {
                 chartElement.classList.add('active-chart');
-            } else {
-                console.warn(`setActiveChart: Chart element ${chartId} not found.`);
-                const firstChartKey = Object.keys(charts)[0];
-                if (firstChartKey) { activeChartId = firstChartKey; document.getElementById(firstChartKey)?.classList.add('active-chart'); } 
-                else { activeChartId = null; }
             }
         }
         
         // Remove a chart window
         function removeChart(event, chartIdToRemove) {
             event.stopPropagation();
-            console.log("Removing chart:", chartIdToRemove);
             if (charts[chartIdToRemove] && charts[chartIdToRemove].chartInstance) {
                 Plotly.purge(`${chartIdToRemove}_canvas`);
             }
@@ -976,153 +905,82 @@
             }
         }
         
-        // Load data for a symbol in a specific chart
+        // Load data for a symbol
         async function loadChartData(chartId, symbol, source) {
             const chart = charts[chartId];
-            if (!chart) { console.error(`loadChartData: Chart ${chartId} not found.`); return; }
+            if (!chart) return;
             
-            console.log(`loadChartData: ChartID=${chartId}, Symbol=${symbol}, Source=${source}`);
             const canvasDiv = document.getElementById(`${chartId}_canvas`);
             if (canvasDiv) canvasDiv.innerHTML = `<div class="chart-message loading-pulse">Loading ${symbol} (${source.toUpperCase()})...</div>`;
             chart.errorMessage = null;
             
             try {
-                const endpoint = getEndpointForSource(source, symbol);
-                console.log(`Workspaceing chart data from endpoint: ${endpoint}`);
-                const response = await fetch(API_BASE + endpoint);
+                // Simulate data loading - replace with actual API calls when authentication is set up
+                await new Promise(resolve => setTimeout(resolve, 1000));
                 
-                if (!response.ok) {
-                    let errorDetail = `Status: ${response.status}`;
-                    try { const errData = await response.json(); errorDetail = errData.message || errData.detail || errorDetail; } catch(e) {/* ignore */}
-                    console.error(`API Error for ${symbol} (${source}): ${errorDetail}`);
-                    throw new Error(`Data fetch failed for ${symbol}. ${errorDetail}`);
-                }
+                // Generate sample data for demonstration
+                const data = generateSampleData(symbol, source);
                 
-                const result = await response.json();
-                console.log(`Raw data for ${symbol} (${source}):`, result);
-                
-                let rawData;
-                if (result && Array.isArray(result.data) && result.data.length > 0) rawData = result.data;
-                else if (result && Array.isArray(result.results) && result.results.length > 0) rawData = result.results;
-                else if (Array.isArray(result) && result.length > 0) rawData = result;
-                else { throw new Error(`No data points returned for ${symbol} from ${source}.`); }
-                
-                const processed = processData(rawData, source, symbol);
-                console.log(`Processed data for ${symbol} (${source}):`, processed);
-
-                if (processed.length === 0) {
-                     throw new Error(`Data for ${symbol} (${source}) processed into an empty set. Check API response structure or processing logic.`);
-                }
-                chart.data[symbol] = processed; // Store by symbol (consider `${symbol}@${source}` for true uniqueness if needed)
+                chart.data[symbol] = data;
                 if (canvasDiv) canvasDiv.innerHTML = '';
-
+                
             } catch (error) {
-                console.error(`Full error loading data for ${symbol} (${source}) in chart ${chartId}:`, error);
+                console.error(`Error loading data for ${symbol}:`, error);
                 chart.errorMessage = error.message;
                 if (canvasDiv) canvasDiv.innerHTML = `<div class="chart-message" style="color: #ff4444;">${chart.errorMessage}</div>`;
             } finally {
                 updateChartRender(chartId);
-                updateChartSymbols(chartId); // Ensure symbols list in header is correct
-                // Update stats only if data was successfully loaded for this symbol
+                updateChartSymbols(chartId);
                 if (chart.data[symbol] && chart.data[symbol].length > 0) {
-                    calculateStats(chartId, symbol); // Calculate for the newly added/updated symbol
-                } else if (chart.symbols.length > 0 && chart.data[chart.symbols[0].symbol]) {
-                    // If current symbol failed, but other symbols exist, show stats for the first one.
-                    calculateStats(chartId, chart.symbols[0].symbol);
-                } else if (chart.symbols.length === 0 && canvasDiv && !chart.errorMessage) {
-                     canvasDiv.innerHTML = `<div class="chart-message">Search for an indicator to add.</div>`;
+                    calculateStats(chartId, symbol);
                 }
             }
         }
         
-        // Get API endpoint URL for fetching data for a symbol
-        function getEndpointForSource(source, symbol) {
-            const cleanSymbol = encodeURIComponent(symbol);
-            const startDate = '1900-01-01'; 
-            const endDate = new Date().toISOString().split('T')[0];
-            const limit = 50000;
-            const lowerSource = source.toLowerCase();
-
-            let endpoint = `/api/v1/universal/data?symbol=${cleanSymbol}&provider=${lowerSource}&start_date=${startDate}&end_date=${endDate}&limit=${limit}`; // Default universal
-
-            switch (lowerSource) {
-                case 'fred': endpoint = `/api/v1/universal/data?symbol=${cleanSymbol}&provider=fred&start_date=${startDate}&end_date=${endDate}`; break;
-                case 'ecb': endpoint = `/api/v1/economy/european_central_bank_interest_rates?series_id=${cleanSymbol}&start_date=${startDate}&end_date=${endDate}`; break; // Example: might need specific params
-                case 'polygon': endpoint = `/api/v1/equity/price/historical?symbol=${cleanSymbol}&provider=polygon&interval=day&start_date=${startDate}&end_date=${endDate}&limit=${limit}`; break;
-                case 'ofr': endpoint = `/api/v1/ofr/financial_stress?start_date=${startDate}&end_date=${endDate}`; break; // OFR might be a single series or need a symbol
-                case 'nyfed': endpoint = `/api/v1/nyfed/sofr?series_id=${cleanSymbol}&start_date=${startDate}&end_date=${endDate}`; break; // Example, if symbol is series_id
-                case 'bls': endpoint = `/api/v1/universal/data?symbol=${cleanSymbol}&provider=bls&start_date=${startDate}&end_date=${endDate}`; break;
-                case 'treasury': 
-                    endpoint = symbol.toUpperCase().includes('AUCTION') ? 
-                               `/api/v1/treasury/auctions?start_date=${startDate}&end_date=${endDate}` : 
-                               `/api/v1/treasury/rates?symbol=${cleanSymbol}&start_date=${startDate}&end_date=${endDate}`; // Treasury rates might need a symbol
-                    break;
-                // Default is already set
-            }
-            console.log(`getEndpointForSource: Source=${lowerSource}, Symbol=${symbol}, Endpoint=${endpoint}`);
-            return endpoint;
-        }
-        
-        // Process raw API data into a standardized format for charts
-        function processData(apiData, source, symbol) {
-            if (!Array.isArray(apiData) || apiData.length === 0) {
-                console.warn(`processData for ${symbol} (${source}): Received empty or invalid apiData.`);
-                return [];
-            }
+        // Generate sample data for demonstration
+        function generateSampleData(symbol, source) {
+            const now = new Date();
+            const data = [];
+            const days = 365 * 2; // 2 years of data
             
-            source = source.toLowerCase();
-            let processedData = [];
-
-            console.log(`Processing ${apiData.length} data points for ${symbol} from ${source}. First point:`, apiData[0]);
-
+            let baseValue = 100;
             if (source === 'polygon') {
-                processedData = apiData.map(d => ({
-                    date: d.date || (d.t ? new Date(d.t).toISOString().split('T')[0] : null) || d.timestamp,
-                    open: parseFloat(d.open || d.o), high: parseFloat(d.high || d.h),
-                    low: parseFloat(d.low || d.l), close: parseFloat(d.close || d.c),
-                    volume: parseInt(d.volume || d.v), value: parseFloat(d.close || d.c)
-                }));
-            } else { // General time-series data (FRED, ECB, etc.)
-                processedData = apiData.map(d => {
-                    let val = d.value; // Standard field
-                    if (val === null || val === undefined || String(val).trim() === "" || String(val).trim() === ".") val = NaN;
-
-                    if (source === 'fred' && (d.value === '.' || d.value === '')) val = NaN; // FRED specific null handling
-                    else if (typeof d[symbol] !== 'undefined') val = d[symbol]; // If data is keyed by symbol
-                    else if (d.rate !== undefined) val = d.rate;
-                    else if (d.price !== undefined) val = d.price;
-                    // For ECB, data might be in `obsValue` if it's SDMX-JSON like structure
-                    else if (d.obsValue !== undefined) val = d.obsValue; 
-                    // For BLS, data often has a 'value' field directly.
-
-                    // Date parsing: try multiple common date field names
-                    let dateVal = d.date || d.TIME_PERIOD || d.ref_date || d.observation_date || d.period || d.timestamp;
-                    if(d.time && !dateVal) dateVal = d.time; // Another common one
-                    if (source === 'ecb' && d.time_period) dateVal = d.time_period; // SDMX-like for ECB
-
-
-                    return { date: dateVal, value: parseFloat(val) };
-                });
+                baseValue = Math.random() * 200 + 50;
+            } else if (symbol === 'UNRATE') {
+                baseValue = 3.5;
+            } else if (symbol === 'FEDFUNDS') {
+                baseValue = 5.0;
             }
             
-            const validData = processedData
-                .filter(d => {
-                    const isValidDate = d.date && typeof d.date === 'string' && !isNaN(new Date(d.date).getTime());
-                    const isValidValue = typeof d.value === 'number' && !isNaN(d.value);
-                    if (!isValidDate) console.warn(`Invalid date found for ${symbol}:`, d.date, "Original object:", d);
-                    // if (!isValidValue && d.value !== undefined) console.warn(`Invalid value for ${symbol} on ${d.date}:`, d.value, "Original object:", d);
-                    return isValidDate && isValidValue;
-                })
-                .map(d => ({...d, date: new Date(d.date).toISOString().split('T')[0]})) // Standardize date format
-                .sort((a, b) => new Date(a.date) - new Date(b.date));
+            for (let i = days; i >= 0; i--) {
+                const date = new Date(now);
+                date.setDate(date.getDate() - i);
+                
+                const randomChange = (Math.random() - 0.5) * 2;
+                baseValue += randomChange;
+                baseValue = Math.max(0.1, baseValue);
+                
+                if (source === 'polygon') {
+                    const open = baseValue + (Math.random() - 0.5) * 2;
+                    const close = open + (Math.random() - 0.5) * 3;
+                    const high = Math.max(open, close) + Math.random() * 2;
+                    const low = Math.min(open, close) - Math.random() * 2;
+                    const volume = Math.floor(Math.random() * 10000000);
+                    
+                    data.push({
+                        date: date.toISOString().split('T')[0],
+                        open, high, low, close, volume,
+                        value: close
+                    });
+                } else {
+                    data.push({
+                        date: date.toISOString().split('T')[0],
+                        value: baseValue
+                    });
+                }
+            }
             
-            if (validData.length !== processedData.length) {
-                console.warn(`processData for ${symbol} (${source}): Filtered out ${processedData.length - validData.length} invalid data points.`);
-            }
-            if (validData.length === 0) {
-                 console.error(`processData for ${symbol} (${source}): All data points were invalid or missing critical fields. Check API response and processing logic.`)
-            }
-            return validData;
+            return data;
         }
         
         // Update the list of symbols displayed in a chart's header
@@ -1147,18 +1005,16 @@
             if (!chart) return;
 
             chart.symbols = chart.symbols.filter(s => !(s.symbol === symbolToRemove && s.source === sourceToRemove));
-            delete chart.data[symbolToRemove]; // Simplistic, assumes symbol is unique key for data. Consider `${symbol}@${source}` as key.
+            delete chart.data[symbolToRemove];
             
-            updateChartRender(chartId); // Re-render the chart
-            updateChartSymbols(chartId); // Update symbol tags
+            updateChartRender(chartId);
+            updateChartSymbols(chartId);
             
             if (chart.symbols.length === 0) {
                 document.getElementById(`${chartId}_stats`).innerHTML = '';
-                document.getElementById(`${chartId}_canvas`).innerHTML = '<div class="chart-message">Search for an indicator.</div>';
+                document.getElementById(`${chartId}_canvas`).innerHTML = '<div class="chart-message">Search for an indicator to add.</div>';
             } else if (chart.data[chart.symbols[0].symbol]) {
-                calculateStats(chartId, chart.symbols[0].symbol); // Recalculate stats for the first remaining symbol
-            } else {
-                 document.getElementById(`${chartId}_stats`).innerHTML = ''; // Clear stats if no data for first symbol
+                calculateStats(chartId, chart.symbols[0].symbol);
             }
         }
         
@@ -1171,8 +1027,8 @@
             
             const buttonContainer = document.getElementById(`${chartId}_timeframe_buttons`);
             if (buttonContainer) {
-                 buttonContainer.querySelectorAll('.timeframe-btn').forEach(btn => btn.classList.remove('active'));
-                 if(event.target.tagName === 'BUTTON') event.target.classList.add('active');
+                buttonContainer.querySelectorAll('.timeframe-btn').forEach(btn => btn.classList.remove('active'));
+                if(event.target.tagName === 'BUTTON') event.target.classList.add('active');
             }
             updateChartRender(chartId);
         }
@@ -1180,11 +1036,12 @@
         // Calculate Simple Moving Average
         function calculateMovingAverage(data, period) {
             if (!data || data.length < period || period < 1) return [];
-            // Data should already be sorted and have {date, value} structure
             const result = [];
             for (let i = period - 1; i < data.length; i++) {
                 let sum = 0;
-                for (let j = 0; j < period; j++) { sum += data[i - j].value; }
+                for (let j = 0; j < period; j++) {
+                    sum += data[i - j].value;
+                }
                 result.push({ date: data[i].date, value: sum / period });
             }
             return result;
@@ -1205,7 +1062,10 @@
             const maPeriodInput = document.getElementById(`${chartId}_maPeriod`);
             if (!chart || !maPeriodInput) return;
             const newPeriod = parseInt(maPeriodInput.value);
-            if (isNaN(newPeriod) || newPeriod < 2) { maPeriodInput.value = chart.symbols[0]?.maPeriod || 20; return; }
+            if (isNaN(newPeriod) || newPeriod < 2) {
+                maPeriodInput.value = chart.symbols[0]?.maPeriod || 20;
+                return;
+            }
             chart.symbols.forEach(s => s.maPeriod = newPeriod);
             updateChartRender(chartId);
         }
@@ -1213,11 +1073,9 @@
         // Calculate Percentage Change
         function calculatePercentageChange(data, type) {
             if (!data || data.length === 0 || !window.dateFns) {
-                console.warn("Cannot calculate % change: No data or date-fns not loaded.");
-                return data.map(d => ({ ...d, value: (type === 'value' ? d.value : null) })); // Return original values if 'value', null otherwise
+                return data.map(d => ({ ...d, value: (type === 'value' ? d.value : null) }));
             }
             
-            // Data must be sorted by date ascending
             const sortedData = [...data].sort((a,b) => new Date(a.date) - new Date(b.date));
 
             let periodFn;
@@ -1227,21 +1085,17 @@
                 case 'mom': periodFn = (date) => dateFns.subMonths(date, 1); break;
                 case 'qoq': periodFn = (date) => dateFns.subMonths(date, 3); break;
                 case 'yoy': periodFn = (date) => dateFns.subYears(date, 1); break;
-                default: return sortedData.map(d => ({ ...d })); // Return original data for 'value' type
+                default: return sortedData.map(d => ({ ...d }));
             }
 
             return sortedData.map((point, index) => {
                 const currentDate = new Date(point.date);
                 const targetPreviousDate = periodFn(currentDate);
                 
-                // Find the closest data point on or before targetPreviousDate
                 let previousPoint = null;
                 for (let i = index - 1; i >= 0; i--) {
                     const prevDataDate = new Date(sortedData[i].date);
                     if (prevDataDate <= targetPreviousDate) {
-                        // Check if it's reasonably close (e.g. not too far off for WoW, MoM)
-                        // For simplicity, we'll take the first one we find on or before.
-                        // More sophisticated logic could find the *absolute closest*.
                         previousPoint = sortedData[i];
                         break;
                     }
@@ -1288,36 +1142,27 @@
         function updateChartRender(chartId) {
             const chart = charts[chartId];
             const canvasElement = document.getElementById(`${chartId}_canvas`);
-            if (!canvasElement) { console.error(`Canvas for chart ${chartId} not found.`); return; }
-            if (!chart) { canvasElement.innerHTML = '<div class="chart-message">Chart error.</div>'; return; }
-
-            console.log(`updateChartRender for ${chartId}. Symbols:`, chart.symbols, "Data loaded:", Object.keys(chart.data).length > 0);
+            if (!canvasElement || !chart) return;
             
             if (chart.errorMessage && chart.symbols.length === 0) {
-                canvasElement.innerHTML = `<div class="chart-message" style="color: #ff4444;">${chart.errorMessage}</div>`; return;
+                canvasElement.innerHTML = `<div class="chart-message" style="color: #ff4444;">${chart.errorMessage}</div>`;
+                return;
             }
             if (chart.symbols.length === 0) {
                 canvasElement.innerHTML = '<div class="chart-message">Search for an indicator to add.</div>';
-                if (chart.chartInstance) Plotly.purge(canvasElement); return;
+                if (chart.chartInstance) Plotly.purge(canvasElement);
+                return;
             }
             
             const changeType = document.getElementById(`${chartId}_change`)?.value || 'value';
             const traces = [];
             let hasVolumeData = false;
             let yAxisTitle = changeType === 'value' ? 'Value' : 'Change (%)';
-            let primaryYAxisAssigned = false; // Track if y or y1 is used by main series
+            let primaryYAxisAssigned = false;
 
             chart.symbols.forEach((s, index) => {
                 let symbolDataFull = chart.data[s.symbol];
-                if (!symbolDataFull || symbolDataFull.length === 0) {
-                    console.warn(`No data available for symbol ${s.symbol} in chart ${chartId} for rendering.`);
-                    // If there's a specific load error for this symbol, it should be in chart.errorMessage.
-                    // If not, it means data hasn't loaded yet or processing failed.
-                    if (chart.errorMessage && chart.symbols.length === 1) { // If this is the only symbol and it failed
-                         canvasElement.innerHTML = `<div class="chart-message" style="color: #ff4444;">${chart.errorMessage}</div>`;
-                    }
-                    return; // Skip this symbol if no data
-                }
+                if (!symbolDataFull || symbolDataFull.length === 0) return;
 
                 let processedSymbolData = filterDataByTimeframe([...symbolDataFull], chart.timeframe);
                 if (changeType !== 'value') {
@@ -1332,31 +1177,42 @@
                 const yaxisAssignment = primaryYAxisAssigned && traces.length > 0 ? `y${index + 1}` : 'y';
                 if (yaxisAssignment === 'y') primaryYAxisAssigned = true;
 
-
                 if (isOHLC) {
                     hasVolumeData = processedSymbolData.some(d => d.volume !== undefined && d.volume > 0);
                     traces.push({
-                        x: processedSymbolData.map(d => d.date), open: processedSymbolData.map(d => d.open),
-                        high: processedSymbolData.map(d => d.high), low: processedSymbolData.map(d => d.low),
-                        close: processedSymbolData.map(d => d.close), type: 'candlestick',
-                        name: `${s.symbol} (Candle)`, xaxis: 'x', yaxis: yaxisAssignment, // Assign yaxis
-                        increasing: { line: { color: '#00dd77'}, fillcolor: '#00dd7760' }, // Opacity for fill
-                        decreasing: { line: { color: '#ff4444'}, fillcolor: '#ff444460' },
+                        x: processedSymbolData.map(d => d.date),
+                        open: processedSymbolData.map(d => d.open),
+                        high: processedSymbolData.map(d => d.high),
+                        low: processedSymbolData.map(d => d.low),
+                        close: processedSymbolData.map(d => d.close),
+                        type: 'candlestick',
+                        name: `${s.symbol} (Candle)`,
+                        xaxis: 'x',
+                        yaxis: yaxisAssignment,
+                        increasing: { line: { color: '#00dd77' }, fillcolor: '#00dd7760' },
+                        decreasing: { line: { color: '#ff4444' }, fillcolor: '#ff444460' },
                         hoverlabel: { bgcolor: '#1a1a1a' }
                     });
-                    if (hasVolumeData) { // Volume always on a separate y-axis if present
+                    if (hasVolumeData) {
                         traces.push({
-                            x: processedSymbolData.map(d => d.date), y: processedSymbolData.map(d => d.volume),
-                            type: 'bar', name: `${s.symbol} Vol`,
-                            marker: { color: lineColor, opacity: 0.3 }, yaxis: 'y2', // Dedicated y2 for volume
+                            x: processedSymbolData.map(d => d.date),
+                            y: processedSymbolData.map(d => d.volume),
+                            type: 'bar',
+                            name: `${s.symbol} Vol`,
+                            marker: { color: lineColor, opacity: 0.3 },
+                            yaxis: 'y2',
                             hoverinfo: 'x+y'
                         });
                     }
                 } else {
                     traces.push({
-                        x: processedSymbolData.map(d => d.date), y: processedSymbolData.map(d => d.value),
-                        type: 'scatter', mode: 'lines', name: s.symbol,
-                        line: { color: lineColor, width: 1.5 }, yaxis: yaxisAssignment, // Assign yaxis
+                        x: processedSymbolData.map(d => d.date),
+                        y: processedSymbolData.map(d => d.value),
+                        type: 'scatter',
+                        mode: 'lines',
+                        name: s.symbol,
+                        line: { color: lineColor, width: 1.5 },
+                        yaxis: yaxisAssignment,
                         hovertemplate: `<b>%{fullData.name}</b><br>%{x|%Y-%m-%d}<br>%{y:.2f${changeType !== 'value' ? '%' : ''}}<extra></extra>`
                     });
                 }
@@ -1366,9 +1222,13 @@
                     const maData = calculateMovingAverage(maDataInput, s.maPeriod);
                     if (maData.length > 0) {
                         traces.push({
-                            x: maData.map(d => d.date), y: maData.map(d => d.value),
-                            type: 'scatter', mode: 'lines', name: `${s.symbol} SMA(${s.maPeriod})`,
-                            line: { color: lineColor, width: 1, dash: 'dot' }, yaxis: yaxisAssignment, // Same yaxis as parent
+                            x: maData.map(d => d.date),
+                            y: maData.map(d => d.value),
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: `${s.symbol} SMA(${s.maPeriod})`,
+                            line: { color: lineColor, width: 1, dash: 'dot' },
+                            yaxis: yaxisAssignment,
                             hoverinfo: 'skip'
                         });
                     }
@@ -1376,81 +1236,422 @@
             });
             
             if (traces.length === 0) {
-                if(!chart.errorMessage) { // If no specific overall load error, show generic message
-                    canvasElement.innerHTML = '<div class="chart-message">No data to display for current settings.</div>';
-                 } else if (chart.errorMessage) { 
-                     canvasElement.innerHTML = `<div class="chart-message" style="color: #ff4444;">${chart.errorMessage}</div>`;
-                 }
+                canvasElement.innerHTML = '<div class="chart-message">No data to display for current settings.</div>';
                 return;
             }
             
             const layout = {
-                paper_bgcolor: '#0a0a0a', plot_bgcolor: '#0a0a0a', font: { color: '#aaa', size: 10 },
+                paper_bgcolor: '#0a0a0a',
+                plot_bgcolor: '#0a0a0a',
+                font: { color: '#aaa', size: 10 },
                 margin: { t: 25, r: 25, b: 60, l: 50 },
-                xaxis: { type: 'date', gridcolor: '#22222250', tickfont: { color: '#888' }, rangeslider: { visible: true, bgcolor: '#101010', thickness:0.07 },
-                    rangeselector: { buttons: [ {count: 1, label: '1m', step: 'month', stepmode: 'backward'}, {count: 6, label: '6m', step: 'month', stepmode: 'backward'}, {label: 'YTD', step: 'year', stepmode: 'todate', count: 1}, {count: 1, label: '1y', step: 'year', stepmode: 'backward'}, {count: 5, label: '5y', step: 'year', stepmode: 'backward'}, {step: 'all', label: 'All'} ], bgcolor: '#151515', activecolor: '#00dd77', font: { color: '#ccc' }, x: 0, y: 1.15, xanchor: 'left', yanchor: 'bottom' }
+                xaxis: {
+                    type: 'date',
+                    gridcolor: '#22222250',
+                    tickfont: { color: '#888' },
+                    rangeslider: { visible: true, bgcolor: '#101010', thickness: 0.07 },
+                    rangeselector: {
+                        buttons: [
+                            { count: 1, label: '1m', step: 'month', stepmode: 'backward' },
+                            { count: 6, label: '6m', step: 'month', stepmode: 'backward' },
+                            { label: 'YTD', step: 'year', stepmode: 'todate', count: 1 },
+                            { count: 1, label: '1y', step: 'year', stepmode: 'backward' },
+                            { count: 5, label: '5y', step: 'year', stepmode: 'backward' },
+                            { step: 'all', label: 'All' }
+                        ],
+                        bgcolor: '#151515',
+                        activecolor: '#00dd77',
+                        font: { color: '#ccc' },
+                        x: 0,
+                        y: 1.15,
+                        xanchor: 'left',
+                        yanchor: 'bottom'
+                    }
                 },
-                yaxis: { title: { text: yAxisTitle, font: { size: 10, color: '#888'} }, gridcolor: '#22222250', tickfont: { color: '#888' }, domain: hasVolumeData ? [0.25, 1] : [0, 1], automargin: true },
-                hovermode: 'x unified', showlegend: true,
-                legend: { orientation: 'h', yanchor: 'bottom', y: 1.01, xanchor: 'right', x: 1, bgcolor: 'rgba(10,10,10,0.0)', font: { size: 9 } },
+                yaxis: {
+                    title: { text: yAxisTitle, font: { size: 10, color: '#888' } },
+                    gridcolor: '#22222250',
+                    tickfont: { color: '#888' },
+                    domain: hasVolumeData ? [0.25, 1] : [0, 1],
+                    automargin: true
+                },
+                hovermode: 'x unified',
+                showlegend: true,
+                legend: {
+                    orientation: 'h',
+                    yanchor: 'bottom',
+                    y: 1.01,
+                    xanchor: 'right',
+                    x: 1,
+                    bgcolor: 'rgba(10,10,10,0.0)',
+                    font: { size: 9 }
+                },
                 dragmode: 'pan'
             };
             
-            // Add additional y-axes if multiple series are plotted and not volume
-            let yAxisCounter = 2; // Start from y2 if y1 is used by main series
+            let yAxisCounter = 2;
             chart.symbols.forEach((s, index) => {
-                if (index > 0 && !(s.source.toLowerCase() === 'polygon' && changeType === 'value' && chart.data[s.symbol]?.[0]?.open !== undefined)) { // Don't create extra axis for volume or first series
+                if (index > 0 && !(s.source.toLowerCase() === 'polygon' && changeType === 'value' && chart.data[s.symbol]?.[0]?.open !== undefined)) {
                     const yAxisName = `yaxis${yAxisCounter}`;
                     layout[yAxisName] = {
-                        title: { text: s.symbol, font: {size: 10, color: colorPalette[index % colorPalette.length]}},
-                        overlaying: 'y', side: yAxisCounter % 2 === 0 ? 'right' : 'left', // Alternate sides
-                        showgrid: false, tickfont: {color: colorPalette[index % colorPalette.length]},
+                        title: { text: s.symbol, font: { size: 10, color: colorPalette[index % colorPalette.length] } },
+                        overlaying: 'y',
+                        side: yAxisCounter % 2 === 0 ? 'right' : 'left',
+                        showgrid: false,
+                        tickfont: { color: colorPalette[index % colorPalette.length] },
                         automargin: true
                     };
-                    // Assign this y-axis to the corresponding trace(s)
                     traces.filter(t => t.name && (t.name.startsWith(s.symbol))).forEach(traceToUpdate => traceToUpdate.yaxis = `y${yAxisCounter}`);
                     yAxisCounter++;
                 }
             });
 
-            if (hasVolumeData) { // Ensure volume axis (y2) is distinct
-                layout.yaxis2 = { title: 'Volume', domain: [0, 0.20], showgrid: false, tickfont: { color: '#888', size: 9 }, titlefont: {color: '#888', size: 10}, automargin: true };
+            if (hasVolumeData) {
+                layout.yaxis2 = {
+                    title: 'Volume',
+                    domain: [0, 0.20],
+                    showgrid: false,
+                    tickfont: { color: '#888', size: 9 },
+                    titlefont: { color: '#888', size: 10 },
+                    automargin: true
+                };
             }
             
-            const config = { responsive: true, displaylogo: false, modeBarButtonsToRemove: ['select2d', 'lasso2d', 'toImage'],
-                 modeBarButtonsToAdd: [{ name: 'Toggle Log Scale (Y-axis)', icon: Plotly.Icons.logarithmic, click: (gd) => Plotly.relayout(gd, 'yaxis.type', gd.layout.yaxis.type === 'log' ? 'linear' : 'log') }]
+            const config = {
+                responsive: true,
+                displaylogo: false,
+                modeBarButtonsToRemove: ['select2d', 'lasso2d', 'toImage'],
+                modeBarButtonsToAdd: [{
+                    name: 'Toggle Log Scale (Y-axis)',
+                    icon: Plotly.Icons.logarithmic,
+                    click: (gd) => Plotly.relayout(gd, 'yaxis.type', gd.layout.yaxis.type === 'log' ? 'linear' : 'log')
+                }]
             };
             
             if(canvasElement.querySelector('.chart-message')) canvasElement.innerHTML = '';
             Plotly.react(canvasElement, traces, layout, config)
                 .then(gd => { charts[chartId].chartInstance = gd; })
-                .catch(err => { console.error("Plotly error:", err); canvasElement.innerHTML = `<div class="chart-message" style="color: #ff4444;">Chart error: ${err.message}</div>`; });
+                .catch(err => {
+                    console.error("Plotly error:", err);
+                    canvasElement.innerHTML = `<div class="chart-message" style="color: #ff4444;">Chart error: ${err.message}</div>`;
+                });
         }
         
-        // Calculate and display statistics for the first symbol in the chart
-        function calculateStats(chartId, symbol) { /* ... (Keep existing calculateStats, it usually works on first symbol) ... */ }
-        function updateStatsPanel(chartId, symbol, stats) { /* ... (Keep existing updateStatsPanel) ... */ }
+        // Calculate and display statistics
+        function calculateStats(chartId, symbol) {
+            const chart = charts[chartId];
+            if (!chart || !chart.data[symbol]) return;
+            
+            const data = chart.data[symbol];
+            const values = data.map(d => d.close || d.value).filter(v => v !== null && !isNaN(v));
+            
+            if (values.length === 0) return;
+            
+            const stats = {
+                current: values[values.length - 1],
+                min: Math.min(...values),
+                max: Math.max(...values),
+                avg: values.reduce((a, b) => a + b, 0) / values.length,
+                change: ((values[values.length - 1] - values[0]) / values[0]) * 100,
+                volatility: calculateVolatility(values)
+            };
+            
+            updateStatsPanel(chartId, symbol, stats);
+        }
+        
+        function calculateVolatility(values) {
+            if (values.length < 2) return 0;
+            const returns = [];
+            for (let i = 1; i < values.length; i++) {
+                returns.push((values[i] - values[i-1]) / values[i-1]);
+            }
+            const avgReturn = returns.reduce((a, b) => a + b, 0) / returns.length;
+            const variance = returns.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0) / returns.length;
+            return Math.sqrt(variance) * Math.sqrt(252) * 100; // Annualized volatility
+        }
+        
+        function updateStatsPanel(chartId, symbol, stats) {
+            const statsPanel = document.getElementById(`${chartId}_stats`);
+            if (!statsPanel) return;
+            
+            statsPanel.innerHTML = `
+                <div class="stat-item">
+                    <div class="stat-label">Current</div>
+                    <div class="stat-value">${stats.current.toFixed(2)}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Min</div>
+                    <div class="stat-value">${stats.min.toFixed(2)}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Max</div>
+                    <div class="stat-value">${stats.max.toFixed(2)}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Average</div>
+                    <div class="stat-value">${stats.avg.toFixed(2)}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Change</div>
+                    <div class="stat-value ${stats.change >= 0 ? 'value-positive' : 'value-negative'}">${stats.change >= 0 ? '+' : ''}${stats.change.toFixed(2)}%</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Volatility</div>
+                    <div class="stat-value">${stats.volatility.toFixed(2)}%</div>
+                </div>
+            `;
+        }
         
         // Watchlist Functions
-        function createDefaultWatchlist() { /* ... (Keep existing, ensure symbols are valid) ... */ }
-        function createWatchlist(name, initialSymbols = [], color) { /* ... (Keep existing) ... */ }
-        function createNewWatchlist() { /* ... (Keep existing) ... */ }
-        async function updateWatchlistDataFor(watchlistId) { /* ... (Keep existing, ensure robust error handling) ... */ }
-        async function updateWatchlistData() { /* ... (Keep existing) ... */ }
-        function changeWatchlistColor(event, watchlistId) { /* ... (Keep existing) ... */ }
-        function renderWatchlists() { /* ... (Keep existing) ... */ }
-
-        // Fullscreen, Layout Save/Load
-        function toggleFullscreen(event, chartId) { /* ... (Keep existing) ... */ }
-        function saveLayout() { /* ... (Keep existing, consider versioning if structure changes) ... */ }
-        function loadLayout() { /* ... (Keep existing, ensure robust parsing and re-creation) ... */ }
-        function showTemporaryMessage(text, type = 'info') { /* ... (Keep existing) ... */ }
+        function createDefaultWatchlist() {
+            createWatchlist('Market Indices', [
+                { symbol: 'SP500', source: 'fred', name: 'S&P 500' },
+                { symbol: 'VIXCLS', source: 'fred', name: 'VIX' }
+            ], colorPalette[0]);
+            
+            createWatchlist('Tech Stocks', [
+                { symbol: 'AAPL', source: 'polygon', name: 'Apple' },
+                { symbol: 'MSFT', source: 'polygon', name: 'Microsoft' },
+                { symbol: 'GOOGL', source: 'polygon', name: 'Google' }
+            ], colorPalette[1]);
+        }
+        
+        function createWatchlist(name, initialSymbols = [], color) {
+            const watchlistId = `watchlist_${watchlistIdCounter++}`;
+            watchlists[watchlistId] = {
+                name,
+                symbols: initialSymbols,
+                color: color || colorPalette[watchlistIdCounter % colorPalette.length],
+                data: {}
+            };
+            renderWatchlists();
+            updateWatchlistDataFor(watchlistId);
+        }
+        
+        function createNewWatchlist() {
+            const name = prompt('Enter watchlist name:');
+            if (name) {
+                createWatchlist(name);
+            }
+        }
+        
+        async function updateWatchlistDataFor(watchlistId) {
+            const watchlist = watchlists[watchlistId];
+            if (!watchlist) return;
+            
+            for (const item of watchlist.symbols) {
+                try {
+                    // Simulate data fetch - replace with actual API call when ready
+                    const data = generateSampleData(item.symbol, item.source);
+                    if (data && data.length > 0) {
+                        const latest = data[data.length - 1];
+                        const previous = data[data.length - 2];
+                        const change = ((latest.value - previous.value) / previous.value) * 100;
+                        
+                        watchlist.data[item.symbol] = {
+                            currentValue: latest.value,
+                            change: change,
+                            changeType: change > 0 ? 'positive' : change < 0 ? 'negative' : 'neutral'
+                        };
+                    }
+                } catch (error) {
+                    console.error(`Error updating watchlist data for ${item.symbol}:`, error);
+                    watchlist.data[item.symbol] = {
+                        currentValue: 0,
+                        change: 0,
+                        changeType: 'neutral'
+                    };
+                }
+            }
+            renderWatchlists();
+        }
+        
+        async function updateWatchlistData() {
+            for (const watchlistId in watchlists) {
+                await updateWatchlistDataFor(watchlistId);
+            }
+        }
+        
+        function changeWatchlistColor(event, watchlistId) {
+            event.stopPropagation();
+            const watchlist = watchlists[watchlistId];
+            if (!watchlist) return;
+            
+            const currentIndex = colorPalette.indexOf(watchlist.color);
+            const nextIndex = (currentIndex + 1) % colorPalette.length;
+            watchlist.color = colorPalette[nextIndex];
+            renderWatchlists();
+        }
+        
+        function renderWatchlists() {
+            const container = document.getElementById('watchlists');
+            if (!container) return;
+            
+            const html = Object.entries(watchlists).map(([id, watchlist]) => `
+                <div class="watchlist-group">
+                    <div class="watchlist-group-header">
+                        <div class="watchlist-group-name">${watchlist.name}</div>
+                        <div class="watchlist-group-controls">
+                            <div class="color-picker" style="background-color: ${watchlist.color};" 
+                                 onclick="changeWatchlistColor(event, '${id}')"></div>
+                        </div>
+                    </div>
+                    ${watchlist.symbols.map(item => {
+                        const data = watchlist.data[item.symbol] || { currentValue: 0, change: 0, changeType: 'neutral' };
+                        return `
+                            <div class="watchlist-item" onclick="addToChartWrapper('${item.symbol}', '${item.source}', '${item.name}')">
+                                <div class="color-label" style="background-color: ${watchlist.color};"></div>
+                                <div class="watchlist-item-content">
+                                    <div class="watchlist-item-info">
+                                        <div class="watchlist-symbol">${item.symbol}</div>
+                                        <div class="watchlist-name">${data.currentValue.toFixed(2)}</div>
+                                    </div>
+                                    <div class="watchlist-values">
+                                        <div class="value-change value-${data.changeType}">
+                                            ${data.change >= 0 ? '+' : ''}${data.change.toFixed(2)}%
+                                            <span class="change-label">1D</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `).join('');
+            
+            container.innerHTML = html;
+        }
+        
+        // Fullscreen toggle
+        function toggleFullscreen(event, chartId) {
+            event.stopPropagation();
+            const chartElement = document.getElementById(chartId);
+            if (!chartElement) return;
+            
+            if (chartElement.classList.contains('fullscreen')) {
+                chartElement.classList.remove('fullscreen');
+            } else {
+                chartElement.classList.add('fullscreen');
+            }
+            
+            // Force Plotly to resize
+            if (charts[chartId] && charts[chartId].chartInstance) {
+                setTimeout(() => {
+                    Plotly.Plots.resize(charts[chartId].chartInstance);
+                }, 100);
+            }
+        }
+        
+        // Save current layout
+        function saveLayout() {
+            const layoutData = {
+                version: '1.0',
+                charts: Object.entries(charts).map(([id, chart]) => ({
+                    id,
+                    symbols: chart.symbols,
+                    timeframe: chart.timeframe
+                })),
+                watchlists: Object.entries(watchlists).map(([id, watchlist]) => ({
+                    id,
+                    name: watchlist.name,
+                    symbols: watchlist.symbols,
+                    color: watchlist.color
+                }))
+            };
+            
+            const dataStr = JSON.stringify(layoutData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `financial_dashboard_layout_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            showTemporaryMessage('Layout saved successfully!', 'info');
+        }
+        
+        // Load saved layout
+        function loadLayout() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = async (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                try {
+                    const text = await file.text();
+                    const layoutData = JSON.parse(text);
+                    
+                    // Clear existing charts and watchlists
+                    Object.keys(charts).forEach(chartId => {
+                        if (charts[chartId].chartInstance) {
+                            Plotly.purge(`${chartId}_canvas`);
+                        }
+                        document.getElementById(chartId)?.remove();
+                    });
+                    Object.keys(charts).forEach(key => delete charts[key]);
+                    Object.keys(watchlists).forEach(key => delete watchlists[key]);
+                    
+                    // Recreate charts
+                    if (layoutData.charts) {
+                        for (const chartData of layoutData.charts) {
+                            addNewChart();
+                            const newChartId = `chart_${chartIdCounter - 1}`;
+                            charts[newChartId].timeframe = chartData.timeframe || 'MAX';
+                            
+                            for (const symbol of chartData.symbols) {
+                                addToChart(newChartId, symbol.symbol, symbol.source, symbol.name);
+                            }
+                        }
+                    }
+                    
+                    // Recreate watchlists
+                    if (layoutData.watchlists) {
+                        watchlistIdCounter = 0;
+                        for (const watchlistData of layoutData.watchlists) {
+                            createWatchlist(watchlistData.name, watchlistData.symbols, watchlistData.color);
+                        }
+                    }
+                    
+                    showTemporaryMessage('Layout loaded successfully!', 'info');
+                } catch (error) {
+                    console.error('Error loading layout:', error);
+                    showTemporaryMessage('Error loading layout file!', 'error');
+                }
+            };
+            
+            input.click();
+        }
+        
+        // Show temporary message
+        function showTemporaryMessage(text, type = 'info') {
+            const popup = document.createElement('div');
+            popup.className = `message-popup ${type}`;
+            popup.textContent = text;
+            document.body.appendChild(popup);
+            
+            setTimeout(() => {
+                popup.remove();
+            }, 3000);
+        }
         
         // Initialize on page load
         window.onload = init;
         
         // Global click listener to hide search results
-        document.addEventListener('click', function(event) { /* ... (Keep existing) ... */ });
+        document.addEventListener('click', function(event) {
+            const searchBox = document.getElementById('searchBox');
+            const searchResults = document.getElementById('searchResults');
+            
+            if (!searchBox.contains(event.target) && !searchResults.contains(event.target)) {
+                searchResults.style.display = 'none';
+            }
+        });
         
         // Animation styles
         const animationStyle = document.createElement('style');
@@ -1458,10 +1659,6 @@
             @keyframes slideInAndOut {
                 0% { transform: translateX(120%); opacity: 0; }
                 15%, 85% { transform: translateX(0); opacity: 1; }
-                100% { transform: translateX(120%); opacity: 0; display: none; }
+                100% { transform: translateX(120%); opacity: 0; }
             }`;
         document.head.appendChild(animationStyle);
-
-    </script>
-</body>
-</html>
