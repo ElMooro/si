@@ -314,7 +314,7 @@
         .watchlist-section { 
             background: #121212;
             border-top: 1px solid #282828;
-            height: 300px;
+            height: 300px; /* Adjust as needed */
             overflow-y: auto;
         }
         
@@ -365,7 +365,7 @@
             text-align: left;
             border-bottom: 1px solid #282828;
             position: sticky;
-            top: 57px;
+            top: 57px; /* Height of watchlist-header */
             z-index: 5;
         }
         
@@ -384,7 +384,7 @@
         
         .watchlist-table td {
             padding: 12px 15px;
-            border-bottom: 1px solid #1a1a1a;
+            border-bottom: 1px solid #1a1a1a; /* Darker border for rows */
             font-size: 13px;
         }
         
@@ -463,8 +463,8 @@
             z-index: 2000;
             animation: slideInAndOut 3s ease-in-out forwards;
         }
-        .message-popup.info { border-color: #00dd77; }
-        .message-popup.error { border-color: #ff4444; color: #ff6666; }
+        .message-popup.info { border-left: 5px solid #00dd77; color: #e0e0e0; }
+        .message-popup.error { border-left: 5px solid #ff4444; color: #ffaaaa; }
         
         @keyframes slideInAndOut {
             0% { transform: translateX(120%); opacity: 0; }
@@ -483,7 +483,7 @@
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: #ff4444;
+            background: #ff4444; /* Default to error */
         }
         
         .status-dot.connected {
@@ -540,8 +540,7 @@
                         </tr>
                     </thead>
                     <tbody id="watchlistBody">
-                        <!-- Watchlist items will be populated here -->
-                    </tbody>
+                        </tbody>
                 </table>
             </div>
         </div>
@@ -549,14 +548,14 @@
 
     <script>
         // Configuration
-        const API_BASE_URL = 'https://ped8gafyuz.us-east-1.awsapprunner.com/api/v1';
+        const API_BASE_URL = 'https://ped8gafyuz.us-east-1.awsapprunner.com/api/v1'; // Your API
         
         const charts = {};
         let chartIdCounter = 0;
         let activeChartId = null;
         let searchTimeout = null;
-        let searchCache = {};
-        const watchlistSymbols = ['AAPL', 'MSFT', 'GOOGL', 'DGS10', 'GDP', 'UNRATE'];
+        let searchCache = {}; // Cache for API search results if implemented
+        const watchlistSymbols = ['AAPL', 'MSFT', 'GOOGL', 'DGS10', 'GDP', 'UNRATE']; // Default watchlist
         let watchlistData = {};
         
         // Color palette for charts
@@ -565,19 +564,20 @@
             '#AF7AC5', '#48C9B0', '#EC7063', '#5DADE2', '#F5B041'
         ];
         
-        // Sample data for search suggestions with more comprehensive data
+        // Sample data for search suggestions (LOCAL SEARCH ONLY)
+        // To add ECB, your backend API must support it, then add provider: 'ecb' here.
         const sampleIndicators = [
             // Stocks
             { symbol: 'AAPL', name: 'Apple Inc.', type: 'equity', provider: 'fmp', category: 'Technology' },
             { symbol: 'MSFT', name: 'Microsoft Corporation', type: 'equity', provider: 'fmp', category: 'Technology' },
             { symbol: 'GOOGL', name: 'Alphabet Inc.', type: 'equity', provider: 'fmp', category: 'Technology' },
-            { symbol: 'AMZN', name: 'Amazon.com Inc.', type: 'equity', provider: 'fmp', category: 'Technology' },
+            { symbol: 'AMZN', name: 'Amazon.com Inc.', type: 'equity', provider: 'fmp', category: 'E-commerce' },
             { symbol: 'TSLA', name: 'Tesla, Inc.', type: 'equity', provider: 'fmp', category: 'Automotive' },
             { symbol: 'NVDA', name: 'NVIDIA Corporation', type: 'equity', provider: 'fmp', category: 'Technology' },
             { symbol: 'META', name: 'Meta Platforms Inc.', type: 'equity', provider: 'fmp', category: 'Technology' },
-            { symbol: 'SPY', name: 'SPDR S&P 500 ETF Trust', type: 'equity', provider: 'polygon', category: 'ETF' },
-            { symbol: 'QQQ', name: 'Invesco QQQ Trust', type: 'equity', provider: 'polygon', category: 'ETF' },
-            { symbol: 'IWM', name: 'iShares Russell 2000 ETF', type: 'equity', provider: 'polygon', category: 'ETF' },
+            { symbol: 'SPY', name: 'SPDR S&P 500 ETF Trust', type: 'equity', provider: 'fmp', category: 'ETF' }, // Changed provider for consistency, ensure your API supports 'fmp' for ETFs or adjust
+            { symbol: 'QQQ', name: 'Invesco QQQ Trust', type: 'equity', provider: 'fmp', category: 'ETF' },
+            { symbol: 'IWM', name: 'iShares Russell 2000 ETF', type: 'equity', provider: 'fmp', category: 'ETF' },
             
             // FRED Economic Indicators
             { symbol: 'DGS10', name: '10-Year Treasury Constant Maturity Rate', type: 'economy', provider: 'fred', category: 'Interest Rates' },
@@ -592,15 +592,8 @@
             { symbol: 'VIXCLS', name: 'CBOE Volatility Index: VIX', type: 'economy', provider: 'fred', category: 'Market Volatility' },
             { symbol: 'DEXUSEU', name: 'U.S. / Euro Foreign Exchange Rate', type: 'economy', provider: 'fred', category: 'Currency' },
             { symbol: 'DEXJPUS', name: 'Japan / U.S. Foreign Exchange Rate', type: 'economy', provider: 'fred', category: 'Currency' },
-            { symbol: 'DEXCHUS', name: 'China / U.S. Foreign Exchange Rate', type: 'economy', provider: 'fred', category: 'Currency' },
-            { symbol: 'M2SL', name: 'M2 Money Stock', type: 'economy', provider: 'fred', category: 'Money Supply' },
-            { symbol: 'HOUST', name: 'Housing Starts: Total: New Privately Owned Housing Units', type: 'economy', provider: 'fred', category: 'Housing' },
-            { symbol: 'CSUSHPISA', name: 'S&P/Case-Shiller U.S. National Home Price Index', type: 'economy', provider: 'fred', category: 'Housing' },
-            { symbol: 'INDPRO', name: 'Industrial Production Index', type: 'economy', provider: 'fred', category: 'Manufacturing' },
-            { symbol: 'UMCSENT', name: 'University of Michigan: Consumer Sentiment', type: 'economy', provider: 'fred', category: 'Consumer Confidence' },
-            { symbol: 'T10Y2Y', name: '10-Year Treasury Minus 2-Year Treasury', type: 'economy', provider: 'fred', category: 'Yield Curve' },
-            { symbol: 'DCOILWTICO', name: 'Crude Oil Prices: West Texas Intermediate', type: 'economy', provider: 'fred', category: 'Commodities' },
-            { symbol: 'GOLDAMGBD228NLBM', name: 'Gold Fixing Price', type: 'economy', provider: 'fred', category: 'Commodities' }
+            // { symbol: 'ECB_EURUSD', name: 'ECB EUR to USD Exchange Rate', type: 'economy', provider: 'ecb', category: 'Currency' }, // Example for ECB - REQUIRES BACKEND SUPPORT
+
         ];
         
         // Initialize the dashboard
@@ -608,47 +601,57 @@
             updateClock();
             setInterval(updateClock, 1000);
             
-            await checkAPIConnection();
-            addNewChart();
+            await checkAPIConnection(); // Check connection first
+            addNewChart(); // Add one chart by default
             loadWatchlistData();
-            setInterval(loadWatchlistData, 300000); // Update every 5 minutes
+            setInterval(loadWatchlistData, 300000); // Update watchlist every 5 minutes
         }
         
         // Check API connection
         async function checkAPIConnection() {
+            const statusDot = document.getElementById('apiStatus');
+            const statusText = document.getElementById('apiStatusText');
             try {
-                console.log('Testing API connection...');
-                
-                // Test with a simple FRED endpoint first
+                console.log('Attempting to connect to API_BASE_URL:', API_BASE_URL);
+                // Using a common FRED series for testing the /economy/fred_series endpoint
                 const testEndpoint = `${API_BASE_URL}/economy/fred_series?symbol=DGS10&provider=fred`;
-                console.log('Testing endpoint:', testEndpoint);
+                console.log('Testing API connection with endpoint:', testEndpoint);
                 
-                const response = await fetch(testEndpoint);
-                console.log('API response status:', response.status);
-                
+                const response = await fetch(testEndpoint, {signal: AbortSignal.timeout(10000)}); // 10s timeout
+                console.log('API connection test response status:', response.status);
+
                 if (response.ok) {
-                    const data = await response.json();
-                    console.log('API test data:', data);
-                    
-                    document.getElementById('apiStatus').classList.add('connected');
-                    document.getElementById('apiStatusText').textContent = 'API Connected';
-                    
-                    showTemporaryMessage('Successfully connected to OpenBB API!', 'info');
+                    const data = await response.json(); // Try to parse as JSON
+                    console.log('API connection test successful. Sample data:', data);
+                    if (data && ((data.results && Array.isArray(data.results)) || (data.data && Array.isArray(data.data)) || (Array.isArray(data) && data.length > 0) )) { // Check if data looks somewhat valid
+                        statusDot.classList.add('connected');
+                        statusText.textContent = 'API Connected';
+                        showTemporaryMessage('Successfully connected to OpenBB API!', 'info');
+                    } else {
+                        console.warn('API connection test OK, but data structure might be unexpected:', data);
+                        statusDot.classList.remove('connected'); // Not fully connected if data is weird
+                        statusText.textContent = 'API Partial';
+                        showTemporaryMessage('API connected, but response data structure is unusual. Check console.', 'error');
+                    }
                 } else {
                     const errorText = await response.text();
-                    console.error('API error response:', errorText);
-                    throw new Error(`API returned ${response.status}: ${errorText}`);
+                    console.error(`API connection test failed. Status: ${response.status}, Response: ${errorText}`);
+                    statusDot.classList.remove('connected');
+                    statusText.textContent = 'API Error';
+                    showTemporaryMessage(`API connection failed: ${response.status}. Check console.`, 'error');
                 }
             } catch (error) {
-                console.error('API connection failed:', error);
-                document.getElementById('apiStatusText').textContent = 'API Disconnected';
-                showTemporaryMessage(`API connection failed: ${error.message}`, 'error');
-                
-                // Test if CORS is the issue
-                console.log('Testing CORS...');
-                fetch(API_BASE_URL, { mode: 'no-cors' })
-                    .then(() => console.log('Server is reachable but CORS might be blocking'))
-                    .catch(err => console.log('Server unreachable:', err));
+                console.error('API connection test threw an error:', error.name, error.message);
+                statusDot.classList.remove('connected');
+                statusText.textContent = 'API Disconnected';
+                if (error.name === 'AbortError') {
+                     showTemporaryMessage('API connection timed out. The server may be slow or unreachable.', 'error');
+                } else if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+                     showTemporaryMessage('API connection failed. This could be a CORS issue or network problem. Check console for details.', 'error');
+                     console.warn("A 'Failed to fetch' error often indicates a CORS problem if the server is reachable. Ensure the API server at", API_BASE_URL, "has correct CORS headers.");
+                } else {
+                     showTemporaryMessage(`API connection error: ${error.message}. Check console.`, 'error');
+                }
             }
         }
         
@@ -657,69 +660,52 @@
             document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
         }
         
-        // Debounce search input with immediate local results
+        // Debounce search input
         function debounceSearch(query) {
             clearTimeout(searchTimeout);
-            
-            // Show immediate local results for fast feedback
-            if (query.trim().length >= 2) {
-                searchIndicators(query.trim());
-            } else {
-                document.getElementById('searchResults').style.display = 'none';
-            }
+            searchTimeout = setTimeout(() => searchIndicators(query.trim()), 300);
         }
         
-        // Search for indicators - now working instantly
-        function searchIndicators(query) {
+        // Search for indicators (LOCAL SEARCH ONLY)
+        // To implement API search, this function would need to call your backend API.
+        async function searchIndicators(query) {
             const resultsDiv = document.getElementById('searchResults');
             
-            if (query.length < 1) {
+            if (query.length < 2) {
                 resultsDiv.style.display = 'none';
                 return;
             }
         
             const lowerQuery = query.toLowerCase();
+            resultsDiv.innerHTML = '<div class="search-loading loading-pulse">Searching...</div>';
+            resultsDiv.style.display = 'block';
             
-            // Search local indicators for instant results
+            // LOCAL Search: Filters the 'sampleIndicators' array.
+            // This does NOT make an API call.
             const localResults = sampleIndicators.filter(indicator => 
                 indicator.symbol.toLowerCase().includes(lowerQuery) ||
                 indicator.name.toLowerCase().includes(lowerQuery) ||
                 (indicator.category && indicator.category.toLowerCase().includes(lowerQuery))
             );
             
-            console.log(`Search for "${query}" found ${localResults.length} results`);
-            
-            // Show results immediately
+            console.log(`Local search for "${query}" found ${localResults.length} results.`);
             displaySearchResults(localResults, query);
         }
         
-        // Display search results with instant feedback
+        // Display search results
         function displaySearchResults(results, query) {
             const resultsDiv = document.getElementById('searchResults');
             
             if (!results || results.length === 0) {
                 resultsDiv.innerHTML = `
                     <div class="search-item" style="text-align:center; color:#888; padding: 20px;">
-                        No results found for "${query}"<br>
-                        <small style="color: #666;">Try: AAPL, MSFT, GDP, DGS10, unemployment, inflation, oil, gold</small>
-                        <br><br>
-                        <small style="color: #555;">Popular searches:</small><br>
-                        <div style="display: flex; gap: 8px; justify-content: center; margin-top: 8px; flex-wrap: wrap;">
-                            ${['AAPL', 'GDP', 'DGS10', 'UNRATE', 'CPIAUCSL'].map(symbol => 
-                                `<span style="background: #333; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 11px;" 
-                                      onclick="document.getElementById('searchBox').value='${symbol}'; searchIndicators('${symbol}')">${symbol}</span>`
-                            ).join('')}
-                        </div>
+                        No results found for "${query}" in local data.<br>
+                        <small>Try: AAPL, GDP, DGS10, UNRATE, CPI, etc.</small>
                     </div>`;
-                resultsDiv.style.display = 'block';
                 return;
             }
             
-            // Limit results for better performance
-            const displayResults = results.slice(0, 15);
-            
-            // Group results by category for better organization
-            const grouped = displayResults.reduce((acc, result) => {
+            const grouped = results.reduce((acc, result) => {
                 const category = result.category || 'Other';
                 if (!acc[category]) acc[category] = [];
                 acc[category].push(result);
@@ -728,31 +714,26 @@
             
             let html = '';
             Object.entries(grouped).forEach(([category, items]) => {
-                if (Object.keys(grouped).length > 1 && items.length > 1) {
+                if (Object.keys(grouped).length > 1) {
                     html += `<div style="padding: 8px 20px; background: #1a1a1a; color: #888; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #222;">
-                        ${category} (${items.length})
+                        ${category}
                     </div>`;
                 }
                 
-                items.forEach(result => {
-                    // Highlight matching text
-                    const symbolMatch = result.symbol.toLowerCase().includes(query.toLowerCase());
-                    const nameMatch = result.name.toLowerCase().includes(query.toLowerCase());
-                    
+                items.slice(0, 10).forEach(result => { // Limit to 10 results per category
                     html += `
                         <div class="search-item" onclick="addSearchResultToChart('${result.symbol}', '${result.type}', '${result.provider}', '${result.name.replace(/'/g, "\\'")}')">
                             <div class="search-item-left">
-                                <div class="search-item-symbol" style="${symbolMatch ? 'color: #00ff88;' : ''}">${result.symbol}</div>
-                                <div class="search-item-name" style="${nameMatch ? 'color: #ddd;' : ''}">${result.name}</div>
+                                <div class="search-item-symbol">${result.symbol}</div>
+                                <div class="search-item-name">${result.name}</div>
                             </div>
-                            <div class="search-item-source">${result.provider}</div>
+                            <div class="search-item-source">${result.provider.toUpperCase()}</div>
                         </div>
                     `;
                 });
             });
             
             resultsDiv.innerHTML = html;
-            resultsDiv.style.display = 'block';
         }
         
         // Show popular suggestions when search box is focused
@@ -760,48 +741,23 @@
             const searchBox = document.getElementById('searchBox');
             if (searchBox.value.trim() === '') {
                 const resultsDiv = document.getElementById('searchResults');
-                const popularCategories = {
-                    'Major Stocks': ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA'],
-                    'ETFs': ['SPY', 'QQQ', 'IWM'],
-                    'Interest Rates': ['DGS10', 'DGS2', 'FEDFUNDS'],
-                    'Economic Indicators': ['GDP', 'CPIAUCSL', 'UNRATE'],
-                    'Market Data': ['VIXCLS', 'DEXUSEU']
-                };
-                
-                let html = '';
-                Object.entries(popularCategories).forEach(([category, symbols]) => {
-                    html += `<div style="padding: 8px 20px; background: #1a1a1a; color: #888; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #222;">
-                        ${category}
-                    </div>`;
-                    
-                    symbols.forEach(symbol => {
-                        const indicator = sampleIndicators.find(ind => ind.symbol === symbol);
-                        if (indicator) {
-                            html += `
-                                <div class="search-item" onclick="addSearchResultToChart('${indicator.symbol}', '${indicator.type}', '${indicator.provider}', '${indicator.name.replace(/'/g, "\\'")}')">
-                                    <div class="search-item-left">
-                                        <div class="search-item-symbol">${indicator.symbol}</div>
-                                        <div class="search-item-name">${indicator.name}</div>
-                                    </div>
-                                    <div class="search-item-source">${indicator.provider}</div>
-                                </div>
-                            `;
-                        }
-                    });
-                });
-                
-                resultsDiv.innerHTML = html;
-                resultsDiv.style.display = 'block';
+                // Using a subset of sampleIndicators for popular suggestions
+                const popular = sampleIndicators.filter(ind => ['AAPL', 'GDP', 'DGS10', 'UNRATE', 'SPY', 'CPIAUCSL'].includes(ind.symbol));
+                if (popular.length > 0) {
+                    displaySearchResults(popular, "Popular Suggestions"); // Pass a dummy query string
+                    resultsDiv.style.display = 'block';
+                }
             }
         }
+
         function addSearchResultToChart(symbol, type, provider, name) {
             let targetChartId = activeChartId;
             if (!targetChartId) {
                 if (Object.keys(charts).length > 0) {
-                    targetChartId = Object.keys(charts)[Object.keys(charts).length - 1];
+                    targetChartId = Object.keys(charts)[Object.keys(charts).length - 1]; // Get last chart
                 } else {
-                    addNewChart();
-                    targetChartId = activeChartId;
+                    addNewChart(); // Create one if none exist
+                    targetChartId = activeChartId; // activeChartId is set by addNewChart
                 }
             }
             
@@ -848,18 +804,20 @@
         
         // Set the currently active chart
         function setActiveChart(chartId) {
-            if (activeChartId === chartId) return;
+            if (activeChartId === chartId && document.getElementById(chartId)?.classList.contains('active-chart')) return;
+            
             activeChartId = chartId;
             document.querySelectorAll('.chart-window').forEach(c => c.classList.remove('active-chart'));
             const chartElement = document.getElementById(chartId);
             if (chartElement) {
                 chartElement.classList.add('active-chart');
             }
+            console.log("Active chart set to:", chartId);
         }
         
         // Remove a chart window
         function removeChart(event, chartIdToRemove) {
-            event.stopPropagation();
+            event.stopPropagation(); // Prevent click from bubbling to chart window
             if (charts[chartIdToRemove] && charts[chartIdToRemove].chartInstance) {
                 Plotly.purge(`${chartIdToRemove}_canvas`);
             }
@@ -876,137 +834,106 @@
         // Add symbol to a specific chart
         function addToChart(chartId, symbol, type, provider, name) {
             const chart = charts[chartId];
-            if (!chart) return;
+            if (!chart) {
+                console.error("Chart not found:", chartId);
+                return;
+            }
             
             if (!chart.symbols.find(s => s.symbol === symbol)) {
-                chart.symbols.push({ symbol, type, provider, name });
-                loadChartData(chartId, symbol, type, provider);
+                chart.symbols.push({ symbol, type, provider, name }); // Store name as well
+                loadChartData(chartId, symbol, type, provider, name); // Pass name for context
+            } else {
+                showTemporaryMessage(`${symbol} is already on this chart.`, 'info');
             }
-            setActiveChart(chartId);
+            setActiveChart(chartId); // Ensure this chart becomes active
         }
         
         // Load data for a symbol
-        async function loadChartData(chartId, symbol, type, provider) {
+        async function loadChartData(chartId, symbol, type, provider, name) {
             const chart = charts[chartId];
             if (!chart) return;
             
             const canvasDiv = document.getElementById(`${chartId}_canvas`);
-            if (canvasDiv) canvasDiv.innerHTML = `<div class="chart-message loading-pulse">Loading ${symbol}...</div>`;
+            if (canvasDiv) canvasDiv.innerHTML = `<div class="chart-message loading-pulse">Loading ${symbol} (${name || ''})...</div>`;
             
+            let endpoint = '';
+            // --- Construct Endpoint ---
+            if (type === 'equity') {
+                 // For historical equity data, you usually need a different endpoint than quote
+                 // This example assumes your API has a historical endpoint pattern.
+                 // Adjust the 'period' or date range parameters as needed by your API.
+                endpoint = `${API_BASE_URL}/equity/price/historical?symbol=${symbol}&provider=${provider}`; // Assuming 'fmp' or other provider supports this
+            } else if (type === 'economy') {
+                endpoint = `${API_BASE_URL}/economy/fred_series?symbol=${symbol}&provider=${provider}`; // 'fred' provider
+            } else if (type === 'crypto') { // Example for crypto
+                // endpoint = `${API_BASE_URL}/crypto/historical?symbol=${symbol}&provider=${provider}`;
+            } else {
+                console.error(`Unsupported data type "${type}" for symbol ${symbol}`);
+                if (canvasDiv) canvasDiv.innerHTML = `<div class="chart-message" style="color: #ff4444;">Unsupported data type: ${type}</div>`;
+                return;
+            }
+
+            console.log(`Workspaceing chart data for ${symbol} (${name}) from: ${endpoint}`);
+
             try {
-                let endpoint;
-                if (type === 'equity') {
-                    endpoint = `${API_BASE_URL}/equity/price/quote?symbol=${symbol}&provider=${provider}`;
-                } else if (type === 'economy') {
-                    endpoint = `${API_BASE_URL}/economy/fred_series?symbol=${symbol}&provider=${provider}`;
-                }
-                
-                console.log('Fetching data from:', endpoint);
-                
-                const response = await fetch(endpoint);
-                console.log('Response status:', response.status);
+                const response = await fetch(endpoint, {signal: AbortSignal.timeout(15000)}); // 15s timeout
                 
                 if (!response.ok) {
                     const errorText = await response.text();
-                    console.error('API error response:', errorText);
-                    throw new Error(`API error: ${response.status} - ${errorText}`);
+                    console.error(`API Error for ${symbol} (${endpoint}): Status ${response.status}`, errorText);
+                    throw new Error(`API error ${response.status} for ${symbol}`);
                 }
                 
-                const data = await response.json();
-                console.log('Raw API response:', data);
-                
-                // Process the data based on your API structure
+                const rawData = await response.json();
+                console.log(`Raw API response for ${symbol} (${name}):`, JSON.stringify(rawData, null, 2).substring(0, 500) + "..."); // Log part of raw data
+
                 let processedData = [];
-                
-                if (type === 'economy') {
-                    // Handle FRED data structure from your API
-                    if (data.results && Array.isArray(data.results)) {
-                        processedData = data.results
-                            .filter(item => item.value !== null && item.value !== undefined && !isNaN(item.value))
+                // --- Process Data ---
+                if (rawData && (rawData.results || rawData.data || Array.isArray(rawData))) {
+                    let itemsToProcess = rawData.results || rawData.data || rawData;
+                    
+                    if (type === 'economy') { // FRED data structure
+                        processedData = itemsToProcess
+                            .filter(item => item && item.date && item.value !== null && item.value !== undefined && !isNaN(parseFloat(item.value)))
                             .map(item => ({
-                                date: item.date,
+                                date: item.date, // Assuming date is correctly formatted string
                                 value: parseFloat(item.value)
                             }))
                             .sort((a, b) => new Date(a.date) - new Date(b.date));
-                    } else if (data.data && Array.isArray(data.data)) {
-                        // Alternative structure
-                        processedData = data.data
-                            .filter(item => item.value !== null && item.value !== undefined && !isNaN(item.value))
+                    } else if (type === 'equity') { // Equity historical data
+                         processedData = itemsToProcess
+                            .filter(item => item && item.date && (item.close !== undefined || item.adjClose !== undefined || item.value !== undefined))
                             .map(item => ({
                                 date: item.date,
-                                value: parseFloat(item.value)
+                                value: parseFloat(item.adjClose || item.close || item.value) // Prefer adjusted close
                             }))
+                            .filter(item => !isNaN(item.value)) // Ensure value is a number after parsing
                             .sort((a, b) => new Date(a.date) - new Date(b.date));
                     }
-                } else if (type === 'equity') {
-                    // Handle equity quote data
-                    if (data.results && data.results.length > 0) {
-                        const quote = data.results[0];
-                        const currentPrice = quote.last || quote.price || quote.close || quote.regularMarketPrice || 0;
-                        
-                        // For now, create a single data point for current price
-                        // In a full implementation, you'd call historical data endpoint
-                        processedData = [{
-                            date: new Date().toISOString().split('T')[0],
-                            value: currentPrice
-                        }];
-                        
-                        // Try to get historical data if available for stocks
-                        if (type === 'equity') {
-                            try {
-                                // Try different historical endpoints
-                                const historicalEndpoints = [
-                                    `${API_BASE_URL}/equity/price/historical?symbol=${symbol}&provider=${provider}&period=1y`,
-                                    `${API_BASE_URL}/equity/historical?symbol=${symbol}&provider=${provider}`,
-                                    `${API_BASE_URL}/equity/price/historical?symbol=${symbol}&provider=${provider}`
-                                ];
-                                
-                                for (const endpoint of historicalEndpoints) {
-                                    try {
-                                        console.log(`Trying historical endpoint: ${endpoint}`);
-                                        const historicalResponse = await fetch(endpoint);
-                                        if (historicalResponse.ok) {
-                                            const historicalData = await historicalResponse.json();
-                                            console.log(`Historical data response:`, historicalData);
-                                            
-                                            if (historicalData.results && historicalData.results.length > 0) {
-                                                processedData = historicalData.results
-                                                    .map(item => ({
-                                                        date: item.date,
-                                                        value: item.close || item.price || item.value || item.last
-                                                    }))
-                                                    .filter(item => item.value !== null && !isNaN(item.value))
-                                                    .sort((a, b) => new Date(a.date) - new Date(b.date));
-                                                console.log(`Processed historical data: ${processedData.length} points`);
-                                                break;
-                                            }
-                                        }
-                                    } catch (histError) {
-                                        console.log(`Historical endpoint ${endpoint} failed:`, histError.message);
-                                    }
-                                }
-                            } catch (generalHistError) {
-                                console.log('All historical endpoints failed, using current quote only');
-                            }
-                        }
-                    }
+                    // Add other type processing (e.g., crypto) here
+                } else {
+                     console.warn(`Unexpected data structure for ${symbol}:`, rawData);
+                     throw new Error('Unexpected data structure from API.');
                 }
-                
+
                 if (processedData.length === 0) {
-                    throw new Error('No valid data points found in API response');
+                    console.warn(`No valid data points found for ${symbol} after processing. Raw data:`, rawData);
+                    throw new Error('No valid data points found.');
                 }
                 
-                console.log('Processed data:', processedData);
-                
+                console.log(`Processed ${processedData.length} data points for ${symbol}. First point:`, processedData[0], "Last point:", processedData[processedData.length-1]);
                 chart.data[symbol] = processedData;
                 updateChartRender(chartId);
-                updateChartSymbols(chartId);
+                updateChartSymbols(chartId); // Update symbols display
                 
             } catch (error) {
-                console.error(`Error loading data for ${symbol}:`, error);
+                console.error(`Error loading or processing chart data for ${symbol} (${name}):`, error.message, error.stack);
                 if (canvasDiv) {
-                    canvasDiv.innerHTML = `<div class="chart-message" style="color: #ff4444;">Error loading ${symbol}: ${error.message}<br><small>Check console for details</small></div>`;
+                    canvasDiv.innerHTML = `<div class="chart-message" style="color: #ff4444;">Error loading ${symbol}: ${error.message}<br><small>Check console. Is API connected?</small></div>`;
                 }
+                // Optionally remove symbol if data loading fails completely
+                // chart.symbols = chart.symbols.filter(s => s.symbol !== symbol);
+                // updateChartSymbols(chartId);
             }
         }
         
@@ -1020,9 +947,21 @@
             symbolsDiv.innerHTML = chart.symbols.map((s, i) => `
                 <div class="chart-symbol-tag">
                     <span class="symbol-color-dot" style="background-color: ${colorPalette[i % colorPalette.length]};"></span>
-                    ${s.symbol}
+                    ${s.symbol} (${s.name ? s.name.substring(0,15)+'...' : ''})
                     <span class="remove-symbol" onclick="removeSymbolFromChart(event, '${chartId}', '${s.symbol}')">×</span>
                 </div>`).join('');
+            
+            // Update chart title if there's only one symbol
+            const titleEl = document.getElementById(`${chartId}_title`);
+            if (titleEl) {
+                if (chart.symbols.length === 1) {
+                    titleEl.textContent = `${chart.symbols[0].symbol} - ${chart.symbols[0].name || `Chart ${chartIdCounter}`}`;
+                } else if (chart.symbols.length === 0) {
+                    titleEl.textContent = `Chart ${chartIdCounter}`;
+                } else {
+                     titleEl.textContent = `Comparison Chart`;
+                }
+            }
         }
         
         // Remove symbol from chart
@@ -1039,6 +978,7 @@
             
             if (chart.symbols.length === 0) {
                 document.getElementById(`${chartId}_canvas`).innerHTML = '<div class="chart-message">Search for a financial indicator to add to this chart</div>';
+                if (chart.chartInstance) Plotly.purge(`${chartId}_canvas`);
             }
         }
         
@@ -1054,7 +994,7 @@
                 buttonContainer.querySelectorAll('.timeframe-btn').forEach(btn => btn.classList.remove('active'));
                 if(event.target.tagName === 'BUTTON') event.target.classList.add('active');
             }
-            updateChartRender(chartId);
+            updateChartRender(chartId); // Re-render with new timeframe
         }
         
         // Render chart
@@ -1070,52 +1010,77 @@
             }
             
             const traces = [];
-            
+            let allDates = new Set(); // For x-axis range
+
             chart.symbols.forEach((s, index) => {
-                const symbolData = chart.data[s.symbol];
+                let symbolData = chart.data[s.symbol];
                 if (!symbolData || symbolData.length === 0) return;
+
+                // Filter data by timeframe
+                if (chart.timeframe !== 'MAX') {
+                    const now = new Date();
+                    let startDate = new Date();
+                    switch (chart.timeframe) {
+                        case '1M': startDate.setMonth(now.getMonth() - 1); break;
+                        case '3M': startDate.setMonth(now.getMonth() - 3); break;
+                        case '6M': startDate.setMonth(now.getMonth() - 6); break;
+                        case '1Y': startDate.setFullYear(now.getFullYear() - 1); break;
+                        case '2Y': startDate.setFullYear(now.getFullYear() - 2); break;
+                        case '5Y': startDate.setFullYear(now.getFullYear() - 5); break;
+                    }
+                    symbolData = symbolData.filter(d => new Date(d.date) >= startDate);
+                }
                 
-                const lineColor = colorPalette[index % colorPalette.length];
-                
+                if (symbolData.length === 0) return; // Skip if no data after filtering
+
+                const xValues = symbolData.map(d => d.date);
+                const yValues = symbolData.map(d => d.value);
+                xValues.forEach(date => allDates.add(date)); // Collect all dates
+
                 traces.push({
-                    x: symbolData.map(d => d.date),
-                    y: symbolData.map(d => d.value),
+                    x: xValues,
+                    y: yValues,
                     type: 'scatter',
                     mode: 'lines',
-                    name: s.symbol,
-                    line: { color: lineColor, width: 2 },
-                    hovertemplate: `<b>%{fullData.name}</b><br>%{x}<br>%{y:.2f}<extra></extra>`
+                    name: `${s.symbol} (${s.name ? s.name.substring(0,15)+'...' : ''})`,
+                    line: { color: colorPalette[index % colorPalette.length], width: 2 },
+                    hovertemplate: `<b>${s.symbol}</b><br>%{x}<br>%{y:.2f}<extra></extra>`
                 });
             });
             
             if (traces.length === 0) {
-                canvasElement.innerHTML = '<div class="chart-message">No data to display</div>';
+                canvasElement.innerHTML = `<div class="chart-message">No data to display for the selected timeframe or symbols.</div>`;
+                 if (chart.chartInstance) Plotly.purge(canvasElement);
                 return;
             }
             
+            const sortedDates = Array.from(allDates).sort((a,b) => new Date(a) - new Date(b));
             const layout = {
                 paper_bgcolor: '#0a0a0a',
                 plot_bgcolor: '#0a0a0a',
                 font: { color: '#aaa', size: 12 },
-                margin: { t: 30, r: 30, b: 60, l: 60 },
+                margin: { t: 50, r: 30, b: 60, l: 60 }, // Increased top margin for legend
                 xaxis: {
                     type: 'date',
-                    gridcolor: '#22222250',
-                    tickfont: { color: '#888' }
+                    gridcolor: '#22222250', // Softer grid color
+                    tickfont: { color: '#888' },
+                    range: sortedDates.length > 1 ? [sortedDates[0], sortedDates[sortedDates.length -1]] : undefined,
+                    autorange: sortedDates.length <= 1 // Autorange if only one or no effective date range
                 },
                 yaxis: {
                     gridcolor: '#22222250',
-                    tickfont: { color: '#888' }
+                    tickfont: { color: '#888' },
+                    autorange: true // Always autorange Y
                 },
                 hovermode: 'x unified',
-                showlegend: true,
+                showlegend: traces.length > 1, // Show legend if multiple traces
                 legend: {
                     orientation: 'h',
                     yanchor: 'bottom',
                     y: 1.02,
                     xanchor: 'right',
                     x: 1,
-                    bgcolor: 'rgba(10,10,10,0.0)',
+                    bgcolor: 'rgba(10,10,10,0.0)', // Transparent background
                     font: { size: 11 }
                 }
             };
@@ -1126,12 +1091,12 @@
                 modeBarButtonsToRemove: ['select2d', 'lasso2d', 'toImage']
             };
             
-            if(canvasElement.querySelector('.chart-message')) canvasElement.innerHTML = '';
+            if(canvasElement.querySelector('.chart-message')) canvasElement.innerHTML = ''; // Clear any messages
             Plotly.react(canvasElement, traces, layout, config)
                 .then(gd => { charts[chartId].chartInstance = gd; })
                 .catch(err => {
-                    console.error("Plotly error:", err);
-                    canvasElement.innerHTML = `<div class="chart-message" style="color: #ff4444;">Chart error: ${err.message}</div>`;
+                    console.error("Plotly rendering error:", err);
+                    canvasElement.innerHTML = `<div class="chart-message" style="color: #ff4444;">Chart rendering error: ${err.message}</div>`;
                 });
         }
         
@@ -1140,232 +1105,214 @@
             const tbody = document.getElementById('watchlistBody');
             tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px;"><div class="loading-pulse">Loading watchlist data...</div></td></tr>';
             
+            let allLoaded = true;
             for (const symbol of watchlistSymbols) {
                 try {
-                    let data = null;
-                    let symbolName = symbol;
                     let currentPrice = 0;
-                    
-                    // Try equity quote first for stocks
-                    if (['AAPL', 'MSFT', 'GOOGL', 'TSLA', 'SPY'].includes(symbol)) {
-                        try {
-                            const equityEndpoint = `${API_BASE_URL}/equity/price/quote?symbol=${symbol}&provider=fmp`;
-                            console.log(`Trying equity endpoint for ${symbol}:`, equityEndpoint);
-                            
-                            const equityResponse = await fetch(equityEndpoint);
-                            if (equityResponse.ok) {
-                                const equityData = await equityResponse.json();
-                                console.log(`Equity data for ${symbol}:`, equityData);
-                                
-                                if (equityData.results && equityData.results.length > 0) {
-                                    const quote = equityData.results[0];
-                                    console.log(`Raw quote data for ${symbol}:`, JSON.stringify(quote, null, 2));
-                                    
-                                    // Your API returns last_price as the main price field
-                                    currentPrice = quote.last_price || quote.open || quote.close || quote.price || 
-                                                  quote.regularMarketPrice || quote.previous_close || 
-                                                  quote.current_price || quote.market_price || quote.value || 0;
-                                    
-                                    symbolName = quote.name || quote.symbol || quote.company_name || symbol;
-                                    data = equityData;
-                                    
-                                    console.log(`Processed ${symbol}: price=${currentPrice}, name=${symbolName}`);
-                                    console.log(`Available quote fields: ${Object.keys(quote).join(', ')}`);
-                                }
-                            }
-                        } catch (equityError) {
-                            console.log(`Equity endpoint failed for ${symbol}:`, equityError.message);
+                    let displayName = symbol;
+                    let provider = '';
+                    let type = '';
+
+                    // Determine provider and type from sampleIndicators
+                    const indicatorInfo = sampleIndicators.find(ind => ind.symbol === symbol);
+                    if (indicatorInfo) {
+                        provider = indicatorInfo.provider;
+                        type = indicatorInfo.type;
+                        displayName = indicatorInfo.name || symbol; // Use full name if available
+                    } else {
+                        console.warn(`Symbol ${symbol} not found in sampleIndicators. Cannot determine provider/type for watchlist.`);
+                        // Attempt a generic guess, or skip
+                        if (['AAPL', 'MSFT', 'GOOGL', 'TSLA', 'SPY', 'QQQ', 'IWM'].includes(symbol)) {
+                            type = 'equity'; provider = 'fmp'; // Default to fmp for known stock-like symbols
+                        } else { // FRED-like symbols often all caps
+                            type = 'economy'; provider = 'fred';
                         }
                     }
                     
-                    // Try FRED for economic indicators
-                    if (!data) {
-                        try {
-                            const fredEndpoint = `${API_BASE_URL}/economy/fred_series?symbol=${symbol}&provider=fred`;
-                            console.log(`Trying FRED endpoint for ${symbol}:`, fredEndpoint);
-                            
-                            const fredResponse = await fetch(fredEndpoint);
-                            if (fredResponse.ok) {
-                                const fredData = await fredResponse.json();
-                                console.log(`FRED data for ${symbol}:`, fredData);
-                                
-                                if (fredData.results && fredData.results.length > 0) {
-                                    console.log(`FRED raw data sample for ${symbol}:`, fredData.results.slice(-5));
-                                    console.log(`First few FRED entries for ${symbol}:`, fredData.results.slice(0, 3));
-                                    
-                                    // FRED data has the same structure as equity data: [{date: "2025-05-23", value: 4.25}, ...]
-                                    const sortedData = fredData.results
-                                        .sort((a, b) => new Date(b.date) - new Date(a.date));
-                                    
-                                    console.log(`Latest FRED entries for ${symbol}:`, sortedData.slice(0, 5));
-                                    
-                                    // Find the latest valid value
-                                    let latestValue = null;
-                                    for (const item of sortedData) {
-                                        console.log(`Checking FRED value for ${symbol}:`, item.value, typeof item.value);
-                                        
-                                        // Handle both numeric and string values
-                                        let numValue;
-                                        if (typeof item.value === 'number') {
-                                            numValue = item.value;
-                                        } else if (typeof item.value === 'string' && item.value !== "." && item.value !== "") {
-                                            numValue = parseFloat(item.value);
-                                        } else {
-                                            continue; // Skip invalid values
-                                        }
-                                        
-                                        if (!isNaN(numValue) && isFinite(numValue)) {
-                                            latestValue = numValue;
-                                            currentPrice = numValue;
-                                            symbolName = fredData.title || fredData.name || symbol;
-                                            data = fredData;
-                                            console.log(`✅ Found valid FRED value for ${symbol}: ${numValue} from date ${item.date}`);
-                                            break;
-                                        }
-                                    }
-                                    
-                                    if (latestValue === null) {
-                                        console.log(`❌ No valid FRED values found for ${symbol} - all ${sortedData.length} entries were invalid`);
-                                        // Check what the actual values look like
-                                        console.log(`Sample values:`, sortedData.slice(0, 5).map(item => ({date: item.date, value: item.value, type: typeof item.value})));
-                                    }
-                                }
-                            }
-                        } catch (fredError) {
-                            console.log(`FRED endpoint failed for ${symbol}:`, fredError.message);
-                        }
+                    let endpoint = '';
+                    if (type === 'equity') {
+                        endpoint = `${API_BASE_URL}/equity/price/quote?symbol=${symbol}&provider=${provider}`;
+                    } else if (type === 'economy') {
+                        endpoint = `${API_BASE_URL}/economy/fred_series?symbol=${symbol}&provider=${provider}`;
+                    } else {
+                         console.warn(`Watchlist: Unsupported type ${type} for ${symbol}`);
+                         watchlistData[symbol] = { name: displayName, price: 0, changes: createMockChanges(0), hasData: false };
+                         continue;
                     }
+
+                    console.log(`Watchlist: Fetching ${symbol} from ${endpoint}`);
+                    const response = await fetch(endpoint, {signal: AbortSignal.timeout(10000)});
                     
-                    // Calculate realistic percentage changes (mock data for now)
-                    const changes = {
-                        '1d': (Math.random() - 0.5) * 4,   // ±2% daily change
-                        '1w': (Math.random() - 0.5) * 8,   // ±4% weekly change  
-                        '1m': (Math.random() - 0.5) * 15,  // ±7.5% monthly change
-                        '3m': (Math.random() - 0.5) * 25,  // ±12.5% quarterly change
-                        '1y': (Math.random() - 0.5) * 60   // ±30% yearly change
-                    };
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error(`Watchlist API Error for ${symbol} (${endpoint}): Status ${response.status}`, errorText);
+                        throw new Error(`API error ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    console.log(`Watchlist raw API response for ${symbol}:`, JSON.stringify(data, null, 2).substring(0, 300) + "...");
+
+                    if (type === 'equity' && data.results && data.results.length > 0) {
+                        const quote = data.results[0];
+                        currentPrice = parseFloat(quote.last_price || quote.price || quote.close || quote.last || 0);
+                        displayName = quote.name || quote.company_name || displayName;
+                    } else if (type === 'economy' && data.results && data.results.length > 0) {
+                        // For FRED, get the latest value
+                        const sortedData = data.results.sort((a,b) => new Date(b.date) - new Date(a.date));
+                        if (sortedData.length > 0 && sortedData[0].value !== null && !isNaN(parseFloat(sortedData[0].value))) {
+                            currentPrice = parseFloat(sortedData[0].value);
+                        } else {
+                            currentPrice = 0; // Could not find valid recent value
+                        }
+                        // displayName is already set or will use symbol if not found in sampleIndicators
+                    } else {
+                        console.warn(`Watchlist: Unexpected data structure or no results for ${symbol}`, data);
+                        currentPrice = 0; // Default if data is not as expected
+                    }
                     
                     watchlistData[symbol] = {
-                        name: symbolName,
+                        name: displayName,
                         price: currentPrice,
-                        changes: changes,
-                        hasData: !!data && currentPrice > 0
+                        changes: createMockChanges(currentPrice), // Mock changes for now
+                        hasData: currentPrice > 0 || (type === 'economy' && currentPrice !== 0) // FRED can be 0
                     };
-                    
-                    console.log(`Final watchlist data for ${symbol}:`, watchlistData[symbol]);
-                    
+                    console.log(`Watchlist data for ${symbol}:`, watchlistData[symbol]);
+
                 } catch (error) {
-                    console.error(`Error loading data for ${symbol}:`, error);
-                    watchlistData[symbol] = {
-                        name: symbol,
-                        price: 0,
-                        changes: { '1d': 0, '1w': 0, '1m': 0, '3m': 0, '1y': 0 },
-                        hasData: false
-                    };
+                    allLoaded = false;
+                    console.error(`Error loading watchlist data for ${symbol}:`, error.message);
+                    watchlistData[symbol] = { name: symbol, price: 0, changes: createMockChanges(0), hasData: false };
                 }
             }
             
-            console.log('All watchlist data loaded:', watchlistData);
-            renderWatchlist();
+            console.log('All watchlist data processing complete. Rendering watchlist.');
+            renderWatchlist(allLoaded);
         }
         
-        // Calculate mock percentage changes (in a real app, you'd fetch historical data)
-        function calculateMockChanges(currentPrice) {
+        // Calculate mock percentage changes (replace with actual historical data fetching if needed)
+        function createMockChanges(currentPrice) {
+            if (currentPrice === 0 || isNaN(currentPrice)) { // Handle cases with no valid price
+                return { '1d': 0, '1w': 0, '1m': 0, '3m': 0, '1y': 0 };
+            }
+            // Simple random changes for visual representation
             return {
-                '1d': (Math.random() - 0.5) * 10,
-                '1w': (Math.random() - 0.5) * 20,
-                '1m': (Math.random() - 0.5) * 30,
-                '3m': (Math.random() - 0.5) * 40,
-                '1y': (Math.random() - 0.5) * 100
+                '1d': (Math.random() - 0.45) * 5,  // Skew slightly positive for typical market days
+                '1w': (Math.random() - 0.4) * 10,
+                '1m': (Math.random() - 0.4) * 15,
+                '3m': (Math.random() - 0.3) * 25,
+                '1y': (Math.random() - 0.2) * 40
             };
         }
         
         // Render watchlist table
-        function renderWatchlist() {
+        function renderWatchlist(allLoadedSuccessfully = true) {
             const tbody = document.getElementById('watchlistBody');
             
-            if (Object.keys(watchlistData).length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #888;">No data available</td></tr>';
+            if (Object.keys(watchlistData).length === 0 && !allLoadedSuccessfully) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ffaaaa;">Failed to load watchlist data. Check API connection.</td></tr>';
+                return;
+            }
+             if (Object.keys(watchlistData).length === 0 ) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #888;">Watchlist is empty or loading...</td></tr>';
                 return;
             }
             
             const html = watchlistSymbols.map(symbol => {
                 const data = watchlistData[symbol];
-                if (!data) {
-                    return `<tr><td colspan="7" style="text-align: center; padding: 10px; color: #888;">Loading ${symbol}...</td></tr>`;
+                if (!data) { // Should not happen if loadWatchlistData populates it
+                    return `<tr><td colspan="7" style="text-align: center; padding: 10px; color: #888;">Error loading ${symbol}...</td></tr>`;
                 }
                 
-                // Format price based on value range
                 let formattedPrice;
-                if (data.price === 0) {
+                if (!data.hasData || data.price === undefined) {
                     formattedPrice = 'N/A';
-                } else if (data.price >= 1000) {
+                } else if (Math.abs(data.price) >= 1000) {
                     formattedPrice = `${data.price.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-                } else if (data.price >= 1) {
+                } else if (Math.abs(data.price) >= 0.01 || data.price === 0) {
                     formattedPrice = `${data.price.toFixed(2)}`;
-                } else {
-                    formattedPrice = data.price.toFixed(4); // For rates/percentages
+                } else { // For very small numbers or rates
+                    formattedPrice = data.price.toPrecision(4); 
                 }
                 
+                const indicatorDetails = sampleIndicators.find(ind => ind.symbol === symbol) || {type: 'unknown', provider: 'unknown', name: symbol};
+
                 return `
-                    <tr onclick="addSymbolToActiveChart('${symbol}')" style="cursor: pointer;">
+                    <tr onclick="addSymbolToActiveChart('${symbol}', '${indicatorDetails.type}', '${indicatorDetails.provider}', '${indicatorDetails.name.replace(/'/g, "\\'")}')" style="cursor: pointer;">
                         <td>
                             <div class="symbol-cell">
-                                <div class="symbol-icon">${symbol.charAt(0)}</div>
+                                <div class="symbol-icon">${symbol.charAt(0).toUpperCase()}</div>
                                 <div class="symbol-info">
                                     <div class="symbol-name">${symbol}</div>
-                                    <div class="symbol-fullname">${data.name}</div>
+                                    <div class="symbol-fullname">${data.name.substring(0,30)}${data.name.length > 30 ? '...' : ''}</div>
                                 </div>
                             </div>
                         </td>
                         <td class="price-cell">${formattedPrice}</td>
-                        <td class="change-cell ${data.changes['1d'] >= 0 ? 'positive' : 'negative'}">
-                            ${data.changes['1d'] >= 0 ? '+' : ''}${data.changes['1d'].toFixed(2)}%
-                        </td>
-                        <td class="change-cell ${data.changes['1w'] >= 0 ? 'positive' : 'negative'}">
-                            ${data.changes['1w'] >= 0 ? '+' : ''}${data.changes['1w'].toFixed(2)}%
-                        </td>
-                        <td class="change-cell ${data.changes['1m'] >= 0 ? 'positive' : 'negative'}">
-                            ${data.changes['1m'] >= 0 ? '+' : ''}${data.changes['1m'].toFixed(2)}%
-                        </td>
-                        <td class="change-cell ${data.changes['3m'] >= 0 ? 'positive' : 'negative'}">
-                            ${data.changes['3m'] >= 0 ? '+' : ''}${data.changes['3m'].toFixed(2)}%
-                        </td>
-                        <td class="change-cell ${data.changes['1y'] >= 0 ? 'positive' : 'negative'}">
-                            ${data.changes['1y'] >= 0 ? '+' : ''}${data.changes['1y'].toFixed(2)}%
-                        </td>
+                        ${Object.values(data.changes).map(change => `
+                            <td class="change-cell ${change === 0 ? 'neutral': (change > 0 ? 'positive' : 'negative')}">
+                                ${change > 0 ? '+' : ''}${change.toFixed(2)}%
+                            </td>`).join('')}
                     </tr>
                 `;
             }).join('');
             
             tbody.innerHTML = html;
-            console.log('Watchlist table rendered with data');
+            console.log('Watchlist table rendered.');
         }
         
-        // Add symbol from watchlist to active chart
-        function addSymbolToActiveChart(symbol) {
-            const indicator = sampleIndicators.find(ind => ind.symbol === symbol);
-            if (indicator && activeChartId) {
-                addToChart(activeChartId, symbol, indicator.type, indicator.provider, indicator.name);
-            } else if (!activeChartId) {
-                addNewChart();
-                if (indicator) {
-                    addToChart(activeChartId, symbol, indicator.type, indicator.provider, indicator.name);
+        // Add symbol from watchlist to active chart (wrapper to get details)
+        function addSymbolToActiveChart(symbol, type, provider, name) {
+             let targetChartId = activeChartId;
+            if (!targetChartId) {
+                if (Object.keys(charts).length > 0) {
+                    targetChartId = Object.keys(charts)[Object.keys(charts).length - 1];
+                } else {
+                    addNewChart();
+                    targetChartId = activeChartId;
                 }
             }
+            if (!type || !provider) { // Fallback if details aren't passed (e.g. old calls)
+                 const indicator = sampleIndicators.find(ind => ind.symbol === symbol);
+                 if (indicator) {
+                    type = indicator.type;
+                    provider = indicator.provider;
+                    name = indicator.name;
+                 } else {
+                    console.error("Could not find details for symbol:", symbol);
+                    showTemporaryMessage(`Details for ${symbol} not found. Cannot add to chart.`, "error");
+                    return;
+                 }
+            }
+            addToChart(targetChartId, symbol, type, provider, name);
         }
         
         // Add to watchlist function
         function addToWatchlist() {
-            const symbol = prompt('Enter symbol to add to watchlist:');
-            if (symbol && !watchlistSymbols.includes(symbol.toUpperCase())) {
-                watchlistSymbols.push(symbol.toUpperCase());
-                loadWatchlistData();
+            const symbolInput = prompt('Enter symbol to add to watchlist (e.g., NVDA, BTCUSD, EURUSD):');
+            if (symbolInput) {
+                const symbol = symbolInput.trim().toUpperCase();
+                if (symbol && !watchlistSymbols.includes(symbol)) {
+                    watchlistSymbols.push(symbol);
+                    // Check if it's in sampleIndicators, if not, add a placeholder or prompt for more info
+                    if (!sampleIndicators.find(ind => ind.symbol === symbol)) {
+                        // Basic guess for type/provider if not in samples
+                        // This is very rudimentary. A better approach would be a modal to select type/provider.
+                        let type = 'equity', provider = 'fmp'; // Default guess
+                        if (symbol.includes('USD') || symbol.includes('EUR') || symbol.length === 6) type = 'economy'; provider = 'fred'; // Guess currency/econ
+                        if (symbol.endsWith('X')) provider = 'fred'; // Common for FRED
+
+                        sampleIndicators.push({symbol: symbol, name: symbol, type: type, provider: provider, category: 'User Added'});
+                        showTemporaryMessage(`${symbol} added. Guessed type: ${type}, provider: ${provider}. May need API support.`, "info");
+                    }
+                    loadWatchlistData(); // Reload data for the new symbol
+                } else if (watchlistSymbols.includes(symbol)) {
+                    showTemporaryMessage(`${symbol} is already in the watchlist.`, 'info');
+                }
             }
         }
         
         // Show temporary message
-        function showTemporaryMessage(text, type = 'info') {
+        function showTemporaryMessage(text, type = 'info') { // types: 'info', 'error'
             const popup = document.createElement('div');
             popup.className = `message-popup ${type}`;
             popup.textContent = text;
@@ -1373,7 +1320,7 @@
             
             setTimeout(() => {
                 popup.remove();
-            }, 3000);
+            }, 3500); // Message visible for 3.5 seconds
         }
         
         // Hide search results when clicking outside
@@ -1381,7 +1328,8 @@
             const searchBox = document.getElementById('searchBox');
             const searchResults = document.getElementById('searchResults');
             
-            if (!searchBox.contains(event.target) && !searchResults.contains(event.target)) {
+            // If the click is outside the search box AND outside the search results container
+            if (searchBox && !searchBox.contains(event.target) && searchResults && !searchResults.contains(event.target)) {
                 searchResults.style.display = 'none';
             }
         });
