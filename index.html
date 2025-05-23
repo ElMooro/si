@@ -39,6 +39,29 @@
         }
         .header-controls { display: flex; gap: 15px; align-items: center; }
         
+        /* API Key Input */
+        .api-key-section {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .api-key-input {
+            background: #222;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            width: 200px;
+        }
+        .api-key-status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ff4444;
+        }
+        .api-key-status.active { background: #00dd77; }
+        
         /* Layout */
         .main-container { display: flex; height: calc(100vh - 51px); }
         .sidebar { 
@@ -159,6 +182,46 @@
             max-height: 3.9em;
             overflow: hidden;
             text-overflow: ellipsis;
+        }
+        
+        /* Popular Series Section */
+        .popular-section {
+            padding: 15px;
+            border-bottom: 1px solid #282828;
+        }
+        .popular-title {
+            font-size: 12px;
+            color: #888;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+        .popular-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 5px;
+        }
+        .popular-item {
+            background: #1a1a1a;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 11px;
+            border: 1px solid #282828;
+        }
+        .popular-item:hover {
+            background: #252525;
+            border-color: #00dd77;
+        }
+        .popular-symbol {
+            font-weight: bold;
+            color: #00dd77;
+            font-size: 12px;
+        }
+        .popular-name {
+            color: #999;
+            font-size: 10px;
+            margin-top: 2px;
         }
         
         /* Watchlists */
@@ -588,6 +651,10 @@
     <div class="header">
         <div class="logo">📊 PROFESSIONAL FINANCIAL INTELLIGENCE</div>
         <div class="header-controls">
+            <div class="api-key-section">
+                <input type="password" class="api-key-input" id="fredApiKey" placeholder="FRED API Key (optional)">
+                <div class="api-key-status" id="apiKeyStatus"></div>
+            </div>
             <button class="control-btn" onclick="addNewChart()">+ New Chart</button>
             <button class="control-btn" onclick="saveLayout()">💾 Save Layout</button>
             <button class="control-btn" onclick="loadLayout()">📂 Load Layout</button>
@@ -611,6 +678,11 @@
                 <div class="search-results" id="searchResults" style="display: none;"></div>
             </div>
             
+            <div class="popular-section" id="popularSection" style="display: none;">
+                <div class="popular-title">Popular Indicators</div>
+                <div class="popular-grid" id="popularGrid"></div>
+            </div>
+            
             <div class="watchlist-section">
                 <div class="watchlist-header">
                     <div class="watchlist-title">WATCHLISTS</div>
@@ -629,7 +701,20 @@
 
     <script>
         // Configuration
-        const API_BASE = 'https://ped8gafyuz.us-east-1.awsapprunner.com';
+        const API_CONFIG = {
+            fred: {
+                base: 'https://api.stlouisfed.org/fred',
+                key: null // Will be set from input
+            },
+            ecb: {
+                base: 'https://data-api.ecb.europa.eu/service/data'
+            },
+            polygon: {
+                base: 'https://api.polygon.io',
+                key: null // Add your key here if available
+            }
+        };
+        
         const charts = {};
         let chartIdCounter = 0;
         const watchlists = {};
@@ -645,23 +730,30 @@
             '#AF7AC5', '#48C9B0', '#EC7063', '#5DADE2', '#F5B041'
         ];
         
-        // Local common indicators
-        const commonIndicators = {
+        // Popular indicators by source
+        const popularIndicators = {
             fred: [
-                { symbol: 'CPIAUCSL', name: 'Consumer Price Index for All Urban Consumers', category: 'Inflation', description: 'A measure of the average monthly change in the price for goods and services.' },
-                { symbol: 'GDP', name: 'Gross Domestic Product', category: 'Economic', description: 'The total market value of all final goods and services produced.' },
-                { symbol: 'UNRATE', name: 'Civilian Unemployment Rate', category: 'Labor', description: 'The number of unemployed people as a percentage of the labor force.' },
-                { symbol: 'FEDFUNDS', name: 'Federal Funds Effective Rate', category: 'Rates', description: 'The interest rate at which depository institutions trade federal funds.' },
-                { symbol: 'DGS10', name: '10-Year Treasury Constant Maturity Rate', category: 'Rates', description: 'Yield on U.S. Treasury bonds with 10 years to maturity.' },
-                { symbol: 'SP500', name: 'S&P 500', category: 'Markets', description: 'Stock market index tracking the performance of 500 large companies.' },
-                { symbol: 'VIXCLS', name: 'CBOE Volatility Index: VIX', category: 'Markets', description: 'A measure of expected price fluctuations in the S&P 500 Index.' }
+                { symbol: 'CPIAUCSL', name: 'Consumer Price Index', category: 'Inflation' },
+                { symbol: 'GDP', name: 'Gross Domestic Product', category: 'Economic' },
+                { symbol: 'UNRATE', name: 'Unemployment Rate', category: 'Labor' },
+                { symbol: 'FEDFUNDS', name: 'Federal Funds Rate', category: 'Rates' },
+                { symbol: 'DGS10', name: '10-Year Treasury Rate', category: 'Rates' },
+                { symbol: 'SP500', name: 'S&P 500', category: 'Markets' },
+                { symbol: 'VIXCLS', name: 'VIX', category: 'Markets' },
+                { symbol: 'DEXUSEU', name: 'USD/EUR Exchange Rate', category: 'Currency' }
+            ],
+            ecb: [
+                { symbol: 'EXR.D.USD.EUR.SP00.A', name: 'EUR/USD Exchange Rate', category: 'Exchange Rates' },
+                { symbol: 'FM.B.U2.EUR.4F.KR.DFR.LEV', name: 'ECB Deposit Facility Rate', category: 'Interest Rates' },
+                { symbol: 'ICP.M.U2.N.000000.4.ANR', name: 'Euro Area HICP', category: 'Inflation' }
             ],
             polygon: [
-                { symbol: 'AAPL', name: 'Apple Inc.', category: 'Stocks', description: 'Multinational technology company.' },
-                { symbol: 'MSFT', name: 'Microsoft Corp.', category: 'Stocks', description: 'Multinational technology corporation.' },
-                { symbol: 'GOOGL', name: 'Alphabet Inc.', category: 'Stocks', description: 'Multinational technology conglomerate.' },
-                { symbol: 'AMZN', name: 'Amazon.com Inc.', category: 'Stocks', description: 'E-commerce and cloud computing company.' },
-                { symbol: 'TSLA', name: 'Tesla Inc.', category: 'Stocks', description: 'Electric vehicle and clean energy company.' }
+                { symbol: 'AAPL', name: 'Apple Inc.', category: 'Tech Stocks' },
+                { symbol: 'MSFT', name: 'Microsoft Corp.', category: 'Tech Stocks' },
+                { symbol: 'GOOGL', name: 'Alphabet Inc.', category: 'Tech Stocks' },
+                { symbol: 'AMZN', name: 'Amazon.com Inc.', category: 'Tech Stocks' },
+                { symbol: 'SPY', name: 'SPDR S&P 500 ETF', category: 'ETFs' },
+                { symbol: 'QQQ', name: 'Invesco QQQ Trust', category: 'ETFs' }
             ]
         };
         
@@ -670,6 +762,30 @@
             if (typeof dateFns === 'undefined') {
                 console.error("date-fns library is not loaded. Some date calculations might be impaired.");
             }
+            
+            // Load saved API key
+            const savedFredKey = localStorage.getItem('fredApiKey');
+            if (savedFredKey) {
+                document.getElementById('fredApiKey').value = savedFredKey;
+                API_CONFIG.fred.key = savedFredKey;
+                document.getElementById('apiKeyStatus').classList.add('active');
+            }
+            
+            // Set up API key listener
+            document.getElementById('fredApiKey').addEventListener('change', function(e) {
+                const key = e.target.value.trim();
+                if (key) {
+                    API_CONFIG.fred.key = key;
+                    localStorage.setItem('fredApiKey', key);
+                    document.getElementById('apiKeyStatus').classList.add('active');
+                    showTemporaryMessage('FRED API key saved', 'info');
+                } else {
+                    API_CONFIG.fred.key = null;
+                    localStorage.removeItem('fredApiKey');
+                    document.getElementById('apiKeyStatus').classList.remove('active');
+                }
+            });
+            
             updateClock();
             setInterval(updateClock, 1000);
             createTabs();
@@ -680,6 +796,7 @@
             if (Object.keys(watchlists).length === 0) {
                 createDefaultWatchlist();
             }
+            updatePopularIndicators();
             setInterval(updateWatchlistData, 60000 * 5);
             updateWatchlistData();
         }
@@ -694,6 +811,7 @@
             const tabsData = [
                 { key: 'all', label: 'All Sources' }, 
                 { key: 'fred', label: 'FRED' },
+                { key: 'ecb', label: 'ECB' },
                 { key: 'polygon', label: 'Polygon' }
             ];
             const tabsHtml = tabsData.map(tab => 
@@ -709,6 +827,32 @@
             element.classList.add('active');
             document.getElementById('searchBox').value = '';
             document.getElementById('searchResults').style.display = 'none';
+            updatePopularIndicators();
+        }
+        
+        // Update popular indicators display
+        function updatePopularIndicators() {
+            const popularSection = document.getElementById('popularSection');
+            const popularGrid = document.getElementById('popularGrid');
+            
+            if (activeTab === 'all') {
+                popularSection.style.display = 'none';
+                return;
+            }
+            
+            const indicators = popularIndicators[activeTab];
+            if (!indicators || indicators.length === 0) {
+                popularSection.style.display = 'none';
+                return;
+            }
+            
+            popularSection.style.display = 'block';
+            popularGrid.innerHTML = indicators.map(ind => `
+                <div class="popular-item" onclick="addToChartWrapper('${ind.symbol}', '${activeTab}', '${ind.name.replace(/'/g, "\\'")}')">
+                    <div class="popular-symbol">${ind.symbol}</div>
+                    <div class="popular-name">${ind.name}</div>
+                </div>
+            `).join('');
         }
         
         // Debounce search input
@@ -735,36 +879,90 @@
                 return;
             }
         
-            let apiResults = [];
-            const lowerQuery = query.toLowerCase();
+            let results = [];
             
-            // For now, use only local search as the API endpoints might need authentication
-            let combinedResults = [];
-            
-            if (activeTab === 'all') {
-                Object.entries(commonIndicators).forEach(([sourceKey, indicators]) => {
-                    const filtered = indicators.filter(ind => 
-                        ind.symbol.toLowerCase().includes(lowerQuery) ||
-                        ind.name.toLowerCase().includes(lowerQuery) ||
-                        (ind.description && ind.description.toLowerCase().includes(lowerQuery))
-                    );
-                    combinedResults = combinedResults.concat(
-                        filtered.map(ind => ({ ...ind, source: sourceKey }))
-                    );
-                });
-            } else if (commonIndicators[activeTab]) {
-                const filtered = commonIndicators[activeTab].filter(ind => 
-                    ind.symbol.toLowerCase().includes(lowerQuery) ||
-                    ind.name.toLowerCase().includes(lowerQuery) ||
-                    (ind.description && ind.description.toLowerCase().includes(lowerQuery))
-                );
-                combinedResults = combinedResults.concat(
-                    filtered.map(ind => ({ ...ind, source: activeTab }))
-                );
+            try {
+                if (activeTab === 'fred' || activeTab === 'all') {
+                    if (API_CONFIG.fred.key) {
+                        const fredResults = await searchFRED(query);
+                        results = results.concat(fredResults);
+                    }
+                }
+                
+                if (activeTab === 'ecb' || activeTab === 'all') {
+                    // ECB doesn't have a search API, use local data
+                    const ecbResults = searchLocalIndicators('ecb', query);
+                    results = results.concat(ecbResults);
+                }
+                
+                if (activeTab === 'polygon' || activeTab === 'all') {
+                    // For demo purposes, use local data
+                    const polygonResults = searchLocalIndicators('polygon', query);
+                    results = results.concat(polygonResults);
+                }
+                
+                // If no API results, fall back to local search
+                if (results.length === 0) {
+                    results = searchLocalIndicators(activeTab, query);
+                }
+                
+            } catch (error) {
+                console.error('Search error:', error);
+                results = searchLocalIndicators(activeTab, query);
             }
             
-            searchCache[cacheKey] = { results: combinedResults, timestamp: Date.now() };
-            displaySearchResults(combinedResults);
+            searchCache[cacheKey] = { results, timestamp: Date.now() };
+            displaySearchResults(results);
+        }
+        
+        // Search FRED API
+        async function searchFRED(query) {
+            if (!API_CONFIG.fred.key) return [];
+            
+            try {
+                const url = `${API_CONFIG.fred.base}/series/search?search_text=${encodeURIComponent(query)}&api_key=${API_CONFIG.fred.key}&file_type=json&limit=20`;
+                const response = await fetch(url);
+                
+                if (!response.ok) throw new Error('FRED API error');
+                
+                const data = await response.json();
+                if (!data.seriess) return [];
+                
+                return data.seriess.map(series => ({
+                    symbol: series.id,
+                    name: series.title,
+                    source: 'fred',
+                    description: series.notes || '',
+                    frequency: series.frequency,
+                    units: series.units,
+                    lastUpdated: series.last_updated
+                }));
+            } catch (error) {
+                console.error('FRED search error:', error);
+                return [];
+            }
+        }
+        
+        // Search local indicators
+        function searchLocalIndicators(source, query) {
+            const lowerQuery = query.toLowerCase();
+            let indicatorsToSearch = [];
+            
+            if (source === 'all') {
+                Object.entries(popularIndicators).forEach(([src, indicators]) => {
+                    indicatorsToSearch = indicatorsToSearch.concat(
+                        indicators.map(ind => ({ ...ind, source: src }))
+                    );
+                });
+            } else if (popularIndicators[source]) {
+                indicatorsToSearch = popularIndicators[source].map(ind => ({ ...ind, source }));
+            }
+            
+            return indicatorsToSearch.filter(ind => 
+                ind.symbol.toLowerCase().includes(lowerQuery) ||
+                ind.name.toLowerCase().includes(lowerQuery) ||
+                (ind.category && ind.category.toLowerCase().includes(lowerQuery))
+            );
         }
         
         // Display search results
@@ -778,13 +976,13 @@
             }
             
             const html = results.slice(0, 30).map(result => `
-                <div class="search-item" onclick="addToChartWrapper('${result.symbol}', '${result.source}', '${result.name.replace(/'/g, "\\'")}')">
+                <div class="search-item" onclick="addToChartWrapper('${result.symbol}', '${result.source}', '${(result.name || '').replace(/'/g, "\\'")}')">
                     <div class="search-item-header">
                         <div class="search-item-symbol">${result.symbol}</div>
                         <div class="search-item-source">${(result.source || 'N/A').toUpperCase()}</div>
                     </div>
-                    <div class="search-item-name">${result.name || 'Unknown Title'}</div>
-                    ${result.description ? `<div class="search-item-description">${result.description}</div>` : ''}
+                    <div class="search-item-name">${result.name || 'Unknown'}</div>
+                    ${result.description ? `<div class="search-item-description">${result.description.substring(0, 100)}...</div>` : ''}
                 </div>
             `).join('');
             
@@ -915,11 +1113,25 @@
             chart.errorMessage = null;
             
             try {
-                // Simulate data loading - replace with actual API calls when authentication is set up
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                let data;
                 
-                // Generate sample data for demonstration
-                const data = generateSampleData(symbol, source);
+                switch(source) {
+                    case 'fred':
+                        data = await loadFREDData(symbol);
+                        break;
+                    case 'ecb':
+                        data = await loadECBData(symbol);
+                        break;
+                    case 'polygon':
+                        data = await loadPolygonData(symbol);
+                        break;
+                    default:
+                        throw new Error(`Unknown data source: ${source}`);
+                }
+                
+                if (!data || data.length === 0) {
+                    throw new Error('No data available');
+                }
                 
                 chart.data[symbol] = data;
                 if (canvasDiv) canvasDiv.innerHTML = '';
@@ -927,7 +1139,13 @@
             } catch (error) {
                 console.error(`Error loading data for ${symbol}:`, error);
                 chart.errorMessage = error.message;
-                if (canvasDiv) canvasDiv.innerHTML = `<div class="chart-message" style="color: #ff4444;">${chart.errorMessage}</div>`;
+                if (canvasDiv) {
+                    if (source === 'fred' && !API_CONFIG.fred.key) {
+                        canvasDiv.innerHTML = `<div class="chart-message" style="color: #ff4444;">FRED API key required. Please add your key in the header.</div>`;
+                    } else {
+                        canvasDiv.innerHTML = `<div class="chart-message" style="color: #ff4444;">${chart.errorMessage}</div>`;
+                    }
+                }
             } finally {
                 updateChartRender(chartId);
                 updateChartSymbols(chartId);
@@ -937,8 +1155,92 @@
             }
         }
         
-        // Generate sample data for demonstration
-        function generateSampleData(symbol, source) {
+        // Load FRED data
+        async function loadFREDData(symbol) {
+            if (!API_CONFIG.fred.key) {
+                throw new Error('FRED API key required');
+            }
+            
+            const url = `${API_CONFIG.fred.base}/series/observations?series_id=${symbol}&api_key=${API_CONFIG.fred.key}&file_type=json&sort_order=asc`;
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+                throw new Error(`FRED API error: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            if (!data.observations) {
+                throw new Error('No observations in response');
+            }
+            
+            return data.observations
+                .filter(obs => obs.value !== '.')
+                .map(obs => ({
+                    date: obs.date,
+                    value: parseFloat(obs.value)
+                }))
+                .filter(d => !isNaN(d.value));
+        }
+        
+        // Load ECB data
+        async function loadECBData(seriesKey) {
+            // ECB SDMX API format
+            const [dataflow, ...keyParts] = seriesKey.split('.');
+            const url = `${API_CONFIG.ecb.base}/${dataflow}/${keyParts.join('.')}?format=jsondata`;
+            
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`ECB API error: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Parse ECB's JSON-stat format
+                const series = data.dataSets?.[0]?.series;
+                const dimensions = data.structure?.dimensions?.observation;
+                
+                if (!series || !dimensions) {
+                    throw new Error('Invalid ECB data format');
+                }
+                
+                // Extract time dimension
+                const timeDimension = dimensions.find(d => d.id === 'TIME_PERIOD');
+                if (!timeDimension) {
+                    throw new Error('No time dimension found');
+                }
+                
+                // Get the first series
+                const firstSeriesKey = Object.keys(series)[0];
+                const observations = series[firstSeriesKey].observations;
+                
+                const result = [];
+                for (const [timeIndex, value] of Object.entries(observations)) {
+                    const date = timeDimension.values[parseInt(timeIndex)].id;
+                    result.push({
+                        date: date,
+                        value: parseFloat(value[0])
+                    });
+                }
+                
+                return result.sort((a, b) => new Date(a.date) - new Date(b.date));
+                
+            } catch (error) {
+                console.error('ECB data error:', error);
+                // Fallback to demo data
+                return generateDemoData(seriesKey, 'ecb');
+            }
+        }
+        
+        // Load Polygon data (demo)
+        async function loadPolygonData(symbol) {
+            // For demo purposes, generate sample data
+            // In production, you would use the Polygon API with proper authentication
+            return generateDemoData(symbol, 'polygon');
+        }
+        
+        // Generate demo data
+        function generateDemoData(symbol, source) {
             const now = new Date();
             const data = [];
             const days = 365 * 2; // 2 years of data
@@ -946,10 +1248,12 @@
             let baseValue = 100;
             if (source === 'polygon') {
                 baseValue = Math.random() * 200 + 50;
-            } else if (symbol === 'UNRATE') {
+            } else if (symbol.includes('UNRATE')) {
                 baseValue = 3.5;
-            } else if (symbol === 'FEDFUNDS') {
+            } else if (symbol.includes('FEDFUNDS') || symbol.includes('DFR')) {
                 baseValue = 5.0;
+            } else if (symbol.includes('USD')) {
+                baseValue = 1.1;
             }
             
             for (let i = days; i >= 0; i--) {
@@ -957,7 +1261,7 @@
                 date.setDate(date.getDate() - i);
                 
                 const randomChange = (Math.random() - 0.5) * 2;
-                baseValue += randomChange;
+                baseValue += randomChange * (baseValue * 0.01);
                 baseValue = Math.max(0.1, baseValue);
                 
                 if (source === 'polygon') {
@@ -1406,13 +1710,13 @@
         function createDefaultWatchlist() {
             createWatchlist('Market Indices', [
                 { symbol: 'SP500', source: 'fred', name: 'S&P 500' },
-                { symbol: 'VIXCLS', source: 'fred', name: 'VIX' }
+                { symbol: 'VIXCLS', source: 'fred', name: 'VIX' },
+                { symbol: 'DGS10', source: 'fred', name: '10Y Treasury' }
             ], colorPalette[0]);
             
-            createWatchlist('Tech Stocks', [
-                { symbol: 'AAPL', source: 'polygon', name: 'Apple' },
-                { symbol: 'MSFT', source: 'polygon', name: 'Microsoft' },
-                { symbol: 'GOOGL', source: 'polygon', name: 'Google' }
+            createWatchlist('Major Currencies', [
+                { symbol: 'DEXUSEU', source: 'fred', name: 'USD/EUR' },
+                { symbol: 'EXR.D.USD.EUR.SP00.A', source: 'ecb', name: 'EUR/USD' }
             ], colorPalette[1]);
         }
         
@@ -1441,12 +1745,25 @@
             
             for (const item of watchlist.symbols) {
                 try {
-                    // Simulate data fetch - replace with actual API call when ready
-                    const data = generateSampleData(item.symbol, item.source);
+                    let data;
+                    switch(item.source) {
+                        case 'fred':
+                            data = await loadFREDData(item.symbol);
+                            break;
+                        case 'ecb':
+                            data = await loadECBData(item.symbol);
+                            break;
+                        case 'polygon':
+                            data = await loadPolygonData(item.symbol);
+                            break;
+                        default:
+                            data = generateDemoData(item.symbol, item.source);
+                    }
+                    
                     if (data && data.length > 0) {
                         const latest = data[data.length - 1];
                         const previous = data[data.length - 2];
-                        const change = ((latest.value - previous.value) / previous.value) * 100;
+                        const change = previous ? ((latest.value - previous.value) / previous.value) * 100 : 0;
                         
                         watchlist.data[item.symbol] = {
                             currentValue: latest.value,
@@ -1662,3 +1979,6 @@
                 100% { transform: translateX(120%); opacity: 0; }
             }`;
         document.head.appendChild(animationStyle);
+    </script>
+</body>
+</html>
