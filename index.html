@@ -1,0 +1,1785 @@
+cat > professional-financial-dashboard.html << 'ENDOFFILE' && git add professional-financial-dashboard.html && git commit -m "Add professional financial dashboard with full historical data" && git push origin main
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Financial Intelligence Platform</title>
+    
+    <!-- Plotly.js for advanced charting -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    
+    <!-- Date-fns for date handling -->
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+    
+    <!-- Simple Statistics -->
+    <script src="https://cdn.jsdelivr.net/npm/simple-statistics@7.8.0/dist/simple-statistics.min.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #0a0a0a; 
+            color: #e0e0e0; 
+            overflow-x: hidden; 
+        }
+        
+        /* Header */
+        .header { 
+            background: #121212; 
+            padding: 10px 20px; 
+            border-bottom: 1px solid #282828; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .logo { 
+            font-size: 20px; 
+            font-weight: bold; 
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header-controls { display: flex; gap: 15px; align-items: center; }
+        
+        /* Layout */
+        .main-container { display: flex; height: calc(100vh - 51px); }
+        .sidebar { 
+            width: 380px; 
+            background: #121212; 
+            border-right: 1px solid #282828; 
+            overflow-y: auto; 
+            display: flex;
+            flex-direction: column;
+        }
+        .content { flex: 1; display: flex; flex-direction: column; }
+        
+        /* Tabs for Data Sources */
+        .tabs-container {
+            border-bottom: 1px solid #282828;
+            background: #0f0f0f;
+            padding: 5px 0;
+        }
+        .tabs {
+            display: flex;
+            padding: 0 10px;
+            gap: 2px;
+            overflow-x: auto;
+        }
+        .tab {
+            padding: 8px 15px;
+            background: #1a1a1a;
+            border: 1px solid #282828;
+            border-bottom: none;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            font-size: 13px;
+            white-space: nowrap;
+            border-radius: 4px 4px 0 0;
+        }
+        .tab:hover { background: #252525; }
+        .tab.active { 
+            background: #00ff88; 
+            color: #000; 
+            border-color: #00ff88;
+            font-weight: bold;
+        }
+        
+        /* Search Section */
+        .search-section { 
+            padding: 15px; 
+            border-bottom: 1px solid #282828; 
+            flex-shrink: 0;
+        }
+        .search-container {
+            position: relative;
+        }
+        .search-box { 
+            width: 100%; 
+            padding: 10px 40px 10px 15px; 
+            background: #222; 
+            border: 1px solid #333; 
+            color: #fff; 
+            border-radius: 4px; 
+        }
+        .search-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #777;
+        }
+        .search-results { 
+            margin-top: 10px; 
+            max-height: 300px; 
+            overflow-y: auto; 
+            background: #181818;
+            border: 1px solid #282828;
+            border-radius: 4px;
+        }
+        .search-loading {
+            padding: 20px;
+            text-align: center;
+            color: #00ff88;
+        }
+        .search-item { 
+            padding: 10px 12px; 
+            cursor: pointer; 
+            transition: background 0.15s; 
+            border-bottom: 1px solid #222;
+        }
+        .search-item:last-child { border-bottom: none; }
+        .search-item:hover { background: #252525; }
+        .search-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .search-item-symbol { 
+            font-weight: bold; 
+            color: #00dd77; 
+            font-size: 14px;
+        }
+        .search-item-source {
+            font-size: 10px;
+            color: #888;
+            background: #2a2a2a;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        .search-item-name { 
+            font-size: 12px; 
+            color: #bbb; 
+            margin-top: 3px;
+        }
+        
+        /* Watchlists */
+        .watchlist-section { 
+            padding: 15px; 
+            flex: 1;
+            overflow-y: auto;
+        }
+        .watchlist-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 12px; 
+        }
+        .watchlist-title { 
+            font-size: 14px; 
+            text-transform: uppercase; 
+            color: #999; 
+            letter-spacing: 0.5px;
+        }
+        .add-watchlist { 
+            background: #00dd77; 
+            color: #000; 
+            border: none; 
+            padding: 6px 12px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-size: 12px; 
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        .add-watchlist:hover { background: #00ff88; }
+        .watchlist-group {
+            margin-bottom: 15px;
+            background: #181818;
+            border-radius: 6px;
+            padding: 12px;
+            border: 1px solid #252525;
+        }
+        .watchlist-group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .watchlist-group-name {
+            font-size: 13px;
+            font-weight: bold;
+            color: #ddd;
+        }
+        .watchlist-group-controls {
+            display: flex;
+            gap: 8px;
+        }
+        .color-picker {
+            width: 22px;
+            height: 22px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid #444;
+            transition: transform 0.1s;
+        }
+        .color-picker:hover { transform: scale(1.1); }
+        .watchlist-item { 
+            background: #1f1f1f; 
+            padding: 10px 12px; 
+            margin-bottom: 6px; 
+            border-radius: 4px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #2b2b2b;
+        }
+        .watchlist-item:last-child { margin-bottom: 0; }
+        .watchlist-item:hover { 
+            background: #2a2a2a; 
+            transform: translateX(4px); 
+            border-color: #00dd77;
+        }
+        .color-label { 
+            width: 5px; 
+            height: 100%; 
+            position: absolute; 
+            left: 0; 
+            top: 0; 
+        }
+        .watchlist-item-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-left: 12px;
+        }
+        .watchlist-item-info {
+            flex: 1;
+        }
+        .watchlist-symbol { 
+            font-weight: bold; 
+            color: #00dd77; 
+            font-size: 14px;
+        }
+        .watchlist-name {
+            font-size: 11px;
+            color: #999;
+            margin-top: 2px;
+        }
+        .watchlist-values { 
+            display: flex; 
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+        }
+        .value-change {
+            font-size: 12px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .value-positive { color: #00dd77; }
+        .value-negative { color: #ff4444; }
+        .value-neutral { color: #888; }
+        .change-label {
+            font-size: 10px;
+            color: #777;
+            background-color: #2f2f2f;
+            padding: 1px 4px;
+            border-radius: 2px;
+        }
+        
+        /* Charts Area */
+        .charts-area { 
+            flex: 1; 
+            padding: 15px; 
+            overflow-y: auto; 
+            background: #0f0f0f; 
+        }
+        .chart-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(550px, 1fr)); 
+            gap: 15px; 
+        }
+        .chart-window { 
+            background: #131313; 
+            border: 1px solid #282828; 
+            border-radius: 8px; 
+            padding: 15px; 
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            transition: border-color 0.3s;
+        }
+        .chart-window.active-chart {
+            border-color: #00ff88;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+        }
+        .chart-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: flex-start;
+            margin-bottom: 10px; 
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .chart-title-section {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            flex-grow: 1;
+        }
+        .chart-title { 
+            font-size: 16px; 
+            color: #fff; 
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .chart-symbols {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .chart-symbol-tag {
+            background: #252525;
+            padding: 3px 7px;
+            border-radius: 3px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            border: 1px solid #333;
+        }
+        .symbol-color-dot {
+            width: 8px; 
+            height: 8px; 
+            border-radius: 50%;
+        }
+        .remove-symbol {
+            cursor: pointer;
+            color: #ff5555;
+            font-weight: bold;
+            margin-left: 3px;
+            opacity: 0.7;
+        }
+        .remove-symbol:hover { opacity: 1; }
+
+        .chart-controls-main {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: flex-end;
+        }
+        .chart-controls-top-row, .chart-controls-bottom-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .indicator-controls {
+            display: flex; 
+            gap: 5px; 
+            align-items: center;
+            font-size: 11px;
+        }
+        .indicator-controls input[type="checkbox"] { margin-right: 3px; }
+        .indicator-controls input[type="number"] {
+            width: 40px;
+            background: #222; 
+            color: #fff; 
+            border: 1px solid #444;
+            font-size: 11px; 
+            padding: 2px 4px; 
+            border-radius: 3px;
+        }
+
+        .chart-canvas { 
+            background: #0a0a0a; 
+            border-radius: 4px; 
+            height: 380px;
+            flex-grow: 1;
+            min-height: 300px;
+        }
+        .chart-message {
+            position: absolute;
+            top: 50%; 
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #555; 
+            font-size: 14px;
+            text-align: center;
+        }
+        
+        /* Timeframe and Change Selectors */
+        .selector-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .timeframe-buttons { 
+            display: flex; 
+            gap: 2px; 
+            background: #080808;
+            padding: 2px;
+            border-radius: 4px;
+            border: 1px solid #252525;
+        }
+        .timeframe-btn { 
+            background: transparent; 
+            border: none; 
+            color: #888; 
+            padding: 4px 8px; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+            font-size: 11px; 
+            border-radius: 3px;
+        }
+        .timeframe-btn:hover { 
+            background: #2e2e2e; 
+            color: #fff; 
+        }
+        .timeframe-btn.active { 
+            background: #00dd77; 
+            color: #000; 
+            font-weight: bold;
+        }
+        
+        .change-selector {
+            background: #222;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 5px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        /* Controls */
+        .control-btn { 
+            background: #252525; 
+            border: 1px solid #383838; 
+            color: #ccc; 
+            padding: 6px 10px; 
+            cursor: pointer; 
+            border-radius: 4px; 
+            font-size: 12px; 
+            transition: all 0.2s; 
+        }
+        .control-btn:hover { 
+            background: #333; 
+            border-color: #555; 
+            color: #fff;
+        }
+        .fullscreen-btn { 
+            background: #333; 
+            padding: 6px 8px; 
+            font-size: 14px; 
+        }
+        .close-btn { 
+            background: #dd4444; 
+            border-color: #dd4444; 
+            color: #fff;
+            width: 26px;
+            height: 26px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            line-height: 1;
+        }
+        .close-btn:hover { background: #ff5555; }
+        
+        /* Stats Panel */
+        .stats-panel { 
+            background: #181818; 
+            padding: 10px; 
+            margin-top: 10px; 
+            border-radius: 4px; 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); 
+            gap: 10px; 
+            font-size: 11px;
+            border: 1px solid #252525;
+        }
+        .stat-item { 
+            text-align: center; 
+            background: #1f1f1f;
+            padding: 8px;
+            border-radius: 3px;
+            border: 1px solid #2b2b2b;
+        }
+        .stat-label { 
+            font-size: 10px; 
+            color: #888; 
+            text-transform: uppercase; 
+            margin-bottom: 3px;
+        }
+        .stat-value { 
+            font-size: 14px; 
+            font-weight: bold; 
+        }
+        
+        /* Fullscreen */
+        .fullscreen { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            bottom: 0; 
+            z-index: 1000; 
+            background: #0a0a0a; 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column;
+        }
+        .fullscreen .chart-canvas { 
+            height: calc(100vh - 180px);
+            flex-grow: 1;
+        }
+        .fullscreen .chart-header { padding-bottom: 10px; }
+        
+        /* Loading */
+        .loading-pulse { animation: pulse 1.5s infinite ease-in-out; }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0f0f0f; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #444; }
+        
+        /* Error message */
+        .error-message {
+            background: #ff44441a;
+            border: 1px solid #ff4444;
+            color: #ff6666;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">📊 PROFESSIONAL FINANCIAL INTELLIGENCE</div>
+        <div class="header-controls">
+            <button class="control-btn" onclick="addNewChart()">+ New Chart</button>
+            <button class="control-btn" onclick="saveLayout()">💾 Save Layout</button>
+            <button class="control-btn" onclick="loadLayout()">📂 Load Layout</button>
+            <span id="clock" style="color: #888; font-size: 14px;"></span>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="sidebar">
+            <div class="tabs-container">
+                <div class="tabs" id="sourceTabs"></div>
+            </div>
+            
+            <div class="search-section">
+                <div class="search-container">
+                    <input type="text" class="search-box" id="searchBox" 
+                           placeholder="Search any indicator (e.g., DXY, BAMLH0A0HYM2, GDP)..." 
+                           onkeyup="debounceSearch(this.value)">
+                    <span class="search-icon">🔍</span>
+                </div>
+                <div class="search-results" id="searchResults" style="display: none;"></div>
+            </div>
+            
+            <div class="watchlist-section">
+                <div class="watchlist-header">
+                    <div class="watchlist-title">WATCHLISTS</div>
+                    <button class="add-watchlist" onclick="createNewWatchlist()">+ New</button>
+                </div>
+                <div id="watchlists"></div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="charts-area">
+                <div class="chart-grid" id="chartGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE = 'https://ped8gafyuz.us-east-1.awsapprunner.com';
+        const charts = {};
+        let chartIdCounter = 0;
+        const watchlists = {};
+        let watchlistIdCounter = 0;
+        let activeTab = 'all';
+        let activeChartId = null;
+        let searchTimeout = null;
+        let searchCache = {};
+        
+        // Color palette
+        const colorPalette = [
+            '#00AEEF', '#FF4444', '#F4D03F', '#58D68D', '#FF7043',
+            '#AF7AC5', '#48C9B0', '#EC7063', '#5DADE2', '#F5B041'
+        ];
+        
+        // Common indicators (for quick access, but search will find all)
+        const commonIndicators = {
+            fred: [
+                { symbol: 'DXY', name: 'US Dollar Index', category: 'Currency' },
+                { symbol: 'BAMLH0A0HYM2', name: 'ICE BofA US High Yield Index', category: 'Credit' },
+                { symbol: 'GDP', name: 'Gross Domestic Product', category: 'Economic' },
+                { symbol: 'GDPC1', name: 'Real GDP', category: 'Economic' },
+                { symbol: 'UNRATE', name: 'Unemployment Rate', category: 'Economic' },
+                { symbol: 'CPIAUCSL', name: 'CPI All Items', category: 'Inflation' },
+                { symbol: 'DFF', name: 'Federal Funds Rate', category: 'Rates' },
+                { symbol: 'DGS10', name: '10-Year Treasury', category: 'Rates' },
+                { symbol: 'VIXCLS', name: 'VIX Volatility Index', category: 'Markets' },
+                { symbol: 'SP500', name: 'S&P 500', category: 'Markets' }
+            ],
+            treasury: [
+                { symbol: 'TREASURY_AVG_RATES', name: 'Treasury Average Rates', category: 'Treasury' },
+                { symbol: 'TREASURY_AUCTIONS', name: 'Treasury Auctions', category: 'Treasury' }
+            ],
+            ecb: [
+                { symbol: 'ECBDFR', name: 'ECB Deposit Facility Rate', category: 'Central Banks' }
+            ],
+            polygon: [
+                { symbol: 'AAPL', name: 'Apple Inc.', category: 'Stocks' },
+                { symbol: 'MSFT', name: 'Microsoft Corp.', category: 'Stocks' },
+                { symbol: 'X:BTCUSD', name: 'Bitcoin / USD', category: 'Crypto' }
+            ]
+        };
+        
+        // Initialize
+        function init() {
+            updateClock();
+            setInterval(updateClock, 1000);
+            createTabs();
+            createDefaultWatchlist();
+            loadLayout();
+            if (Object.keys(charts).length === 0) {
+                addNewChart();
+            }
+            setInterval(updateWatchlistData, 60000 * 5);
+        }
+        
+        // Clock
+        function updateClock() {
+            document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
+        }
+        
+        // Create tabs
+        function createTabs() {
+            const tabsHtml = `
+                <div class="tab active" onclick="switchTab('all', this)">All Sources</div>
+                <div class="tab" onclick="switchTab('fred', this)">FRED</div>
+                <div class="tab" onclick="switchTab('treasury', this)">Treasury</div>
+                <div class="tab" onclick="switchTab('ecb', this)">ECB</div>
+                <div class="tab" onclick="switchTab('ofr', this)">OFR</div>
+                <div class="tab" onclick="switchTab('nyfed', this)">NY Fed</div>
+                <div class="tab" onclick="switchTab('bls', this)">BLS</div>
+                <div class="tab" onclick="switchTab('polygon', this)">Stocks</div>
+            `;
+            document.getElementById('sourceTabs').innerHTML = tabsHtml;
+        }
+        
+        // Switch tabs
+        function switchTab(tabKey, element) {
+            activeTab = tabKey;
+            document.querySelectorAll('#sourceTabs .tab').forEach(t => t.classList.remove('active'));
+            element.classList.add('active');
+            // Clear search when switching tabs
+            document.getElementById('searchBox').value = '';
+            document.getElementById('searchResults').style.display = 'none';
+        }
+        
+        // Debounced search
+        function debounceSearch(query) {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => searchIndicators(query), 300);
+        }
+        
+        // Dynamic search function
+        async function searchIndicators(query) {
+            const resultsDiv = document.getElementById('searchResults');
+            
+            if (query.length < 2) {
+                resultsDiv.style.display = 'none';
+                return;
+            }
+            
+            // Show loading
+            resultsDiv.innerHTML = '<div class="search-loading loading-pulse">Searching...</div>';
+            resultsDiv.style.display = 'block';
+            
+            try {
+                // Check cache first
+                const cacheKey = `${activeTab}_${query.toLowerCase()}`;
+                if (searchCache[cacheKey] && searchCache[cacheKey].timestamp > Date.now() - 300000) { // 5 min cache
+                    displaySearchResults(searchCache[cacheKey].results);
+                    return;
+                }
+                
+                let searchResults = [];
+                
+                // If searching in all sources or specific source
+                if (activeTab === 'all' || activeTab === 'fred') {
+                    // Use the universal search endpoint
+                    const searchResponse = await fetch(`${API_BASE}/api/v1/universal/search?query=${encodeURIComponent(query)}`);
+                    if (searchResponse.ok) {
+                        const searchData = await searchResponse.json();
+                        if (searchData && searchData.results) {
+                            searchResults = searchResults.concat(
+                                searchData.results.map(item => ({
+                                    symbol: item.symbol || item.id,
+                                    name: item.name || item.title || item.description,
+                                    source: item.provider || 'fred',
+                                    category: item.category || 'Unknown'
+                                }))
+                            );
+                        }
+                    }
+                }
+                
+                // Also search in common indicators
+                if (activeTab === 'all') {
+                    Object.entries(commonIndicators).forEach(([source, indicators]) => {
+                        const filtered = indicators.filter(ind => 
+                            ind.symbol.toLowerCase().includes(query.toLowerCase()) ||
+                            ind.name.toLowerCase().includes(query.toLowerCase())
+                        );
+                        searchResults = searchResults.concat(
+                            filtered.map(ind => ({ ...ind, source }))
+                        );
+                    });
+                } else if (commonIndicators[activeTab]) {
+                    const filtered = commonIndicators[activeTab].filter(ind => 
+                        ind.symbol.toLowerCase().includes(query.toLowerCase()) ||
+                        ind.name.toLowerCase().includes(query.toLowerCase())
+                    );
+                    searchResults = searchResults.concat(
+                        filtered.map(ind => ({ ...ind, source: activeTab }))
+                    );
+                }
+                
+                // Remove duplicates
+                const uniqueResults = [];
+                const seen = new Set();
+                searchResults.forEach(result => {
+                    const key = `${result.symbol}_${result.source}`;
+                    if (!seen.has(key)) {
+                        seen.add(key);
+                        uniqueResults.push(result);
+                    }
+                });
+                
+                // Cache results
+                searchCache[cacheKey] = {
+                    results: uniqueResults,
+                    timestamp: Date.now()
+                };
+                
+                displaySearchResults(uniqueResults);
+                
+            } catch (error) {
+                console.error('Search error:', error);
+                resultsDiv.innerHTML = '<div class="error-message">Error searching. Please try again.</div>';
+            }
+        }
+        
+        // Display search results
+        function displaySearchResults(results) {
+            const resultsDiv = document.getElementById('searchResults');
+            
+            if (results.length === 0) {
+                resultsDiv.innerHTML = '<div class="search-item">No results found. Try a different search term.</div>';
+                return;
+            }
+            
+            const html = results.slice(0, 50).map(result => `
+                <div class="search-item" onclick="addToChartWrapper('${result.symbol}', '${result.source}')">
+                    <div class="search-item-header">
+                        <div class="search-item-symbol">${result.symbol}</div>
+                        <div class="search-item-source">${result.source.toUpperCase()}</div>
+                    </div>
+                    <div class="search-item-name">${result.name || 'Unknown'}</div>
+                </div>
+            `).join('');
+            
+            resultsDiv.innerHTML = html;
+        }
+        
+        // Add to chart wrapper
+        function addToChartWrapper(symbol, source) {
+            let targetChartId = activeChartId;
+            if (!targetChartId && Object.keys(charts).length > 0) {
+                targetChartId = Object.keys(charts)[Object.keys(charts).length - 1];
+            } else if (!targetChartId) {
+                addNewChart();
+                targetChartId = `chart_${chartIdCounter - 1}`;
+                setActiveChart(targetChartId);
+            }
+            addToChart(targetChartId, symbol, source);
+            document.getElementById('searchResults').style.display = 'none';
+            document.getElementById('searchBox').value = '';
+        }
+        
+        // Add to chart
+        function addToChart(chartId, symbol, source) {
+            if (!charts[chartId]) {
+                console.error(`Chart ${chartId} not found.`);
+                return;
+            }
+            const chart = charts[chartId];
+            if (!chart.symbols.find(s => s.symbol === symbol)) {
+                const maPeriod = parseInt(document.getElementById(`${chartId}_maPeriod`)?.value || 20);
+                chart.symbols.push({ symbol, source, showMA: false, maPeriod });
+                loadChartData(chartId, symbol, source);
+            }
+        }
+        
+        // Create new chart
+        function addNewChart() {
+            const chartId = `chart_${chartIdCounter++}`;
+            activeChartId = chartId;
+            
+            const chartHtml = `
+                <div class="chart-window" id="${chartId}" onclick="setActiveChart('${chartId}')">
+                    <div class="chart-header">
+                        <div class="chart-title-section">
+                            <div class="chart-title" id="${chartId}_title">Chart ${chartIdCounter}</div>
+                            <div class="chart-symbols" id="${chartId}_symbols"></div>
+                        </div>
+                        <div class="chart-controls-main">
+                            <div class="chart-controls-top-row">
+                                <div class="selector-group">
+                                    <select class="change-selector" id="${chartId}_change" onchange="updateChartRender('${chartId}')">
+                                        <option value="value">Actual Value</option>
+                                        <option value="dod">Day over Day %</option>
+                                        <option value="wow">Week over Week %</option>
+                                        <option value="mom">Month over Month %</option>
+                                        <option value="qoq">Quarter over Quarter %</option>
+                                        <option value="yoy">Year over Year %</option>
+                                    </select>
+                                    <div class="timeframe-buttons">
+                                        ${['1M','3M','6M','1Y','2Y','5Y','10Y','20Y','MAX'].map(tf => 
+                                            `<button class="timeframe-btn ${tf === 'MAX' ? 'active' : ''}" 
+                                                     onclick="changeTimeframe(event, '${chartId}', '${tf}')">${tf}</button>`
+                                        ).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="chart-controls-bottom-row">
+                                <div class="indicator-controls">
+                                    <label><input type="checkbox" id="${chartId}_toggleMA" onchange="toggleMAOverall('${chartId}')">SMA</label>
+                                    <input type="number" id="${chartId}_maPeriod" value="20" min="2" max="200" onchange="updateMAPeriodOverall('${chartId}')">
+                                </div>
+                                <button class="control-btn fullscreen-btn" onclick="toggleFullscreen(event, '${chartId}')">⛶</button>
+                                <button class="close-btn" onclick="removeChart(event, '${chartId}')">×</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-canvas" id="${chartId}_canvas">
+                        <div class="chart-message">Search for an indicator to add to this chart.</div>
+                    </div>
+                    <div class="stats-panel" id="${chartId}_stats"></div>
+                </div>
+            `;
+            
+            document.getElementById('chartGrid').insertAdjacentHTML('beforeend', chartHtml);
+            
+            charts[chartId] = {
+                symbols: [],
+                data: {},
+                timeframe: 'MAX',
+                chartInstance: null,
+                errorMessage: null
+            };
+            setActiveChart(chartId);
+        }
+        
+        // Set active chart
+        function setActiveChart(chartId) {
+            if (activeChartId === chartId) return;
+            activeChartId = chartId;
+            document.querySelectorAll('.chart-window').forEach(c => c.classList.remove('active-chart'));
+            const chartElement = document.getElementById(chartId);
+            if (chartElement) {
+                chartElement.classList.add('active-chart');
+            }
+        }
+        
+        // Remove chart
+        function removeChart(event, chartId) {
+            event.stopPropagation();
+            if (charts[chartId] && charts[chartId].chartInstance) {
+                Plotly.purge(`${chartId}_canvas`);
+            }
+            delete charts[chartId];
+            document.getElementById(chartId)?.remove();
+            if (activeChartId === chartId) {
+                activeChartId = Object.keys(charts).length > 0 ? Object.keys(charts)[0] : null;
+                if (activeChartId) setActiveChart(activeChartId);
+            }
+        }
+        
+        // Load chart data - FIXED to get ALL historical data
+        async function loadChartData(chartId, symbol, source) {
+            const chart = charts[chartId];
+            if (!chart) return;
+            
+            const canvasDiv = document.getElementById(`${chartId}_canvas`);
+            if (canvasDiv) canvasDiv.innerHTML = `<div class="chart-message loading-pulse">Loading ${symbol}...</div>`;
+            chart.errorMessage = null;
+            
+            try {
+                const endpoint = getEndpointForSource(source, symbol);
+                const response = await fetch(API_BASE + endpoint);
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch data: ${response.status} ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.data && Array.isArray(result.data) && result.data.length > 0) {
+                    chart.data[symbol] = processData(result.data, source, symbol);
+                    if (canvasDiv) canvasDiv.innerHTML = '';
+                } else if (result.results && Array.isArray(result.results) && result.results.length > 0) {
+                    // Handle different API response formats
+                    chart.data[symbol] = processData(result.results, source, symbol);
+                    if (canvasDiv) canvasDiv.innerHTML = '';
+                } else {
+                    throw new Error(`No data available for ${symbol}`);
+                }
+            } catch (error) {
+                console.error(`Error loading data for ${symbol}:`, error);
+                chart.errorMessage = `Error loading ${symbol}: ${error.message}`;
+                if (canvasDiv) {
+                    canvasDiv.innerHTML = `<div class="chart-message" style="color: #ff4444;">${chart.errorMessage}</div>`;
+                }
+            } finally {
+                updateChartRender(chartId);
+                updateChartSymbols(chartId);
+                if (chart.data[symbol] && chart.data[symbol].length > 0) {
+                    calculateStats(chartId, symbol);
+                }
+            }
+        }
+        
+        // Get endpoint for source - FIXED to request maximum data
+        function getEndpointForSource(source, symbol) {
+            // Clean symbol for API
+            const cleanSymbol = encodeURIComponent(symbol);
+            
+            // Get dates for maximum historical data
+            const endDate = new Date().toISOString().split('T')[0];
+            const startDate = '1900-01-01'; // Request data from 1900 to get all available history
+            
+            switch (source.toLowerCase()) {
+                case 'fred':
+                    // Request all available data from FRED
+                    return `/api/v1/universal/data?symbol=${cleanSymbol}&provider=fred&start_date=${startDate}&end_date=${endDate}`;
+                case 'treasury':
+                    if (symbol.includes('AUCTION')) {
+                        return `/api/v1/treasury/auctions?start_date=${startDate}&end_date=${endDate}`;
+                    }
+                    return `/api/v1/treasury/rates?start_date=${startDate}&end_date=${endDate}`;
+                case 'ecb':
+                    return `/api/v1/economy/european_central_bank_interest_rates?start_date=${startDate}&end_date=${endDate}`;
+                case 'ofr':
+                    return `/api/v1/ofr/financial_stress?start_date=${startDate}&end_date=${endDate}`;
+                case 'nyfed':
+                    return `/api/v1/nyfed/sofr?start_date=${startDate}&end_date=${endDate}`;
+                case 'bls':
+                    return `/api/v1/universal/data?symbol=${cleanSymbol}&provider=bls&start_date=${startDate}&end_date=${endDate}`;
+                case 'polygon':
+                    // Polygon supports very long history for stocks
+                    return `/api/v1/equity/price/historical?symbol=${cleanSymbol}&provider=polygon&interval=day&start_date=${startDate}&end_date=${endDate}&limit=50000`;
+                default:
+                    // Try universal endpoint as fallback with maximum date range
+                    return `/api/v1/universal/data?symbol=${cleanSymbol}&provider=${source}&start_date=${startDate}&end_date=${endDate}`;
+            }
+        }
+        
+        // Process data from different sources
+        function processData(apiData, source, symbol) {
+            if (!Array.isArray(apiData)) return [];
+            
+            // Handle different data formats
+            if (source === 'polygon') {
+                return apiData.map(d => ({
+                    date: d.date || d.t || d.timestamp,
+                    open: parseFloat(d.open || d.o || 0),
+                    high: parseFloat(d.high || d.h || 0),
+                    low: parseFloat(d.low || d.l || 0),
+                    close: parseFloat(d.close || d.c || 0),
+                    volume: parseInt(d.volume || d.v || 0),
+                    value: parseFloat(d.close || d.c || 0)
+                })).filter(d => d.date && !isNaN(d.value));
+            }
+            
+            // Handle nested data (like ECB)
+            if (source === 'ecb' && apiData.length > 0) {
+                // ECB data might be in different format
+                const flatData = [];
+                apiData.forEach(item => {
+                    if (item[symbol]) {
+                        item[symbol].forEach(point => {
+                            flatData.push({
+                                date: point.date,
+                                value: parseFloat(point.value || point.rate || 0)
+                            });
+                        });
+                    } else if (item.date && (item.value !== undefined || item.rate !== undefined)) {
+                        flatData.push({
+                            date: item.date,
+                            value: parseFloat(item.value || item.rate || 0)
+                        });
+                    }
+                });
+                return flatData.filter(d => d.date && !isNaN(d.value));
+            }
+            
+            // Default processing for most sources
+            return apiData.map(d => ({
+                date: d.date || d.timestamp || d.time,
+                value: parseFloat(
+                    d.value || 
+                    d.price || 
+                    d.rate || 
+                    d.close || 
+                    d[symbol] || 
+                    (typeof d === 'number' ? d : 0)
+                )
+            })).filter(d => d.date && !isNaN(d.value));
+        }
+        
+        // Update chart symbols display
+        function updateChartSymbols(chartId) {
+            const chart = charts[chartId];
+            if (!chart) return;
+            const symbolsDiv = document.getElementById(`${chartId}_symbols`);
+            if (!symbolsDiv) return;
+            
+            const html = chart.symbols.map((s, i) => `
+                <div class="chart-symbol-tag">
+                    <span class="symbol-color-dot" style="background-color: ${colorPalette[i % colorPalette.length]};"></span>
+                    ${s.symbol}
+                    <span class="remove-symbol" onclick="removeSymbolFromChart(event, '${chartId}', '${s.symbol}')">×</span>
+                </div>
+            `).join('');
+            symbolsDiv.innerHTML = html;
+        }
+        
+        // Remove symbol from chart
+        function removeSymbolFromChart(event, chartId, symbol) {
+            event.stopPropagation();
+            const chart = charts[chartId];
+            if (!chart) return;
+            chart.symbols = chart.symbols.filter(s => s.symbol !== symbol);
+            delete chart.data[symbol];
+            updateChartRender(chartId);
+            updateChartSymbols(chartId);
+            
+            if (chart.symbols.length === 0) {
+                document.getElementById(`${chartId}_stats`).innerHTML = '';
+                document.getElementById(`${chartId}_canvas`).innerHTML = 
+                    '<div class="chart-message">Search for an indicator to add to this chart.</div>';
+            }
+        }
+        
+        // Change timeframe
+        function changeTimeframe(event, chartId, timeframe) {
+            event.stopPropagation();
+            charts[chartId].timeframe = timeframe;
+            document.querySelectorAll(`#${chartId} .timeframe-btn`).forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            updateChartRender(chartId);
+        }
+        
+        // Calculate moving average
+        function calculateMovingAverage(data, period) {
+            if (!data || data.length < period) return [];
+            const result = [];
+            for (let i = period - 1; i < data.length; i++) {
+                let sum = 0;
+                for (let j = 0; j < period; j++) {
+                    sum += data[i - j].value || data[i - j].close || 0;
+                }
+                result.push({ date: data[i].date, value: sum / period });
+            }
+            return result;
+        }
+        
+        // Toggle MA overall
+        function toggleMAOverall(chartId) {
+            const chart = charts[chartId];
+            const masterToggle = document.getElementById(`${chartId}_toggleMA`);
+            if (!chart || !masterToggle) return;
+            
+            chart.symbols.forEach(s => s.showMA = masterToggle.checked);
+            updateChartRender(chartId);
+        }
+        
+        // Update MA period overall
+        function updateMAPeriodOverall(chartId) {
+            const chart = charts[chartId];
+            const maPeriodInput = document.getElementById(`${chartId}_maPeriod`);
+            if (!chart || !maPeriodInput) return;
+            
+            const newPeriod = parseInt(maPeriodInput.value);
+            if (isNaN(newPeriod) || newPeriod < 2) return;
+            
+            chart.symbols.forEach(s => s.maPeriod = newPeriod);
+            updateChartRender(chartId);
+        }
+        
+        // Calculate percentage change
+        function calculatePercentageChange(data, type) {
+            if (!data || data.length === 0) return [];
+            
+            data.sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            const periods = { 
+                'dod': 1, 
+                'wow': 5, 
+                'mom': 21, 
+                'qoq': 63, 
+                'yoy': 252 
+            };
+            const period = periods[type];
+            if (!period) return data.map(d => ({ ...d }));
+            
+            return data.map((point, index) => {
+                if (index < period) return { date: point.date, value: null };
+                
+                const currentVal = point.value;
+                const previousVal = data[index - period].value;
+                
+                if (previousVal === null || previousVal === undefined || previousVal === 0) {
+                    return { date: point.date, value: null };
+                }
+                const change = ((currentVal - previousVal) / Math.abs(previousVal)) * 100;
+                return { date: point.date, value: change };
+            });
+        }
+        
+        // Filter data by timeframe - FIXED to handle longer timeframes
+        function filterDataByTimeframe(data, timeframe) {
+            if (!data || data.length === 0 || timeframe === 'MAX') return data;
+            
+            const now = new Date();
+            let startDate = new Date();
+            
+            switch (timeframe) {
+                case '1D': startDate.setDate(now.getDate() - 1); break;
+                case '1W': startDate.setDate(now.getDate() - 7); break;
+                case '1M': startDate.setMonth(now.getMonth() - 1); break;
+                case '3M': startDate.setMonth(now.getMonth() - 3); break;
+                case '6M': startDate.setMonth(now.getMonth() - 6); break;
+                case '1Y': startDate.setFullYear(now.getFullYear() - 1); break;
+                case '2Y': startDate.setFullYear(now.getFullYear() - 2); break;
+                case '5Y': startDate.setFullYear(now.getFullYear() - 5); break;
+                case '10Y': startDate.setFullYear(now.getFullYear() - 10); break;
+                case '20Y': startDate.setFullYear(now.getFullYear() - 20); break;
+                default: return data;
+            }
+            return data.filter(d => new Date(d.date) >= startDate);
+        }
+        
+        // Update chart render
+        function updateChartRender(chartId) {
+            const chart = charts[chartId];
+            if (!chart || (chart.symbols.length === 0 && !chart.errorMessage)) {
+                const canvasDiv = document.getElementById(`${chartId}_canvas`);
+                if (canvasDiv && !canvasDiv.querySelector('.chart-message')) {
+                    canvasDiv.innerHTML = '<div class="chart-message">Search for an indicator to add to this chart.</div>';
+                }
+                if (chart && chart.chartInstance) Plotly.purge(`${chartId}_canvas`);
+                return;
+            }
+            
+            if (chart.errorMessage && chart.symbols.length === 0) {
+                document.getElementById(`${chartId}_canvas`).innerHTML = 
+                    `<div class="chart-message" style="color: #ff4444;">${chart.errorMessage}</div>`;
+                return;
+            }
+            
+            const changeType = document.getElementById(`${chartId}_change`).value;
+            const traces = [];
+            let hasVolumeData = false;
+            
+            chart.symbols.forEach((s, index) => {
+                let symbolData = chart.data[s.symbol] || [];
+                symbolData = filterDataByTimeframe(symbolData, chart.timeframe);
+                
+                if (changeType !== 'value') {
+                    symbolData = calculatePercentageChange(symbolData, changeType);
+                }
+                
+                if (symbolData.length === 0) return;
+                
+                const lineColor = colorPalette[index % colorPalette.length];
+                
+                // Check if this is OHLC data
+                if (s.source === 'polygon' && changeType === 'value' && symbolData[0]?.open !== undefined) {
+                    hasVolumeData = true;
+                    
+                    // Candlestick trace
+                    traces.push({
+                        x: symbolData.map(d => d.date),
+                        open: symbolData.map(d => d.open),
+                        high: symbolData.map(d => d.high),
+                        low: symbolData.map(d => d.low),
+                        close: symbolData.map(d => d.close),
+                        type: 'candlestick',
+                        name: s.symbol,
+                        xaxis: 'x',
+                        yaxis: 'y',
+                        increasing: { line: { color: '#00dd77', width: 1 } },
+                        decreasing: { line: { color: '#ff4444', width: 1 } },
+                        hoverlabel: { bgcolor: '#1a1a1a' }
+                    });
+                    
+                    // Volume bars
+                    traces.push({
+                        x: symbolData.map(d => d.date),
+                        y: symbolData.map(d => d.volume),
+                        type: 'bar',
+                        name: `${s.symbol} Vol`,
+                        marker: { color: lineColor, opacity: 0.3 },
+                        yaxis: 'y2',
+                        hoverinfo: 'x+y'
+                    });
+                } else {
+                    // Line chart
+                    traces.push({
+                        x: symbolData.map(d => d.date),
+                        y: symbolData.map(d => d.value),
+                        type: 'scatter',
+                        mode: 'lines',
+                        name: s.symbol,
+                        line: { color: lineColor, width: 2 },
+                        hovertemplate: `<b>%{fullData.name}</b><br>%{x}<br>%{y:.2f}${changeType !== 'value' ? '%' : ''}<extra></extra>`
+                    });
+                }
+                
+                // Add moving average if enabled
+                if (s.showMA && symbolData.length > 0) {
+                    const maData = calculateMovingAverage(symbolData, s.maPeriod);
+                    if (maData.length > 0) {
+                        traces.push({
+                            x: maData.map(d => d.date),
+                            y: maData.map(d => d.value),
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: `${s.symbol} SMA(${s.maPeriod})`,
+                            line: { color: lineColor, width: 1, dash: 'dot' },
+                            hoverinfo: 'skip'
+                        });
+                    }
+                }
+            });
+            
+            if (traces.length === 0) {
+                document.getElementById(`${chartId}_canvas`).innerHTML = 
+                    '<div class="chart-message">No data to display for the selected criteria.</div>';
+                return;
+            }
+            
+            const layout = {
+                paper_bgcolor: '#0a0a0a',
+                plot_bgcolor: '#0a0a0a',
+                font: { color: '#aaa', size: 10 },
+                margin: { t: 20, r: 50, b: 60, l: 60 },
+                xaxis: {
+                    type: 'date',
+                    gridcolor: '#222',
+                    tickfont: { color: '#888' },
+                    rangeselector: {
+                        buttons: [
+                            {count: 1, label: '1M', step: 'month', stepmode: 'backward'},
+                            {count: 3, label: '3M', step: 'month', stepmode: 'backward'},
+                            {count: 6, label: '6M', step: 'month', stepmode: 'backward'},
+                            {count: 1, label: 'YTD', step: 'year', stepmode: 'todate'},
+                            {count: 1, label: '1Y', step: 'year', stepmode: 'backward'},
+                            {count: 5, label: '5Y', step: 'year', stepmode: 'backward'},
+                            {step: 'all', label: 'ALL'}
+                        ],
+                        bgcolor: '#151515',
+                        activecolor: '#00dd77',
+                        font: { color: '#ccc' }
+                    }
+                },
+                yaxis: {
+                    gridcolor: '#222',
+                    tickfont: { color: '#888' },
+                    title: { 
+                        text: changeType === 'value' ? 'Value' : 'Change (%)', 
+                        font: { size: 10 } 
+                    },
+                    domain: hasVolumeData ? [0.3, 1] : [0, 1]
+                },
+                hovermode: 'x unified',
+                showlegend: true,
+                legend: {
+                    x: 0.01,
+                    y: 0.99,
+                    bgcolor: 'rgba(10,10,10,0.7)',
+                    bordercolor: '#333',
+                    borderwidth: 1,
+                    font: { size: 10 }
+                },
+                dragmode: 'pan'
+            };
+            
+            // Add volume axis if needed
+            if (hasVolumeData) {
+                layout.yaxis2 = {
+                    domain: [0, 0.25],
+                    showgrid: false,
+                    title: 'Volume',
+                    titlefont: { size: 10 },
+                    tickfont: { color: '#888', size: 9 }
+                };
+            }
+            
+            const config = {
+                responsive: true,
+                displaylogo: false,
+                modeBarButtonsToRemove: ['select2d', 'lasso2d'],
+                modeBarButtonsToAdd: [{
+                    name: 'Log Scale',
+                    icon: Plotly.Icons.logarithmic,
+                    click: function(gd) {
+                        const currentType = gd.layout.yaxis.type;
+                        Plotly.relayout(gd, 'yaxis.type', currentType === 'log' ? 'linear' : 'log');
+                    }
+                }]
+            };
+            
+            const canvasElement = document.getElementById(`${chartId}_canvas`);
+            if (!canvasElement) return;
+            
+            if (canvasElement.querySelector('.chart-message')) {
+                canvasElement.innerHTML = '';
+            }
+            
+            Plotly.react(`${chartId}_canvas`, traces, layout, config)
+                .then(gd => {
+                    charts[chartId].chartInstance = gd;
+                })
+                .catch(err => {
+                    console.error("Plotly error:", err);
+                    canvasElement.innerHTML = 
+                        `<div class="chart-message" style="color: #ff4444;">Error rendering chart: ${err.message}</div>`;
+                });
+        }
+        
+        // Calculate statistics
+        function calculateStats(chartId, symbol) {
+            const chart = charts[chartId];
+            const originalData = chart.data[symbol];
+            if (!originalData || originalData.length < 1) {
+                document.getElementById(`${chartId}_stats`).innerHTML = '';
+                return;
+            }
+            
+            const values = originalData.map(d => d.value || d.close).filter(v => v !== null && !isNaN(v));
+            if (values.length < 1) {
+                document.getElementById(`${chartId}_stats`).innerHTML = '';
+                return;
+            }
+            
+            const latest = values[values.length - 1];
+            const prevDay = values.length > 1 ? values[values.length - 2] : null;
+            const weekAgo = values.length > 5 ? values[values.length - 6] : null;
+            const monthAgo = values.length > 21 ? values[values.length - 22] : null;
+            
+            const yearData = values.slice(Math.max(0, values.length - 252));
+            
+            const stats = {
+                latest: latest,
+                change1D: prevDay !== null ? ((latest - prevDay) / Math.abs(prevDay)) * 100 : null,
+                change1W: weekAgo !== null ? ((latest - weekAgo) / Math.abs(weekAgo)) * 100 : null,
+                change1M: monthAgo !== null ? ((latest - monthAgo) / Math.abs(monthAgo)) * 100 : null,
+                min52w: yearData.length > 0 ? Math.min(...yearData) : null,
+                max52w: yearData.length > 0 ? Math.max(...yearData) : null,
+                avg52w: yearData.length > 0 ? yearData.reduce((a, b) => a + b, 0) / yearData.length : null
+            };
+            
+            updateStatsPanel(chartId, symbol, stats);
+        }
+        
+        // Update stats panel
+        function updateStatsPanel(chartId, symbol, stats) {
+            const formatNum = (val, decimals = 2) => {
+                if (val === null || val === undefined || isNaN(val)) return 'N/A';
+                if (Math.abs(val) >= 1e12) return (val / 1e12).toFixed(decimals) + 'T';
+                if (Math.abs(val) >= 1e9) return (val / 1e9).toFixed(decimals) + 'B';
+                if (Math.abs(val) >= 1e6) return (val / 1e6).toFixed(decimals) + 'M';
+                if (Math.abs(val) >= 1e3) return (val / 1e3).toFixed(decimals) + 'K';
+                return val.toFixed(decimals);
+            };
+            
+            const formatChange = (val) => {
+                if (val === null || val === undefined || isNaN(val)) return '<span class="value-neutral">N/A</span>';
+                const color = val > 0 ? 'value-positive' : (val < 0 ? 'value-negative' : 'value-neutral');
+                return `<span class="${color}">${val >= 0 ? '+' : ''}${val.toFixed(2)}%</span>`;
+            };
+            
+            const html = `
+                <div class="stat-item">
+                    <div class="stat-label">${symbol}</div>
+                    <div class="stat-value">${formatNum(stats.latest)}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">1D</div>
+                    <div class="stat-value">${formatChange(stats.change1D)}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">1W</div>
+                    <div class="stat-value">${formatChange(stats.change1W)}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">1M</div>
+                    <div class="stat-value">${formatChange(stats.change1M)}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">52W Low</div>
+                    <div class="stat-value">${formatNum(stats.min52w)}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">52W High</div>
+                    <div class="stat-value">${formatNum(stats.max52w)}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">52W Avg</div>
+                    <div class="stat-value">${formatNum(stats.avg52w)}</div>
+                </div>
+            `;
+            
+            document.getElementById(`${chartId}_stats`).innerHTML = html;
+        }
+        
+        // Watchlist functions
+        function createDefaultWatchlist() {
+            createWatchlist('Economic Indicators', 
+                [{ symbol: 'GDP', source: 'fred' }, 
+                 { symbol: 'UNRATE', source: 'fred' }, 
+                 { symbol: 'CPIAUCSL', source: 'fred' }], 
+                colorPalette[0]);
+            createWatchlist('Market Indices', 
+                [{ symbol: 'SP500', source: 'fred' }, 
+                 { symbol: 'VIXCLS', source: 'fred' }, 
+                 { symbol: 'DGS10', source: 'fred' }], 
+                colorPalette[1]);
+        }
+        
+        function createWatchlist(name, symbols = [], color = colorPalette[0]) {
+            const watchlistId = `watchlist_${watchlistIdCounter++}`;
+            watchlists[watchlistId] = {
+                id: watchlistId,
+                name: name || `Watchlist ${watchlistIdCounter}`,
+                symbols: symbols.map(s => ({
+                    symbol: typeof s === 'string' ? s : s.symbol,
+                    source: typeof s === 'string' ? 'fred' : s.source,
+                    data: null,
+                    weeklyChange: null,
+                    monthlyChange: null
+                })),
+                color: color
+            };
+            updateWatchlistDataFor(watchlistId);
+            renderWatchlists();
+        }
+        
+        function createNewWatchlist() {
+            const name = prompt('Enter watchlist name:');
+            if (name) {
+                createWatchlist(name, [], colorPalette[Object.keys(watchlists).length % colorPalette.length]);
+            }
+        }
+        
+        async function updateWatchlistDataFor(watchlistId) {
+            const watchlist = watchlists[watchlistId];
+            if (!watchlist) return;
+            
+            for (const item of watchlist.symbols) {
+                try {
+                    const endpoint = getEndpointForSource(item.source, item.symbol);
+                    const response = await fetch(API_BASE + endpoint);
+                    if (!response.ok) throw new Error(`API Error ${response.status}`);
+                    const result = await response.json();
+                    
+                    if ((result.data && result.data.length > 0) || (result.results && result.results.length > 0)) {
+                        const rawData = result.data || result.results;
+                        const processed = processData(rawData, item.source, item.symbol);
+                        if (processed.length > 0) {
+                            const values = processed.map(d => d.value).filter(v => v !== null && !isNaN(v));
+                            if (values.length > 0) {
+                                const latest = values[values.length - 1];
+                                const weekAgo = values.length > 5 ? values[values.length - 6] : null;
+                                const monthAgo = values.length > 21 ? values[values.length - 22] : null;
+                                
+                                item.data = latest;
+                                item.weeklyChange = weekAgo !== null ? ((latest - weekAgo) / Math.abs(weekAgo)) * 100 : null;
+                                item.monthlyChange = monthAgo !== null ? ((latest - monthAgo) / Math.abs(monthAgo)) * 100 : null;
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error(`Error loading watchlist data for ${item.symbol}:`, error);
+                    item.data = 'Error';
+                }
+            }
+            renderWatchlists();
+        }
+        
+        async function updateWatchlistData() {
+            for (const watchlistId in watchlists) {
+                await updateWatchlistDataFor(watchlistId);
+            }
+        }
+        
+        function changeWatchlistColor(event, watchlistId) {
+            event.stopPropagation();
+            const watchlist = watchlists[watchlistId];
+            if (!watchlist) return;
+            const currentIndex = colorPalette.indexOf(watchlist.color);
+            watchlist.color = colorPalette[(currentIndex + 1) % colorPalette.length];
+            renderWatchlists();
+        }
+        
+        function renderWatchlists() {
+            const container = document.getElementById('watchlists');
+            if (!container) return;
+            
+            container.innerHTML = Object.values(watchlists).map(watchlist => {
+                return `
+                    <div class="watchlist-group">
+                        <div class="watchlist-group-header">
+                            <div class="watchlist-group-name">${watchlist.name}</div>
+                            <div class="watchlist-group-controls">
+                                <div class="color-picker" style="background: ${watchlist.color};" 
+                                     onclick="changeWatchlistColor(event, '${watchlist.id}')"></div>
+                            </div>
+                        </div>
+                        ${watchlist.symbols.map(item => {
+                            const formatVal = (val) => {
+                                if (val === 'Error') return 'Error';
+                                return typeof val === 'number' ? val.toFixed(2) : '...';
+                            };
+                            const formatChg = (chg) => {
+                                if (typeof chg !== 'number') return '...';
+                                const cls = chg > 0 ? 'value-positive' : (chg < 0 ? 'value-negative' : 'value-neutral');
+                                return `<span class="${cls}">${chg >= 0 ? '+' : ''}${chg.toFixed(2)}%</span>`;
+                            };
+                            return `
+                                <div class="watchlist-item" onclick="addToChartWrapper('${item.symbol}', '${item.source}')">
+                                    <div class="color-label" style="background: ${watchlist.color};"></div>
+                                    <div class="watchlist-item-content">
+                                        <div class="watchlist-item-info">
+                                            <div class="watchlist-symbol">${item.symbol}</div>
+                                            <div class="watchlist-name">${formatVal(item.data)}</div>
+                                        </div>
+                                        <div class="watchlist-values">
+                                            <div class="value-change">
+                                                ${formatChg(item.weeklyChange)} 
+                                                <span class="change-label">W</span>
+                                            </div>
+                                            <div class="value-change">
+                                                ${formatChg(item.monthlyChange)} 
+                                                <span class="change-label">M</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function toggleFullscreen(event, chartId) {
+            event.stopPropagation();
+            const chartElement = document.getElementById(chartId);
+            if (!chartElement) return;
+            chartElement.classList.toggle('fullscreen');
+            
+            setTimeout(() => {
+                if (charts[chartId] && charts[chartId].chartInstance) {
+                    Plotly.Plots.resize(charts[chartId].chartInstance);
+                }
+            }, 100);
+        }
+        
+        function saveLayout() {
+            const layoutToSave = {
+                version: '3.0', // Version for compatibility
+                charts: Object.entries(charts).map(([id, chart]) => ({
+                    id,
+                    symbols: chart.symbols.map(s => ({ 
+                        symbol: s.symbol, 
+                        source: s.source, 
+                        showMA: s.showMA, 
+                        maPeriod: s.maPeriod 
+                    })),
+                    timeframe: chart.timeframe,
+                    changeType: document.getElementById(`${id}_change`)?.value || 'value',
+                    maMasterToggle: document.getElementById(`${id}_toggleMA`)?.checked || false,
+                    maMasterPeriod: document.getElementById(`${id}_maPeriod`)?.value || '20'
+                })),
+                watchlists: JSON.parse(JSON.stringify(watchlists))
+            };
+            
+            localStorage.setItem('financialDashboardLayout_v3', JSON.stringify(layoutToSave));
+            
+            // Show success message
+            const message = document.createElement('div');
+            message.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #00dd77;
+                color: #000;
+                padding: 15px 20px;
+                border-radius: 4px;
+                font-weight: bold;
+                z-index: 1000;
+                animation: slideIn 0.3s ease-out;
+            `;
+            message.textContent = 'Layout saved successfully!';
+            document.body.appendChild(message);
+            
+            setTimeout(() => message.remove(), 3000);
+        }
+        
+        function loadLayout() {
+            const saved = localStorage.getItem('financialDashboardLayout_v3');
+            if (!saved) {
+                console.log('No saved layout found.');
+                return;
+            }
+            
+            try {
+                const layout = JSON.parse(saved);
+                
+                // Clear existing charts
+                document.getElementById('chartGrid').innerHTML = '';
+                Object.keys(charts).forEach(id => {
+                    if (charts[id].chartInstance) Plotly.purge(`${id}_canvas`);
+                    delete charts[id];
+                });
+                chartIdCounter = 0;
+                activeChartId = null;
+                
+                // Restore charts
+                if (layout.charts && layout.charts.length > 0) {
+                    layout.charts.forEach(chartConfig => {
+                        addNewChart();
+                        const newChartId = `chart_${chartIdCounter - 1}`;
+                        
+                        charts[newChartId].timeframe = chartConfig.timeframe || 'MAX';
+                        
+                        // Set controls
+                        const changeSelect = document.getElementById(`${newChartId}_change`);
+                        if (changeSelect) changeSelect.value = chartConfig.changeType || 'value';
+                        
+                        const maToggle = document.getElementById(`${newChartId}_toggleMA`);
+                        if (maToggle) maToggle.checked = chartConfig.maMasterToggle || false;
+                        
+                        const maPeriod = document.getElementById(`${newChartId}_maPeriod`);
+                        if (maPeriod) maPeriod.value = chartConfig.maMasterPeriod || '20';
+                        
+                        // Set timeframe button
+                        document.querySelectorAll(`#${newChartId} .timeframe-btn`).forEach(btn => {
+                            btn.classList.remove('active');
+                            if (btn.textContent === chartConfig.timeframe) {
+                                btn.classList.add('active');
+                            }
+                        });
+                        
+                        // Load symbols
+                        chartConfig.symbols.forEach(sConfig => {
+                            charts[newChartId].symbols.push({
+                                symbol: sConfig.symbol,
+                                source: sConfig.source || 'fred',
+                                showMA: sConfig.showMA || false,
+                                maPeriod: sConfig.maPeriod || 20
+                            });
+                            loadChartData(newChartId, sConfig.symbol, sConfig.source || 'fred');
+                        });
+                    });
+                }
+                
+                // Restore watchlists
+                if (layout.watchlists) {
+                    Object.keys(watchlists).forEach(id => delete watchlists[id]);
+                    Object.assign(watchlists, layout.watchlists);
+                    watchlistIdCounter = Math.max(...Object.keys(watchlists).map(id => 
+                        parseInt(id.split('_')[1] || 0)
+                    ), 0) + 1;
+                    renderWatchlists();
+                    updateWatchlistData();
+                }
+                
+                // Set first chart as active
+                if (Object.keys(charts).length > 0) {
+                    setActiveChart(Object.keys(charts)[0]);
+                }
+                
+                // Show success message
+                const message = document.createElement('div');
+                message.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: #4488ff;
+                    color: #fff;
+                    padding: 15px 20px;
+                    border-radius: 4px;
+                    font-weight: bold;
+                    z-index: 1000;
+                `;
+                message.textContent = 'Layout loaded successfully!';
+                document.body.appendChild(message);
+                
+                setTimeout(() => message.remove(), 3000);
+                
+            } catch (error) {
+                console.error('Error loading layout:', error);
+            }
+        }
+        
+        // Initialize on load
+        window.onload = init;
+        
+        // Global click listener to hide search results
+        document.addEventListener('click', function(event) {
+            const searchBox = document.getElementById('searchBox');
+            const searchResults = document.getElementById('searchResults');
+            if (searchResults && searchBox) {
+                if (!searchBox.contains(event.target) && !searchResults.contains(event.target)) {
+                    searchResults.style.display = 'none';
+                }
+            }
+        });
+        
+        // Add some animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
+ENDOFFILE
