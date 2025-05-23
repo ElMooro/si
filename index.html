@@ -673,79 +673,28 @@
             }
         
             const lowerQuery = query.toLowerCase();
-            resultsDiv.innerHTML = '<div class="search-loading loading-pulse">Searching APIs...</div>';
+            resultsDiv.innerHTML = '<div class="search-loading loading-pulse">Searching...</div>';
             resultsDiv.style.display = 'block';
             
-            let allResults = [];
-            
-            // First, search local indicators for instant results
+            // Search local indicators first for instant results
             const localResults = sampleIndicators.filter(indicator => 
                 indicator.symbol.toLowerCase().includes(lowerQuery) ||
                 indicator.name.toLowerCase().includes(lowerQuery) ||
                 (indicator.category && indicator.category.toLowerCase().includes(lowerQuery))
             );
             
-            allResults = allResults.concat(localResults.map(r => ({...r, source: 'local'})));
-            
-            // Search FRED API if query looks like it could be a FRED symbol
-            try {
-                if (query.length >= 3) {
-                    console.log('Searching FRED API for:', query);
-                    const fredSearchUrl = `${API_BASE_URL}/economy/search?query=${encodeURIComponent(query)}&provider=fred&limit=20`;
-                    
-                    try {
-                        const fredResponse = await fetch(fredSearchUrl);
-                        if (fredResponse.ok) {
-                            const fredData = await fredResponse.json();
-                            console.log('FRED search results:', fredData);
-                            
-                            if (fredData.results && fredData.results.length > 0) {
-                                const fredResults = fredData.results.slice(0, 10).map(item => ({
-                                    symbol: item.id || item.symbol,
-                                    name: item.title || item.name,
-                                    type: 'economy',
-                                    provider: 'fred',
-                                    category: 'Economic Data',
-                                    source: 'api'
-                                }));
-                                allResults = allResults.concat(fredResults);
-                            }
-                        }
-                    } catch (fredError) {
-                        console.log('FRED search not available:', fredError.message);
-                    }
-                    
-                    // Try alternative FRED search endpoint
-                    try {
-                        const fredSeriesUrl = `${API_BASE_URL}/economy/fred_series?symbol=${encodeURIComponent(query.toUpperCase())}&provider=fred`;
-                        const fredSeriesResponse = await fetch(fredSeriesUrl);
-                        if (fredSeriesResponse.ok) {
-                            const fredSeriesData = await fredSeriesResponse.json();
-                            if (fredSeriesData.results && fredSeriesData.results.length > 0) {
-                                allResults.push({
-                                    symbol: query.toUpperCase(),
-                                    name: fredSeriesData.title || `FRED Series: ${query.toUpperCase()}`,
-                                    type: 'economy',
-                                    provider: 'fred',
-                                    category: 'Economic Data',
-                                    source: 'api'
-                                });
-                            }
-                        }
-                    } catch (fredSeriesError) {
-                        console.log('FRED series lookup failed:', fredSeriesError.message);
-                    }
-                }
-            } catch (searchError) {
-                console.log('API search error:', searchError);
+            // If we have local results, show them
+            if (localResults.length > 0) {
+                displaySearchResults(localResults, query);
+            } else {
+                // No local results found
+                resultsDiv.innerHTML = `
+                    <div class="search-item" style="text-align:center; color:#888; padding: 20px;">
+                        No matches found for "${query}"<br>
+                        <small>Try: AAPL, MSFT, GDP, DGS10, unemployment, inflation, oil, gold</small>
+                    </div>
+                `;
             }
-            
-            // Remove duplicates
-            const uniqueResults = allResults.filter((result, index, self) => 
-                index === self.findIndex(r => r.symbol === result.symbol && r.provider === result.provider)
-            );
-            
-            displaySearchResults(uniqueResults, query);
         }
         
         // Display search results with better formatting
@@ -758,33 +707,30 @@
                         No results found for "${query}"<br>
                         <small>Try: AAPL, GDP, DGS10, unemployment, CPI, inflation, etc.</small>
                     </div>`;
-                resultsDiv.style.display = 'block';
                 return;
             }
             
-            // Group results by provider and category
+            // Group results by category for better organization
             const grouped = results.reduce((acc, result) => {
-                const key = `${result.provider}_${result.category || 'Other'}`;
-                if (!acc[key]) acc[key] = [];
-                acc[key].push(result);
+                const category = result.category || 'Other';
+                if (!acc[category]) acc[category] = [];
+                acc[category].push(result);
                 return acc;
             }, {});
             
             let html = '';
-            Object.entries(grouped).forEach(([key, items]) => {
-                const [provider, category] = key.split('_');
+            Object.entries(grouped).forEach(([category, items]) => {
                 if (Object.keys(grouped).length > 1) {
                     html += `<div style="padding: 8px 20px; background: #1a1a1a; color: #888; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #222;">
-                        ${category} (${provider.toUpperCase()})
+                        ${category}
                     </div>`;
                 }
                 
                 items.slice(0, 8).forEach(result => {
-                    const isApiResult = result.source === 'api';
                     html += `
                         <div class="search-item" onclick="addSearchResultToChart('${result.symbol}', '${result.type}', '${result.provider}', '${result.name.replace(/'/g, "\\'")}')">
                             <div class="search-item-left">
-                                <div class="search-item-symbol">${result.symbol} ${isApiResult ? '🔗' : ''}</div>
+                                <div class="search-item-symbol">${result.symbol}</div>
                                 <div class="search-item-name">${result.name}</div>
                             </div>
                             <div class="search-item-source">${result.provider}</div>
@@ -794,7 +740,6 @@
             });
             
             resultsDiv.innerHTML = html;
-            resultsDiv.style.display = 'block';
         }
         
         // Show popular suggestions when search box is focused
@@ -1233,26 +1178,33 @@
                                 
                                 if (fredData.results && fredData.results.length > 0) {
                                     console.log(`FRED raw data sample for ${symbol}:`, fredData.results.slice(-5));
+                                    console.log(`First few FRED entries for ${symbol}:`, fredData.results.slice(0, 3));
                                     
-                                    // Get the latest value from FRED data
-                                    const validData = fredData.results
-                                        .filter(item => {
-                                            const val = parseFloat(item.value);
-                                            return item.value !== null && item.value !== undefined && 
-                                                   item.value !== "." && !isNaN(val) && isFinite(val);
-                                        })
+                                    // Get the latest value from FRED data - let's be more permissive
+                                    const sortedData = fredData.results
                                         .sort((a, b) => new Date(b.date) - new Date(a.date));
                                     
-                                    console.log(`FRED valid data count for ${symbol}:`, validData.length);
-                                    if (validData.length > 0) {
-                                        currentPrice = parseFloat(validData[0].value);
-                                        symbolName = fredData.title || fredData.name || symbol;
-                                        data = fredData;
-                                        
-                                        console.log(`Processed FRED ${symbol}: price=${currentPrice}, name=${symbolName}`);
-                                        console.log(`Latest FRED data point:`, validData[0]);
-                                    } else {
-                                        console.log(`No valid FRED data for ${symbol} - all values were null/invalid`);
+                                    console.log(`Latest FRED entries for ${symbol}:`, sortedData.slice(0, 5));
+                                    
+                                    // Try to find any valid value
+                                    let latestValue = null;
+                                    for (const item of sortedData) {
+                                        console.log(`Checking FRED value for ${symbol}:`, item.value, typeof item.value);
+                                        if (item.value !== null && item.value !== undefined && item.value !== "." && item.value !== "") {
+                                            const numValue = parseFloat(item.value);
+                                            if (!isNaN(numValue) && isFinite(numValue)) {
+                                                latestValue = numValue;
+                                                currentPrice = numValue;
+                                                symbolName = fredData.title || fredData.name || symbol;
+                                                data = fredData;
+                                                console.log(`Found valid FRED value for ${symbol}: ${numValue} from date ${item.date}`);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    
+                                    if (latestValue === null) {
+                                        console.log(`No valid FRED values found for ${symbol} - all ${sortedData.length} entries were invalid`);
                                     }
                                 }
                             }
