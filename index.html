@@ -1,126 +1,166 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Plus, X, TrendingUp, TrendingDown, Minus, Eye, EyeOff, Settings, RefreshCw, BarChart3 } from 'lucide-react';
+import { Plus, X, TrendingUp, TrendingDown, Minus, Eye, EyeOff, RefreshCw, BarChart3 } from 'lucide-react';
 
 const API_BASE_URL = 'https://ped8gafyuz.us-east-1.awsapprunner.com/api/v1';
 
 // Popular FRED series with descriptions
 const POPULAR_FRED_SERIES = {
-  'GDP': 'Gross Domestic Product',
-  'DGS10': '10-Year Treasury Rate',
-  'DGS2': '2-Year Treasury Rate',
-  'VIXCLS': 'VIX Volatility Index',
-  'CPIAUCSL': 'Consumer Price Index',
-  'UNRATE': 'Unemployment Rate',
-  'M2SL': 'M2 Money Supply',
-  'FEDFUNDS': 'Federal Funds Rate',
-  'PAYEMS': 'Nonfarm Payrolls',
-  'HOUST': 'Housing Starts',
-  'INDPRO': 'Industrial Production Index',
-  'RSXFS': 'Retail Sales',
-  'DEXUSEU': 'USD/EUR Exchange Rate',
-  'DCOILWTICO': 'WTI Crude Oil Price',
-  'GOLDAMGBD228NLBM': 'Gold Price',
-  'NASDAQCOM': 'NASDAQ Composite Index'
+  'GDP': 'Gross Domestic Product (Quarterly)',
+  'GDPC1': 'Real Gross Domestic Product (Quarterly)',
+  'DGS10': '10-Year Treasury Constant Maturity Rate (Daily)',
+  'DGS2': '2-Year Treasury Constant Maturity Rate (Daily)',
+  'T10Y2Y': '10-Year Treasury Minus 2-Year Treasury (Daily)',
+  'VIXCLS': 'CBOE Volatility Index: VIX (Daily)',
+  'CPIAUCSL': 'Consumer Price Index - All Urban Consumers (Monthly)',
+  'UNRATE': 'Unemployment Rate (Monthly)',
+  'M2SL': 'M2 Money Stock (Monthly)',
+  'FEDFUNDS': 'Federal Funds Effective Rate (Monthly)',
+  'PAYEMS': 'All Employees: Total Nonfarm Payrolls (Monthly)',
+  'HOUST': 'Housing Starts: Total (Monthly)',
+  'INDPRO': 'Industrial Production Index (Monthly)',
+  'RSXFS': 'Advance Retail Sales: Retail Trade (Monthly)',
+  'DEXUSEU': 'U.S. / Euro Foreign Exchange Rate (Daily)',
+  'DCOILWTICO': 'Crude Oil Prices: West Texas Intermediate (Daily)',
+  'GOLDAMGBD228NLBM': 'Gold Fixing Price London Bullion Market (Daily)',
+  'NASDAQCOM': 'NASDAQ Composite Index (Daily)'
 };
 
 const FREDDashboard = () => {
   const [watchlist, setWatchlist] = useState([
-    { symbol: 'DGS10', name: '10-Year Treasury Rate', visible: true, color: '#8884d8' },
-    { symbol: 'DGS2', name: '2-Year Treasury Rate', visible: true, color: '#82ca9d' },
-    { symbol: 'VIXCLS', name: 'VIX Volatility Index', visible: true, color: '#ffc658' }
+    { symbol: 'DGS10', name: POPULAR_FRED_SERIES['DGS10'] || '10-Year Treasury Rate', visible: true, color: '#8884d8' },
+    { symbol: 'DGS2', name: POPULAR_FRED_SERIES['DGS2'] || '2-Year Treasury Rate', visible: true, color: '#82ca9d' },
+    { symbol: 'VIXCLS', name: POPULAR_FRED_SERIES['VIXCLS'] || 'VIX Volatility Index', visible: true, color: '#ffc658' }
   ]);
   
   const [charts, setCharts] = useState([]);
   const [watchlistData, setWatchlistData] = useState({});
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // For chart creation
   const [error, setError] = useState(null);
   const [newSymbol, setNewSymbol] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
+  const [refreshing, setRefreshing] = useState(false); // For watchlist refresh
 
-  // Color palette for charts
   const colors = [
-    '#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#00ff00', 
-    '#ff0000', '#00ffff', '#ff00ff', '#ffff00', '#8000ff'
+    '#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#413ea0', 
+    '#ff0000', '#00C49F', '#FFBB28', '#FF8042', '#0088FE'
   ];
 
-  // Fetch data from FRED API
   const fetchFREDData = useCallback(async (symbol) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/economy/fred_series?symbol=${symbol}&provider=fred`);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch ${symbol}: ${response.statusText}`);
-      }
-      const data = await response.json();
-      return data.results || [];
-    } catch (err) {
-      console.error(`Error fetching ${symbol}:`, err);
-      throw err;
+    // This function now robustly fetches FRED data from your confirmed working API endpoint.
+    console.log(`Workspaceing FRED data for: ${symbol}`);
+    const response = await fetch(`${API_BASE_URL}/economy/fred_series?symbol=${symbol}&provider=fred`);
+    if (!response.ok) {
+      const errorBody = await response.text();
+      console.error(`API Error for ${symbol}: Status ${response.status}`, errorBody);
+      throw new Error(`Failed to fetch ${symbol}: ${response.status} ${response.statusText}. Check if symbol is valid on FRED.`);
     }
+    const data = await response.json();
+    
+    // Handle different possible structures from the API for the data array
+    if (Array.isArray(data)) {
+        return data;
+    }
+    if (data && Array.isArray(data.results)) {
+        return data.results;
+    }
+    if (data && Array.isArray(data.data)) { // Another common pattern
+        return data.data;
+    }
+    console.warn(`Unexpected data structure for ${symbol} from API:`, data);
+    return []; // Return empty array if structure is not recognized to prevent crashes
   }, []);
 
-  // Format data for charts
-  const formatChartData = (rawData) => {
-    if (!Array.isArray(rawData) || rawData.length === 0) return [];
+  const formatChartData = (rawData, symbol) => {
+    if (!Array.isArray(rawData) || rawData.length === 0) {
+        console.warn(`No raw data or invalid format for ${symbol} to format.`);
+        return [];
+    }
     
-    return rawData
-      .filter(item => item.value !== null && item.value !== undefined)
+    // Ensure data is sorted by date and take the most recent N points
+    // FRED data often comes sorted, but an explicit sort is safer.
+    const sortedData = rawData
+      .filter(item => item && item.date && item.value !== null && item.value !== undefined && !isNaN(parseFloat(item.value)))
       .map(item => ({
-        date: new Date(item.date).toLocaleDateString(),
+        // Keep original date string for XAxis if it's already 'YYYY-MM-DD'
+        // Recharts can often parse this directly. If not, convert to Date object.
+        date: item.date, 
         value: parseFloat(item.value),
-        timestamp: new Date(item.date).getTime()
+        timestamp: new Date(item.date).getTime() // For reliable sorting
       }))
-      .sort((a, b) => a.timestamp - b.timestamp)
-      .slice(-100); // Keep last 100 data points for performance
+      .sort((a, b) => a.timestamp - b.timestamp);
+      
+    // Return the last N data points (e.g., 252 for approx 1 year of daily data, 100 for less)
+    // Adjust N based on desired default view and performance.
+    const N = 252; 
+    return sortedData.slice(-N); 
   };
 
-  // Load watchlist data
   const loadWatchlistData = useCallback(async () => {
+    if (refreshing) return; // Prevent multiple refreshes
     setRefreshing(true);
-    const newData = {};
+    setError(null); // Clear previous errors
+    const newWatchlistData = {};
+    let fetchOccurred = false;
     
     for (const item of watchlist) {
       if (item.visible) {
+        fetchOccurred = true;
         try {
           const rawData = await fetchFREDData(item.symbol);
-          const formattedData = formatChartData(rawData);
+          const formattedData = formatChartData(rawData, item.symbol);
           
           if (formattedData.length > 0) {
             const latest = formattedData[formattedData.length - 1];
-            const previous = formattedData[formattedData.length - 2];
-            const change = previous ? ((latest.value - previous.value) / previous.value * 100) : 0;
+            // Use a point further back for a more meaningful change if available (e.g., 5 points back)
+            const previousIndex = Math.max(0, formattedData.length - 2); // Compare with previous point
+            const previous = formattedData[previousIndex];
+            let change = 0;
+            if (previous && latest.value !== undefined && previous.value !== undefined && previous.value !== 0) {
+                change = ((latest.value - previous.value) / previous.value * 100);
+            }
             
-            newData[item.symbol] = {
-              data: formattedData,
+            newWatchlistData[item.symbol] = {
+              data: formattedData, // We might not need to store full data here if only latest/change is shown
               latest: latest.value,
               change: change,
               lastUpdate: new Date().toLocaleTimeString()
             };
+          } else {
+            console.warn(`No formatted data for watchlist item ${item.symbol}`);
+            newWatchlistData[item.symbol] = { latest: 'N/A', change: 0, lastUpdate: 'Error' };
           }
         } catch (err) {
-          console.error(`Failed to load ${item.symbol}:`, err);
+          console.error(`Failed to load watchlist item ${item.symbol}:`, err);
+          setError(prevError => `${prevError || ''} Failed to load ${item.symbol}. `);
+          newWatchlistData[item.symbol] = { latest: 'Error', change: 0, lastUpdate: 'Error' };
+        }
+      } else {
+        // Retain existing data for hidden items or clear it if preferred
+        if (watchlistData[item.symbol]) {
+            newWatchlistData[item.symbol] = watchlistData[item.symbol];
         }
       }
     }
     
-    setWatchlistData(newData);
+    if (fetchOccurred || Object.keys(newWatchlistData).length > 0 || watchlist.length === 0) {
+        setWatchlistData(newWatchlistData);
+    }
     setRefreshing(false);
-  }, [watchlist, fetchFREDData]);
+  }, [watchlist, fetchFREDData, watchlistData, refreshing]); // Added watchlistData and refreshing to dependencies
 
-  // Add new item to watchlist
   const addToWatchlist = () => {
     if (!newSymbol.trim()) return;
     
     const symbolUpper = newSymbol.toUpperCase();
     if (watchlist.some(item => item.symbol === symbolUpper)) {
-      setError('Symbol already in watchlist');
+      setError(`Symbol ${symbolUpper} is already in the watchlist.`);
       return;
     }
 
     const newItem = {
       symbol: symbolUpper,
-      name: POPULAR_FRED_SERIES[symbolUpper] || symbolUpper,
+      name: POPULAR_FRED_SERIES[symbolUpper] || symbolUpper, // Use defined name or symbol as fallback
       visible: true,
       color: colors[watchlist.length % colors.length]
     };
@@ -129,120 +169,147 @@ const FREDDashboard = () => {
     setNewSymbol('');
     setShowAddForm(false);
     setError(null);
+    // Trigger data load for the new item if it's visible by default
+    // loadWatchlistData will pick it up due to `watchlist` dependency change in its useEffect
   };
 
-  // Remove from watchlist
-  const removeFromWatchlist = (symbol) => {
-    setWatchlist(prev => prev.filter(item => item.symbol !== symbol));
+  const removeFromWatchlist = (symbolToRemove) => {
+    setWatchlist(prev => prev.filter(item => item.symbol !== symbolToRemove));
+    // WatchlistData will update through useEffect watching `watchlist` changes
+    // Or, if you want immediate removal from display:
     setWatchlistData(prev => {
-      const newData = { ...prev };
-      delete newData[symbol];
-      return newData;
+      const updatedData = { ...prev };
+      delete updatedData[symbolToRemove];
+      return updatedData;
     });
   };
 
-  // Toggle visibility
-  const toggleVisibility = (symbol) => {
-    setWatchlist(prev => 
-      prev.map(item => 
-        item.symbol === symbol ? { ...item, visible: !item.visible } : item
+  const toggleVisibility = (symbolToToggle) => {
+    setWatchlist(prevWatchlist => 
+      prevWatchlist.map(item => 
+        item.symbol === symbolToToggle ? { ...item, visible: !item.visible } : item
       )
     );
+    // Data for the item will be fetched/cleared on the next loadWatchlistData call
+    // if its visibility changed. For immediate effect on chart, you might need more direct logic
+    // or rely on loadWatchlistData being called soon after (e.g. by refresh or if watchlist itself triggers it).
   };
 
-  // Create new chart
-  const createChart = async (symbols) => {
-    if (symbols.length === 0) return;
+  const createChart = async (symbolsToChart) => {
+    if (!Array.isArray(symbolsToChart) || symbolsToChart.length === 0) {
+        setError("No symbols selected for chart creation.");
+        return;
+    }
     
     setLoading(true);
+    setError(null);
     try {
-      const chartData = {};
-      const chartSymbols = [];
-
-      for (const symbol of symbols) {
-        const rawData = await fetchFREDData(symbol);
-        const formattedData = formatChartData(rawData);
-        
-        if (formattedData.length > 0) {
-          chartData[symbol] = formattedData;
-          chartSymbols.push({
-            symbol,
-            name: watchlist.find(w => w.symbol === symbol)?.name || symbol,
-            color: watchlist.find(w => w.symbol === symbol)?.color || colors[charts.length % colors.length]
-          });
+      const chartDataPromises = symbolsToChart.map(async (symbol) => {
+        const itemInWatchlist = watchlist.find(w => w.symbol === symbol);
+        if (!itemInWatchlist) {
+            console.warn(`Symbol ${symbol} for chart not found in watchlist, cannot get color/name.`);
+            // Optionally, fetch its name or assign default color
         }
-      }
+        const rawData = await fetchFREDData(symbol);
+        const formattedData = formatChartData(rawData, symbol);
+        return { 
+            symbol, 
+            data: formattedData, 
+            name: itemInWatchlist?.name || symbol,
+            color: itemInWatchlist?.color || colors[charts.length % colors.length] 
+        };
+      });
 
-      if (chartSymbols.length > 0) {
-        const newChart = {
+      const results = await Promise.all(chartDataPromises);
+      
+      const newChartSymbols = [];
+      const newChartData = {};
+
+      results.forEach(result => {
+        if (result.data.length > 0) {
+          newChartSymbols.push({ symbol: result.symbol, name: result.name, color: result.color });
+          newChartData[result.symbol] = result.data;
+        } else {
+          console.warn(`No data returned for ${result.symbol} when creating chart.`);
+        }
+      });
+
+      if (newChartSymbols.length > 0) {
+        const newChartEntry = {
           id: Date.now(),
-          title: chartSymbols.map(s => s.name).join(' vs '),
-          symbols: chartSymbols,
-          data: chartData,
+          title: newChartSymbols.map(s => s.name).join(' vs. ') || 'FRED Chart',
+          symbols: newChartSymbols,
+          data: newChartData, // Store data keyed by symbol: { "DGS10": [...], "VIXCLS": [...] }
           createdAt: new Date().toLocaleString()
         };
-
-        setCharts(prev => [...prev, newChart]);
+        setCharts(prev => [newChartEntry, ...prev]); // Add new chart to the beginning
+      } else {
+        setError("Could not fetch data for any of the selected symbols to create a chart.");
       }
     } catch (err) {
-      setError('Failed to create chart: ' + err.message);
+      console.error('Failed to create chart:', err);
+      setError(`Failed to create chart: ${err.message}`);
     } finally {
       setLoading(false);
     }
   };
 
-  // Remove chart
   const removeChart = (chartId) => {
     setCharts(prev => prev.filter(chart => chart.id !== chartId));
   };
 
-  // Combine chart data for multi-series charts
-  const combineChartData = (chartData, symbols) => {
+  const combineChartDataForRecharts = (chartDataMap, chartSymbols) => {
+    // chartDataMap is like: { "DGS10": [{date, value}, ...], "DGS2": [...] }
+    // chartSymbols is like: [{symbol, name, color}, ...]
+    if (!chartSymbols || chartSymbols.length === 0) return [];
+
     const allDates = new Set();
-    Object.values(chartData).forEach(data => {
-      data.forEach(point => allDates.add(point.date));
+    chartSymbols.forEach(({ symbol }) => {
+      if (chartDataMap[symbol]) {
+        chartDataMap[symbol].forEach(point => allDates.add(point.date));
+      }
     });
 
-    return Array.from(allDates)
-      .sort((a, b) => new Date(a) - new Date(b))
-      .map(date => {
-        const point = { date };
-        symbols.forEach(({ symbol }) => {
-          const dataPoint = chartData[symbol]?.find(d => d.date === date);
-          point[symbol] = dataPoint ? dataPoint.value : null;
-        });
-        return point;
-      })
-      .filter(point => symbols.some(({ symbol }) => point[symbol] !== null));
+    const sortedDates = Array.from(allDates).sort((a, b) => new Date(a) - new Date(b));
+
+    return sortedDates.map(date => {
+      const point = { date }; // XAxis dataKey
+      chartSymbols.forEach(({ symbol }) => {
+        const seriesData = chartDataMap[symbol];
+        const dataPoint = seriesData?.find(d => d.date === date);
+        point[symbol] = dataPoint ? dataPoint.value : null; // dataKey for each Line
+      });
+      return point;
+    });
   };
 
-  // Load initial data
   useEffect(() => {
     loadWatchlistData();
-  }, [loadWatchlistData]);
+  }, [loadWatchlistData]); // loadWatchlistData dependency will re-run if watchlist changes.
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-2 sm:p-4 text-gray-800 dark:text-gray-200">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">FRED Economic Data Dashboard</h1>
-              <p className="text-gray-600 mt-1">Real-time economic indicators from Federal Reserve Economic Data</p>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6 mb-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between">
+            <div className="mb-4 sm:mb-0">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">FRED Economic Data Dashboard</h1>
+              <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">Visualize Federal Reserve Economic Data</p>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2 sm:space-x-3">
               <button
                 onClick={loadWatchlistData}
                 disabled={refreshing}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                title="Refresh Watchlist Data"
+                className="flex items-center px-3 py-2 sm:px-4 sm:py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
               >
                 <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
                 Refresh
               </button>
               <button
                 onClick={() => setShowAddForm(!showAddForm)}
-                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                title="Add New FRED Symbol to Watchlist"
+                className="flex items-center px-3 py-2 sm:px-4 sm:py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Symbol
@@ -251,51 +318,48 @@ const FREDDashboard = () => {
           </div>
         </div>
 
-        {/* Error Display */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-            {error}
+          <div className="bg-red-100 dark:bg-red-900 border border-red-300 dark:border-red-700 text-red-700 dark:text-red-200 px-4 py-3 rounded-lg mb-6 text-sm">
+            <strong>Error:</strong> {error}
           </div>
         )}
 
-        {/* Add Symbol Form */}
         {showAddForm && (
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-            <h3 className="text-lg font-semibold mb-4">Add FRED Series</h3>
-            <div className="flex items-center space-x-3">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6 mb-6">
+            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Add FRED Series to Watchlist</h3>
+            <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-3">
               <input
                 type="text"
                 value={newSymbol}
-                onChange={(e) => setNewSymbol(e.target.value)}
-                placeholder="Enter FRED series symbol (e.g., GDP, UNRATE)"
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onChange={(e) => { setNewSymbol(e.target.value); setError(null); }}
+                placeholder="Enter FRED symbol (e.g., GDP)"
+                className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 onKeyPress={(e) => e.key === 'Enter' && addToWatchlist()}
               />
               <button
                 onClick={addToWatchlist}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
               >
-                Add
+                Add to Watchlist
               </button>
               <button
-                onClick={() => setShowAddForm(false)}
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+                onClick={() => { setShowAddForm(false); setNewSymbol(''); setError(null); }}
+                className="w-full sm:w-auto px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 text-sm rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
               >
                 Cancel
               </button>
             </div>
-            
-            {/* Popular Series Suggestions */}
             <div className="mt-4">
-              <p className="text-sm text-gray-600 mb-2">Popular series:</p>
-              <div className="flex flex-wrap gap-2">
-                {Object.entries(POPULAR_FRED_SERIES).slice(0, 8).map(([symbol, name]) => (
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2">Suggestions (click to select):</p>
+              <div className="flex flex-wrap gap-1 sm:gap-2">
+                {Object.entries(POPULAR_FRED_SERIES).slice(0, 10).map(([symbol, name]) => (
                   <button
                     key={symbol}
                     onClick={() => setNewSymbol(symbol)}
-                    className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
+                    title={name}
+                    className="px-2 py-1 sm:px-3 sm:py-1 text-xs sm:text-sm bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full transition-colors"
                   >
-                    {symbol} - {name}
+                    {symbol}
                   </button>
                 ))}
               </div>
@@ -304,72 +368,67 @@ const FREDDashboard = () => {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Watchlist */}
-          <div className="bg-white rounded-lg shadow-sm">
-            <div className="p-6 border-b border-gray-200">
-              <h2 className="text-xl font-semibold">Economic Indicators Watchlist</h2>
-              <p className="text-sm text-gray-600 mt-1">{watchlist.length} indicators tracked</p>
+          <div className="lg:col-span-1 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+            <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">Watchlist</h2>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">{watchlist.length} series tracked. Click symbol to toggle visibility in combined chart.</p>
             </div>
-            <div className="max-h-96 overflow-y-auto">
+            <div className="max-h-[30rem] overflow-y-auto"> {/* Max height for scrollability */}
+              {watchlist.length === 0 && <p className="p-4 text-sm text-gray-500 dark:text-gray-400">Watchlist is empty. Add symbols to get started.</p>}
               {watchlist.map((item) => {
                 const data = watchlistData[item.symbol];
                 return (
-                  <div key={item.symbol} className="p-4 border-b border-gray-100 hover:bg-gray-50">
+                  <div key={item.symbol} className={`p-3 sm:p-4 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${!item.visible ? 'opacity-60' : ''}`}>
                     <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2">
-                          <div
-                            className="w-3 h-3 rounded-full"
-                            style={{ backgroundColor: item.color }}
-                          />
-                          <span className="font-medium text-sm">{item.symbol}</span>
-                          <button
-                            onClick={() => toggleVisibility(item.symbol)}
-                            className="text-gray-400 hover:text-gray-600"
-                          >
-                            {item.visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                          </button>
+                      <div className="flex-1 min-w-0 mr-2">
+                        <div className="flex items-center space-x-2 cursor-pointer" onClick={() => toggleVisibility(item.symbol)}>
+                          <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
+                          <span className="font-medium text-xs sm:text-sm text-gray-800 dark:text-gray-200 truncate" title={item.name}>{item.symbol}</span>
+                          <span className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
+                            {item.visible ? <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : <EyeOff className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
+                          </span>
                         </div>
-                        <p className="text-xs text-gray-600 mt-1">{item.name}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate" title={item.name}>{item.name}</p>
                         
-                        {data && (
-                          <div className="mt-2">
-                            <div className="flex items-center space-x-2">
-                              <span className="font-semibold">
-                                {typeof data.latest === 'number' ? data.latest.toFixed(4) : 'N/A'}
+                        {data && (data.latest !== 'Error' && data.latest !== 'N/A') && (
+                          <div className="mt-1.5 flex items-baseline space-x-1.5">
+                            <span className="font-semibold text-sm sm:text-base text-gray-900 dark:text-white">
+                              {typeof data.latest === 'number' ? data.latest.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:4}) : data.latest}
+                            </span>
+                            {data.change !== undefined && data.latest !== 'N/A' && (
+                              <span className={`flex items-center text-xs px-1.5 py-0.5 rounded-full ${
+                                data.change > 0 ? 'bg-green-100 dark:bg-green-800/50 text-green-700 dark:text-green-300' : 
+                                data.change < 0 ? 'bg-red-100 dark:bg-red-800/50 text-red-700 dark:text-red-300' : 
+                                'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                              }`}>
+                                {data.change > 0 ? <TrendingUp className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5" /> : 
+                                 data.change < 0 ? <TrendingDown className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5" /> : 
+                                 <Minus className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5" />}
+                                {data.change.toFixed(2)}%
                               </span>
-                              {data.change !== undefined && (
-                                <span className={`flex items-center text-xs px-2 py-1 rounded-full ${
-                                  data.change > 0 ? 'bg-green-100 text-green-700' : 
-                                  data.change < 0 ? 'bg-red-100 text-red-700' : 
-                                  'bg-gray-100 text-gray-700'
-                                }`}>
-                                  {data.change > 0 ? <TrendingUp className="h-3 w-3 mr-1" /> : 
-                                   data.change < 0 ? <TrendingDown className="h-3 w-3 mr-1" /> : 
-                                   <Minus className="h-3 w-3 mr-1" />}
-                                  {data.change.toFixed(2)}%
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-xs text-gray-500 mt-1">Updated: {data.lastUpdate}</p>
+                            )}
                           </div>
                         )}
+                         {data && (data.latest === 'Error' || data.latest === 'N/A') && <p className="text-xs text-red-500 dark:text-red-400 mt-1.5">Data unavailable</p>}
+                        {data && <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Last update: {data.lastUpdate}</p>}
+                         {!data && refreshing && <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5">Loading...</p>}
                       </div>
                       
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
                         <button
                           onClick={() => createChart([item.symbol])}
                           disabled={loading}
-                          className="p-1 text-blue-600 hover:bg-blue-50 rounded"
-                          title="Create chart"
+                          className="p-1 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-700/30 rounded"
+                          title={`Create chart for ${item.symbol}`}
                         >
-                          <BarChart3 className="h-4 w-4" />
+                          <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5" />
                         </button>
                         <button
                           onClick={() => removeFromWatchlist(item.symbol)}
-                          className="p-1 text-red-600 hover:bg-red-50 rounded"
+                          className="p-1 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-700/30 rounded"
+                          title={`Remove ${item.symbol} from watchlist`}
                         >
-                          <X className="h-4 w-4" />
+                          <X className="h-4 w-4 sm:h-5 sm:w-5" />
                         </button>
                       </div>
                     </div>
@@ -377,92 +436,96 @@ const FREDDashboard = () => {
                 );
               })}
             </div>
-            
-            {/* Quick Actions */}
-            <div className="p-4 border-t border-gray-200">
-              <p className="text-sm text-gray-600 mb-2">Quick actions:</p>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => createChart(watchlist.filter(w => w.visible).map(w => w.symbol))}
-                  disabled={loading || watchlist.filter(w => w.visible).length === 0}
-                  className="flex-1 px-3 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:opacity-50"
-                >
-                  Chart All Visible
-                </button>
-              </div>
+            <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+              <button
+                onClick={() => {
+                    const visibleSymbols = watchlist.filter(w => w.visible).map(w => w.symbol);
+                    if (visibleSymbols.length > 0) createChart(visibleSymbols);
+                    else setError("No visible symbols in watchlist to chart.");
+                }}
+                disabled={loading || watchlist.filter(w => w.visible).length === 0}
+                className="w-full px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
+              >
+                Chart All Visible ({watchlist.filter(w => w.visible).length})
+              </button>
             </div>
           </div>
 
-          {/* Charts */}
           <div className="lg:col-span-2 space-y-6">
-            {charts.length === 0 ? (
-              <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-                <BarChart3 className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-600 mb-2">No Charts Created</h3>
-                <p className="text-gray-500">Add indicators to your watchlist and create charts to visualize economic data.</p>
+            {charts.length === 0 && !loading && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 sm:p-12 text-center">
+                <BarChart3 className="h-12 w-12 sm:h-16 sm:w-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                <h3 className="text-md sm:text-lg font-medium text-gray-600 dark:text-gray-400 mb-2">No Charts Yet</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-500">Create charts from your watchlist to visualize trends.</p>
               </div>
-            ) : (
-              charts.map((chart) => {
-                const combinedData = combineChartData(chart.data, chart.symbols);
-                
-                return (
-                  <div key={chart.id} className="bg-white rounded-lg shadow-sm">
-                    <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                      <div>
-                        <h3 className="font-semibold">{chart.title}</h3>
-                        <p className="text-sm text-gray-600">Created: {chart.createdAt}</p>
-                      </div>
-                      <button
-                        onClick={() => removeChart(chart.id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                    
-                    <div className="p-4">
-                      <ResponsiveContainer width="100%" height={300}>
-                        <LineChart data={combinedData}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis 
-                            dataKey="date" 
-                            tick={{ fontSize: 12 }}
-                            interval="preserveStartEnd"
-                          />
-                          <YAxis tick={{ fontSize: 12 }} />
-                          <Tooltip 
-                            labelStyle={{ color: '#374151' }}
-                            contentStyle={{ 
-                              backgroundColor: '#f9fafb', 
-                              border: '1px solid #e5e7eb',
-                              borderRadius: '6px'
-                            }}
-                          />
-                          <Legend />
-                          {chart.symbols.map(({ symbol, name, color }) => (
-                            <Line
-                              key={symbol}
-                              type="monotone"
-                              dataKey={symbol}
-                              stroke={color}
-                              strokeWidth={2}
-                              name={name}
-                              dot={false}
-                              connectNulls={false}
-                            />
-                          ))}
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-                );
-              })
             )}
-
+            {charts.map((chart) => {
+              const rechartsData = combineChartDataForRecharts(chart.data, chart.symbols);
+              return (
+                <div key={chart.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md">
+                  <div className="p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                    <div>
+                      <h3 className="font-semibold text-sm sm:text-base text-gray-900 dark:text-white truncate max-w-xs sm:max-w-md md:max-w-lg" title={chart.title}>{chart.title}</h3>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Created: {chart.createdAt}</p>
+                    </div>
+                    <button
+                      onClick={() => removeChart(chart.id)}
+                      className="p-1.5 sm:p-2 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-700/30 rounded"
+                      title="Remove chart"
+                    >
+                      <X className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    </button>
+                  </div>
+                  <div className="p-2 sm:p-4">
+                    {rechartsData.length > 0 ? (
+                        <ResponsiveContainer width="100%" height={300}>
+                        <LineChart data={rechartsData}>
+                            <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} className="stroke-gray-300 dark:stroke-gray-700"/>
+                            <XAxis 
+                            dataKey="date" 
+                            tick={{ fontSize: 10 }}
+                            className="text-gray-600 dark:text-gray-400"
+                            // interval="preserveStartEnd" // Recharts default often handles this well for dates
+                            // tickFormatter={(dateStr) => new Date(dateStr).toLocaleDateString('en-US', {month:'short', day:'numeric'})} // Example formatter
+                            />
+                            <YAxis tick={{ fontSize: 10 }} className="text-gray-600 dark:text-gray-400" />
+                            <Tooltip 
+                            labelStyle={{ color: '#374151', fontWeight: 'bold' }} // dark:text-gray-200 - needs Tailwind context
+                            contentStyle={{ 
+                                backgroundColor: 'rgba(255, 255, 255, 0.9)', // dark:bg-gray-700/90
+                                border: '1px solid #e5e7eb', // dark:border-gray-600
+                                borderRadius: '6px',
+                                boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+                                padding: '8px 12px'
+                            }}
+                            itemStyle={{ fontSize: 12 }}
+                            />
+                            <Legend wrapperStyle={{fontSize: "12px", paddingTop: "10px"}} />
+                            {chart.symbols.map(({ symbol, name, color }) => (
+                            <Line
+                                key={symbol}
+                                type="monotone"
+                                dataKey={symbol}
+                                stroke={color}
+                                strokeWidth={2}
+                                name={name || symbol} // Use provided name or symbol
+                                dot={false}
+                                connectNulls={false} // Set to true if you want to connect lines over missing data points
+                            />
+                            ))}
+                        </LineChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-10">No data available to display for this chart.</p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
             {loading && (
-              <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <p className="text-gray-600">Creating chart...</p>
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center">
+                <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-blue-600 dark:border-blue-400 mx-auto mb-3 sm:mb-4"></div>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">Creating chart...</p>
               </div>
             )}
           </div>
