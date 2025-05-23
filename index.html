@@ -264,6 +264,68 @@
             flex: 1;
         }
 
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: 500;
+            z-index: 1001;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .notification.success {
+            background-color: #00d897;
+        }
+
+        .notification.error {
+            background-color: #ea3943;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: 500;
+            z-index: 1001;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .notification.success {
+            background-color: #00d897;
+        }
+
+        .notification.error {
+            background-color: #ea3943;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
         @media (max-width: 768px) {
             .controls {
                 flex-direction: column;
@@ -309,9 +371,13 @@
                 <button class="btn" onclick="openCustomizeModal()">Customize Data</button>
             </div>
             <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Search symbols..." onkeyup="filterData()">
+                <input type="text" id="searchInput" placeholder="Search or add symbol (e.g., AAPL, DGS30)..." onkeyup="handleSearchInput(event)">
+                <button class="btn" onclick="addSymbolFromSearch()">Add Symbol</button>
                 <button class="btn" onclick="refreshData()">Refresh</button>
             </div>
+        </div>
+        <div class="add-symbol-hint" style="text-align: right; margin-top: -15px; margin-bottom: 20px; color: #8892b0; font-size: 12px;">
+            Press Enter or click "Add Symbol" to fetch new data from FRED/FMP
         </div>
 
         <div id="errorContainer"></div>
@@ -677,20 +743,79 @@
             }
         }
 
-        function filterData() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            
-            if (searchTerm === '') {
-                filteredData = [...allData];
+        function handleSearchInput(event) {
+            if (event.key === 'Enter') {
+                addSymbolFromSearch();
             } else {
-                filteredData = allData.filter(item => 
-                    item.symbol.toLowerCase().includes(searchTerm) ||
-                    item.name.toLowerCase().includes(searchTerm)
-                );
+                filterData();
             }
+        }
+
+        async function addSymbolFromSearch() {
+            const searchInput = document.getElementById('searchInput');
+            const symbol = searchInput.value.trim().toUpperCase();
             
-            currentPage = 1;
-            updateTable();
+            if (!symbol) {
+                showNotification('Please enter a symbol', 'error');
+                return;
+            }
+
+            // Check if symbol already exists
+            if (selectedSymbols.has(symbol)) {
+                showNotification(`${symbol} is already in your list`, 'error');
+                return;
+            }
+
+            showNotification(`Fetching ${symbol}...`, 'success');
+
+            try {
+                let data = null;
+                
+                // Try to fetch the symbol based on current data type
+                if (currentDataType === 'stocks') {
+                    data = await fetchStockData(symbol);
+                } else if (currentDataType === 'economy') {
+                    data = await fetchEconomicData(symbol);
+                }
+
+                if (data) {
+                    // Add to selected symbols
+                    selectedSymbols.add(symbol);
+                    localStorage.setItem(`selected_${currentDataType}`, JSON.stringify(Array.from(selectedSymbols)));
+                    
+                    // Add to current data
+                    allData.push(data);
+                    filteredData = [...allData];
+                    
+                    // Clear search and update table
+                    searchInput.value = '';
+                    updateTable();
+                    
+                    showNotification(`Successfully added ${symbol}`, 'success');
+                } else {
+                    showNotification(`Could not fetch data for ${symbol}`, 'error');
+                }
+            } catch (error) {
+                showNotification(`Error adding ${symbol}: ${error.message}`, 'error');
+            }
+        }
+
+        function showNotification(message, type = 'success') {
+            // Remove any existing notifications
+            const existing = document.querySelector('.notification');
+            if (existing) {
+                existing.remove();
+            }
+
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            // Auto-remove after 3 seconds
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
         }
 
         function switchDataType(type) {
@@ -732,15 +857,29 @@
             const modal = document.getElementById('customizeModal');
             const symbolList = document.getElementById('symbolList');
             
-            // Get all available symbols for current data type
-            const availableSymbols = defaultSymbols[currentDataType];
+            // Get all available symbols - combine defaults with any added symbols
+            const allAvailableSymbols = new Set([...defaultSymbols[currentDataType], ...selectedSymbols]);
+            
+            // Add common FRED series for economy type
+            if (currentDataType === 'economy') {
+                const commonFredSeries = [
+                    'DGS1', 'DGS5', 'DGS30', 'DFEDTARU', 'DFEDTARL', 'TB3MS', 'TB6MS',
+                    'HOUST', 'PAYEMS', 'INDPRO', 'DGORDER', 'UMCSENT', 'RSAFS',
+                    'DSPIC96', 'PCE', 'CPILFESL', 'GFDEGDQ188S', 'MORTGAGE30US'
+                ];
+                commonFredSeries.forEach(s => allAvailableSymbols.add(s));
+            }
             
             // Add more symbols for stocks
             if (currentDataType === 'stocks') {
-                availableSymbols.push(...['IBM', 'ORCL', 'INTC', 'CSCO', 'AMD', 'QCOM', 'TXN', 'AVGO', 'MU', 'AMAT']);
+                const additionalStocks = ['IBM', 'ORCL', 'INTC', 'CSCO', 'AMD', 'QCOM', 'TXN', 'AVGO', 'MU', 'AMAT',
+                    'PYPL', 'SQ', 'SHOP', 'UBER', 'LYFT', 'ABNB', 'DASH', 'SNOW', 'PLTR', 'COIN'];
+                additionalStocks.forEach(s => allAvailableSymbols.add(s));
             }
             
-            symbolList.innerHTML = availableSymbols.map(symbol => `
+            const sortedSymbols = Array.from(allAvailableSymbols).sort();
+            
+            symbolList.innerHTML = sortedSymbols.map(symbol => `
                 <div class="symbol-item">
                     <input type="checkbox" id="symbol_${symbol}" value="${symbol}" ${selectedSymbols.has(symbol) ? 'checked' : ''}>
                     <label for="symbol_${symbol}">${symbol} - ${getSymbolName(symbol)}</label>
