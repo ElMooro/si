@@ -6,13 +6,10 @@ cat > professional-financial-dashboard.html << 'ENDOFFILE' && git add profession
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Professional Financial Intelligence Platform</title>
     
-    <!-- Plotly.js for advanced charting -->
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     
-    <!-- Date-fns for date handling -->
     <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
     
-    <!-- Simple Statistics -->
     <script src="https://cdn.jsdelivr.net/npm/simple-statistics@7.8.0/dist/simple-statistics.min.js"></script>
     
     <style>
@@ -701,48 +698,64 @@ cat > professional-financial-dashboard.html << 'ENDOFFILE' && git add profession
             searchTimeout = setTimeout(() => searchIndicators(query), 300);
         }
         
-        // Dynamic search function
         async function searchIndicators(query) {
             const resultsDiv = document.getElementById('searchResults');
-            
+        
             if (query.length < 2) {
                 resultsDiv.style.display = 'none';
                 return;
             }
-            
+        
             // Show loading
             resultsDiv.innerHTML = '<div class="search-loading loading-pulse">Searching...</div>';
             resultsDiv.style.display = 'block';
-            
+        
             try {
                 // Check cache first
                 const cacheKey = `${activeTab}_${query.toLowerCase()}`;
-                if (searchCache[cacheKey] && searchCache[cacheKey].timestamp > Date.now() - 300000) { // 5 min cache
+                if (searchCache[cacheKey] && searchCache[cacheKey].timestamp > Date.now() - 300000) {
                     displaySearchResults(searchCache[cacheKey].results);
                     return;
                 }
                 
                 let searchResults = [];
-                
+        
                 // If searching in all sources or specific source
                 if (activeTab === 'all' || activeTab === 'fred') {
-                    // Use the universal search endpoint
-                    const searchResponse = await fetch(`${API_BASE}/api/v1/universal/search?query=${encodeURIComponent(query)}`);
-                    if (searchResponse.ok) {
-                        const searchData = await searchResponse.json();
-                        if (searchData && searchData.results) {
-                            searchResults = searchResults.concat(
-                                searchData.results.map(item => ({
-                                    symbol: item.symbol || item.id,
-                                    name: item.name || item.title || item.description,
-                                    source: item.provider || 'fred',
-                                    category: item.category || 'Unknown'
-                                }))
-                            );
+                    try {
+                        // Use the universal search endpoint
+                        const searchResponse = await fetch(`${API_BASE}/api/v1/universal/search?query=${encodeURIComponent(query)}`);
+                        if (searchResponse.ok) {
+                            const searchData = await searchResponse.json();
+                                        
+                            // Handle different response formats
+                            if (searchData) {
+                                let results = [];
+                                        
+                                // Check if it's an array directly
+                                if (Array.isArray(searchData)) {
+                                    results = searchData;
+                                } else if (searchData.results && Array.isArray(searchData.results)) {
+                                    results = searchData.results;
+                                } else if (searchData.data && Array.isArray(searchData.data)) {
+                                    results = searchData.data;
+                                }
+                                        
+                                searchResults = searchResults.concat(
+                                    results.map(item => ({
+                                        symbol: item.symbol || item.id || item.series_id,
+                                        name: item.name || item.title || item.description || item.series_name,
+                                        source: item.provider || item.source || 'fred',
+                                        category: item.category || 'Unknown'
+                                    }))
+                                );
+                            }
                         }
+                    } catch (apiError) {
+                        console.error('API search error:', apiError);
                     }
                 }
-                
+        
                 // Also search in common indicators
                 if (activeTab === 'all') {
                     Object.entries(commonIndicators).forEach(([source, indicators]) => {
@@ -763,7 +776,7 @@ cat > professional-financial-dashboard.html << 'ENDOFFILE' && git add profession
                         filtered.map(ind => ({ ...ind, source: activeTab }))
                     );
                 }
-                
+        
                 // Remove duplicates
                 const uniqueResults = [];
                 const seen = new Set();
@@ -774,15 +787,15 @@ cat > professional-financial-dashboard.html << 'ENDOFFILE' && git add profession
                         uniqueResults.push(result);
                     }
                 });
-                
+        
                 // Cache results
                 searchCache[cacheKey] = {
                     results: uniqueResults,
                     timestamp: Date.now()
                 };
-                
+        
                 displaySearchResults(uniqueResults);
-                
+        
             } catch (error) {
                 console.error('Search error:', error);
                 resultsDiv.innerHTML = '<div class="error-message">Error searching. Please try again.</div>';
