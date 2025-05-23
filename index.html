@@ -1,4 +1,3 @@
-cat > professional-financial-dashboard.html << 'ENDOFFILE' && git add professional-financial-dashboard.html && git commit -m "Add professional financial dashboard with full historical data" && git push origin main
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -580,7 +579,7 @@ cat > professional-financial-dashboard.html << 'ENDOFFILE' && git add profession
             <div class="search-section">
                 <div class="search-container">
                     <input type="text" class="search-box" id="searchBox" 
-                           placeholder="Search any indicator (e.g., DXY, BAMLH0A0HYM2, GDP)..." 
+                           placeholder="Search any indicator (e.g., DXY, GDP, AAPL)..." 
                            onkeyup="debounceSearch(this.value)">
                     <span class="search-icon">🔍</span>
                 </div>
@@ -610,10 +609,10 @@ cat > professional-financial-dashboard.html << 'ENDOFFILE' && git add profession
         let chartIdCounter = 0;
         const watchlists = {};
         let watchlistIdCounter = 0;
-        let activeTab = 'all';
+        let activeTab = 'all'; // Default to 'all'
         let activeChartId = null;
         let searchTimeout = null;
-        let searchCache = {};
+        let searchCache = {}; // Cache for search results: { cacheKey: { results: [], timestamp: Date.now() } }
         
         // Color palette
         const colorPalette = [
@@ -621,7 +620,8 @@ cat > professional-financial-dashboard.html << 'ENDOFFILE' && git add profession
             '#AF7AC5', '#48C9B0', '#EC7063', '#5DADE2', '#F5B041'
         ];
         
-        // Common indicators (for quick access, but search will find all)
+        // Common indicators (for quick access, local fallback)
+        // These can be expanded or dynamically updated if needed
         const commonIndicators = {
             fred: [
                 { symbol: 'DXY', name: 'US Dollar Index', category: 'Currency' },
@@ -630,22 +630,33 @@ cat > professional-financial-dashboard.html << 'ENDOFFILE' && git add profession
                 { symbol: 'GDPC1', name: 'Real GDP', category: 'Economic' },
                 { symbol: 'UNRATE', name: 'Unemployment Rate', category: 'Economic' },
                 { symbol: 'CPIAUCSL', name: 'CPI All Items', category: 'Inflation' },
-                { symbol: 'DFF', name: 'Federal Funds Rate', category: 'Rates' },
-                { symbol: 'DGS10', name: '10-Year Treasury', category: 'Rates' },
-                { symbol: 'VIXCLS', name: 'VIX Volatility Index', category: 'Markets' },
+                { symbol: 'FEDFUNDS', name: 'Federal Funds Effective Rate', category: 'Rates' }, // More common FRED symbol
+                { symbol: 'DGS10', name: '10-Year Treasury Constant Maturity Rate', category: 'Rates' },
+                { symbol: 'VIXCLS', name: 'CBOE Volatility Index: VIX', category: 'Markets' },
                 { symbol: 'SP500', name: 'S&P 500', category: 'Markets' }
             ],
-            treasury: [
-                { symbol: 'TREASURY_AVG_RATES', name: 'Treasury Average Rates', category: 'Treasury' },
-                { symbol: 'TREASURY_AUCTIONS', name: 'Treasury Auctions', category: 'Treasury' }
-            ],
             ecb: [
-                { symbol: 'ECBDFR', name: 'ECB Deposit Facility Rate', category: 'Central Banks' }
+                // Example, actual symbols might vary based on what your universal search provides for ECB
+                { symbol: 'ECB.D.U2.EUR.4F.CF.DEPOSIT_FAC.RATE', name: 'ECB Deposit Facility Rate', category: 'Rates' }, 
+                { symbol: 'ECB.D.U2.EUR.4F.CF.LENDING_MARGINAL.RATE', name: 'ECB Marginal Lending Facility', category: 'Rates' }
             ],
             polygon: [
                 { symbol: 'AAPL', name: 'Apple Inc.', category: 'Stocks' },
                 { symbol: 'MSFT', name: 'Microsoft Corp.', category: 'Stocks' },
-                { symbol: 'X:BTCUSD', name: 'Bitcoin / USD', category: 'Crypto' }
+                { symbol: 'GOOGL', name: 'Alphabet Inc. (Class A)', category: 'Stocks' },
+                { symbol: 'X:BTCUSD', name: 'Bitcoin / USD', category: 'Crypto' },
+                { symbol: 'X:ETHUSD', name: 'Ethereum / USD', category: 'Crypto' }
+            ],
+            ofr: [
+                // Example, actual symbols might vary
+                { symbol: 'OFR.FSI', name: 'OFR Financial Stress Index', category: 'Systemic Risk' }
+            ],
+            nyfed: [
+                // Example, actual symbols might vary
+                { symbol: 'SOFR', name: 'Secured Overnight Financing Rate', category: 'Rates' }
+            ],
+             bls: [
+                { symbol: 'CES0000000001', name: 'All Employees, Total Nonfarm', category: 'Employment' }
             ]
         };
         
@@ -654,12 +665,12 @@ cat > professional-financial-dashboard.html << 'ENDOFFILE' && git add profession
             updateClock();
             setInterval(updateClock, 1000);
             createTabs();
-            createDefaultWatchlist();
+            createDefaultWatchlist(); // Consider if default watchlists should use symbols known to be in your API
             loadLayout();
             if (Object.keys(charts).length === 0) {
                 addNewChart();
             }
-            setInterval(updateWatchlistData, 60000 * 5);
+            setInterval(updateWatchlistData, 60000 * 5); // Update watchlists every 5 minutes
         }
         
         // Clock
@@ -667,18 +678,21 @@ cat > professional-financial-dashboard.html << 'ENDOFFILE' && git add profession
             document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
         }
         
-        // Create tabs
+        // Create tabs including all specified sources
         function createTabs() {
-            const tabsHtml = `
-                <div class="tab active" onclick="switchTab('all', this)">All Sources</div>
-                <div class="tab" onclick="switchTab('fred', this)">FRED</div>
-                <div class="tab" onclick="switchTab('treasury', this)">Treasury</div>
-                <div class="tab" onclick="switchTab('ecb', this)">ECB</div>
-                <div class="tab" onclick="switchTab('ofr', this)">OFR</div>
-                <div class="tab" onclick="switchTab('nyfed', this)">NY Fed</div>
-                <div class="tab" onclick="switchTab('bls', this)">BLS</div>
-                <div class="tab" onclick="switchTab('polygon', this)">Stocks</div>
-            `;
+            const tabsData = [
+                { key: 'all', label: 'All Sources' },
+                { key: 'fred', label: 'FRED' },
+                { key: 'ecb', label: 'ECB' },
+                { key: 'polygon', label: 'Polygon (Stocks/Crypto)' },
+                { key: 'ofr', label: 'OFR' },
+                { key: 'nyfed', label: 'NY Fed' },
+                { key: 'bls', label: 'BLS' },
+                { key: 'treasury', label: 'Treasury' } // Kept from original if still relevant
+            ];
+            const tabsHtml = tabsData.map(tab => 
+                `<div class="tab ${tab.key === activeTab ? 'active' : ''}" onclick="switchTab('${tab.key}', this)">${tab.label}</div>`
+            ).join('');
             document.getElementById('sourceTabs').innerHTML = tabsHtml;
         }
         
@@ -687,153 +701,169 @@ cat > professional-financial-dashboard.html << 'ENDOFFILE' && git add profession
             activeTab = tabKey;
             document.querySelectorAll('#sourceTabs .tab').forEach(t => t.classList.remove('active'));
             element.classList.add('active');
-            // Clear search when switching tabs
-            document.getElementById('searchBox').value = '';
-            document.getElementById('searchResults').style.display = 'none';
+            document.getElementById('searchBox').value = ''; // Clear search box
+            document.getElementById('searchResults').style.display = 'none'; // Hide results
+            // Optionally, trigger a new search or clear suggestions if needed
         }
         
         // Debounced search
         function debounceSearch(query) {
             clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => searchIndicators(query), 300);
+            searchTimeout = setTimeout(() => searchIndicators(query.trim()), 300); // Trim query
         }
         
+        // Improved search function
         async function searchIndicators(query) {
             const resultsDiv = document.getElementById('searchResults');
         
-            if (query.length < 2) {
+            if (query.length < 2) { // Minimum query length for search
                 resultsDiv.style.display = 'none';
                 return;
             }
         
-            // Show loading
             resultsDiv.innerHTML = '<div class="search-loading loading-pulse">Searching...</div>';
             resultsDiv.style.display = 'block';
         
+            const cacheKey = `${activeTab}_${query.toLowerCase()}`;
+            if (searchCache[cacheKey] && (Date.now() - searchCache[cacheKey].timestamp < 300000)) { // 5 min cache
+                displaySearchResults(searchCache[cacheKey].results);
+                return;
+            }
+        
+            let apiResults = [];
             try {
-                // Check cache first
-                const cacheKey = `${activeTab}_${query.toLowerCase()}`;
-                if (searchCache[cacheKey] && searchCache[cacheKey].timestamp > Date.now() - 300000) {
-                    displaySearchResults(searchCache[cacheKey].results);
-                    return;
+                // Use the universal search endpoint. 
+                // The backend API at /api/v1/universal/search needs to be robust enough to handle queries across sources.
+                // If activeTab is not 'all', the backend could use it as a filter.
+                let searchUrl = `${API_BASE}/api/v1/universal/search?query=${encodeURIComponent(query)}`;
+                if (activeTab !== 'all') {
+                    // Append source if API supports it, e.g., &source=${activeTab}
+                    // For now, we assume universal search tries all or filters based on its own logic
+                }
+
+                const response = await fetch(searchUrl);
+                if (!response.ok) {
+                    // Try to get error message from API response body
+                    let errorMsg = `API error: ${response.status}`;
+                    try {
+                        const errorData = await response.json();
+                        errorMsg = errorData.message || errorData.detail || errorMsg;
+                    } catch (e) { /* ignore parsing error */ }
+                    throw new Error(errorMsg);
                 }
                 
-                let searchResults = [];
-        
-                // If searching in all sources or specific source
-                if (activeTab === 'all' || activeTab === 'fred') {
-                    try {
-                        // Use the universal search endpoint
-                        const searchResponse = await fetch(`${API_BASE}/api/v1/universal/search?query=${encodeURIComponent(query)}`);
-                        if (searchResponse.ok) {
-                            const searchData = await searchResponse.json();
-                                        
-                            // Handle different response formats
-                            if (searchData) {
-                                let results = [];
-                                        
-                                // Check if it's an array directly
-                                if (Array.isArray(searchData)) {
-                                    results = searchData;
-                                } else if (searchData.results && Array.isArray(searchData.results)) {
-                                    results = searchData.results;
-                                } else if (searchData.data && Array.isArray(searchData.data)) {
-                                    results = searchData.data;
-                                }
-                                        
-                                searchResults = searchResults.concat(
-                                    results.map(item => ({
-                                        symbol: item.symbol || item.id || item.series_id,
-                                        name: item.name || item.title || item.description || item.series_name,
-                                        source: item.provider || item.source || 'fred',
-                                        category: item.category || 'Unknown'
-                                    }))
-                                );
-                            }
-                        }
-                    } catch (apiError) {
-                        console.error('API search error:', apiError);
-                    }
+                const searchData = await response.json();
+                let rawResults = [];
+                if (Array.isArray(searchData)) {
+                    rawResults = searchData;
+                } else if (searchData && Array.isArray(searchData.results)) {
+                    rawResults = searchData.results;
+                } else if (searchData && Array.isArray(searchData.data)) {
+                    rawResults = searchData.data;
                 }
-        
-                // Also search in common indicators
-                if (activeTab === 'all') {
-                    Object.entries(commonIndicators).forEach(([source, indicators]) => {
-                        const filtered = indicators.filter(ind => 
-                            ind.symbol.toLowerCase().includes(query.toLowerCase()) ||
-                            ind.name.toLowerCase().includes(query.toLowerCase())
-                        );
-                        searchResults = searchResults.concat(
-                            filtered.map(ind => ({ ...ind, source }))
-                        );
-                    });
-                } else if (commonIndicators[activeTab]) {
-                    const filtered = commonIndicators[activeTab].filter(ind => 
-                        ind.symbol.toLowerCase().includes(query.toLowerCase()) ||
-                        ind.name.toLowerCase().includes(query.toLowerCase())
-                    );
-                    searchResults = searchResults.concat(
-                        filtered.map(ind => ({ ...ind, source: activeTab }))
-                    );
-                }
-        
-                // Remove duplicates
-                const uniqueResults = [];
-                const seen = new Set();
-                searchResults.forEach(result => {
-                    const key = `${result.symbol}_${result.source}`;
-                    if (!seen.has(key)) {
-                        seen.add(key);
-                        uniqueResults.push(result);
-                    }
-                });
-        
-                // Cache results
-                searchCache[cacheKey] = {
-                    results: uniqueResults,
-                    timestamp: Date.now()
-                };
-        
-                displaySearchResults(uniqueResults);
-        
+
+                apiResults = rawResults.map(item => ({
+                    symbol: item.symbol || item.id || item.series_id || 'N/A',
+                    name: item.name || item.title || item.description || item.series_name || 'No name available',
+                    // Ensure source is consistently provided or defaulted
+                    source: (item.provider || item.source || 'unknown').toLowerCase(), 
+                    category: item.category || 'Unknown'
+                }));
+
             } catch (error) {
-                console.error('Search error:', error);
-                resultsDiv.innerHTML = '<div class="error-message">Error searching. Please try again.</div>';
+                console.error('API Search error:', error);
+                // Display a more specific error if possible, otherwise the generic one
+                resultsDiv.innerHTML = `<div class="error-message">Search failed: ${error.message}. Please check API or try again.</div>`;
+                // Do not return here, allow local commonIndicators to be searched as fallback
             }
+
+            let combinedResults = [...apiResults];
+
+            // Supplement with local commonIndicators, especially if API fails or for faster initial suggestions
+            const lowerQuery = query.toLowerCase();
+            if (activeTab === 'all') {
+                Object.entries(commonIndicators).forEach(([sourceKey, indicators]) => {
+                    const filtered = indicators.filter(ind => 
+                        ind.symbol.toLowerCase().includes(lowerQuery) ||
+                        ind.name.toLowerCase().includes(lowerQuery)
+                    );
+                    combinedResults = combinedResults.concat(
+                        filtered.map(ind => ({ ...ind, source: sourceKey }))
+                    );
+                });
+            } else if (commonIndicators[activeTab]) {
+                const filtered = commonIndicators[activeTab].filter(ind => 
+                    ind.symbol.toLowerCase().includes(lowerQuery) ||
+                    ind.name.toLowerCase().includes(lowerQuery)
+                );
+                combinedResults = combinedResults.concat(
+                    filtered.map(ind => ({ ...ind, source: activeTab }))
+                );
+            }
+            
+            // Filter by activeTab if API didn't (and results have a 'source' property)
+            if (activeTab !== 'all') {
+                combinedResults = combinedResults.filter(r => r.source.toLowerCase() === activeTab.toLowerCase());
+            }
+
+            // Remove duplicates based on symbol and source
+            const uniqueResults = [];
+            const seen = new Set(); // Stores "symbol@source"
+            combinedResults.forEach(result => {
+                const key = `${result.symbol.toLowerCase()}@${result.source.toLowerCase()}`;
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    uniqueResults.push(result);
+                }
+            });
+            
+            searchCache[cacheKey] = { results: uniqueResults, timestamp: Date.now() };
+            displaySearchResults(uniqueResults);
         }
-        
+
         // Display search results
         function displaySearchResults(results) {
             const resultsDiv = document.getElementById('searchResults');
             
-            if (results.length === 0) {
-                resultsDiv.innerHTML = '<div class="search-item">No results found. Try a different search term.</div>';
+            if (!results || results.length === 0) {
+                // If search box is still focused and has text, show "no results"
+                if (document.activeElement === document.getElementById('searchBox') && document.getElementById('searchBox').value.length >=2) {
+                    resultsDiv.innerHTML = '<div class="search-item">No results found. Try a different term or source.</div>';
+                } else {
+                     resultsDiv.style.display = 'none'; // Hide if no results and search box not active
+                }
                 return;
             }
             
-            const html = results.slice(0, 50).map(result => `
-                <div class="search-item" onclick="addToChartWrapper('${result.symbol}', '${result.source}')">
+            const html = results.slice(0, 50).map(result => ` <div class="search-item" onclick="addToChartWrapper('${result.symbol}', '${result.source}')">
                     <div class="search-item-header">
                         <div class="search-item-symbol">${result.symbol}</div>
-                        <div class="search-item-source">${result.source.toUpperCase()}</div>
+                        <div class="search-item-source">${(result.source || 'N/A').toUpperCase()}</div>
                     </div>
                     <div class="search-item-name">${result.name || 'Unknown'}</div>
                 </div>
             `).join('');
             
             resultsDiv.innerHTML = html;
+            resultsDiv.style.display = 'block'; // Ensure it's visible
         }
         
         // Add to chart wrapper
         function addToChartWrapper(symbol, source) {
             let targetChartId = activeChartId;
             if (!targetChartId && Object.keys(charts).length > 0) {
-                targetChartId = Object.keys(charts)[Object.keys(charts).length - 1];
-            } else if (!targetChartId) {
-                addNewChart();
-                targetChartId = `chart_${chartIdCounter - 1}`;
-                setActiveChart(targetChartId);
+                targetChartId = Object.keys(charts)[Object.keys(charts).length - 1]; // Fallback to last chart
+            } else if (!targetChartId) { // No charts exist
+                addNewChart(); // This will set activeChartId
+                targetChartId = activeChartId; 
             }
+            if (!targetChartId) { // Still no targetChartId (e.g. addNewChart failed or wasn't called)
+                 console.error("No active chart to add symbol to.");
+                 addNewChart(); // Try one last time
+                 targetChartId = activeChartId;
+                 if(!targetChartId) return; // Give up
+            }
+
             addToChart(targetChartId, symbol, source);
             document.getElementById('searchResults').style.display = 'none';
             document.getElementById('searchBox').value = '';
@@ -846,17 +876,20 @@ cat > professional-financial-dashboard.html << 'ENDOFFILE' && git add profession
                 return;
             }
             const chart = charts[chartId];
-            if (!chart.symbols.find(s => s.symbol === symbol)) {
+            // Prevent adding the exact same symbol from the same source multiple times
+            if (!chart.symbols.find(s => s.symbol === symbol && s.source === source)) {
                 const maPeriod = parseInt(document.getElementById(`${chartId}_maPeriod`)?.value || 20);
-                chart.symbols.push({ symbol, source, showMA: false, maPeriod });
+                chart.symbols.push({ symbol, source, showMA: document.getElementById(`${chartId}_toggleMA`)?.checked || false, maPeriod });
                 loadChartData(chartId, symbol, source);
+            } else {
+                console.log(`Symbol ${symbol} from source ${source} already in chart ${chartId}.`);
             }
         }
         
         // Create new chart
         function addNewChart() {
             const chartId = `chart_${chartIdCounter++}`;
-            activeChartId = chartId;
+            // activeChartId = chartId; // Set by setActiveChart
             
             const chartHtml = `
                 <div class="chart-window" id="${chartId}" onclick="setActiveChart('${chartId}')">
@@ -876,7 +909,7 @@ cat > professional-financial-dashboard.html << 'ENDOFFILE' && git add profession
                                         <option value="qoq">Quarter over Quarter %</option>
                                         <option value="yoy">Year over Year %</option>
                                     </select>
-                                    <div class="timeframe-buttons">
+                                    <div class="timeframe-buttons" id="${chartId}_timeframe_buttons">
                                         ${['1M','3M','6M','1Y','2Y','5Y','10Y','20Y','MAX'].map(tf => 
                                             `<button class="timeframe-btn ${tf === 'MAX' ? 'active' : ''}" 
                                                      onclick="changeTimeframe(event, '${chartId}', '${tf}')">${tf}</button>`
@@ -904,170 +937,205 @@ cat > professional-financial-dashboard.html << 'ENDOFFILE' && git add profession
             document.getElementById('chartGrid').insertAdjacentHTML('beforeend', chartHtml);
             
             charts[chartId] = {
-                symbols: [],
-                data: {},
+                symbols: [], // { symbol, source, showMA, maPeriod }
+                data: {}, // { symbol: [ {date, value, open?, high?, low?, close?, volume?} ] }
                 timeframe: 'MAX',
                 chartInstance: null,
                 errorMessage: null
             };
-            setActiveChart(chartId);
+            setActiveChart(chartId); // This will set activeChartId and highlight the new chart
         }
         
         // Set active chart
         function setActiveChart(chartId) {
-            if (activeChartId === chartId) return;
+            if (activeChartId === chartId && document.getElementById(chartId)?.classList.contains('active-chart')) {
+                 // Do nothing if already active and correctly styled, prevents unnecessary DOM manipulation
+                return;
+            }
             activeChartId = chartId;
             document.querySelectorAll('.chart-window').forEach(c => c.classList.remove('active-chart'));
             const chartElement = document.getElementById(chartId);
             if (chartElement) {
                 chartElement.classList.add('active-chart');
+            } else {
+                console.warn(`setActiveChart: Chart element ${chartId} not found.`);
+                // Fallback if the active chart was removed
+                const firstChartKey = Object.keys(charts)[0];
+                if (firstChartKey) {
+                    activeChartId = firstChartKey;
+                    document.getElementById(firstChartKey)?.classList.add('active-chart');
+                } else {
+                    activeChartId = null; // No charts left
+                }
             }
         }
         
         // Remove chart
-        function removeChart(event, chartId) {
-            event.stopPropagation();
-            if (charts[chartId] && charts[chartId].chartInstance) {
-                Plotly.purge(`${chartId}_canvas`);
+        function removeChart(event, chartIdToRemove) {
+            event.stopPropagation(); // Prevent click from bubbling to chart-window's setActiveChart
+            if (charts[chartIdToRemove] && charts[chartIdToRemove].chartInstance) {
+                Plotly.purge(`${chartIdToRemove}_canvas`);
             }
-            delete charts[chartId];
-            document.getElementById(chartId)?.remove();
-            if (activeChartId === chartId) {
-                activeChartId = Object.keys(charts).length > 0 ? Object.keys(charts)[0] : null;
-                if (activeChartId) setActiveChart(activeChartId);
+            delete charts[chartIdToRemove];
+            document.getElementById(chartIdToRemove)?.remove();
+            
+            if (activeChartId === chartIdToRemove) { // If the removed chart was active
+                const chartKeys = Object.keys(charts);
+                if (chartKeys.length > 0) {
+                    setActiveChart(chartKeys[chartKeys.length - 1]); // Activate the last chart
+                } else {
+                    activeChartId = null; // No charts left
+                    // Optionally add a new blank chart if all are removed
+                    // addNewChart(); 
+                }
             }
         }
         
-        // Load chart data - FIXED to get ALL historical data
+        // Load chart data - Make sure to fetch all historical data
         async function loadChartData(chartId, symbol, source) {
             const chart = charts[chartId];
-            if (!chart) return;
+            if (!chart) {
+                console.error(`loadChartData: Chart ${chartId} not found.`);
+                return;
+            }
             
             const canvasDiv = document.getElementById(`${chartId}_canvas`);
-            if (canvasDiv) canvasDiv.innerHTML = `<div class="chart-message loading-pulse">Loading ${symbol}...</div>`;
-            chart.errorMessage = null;
+            if (canvasDiv) canvasDiv.innerHTML = `<div class="chart-message loading-pulse">Loading ${symbol} (${source.toUpperCase()})...</div>`;
+            chart.errorMessage = null; // Reset error message
             
             try {
                 const endpoint = getEndpointForSource(source, symbol);
                 const response = await fetch(API_BASE + endpoint);
                 
                 if (!response.ok) {
-                    throw new Error(`Failed to fetch data: ${response.status} ${response.statusText}`);
+                    let errorDetail = `Status: ${response.status}`;
+                    try {
+                        const errData = await response.json();
+                        errorDetail = errData.message || errData.detail || errorDetail;
+                    } catch(e) {/* ignore */}
+                    throw new Error(`Failed to fetch data for ${symbol} from ${source}. ${errorDetail}`);
                 }
                 
                 const result = await response.json();
-                
-                if (result.data && Array.isArray(result.data) && result.data.length > 0) {
-                    chart.data[symbol] = processData(result.data, source, symbol);
-                    if (canvasDiv) canvasDiv.innerHTML = '';
-                } else if (result.results && Array.isArray(result.results) && result.results.length > 0) {
-                    // Handle different API response formats
-                    chart.data[symbol] = processData(result.results, source, symbol);
-                    if (canvasDiv) canvasDiv.innerHTML = '';
+                let rawData;
+
+                if (result && Array.isArray(result.data) && result.data.length > 0) {
+                    rawData = result.data;
+                } else if (result && Array.isArray(result.results) && result.results.length > 0) {
+                    rawData = result.results;
+                } else if (Array.isArray(result) && result.length > 0) { // Handle direct array response
+                    rawData = result;
                 } else {
-                    throw new Error(`No data available for ${symbol}`);
+                    throw new Error(`No data points available for ${symbol} from ${source}.`);
                 }
+                
+                const processed = processData(rawData, source, symbol);
+                if (processed.length === 0) {
+                     throw new Error(`Data for ${symbol} from ${source} processed into an empty set.`);
+                }
+                chart.data[symbol] = processed;
+
+                if (canvasDiv) canvasDiv.innerHTML = ''; // Clear loading message
+
             } catch (error) {
-                console.error(`Error loading data for ${symbol}:`, error);
-                chart.errorMessage = `Error loading ${symbol}: ${error.message}`;
+                console.error(`Error loading data for ${symbol} (${source}) in chart ${chartId}:`, error);
+                chart.errorMessage = error.message; // Store more specific error
                 if (canvasDiv) {
                     canvasDiv.innerHTML = `<div class="chart-message" style="color: #ff4444;">${chart.errorMessage}</div>`;
                 }
             } finally {
-                updateChartRender(chartId);
+                updateChartRender(chartId); // Always attempt to render, even if it shows an error message
                 updateChartSymbols(chartId);
                 if (chart.data[symbol] && chart.data[symbol].length > 0) {
                     calculateStats(chartId, symbol);
+                } else if (Object.keys(chart.data).length === 0 && chart.symbols.length === 0){ // No data and no symbols
+                     if (canvasDiv && !chart.errorMessage) { // If no specific error, revert to default message
+                        canvasDiv.innerHTML = `<div class="chart-message">Search for an indicator to add to this chart.</div>`;
+                     }
                 }
             }
         }
         
-        // Get endpoint for source - FIXED to request maximum data
+        // Get endpoint for source - Ensure this requests maximum historical data
         function getEndpointForSource(source, symbol) {
-            // Clean symbol for API
             const cleanSymbol = encodeURIComponent(symbol);
-            
-            // Get dates for maximum historical data
-            const endDate = new Date().toISOString().split('T')[0];
-            const startDate = '1900-01-01'; // Request data from 1900 to get all available history
-            
-            switch (source.toLowerCase()) {
+            const startDate = '1900-01-01'; // Request data far back to get all available history
+            const endDate = new Date().toISOString().split('T')[0]; // Today
+            const limit = 50000; // Generous limit for APIs that support it
+        
+            // Normalize source for consistent casing
+            const lowerSource = source.toLowerCase();
+
+            switch (lowerSource) {
                 case 'fred':
-                    // Request all available data from FRED
                     return `/api/v1/universal/data?symbol=${cleanSymbol}&provider=fred&start_date=${startDate}&end_date=${endDate}`;
                 case 'treasury':
-                    if (symbol.includes('AUCTION')) {
+                     // Assuming your API distinguishes between rates and auctions by symbol or specific endpoint
+                    if (symbol.toUpperCase().includes('AUCTION')) {
                         return `/api/v1/treasury/auctions?start_date=${startDate}&end_date=${endDate}`;
                     }
-                    return `/api/v1/treasury/rates?start_date=${startDate}&end_date=${endDate}`;
+                    // Default to rates if not an auction
+                    return `/api/v1/treasury/rates?start_date=${startDate}&end_date=${endDate}`; 
                 case 'ecb':
-                    return `/api/v1/economy/european_central_bank_interest_rates?start_date=${startDate}&end_date=${endDate}`;
+                    // Assuming a specific ECB endpoint; adjust if using universal for ECB data
+                    return `/api/v1/economy/european_central_bank_interest_rates?series_id=${cleanSymbol}&start_date=${startDate}&end_date=${endDate}`;
                 case 'ofr':
-                    return `/api/v1/ofr/financial_stress?start_date=${startDate}&end_date=${endDate}`;
+                    return `/api/v1/ofr/financial_stress?start_date=${startDate}&end_date=${endDate}`; // Might need symbol if OFR provides multiple series
                 case 'nyfed':
-                    return `/api/v1/nyfed/sofr?start_date=${startDate}&end_date=${endDate}`;
+                    return `/api/v1/nyfed/sofr?series_id=${cleanSymbol}&start_date=${startDate}&end_date=${endDate}`; // Assuming SOFR or other specific series
                 case 'bls':
                     return `/api/v1/universal/data?symbol=${cleanSymbol}&provider=bls&start_date=${startDate}&end_date=${endDate}`;
                 case 'polygon':
-                    // Polygon supports very long history for stocks
-                    return `/api/v1/equity/price/historical?symbol=${cleanSymbol}&provider=polygon&interval=day&start_date=${startDate}&end_date=${endDate}&limit=50000`;
+                    return `/api/v1/equity/price/historical?symbol=${cleanSymbol}&provider=polygon&interval=day&start_date=${startDate}&end_date=${endDate}&limit=${limit}`;
                 default:
-                    // Try universal endpoint as fallback with maximum date range
-                    return `/api/v1/universal/data?symbol=${cleanSymbol}&provider=${source}&start_date=${startDate}&end_date=${endDate}`;
+                    console.warn(`Unknown source "${source}" for symbol ${symbol}. Falling back to universal endpoint.`);
+                    // Fallback to universal endpoint, hoping it can resolve the source.
+                    return `/api/v1/universal/data?symbol=${cleanSymbol}&provider=${lowerSource}&start_date=${startDate}&end_date=${endDate}`;
             }
         }
         
         // Process data from different sources
         function processData(apiData, source, symbol) {
-            if (!Array.isArray(apiData)) return [];
+            if (!Array.isArray(apiData) || apiData.length === 0) return [];
             
-            // Handle different data formats
+            source = source.toLowerCase(); // Normalize source
+
+            // Standardize data points to { date: 'YYYY-MM-DD', value: number, open?, high?, low?, close?, volume? }
+            let processedData = [];
+
             if (source === 'polygon') {
-                return apiData.map(d => ({
-                    date: d.date || d.t || d.timestamp,
-                    open: parseFloat(d.open || d.o || 0),
-                    high: parseFloat(d.high || d.h || 0),
-                    low: parseFloat(d.low || d.l || 0),
-                    close: parseFloat(d.close || d.c || 0),
-                    volume: parseInt(d.volume || d.v || 0),
-                    value: parseFloat(d.close || d.c || 0)
-                })).filter(d => d.date && !isNaN(d.value));
-            }
-            
-            // Handle nested data (like ECB)
-            if (source === 'ecb' && apiData.length > 0) {
-                // ECB data might be in different format
-                const flatData = [];
-                apiData.forEach(item => {
-                    if (item[symbol]) {
-                        item[symbol].forEach(point => {
-                            flatData.push({
-                                date: point.date,
-                                value: parseFloat(point.value || point.rate || 0)
-                            });
-                        });
-                    } else if (item.date && (item.value !== undefined || item.rate !== undefined)) {
-                        flatData.push({
-                            date: item.date,
-                            value: parseFloat(item.value || item.rate || 0)
-                        });
-                    }
+                processedData = apiData.map(d => ({
+                    date: d.date || (d.t ? new Date(d.t).toISOString().split('T')[0] : null) || d.timestamp,
+                    open: parseFloat(d.open || d.o),
+                    high: parseFloat(d.high || d.h),
+                    low: parseFloat(d.low || d.l),
+                    close: parseFloat(d.close || d.c),
+                    volume: parseInt(d.volume || d.v),
+                    value: parseFloat(d.close || d.c) // Candlestick charts use 'close', line charts use 'value'
+                }));
+            } else { // For FRED, ECB, OFR, NYFED, BLS, Treasury and others (time-series data)
+                processedData = apiData.map(d => {
+                    let val = d.value;
+                    if (val === null || val === undefined || val === '.') val = NaN; // Handle FRED's '.' for no data
+
+                    // If the API returns data for multiple series in one go, try to pick the correct one.
+                    // This is common for some ECB or Treasury endpoints.
+                    if (typeof d[symbol] !== 'undefined') val = d[symbol];
+                    else if (typeof d.rate !== 'undefined') val = d.rate; // Common for interest rates
+                    else if (typeof d.price !== 'undefined') val = d.price;
+                    // Add more specific field checks if needed for other sources
+
+                    return {
+                        date: d.date || d.TIME_PERIOD || d.ref_date || d.observation_date || d.timestamp,
+                        value: parseFloat(val)
+                    };
                 });
-                return flatData.filter(d => d.date && !isNaN(d.value));
             }
             
-            // Default processing for most sources
-            return apiData.map(d => ({
-                date: d.date || d.timestamp || d.time,
-                value: parseFloat(
-                    d.value || 
-                    d.price || 
-                    d.rate || 
-                    d.close || 
-                    d[symbol] || 
-                    (typeof d === 'number' ? d : 0)
-                )
-            })).filter(d => d.date && !isNaN(d.value));
+            // Filter out invalid entries and sort by date
+            return processedData
+                .filter(d => d.date && (typeof d.value === 'number' && !isNaN(d.value)) ) // Ensure value is a valid number for line charts
+                .sort((a, b) => new Date(a.date) - new Date(b.date));
         }
         
         // Update chart symbols display
@@ -1080,36 +1148,56 @@ cat > professional-financial-dashboard.html << 'ENDOFFILE' && git add profession
             const html = chart.symbols.map((s, i) => `
                 <div class="chart-symbol-tag">
                     <span class="symbol-color-dot" style="background-color: ${colorPalette[i % colorPalette.length]};"></span>
-                    ${s.symbol}
-                    <span class="remove-symbol" onclick="removeSymbolFromChart(event, '${chartId}', '${s.symbol}')">×</span>
+                    ${s.symbol} <span style="font-size:0.8em; color:#888;">(${s.source.toUpperCase()})</span>
+                    <span class="remove-symbol" onclick="removeSymbolFromChart(event, '${chartId}', '${s.symbol}', '${s.source}')">×</span>
                 </div>
             `).join('');
             symbolsDiv.innerHTML = html;
         }
         
-        // Remove symbol from chart
-        function removeSymbolFromChart(event, chartId, symbol) {
+        // Remove symbol from chart (needs source to uniquely identify)
+        function removeSymbolFromChart(event, chartId, symbolToRemove, sourceToRemove) {
             event.stopPropagation();
             const chart = charts[chartId];
             if (!chart) return;
-            chart.symbols = chart.symbols.filter(s => s.symbol !== symbol);
-            delete chart.data[symbol];
+
+            chart.symbols = chart.symbols.filter(s => !(s.symbol === symbolToRemove && s.source === sourceToRemove));
+            // Also remove data associated with this specific symbol-source combination if stored uniquely
+            // For simplicity, if chart.data stores by symbol only, this might remove data if another source uses the same symbol.
+            // A better approach for chart.data would be `chart.data[`${symbol}@${source}`]`
+            delete chart.data[symbolToRemove]; // This is simplistic; see comment above.
+            
             updateChartRender(chartId);
             updateChartSymbols(chartId);
             
             if (chart.symbols.length === 0) {
                 document.getElementById(`${chartId}_stats`).innerHTML = '';
-                document.getElementById(`${chartId}_canvas`).innerHTML = 
-                    '<div class="chart-message">Search for an indicator to add to this chart.</div>';
+                 const canvasDiv = document.getElementById(`${chartId}_canvas`);
+                if(canvasDiv) canvasDiv.innerHTML = '<div class="chart-message">Search for an indicator to add to this chart.</div>';
+            } else {
+                 // Recalculate stats for the remaining symbols if any
+                 // This assumes stats panel shows for the *first* symbol. Needs a more robust strategy if multi-symbol stats are desired.
+                if(chart.symbols.length > 0 && chart.data[chart.symbols[0].symbol]) {
+                    calculateStats(chartId, chart.symbols[0].symbol);
+                } else {
+                     document.getElementById(`${chartId}_stats`).innerHTML = '';
+                }
             }
         }
         
         // Change timeframe
         function changeTimeframe(event, chartId, timeframe) {
-            event.stopPropagation();
-            charts[chartId].timeframe = timeframe;
-            document.querySelectorAll(`#${chartId} .timeframe-btn`).forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            event.stopPropagation(); // Prevent click from bubbling if the button is inside another clickable element
+            const chart = charts[chartId];
+            if (!chart) return;
+            chart.timeframe = timeframe;
+            
+            // Update active button state
+            const buttonContainer = document.getElementById(`${chartId}_timeframe_buttons`);
+            if (buttonContainer) {
+                 buttonContainer.querySelectorAll('.timeframe-btn').forEach(btn => btn.classList.remove('active'));
+                 if(event.target.tagName === 'BUTTON') event.target.classList.add('active');
+            }
             updateChartRender(chartId);
         }
         
@@ -1117,34 +1205,42 @@ cat > professional-financial-dashboard.html << 'ENDOFFILE' && git add profession
         function calculateMovingAverage(data, period) {
             if (!data || data.length < period) return [];
             const result = [];
-            for (let i = period - 1; i < data.length; i++) {
+            // Ensure data is sorted by date if not already guaranteed
+            const sortedData = [...data].sort((a,b) => new Date(a.date) - new Date(b.date));
+
+            for (let i = period - 1; i < sortedData.length; i++) {
                 let sum = 0;
                 for (let j = 0; j < period; j++) {
-                    sum += data[i - j].value || data[i - j].close || 0;
+                    // Use 'close' for OHLC, 'value' otherwise
+                    sum += sortedData[i - j].close !== undefined ? sortedData[i - j].close : sortedData[i - j].value;
                 }
-                result.push({ date: data[i].date, value: sum / period });
+                result.push({ date: sortedData[i].date, value: sum / period });
             }
             return result;
         }
         
-        // Toggle MA overall
+        // Toggle MA overall for all symbols in a chart
         function toggleMAOverall(chartId) {
             const chart = charts[chartId];
             const masterToggle = document.getElementById(`${chartId}_toggleMA`);
             if (!chart || !masterToggle) return;
             
-            chart.symbols.forEach(s => s.showMA = masterToggle.checked);
+            const isChecked = masterToggle.checked;
+            chart.symbols.forEach(s => s.showMA = isChecked);
             updateChartRender(chartId);
         }
         
-        // Update MA period overall
+        // Update MA period overall for all symbols in a chart
         function updateMAPeriodOverall(chartId) {
             const chart = charts[chartId];
             const maPeriodInput = document.getElementById(`${chartId}_maPeriod`);
             if (!chart || !maPeriodInput) return;
             
             const newPeriod = parseInt(maPeriodInput.value);
-            if (isNaN(newPeriod) || newPeriod < 2) return;
+            if (isNaN(newPeriod) || newPeriod < 2) {
+                maPeriodInput.value = chart.symbols[0]?.maPeriod || 20; // Reset to old or default
+                return;
+            }
             
             chart.symbols.forEach(s => s.maPeriod = newPeriod);
             updateChartRender(chartId);
@@ -1154,218 +1250,234 @@ cat > professional-financial-dashboard.html << 'ENDOFFILE' && git add profession
         function calculatePercentageChange(data, type) {
             if (!data || data.length === 0) return [];
             
-            data.sort((a, b) => new Date(a.date) - new Date(b.date));
+            // Data should already be sorted by date from processData
+            // data.sort((a, b) => new Date(a.date) - new Date(b.date)); 
             
             const periods = { 
-                'dod': 1, 
-                'wow': 5, 
-                'mom': 21, 
-                'qoq': 63, 
-                'yoy': 252 
+                'dod': 1,  // Day over Day (needs daily data)
+                'wow': 7,  // Week over Week (assumes calendar days for lookup)
+                'mom': 30, // Month over Month (approx calendar days)
+                'qoq': 90, // Quarter over Quarter (approx calendar days)
+                'yoy': 365 // Year over Year (approx calendar days)
             };
-            const period = periods[type];
-            if (!period) return data.map(d => ({ ...d }));
+            // Note: For accurate WoW, MoM etc. with financial data, it's better to find the exact date N days/weeks/months ago.
+            // This simplified version uses N data points ago, which is only accurate if data is daily and without gaps.
+            // A more robust solution would use date-fns to find the actual prior date.
+            const periodOffset = {'dod':1, 'wow':5, 'mom':21, 'qoq':63, 'yoy':252}[type] || 0; // Trading days approx
+
+            if (!periodOffset) return data.map(d => ({ ...d })); // Return original if type is not recognized
             
             return data.map((point, index) => {
-                if (index < period) return { date: point.date, value: null };
+                if (index < periodOffset) return { date: point.date, value: null }; // Not enough data for change
                 
-                const currentVal = point.value;
-                const previousVal = data[index - period].value;
+                const currentValue = point.close !== undefined ? point.close : point.value;
+                const previousDataPoint = data[index - periodOffset];
+                const previousValue = previousDataPoint.close !== undefined ? previousDataPoint.close : previousDataPoint.value;
                 
-                if (previousVal === null || previousVal === undefined || previousVal === 0) {
+                if (previousValue === null || previousValue === undefined || previousValue === 0 || isNaN(previousValue) ||
+                    currentValue === null || currentValue === undefined || isNaN(currentValue)) {
                     return { date: point.date, value: null };
                 }
-                const change = ((currentVal - previousVal) / Math.abs(previousVal)) * 100;
+                const change = ((currentValue - previousValue) / Math.abs(previousValue)) * 100;
                 return { date: point.date, value: change };
             });
         }
         
-        // Filter data by timeframe - FIXED to handle longer timeframes
+        // Filter data by timeframe (e.g., '1M', '1Y', 'MAX')
         function filterDataByTimeframe(data, timeframe) {
             if (!data || data.length === 0 || timeframe === 'MAX') return data;
             
             const now = new Date();
-            let startDate = new Date();
-            
+            let startDate = new Date(now); // Clone 'now'
+
+            // Ensure data is sorted by date ascending
+            const sortedData = [...data].sort((a, b) => new Date(a.date) - new Date(b.date));
+            const latestDataDate = sortedData.length > 0 ? new Date(sortedData[sortedData.length - 1].date) : now;
+
+
             switch (timeframe) {
-                case '1D': startDate.setDate(now.getDate() - 1); break;
-                case '1W': startDate.setDate(now.getDate() - 7); break;
-                case '1M': startDate.setMonth(now.getMonth() - 1); break;
-                case '3M': startDate.setMonth(now.getMonth() - 3); break;
-                case '6M': startDate.setMonth(now.getMonth() - 6); break;
-                case '1Y': startDate.setFullYear(now.getFullYear() - 1); break;
-                case '2Y': startDate.setFullYear(now.getFullYear() - 2); break;
-                case '5Y': startDate.setFullYear(now.getFullYear() - 5); break;
-                case '10Y': startDate.setFullYear(now.getFullYear() - 10); break;
-                case '20Y': startDate.setFullYear(now.getFullYear() - 20); break;
-                default: return data;
+                // Use date-fns for more reliable date arithmetic if available, otherwise basic Date methods
+                case '1D': startDate = dateFns.subDays(latestDataDate, 1); break;
+                case '1W': startDate = dateFns.subWeeks(latestDataDate, 1); break;
+                case '1M': startDate = dateFns.subMonths(latestDataDate, 1); break;
+                case '3M': startDate = dateFns.subMonths(latestDataDate, 3); break;
+                case '6M': startDate = dateFns.subMonths(latestDataDate, 6); break;
+                case '1Y': startDate = dateFns.subYears(latestDataDate, 1); break;
+                case '2Y': startDate = dateFns.subYears(latestDataDate, 2); break;
+                case '5Y': startDate = dateFns.subYears(latestDataDate, 5); break;
+                case '10Y': startDate = dateFns.subYears(latestDataDate, 10); break;
+                case '20Y': startDate = dateFns.subYears(latestDataDate, 20); break;
+                default: return sortedData; // 'MAX' or unknown timeframe
             }
-            return data.filter(d => new Date(d.date) >= startDate);
+            return sortedData.filter(d => new Date(d.date) >= startDate);
         }
         
         // Update chart render
         function updateChartRender(chartId) {
             const chart = charts[chartId];
-            if (!chart || (chart.symbols.length === 0 && !chart.errorMessage)) {
-                const canvasDiv = document.getElementById(`${chartId}_canvas`);
-                if (canvasDiv && !canvasDiv.querySelector('.chart-message')) {
-                    canvasDiv.innerHTML = '<div class="chart-message">Search for an indicator to add to this chart.</div>';
-                }
-                if (chart && chart.chartInstance) Plotly.purge(`${chartId}_canvas`);
+             const canvasElement = document.getElementById(`${chartId}_canvas`);
+            if (!canvasElement) {
+                console.error(`updateChartRender: Canvas for chart ${chartId} not found.`);
+                return;
+            }
+
+            if (!chart) {
+                 canvasElement.innerHTML = '<div class="chart-message">Chart data unavailable. Try recreating the chart.</div>';
                 return;
             }
             
             if (chart.errorMessage && chart.symbols.length === 0) {
-                document.getElementById(`${chartId}_canvas`).innerHTML = 
-                    `<div class="chart-message" style="color: #ff4444;">${chart.errorMessage}</div>`;
+                canvasElement.innerHTML = `<div class="chart-message" style="color: #ff4444;">${chart.errorMessage}</div>`;
+                return;
+            }
+            if (chart.symbols.length === 0) {
+                canvasElement.innerHTML = '<div class="chart-message">Search for an indicator to add to this chart.</div>';
+                if (chart.chartInstance) Plotly.purge(`${chartId}_canvas`); // Clear old plot if exists
                 return;
             }
             
-            const changeType = document.getElementById(`${chartId}_change`).value;
+            const changeType = document.getElementById(`${chartId}_change`)?.value || 'value';
             const traces = [];
-            let hasVolumeData = false;
+            let hasVolumeData = false; // For layout adjustments if volume is plotted
+            let yAxisTitle = changeType === 'value' ? 'Value' : 'Change (%)';
             
             chart.symbols.forEach((s, index) => {
-                let symbolData = chart.data[s.symbol] || [];
-                symbolData = filterDataByTimeframe(symbolData, chart.timeframe);
+                let symbolDataFull = chart.data[s.symbol] || []; // Original full data for this symbol
+                if(symbolDataFull.length === 0 && !chart.errorMessage) { // If no data loaded yet, and no error yet.
+                    // Don't plot, might still be loading or failed silently. loadChartData handles error display.
+                    return;
+                }
+
+                let processedSymbolData = filterDataByTimeframe([...symbolDataFull], chart.timeframe); // Use a copy for filtering
                 
                 if (changeType !== 'value') {
-                    symbolData = calculatePercentageChange(symbolData, changeType);
+                    processedSymbolData = calculatePercentageChange(processedSymbolData, changeType);
                 }
                 
-                if (symbolData.length === 0) return;
+                if (processedSymbolData.length === 0) return; // Skip if no data after filtering/processing
                 
                 const lineColor = colorPalette[index % colorPalette.length];
                 
-                // Check if this is OHLC data
-                if (s.source === 'polygon' && changeType === 'value' && symbolData[0]?.open !== undefined) {
-                    hasVolumeData = true;
-                    
-                    // Candlestick trace
+                // Check for OHLC (candlestick) data
+                const isOHLC = s.source.toLowerCase() === 'polygon' && 
+                               changeType === 'value' && 
+                               processedSymbolData[0]?.open !== undefined && 
+                               processedSymbolData[0]?.high !== undefined &&
+                               processedSymbolData[0]?.low !== undefined &&
+                               processedSymbolData[0]?.close !== undefined;
+
+                if (isOHLC) {
+                    hasVolumeData = processedSymbolData.some(d => d.volume !== undefined && d.volume > 0);
                     traces.push({
-                        x: symbolData.map(d => d.date),
-                        open: symbolData.map(d => d.open),
-                        high: symbolData.map(d => d.high),
-                        low: symbolData.map(d => d.low),
-                        close: symbolData.map(d => d.close),
+                        x: processedSymbolData.map(d => d.date),
+                        open: processedSymbolData.map(d => d.open),
+                        high: processedSymbolData.map(d => d.high),
+                        low: processedSymbolData.map(d => d.low),
+                        close: processedSymbolData.map(d => d.close),
                         type: 'candlestick',
-                        name: s.symbol,
-                        xaxis: 'x',
-                        yaxis: 'y',
-                        increasing: { line: { color: '#00dd77', width: 1 } },
-                        decreasing: { line: { color: '#ff4444', width: 1 } },
+                        name: `${s.symbol} (Candle)`,
+                        xaxis: 'x', yaxis: 'y',
+                        increasing: { line: { color: '#00dd77', width: 1 }, fillcolor: '#00dd7790' },
+                        decreasing: { line: { color: '#ff4444', width: 1 }, fillcolor: '#ff444490' },
                         hoverlabel: { bgcolor: '#1a1a1a' }
                     });
-                    
-                    // Volume bars
+                    if (hasVolumeData) {
+                        traces.push({
+                            x: processedSymbolData.map(d => d.date),
+                            y: processedSymbolData.map(d => d.volume),
+                            type: 'bar', name: `${s.symbol} Vol`,
+                            marker: { color: lineColor, opacity: 0.3 },
+                            yaxis: 'y2', hoverinfo: 'x+y'
+                        });
+                    }
+                } else { // Line chart
                     traces.push({
-                        x: symbolData.map(d => d.date),
-                        y: symbolData.map(d => d.volume),
-                        type: 'bar',
-                        name: `${s.symbol} Vol`,
-                        marker: { color: lineColor, opacity: 0.3 },
-                        yaxis: 'y2',
-                        hoverinfo: 'x+y'
-                    });
-                } else {
-                    // Line chart
-                    traces.push({
-                        x: symbolData.map(d => d.date),
-                        y: symbolData.map(d => d.value),
-                        type: 'scatter',
-                        mode: 'lines',
-                        name: s.symbol,
-                        line: { color: lineColor, width: 2 },
-                        hovertemplate: `<b>%{fullData.name}</b><br>%{x}<br>%{y:.2f}${changeType !== 'value' ? '%' : ''}<extra></extra>`
+                        x: processedSymbolData.map(d => d.date),
+                        y: processedSymbolData.map(d => d.value),
+                        type: 'scatter', mode: 'lines', name: s.symbol,
+                        line: { color: lineColor, width: 1.5 },
+                        hovertemplate: `<b>%{fullData.name}</b><br>%{x|%Y-%m-%d}<br>%{y:.2f}${changeType !== 'value' ? '%' : ''}<extra></extra>`
                     });
                 }
                 
                 // Add moving average if enabled
-                if (s.showMA && symbolData.length > 0) {
-                    const maData = calculateMovingAverage(symbolData, s.maPeriod);
+                if (s.showMA && s.maPeriod && processedSymbolData.length > 0) {
+                    // MA should be calculated on the same data type (value or % change)
+                    // If OHLC, MA is typically on 'close' prices before % change.
+                    // For simplicity here, calculate MA on 'processedSymbolData' (which could be % change)
+                    const maDataInput = isOHLC ? 
+                                        processedSymbolData.map(d => ({date: d.date, value: d.close})) : // MA on close for OHLC
+                                        processedSymbolData; // MA on current values (or % change values)
+
+                    const maData = calculateMovingAverage(maDataInput, s.maPeriod);
                     if (maData.length > 0) {
                         traces.push({
-                            x: maData.map(d => d.date),
-                            y: maData.map(d => d.value),
-                            type: 'scatter',
-                            mode: 'lines',
+                            x: maData.map(d => d.date), y: maData.map(d => d.value),
+                            type: 'scatter', mode: 'lines',
                             name: `${s.symbol} SMA(${s.maPeriod})`,
                             line: { color: lineColor, width: 1, dash: 'dot' },
-                            hoverinfo: 'skip'
+                            hoverinfo: 'skip' // Less clutter on hover
                         });
                     }
                 }
             });
             
             if (traces.length === 0) {
-                document.getElementById(`${chartId}_canvas`).innerHTML = 
-                    '<div class="chart-message">No data to display for the selected criteria.</div>';
+                 if(!chart.errorMessage) { // If no specific load error, show generic message
+                    canvasElement.innerHTML = '<div class="chart-message">No data to display for the selected criteria.</div>';
+                 } else if (chart.errorMessage && chart.symbols.length > 0) { // Specific error, but symbols are present
+                     canvasElement.innerHTML = `<div class="chart-message" style="color: #ff4444;">${chart.errorMessage}</div>`;
+                 }
                 return;
             }
             
             const layout = {
-                paper_bgcolor: '#0a0a0a',
-                plot_bgcolor: '#0a0a0a',
+                paper_bgcolor: '#0a0a0a', plot_bgcolor: '#0a0a0a',
                 font: { color: '#aaa', size: 10 },
-                margin: { t: 20, r: 50, b: 60, l: 60 },
+                margin: { t: 25, r: 25, b: 60, l: 50 }, // Adjusted margins
                 xaxis: {
-                    type: 'date',
-                    gridcolor: '#222',
-                    tickfont: { color: '#888' },
+                    type: 'date', gridcolor: '#22222250', tickfont: { color: '#888' },
+                    rangeslider: { visible: true, bgcolor: '#101010', thickness:0.07 }, // Thin rangeslider
                     rangeselector: {
                         buttons: [
-                            {count: 1, label: '1M', step: 'month', stepmode: 'backward'},
-                            {count: 3, label: '3M', step: 'month', stepmode: 'backward'},
-                            {count: 6, label: '6M', step: 'month', stepmode: 'backward'},
-                            {count: 1, label: 'YTD', step: 'year', stepmode: 'todate'},
-                            {count: 1, label: '1Y', step: 'year', stepmode: 'backward'},
-                            {count: 5, label: '5Y', step: 'year', stepmode: 'backward'},
-                            {step: 'all', label: 'ALL'}
+                            {count: 1, label: '1m', step: 'month', stepmode: 'backward'},
+                            {count: 6, label: '6m', step: 'month', stepmode: 'backward'},
+                            {label: 'YTD', step: 'year', stepmode: 'todate', count: 1},
+                            {count: 1, label: '1y', step: 'year', stepmode: 'backward'},
+                            {count: 5, label: '5y', step: 'year', stepmode: 'backward'},
+                            {step: 'all', label: 'All'}
                         ],
-                        bgcolor: '#151515',
-                        activecolor: '#00dd77',
-                        font: { color: '#ccc' }
+                        bgcolor: '#151515', activecolor: '#00dd77', font: { color: '#ccc' },
+                        x: 0, y: 1.15, // Position above plot
+                        xanchor: 'left', yanchor: 'bottom'
                     }
                 },
                 yaxis: {
-                    gridcolor: '#222',
-                    tickfont: { color: '#888' },
-                    title: { 
-                        text: changeType === 'value' ? 'Value' : 'Change (%)', 
-                        font: { size: 10 } 
-                    },
-                    domain: hasVolumeData ? [0.3, 1] : [0, 1]
+                    gridcolor: '#22222250', tickfont: { color: '#888' },
+                    title: { text: yAxisTitle, font: { size: 10, color: '#888'} },
+                    domain: hasVolumeData ? [0.25, 1] : [0, 1] // Adjust domain if volume axis is present
                 },
-                hovermode: 'x unified',
-                showlegend: true,
+                hovermode: 'x unified', showlegend: true,
                 legend: {
-                    x: 0.01,
-                    y: 0.99,
-                    bgcolor: 'rgba(10,10,10,0.7)',
-                    bordercolor: '#333',
-                    borderwidth: 1,
-                    font: { size: 10 }
+                    orientation: 'h', yanchor: 'bottom', y: 1.01, xanchor: 'right', x: 1,
+                    bgcolor: 'rgba(10,10,10,0.0)', font: { size: 9 }
                 },
-                dragmode: 'pan'
+                dragmode: 'pan' // Allow panning
             };
             
-            // Add volume axis if needed
             if (hasVolumeData) {
                 layout.yaxis2 = {
-                    domain: [0, 0.25],
-                    showgrid: false,
-                    title: 'Volume',
-                    titlefont: { size: 10 },
-                    tickfont: { color: '#888', size: 9 }
+                    title: 'Volume', domain: [0, 0.20], showgrid: false,
+                    tickfont: { color: '#888', size: 9 },
+                    titlefont: {color: '#888', size: 10}
                 };
             }
             
             const config = {
-                responsive: true,
-                displaylogo: false,
-                modeBarButtonsToRemove: ['select2d', 'lasso2d'],
-                modeBarButtonsToAdd: [{
-                    name: 'Log Scale',
+                responsive: true, displaylogo: false,
+                modeBarButtonsToRemove: ['select2d', 'lasso2d', 'toImage'], // Keep useful ones
+                 modeBarButtonsToAdd: [{
+                    name: 'Toggle Log Scale (Y-axis)',
                     icon: Plotly.Icons.logarithmic,
                     click: function(gd) {
                         const currentType = gd.layout.yaxis.type;
@@ -1374,54 +1486,53 @@ cat > professional-financial-dashboard.html << 'ENDOFFILE' && git add profession
                 }]
             };
             
-            const canvasElement = document.getElementById(`${chartId}_canvas`);
-            if (!canvasElement) return;
+            if(canvasElement.querySelector('.chart-message')) canvasElement.innerHTML = ''; // Clear any message
             
-            if (canvasElement.querySelector('.chart-message')) {
-                canvasElement.innerHTML = '';
-            }
-            
-            Plotly.react(`${chartId}_canvas`, traces, layout, config)
-                .then(gd => {
-                    charts[chartId].chartInstance = gd;
-                })
+            Plotly.react(canvasElement, traces, layout, config)
+                .then(gd => { charts[chartId].chartInstance = gd; })
                 .catch(err => {
-                    console.error("Plotly error:", err);
-                    canvasElement.innerHTML = 
-                        `<div class="chart-message" style="color: #ff4444;">Error rendering chart: ${err.message}</div>`;
+                    console.error("Plotly rendering error:", err);
+                    canvasElement.innerHTML = `<div class="chart-message" style="color: #ff4444;">Chart error: ${err.message}</div>`;
                 });
         }
         
-        // Calculate statistics
+        // Calculate statistics (for the first symbol in the chart for simplicity)
         function calculateStats(chartId, symbol) {
             const chart = charts[chartId];
-            const originalData = chart.data[symbol];
-            if (!originalData || originalData.length < 1) {
-                document.getElementById(`${chartId}_stats`).innerHTML = '';
-                return;
+            const dataForSymbol = chart.data[symbol]; // Assumes data is loaded for this symbol
+            const statsPanel = document.getElementById(`${chartId}_stats`);
+            if (!statsPanel) return;
+
+            if (!dataForSymbol || dataForSymbol.length < 1) {
+                statsPanel.innerHTML = ''; return;
             }
             
-            const values = originalData.map(d => d.value || d.close).filter(v => v !== null && !isNaN(v));
+            // Use 'close' for OHLC data, 'value' otherwise
+            const values = dataForSymbol.map(d => d.close !== undefined ? d.close : d.value).filter(v => v !== null && !isNaN(v));
             if (values.length < 1) {
-                document.getElementById(`${chartId}_stats`).innerHTML = '';
-                return;
+                statsPanel.innerHTML = ''; return;
             }
             
             const latest = values[values.length - 1];
             const prevDay = values.length > 1 ? values[values.length - 2] : null;
-            const weekAgo = values.length > 5 ? values[values.length - 6] : null;
-            const monthAgo = values.length > 21 ? values[values.length - 22] : null;
             
-            const yearData = values.slice(Math.max(0, values.length - 252));
-            
+            // For weekly/monthly change, filter data by relevant period then get last and Nth last
+            const oneWeekAgoData = filterDataByTimeframe(dataForSymbol, '1W');
+            const weekAgoVal = oneWeekAgoData.length > 1 ? (oneWeekAgoData[0].close !== undefined ? oneWeekAgoData[0].close : oneWeekAgoData[0].value) : null;
+
+            const oneMonthAgoData = filterDataByTimeframe(dataForSymbol, '1M');
+            const monthAgoVal = oneMonthAgoData.length > 1 ? (oneMonthAgoData[0].close !== undefined ? oneMonthAgoData[0].close : oneMonthAgoData[0].value) : null;
+
+            const yearDataPoints = filterDataByTimeframe(dataForSymbol, '1Y').map(d => d.close !== undefined ? d.close : d.value).filter(v => v !== null && !isNaN(v));
+
             const stats = {
                 latest: latest,
-                change1D: prevDay !== null ? ((latest - prevDay) / Math.abs(prevDay)) * 100 : null,
-                change1W: weekAgo !== null ? ((latest - weekAgo) / Math.abs(weekAgo)) * 100 : null,
-                change1M: monthAgo !== null ? ((latest - monthAgo) / Math.abs(monthAgo)) * 100 : null,
-                min52w: yearData.length > 0 ? Math.min(...yearData) : null,
-                max52w: yearData.length > 0 ? Math.max(...yearData) : null,
-                avg52w: yearData.length > 0 ? yearData.reduce((a, b) => a + b, 0) / yearData.length : null
+                change1D: (prevDay !== null && prevDay !== 0) ? ((latest - prevDay) / Math.abs(prevDay)) * 100 : null,
+                change1W: (weekAgoVal !== null && weekAgoVal !== 0 && oneWeekAgoData.length > 0) ? ((latest - weekAgoVal) / Math.abs(weekAgoVal)) * 100 : null,
+                change1M: (monthAgoVal !== null && monthAgoVal !== 0 && oneMonthAgoData.length > 0) ? ((latest - monthAgoVal) / Math.abs(monthAgoVal)) * 100 : null,
+                min52w: yearDataPoints.length > 0 ? Math.min(...yearDataPoints) : null,
+                max52w: yearDataPoints.length > 0 ? Math.max(...yearDataPoints) : null,
+                avg52w: yearDataPoints.length > 0 ? yearDataPoints.reduce((a, b) => a + b, 0) / yearDataPoints.length : null
             };
             
             updateStatsPanel(chartId, symbol, stats);
@@ -1429,12 +1540,15 @@ cat > professional-financial-dashboard.html << 'ENDOFFILE' && git add profession
         
         // Update stats panel
         function updateStatsPanel(chartId, symbol, stats) {
+            const statsPanel = document.getElementById(`${chartId}_stats`);
+            if (!statsPanel) return;
+
             const formatNum = (val, decimals = 2) => {
-                if (val === null || val === undefined || isNaN(val)) return 'N/A';
+                if (val === null || val === undefined || isNaN(val)) return '<span class="value-neutral">N/A</span>';
                 if (Math.abs(val) >= 1e12) return (val / 1e12).toFixed(decimals) + 'T';
                 if (Math.abs(val) >= 1e9) return (val / 1e9).toFixed(decimals) + 'B';
                 if (Math.abs(val) >= 1e6) return (val / 1e6).toFixed(decimals) + 'M';
-                if (Math.abs(val) >= 1e3) return (val / 1e3).toFixed(decimals) + 'K';
+                // if (Math.abs(val) >= 1e3 && Math.abs(val) < 1e6) return (val / 1e3).toFixed(decimals) + 'K'; // Optional K for thousands
                 return val.toFixed(decimals);
             };
             
@@ -1444,115 +1558,124 @@ cat > professional-financial-dashboard.html << 'ENDOFFILE' && git add profession
                 return `<span class="${color}">${val >= 0 ? '+' : ''}${val.toFixed(2)}%</span>`;
             };
             
-            const html = `
+            // Display stats for the given symbol (typically the first one in the chart)
+            statsPanel.innerHTML = `
                 <div class="stat-item">
                     <div class="stat-label">${symbol}</div>
                     <div class="stat-value">${formatNum(stats.latest)}</div>
                 </div>
-                <div class="stat-item">
-                    <div class="stat-label">1D</div>
-                    <div class="stat-value">${formatChange(stats.change1D)}</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">1W</div>
-                    <div class="stat-value">${formatChange(stats.change1W)}</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">1M</div>
-                    <div class="stat-value">${formatChange(stats.change1M)}</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">52W Low</div>
-                    <div class="stat-value">${formatNum(stats.min52w)}</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">52W High</div>
-                    <div class="stat-value">${formatNum(stats.max52w)}</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">52W Avg</div>
-                    <div class="stat-value">${formatNum(stats.avg52w)}</div>
-                </div>
+                <div class="stat-item"><div class="stat-label">1D %</div><div class="stat-value">${formatChange(stats.change1D)}</div></div>
+                <div class="stat-item"><div class="stat-label">1W %</div><div class="stat-value">${formatChange(stats.change1W)}</div></div>
+                <div class="stat-item"><div class="stat-label">1M %</div><div class="stat-value">${formatChange(stats.change1M)}</div></div>
+                <div class="stat-item"><div class="stat-label">52W Low</div><div class="stat-value">${formatNum(stats.min52w)}</div></div>
+                <div class="stat-item"><div class="stat-label">52W High</div><div class="stat-value">${formatNum(stats.max52w)}</div></div>
+                <div class="stat-item"><div class="stat-label">52W Avg</div><div class="stat-value">${formatNum(stats.avg52w)}</div></div>
             `;
-            
-            document.getElementById(`${chartId}_stats`).innerHTML = html;
         }
         
         // Watchlist functions
         function createDefaultWatchlist() {
-            createWatchlist('Economic Indicators', 
-                [{ symbol: 'GDP', source: 'fred' }, 
-                 { symbol: 'UNRATE', source: 'fred' }, 
-                 { symbol: 'CPIAUCSL', source: 'fred' }], 
-                colorPalette[0]);
-            createWatchlist('Market Indices', 
-                [{ symbol: 'SP500', source: 'fred' }, 
-                 { symbol: 'VIXCLS', source: 'fred' }, 
-                 { symbol: 'DGS10', source: 'fred' }], 
-                colorPalette[1]);
+            // Symbols should ideally be ones your API can reliably find and provide data for.
+            createWatchlist('Key Economic Indicators', 
+                [
+                    { symbol: 'GDP', source: 'fred', name: 'Gross Domestic Product' }, 
+                    { symbol: 'CPIAUCSL', source: 'fred', name: 'CPI All Items' },
+                    { symbol: 'UNRATE', source: 'fred', name: 'Unemployment Rate' }
+                ], colorPalette[0 % colorPalette.length]);
+            createWatchlist('Major Market Movers', 
+                [
+                    { symbol: 'SP500', source: 'fred', name: 'S&P 500 Index' }, 
+                    { symbol: 'VIXCLS', source: 'fred', name: 'VIX Volatility Index' },
+                    { symbol: 'DGS10', source: 'fred', name: '10-Year Treasury Rate' },
+                    { symbol: 'AAPL', source: 'polygon', name: 'Apple Inc.'}
+                ], colorPalette[1 % colorPalette.length]);
         }
         
-        function createWatchlist(name, symbols = [], color = colorPalette[0]) {
+        function createWatchlist(name, initialSymbols = [], color) {
             const watchlistId = `watchlist_${watchlistIdCounter++}`;
             watchlists[watchlistId] = {
                 id: watchlistId,
                 name: name || `Watchlist ${watchlistIdCounter}`,
-                symbols: symbols.map(s => ({
-                    symbol: typeof s === 'string' ? s : s.symbol,
-                    source: typeof s === 'string' ? 'fred' : s.source,
-                    data: null,
+                symbols: initialSymbols.map(s => ({ // Ensure structure: {symbol, source, name, data, weeklyChange, monthlyChange}
+                    symbol: s.symbol,
+                    source: s.source,
+                    name: s.name || s.symbol, // Fallback name
+                    data: null, // Latest value
+                    dailyChange: null,
                     weeklyChange: null,
                     monthlyChange: null
                 })),
-                color: color
+                color: color || colorPalette[Object.keys(watchlists).length % colorPalette.length]
             };
-            updateWatchlistDataFor(watchlistId);
+            updateWatchlistDataFor(watchlistId); // Fetch data for new watchlist
             renderWatchlists();
         }
         
         function createNewWatchlist() {
             const name = prompt('Enter watchlist name:');
-            if (name) {
-                createWatchlist(name, [], colorPalette[Object.keys(watchlists).length % colorPalette.length]);
+            if (name && name.trim() !== "") {
+                createWatchlist(name.trim());
             }
         }
         
         async function updateWatchlistDataFor(watchlistId) {
             const watchlist = watchlists[watchlistId];
-            if (!watchlist) return;
+            if (!watchlist || !watchlist.symbols) return;
             
             for (const item of watchlist.symbols) {
                 try {
                     const endpoint = getEndpointForSource(item.source, item.symbol);
                     const response = await fetch(API_BASE + endpoint);
-                    if (!response.ok) throw new Error(`API Error ${response.status}`);
+                    if (!response.ok) {
+                        item.data = 'API Error'; item.dailyChange = null; item.weeklyChange = null; item.monthlyChange = null;
+                        console.warn(`API Error for ${item.symbol} (${item.source}): ${response.status}`);
+                        continue;
+                    }
                     const result = await response.json();
-                    
-                    if ((result.data && result.data.length > 0) || (result.results && result.results.length > 0)) {
-                        const rawData = result.data || result.results;
-                        const processed = processData(rawData, item.source, item.symbol);
-                        if (processed.length > 0) {
-                            const values = processed.map(d => d.value).filter(v => v !== null && !isNaN(v));
-                            if (values.length > 0) {
-                                const latest = values[values.length - 1];
-                                const weekAgo = values.length > 5 ? values[values.length - 6] : null;
-                                const monthAgo = values.length > 21 ? values[values.length - 22] : null;
-                                
-                                item.data = latest;
-                                item.weeklyChange = weekAgo !== null ? ((latest - weekAgo) / Math.abs(weekAgo)) * 100 : null;
-                                item.monthlyChange = monthAgo !== null ? ((latest - monthAgo) / Math.abs(monthAgo)) * 100 : null;
-                            }
+                    let rawData;
+                    if (result && Array.isArray(result.data) && result.data.length > 0) rawData = result.data;
+                    else if (result && Array.isArray(result.results) && result.results.length > 0) rawData = result.results;
+                    else if (Array.isArray(result) && result.length > 0) rawData = result;
+                    else { item.data = 'No Data'; continue; }
+
+                    const processed = processData(rawData, item.source, item.symbol);
+                    if (processed.length > 0) {
+                        const values = processed.map(p => p.close !== undefined ? p.close : p.value);
+                        const latest = values[values.length - 1];
+                        item.data = latest;
+                        item.name = commonIndicators[item.source]?.find(ci => ci.symbol === item.symbol)?.name || item.symbol;
+
+
+                        if (values.length > 1) { // Daily change
+                            const prevDay = values[values.length - 2];
+                            if (prevDay !== 0 && !isNaN(prevDay)) item.dailyChange = ((latest - prevDay) / Math.abs(prevDay)) * 100;
                         }
+                        
+                        const oneWeekAgoData = filterDataByTimeframe(processed, '1W');
+                        if (oneWeekAgoData.length > 0) {
+                             const weekAgoVal = oneWeekAgoData[0].close !== undefined ? oneWeekAgoData[0].close : oneWeekAgoData[0].value;
+                             if (weekAgoVal !== 0 && !isNaN(weekAgoVal)) item.weeklyChange = ((latest - weekAgoVal) / Math.abs(weekAgoVal)) * 100;
+                        }
+
+                        const oneMonthAgoData = filterDataByTimeframe(processed, '1M');
+                        if (oneMonthAgoData.length > 0) {
+                            const monthAgoVal = oneMonthAgoData[0].close !== undefined ? oneMonthAgoData[0].close : oneMonthAgoData[0].value;
+                            if (monthAgoVal !== 0 && !isNaN(monthAgoVal)) item.monthlyChange = ((latest - monthAgoVal) / Math.abs(monthAgoVal)) * 100;
+                        }
+                    } else {
+                        item.data = 'Proc. Err';
                     }
                 } catch (error) {
-                    console.error(`Error loading watchlist data for ${item.symbol}:`, error);
-                    item.data = 'Error';
+                    console.error(`Error loading watchlist data for ${item.symbol} (${item.source}):`, error);
+                    item.data = 'Load Err';
+                    item.dailyChange = null; item.weeklyChange = null; item.monthlyChange = null;
                 }
             }
-            renderWatchlists();
+            renderWatchlists(); // Re-render after all symbols in this watchlist are updated
         }
         
         async function updateWatchlistData() {
+            // Sequentially update watchlists to avoid overwhelming the API or browser
             for (const watchlistId in watchlists) {
                 await updateWatchlistDataFor(watchlistId);
             }
@@ -1563,7 +1686,7 @@ cat > professional-financial-dashboard.html << 'ENDOFFILE' && git add profession
             const watchlist = watchlists[watchlistId];
             if (!watchlist) return;
             const currentIndex = colorPalette.indexOf(watchlist.color);
-            watchlist.color = colorPalette[(currentIndex + 1) % colorPalette.length];
+            watchlist.color = colorPalette[(currentIndex + 1 + colorPalette.length) % colorPalette.length]; // Ensure positive index
             renderWatchlists();
         }
         
@@ -1575,44 +1698,43 @@ cat > professional-financial-dashboard.html << 'ENDOFFILE' && git add profession
                 return `
                     <div class="watchlist-group">
                         <div class="watchlist-group-header">
-                            <div class="watchlist-group-name">${watchlist.name}</div>
+                            <div class="watchlist-group-name" title="${watchlist.name}">${watchlist.name.length > 25 ? watchlist.name.substring(0,22)+'...' : watchlist.name}</div>
                             <div class="watchlist-group-controls">
                                 <div class="color-picker" style="background: ${watchlist.color};" 
+                                     title="Change color"
                                      onclick="changeWatchlistColor(event, '${watchlist.id}')"></div>
-                            </div>
+                                </div>
                         </div>
-                        ${watchlist.symbols.map(item => {
+                        ${(watchlist.symbols && watchlist.symbols.length > 0) ? watchlist.symbols.map(item => {
                             const formatVal = (val) => {
-                                if (val === 'Error') return 'Error';
-                                return typeof val === 'number' ? val.toFixed(2) : '...';
+                                if (typeof val === 'number' && !isNaN(val)) return val.toFixed(2);
+                                return val || '...'; // Show '...' or the error string
                             };
                             const formatChg = (chg) => {
-                                if (typeof chg !== 'number') return '...';
-                                const cls = chg > 0 ? 'value-positive' : (chg < 0 ? 'value-negative' : 'value-neutral');
-                                return `<span class="${cls}">${chg >= 0 ? '+' : ''}${chg.toFixed(2)}%</span>`;
+                                if (typeof chg === 'number' && !isNaN(chg)) {
+                                    const cls = chg > 0 ? 'value-positive' : (chg < 0 ? 'value-negative' : 'value-neutral');
+                                    return `<span class="${cls}">${chg >= 0 ? '▲' : '▼'} ${Math.abs(chg).toFixed(2)}%</span>`;
+                                }
+                                return '...';
                             };
                             return `
-                                <div class="watchlist-item" onclick="addToChartWrapper('${item.symbol}', '${item.source}')">
+                                <div class="watchlist-item" title="Add ${item.symbol} (${item.source}) to active chart" 
+                                     onclick="addToChartWrapper('${item.symbol}', '${item.source}')">
                                     <div class="color-label" style="background: ${watchlist.color};"></div>
                                     <div class="watchlist-item-content">
                                         <div class="watchlist-item-info">
                                             <div class="watchlist-symbol">${item.symbol}</div>
-                                            <div class="watchlist-name">${formatVal(item.data)}</div>
+                                            <div class="watchlist-name" style="font-size:0.85em; color:#ccc;">${formatVal(item.data)}</div>
                                         </div>
                                         <div class="watchlist-values">
-                                            <div class="value-change">
-                                                ${formatChg(item.weeklyChange)} 
-                                                <span class="change-label">W</span>
-                                            </div>
-                                            <div class="value-change">
-                                                ${formatChg(item.monthlyChange)} 
-                                                <span class="change-label">M</span>
-                                            </div>
+                                            <div class="value-change" title="Daily Change">${formatChg(item.dailyChange)} <span class="change-label">D</span></div>
+                                            <div class="value-change" title="Weekly Change">${formatChg(item.weeklyChange)} <span class="change-label">W</span></div>
+                                            <div class="value-change" title="Monthly Change">${formatChg(item.monthlyChange)} <span class="change-label">M</span></div>
                                         </div>
                                     </div>
                                 </div>
                             `;
-                        }).join('')}
+                        }).join('') : '<div style="font-size:0.8em; color:#666; padding: 5px;">Search to add symbols.</div>'}
                     </div>
                 `;
             }).join('');
@@ -1622,177 +1744,206 @@ cat > professional-financial-dashboard.html << 'ENDOFFILE' && git add profession
             event.stopPropagation();
             const chartElement = document.getElementById(chartId);
             if (!chartElement) return;
-            chartElement.classList.toggle('fullscreen');
+
+            const isCurrentlyFullscreen = chartElement.classList.contains('fullscreen');
             
+            // If exiting fullscreen, ensure other elements are not in fullscreen
+            if (isCurrentlyFullscreen) {
+                 chartElement.classList.remove('fullscreen');
+            } else {
+                // Ensure no other chart is fullscreen
+                document.querySelectorAll('.chart-window.fullscreen').forEach(el => el.classList.remove('fullscreen'));
+                chartElement.classList.add('fullscreen');
+            }
+            
+            // Delay resize to allow CSS transition to complete
             setTimeout(() => {
                 if (charts[chartId] && charts[chartId].chartInstance) {
                     Plotly.Plots.resize(charts[chartId].chartInstance);
                 }
-            }, 100);
+            }, 150); // Slightly longer for smoother transition
         }
         
         function saveLayout() {
             const layoutToSave = {
-                version: '3.0', // Version for compatibility
+                version: '3.1', // Increment version for new structure/features
                 charts: Object.entries(charts).map(([id, chart]) => ({
-                    id,
+                    id, // Not strictly needed if re-assigning on load, but good for reference
                     symbols: chart.symbols.map(s => ({ 
-                        symbol: s.symbol, 
-                        source: s.source, 
-                        showMA: s.showMA, 
-                        maPeriod: s.maPeriod 
+                        symbol: s.symbol, source: s.source, 
+                        showMA: s.showMA, maPeriod: s.maPeriod 
                     })),
                     timeframe: chart.timeframe,
                     changeType: document.getElementById(`${id}_change`)?.value || 'value',
                     maMasterToggle: document.getElementById(`${id}_toggleMA`)?.checked || false,
                     maMasterPeriod: document.getElementById(`${id}_maPeriod`)?.value || '20'
                 })),
-                watchlists: JSON.parse(JSON.stringify(watchlists))
+                watchlists: JSON.parse(JSON.stringify(watchlists)) // Deep copy
             };
             
-            localStorage.setItem('financialDashboardLayout_v3', JSON.stringify(layoutToSave));
-            
-            // Show success message
-            const message = document.createElement('div');
-            message.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: #00dd77;
-                color: #000;
-                padding: 15px 20px;
-                border-radius: 4px;
-                font-weight: bold;
-                z-index: 1000;
-                animation: slideIn 0.3s ease-out;
-            `;
-            message.textContent = 'Layout saved successfully!';
-            document.body.appendChild(message);
-            
-            setTimeout(() => message.remove(), 3000);
+            try {
+                localStorage.setItem('financialDashboardLayout_v3.1', JSON.stringify(layoutToSave));
+                showTemporaryMessage('Layout saved successfully!', 'success');
+            } catch (e) {
+                console.error("Error saving layout to localStorage:", e);
+                showTemporaryMessage('Error saving layout. Storage might be full.', 'error');
+            }
         }
         
         function loadLayout() {
-            const saved = localStorage.getItem('financialDashboardLayout_v3');
+            const saved = localStorage.getItem('financialDashboardLayout_v3.1');
             if (!saved) {
-                console.log('No saved layout found.');
+                console.log('No saved layout (v3.1) found. Initializing defaults.');
+                // createDefaultWatchlist(); // Already called in init if no layout
+                // addNewChart(); // Already called in init if no charts
                 return;
             }
             
             try {
                 const layout = JSON.parse(saved);
                 
-                // Clear existing charts
+                // Clear existing charts and their Plotly instances
                 document.getElementById('chartGrid').innerHTML = '';
                 Object.keys(charts).forEach(id => {
-                    if (charts[id].chartInstance) Plotly.purge(`${id}_canvas`);
-                    delete charts[id];
+                    if (charts[id] && charts[id].chartInstance) Plotly.purge(`${id}_canvas`);
+                    delete charts[id]; // Remove from internal tracking
                 });
-                chartIdCounter = 0;
+                chartIdCounter = 0; // Reset counter
                 activeChartId = null;
                 
                 // Restore charts
                 if (layout.charts && layout.charts.length > 0) {
                     layout.charts.forEach(chartConfig => {
-                        addNewChart();
-                        const newChartId = `chart_${chartIdCounter - 1}`;
+                        // Create a new chart DOM element and internal state (addNewChart does this)
+                        addNewChart(); // This increments chartIdCounter and sets new activeChartId
+                        const newChartId = `chart_${chartIdCounter - 1}`; // Get ID of just added chart
                         
-                        charts[newChartId].timeframe = chartConfig.timeframe || 'MAX';
+                        const currentChart = charts[newChartId]; // Get the new chart object
+                        if (!currentChart) {
+                            console.error("Failed to get newly added chart for layout restoration:", newChartId);
+                            return; // Skip this chart config if addNewChart failed to set it up
+                        }
+
+                        currentChart.timeframe = chartConfig.timeframe || 'MAX';
                         
-                        // Set controls
                         const changeSelect = document.getElementById(`${newChartId}_change`);
                         if (changeSelect) changeSelect.value = chartConfig.changeType || 'value';
                         
                         const maToggle = document.getElementById(`${newChartId}_toggleMA`);
                         if (maToggle) maToggle.checked = chartConfig.maMasterToggle || false;
                         
-                        const maPeriod = document.getElementById(`${newChartId}_maPeriod`);
-                        if (maPeriod) maPeriod.value = chartConfig.maMasterPeriod || '20';
+                        const maPeriodInput = document.getElementById(`${newChartId}_maPeriod`);
+                        if (maPeriodInput) maPeriodInput.value = chartConfig.maMasterPeriod || '20';
                         
-                        // Set timeframe button
-                        document.querySelectorAll(`#${newChartId} .timeframe-btn`).forEach(btn => {
-                            btn.classList.remove('active');
-                            if (btn.textContent === chartConfig.timeframe) {
-                                btn.classList.add('active');
-                            }
-                        });
+                        const timeframeButtonContainer = document.getElementById(`${newChartId}_timeframe_buttons`);
+                        if(timeframeButtonContainer){
+                            timeframeButtonContainer.querySelectorAll('.timeframe-btn').forEach(btn => {
+                                btn.classList.remove('active');
+                                if (btn.textContent === currentChart.timeframe) btn.classList.add('active');
+                            });
+                        }
                         
-                        // Load symbols
-                        chartConfig.symbols.forEach(sConfig => {
-                            charts[newChartId].symbols.push({
+                        // Load symbols for this chart
+                        if(chartConfig.symbols && chartConfig.symbols.length > 0) {
+                            currentChart.symbols = chartConfig.symbols.map(sConfig => ({ // Directly assign to new chart's symbols
                                 symbol: sConfig.symbol,
-                                source: sConfig.source || 'fred',
+                                source: sConfig.source || 'fred', // Default source if missing
                                 showMA: sConfig.showMA || false,
                                 maPeriod: sConfig.maPeriod || 20
-                            });
-                            loadChartData(newChartId, sConfig.symbol, sConfig.source || 'fred');
-                        });
+                            }));
+                            // Sequentially load data for symbols to avoid race conditions or API limits
+                            (async () => {
+                                for (const s of currentChart.symbols) {
+                                    await loadChartData(newChartId, s.symbol, s.source);
+                                }
+                            })();
+                        } else {
+                             updateChartRender(newChartId); // Render empty chart message if no symbols
+                        }
                     });
+                } else {
+                    addNewChart(); // Add one default chart if layout has no charts
                 }
                 
                 // Restore watchlists
-                if (layout.watchlists) {
-                    Object.keys(watchlists).forEach(id => delete watchlists[id]);
-                    Object.assign(watchlists, layout.watchlists);
-                    watchlistIdCounter = Math.max(...Object.keys(watchlists).map(id => 
-                        parseInt(id.split('_')[1] || 0)
-                    ), 0) + 1;
-                    renderWatchlists();
-                    updateWatchlistData();
+                if (layout.watchlists && Object.keys(layout.watchlists).length > 0) {
+                    Object.keys(watchlists).forEach(id => delete watchlists[id]); // Clear current
+                    Object.assign(watchlists, layout.watchlists); // Assign loaded
+                    // Recalculate watchlistIdCounter to be higher than any loaded ID
+                    const maxIdNum = Object.keys(watchlists).reduce((max, id) => {
+                        const num = parseInt(id.split('_')[1] || 0);
+                        return num > max ? num : max;
+                    }, -1);
+                    watchlistIdCounter = maxIdNum + 1;
+                    renderWatchlists(); // Display them
+                    updateWatchlistData(); // Fetch their current data
+                } else {
+                     createDefaultWatchlist(); // If no watchlists in layout, create defaults
                 }
                 
-                // Set first chart as active
-                if (Object.keys(charts).length > 0) {
-                    setActiveChart(Object.keys(charts)[0]);
+                // Set first chart as active if multiple charts were loaded
+                const finalChartKeys = Object.keys(charts);
+                if (finalChartKeys.length > 0 && !activeChartId) { // If activeChartId wasn't set by the loop
+                    setActiveChart(finalChartKeys[0]);
+                } else if (finalChartKeys.length === 0) { // No charts loaded, add one
+                    addNewChart();
                 }
-                
-                // Show success message
-                const message = document.createElement('div');
-                message.style.cssText = `
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    background: #4488ff;
-                    color: #fff;
-                    padding: 15px 20px;
-                    border-radius: 4px;
-                    font-weight: bold;
-                    z-index: 1000;
-                `;
-                message.textContent = 'Layout loaded successfully!';
-                document.body.appendChild(message);
-                
-                setTimeout(() => message.remove(), 3000);
+
+                showTemporaryMessage('Layout loaded successfully!', 'info');
                 
             } catch (error) {
                 console.error('Error loading layout:', error);
+                showTemporaryMessage('Error loading layout. Check console for details.', 'error');
+                // Fallback to default state if loading fails badly
+                createDefaultWatchlist();
+                if(Object.keys(charts).length === 0) addNewChart();
             }
+        }
+
+        function showTemporaryMessage(text, type = 'info') { // type can be 'info', 'success', 'error'
+            const message = document.createElement('div');
+            let bgColor = '#4488ff'; // Default info
+            if (type === 'success') bgColor = '#00dd77';
+            else if (type === 'error') bgColor = '#ff4444';
+
+            message.style.cssText = `
+                position: fixed; top: 20px; right: 20px;
+                background: ${bgColor};
+                color: ${type === 'success' ? '#000' : '#fff'};
+                padding: 15px 20px; border-radius: 4px;
+                font-weight: bold; z-index: 2000;
+                animation: slideInAndOut 3s ease-out forwards;
+            `;
+            message.textContent = text;
+            document.body.appendChild(message);
+            // Remove after animation (or slightly after)
+            // setTimeout(() => message.remove(), 3000); // Removed by animation 'forwards' + keyframe
         }
         
         // Initialize on load
         window.onload = init;
         
-        // Global click listener to hide search results
+        // Global click listener to hide search results when clicking outside
         document.addEventListener('click', function(event) {
             const searchBox = document.getElementById('searchBox');
             const searchResults = document.getElementById('searchResults');
-            if (searchResults && searchBox) {
+            if (searchResults && searchBox) { // Ensure elements exist
                 if (!searchBox.contains(event.target) && !searchResults.contains(event.target)) {
                     searchResults.style.display = 'none';
                 }
             }
         });
         
-        // Add some animations
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideIn {
-                from { transform: translateX(100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
+        // Add CSS animations for messages
+        const animationStyle = document.createElement('style');
+        animationStyle.textContent = `
+            @keyframes slideInAndOut {
+                0% { transform: translateX(120%); opacity: 0; }
+                15%, 85% { transform: translateX(0); opacity: 1; }
+                100% { transform: translateX(120%); opacity: 0; display: none; }
             }
         `;
-        document.head.appendChild(style);
+        document.head.appendChild(animationStyle);
     </script>
 </body>
 </html>
-ENDOFFILE
