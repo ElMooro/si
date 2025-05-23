@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpenBB Financial Intelligence Platform (FRED Focus)</title>
+    <title>OpenBB Economic Intelligence Platform</title>
     
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     
@@ -128,7 +128,7 @@
             color: #ddd;
             margin-bottom: 4px;
         }
-        .search-item-description { /* Not currently used in simplified search items */
+        .search-item-description {
             font-size: 12px;
             color: #aaa;
             line-height: 1.3;
@@ -314,7 +314,7 @@
         .watchlist-section { 
             background: #121212;
             border-top: 1px solid #282828;
-            height: 250px; /* Adjusted height */
+            height: 300px;
             overflow-y: auto;
         }
         
@@ -349,6 +349,7 @@
         }
         .add-watchlist:hover { background: #00ff88; }
         
+        /* Economic Data Table */
         .watchlist-table {
             width: 100%;
             border-collapse: collapse;
@@ -364,7 +365,7 @@
             text-align: left;
             border-bottom: 1px solid #282828;
             position: sticky;
-            top: 57px; /* Height of watchlist-header */
+            top: 57px;
             z-index: 5;
         }
         
@@ -422,7 +423,7 @@
             font-size: 11px;
         }
         
-        .price-cell {
+        .value-cell {
             font-weight: bold;
             color: #fff;
             text-align: right;
@@ -437,17 +438,20 @@
         .negative { color: #ff4444; }
         .neutral { color: #888; }
         
+        /* Loading */
         .loading-pulse { animation: pulse 1.5s infinite ease-in-out; }
         @keyframes pulse {
             0%, 100% { opacity: 0.6; }
             50% { opacity: 1; }
         }
         
+        /* Scrollbar */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #0f0f0f; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #444; }
         
+        /* Message Popup */
         .message-popup {
             position: fixed;
             top: 20px;
@@ -457,10 +461,10 @@
             padding: 15px 20px;
             border-radius: 6px;
             z-index: 2000;
-            animation: slideInAndOut 3s ease-in-out forwards;
+            animation: slideInAndOut 4s ease-in-out forwards;
         }
-        .message-popup.info { border-left: 5px solid #00dd77; color: #e0e0e0; }
-        .message-popup.error { border-left: 5px solid #ff4444; color: #ffaaaa; }
+        .message-popup.info { border-color: #00dd77; }
+        .message-popup.error { border-color: #ff4444; color: #ff6666; }
         
         @keyframes slideInAndOut {
             0% { transform: translateX(120%); opacity: 0; }
@@ -479,7 +483,7 @@
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: #ff4444; 
+            background: #ff4444;
         }
         
         .status-dot.connected {
@@ -489,7 +493,7 @@
 </head>
 <body>
     <div class="header">
-        <div class="logo">📊 OPENBB FINANCIAL INTELLIGENCE (FRED)</div>
+        <div class="logo">📊 OPENBB ECONOMIC INTELLIGENCE</div>
         <div class="header-controls">
             <div class="api-status">
                 <div class="status-dot" id="apiStatus"></div>
@@ -504,7 +508,7 @@
         <div class="search-section">
             <div class="search-container">
                 <input type="text" class="search-box" id="searchBox" 
-                       placeholder="Search FRED data (e.g., GDP, DGS10, CPIAUCSL)..." 
+                       placeholder="Search economic indicators (e.g., GDP, unemployment, DGS10, inflation, CPI)..." 
                        onkeyup="debounceSearch(this.value)"
                        onfocus="showPopularSuggestions()"
                        autocomplete="off">
@@ -520,178 +524,219 @@
             
             <div class="watchlist-section">
                 <div class="watchlist-header">
-                    <div class="watchlist-title">ECONOMIC WATCHLIST (FRED)</div>
-                    <button class="add-watchlist" onclick="addToWatchlist()">+ Add FRED Symbol</button>
+                    <div class="watchlist-title">ECONOMIC INDICATORS WATCHLIST</div>
+                    <button class="add-watchlist" onclick="addToWatchlist()">+ Add Indicator</button>
                 </div>
                 <table class="watchlist-table">
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th class="text-right">Value</th>
-                            <th class="text-right">1D %</th>
-                            <th class="text-right">1W %</th>
-                            <th class="text-right">1M %</th>
-                            <th class="text-right">3M %</th>
-                            <th class="text-right">1Y %</th>
+                            <th>Indicator</th>
+                            <th class="text-right">Current Value</th>
+                            <th class="text-right">Last Update</th>
+                            <th class="text-right">Unit</th>
+                            <th class="text-right">Data Source</th>
                         </tr>
                     </thead>
                     <tbody id="watchlistBody">
-                        </tbody>
+                        <!-- Economic indicators will be populated here -->
+                    </tbody>
                 </table>
             </div>
         </div>
     </div>
 
     <script>
-        // Configuration
-        const API_BASE_URL = 'https://ped8gafyuz.us-east-1.awsapprunner.com/api/v1'; // Your working API
+        // Configuration - Using your confirmed working API
+        const API_BASE_URL = 'https://ped8gafyuz.us-east-1.awsapprunner.com/api/v1';
         
         const charts = {};
         let chartIdCounter = 0;
         let activeChartId = null;
         let searchTimeout = null;
+        let searchCache = {};
         
-        // Watchlist now focused on FRED
-        const watchlistSymbols = ['GDP', 'DGS10', 'CPIAUCSL', 'UNRATE', 'VIXCLS', 'FEDFUNDS']; 
+        // Focus on FRED economic indicators - removed stocks
+        const watchlistSymbols = ['DGS10', 'GDP', 'UNRATE', 'CPIAUCSL', 'FEDFUNDS', 'DEXUSEU'];
         let watchlistData = {};
         
+        // Color palette for charts
         const colorPalette = [
             '#00AEEF', '#FF4444', '#F4D03F', '#58D68D', '#FF7043',
             '#AF7AC5', '#48C9B0', '#EC7063', '#5DADE2', '#F5B041'
         ];
         
-        // Sample data for LOCAL SEARCH - FOCUSED ON FRED
-        // ECB data cannot be fetched from the documented backend API (ped8gafyuz...).
-        // If you have a separate ECB API, you'd need different logic to call it.
+        // FRED Economic Indicators - focused on what your API supports
         const sampleIndicators = [
-            // FRED Economic Indicators
-            { symbol: 'GDP', name: 'Gross Domestic Product', type: 'economy', provider: 'fred', category: 'Economic Growth' },
-            { symbol: 'GDPC1', name: 'Real Gross Domestic Product', type: 'economy', provider: 'fred', category: 'Economic Growth' },
-            { symbol: 'DGS10', name: '10-Year Treasury Constant Maturity Rate', type: 'economy', provider: 'fred', category: 'Interest Rates' },
-            { symbol: 'DGS2', name: '2-Year Treasury Constant Maturity Rate', type: 'economy', provider: 'fred', category: 'Interest Rates' },
-            { symbol: 'DGS30', name: '30-Year Treasury Constant Maturity Rate', type: 'economy', provider: 'fred', category: 'Interest Rates' },
-            { symbol: 'FEDFUNDS', name: 'Federal Funds Effective Rate', type: 'economy', provider: 'fred', category: 'Interest Rates' },
-            { symbol: 'CPIAUCSL', name: 'Consumer Price Index for All Urban Consumers', type: 'economy', provider: 'fred', category: 'Inflation' },
-            { symbol: 'CPILFESL', name: 'Core CPI (Less Food & Energy)', type: 'economy', provider: 'fred', category: 'Inflation' },
-            { symbol: 'UNRATE', name: 'Unemployment Rate', type: 'economy', provider: 'fred', category: 'Labor Market' },
-            { symbol: 'PAYEMS', name: 'All Employees: Total Nonfarm Payrolls', type: 'economy', provider: 'fred', category: 'Labor Market' },
-            { symbol: 'VIXCLS', name: 'CBOE Volatility Index: VIX', type: 'economy', provider: 'fred', category: 'Market Volatility' },
-            { symbol: 'DEXUSEU', name: 'U.S. / Euro Foreign Exchange Rate (FRED)', type: 'economy', provider: 'fred', category: 'Currency' },
-            { symbol: 'DEXJPUS', name: 'Japan / U.S. Foreign Exchange Rate (FRED)', type: 'economy', provider: 'fred', category: 'Currency' },
-            { symbol: 'M2SL', name: 'M2 Money Stock', type: 'economy', provider: 'fred', category: 'Money Supply' },
-            { symbol: 'HOUST', name: 'Housing Starts', type: 'economy', provider: 'fred', category: 'Housing' },
-            { symbol: 'INDPRO', name: 'Industrial Production Index', type: 'economy', provider: 'fred', category: 'Manufacturing' },
-            { symbol: 'UMCSENT', name: 'University of Michigan: Consumer Sentiment', type: 'economy', provider: 'fred', category: 'Consumer Confidence' },
-            { symbol: 'T10Y2Y', name: '10-Year Minus 2-Year Treasury Spread', type: 'economy', provider: 'fred', category: 'Yield Curve' },
-            { symbol: 'DCOILWTICO', name: 'Crude Oil Prices: WTI (FRED)', type: 'economy', provider: 'fred', category: 'Commodities' },
-            // Note: For actual ECB data, your backend API (ped8gafyuz...) needs to support an 'ecb' provider.
-            // Example of how it *could* look IF your backend supported it:
-            // { symbol: 'ECB_EXR_USD', name: 'ECB Euro-USD Exchange Rate', type: 'economy', provider: 'ecb', category: 'Currency (ECB)' },
+            // Interest Rates
+            { symbol: 'DGS10', name: '10-Year Treasury Constant Maturity Rate', type: 'economy', provider: 'fred', category: 'Interest Rates', unit: 'Percent' },
+            { symbol: 'DGS2', name: '2-Year Treasury Constant Maturity Rate', type: 'economy', provider: 'fred', category: 'Interest Rates', unit: 'Percent' },
+            { symbol: 'DGS30', name: '30-Year Treasury Constant Maturity Rate', type: 'economy', provider: 'fred', category: 'Interest Rates', unit: 'Percent' },
+            { symbol: 'FEDFUNDS', name: 'Federal Funds Effective Rate', type: 'economy', provider: 'fred', category: 'Interest Rates', unit: 'Percent' },
+            { symbol: 'TB3MS', name: '3-Month Treasury Bill Secondary Market Rate', type: 'economy', provider: 'fred', category: 'Interest Rates', unit: 'Percent' },
+            { symbol: 'T10Y2Y', name: '10-Year Treasury Minus 2-Year Treasury', type: 'economy', provider: 'fred', category: 'Yield Curve', unit: 'Percent' },
+            
+            // Economic Growth
+            { symbol: 'GDP', name: 'Gross Domestic Product', type: 'economy', provider: 'fred', category: 'Economic Growth', unit: 'Billions of Dollars' },
+            { symbol: 'GDPC1', name: 'Real Gross Domestic Product', type: 'economy', provider: 'fred', category: 'Economic Growth', unit: 'Billions of Chained 2017 Dollars' },
+            { symbol: 'GDPPOT', name: 'Real Potential Gross Domestic Product', type: 'economy', provider: 'fred', category: 'Economic Growth', unit: 'Billions of Chained 2017 Dollars' },
+            
+            // Inflation
+            { symbol: 'CPIAUCSL', name: 'Consumer Price Index for All Urban Consumers', type: 'economy', provider: 'fred', category: 'Inflation', unit: 'Index 1982-84=100' },
+            { symbol: 'CPILFESL', name: 'Core CPI (Less Food & Energy)', type: 'economy', provider: 'fred', category: 'Inflation', unit: 'Index 1982-84=100' },
+            { symbol: 'CPIUFDSL', name: 'CPI for All Urban Consumers: Food and Beverages', type: 'economy', provider: 'fred', category: 'Inflation', unit: 'Index 1982-84=100' },
+            { symbol: 'CUSR0000SETB01', name: 'CPI for All Urban Consumers: Gasoline (All Types)', type: 'economy', provider: 'fred', category: 'Inflation', unit: 'Index 1982-84=100' },
+            
+            // Labor Market
+            { symbol: 'UNRATE', name: 'Unemployment Rate', type: 'economy', provider: 'fred', category: 'Labor Market', unit: 'Percent' },
+            { symbol: 'PAYEMS', name: 'All Employees: Total Nonfarm Payrolls', type: 'economy', provider: 'fred', category: 'Labor Market', unit: 'Thousands of Persons' },
+            { symbol: 'CIVPART', name: 'Labor Force Participation Rate', type: 'economy', provider: 'fred', category: 'Labor Market', unit: 'Percent' },
+            { symbol: 'EMRATIO', name: 'Employment-Population Ratio', type: 'economy', provider: 'fred', category: 'Labor Market', unit: 'Percent' },
+            { symbol: 'AHETPI', name: 'Average Hourly Earnings of Production and Nonsupervisory Employees', type: 'economy', provider: 'fred', category: 'Labor Market', unit: 'Dollars per Hour' },
+            
+            // Market Volatility & Sentiment
+            { symbol: 'VIXCLS', name: 'CBOE Volatility Index: VIX', type: 'economy', provider: 'fred', category: 'Market Volatility', unit: 'Index' },
+            { symbol: 'UMCSENT', name: 'University of Michigan: Consumer Sentiment', type: 'economy', provider: 'fred', category: 'Consumer Confidence', unit: 'Index 1966:Q1=100' },
+            
+            // Currency
+            { symbol: 'DEXUSEU', name: 'U.S. / Euro Foreign Exchange Rate', type: 'economy', provider: 'fred', category: 'Currency', unit: 'U.S. Dollars to One Euro' },
+            { symbol: 'DEXJPUS', name: 'Japan / U.S. Foreign Exchange Rate', type: 'economy', provider: 'fred', category: 'Currency', unit: 'Japanese Yen to One U.S. Dollar' },
+            { symbol: 'DEXCHUS', name: 'China / U.S. Foreign Exchange Rate', type: 'economy', provider: 'fred', category: 'Currency', unit: 'Chinese Yuan to One U.S. Dollar' },
+            
+            // Money Supply
+            { symbol: 'M2SL', name: 'M2 Money Stock', type: 'economy', provider: 'fred', category: 'Money Supply', unit: 'Billions of Dollars' },
+            { symbol: 'M1SL', name: 'M1 Money Stock', type: 'economy', provider: 'fred', category: 'Money Supply', unit: 'Billions of Dollars' },
+            
+            // Housing
+            { symbol: 'HOUST', name: 'Housing Starts: Total: New Privately Owned Housing Units', type: 'economy', provider: 'fred', category: 'Housing', unit: 'Thousands of Units' },
+            { symbol: 'CSUSHPISA', name: 'S&P/Case-Shiller U.S. National Home Price Index', type: 'economy', provider: 'fred', category: 'Housing', unit: 'Index Jan 2000=100' },
+            { symbol: 'MORTGAGE30US', name: '30-Year Fixed Rate Mortgage Average in the United States', type: 'economy', provider: 'fred', category: 'Housing', unit: 'Percent' },
+            
+            // Manufacturing & Production
+            { symbol: 'INDPRO', name: 'Industrial Production Index', type: 'economy', provider: 'fred', category: 'Manufacturing', unit: 'Index 2017=100' },
+            { symbol: 'CAPUTLB50001SQ', name: 'Capacity Utilization: Manufacturing', type: 'economy', provider: 'fred', category: 'Manufacturing', unit: 'Percent of Capacity' },
+            
+            // Commodities
+            { symbol: 'DCOILWTICO', name: 'Crude Oil Prices: West Texas Intermediate', type: 'economy', provider: 'fred', category: 'Commodities', unit: 'Dollars per Barrel' },
+            { symbol: 'GOLDAMGBD228NLBM', name: 'Gold Fixing Price', type: 'economy', provider: 'fred', category: 'Commodities', unit: 'U.S. Dollars per Troy Ounce' },
+            
+            // Trade & Government
+            { symbol: 'BOPGSTB', name: 'Trade Balance: Goods and Services, Balance of Payments Basis', type: 'economy', provider: 'fred', category: 'Trade', unit: 'Millions of Dollars' },
+            { symbol: 'GFDEBTN', name: 'Federal Debt: Total Public Debt', type: 'economy', provider: 'fred', category: 'Government Finance', unit: 'Millions of Dollars' },
+            { symbol: 'FYFSGDA188S', name: 'Federal Surplus or Deficit as Percent of Gross Domestic Product', type: 'economy', provider: 'fred', category: 'Government Finance', unit: 'Percent of GDP' }
         ];
         
+        // Initialize the dashboard
         async function init() {
+            console.log('🚀 Initializing OpenBB Economic Dashboard...');
             updateClock();
             setInterval(updateClock, 1000);
             
             await checkAPIConnection();
-            addNewChart(); 
+            addNewChart();
             loadWatchlistData();
-            setInterval(loadWatchlistData, 300000); 
+            setInterval(loadWatchlistData, 300000); // Update every 5 minutes
         }
         
+        // Check API connection with your confirmed working endpoint
         async function checkAPIConnection() {
-            const statusDot = document.getElementById('apiStatus');
-            const statusText = document.getElementById('apiStatusText');
             try {
-                // Your backend documentation confirms DGS10 from FRED works.
-                const testEndpoint = `${API_BASE_URL}/economy/fred_series?symbol=DGS10&provider=fred`;
-                console.log('CHECKING API CONNECTION with:', testEndpoint);
+                console.log('🔌 Testing API connection to your OpenBB backend...');
                 
-                const response = await fetch(testEndpoint, {signal: AbortSignal.timeout(10000)});
-                console.log('API connection test response status:', response.status);
-
+                // Test with DGS10 which is confirmed working in your documentation
+                const testEndpoint = `${API_BASE_URL}/economy/fred_series?symbol=DGS10&provider=fred`;
+                console.log(`📡 Testing endpoint: ${testEndpoint}`);
+                
+                const response = await fetch(testEndpoint);
+                console.log(`📊 API response status: ${response.status}`);
+                
                 if (response.ok) {
                     const data = await response.json();
-                    // Check if the data looks like a typical successful FRED response from your API
-                    if (data && ((data.results && Array.isArray(data.results) && data.results.length > 0) || 
-                                 (Array.isArray(data) && data.length > 0 && data[0].date && data[0].value !== undefined))) { // More flexible check for FRED array
-                        console.log('API connection test successful. Sample data received.');
-                        statusDot.classList.add('connected');
-                        statusText.textContent = 'API Connected (FRED)';
-                        showTemporaryMessage('Successfully connected to OpenBB API for FRED data!', 'info');
-                    } else {
-                        console.warn('API connection test OK, but FRED data structure might be unexpected:', data);
-                        statusDot.classList.remove('connected');
-                        statusText.textContent = 'API Data Issue';
-                        showTemporaryMessage('API connected, but FRED response data structure is unusual. Check console.', 'error');
-                    }
+                    console.log('✅ API test successful! Sample data structure:', {
+                        resultsCount: data.results?.length || 0,
+                        firstResult: data.results?.[0],
+                        metadata: data.metadata || 'No metadata',
+                        warnings: data.warnings || 'No warnings'
+                    });
+                    
+                    document.getElementById('apiStatus').classList.add('connected');
+                    document.getElementById('apiStatusText').textContent = 'FRED API Connected';
+                    
+                    showTemporaryMessage('✅ Successfully connected to OpenBB FRED API!', 'info');
                 } else {
                     const errorText = await response.text();
-                    console.error(`API connection test FAILED. Status: ${response.status}, Response: ${errorText}`);
-                    statusDot.classList.remove('connected');
-                    statusText.textContent = 'API Error';
-                    showTemporaryMessage(`API connection failed: ${response.status}. Check console for details.`, 'error');
+                    console.error('❌ API error response:', errorText);
+                    throw new Error(`API returned ${response.status}: ${errorText}`);
                 }
             } catch (error) {
-                console.error('API connection test THREW an error:', error.name, error.message);
-                statusDot.classList.remove('connected');
-                statusText.textContent = 'API Disconnected';
-                if (error.name === 'AbortError') {
-                     showTemporaryMessage('API connection timed out.', 'error');
-                } else if (error instanceof TypeError) { // Often CORS or network
-                     showTemporaryMessage('API connection failed. Check CORS/Network. See console.', 'error');
-                     console.warn("A 'TypeError: Failed to fetch' can indicate a CORS problem if the server is reachable, or a network issue. Ensure the API server at", API_BASE_URL, "has correct CORS headers if this frontend is on a different domain.");
-                } else {
-                     showTemporaryMessage(`API connection error: ${error.message}. Check console.`, 'error');
+                console.error('❌ API connection failed:', error);
+                document.getElementById('apiStatusText').textContent = 'API Disconnected';
+                showTemporaryMessage(`❌ API connection failed: ${error.message}`, 'error');
+                
+                // Additional debugging
+                console.log('🔍 Running additional diagnostics...');
+                try {
+                    const corsTest = await fetch(`${API_BASE_URL}/economy/fred_series?symbol=DGS10&provider=fred`, { 
+                        mode: 'no-cors' 
+                    });
+                    console.log('🌐 CORS test result: Server reachable but response blocked by CORS policy');
+                } catch (corsError) {
+                    console.log('🌐 Server unreachable:', corsError.message);
                 }
             }
         }
         
+        // Update the digital clock
         function updateClock() {
             document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
         }
         
+        // Debounce search input
         function debounceSearch(query) {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => searchIndicators(query.trim()), 300);
         }
         
-        // LOCAL SEARCH ONLY (searches 'sampleIndicators' array)
+        // Search for economic indicators
         async function searchIndicators(query) {
             const resultsDiv = document.getElementById('searchResults');
-            if (query.length < 1) { // Show popular if query is cleared or too short
-                showPopularSuggestions(); // Or hide: resultsDiv.style.display = 'none';
+            
+            if (query.length < 2) {
+                resultsDiv.style.display = 'none';
                 return;
             }
         
             const lowerQuery = query.toLowerCase();
-            resultsDiv.innerHTML = '<div class="search-loading loading-pulse">Searching local FRED indicators...</div>';
+            resultsDiv.innerHTML = '<div class="search-loading loading-pulse">Searching economic indicators...</div>';
             resultsDiv.style.display = 'block';
             
+            // Search local FRED indicators for instant results
             const localResults = sampleIndicators.filter(indicator => 
-                (indicator.provider === 'fred') && // Ensure we only suggest FRED if that's the focus
-                (indicator.symbol.toLowerCase().includes(lowerQuery) ||
-                 indicator.name.toLowerCase().includes(lowerQuery) ||
-                 (indicator.category && indicator.category.toLowerCase().includes(lowerQuery)))
+                indicator.symbol.toLowerCase().includes(lowerQuery) ||
+                indicator.name.toLowerCase().includes(lowerQuery) ||
+                (indicator.category && indicator.category.toLowerCase().includes(lowerQuery)) ||
+                (indicator.unit && indicator.unit.toLowerCase().includes(lowerQuery))
             );
             
-            console.log(`Local search for "${query}" (FRED) found ${localResults.length} results.`);
+            // Display results immediately
             displaySearchResults(localResults, query);
         }
         
+        // Display search results with economic focus
         function displaySearchResults(results, query) {
             const resultsDiv = document.getElementById('searchResults');
+            
             if (!results || results.length === 0) {
                 resultsDiv.innerHTML = `
                     <div class="search-item" style="text-align:center; color:#888; padding: 20px;">
-                        No FRED indicators found for "${query}" in local list.<br>
-                        <small>Try: GDP, DGS10, CPIAUCSL, UNRATE, VIXCLS etc.</small>
+                        No economic indicators found for "${query}"<br>
+                        <small>Try: GDP, unemployment, DGS10, inflation, CPI, interest rates, etc.</small>
                     </div>`;
                 return;
             }
             
+            // Group results by category for better organization
             const grouped = results.reduce((acc, result) => {
-                const category = result.category || 'FRED Economic Data'; // Default category
+                const category = result.category || 'Other';
                 if (!acc[category]) acc[category] = [];
                 acc[category].push(result);
                 return acc;
@@ -699,75 +744,101 @@
             
             let html = '';
             Object.entries(grouped).forEach(([category, items]) => {
-                if (Object.keys(grouped).length > 1 || results.length > 5) { // Show category if multiple or many items
+                if (Object.keys(grouped).length > 1) {
                     html += `<div style="padding: 8px 20px; background: #1a1a1a; color: #888; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #222;">
-                        ${category}
+                        📊 ${category}
                     </div>`;
                 }
                 
-                items.slice(0, 10).forEach(result => {
+                items.slice(0, 8).forEach(result => {
                     html += `
                         <div class="search-item" onclick="addSearchResultToChart('${result.symbol}', '${result.type}', '${result.provider}', '${result.name.replace(/'/g, "\\'")}')">
                             <div class="search-item-left">
                                 <div class="search-item-symbol">${result.symbol}</div>
                                 <div class="search-item-name">${result.name}</div>
+                                <div class="search-item-description">${result.unit}</div>
                             </div>
-                            <div class="search-item-source">${result.provider.toUpperCase()}</div>
+                            <div class="search-item-source">${result.provider}</div>
                         </div>
                     `;
                 });
             });
+            
             resultsDiv.innerHTML = html;
         }
         
+        // Show popular economic suggestions when search box is focused
         function showPopularSuggestions() {
             const searchBox = document.getElementById('searchBox');
             if (searchBox.value.trim() === '') {
-                const popularSymbols = ['GDP', 'DGS10', 'CPIAUCSL', 'UNRATE', 'VIXCLS', 'FEDFUNDS'];
-                const popularIndicators = sampleIndicators.filter(ind => popularSymbols.includes(ind.symbol) && ind.provider === 'fred');
-                if (popularIndicators.length > 0) {
-                    displaySearchResults(popularIndicators, "Popular FRED Indicators");
-                    document.getElementById('searchResults').style.display = 'block';
-                } else {
-                    document.getElementById('searchResults').style.display = 'none';
-                }
+                const resultsDiv = document.getElementById('searchResults');
+                const popularCategories = {
+                    'Interest Rates': ['DGS10', 'DGS2', 'FEDFUNDS', 'T10Y2Y'],
+                    'Economic Growth': ['GDP', 'GDPC1'],
+                    'Inflation': ['CPIAUCSL', 'CPILFESL'],
+                    'Labor Market': ['UNRATE', 'PAYEMS', 'CIVPART'],
+                    'Currency': ['DEXUSEU', 'DEXJPUS'],
+                    'Market Indicators': ['VIXCLS', 'UMCSENT']
+                };
+                
+                let html = '';
+                Object.entries(popularCategories).forEach(([category, symbols]) => {
+                    html += `<div style="padding: 8px 20px; background: #1a1a1a; color: #888; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #222;">
+                        📊 ${category}
+                    </div>`;
+                    
+                    symbols.forEach(symbol => {
+                        const indicator = sampleIndicators.find(ind => ind.symbol === symbol);
+                        if (indicator) {
+                            html += `
+                                <div class="search-item" onclick="addSearchResultToChart('${indicator.symbol}', '${indicator.type}', '${indicator.provider}', '${indicator.name.replace(/'/g, "\\'")}')">
+                                    <div class="search-item-left">
+                                        <div class="search-item-symbol">${indicator.symbol}</div>
+                                        <div class="search-item-name">${indicator.name}</div>
+                                        <div class="search-item-description">${indicator.unit}</div>
+                                    </div>
+                                    <div class="search-item-source">${indicator.provider}</div>
+                                </div>
+                            `;
+                        }
+                    });
+                });
+                
+                resultsDiv.innerHTML = html;
+                resultsDiv.style.display = 'block';
             }
         }
-
+        
         function addSearchResultToChart(symbol, type, provider, name) {
             let targetChartId = activeChartId;
             if (!targetChartId) {
                 if (Object.keys(charts).length > 0) {
                     targetChartId = Object.keys(charts)[Object.keys(charts).length - 1];
                 } else {
-                    addNewChart(); 
-                    targetChartId = activeChartId; 
+                    addNewChart();
+                    targetChartId = activeChartId;
                 }
             }
             
-            // Ensure provider is 'fred' if adding from general search, or handle other providers if ever re-enabled
-            if (provider.toLowerCase() !== 'fred') {
-                 console.warn(`Attempting to add non-FRED symbol ${symbol} with provider ${provider}. This UI is focused on FRED.`);
-                 // Decide if you want to allow this or show an error. For now, let it try.
-            }
-
             addToChart(targetChartId, symbol, type, provider, name);
             document.getElementById('searchResults').style.display = 'none';
             document.getElementById('searchBox').value = '';
         }
         
+        // Create a new chart window
         function addNewChart() {
             const chartId = `chart_${chartIdCounter++}`;
+            
             const chartHtml = `
                 <div class="chart-window" id="${chartId}" onclick="setActiveChart('${chartId}')">
                     <div class="chart-header">
                         <div class="chart-title-section">
-                            <div class="chart-title" id="${chartId}_title">FRED Chart ${chartIdCounter}</div>
+                            <div class="chart-title" id="${chartId}_title">Economic Chart ${chartIdCounter}</div>
                             <div class="chart-symbols" id="${chartId}_symbols"></div>
                         </div>
                         <div class="chart-controls">
                             <div class="timeframe-buttons" id="${chartId}_timeframe_buttons">
-                                ${['1M','3M','6M','1Y','2Y','5Y', '10Y', 'MAX'].map(tf => 
+                                ${['1Y','2Y','5Y','10Y','MAX'].map(tf => 
                                     `<button class="timeframe-btn ${tf === 'MAX' ? 'active' : ''}" 
                                              onclick="changeTimeframe(event, '${chartId}', '${tf}')">${tf}</button>`
                                 ).join('')}
@@ -776,27 +847,37 @@
                         </div>
                     </div>
                     <div class="chart-canvas" id="${chartId}_canvas">
-                        <div class="chart-message">Search for a FRED indicator to add to this chart</div>
+                        <div class="chart-message">Search for an economic indicator to add to this chart</div>
                     </div>
                 </div>`;
             
             document.getElementById('chartGrid').insertAdjacentHTML('beforeend', chartHtml);
-            charts[chartId] = { symbols: [], data: {}, timeframe: 'MAX', chartInstance: null };
+            charts[chartId] = {
+                symbols: [], 
+                data: {}, 
+                timeframe: 'MAX', 
+                chartInstance: null
+            };
             setActiveChart(chartId);
         }
         
+        // Set the currently active chart
         function setActiveChart(chartId) {
-            if (activeChartId === chartId && document.getElementById(chartId)?.classList.contains('active-chart')) return;
+            if (activeChartId === chartId) return;
             activeChartId = chartId;
             document.querySelectorAll('.chart-window').forEach(c => c.classList.remove('active-chart'));
             const chartElement = document.getElementById(chartId);
-            if (chartElement) chartElement.classList.add('active-chart');
-            console.log("Active chart set to:", chartId);
+            if (chartElement) {
+                chartElement.classList.add('active-chart');
+            }
         }
         
+        // Remove a chart window
         function removeChart(event, chartIdToRemove) {
-            event.stopPropagation(); 
-            if (charts[chartIdToRemove]?.chartInstance) Plotly.purge(`${chartIdToRemove}_canvas`);
+            event.stopPropagation();
+            if (charts[chartIdToRemove] && charts[chartIdToRemove].chartInstance) {
+                Plotly.purge(`${chartIdToRemove}_canvas`);
+            }
             delete charts[chartIdToRemove];
             document.getElementById(chartIdToRemove)?.remove();
             
@@ -807,96 +888,90 @@
             }
         }
         
+        // Add symbol to a specific chart
         function addToChart(chartId, symbol, type, provider, name) {
             const chart = charts[chartId];
-            if (!chart) { console.error("Chart not found:", chartId); return; }
+            if (!chart) return;
             
-            if (provider.toLowerCase() !== 'fred') {
-                showTemporaryMessage(`This tool is focused on FRED data. ${symbol} from ${provider} might not load correctly.`, 'error');
-                // Do not proceed if not FRED, or add more robust handling for other types if your backend supports them via these functions.
-                // For now, we'll let it attempt, but it's expected to fail if backend only serves FRED via this path.
-            }
-
-            if (!chart.symbols.find(s => s.symbol === symbol && s.provider === provider)) { // Check provider too
+            if (!chart.symbols.find(s => s.symbol === symbol)) {
                 chart.symbols.push({ symbol, type, provider, name });
-                loadChartData(chartId, symbol, type, provider, name);
-            } else {
-                showTemporaryMessage(`${symbol} (Provider: ${provider}) is already on this chart.`, 'info');
+                loadChartData(chartId, symbol, type, provider);
             }
             setActiveChart(chartId);
         }
         
-        async function loadChartData(chartId, symbol, type, provider, name) {
+        // Load data for an economic indicator using your confirmed API structure
+        async function loadChartData(chartId, symbol, type, provider) {
             const chart = charts[chartId];
             if (!chart) return;
             
             const canvasDiv = document.getElementById(`${chartId}_canvas`);
-            if (canvasDiv) canvasDiv.innerHTML = `<div class="chart-message loading-pulse">Loading ${symbol} (${name || provider})...</div>`;
+            if (canvasDiv) canvasDiv.innerHTML = `<div class="chart-message loading-pulse">Loading ${symbol} data from FRED...</div>`;
             
-            let endpoint = '';
-            // This UI is now focused on FRED.
-            if (provider.toLowerCase() === 'fred' && type === 'economy') {
-                endpoint = `${API_BASE_URL}/economy/fred_series?symbol=${symbol}&provider=fred`;
-            } else {
-                console.error(`Unsupported provider "${provider}" or type "${type}" for symbol ${symbol} in this FRED-focused UI.`);
-                if (canvasDiv) canvasDiv.innerHTML = `<div class="chart-message" style="color: #ff4444;">Unsupported request for ${symbol}. This tool primarily supports FRED economic data.</div>`;
-                // Remove the symbol if it was optimistically added
-                chart.symbols = chart.symbols.filter(s => !(s.symbol === symbol && s.provider === provider));
-                updateChartSymbols(chartId);
-                return;
-            }
-
-            console.log(`Workspaceing chart data for ${symbol} (${name}) from: ${endpoint}`);
-
             try {
-                const response = await fetch(endpoint, {signal: AbortSignal.timeout(15000)});
+                // Use the confirmed working FRED endpoint structure
+                const endpoint = `${API_BASE_URL}/economy/fred_series?symbol=${symbol}&provider=${provider}`;
+                
+                console.log(`📡 Fetching FRED data for ${symbol} from: ${endpoint}`);
+                
+                const response = await fetch(endpoint);
+                console.log(`📊 Response status for ${symbol}: ${response.status}`);
+                
                 if (!response.ok) {
                     const errorText = await response.text();
-                    console.error(`API Error for ${symbol} (${endpoint}): Status ${response.status}`, errorText);
-                    throw new Error(`API error ${response.status} for ${symbol}. Is symbol valid for FRED?`);
+                    console.error(`❌ API error for ${symbol}:`, errorText);
+                    throw new Error(`API error: ${response.status} - ${errorText}`);
                 }
                 
-                const rawData = await response.json();
-                console.log(`Raw API response for ${symbol} (${name}):`, JSON.stringify(rawData, null, 2).substring(0, 500) + "...");
-
+                const data = await response.json();
+                console.log(`✅ Raw API response for ${symbol}:`, {
+                    resultsCount: data.results?.length || 0,
+                    sampleData: data.results?.slice(0, 3),
+                    metadata: data.metadata,
+                    warnings: data.warnings
+                });
+                
+                // Process FRED data structure based on your API documentation
                 let processedData = [];
-                // Assuming rawData from /economy/fred_series is an array of {date, value} objects,
-                // or an object with a "results" array like {results: [{date, value}, ...]}
-                let itemsToProcess = Array.isArray(rawData) ? rawData : (rawData.results || rawData.data);
-
-                if (Array.isArray(itemsToProcess)) {
-                     processedData = itemsToProcess
-                        .filter(item => item && item.date && item.value !== null && item.value !== undefined && !isNaN(parseFloat(item.value)))
+                
+                if (data.results && Array.isArray(data.results)) {
+                    processedData = data.results
+                        .filter(item => {
+                            // Be more permissive with value filtering
+                            const value = item.value;
+                            return value !== null && 
+                                   value !== undefined && 
+                                   value !== '.' && 
+                                   !isNaN(parseFloat(value));
+                        })
                         .map(item => ({
-                            date: item.date, 
+                            date: item.date,
                             value: parseFloat(item.value)
                         }))
                         .sort((a, b) => new Date(a.date) - new Date(b.date));
                 } else {
-                     console.warn(`Unexpected data structure for ${symbol} (FRED):`, rawData);
-                     throw new Error('Unexpected data structure from FRED API.');
-                }
-
-                if (processedData.length === 0) {
-                    console.warn(`No valid data points found for ${symbol} (FRED) after processing. Raw data:`, rawData);
-                    throw new Error('No valid FRED data points found.');
+                    console.warn(`⚠️ Unexpected data structure for ${symbol}:`, data);
                 }
                 
-                console.log(`Processed ${processedData.length} FRED data points for ${symbol}.`);
-                chart.data[symbol] = processedData; // Store by symbol only, assuming provider is FRED
+                if (processedData.length === 0) {
+                    throw new Error('No valid data points found in FRED response');
+                }
+                
+                console.log(`📈 Processed data for ${symbol}: ${processedData.length} points from ${processedData[0]?.date} to ${processedData[processedData.length-1]?.date}`);
+                
+                chart.data[symbol] = processedData;
                 updateChartRender(chartId);
                 updateChartSymbols(chartId);
                 
             } catch (error) {
-                console.error(`Error loading/processing FRED chart data for ${symbol} (${name}):`, error.message, error.stack);
+                console.error(`❌ Error loading data for ${symbol}:`, error);
                 if (canvasDiv) {
-                    canvasDiv.innerHTML = `<div class="chart-message" style="color: #ff4444;">Error loading ${symbol}: ${error.message}<br><small>Check console. Verify symbol exists on FRED.</small></div>`;
+                    canvasDiv.innerHTML = `<div class="chart-message" style="color: #ff4444;">❌ Error loading ${symbol}: ${error.message}<br><small>Check console for details</small></div>`;
                 }
-                chart.symbols = chart.symbols.filter(s => s.symbol !== symbol); // Remove if failed
-                updateChartSymbols(chartId);
             }
         }
         
+        // Update chart symbols display
         function updateChartSymbols(chartId) {
             const chart = charts[chartId];
             if (!chart) return;
@@ -906,39 +981,29 @@
             symbolsDiv.innerHTML = chart.symbols.map((s, i) => `
                 <div class="chart-symbol-tag">
                     <span class="symbol-color-dot" style="background-color: ${colorPalette[i % colorPalette.length]};"></span>
-                    ${s.symbol} ${s.name ? `(${s.name.substring(0,15)+(s.name.length > 15 ? '...' : '')})` : `(${s.provider})`}
-                    <span class="remove-symbol" onclick="removeSymbolFromChart(event, '${chartId}', '${s.symbol}', '${s.provider}')">×</span>
+                    ${s.symbol}
+                    <span class="remove-symbol" onclick="removeSymbolFromChart(event, '${chartId}', '${s.symbol}')">×</span>
                 </div>`).join('');
-            
-            const titleEl = document.getElementById(`${chartId}_title`);
-            if (titleEl) {
-                if (chart.symbols.length === 1) {
-                    titleEl.textContent = `${chart.symbols[0].symbol} - ${chart.symbols[0].name || `FRED Chart`}`;
-                } else if (chart.symbols.length === 0) {
-                    titleEl.textContent = `FRED Chart ${chartIdCounter}`;
-                } else {
-                     titleEl.textContent = `FRED Comparison Chart`;
-                }
-            }
         }
         
-        function removeSymbolFromChart(event, chartId, symbolToRemove, providerToRemove) { // Added provider
+        // Remove symbol from chart
+        function removeSymbolFromChart(event, chartId, symbolToRemove) {
             event.stopPropagation();
             const chart = charts[chartId];
             if (!chart) return;
 
-            chart.symbols = chart.symbols.filter(s => !(s.symbol === symbolToRemove && s.provider === providerToRemove));
-            delete chart.data[symbolToRemove]; // Assuming data is stored by symbol if provider is always FRED here
+            chart.symbols = chart.symbols.filter(s => s.symbol !== symbolToRemove);
+            delete chart.data[symbolToRemove];
             
             updateChartRender(chartId);
             updateChartSymbols(chartId);
             
             if (chart.symbols.length === 0) {
-                document.getElementById(`${chartId}_canvas`).innerHTML = '<div class="chart-message">Search for a FRED indicator</div>';
-                if (chart.chartInstance) Plotly.purge(`${chartId}_canvas`);
+                document.getElementById(`${chartId}_canvas`).innerHTML = '<div class="chart-message">Search for an economic indicator to add to this chart</div>';
             }
         }
         
+        // Change chart timeframe
         function changeTimeframe(event, chartId, timeframe) {
             event.stopPropagation();
             const chart = charts[chartId];
@@ -953,259 +1018,257 @@
             updateChartRender(chartId);
         }
         
+        // Render economic data chart
         function updateChartRender(chartId) {
             const chart = charts[chartId];
             const canvasElement = document.getElementById(`${chartId}_canvas`);
             if (!canvasElement || !chart) return;
             
             if (chart.symbols.length === 0) {
-                canvasElement.innerHTML = '<div class="chart-message">Search for a FRED indicator</div>';
+                canvasElement.innerHTML = '<div class="chart-message">Search for an economic indicator to add to this chart</div>';
                 if (chart.chartInstance) Plotly.purge(canvasElement);
                 return;
             }
             
             const traces = [];
-            let allDates = new Set();
-
+            
             chart.symbols.forEach((s, index) => {
-                let symbolData = chart.data[s.symbol]; // Assumes data stored by symbol (provider is FRED)
+                const symbolData = chart.data[s.symbol];
                 if (!symbolData || symbolData.length === 0) return;
-
-                if (chart.timeframe !== 'MAX') {
-                    const now = new Date();
-                    let startDate = new Date();
-                    switch (chart.timeframe) {
-                        case '1M': startDate.setMonth(now.getMonth() - 1); break;
-                        case '3M': startDate.setMonth(now.getMonth() - 3); break;
-                        case '6M': startDate.setMonth(now.getMonth() - 6); break;
-                        case '1Y': startDate.setFullYear(now.getFullYear() - 1); break;
-                        case '2Y': startDate.setFullYear(now.getFullYear() - 2); break;
-                        case '5Y': startDate.setFullYear(now.getFullYear() - 5); break;
-                        case '10Y': startDate.setFullYear(now.getFullYear() - 10); break;
-                    }
-                    symbolData = symbolData.filter(d => new Date(d.date) >= startDate);
-                }
                 
-                if (symbolData.length === 0) return; 
-
-                const xValues = symbolData.map(d => d.date);
-                const yValues = symbolData.map(d => d.value);
-                xValues.forEach(date => allDates.add(date));
-
+                const lineColor = colorPalette[index % colorPalette.length];
+                
                 traces.push({
-                    x: xValues,
-                    y: yValues,
+                    x: symbolData.map(d => d.date),
+                    y: symbolData.map(d => d.value),
                     type: 'scatter',
                     mode: 'lines',
-                    name: `${s.symbol} ${s.name ? `(${s.name.substring(0,15)+(s.name.length>15?'...':'')})` : ''}`,
-                    line: { color: colorPalette[index % colorPalette.length], width: 2 },
-                    hovertemplate: `<b>${s.symbol}</b><br>%{x}<br>%{y:.2f}<extra></extra>`
+                    name: s.symbol,
+                    line: { color: lineColor, width: 2 },
+                    hovertemplate: `<b>%{fullData.name}</b><br>%{x}<br>%{y:.4f}<extra></extra>`
                 });
             });
             
             if (traces.length === 0) {
-                canvasElement.innerHTML = `<div class="chart-message">No FRED data for selected timeframe/symbols.</div>`;
-                 if (chart.chartInstance) Plotly.purge(canvasElement);
+                canvasElement.innerHTML = '<div class="chart-message">No data to display</div>';
                 return;
             }
             
-            const sortedDates = Array.from(allDates).sort((a,b) => new Date(a) - new Date(b));
             const layout = {
                 paper_bgcolor: '#0a0a0a',
                 plot_bgcolor: '#0a0a0a',
                 font: { color: '#aaa', size: 12 },
-                margin: { t: 50, r: 30, b: 60, l: 60 },
+                margin: { t: 30, r: 30, b: 60, l: 60 },
                 xaxis: {
                     type: 'date',
                     gridcolor: '#22222250',
                     tickfont: { color: '#888' },
-                    range: sortedDates.length > 1 ? [sortedDates[0], sortedDates[sortedDates.length -1]] : undefined,
-                    autorange: sortedDates.length <= 1 
+                    title: { text: 'Date', font: { size: 11, color: '#888' } }
                 },
-                yaxis: { gridcolor: '#22222250', tickfont: { color: '#888' }, autorange: true },
+                yaxis: {
+                    gridcolor: '#22222250',
+                    tickfont: { color: '#888' },
+                    title: { text: 'Value', font: { size: 11, color: '#888' } }
+                },
                 hovermode: 'x unified',
-                showlegend: traces.length > 1,
-                legend: { orientation: 'h', yanchor: 'bottom', y: 1.02, xanchor: 'right', x: 1, bgcolor: 'rgba(10,10,10,0.0)', font: { size: 11 } }
+                showlegend: true,
+                legend: {
+                    orientation: 'h',
+                    yanchor: 'bottom',
+                    y: 1.02,
+                    xanchor: 'right',
+                    x: 1,
+                    bgcolor: 'rgba(10,10,10,0.0)',
+                    font: { size: 11 }
+                }
             };
             
-            const config = { responsive: true, displaylogo: false, modeBarButtonsToRemove: ['select2d', 'lasso2d', 'toImage'] };
+            const config = {
+                responsive: true,
+                displaylogo: false,
+                modeBarButtonsToRemove: ['select2d', 'lasso2d', 'toImage']
+            };
+            
             if(canvasElement.querySelector('.chart-message')) canvasElement.innerHTML = '';
             Plotly.react(canvasElement, traces, layout, config)
                 .then(gd => { charts[chartId].chartInstance = gd; })
                 .catch(err => {
-                    console.error("Plotly rendering error:", err);
+                    console.error("Plotly error:", err);
                     canvasElement.innerHTML = `<div class="chart-message" style="color: #ff4444;">Chart error: ${err.message}</div>`;
                 });
         }
         
+        // Load economic indicators for watchlist
         async function loadWatchlistData() {
             const tbody = document.getElementById('watchlistBody');
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px;"><div class="loading-pulse">Loading FRED watchlist...</div></td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;"><div class="loading-pulse">Loading economic indicators...</div></td></tr>';
             
-            let allLoadedSuccessfully = true;
-            for (const symbol of watchlistSymbols) { // Assumes these are all FRED symbols
+            console.log('📊 Loading watchlist data for economic indicators...');
+            
+            for (const symbol of watchlistSymbols) {
                 try {
-                    let currentPrice = 0;
-                    const indicatorInfo = sampleIndicators.find(ind => ind.symbol === symbol && ind.provider === 'fred');
-                    let displayName = indicatorInfo ? (indicatorInfo.name || symbol) : symbol;
+                    console.log(`📡 Fetching data for economic indicator: ${symbol}`);
                     
-                    // All watchlist items are FRED economic data
                     const endpoint = `${API_BASE_URL}/economy/fred_series?symbol=${symbol}&provider=fred`;
-                    console.log(`Watchlist (FRED): Fetching ${symbol} from ${endpoint}`);
-                    const response = await fetch(endpoint, {signal: AbortSignal.timeout(10000)});
+                    const response = await fetch(endpoint);
                     
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        console.error(`Watchlist API Error for ${symbol} (FRED): Status ${response.status}`, errorText);
-                        throw new Error(`API error ${response.status} for ${symbol}`);
-                    }
-
-                    const data = await response.json();
-                    // console.log(`Watchlist raw API response for ${symbol} (FRED):`, JSON.stringify(data, null, 2).substring(0, 300) + "...");
-
-                    let itemsToProcess = Array.isArray(data) ? data : (data.results || data.data);
-                    if (Array.isArray(itemsToProcess) && itemsToProcess.length > 0) {
-                        const sortedData = itemsToProcess.sort((a,b) => new Date(b.date) - new Date(a.date));
-                        if (sortedData[0].value !== null && !isNaN(parseFloat(sortedData[0].value))) {
-                            currentPrice = parseFloat(sortedData[0].value);
-                        } else { currentPrice = 0; }
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log(`✅ Data received for ${symbol}:`, {
+                            resultsCount: data.results?.length || 0,
+                            metadata: data.metadata
+                        });
+                        
+                        let currentValue = 'N/A';
+                        let lastUpdate = 'N/A';
+                        let unit = 'N/A';
+                        
+                        if (data.results && data.results.length > 0) {
+                            // Get the latest value
+                            const sortedData = data.results
+                                .filter(item => item.value !== null && item.value !== undefined && item.value !== '.')
+                                .sort((a, b) => new Date(b.date) - new Date(a.date));
+                            
+                            if (sortedData.length > 0) {
+                                const latest = sortedData[0];
+                                currentValue = parseFloat(latest.value);
+                                lastUpdate = latest.date;
+                                
+                                // Format value based on typical ranges for economic indicators
+                                if (currentValue >= 1000) {
+                                    currentValue = currentValue.toLocaleString('en-US', {minimumFractionDigits: 1, maximumFractionDigits: 1});
+                                } else if (currentValue >= 1) {
+                                    currentValue = currentValue.toFixed(2);
+                                } else {
+                                    currentValue = currentValue.toFixed(4);
+                                }
+                            }
+                        }
+                        
+                        // Get unit from indicator definition
+                        const indicator = sampleIndicators.find(ind => ind.symbol === symbol);
+                        unit = indicator?.unit || 'Units';
+                        
+                        watchlistData[symbol] = {
+                            name: indicator?.name || symbol,
+                            value: currentValue,
+                            lastUpdate: lastUpdate,
+                            unit: unit,
+                            hasData: true
+                        };
+                        
+                        console.log(`📈 Processed ${symbol}:`, watchlistData[symbol]);
+                        
                     } else {
-                        console.warn(`Watchlist (FRED): No data or unexpected structure for ${symbol}`, data);
-                        currentPrice = 0;
+                        console.error(`❌ Failed to fetch ${symbol}: ${response.status}`);
+                        watchlistData[symbol] = {
+                            name: symbol,
+                            value: 'Error',
+                            lastUpdate: 'N/A',
+                            unit: 'N/A',
+                            hasData: false
+                        };
                     }
                     
-                    watchlistData[symbol] = {
-                        name: displayName,
-                        price: currentPrice,
-                        changes: createMockChanges(currentPrice), 
-                        hasData: true // Assume FRED always has data, even if 0
-                    };
                 } catch (error) {
-                    allLoadedSuccessfully = false;
-                    console.error(`Error loading FRED watchlist data for ${symbol}:`, error.message);
-                    watchlistData[symbol] = { name: symbol, price: 0, changes: createMockChanges(0), hasData: false };
+                    console.error(`❌ Error loading data for ${symbol}:`, error);
+                    watchlistData[symbol] = {
+                        name: symbol,
+                        value: 'Error',
+                        lastUpdate: 'N/A',
+                        unit: 'N/A',
+                        hasData: false
+                    };
                 }
             }
-            console.log('FRED watchlist data processing complete.');
-            renderWatchlist(allLoadedSuccessfully);
+            
+            console.log('📊 All watchlist data loaded:', watchlistData);
+            renderWatchlist();
         }
         
-        function createMockChanges(currentPrice) {
-            if (currentPrice === undefined || isNaN(currentPrice)) {
-                return { '1d': 0, '1w': 0, '1m': 0, '3m': 0, '1y': 0 };
-            }
-            // For economic data, % change might not be as relevant as absolute or period-over-period.
-            // These are placeholder % if you want to show them.
-            return {
-                '1d': (Math.random() - 0.5) * 2,  
-                '1w': (Math.random() - 0.5) * 3,
-                '1m': (Math.random() - 0.5) * 5,
-                '3m': (Math.random() - 0.5) * 7,
-                '1y': (Math.random() - 0.5) * 10
-            };
-        }
-        
-        function renderWatchlist(allLoadedSuccessfully = true) {
+        // Render economic indicators watchlist table
+        function renderWatchlist() {
             const tbody = document.getElementById('watchlistBody');
-            if (Object.keys(watchlistData).length === 0 && !allLoadedSuccessfully) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ffaaaa;">Failed to load FRED watchlist. Check API.</td></tr>';
-                return;
-            }
-             if (Object.keys(watchlistData).length === 0 ) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #888;">FRED watchlist is empty or loading...</td></tr>';
+            
+            if (Object.keys(watchlistData).length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px; color: #888;">No economic data available</td></tr>';
                 return;
             }
             
             const html = watchlistSymbols.map(symbol => {
                 const data = watchlistData[symbol];
-                if (!data)  return `<tr><td colspan="7" style="text-align:center;color:#888;">Missing data for ${symbol}</td></tr>`;
-                
-                let formattedPrice;
-                if (!data.hasData || data.price === undefined) {
-                    formattedPrice = 'N/A';
-                } else if (Math.abs(data.price) >= 1000 || Math.abs(data.price) < 0.001 && data.price !== 0) { // For very large or very small non-zero numbers
-                    formattedPrice = data.price.toPrecision(4);
-                } else {
-                    formattedPrice = `${data.price.toFixed(2)}`;
+                if (!data) {
+                    return `<tr><td colspan="5" style="text-align: center; padding: 10px; color: #888;">Loading ${symbol}...</td></tr>`;
                 }
                 
-                const indicatorDetails = sampleIndicators.find(ind => ind.symbol === symbol && ind.provider === 'fred') || 
-                                         {type: 'economy', provider: 'fred', name: symbol}; // Fallback
-
                 return `
-                    <tr onclick="addSymbolToActiveChart('${symbol}', '${indicatorDetails.type}', '${indicatorDetails.provider}', '${indicatorDetails.name.replace(/'/g, "\\'")}')">
+                    <tr onclick="addSymbolToActiveChart('${symbol}')" style="cursor: pointer;" title="Click to add ${symbol} to chart">
                         <td>
                             <div class="symbol-cell">
-                                <div class="symbol-icon">${symbol.charAt(0).toUpperCase()}</div>
+                                <div class="symbol-icon">📊</div>
                                 <div class="symbol-info">
                                     <div class="symbol-name">${symbol}</div>
-                                    <div class="symbol-fullname">${data.name.substring(0,30)}${data.name.length > 30 ? '...' : ''}</div>
+                                    <div class="symbol-fullname">${data.name}</div>
                                 </div>
                             </div>
                         </td>
-                        <td class="price-cell">${formattedPrice}</td>
-                        ${Object.values(data.changes).map(change => `
-                            <td class="change-cell ${change === 0 ? 'neutral': (change > 0 ? 'positive' : 'negative')}">
-                                ${change > 0 ? '+' : ''}${change.toFixed(2)}%
-                            </td>`).join('')}
+                        <td class="value-cell">${data.value}</td>
+                        <td style="color: #aaa; text-align: right; font-size: 12px;">${data.lastUpdate}</td>
+                        <td style="color: #888; text-align: right; font-size: 11px;">${data.unit}</td>
+                        <td style="color: #888; text-align: right; font-size: 11px;">FRED</td>
                     </tr>
                 `;
             }).join('');
+            
             tbody.innerHTML = html;
+            console.log('📊 Economic indicators watchlist table rendered');
         }
         
-        // Wrapper function for adding symbol from watchlist to chart
-        function addSymbolToActiveChart(symbol, type, provider, name) {
-            let targetChartId = activeChartId;
-            if (!targetChartId) {
-                if (Object.keys(charts).length > 0) {
-                    targetChartId = Object.keys(charts)[Object.keys(charts).length - 1];
-                } else {
-                    addNewChart();
-                    targetChartId = activeChartId;
+        // Add economic indicator from watchlist to active chart
+        function addSymbolToActiveChart(symbol) {
+            const indicator = sampleIndicators.find(ind => ind.symbol === symbol);
+            if (indicator && activeChartId) {
+                addToChart(activeChartId, symbol, indicator.type, indicator.provider, indicator.name);
+            } else if (!activeChartId) {
+                addNewChart();
+                if (indicator) {
+                    addToChart(activeChartId, symbol, indicator.type, indicator.provider, indicator.name);
                 }
             }
-            // This function is now mostly called with FRED details.
-            if (provider.toLowerCase() !== 'fred') {
-                 showTemporaryMessage(`Warning: Adding non-FRED symbol ${symbol}. This may not work as expected.`, 'error');
-            }
-            addToChart(targetChartId, symbol, type, provider, name);
         }
         
+        // Add to watchlist function
         function addToWatchlist() {
-            const symbolInput = prompt('Enter FRED symbol to add to watchlist (e.g., GDPC1, T10Y2Y):');
-            if (symbolInput) {
-                const symbol = symbolInput.trim().toUpperCase();
-                if (symbol && !watchlistSymbols.includes(symbol)) {
-                    watchlistSymbols.push(symbol);
-                    if (!sampleIndicators.find(ind => ind.symbol === symbol && ind.provider === 'fred')) {
-                        // Add to sampleIndicators if not present, assuming it's a FRED economy type
-                        sampleIndicators.push({symbol: symbol, name: `FRED: ${symbol}`, type: 'economy', provider: 'fred', category: 'User Added FRED'});
-                        showTemporaryMessage(`${symbol} added to watchlist and local FRED suggestions.`, "info");
-                    }
-                    loadWatchlistData(); 
-                } else if (watchlistSymbols.includes(symbol)) {
-                    showTemporaryMessage(`${symbol} is already in the FRED watchlist.`, 'info');
-                }
+            const symbol = prompt('Enter FRED symbol to add to watchlist (e.g., CPIAUCSL, GDPC1, MORTGAGE30US):');
+            if (symbol && !watchlistSymbols.includes(symbol.toUpperCase())) {
+                watchlistSymbols.push(symbol.toUpperCase());
+                loadWatchlistData();
             }
         }
         
+        // Show temporary message
         function showTemporaryMessage(text, type = 'info') {
             const popup = document.createElement('div');
             popup.className = `message-popup ${type}`;
             popup.textContent = text;
             document.body.appendChild(popup);
-            setTimeout(() => { popup.remove(); }, 3500);
+            
+            setTimeout(() => {
+                popup.remove();
+            }, 4000);
         }
         
+        // Hide search results when clicking outside
         document.addEventListener('click', function(event) {
             const searchBox = document.getElementById('searchBox');
             const searchResults = document.getElementById('searchResults');
-            if (searchBox && !searchBox.contains(event.target) && searchResults && !searchResults.contains(event.target)) {
+            
+            if (!searchBox.contains(event.target) && !searchResults.contains(event.target)) {
                 searchResults.style.display = 'none';
             }
         });
         
+        // Initialize on page load
         window.onload = init;
     </script>
 </body>
