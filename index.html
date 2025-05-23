@@ -663,7 +663,7 @@
             searchTimeout = setTimeout(() => searchIndicators(query.trim()), 300);
         }
         
-        // Search for indicators using actual API calls
+        // Search for indicators - simplified to remove broken API calls
         async function searchIndicators(query) {
             const resultsDiv = document.getElementById('searchResults');
             
@@ -676,25 +676,15 @@
             resultsDiv.innerHTML = '<div class="search-loading loading-pulse">Searching...</div>';
             resultsDiv.style.display = 'block';
             
-            // Search local indicators first for instant results
+            // Search local indicators for instant results
             const localResults = sampleIndicators.filter(indicator => 
                 indicator.symbol.toLowerCase().includes(lowerQuery) ||
                 indicator.name.toLowerCase().includes(lowerQuery) ||
                 (indicator.category && indicator.category.toLowerCase().includes(lowerQuery))
             );
             
-            // If we have local results, show them
-            if (localResults.length > 0) {
-                displaySearchResults(localResults, query);
-            } else {
-                // No local results found
-                resultsDiv.innerHTML = `
-                    <div class="search-item" style="text-align:center; color:#888; padding: 20px;">
-                        No matches found for "${query}"<br>
-                        <small>Try: AAPL, MSFT, GDP, DGS10, unemployment, inflation, oil, gold</small>
-                    </div>
-                `;
-            }
+            // Display results immediately
+            displaySearchResults(localResults, query);
         }
         
         // Display search results with better formatting
@@ -1177,34 +1167,41 @@
                                 console.log(`FRED data for ${symbol}:`, fredData);
                                 
                                 if (fredData.results && fredData.results.length > 0) {
-                                    console.log(`FRED raw data sample for ${symbol}:`, fredData.results.slice(-5));
-                                    console.log(`First few FRED entries for ${symbol}:`, fredData.results.slice(0, 3));
+                                    console.log(`FRED raw data sample for ${symbol}:`, JSON.stringify(fredData.results.slice(-3), null, 2));
+                                    console.log(`First few FRED entries for ${symbol}:`, JSON.stringify(fredData.results.slice(0, 3), null, 2));
                                     
-                                    // Get the latest value from FRED data - let's be more permissive
+                                    // Get the latest value from FRED data - be very permissive
                                     const sortedData = fredData.results
                                         .sort((a, b) => new Date(b.date) - new Date(a.date));
                                     
-                                    console.log(`Latest FRED entries for ${symbol}:`, sortedData.slice(0, 5));
+                                    console.log(`Latest FRED entries for ${symbol}:`, JSON.stringify(sortedData.slice(0, 5), null, 2));
                                     
-                                    // Try to find any valid value
+                                    // Try to find ANY value - be extremely permissive
                                     let latestValue = null;
                                     for (const item of sortedData) {
-                                        console.log(`Checking FRED value for ${symbol}:`, item.value, typeof item.value);
-                                        if (item.value !== null && item.value !== undefined && item.value !== "." && item.value !== "") {
+                                        console.log(`Checking FRED value for ${symbol}:`, item.value, typeof item.value, JSON.stringify(item));
+                                        
+                                        // Accept almost any value that's not explicitly null/undefined
+                                        if (item.value !== null && item.value !== undefined) {
                                             const numValue = parseFloat(item.value);
-                                            if (!isNaN(numValue) && isFinite(numValue)) {
+                                            if (!isNaN(numValue)) {
                                                 latestValue = numValue;
                                                 currentPrice = numValue;
                                                 symbolName = fredData.title || fredData.name || symbol;
                                                 data = fredData;
-                                                console.log(`Found valid FRED value for ${symbol}: ${numValue} from date ${item.date}`);
+                                                console.log(`✅ Found valid FRED value for ${symbol}: ${numValue} from date ${item.date}`);
                                                 break;
+                                            } else {
+                                                console.log(`❌ Value not a number: ${item.value} (${typeof item.value})`);
                                             }
+                                        } else {
+                                            console.log(`❌ Value is null/undefined: ${item.value}`);
                                         }
                                     }
                                     
                                     if (latestValue === null) {
-                                        console.log(`No valid FRED values found for ${symbol} - all ${sortedData.length} entries were invalid`);
+                                        console.log(`❌ No valid FRED values found for ${symbol} - all ${sortedData.length} entries were invalid`);
+                                        console.log(`Sample problematic values:`, sortedData.slice(0, 10).map(d => d.value));
                                     }
                                 }
                             }
