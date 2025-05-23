@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Federal Reserve Balance Sheet Monitor</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -293,402 +293,435 @@
                     <option value="OTHL1690">Credit Facilities</option>
                 </select>
             </div>
-            <canvas id="mainChart"></canvas>
+            <div style="position: relative; height: 400px;">
+                <canvas id="mainChart"></canvas>
+            </div>
         </div>
 
         <div id="lastUpdated" class="last-updated"></div>
     </div>
 
     <script>
-        const API_BASE = 'https://ped8gafyuz.us-east-1.awsapprunner.com';
-        
-        const metrics = [
-            {
-                symbol: 'WRESBAL',
-                name: 'Reserve Balances with Federal Reserve Banks',
-                shortName: 'Reserve Balances',
-                description: 'Week Average'
-            },
-            {
-                symbol: 'RESPPNTEPNWW',
-                name: 'Eligible Collateral',
-                shortName: 'Eligible Collateral',
-                description: 'U.S. Treasury, Agency Debt, and MBS'
-            },
-            {
-                symbol: 'RESPPALGUONNWW',
-                name: 'U.S. Treasury Securities',
-                shortName: 'Treasury Securities',
-                description: 'Notes and Bonds: Wednesday Level'
-            },
-            {
-                symbol: 'SWP1690',
-                name: 'Central Bank Liquidity Swaps',
-                shortName: 'Liquidity Swaps',
-                description: 'Maturing in 16-90 Days'
-            },
-            {
-                symbol: 'OTHL1690',
-                name: 'Loans: Credit Facilities',
-                shortName: 'Credit Facilities',
-                description: 'Maturing in 16-90 Days'
-            }
-        ];
-
-        let chartInstance = null;
-        let allData = {};
-        let autoRefreshInterval = null;
-
-        function formatNumber(num) {
-            if (num === null || num === undefined) return 'N/A';
+        // Wait for the page to load
+        window.addEventListener('DOMContentLoaded', function() {
+            const API_BASE = 'https://ped8gafyuz.us-east-1.awsapprunner.com';
             
-            const absNum = Math.abs(num);
-            if (absNum >= 1e12) return (num / 1e12).toFixed(2) + 'T';
-            if (absNum >= 1e9) return (num / 1e9).toFixed(2) + 'B';
-            if (absNum >= 1e6) return (num / 1e6).toFixed(2) + 'M';
-            if (absNum >= 1e3) return (num / 1e3).toFixed(2) + 'K';
-            return num.toFixed(2);
-        }
+            const metrics = [
+                {
+                    symbol: 'WRESBAL',
+                    name: 'Reserve Balances with Federal Reserve Banks',
+                    shortName: 'Reserve Balances',
+                    description: 'Week Average'
+                },
+                {
+                    symbol: 'RESPPNTEPNWW',
+                    name: 'Eligible Collateral',
+                    shortName: 'Eligible Collateral',
+                    description: 'U.S. Treasury, Agency Debt, and MBS'
+                },
+                {
+                    symbol: 'RESPPALGUONNWW',
+                    name: 'U.S. Treasury Securities',
+                    shortName: 'Treasury Securities',
+                    description: 'Notes and Bonds: Wednesday Level'
+                },
+                {
+                    symbol: 'SWP1690',
+                    name: 'Central Bank Liquidity Swaps',
+                    shortName: 'Liquidity Swaps',
+                    description: 'Maturing in 16-90 Days'
+                },
+                {
+                    symbol: 'OTHL1690',
+                    name: 'Loans: Credit Facilities',
+                    shortName: 'Credit Facilities',
+                    description: 'Maturing in 16-90 Days'
+                }
+            ];
 
-        function formatPercentage(value) {
-            if (value === null || value === undefined || isNaN(value)) return 'N/A';
-            const formatted = value.toFixed(2) + '%';
-            if (value > 0) return '+' + formatted;
-            return formatted;
-        }
+            let chartInstance = null;
+            let allData = {};
+            let autoRefreshInterval = null;
 
-        function getChangeClass(value) {
-            if (value === null || value === undefined || isNaN(value)) return 'neutral';
-            if (value > 0) return 'positive';
-            if (value < 0) return 'negative';
-            return 'neutral';
-        }
-
-        function calculatePercentageChange(current, previous) {
-            if (!previous || previous === 0) return null;
-            return ((current - previous) / Math.abs(previous)) * 100;
-        }
-
-        function getDataPointsForPeriod(data, days) {
-            if (!data || data.length === 0) return [];
-            
-            const sortedData = [...data].sort((a, b) => new Date(a.date) - new Date(b.date));
-            const latestDate = new Date(sortedData[sortedData.length - 1].date);
-            const startDate = new Date(latestDate);
-            startDate.setDate(startDate.getDate() - days);
-            
-            return sortedData.filter(d => new Date(d.date) >= startDate);
-        }
-
-        async function fetchMetricData(symbol) {
-            try {
-                const response = await fetch(`${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=fred`);
-                if (!response.ok) throw new Error(`Failed to fetch ${symbol}`);
+            function formatNumber(num) {
+                if (num === null || num === undefined) return 'N/A';
                 
-                const data = await response.json();
-                if (!data.results || data.results.length === 0) {
-                    throw new Error(`No data available for ${symbol}`);
+                const absNum = Math.abs(num);
+                if (absNum >= 1e12) return (num / 1e12).toFixed(2) + 'T';
+                if (absNum >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+                if (absNum >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+                if (absNum >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+                return num.toFixed(2);
+            }
+
+            function formatPercentage(value) {
+                if (value === null || value === undefined || isNaN(value)) return 'N/A';
+                const formatted = value.toFixed(2) + '%';
+                if (value > 0) return '+' + formatted;
+                return formatted;
+            }
+
+            function getChangeClass(value) {
+                if (value === null || value === undefined || isNaN(value)) return 'neutral';
+                if (value > 0) return 'positive';
+                if (value < 0) return 'negative';
+                return 'neutral';
+            }
+
+            function calculatePercentageChange(current, previous) {
+                if (!previous || previous === 0) return null;
+                return ((current - previous) / Math.abs(previous)) * 100;
+            }
+
+            async function fetchMetricData(symbol) {
+                try {
+                    console.log(`Fetching data for ${symbol}...`);
+                    const response = await fetch(`${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=fred`);
+                    
+                    if (!response.ok) {
+                        console.error(`HTTP error for ${symbol}: ${response.status}`);
+                        throw new Error(`Failed to fetch ${symbol}: ${response.statusText}`);
+                    }
+                    
+                    const data = await response.json();
+                    console.log(`Response for ${symbol}:`, data);
+                    
+                    // Check different possible data structures
+                    let results = [];
+                    if (data.results && Array.isArray(data.results) && data.results.length > 0) {
+                        results = data.results;
+                    } else if (data.data && Array.isArray(data.data) && data.data.length > 0) {
+                        results = data.data;
+                    } else if (Array.isArray(data) && data.length > 0) {
+                        results = data;
+                    }
+                    
+                    if (results.length === 0) {
+                        console.warn(`No data found for ${symbol}`);
+                        return [];
+                    }
+                    
+                    return results.map(item => ({
+                        date: item.date,
+                        value: parseFloat(item.value || item.close || item.price || 0)
+                    })).sort((a, b) => new Date(a.date) - new Date(b.date));
+                } catch (error) {
+                    console.error(`Error fetching ${symbol}:`, error);
+                    return [];
+                }
+            }
+
+            function calculateAllChanges(data) {
+                if (!data || data.length === 0) return {};
+                
+                const sortedData = [...data].sort((a, b) => new Date(a.date) - new Date(b.date));
+                const latest = sortedData[sortedData.length - 1];
+                
+                const periods = {
+                    daily: 1,
+                    weekly: 7,
+                    monthly: 30,
+                    quarterly: 90,
+                    semiAnnual: 180,
+                    annual: 365
+                };
+                
+                const changes = {};
+                
+                for (const [period, days] of Object.entries(periods)) {
+                    const targetDate = new Date(latest.date);
+                    targetDate.setDate(targetDate.getDate() - days);
+                    
+                    const historicalPoint = sortedData.find(d => {
+                        const diff = Math.abs(new Date(d.date) - targetDate);
+                        return diff < 7 * 24 * 60 * 60 * 1000; // Within 7 days
+                    });
+                    
+                    if (historicalPoint) {
+                        changes[period] = calculatePercentageChange(latest.value, historicalPoint.value);
+                    } else {
+                        changes[period] = null;
+                    }
                 }
                 
-                return data.results.map(item => ({
-                    date: item.date,
-                    value: parseFloat(item.value || item.close || 0)
-                })).sort((a, b) => new Date(a.date) - new Date(b.date));
-            } catch (error) {
-                console.error(`Error fetching ${symbol}:`, error);
-                return [];
+                return changes;
             }
-        }
 
-        function calculateAllChanges(data) {
-            if (!data || data.length === 0) return {};
-            
-            const sortedData = [...data].sort((a, b) => new Date(a.date) - new Date(b.date));
-            const latest = sortedData[sortedData.length - 1];
-            
-            const periods = {
-                daily: 1,
-                weekly: 7,
-                monthly: 30,
-                quarterly: 90,
-                semiAnnual: 180,
-                annual: 365
-            };
-            
-            const changes = {};
-            
-            for (const [period, days] of Object.entries(periods)) {
-                const targetDate = new Date(latest.date);
-                targetDate.setDate(targetDate.getDate() - days);
+            function createMetricCard(metric, data) {
+                const latest = data && data.length > 0 ? data[data.length - 1] : null;
+                const changes = calculateAllChanges(data);
                 
-                const historicalPoint = sortedData.find(d => {
-                    const diff = Math.abs(new Date(d.date) - targetDate);
-                    return diff < 7 * 24 * 60 * 60 * 1000; // Within 7 days
-                });
+                return `
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div>
+                                <div class="metric-title">${metric.shortName}</div>
+                                <div style="font-size: 0.85em; color: #666; margin-top: 4px;">${metric.description}</div>
+                            </div>
+                            <div class="metric-value">
+                                $${latest ? formatNumber(latest.value) : 'N/A'}
+                            </div>
+                        </div>
+                        <div class="change-grid">
+                            <div class="change-item">
+                                <div class="change-label">Daily</div>
+                                <div class="change-value ${getChangeClass(changes.daily)}">
+                                    ${formatPercentage(changes.daily)}
+                                </div>
+                            </div>
+                            <div class="change-item">
+                                <div class="change-label">Weekly</div>
+                                <div class="change-value ${getChangeClass(changes.weekly)}">
+                                    ${formatPercentage(changes.weekly)}
+                                </div>
+                            </div>
+                            <div class="change-item">
+                                <div class="change-label">Monthly</div>
+                                <div class="change-value ${getChangeClass(changes.monthly)}">
+                                    ${formatPercentage(changes.monthly)}
+                                </div>
+                            </div>
+                            <div class="change-item">
+                                <div class="change-label">Quarterly</div>
+                                <div class="change-value ${getChangeClass(changes.quarterly)}">
+                                    ${formatPercentage(changes.quarterly)}
+                                </div>
+                            </div>
+                            <div class="change-item">
+                                <div class="change-label">Semi-Annual</div>
+                                <div class="change-value ${getChangeClass(changes.semiAnnual)}">
+                                    ${formatPercentage(changes.semiAnnual)}
+                                </div>
+                            </div>
+                            <div class="change-item">
+                                <div class="change-label">Annual</div>
+                                <div class="change-value ${getChangeClass(changes.annual)}">
+                                    ${formatPercentage(changes.annual)}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            function updateChart() {
+                const selectedMetric = document.getElementById('chartMetric').value;
                 
-                if (historicalPoint) {
-                    changes[period] = calculatePercentageChange(latest.value, historicalPoint.value);
+                // Destroy existing chart if it exists
+                if (chartInstance) {
+                    chartInstance.destroy();
+                    chartInstance = null;
+                }
+                
+                let datasets = [];
+                
+                if (selectedMetric === 'all') {
+                    // Normalize all metrics for comparison
+                    metrics.forEach((metric, index) => {
+                        const data = allData[metric.symbol];
+                        if (data && data.length > 0) {
+                            const values = data.map(d => d.value);
+                            const min = Math.min(...values);
+                            const max = Math.max(...values);
+                            const range = max - min;
+                            
+                            const normalizedData = data.map(d => ({
+                                x: d.date,
+                                y: range > 0 ? ((d.value - min) / range) * 100 : 50
+                            }));
+                            
+                            datasets.push({
+                                label: metric.shortName,
+                                data: normalizedData,
+                                borderColor: `hsl(${index * 60}, 70%, 50%)`,
+                                backgroundColor: `hsla(${index * 60}, 70%, 50%, 0.1)`,
+                                borderWidth: 2,
+                                pointRadius: 0,
+                                pointHoverRadius: 4,
+                                tension: 0.1
+                            });
+                        }
+                    });
                 } else {
-                    changes[period] = null;
-                }
-            }
-            
-            return changes;
-        }
-
-        function createMetricCard(metric, data) {
-            const latest = data && data.length > 0 ? data[data.length - 1] : null;
-            const changes = calculateAllChanges(data);
-            
-            return `
-                <div class="metric-card">
-                    <div class="metric-header">
-                        <div>
-                            <div class="metric-title">${metric.shortName}</div>
-                            <div style="font-size: 0.85em; color: #666; margin-top: 4px;">${metric.description}</div>
-                        </div>
-                        <div class="metric-value">
-                            $${latest ? formatNumber(latest.value) : 'N/A'}
-                        </div>
-                    </div>
-                    <div class="change-grid">
-                        <div class="change-item">
-                            <div class="change-label">Daily</div>
-                            <div class="change-value ${getChangeClass(changes.daily)}">
-                                ${formatPercentage(changes.daily)}
-                            </div>
-                        </div>
-                        <div class="change-item">
-                            <div class="change-label">Weekly</div>
-                            <div class="change-value ${getChangeClass(changes.weekly)}">
-                                ${formatPercentage(changes.weekly)}
-                            </div>
-                        </div>
-                        <div class="change-item">
-                            <div class="change-label">Monthly</div>
-                            <div class="change-value ${getChangeClass(changes.monthly)}">
-                                ${formatPercentage(changes.monthly)}
-                            </div>
-                        </div>
-                        <div class="change-item">
-                            <div class="change-label">Quarterly</div>
-                            <div class="change-value ${getChangeClass(changes.quarterly)}">
-                                ${formatPercentage(changes.quarterly)}
-                            </div>
-                        </div>
-                        <div class="change-item">
-                            <div class="change-label">Semi-Annual</div>
-                            <div class="change-value ${getChangeClass(changes.semiAnnual)}">
-                                ${formatPercentage(changes.semiAnnual)}
-                            </div>
-                        </div>
-                        <div class="change-item">
-                            <div class="change-label">Annual</div>
-                            <div class="change-value ${getChangeClass(changes.annual)}">
-                                ${formatPercentage(changes.annual)}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function updateChart() {
-            const selectedMetric = document.getElementById('chartMetric').value;
-            const selectedPeriod = document.getElementById('chartPeriod').value;
-            
-            let datasets = [];
-            
-            if (selectedMetric === 'all') {
-                // Normalize all metrics for comparison
-                metrics.forEach((metric, index) => {
-                    const data = allData[metric.symbol];
+                    const data = allData[selectedMetric];
                     if (data && data.length > 0) {
-                        const values = data.map(d => d.value);
-                        const min = Math.min(...values);
-                        const max = Math.max(...values);
-                        const range = max - min;
-                        
-                        const normalizedData = data.map(d => ({
-                            x: d.date,
-                            y: range > 0 ? ((d.value - min) / range) * 100 : 50
-                        }));
-                        
                         datasets.push({
-                            label: metric.shortName,
-                            data: normalizedData,
-                            borderColor: `hsl(${index * 60}, 70%, 50%)`,
-                            backgroundColor: `hsla(${index * 60}, 70%, 50%, 0.1)`,
+                            label: metrics.find(m => m.symbol === selectedMetric).shortName,
+                            data: data.map(d => ({ x: d.date, y: d.value })),
+                            borderColor: '#4a9eff',
+                            backgroundColor: 'rgba(74, 158, 255, 0.1)',
                             borderWidth: 2,
                             pointRadius: 0,
                             pointHoverRadius: 4,
                             tension: 0.1
                         });
                     }
-                });
-            } else {
-                const data = allData[selectedMetric];
-                if (data && data.length > 0) {
-                    datasets.push({
-                        label: metrics.find(m => m.symbol === selectedMetric).shortName,
-                        data: data.map(d => ({ x: d.date, y: d.value })),
-                        borderColor: '#4a9eff',
-                        backgroundColor: 'rgba(74, 158, 255, 0.1)',
-                        borderWidth: 2,
-                        pointRadius: 0,
-                        pointHoverRadius: 4,
-                        tension: 0.1
+                }
+                
+                // Only create chart if we have data
+                if (datasets.length > 0) {
+                    const ctx = document.getElementById('mainChart').getContext('2d');
+                    chartInstance = new Chart(ctx, {
+                        type: 'line',
+                        data: { datasets },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: selectedMetric === 'all',
+                                    position: 'top',
+                                    labels: {
+                                        color: '#e0e0e0',
+                                        usePointStyle: true,
+                                        padding: 15
+                                    }
+                                },
+                                tooltip: {
+                                    mode: 'index',
+                                    intersect: false,
+                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                    titleColor: '#e0e0e0',
+                                    bodyColor: '#e0e0e0',
+                                    borderColor: '#333',
+                                    borderWidth: 1,
+                                    callbacks: {
+                                        label: function(context) {
+                                            const label = context.dataset.label || '';
+                                            const value = selectedMetric === 'all' 
+                                                ? context.parsed.y.toFixed(2) + '%'
+                                                : '$' + formatNumber(context.parsed.y);
+                                            return label + ': ' + value;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    type: 'time',
+                                    time: {
+                                        unit: 'day',
+                                        displayFormats: {
+                                            day: 'MMM dd',
+                                            month: 'MMM yyyy'
+                                        }
+                                    },
+                                    ticks: { color: '#888' },
+                                    grid: { color: '#333' }
+                                },
+                                y: {
+                                    title: {
+                                        display: true,
+                                        text: selectedMetric === 'all' ? 'Normalized Value (%)' : 'Value ($)',
+                                        color: '#888'
+                                    },
+                                    ticks: {
+                                        color: '#888',
+                                        callback: function(value) {
+                                            return selectedMetric === 'all' 
+                                                ? value.toFixed(0) + '%'
+                                                : '$' + formatNumber(value);
+                                        }
+                                    },
+                                    grid: { color: '#333' }
+                                }
+                            }
+                        }
                     });
                 }
             }
-            
-            if (chartInstance) {
-                chartInstance.data.datasets = datasets;
-                chartInstance.options.scales.y.title.text = selectedMetric === 'all' ? 'Normalized Value (%)' : 'Value ($)';
-                chartInstance.update();
-            } else {
-                const ctx = document.getElementById('mainChart').getContext('2d');
-                chartInstance = new Chart(ctx, {
-                    type: 'line',
-                    data: { datasets },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: selectedMetric === 'all',
-                                position: 'top',
-                                labels: {
-                                    color: '#e0e0e0',
-                                    usePointStyle: true,
-                                    padding: 15
-                                }
-                            },
-                            tooltip: {
-                                mode: 'index',
-                                intersect: false,
-                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                titleColor: '#e0e0e0',
-                                bodyColor: '#e0e0e0',
-                                borderColor: '#333',
-                                borderWidth: 1,
-                                callbacks: {
-                                    label: function(context) {
-                                        const label = context.dataset.label || '';
-                                        const value = selectedMetric === 'all' 
-                                            ? context.parsed.y.toFixed(2) + '%'
-                                            : '$' + formatNumber(context.parsed.y);
-                                        return label + ': ' + value;
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            x: {
-                                type: 'time',
-                                time: {
-                                    unit: 'day',
-                                    displayFormats: {
-                                        day: 'MMM dd',
-                                        month: 'MMM yyyy'
-                                    }
-                                },
-                                ticks: { color: '#888' },
-                                grid: { color: '#333' }
-                            },
-                            y: {
-                                title: {
-                                    display: true,
-                                    text: selectedMetric === 'all' ? 'Normalized Value (%)' : 'Value ($)',
-                                    color: '#888'
-                                },
-                                ticks: {
-                                    color: '#888',
-                                    callback: function(value) {
-                                        return selectedMetric === 'all' 
-                                            ? value.toFixed(0) + '%'
-                                            : '$' + formatNumber(value);
-                                    }
-                                },
-                                grid: { color: '#333' }
-                            }
-                        }
+
+            async function loadAllData() {
+                document.getElementById('loadingIndicator').style.display = 'block';
+                document.getElementById('metricsContainer').style.display = 'none';
+                document.getElementById('chartContainer').style.display = 'none';
+                document.getElementById('errorContainer').innerHTML = '';
+                
+                try {
+                    // Test API connection
+                    console.log('Testing API connection...');
+                    const testResponse = await fetch(`${API_BASE}/`);
+                    console.log('API test response:', testResponse.status);
+                    
+                    // Fetch data for all metrics
+                    const promises = metrics.map(metric => fetchMetricData(metric.symbol));
+                    const results = await Promise.all(promises);
+                    
+                    let hasAnyData = false;
+                    metrics.forEach((metric, index) => {
+                        allData[metric.symbol] = results[index];
+                        if (results[index].length > 0) hasAnyData = true;
+                    });
+                    
+                    // Update metrics cards
+                    const metricsContainer = document.getElementById('metricsContainer');
+                    metricsContainer.innerHTML = metrics
+                        .map(metric => createMetricCard(metric, allData[metric.symbol]))
+                        .join('');
+                    
+                    // Update chart only if we have data
+                    if (hasAnyData) {
+                        updateChart();
+                        document.getElementById('chartContainer').style.display = 'block';
                     }
-                });
+                    
+                    // Update last updated time
+                    document.getElementById('lastUpdated').textContent = 
+                        `Last updated: ${new Date().toLocaleString()}`;
+                    
+                    // Show containers
+                    document.getElementById('loadingIndicator').style.display = 'none';
+                    document.getElementById('metricsContainer').style.display = 'grid';
+                    
+                    if (!hasAnyData) {
+                        document.getElementById('errorContainer').innerHTML = `
+                            <div class="error">
+                                No data available. Please check if the API is configured correctly for FRED data.
+                            </div>
+                        `;
+                    }
+                    
+                } catch (error) {
+                    console.error('Error loading data:', error);
+                    document.getElementById('loadingIndicator').style.display = 'none';
+                    document.getElementById('errorContainer').innerHTML = `
+                        <div class="error">
+                            Error loading data: ${error.message}<br>
+                            <small>Check console for details. Make sure the API is running at ${API_BASE}</small>
+                        </div>
+                    `;
+                }
             }
-        }
 
-        async function loadAllData() {
-            document.getElementById('loadingIndicator').style.display = 'block';
-            document.getElementById('metricsContainer').style.display = 'none';
-            document.getElementById('chartContainer').style.display = 'none';
-            document.getElementById('errorContainer').innerHTML = '';
+            // Event listeners
+            document.getElementById('refreshBtn').addEventListener('click', loadAllData);
             
-            try {
-                const promises = metrics.map(metric => fetchMetricData(metric.symbol));
-                const results = await Promise.all(promises);
-                
-                metrics.forEach((metric, index) => {
-                    allData[metric.symbol] = results[index];
-                });
-                
-                // Update metrics cards
-                const metricsContainer = document.getElementById('metricsContainer');
-                metricsContainer.innerHTML = metrics
-                    .map(metric => createMetricCard(metric, allData[metric.symbol]))
-                    .join('');
-                
-                // Update chart
+            document.getElementById('chartMetric').addEventListener('change', updateChart);
+            
+            document.getElementById('chartPeriod').addEventListener('change', () => {
+                // In a real implementation, you would filter the data based on the selected period
                 updateChart();
-                
-                // Update last updated time
-                document.getElementById('lastUpdated').textContent = 
-                    `Last updated: ${new Date().toLocaleString()}`;
-                
-                // Show containers
-                document.getElementById('loadingIndicator').style.display = 'none';
-                document.getElementById('metricsContainer').style.display = 'grid';
-                document.getElementById('chartContainer').style.display = 'block';
-                
-            } catch (error) {
-                console.error('Error loading data:', error);
-                document.getElementById('loadingIndicator').style.display = 'none';
-                document.getElementById('errorContainer').innerHTML = `
-                    <div class="error">
-                        Error loading data: ${error.message}. Please try refreshing the page.
-                    </div>
-                `;
-            }
-        }
-
-        // Event listeners
-        document.getElementById('refreshBtn').addEventListener('click', loadAllData);
-        
-        document.getElementById('chartMetric').addEventListener('change', updateChart);
-        
-        document.getElementById('chartPeriod').addEventListener('change', () => {
-            // In a real implementation, you would filter the data based on the selected period
-            updateChart();
-        });
-        
-        document.getElementById('autoRefresh').addEventListener('change', (e) => {
-            const interval = parseInt(e.target.value);
+            });
             
-            if (autoRefreshInterval) {
-                clearInterval(autoRefreshInterval);
-                autoRefreshInterval = null;
-            }
-            
-            if (interval > 0) {
-                autoRefreshInterval = setInterval(loadAllData, interval);
-            }
-        });
+            document.getElementById('autoRefresh').addEventListener('change', (e) => {
+                const interval = parseInt(e.target.value);
+                
+                if (autoRefreshInterval) {
+                    clearInterval(autoRefreshInterval);
+                    autoRefreshInterval = null;
+                }
+                
+                if (interval > 0) {
+                    autoRefreshInterval = setInterval(loadAllData, interval);
+                }
+            });
 
-        // Initial load
-        loadAllData();
-        
-        // Set up auto-refresh (5 minutes by default)
-        autoRefreshInterval = setInterval(loadAllData, 300000);
+            // Initial load
+            loadAllData();
+            
+            // Set up auto-refresh (5 minutes by default)
+            autoRefreshInterval = setInterval(loadAllData, 300000);
+        });
     </script>
 </body>
 </html>
