@@ -1,83 +1,475 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>OpenBB Economic Intelligence Platform</title>
-  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-</head>
-<body>
-  <input type="text" id="searchInput" placeholder="Search FRED or ECB indicator..." onkeyup="debounceSearch(this.value)" />
-  <div id="searchResults"></div>
-  <div id="chartContainer"></div>
+import React, { useState, useEffect, useCallback } from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Plus, X, TrendingUp, TrendingDown, Minus, Eye, EyeOff, Settings, RefreshCw, BarChart3 } from 'lucide-react';
 
-  <script>
-    const API_BASE_URL = 'https://ped8gafyuz.us-east-1.awsapprunner.com/api/v1';
-    const charts = {};
-    let chartCounter = 0;
-    let searchTimeout;
+const API_BASE_URL = 'https://ped8gafyuz.us-east-1.awsapprunner.com/api/v1';
 
-    const sampleIndicators = [
-      // FRED
-      { symbol: 'DGS10', name: '10-Year Treasury', provider: 'fred' },
-      { symbol: 'GDP', name: 'Gross Domestic Product', provider: 'fred' },
-      // ECB
-      { symbol: 'ICP.MU.A.C000000.4.ANR', name: 'HICP All-items Euro Area', provider: 'ecb' },
-      { symbol: 'MNA.M.U2.S1.W0.S1.S1.B.B1GQ.Y.Z', name: 'Euro Area Nominal GDP', provider: 'ecb' },
-    ];
+// Popular FRED series with descriptions
+const POPULAR_FRED_SERIES = {
+  'GDP': 'Gross Domestic Product',
+  'DGS10': '10-Year Treasury Rate',
+  'DGS2': '2-Year Treasury Rate',
+  'VIXCLS': 'VIX Volatility Index',
+  'CPIAUCSL': 'Consumer Price Index',
+  'UNRATE': 'Unemployment Rate',
+  'M2SL': 'M2 Money Supply',
+  'FEDFUNDS': 'Federal Funds Rate',
+  'PAYEMS': 'Nonfarm Payrolls',
+  'HOUST': 'Housing Starts',
+  'INDPRO': 'Industrial Production Index',
+  'RSXFS': 'Retail Sales',
+  'DEXUSEU': 'USD/EUR Exchange Rate',
+  'DCOILWTICO': 'WTI Crude Oil Price',
+  'GOLDAMGBD228NLBM': 'Gold Price',
+  'NASDAQCOM': 'NASDAQ Composite Index'
+};
 
-    function debounceSearch(query) {
-      clearTimeout(searchTimeout);
-      searchTimeout = setTimeout(() => performSearch(query), 300);
+const FREDDashboard = () => {
+  const [watchlist, setWatchlist] = useState([
+    { symbol: 'DGS10', name: '10-Year Treasury Rate', visible: true, color: '#8884d8' },
+    { symbol: 'DGS2', name: '2-Year Treasury Rate', visible: true, color: '#82ca9d' },
+    { symbol: 'VIXCLS', name: 'VIX Volatility Index', visible: true, color: '#ffc658' }
+  ]);
+  
+  const [charts, setCharts] = useState([]);
+  const [watchlistData, setWatchlistData] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [newSymbol, setNewSymbol] = useState('');
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Color palette for charts
+  const colors = [
+    '#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#00ff00', 
+    '#ff0000', '#00ffff', '#ff00ff', '#ffff00', '#8000ff'
+  ];
+
+  // Fetch data from FRED API
+  const fetchFREDData = useCallback(async (symbol) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/economy/fred_series?symbol=${symbol}&provider=fred`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch ${symbol}: ${response.statusText}`);
+      }
+      const data = await response.json();
+      return data.results || [];
+    } catch (err) {
+      console.error(`Error fetching ${symbol}:`, err);
+      throw err;
     }
+  }, []);
 
-    function performSearch(query) {
-      const results = sampleIndicators.filter(i =>
-        i.symbol.toLowerCase().includes(query.toLowerCase()) ||
-        i.name.toLowerCase().includes(query.toLowerCase())
-      );
+  // Format data for charts
+  const formatChartData = (rawData) => {
+    if (!Array.isArray(rawData) || rawData.length === 0) return [];
+    
+    return rawData
+      .filter(item => item.value !== null && item.value !== undefined)
+      .map(item => ({
+        date: new Date(item.date).toLocaleDateString(),
+        value: parseFloat(item.value),
+        timestamp: new Date(item.date).getTime()
+      }))
+      .sort((a, b) => a.timestamp - b.timestamp)
+      .slice(-100); // Keep last 100 data points for performance
+  };
 
-      const resultContainer = document.getElementById('searchResults');
-      resultContainer.innerHTML = results
-        .map(
-          r => `<div onclick="loadChart('${r.symbol}', '${r.provider}')">${r.symbol} - ${r.name} (${r.provider.toUpperCase()})</div>`
-        )
-        .join('');
-    }
-
-    async function loadChart(symbol, provider) {
-      const chartId = `chart_${chartCounter++}`;
-      const container = document.getElementById('chartContainer');
-      const div = document.createElement('div');
-      div.id = chartId;
-      container.appendChild(div);
-
-      const endpoint = `${API_BASE_URL}/economy/${provider}_series?symbol=${symbol}&provider=${provider}`;
-      try {
-        const response = await fetch(endpoint);
-        if (!response.ok) throw new Error(`API Error: ${response.status}`);
-        const data = await response.json();
-
-        const points = (data.results || [])
-          .filter(p => p.value && !isNaN(parseFloat(p.value)))
-          .map(p => ({ x: p.date, y: parseFloat(p.value) }));
-
-        Plotly.newPlot(chartId, [
-          {
-            x: points.map(p => p.x),
-            y: points.map(p => p.y),
-            mode: 'lines',
-            name: symbol,
-          },
-        ], {
-          title: `${symbol} - ${provider.toUpperCase()}`,
-          xaxis: { title: 'Date' },
-          yaxis: { title: 'Value' },
-        });
-      } catch (err) {
-        document.getElementById(chartId).innerHTML = `<p style='color:red'>${err.message}</p>`;
+  // Load watchlist data
+  const loadWatchlistData = useCallback(async () => {
+    setRefreshing(true);
+    const newData = {};
+    
+    for (const item of watchlist) {
+      if (item.visible) {
+        try {
+          const rawData = await fetchFREDData(item.symbol);
+          const formattedData = formatChartData(rawData);
+          
+          if (formattedData.length > 0) {
+            const latest = formattedData[formattedData.length - 1];
+            const previous = formattedData[formattedData.length - 2];
+            const change = previous ? ((latest.value - previous.value) / previous.value * 100) : 0;
+            
+            newData[item.symbol] = {
+              data: formattedData,
+              latest: latest.value,
+              change: change,
+              lastUpdate: new Date().toLocaleTimeString()
+            };
+          }
+        } catch (err) {
+          console.error(`Failed to load ${item.symbol}:`, err);
+        }
       }
     }
-  </script>
-</body>
-</html>
+    
+    setWatchlistData(newData);
+    setRefreshing(false);
+  }, [watchlist, fetchFREDData]);
+
+  // Add new item to watchlist
+  const addToWatchlist = () => {
+    if (!newSymbol.trim()) return;
+    
+    const symbolUpper = newSymbol.toUpperCase();
+    if (watchlist.some(item => item.symbol === symbolUpper)) {
+      setError('Symbol already in watchlist');
+      return;
+    }
+
+    const newItem = {
+      symbol: symbolUpper,
+      name: POPULAR_FRED_SERIES[symbolUpper] || symbolUpper,
+      visible: true,
+      color: colors[watchlist.length % colors.length]
+    };
+
+    setWatchlist(prev => [...prev, newItem]);
+    setNewSymbol('');
+    setShowAddForm(false);
+    setError(null);
+  };
+
+  // Remove from watchlist
+  const removeFromWatchlist = (symbol) => {
+    setWatchlist(prev => prev.filter(item => item.symbol !== symbol));
+    setWatchlistData(prev => {
+      const newData = { ...prev };
+      delete newData[symbol];
+      return newData;
+    });
+  };
+
+  // Toggle visibility
+  const toggleVisibility = (symbol) => {
+    setWatchlist(prev => 
+      prev.map(item => 
+        item.symbol === symbol ? { ...item, visible: !item.visible } : item
+      )
+    );
+  };
+
+  // Create new chart
+  const createChart = async (symbols) => {
+    if (symbols.length === 0) return;
+    
+    setLoading(true);
+    try {
+      const chartData = {};
+      const chartSymbols = [];
+
+      for (const symbol of symbols) {
+        const rawData = await fetchFREDData(symbol);
+        const formattedData = formatChartData(rawData);
+        
+        if (formattedData.length > 0) {
+          chartData[symbol] = formattedData;
+          chartSymbols.push({
+            symbol,
+            name: watchlist.find(w => w.symbol === symbol)?.name || symbol,
+            color: watchlist.find(w => w.symbol === symbol)?.color || colors[charts.length % colors.length]
+          });
+        }
+      }
+
+      if (chartSymbols.length > 0) {
+        const newChart = {
+          id: Date.now(),
+          title: chartSymbols.map(s => s.name).join(' vs '),
+          symbols: chartSymbols,
+          data: chartData,
+          createdAt: new Date().toLocaleString()
+        };
+
+        setCharts(prev => [...prev, newChart]);
+      }
+    } catch (err) {
+      setError('Failed to create chart: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Remove chart
+  const removeChart = (chartId) => {
+    setCharts(prev => prev.filter(chart => chart.id !== chartId));
+  };
+
+  // Combine chart data for multi-series charts
+  const combineChartData = (chartData, symbols) => {
+    const allDates = new Set();
+    Object.values(chartData).forEach(data => {
+      data.forEach(point => allDates.add(point.date));
+    });
+
+    return Array.from(allDates)
+      .sort((a, b) => new Date(a) - new Date(b))
+      .map(date => {
+        const point = { date };
+        symbols.forEach(({ symbol }) => {
+          const dataPoint = chartData[symbol]?.find(d => d.date === date);
+          point[symbol] = dataPoint ? dataPoint.value : null;
+        });
+        return point;
+      })
+      .filter(point => symbols.some(({ symbol }) => point[symbol] !== null));
+  };
+
+  // Load initial data
+  useEffect(() => {
+    loadWatchlistData();
+  }, [loadWatchlistData]);
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-4">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">FRED Economic Data Dashboard</h1>
+              <p className="text-gray-600 mt-1">Real-time economic indicators from Federal Reserve Economic Data</p>
+            </div>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={loadWatchlistData}
+                disabled={refreshing}
+                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+                Refresh
+              </button>
+              <button
+                onClick={() => setShowAddForm(!showAddForm)}
+                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Symbol
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Error Display */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+            {error}
+          </div>
+        )}
+
+        {/* Add Symbol Form */}
+        {showAddForm && (
+          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <h3 className="text-lg font-semibold mb-4">Add FRED Series</h3>
+            <div className="flex items-center space-x-3">
+              <input
+                type="text"
+                value={newSymbol}
+                onChange={(e) => setNewSymbol(e.target.value)}
+                placeholder="Enter FRED series symbol (e.g., GDP, UNRATE)"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onKeyPress={(e) => e.key === 'Enter' && addToWatchlist()}
+              />
+              <button
+                onClick={addToWatchlist}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Add
+              </button>
+              <button
+                onClick={() => setShowAddForm(false)}
+                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+            
+            {/* Popular Series Suggestions */}
+            <div className="mt-4">
+              <p className="text-sm text-gray-600 mb-2">Popular series:</p>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(POPULAR_FRED_SERIES).slice(0, 8).map(([symbol, name]) => (
+                  <button
+                    key={symbol}
+                    onClick={() => setNewSymbol(symbol)}
+                    className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
+                  >
+                    {symbol} - {name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Watchlist */}
+          <div className="bg-white rounded-lg shadow-sm">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold">Economic Indicators Watchlist</h2>
+              <p className="text-sm text-gray-600 mt-1">{watchlist.length} indicators tracked</p>
+            </div>
+            <div className="max-h-96 overflow-y-auto">
+              {watchlist.map((item) => {
+                const data = watchlistData[item.symbol];
+                return (
+                  <div key={item.symbol} className="p-4 border-b border-gray-100 hover:bg-gray-50">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2">
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: item.color }}
+                          />
+                          <span className="font-medium text-sm">{item.symbol}</span>
+                          <button
+                            onClick={() => toggleVisibility(item.symbol)}
+                            className="text-gray-400 hover:text-gray-600"
+                          >
+                            {item.visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                          </button>
+                        </div>
+                        <p className="text-xs text-gray-600 mt-1">{item.name}</p>
+                        
+                        {data && (
+                          <div className="mt-2">
+                            <div className="flex items-center space-x-2">
+                              <span className="font-semibold">
+                                {typeof data.latest === 'number' ? data.latest.toFixed(4) : 'N/A'}
+                              </span>
+                              {data.change !== undefined && (
+                                <span className={`flex items-center text-xs px-2 py-1 rounded-full ${
+                                  data.change > 0 ? 'bg-green-100 text-green-700' : 
+                                  data.change < 0 ? 'bg-red-100 text-red-700' : 
+                                  'bg-gray-100 text-gray-700'
+                                }`}>
+                                  {data.change > 0 ? <TrendingUp className="h-3 w-3 mr-1" /> : 
+                                   data.change < 0 ? <TrendingDown className="h-3 w-3 mr-1" /> : 
+                                   <Minus className="h-3 w-3 mr-1" />}
+                                  {data.change.toFixed(2)}%
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">Updated: {data.lastUpdate}</p>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => createChart([item.symbol])}
+                          disabled={loading}
+                          className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                          title="Create chart"
+                        >
+                          <BarChart3 className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => removeFromWatchlist(item.symbol)}
+                          className="p-1 text-red-600 hover:bg-red-50 rounded"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            
+            {/* Quick Actions */}
+            <div className="p-4 border-t border-gray-200">
+              <p className="text-sm text-gray-600 mb-2">Quick actions:</p>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => createChart(watchlist.filter(w => w.visible).map(w => w.symbol))}
+                  disabled={loading || watchlist.filter(w => w.visible).length === 0}
+                  className="flex-1 px-3 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:opacity-50"
+                >
+                  Chart All Visible
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Charts */}
+          <div className="lg:col-span-2 space-y-6">
+            {charts.length === 0 ? (
+              <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+                <BarChart3 className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-600 mb-2">No Charts Created</h3>
+                <p className="text-gray-500">Add indicators to your watchlist and create charts to visualize economic data.</p>
+              </div>
+            ) : (
+              charts.map((chart) => {
+                const combinedData = combineChartData(chart.data, chart.symbols);
+                
+                return (
+                  <div key={chart.id} className="bg-white rounded-lg shadow-sm">
+                    <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+                      <div>
+                        <h3 className="font-semibold">{chart.title}</h3>
+                        <p className="text-sm text-gray-600">Created: {chart.createdAt}</p>
+                      </div>
+                      <button
+                        onClick={() => removeChart(chart.id)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                    
+                    <div className="p-4">
+                      <ResponsiveContainer width="100%" height={300}>
+                        <LineChart data={combinedData}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis 
+                            dataKey="date" 
+                            tick={{ fontSize: 12 }}
+                            interval="preserveStartEnd"
+                          />
+                          <YAxis tick={{ fontSize: 12 }} />
+                          <Tooltip 
+                            labelStyle={{ color: '#374151' }}
+                            contentStyle={{ 
+                              backgroundColor: '#f9fafb', 
+                              border: '1px solid #e5e7eb',
+                              borderRadius: '6px'
+                            }}
+                          />
+                          <Legend />
+                          {chart.symbols.map(({ symbol, name, color }) => (
+                            <Line
+                              key={symbol}
+                              type="monotone"
+                              dataKey={symbol}
+                              stroke={color}
+                              strokeWidth={2}
+                              name={name}
+                              dot={false}
+                              connectNulls={false}
+                            />
+                          ))}
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+
+            {loading && (
+              <div className="bg-white rounded-lg shadow-sm p-8 text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-600">Creating chart...</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default FREDDashboard;
