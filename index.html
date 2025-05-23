@@ -657,24 +657,28 @@
             document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
         }
         
-        // Debounce search input
+        // Debounce search input with immediate local results
         function debounceSearch(query) {
             clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => searchIndicators(query.trim()), 300);
+            
+            // Show immediate local results for fast feedback
+            if (query.trim().length >= 2) {
+                searchIndicators(query.trim());
+            } else {
+                document.getElementById('searchResults').style.display = 'none';
+            }
         }
         
-        // Search for indicators - simplified to remove broken API calls
-        async function searchIndicators(query) {
+        // Search for indicators - now working instantly
+        function searchIndicators(query) {
             const resultsDiv = document.getElementById('searchResults');
             
-            if (query.length < 2) {
+            if (query.length < 1) {
                 resultsDiv.style.display = 'none';
                 return;
             }
         
             const lowerQuery = query.toLowerCase();
-            resultsDiv.innerHTML = '<div class="search-loading loading-pulse">Searching...</div>';
-            resultsDiv.style.display = 'block';
             
             // Search local indicators for instant results
             const localResults = sampleIndicators.filter(indicator => 
@@ -683,11 +687,13 @@
                 (indicator.category && indicator.category.toLowerCase().includes(lowerQuery))
             );
             
-            // Display results immediately
+            console.log(`Search for "${query}" found ${localResults.length} results`);
+            
+            // Show results immediately
             displaySearchResults(localResults, query);
         }
         
-        // Display search results with better formatting
+        // Display search results with instant feedback
         function displaySearchResults(results, query) {
             const resultsDiv = document.getElementById('searchResults');
             
@@ -695,13 +701,25 @@
                 resultsDiv.innerHTML = `
                     <div class="search-item" style="text-align:center; color:#888; padding: 20px;">
                         No results found for "${query}"<br>
-                        <small>Try: AAPL, GDP, DGS10, unemployment, CPI, inflation, etc.</small>
+                        <small style="color: #666;">Try: AAPL, MSFT, GDP, DGS10, unemployment, inflation, oil, gold</small>
+                        <br><br>
+                        <small style="color: #555;">Popular searches:</small><br>
+                        <div style="display: flex; gap: 8px; justify-content: center; margin-top: 8px; flex-wrap: wrap;">
+                            ${['AAPL', 'GDP', 'DGS10', 'UNRATE', 'CPIAUCSL'].map(symbol => 
+                                `<span style="background: #333; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 11px;" 
+                                      onclick="document.getElementById('searchBox').value='${symbol}'; searchIndicators('${symbol}')">${symbol}</span>`
+                            ).join('')}
+                        </div>
                     </div>`;
+                resultsDiv.style.display = 'block';
                 return;
             }
             
+            // Limit results for better performance
+            const displayResults = results.slice(0, 15);
+            
             // Group results by category for better organization
-            const grouped = results.reduce((acc, result) => {
+            const grouped = displayResults.reduce((acc, result) => {
                 const category = result.category || 'Other';
                 if (!acc[category]) acc[category] = [];
                 acc[category].push(result);
@@ -710,18 +728,22 @@
             
             let html = '';
             Object.entries(grouped).forEach(([category, items]) => {
-                if (Object.keys(grouped).length > 1) {
+                if (Object.keys(grouped).length > 1 && items.length > 1) {
                     html += `<div style="padding: 8px 20px; background: #1a1a1a; color: #888; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #222;">
-                        ${category}
+                        ${category} (${items.length})
                     </div>`;
                 }
                 
-                items.slice(0, 8).forEach(result => {
+                items.forEach(result => {
+                    // Highlight matching text
+                    const symbolMatch = result.symbol.toLowerCase().includes(query.toLowerCase());
+                    const nameMatch = result.name.toLowerCase().includes(query.toLowerCase());
+                    
                     html += `
                         <div class="search-item" onclick="addSearchResultToChart('${result.symbol}', '${result.type}', '${result.provider}', '${result.name.replace(/'/g, "\\'")}')">
                             <div class="search-item-left">
-                                <div class="search-item-symbol">${result.symbol}</div>
-                                <div class="search-item-name">${result.name}</div>
+                                <div class="search-item-symbol" style="${symbolMatch ? 'color: #00ff88;' : ''}">${result.symbol}</div>
+                                <div class="search-item-name" style="${nameMatch ? 'color: #ddd;' : ''}">${result.name}</div>
                             </div>
                             <div class="search-item-source">${result.provider}</div>
                         </div>
@@ -730,6 +752,7 @@
             });
             
             resultsDiv.innerHTML = html;
+            resultsDiv.style.display = 'block';
         }
         
         // Show popular suggestions when search box is focused
@@ -1167,41 +1190,44 @@
                                 console.log(`FRED data for ${symbol}:`, fredData);
                                 
                                 if (fredData.results && fredData.results.length > 0) {
-                                    console.log(`FRED raw data sample for ${symbol}:`, JSON.stringify(fredData.results.slice(-3), null, 2));
-                                    console.log(`First few FRED entries for ${symbol}:`, JSON.stringify(fredData.results.slice(0, 3), null, 2));
+                                    console.log(`FRED raw data sample for ${symbol}:`, fredData.results.slice(-5));
+                                    console.log(`First few FRED entries for ${symbol}:`, fredData.results.slice(0, 3));
                                     
-                                    // Get the latest value from FRED data - be very permissive
+                                    // FRED data has the same structure as equity data: [{date: "2025-05-23", value: 4.25}, ...]
                                     const sortedData = fredData.results
                                         .sort((a, b) => new Date(b.date) - new Date(a.date));
                                     
-                                    console.log(`Latest FRED entries for ${symbol}:`, JSON.stringify(sortedData.slice(0, 5), null, 2));
+                                    console.log(`Latest FRED entries for ${symbol}:`, sortedData.slice(0, 5));
                                     
-                                    // Try to find ANY value - be extremely permissive
+                                    // Find the latest valid value
                                     let latestValue = null;
                                     for (const item of sortedData) {
-                                        console.log(`Checking FRED value for ${symbol}:`, item.value, typeof item.value, JSON.stringify(item));
+                                        console.log(`Checking FRED value for ${symbol}:`, item.value, typeof item.value);
                                         
-                                        // Accept almost any value that's not explicitly null/undefined
-                                        if (item.value !== null && item.value !== undefined) {
-                                            const numValue = parseFloat(item.value);
-                                            if (!isNaN(numValue)) {
-                                                latestValue = numValue;
-                                                currentPrice = numValue;
-                                                symbolName = fredData.title || fredData.name || symbol;
-                                                data = fredData;
-                                                console.log(`✅ Found valid FRED value for ${symbol}: ${numValue} from date ${item.date}`);
-                                                break;
-                                            } else {
-                                                console.log(`❌ Value not a number: ${item.value} (${typeof item.value})`);
-                                            }
+                                        // Handle both numeric and string values
+                                        let numValue;
+                                        if (typeof item.value === 'number') {
+                                            numValue = item.value;
+                                        } else if (typeof item.value === 'string' && item.value !== "." && item.value !== "") {
+                                            numValue = parseFloat(item.value);
                                         } else {
-                                            console.log(`❌ Value is null/undefined: ${item.value}`);
+                                            continue; // Skip invalid values
+                                        }
+                                        
+                                        if (!isNaN(numValue) && isFinite(numValue)) {
+                                            latestValue = numValue;
+                                            currentPrice = numValue;
+                                            symbolName = fredData.title || fredData.name || symbol;
+                                            data = fredData;
+                                            console.log(`✅ Found valid FRED value for ${symbol}: ${numValue} from date ${item.date}`);
+                                            break;
                                         }
                                     }
                                     
                                     if (latestValue === null) {
                                         console.log(`❌ No valid FRED values found for ${symbol} - all ${sortedData.length} entries were invalid`);
-                                        console.log(`Sample problematic values:`, sortedData.slice(0, 10).map(d => d.value));
+                                        // Check what the actual values look like
+                                        console.log(`Sample values:`, sortedData.slice(0, 5).map(item => ({date: item.date, value: item.value, type: typeof item.value})));
                                     }
                                 }
                             }
