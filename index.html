@@ -830,22 +830,43 @@
                             value: currentPrice
                         }];
                         
-                        // Try to get historical data if available
-                        try {
-                            const historicalEndpoint = `${API_BASE_URL}/equity/price/historical?symbol=${symbol}&provider=${provider}&period=1y`;
-                            const historicalResponse = await fetch(historicalEndpoint);
-                            if (historicalResponse.ok) {
-                                const historicalData = await historicalResponse.json();
-                                if (historicalData.results && historicalData.results.length > 0) {
-                                    processedData = historicalData.results.map(item => ({
-                                        date: item.date,
-                                        value: item.close || item.price || item.value
-                                    })).filter(item => item.value !== null && !isNaN(item.value))
-                                    .sort((a, b) => new Date(a.date) - new Date(b.date));
+                        // Try to get historical data if available for stocks
+                        if (type === 'equity') {
+                            try {
+                                // Try different historical endpoints
+                                const historicalEndpoints = [
+                                    `${API_BASE_URL}/equity/price/historical?symbol=${symbol}&provider=${provider}&period=1y`,
+                                    `${API_BASE_URL}/equity/historical?symbol=${symbol}&provider=${provider}`,
+                                    `${API_BASE_URL}/equity/price/historical?symbol=${symbol}&provider=${provider}`
+                                ];
+                                
+                                for (const endpoint of historicalEndpoints) {
+                                    try {
+                                        console.log(`Trying historical endpoint: ${endpoint}`);
+                                        const historicalResponse = await fetch(endpoint);
+                                        if (historicalResponse.ok) {
+                                            const historicalData = await historicalResponse.json();
+                                            console.log(`Historical data response:`, historicalData);
+                                            
+                                            if (historicalData.results && historicalData.results.length > 0) {
+                                                processedData = historicalData.results
+                                                    .map(item => ({
+                                                        date: item.date,
+                                                        value: item.close || item.price || item.value || item.last
+                                                    }))
+                                                    .filter(item => item.value !== null && !isNaN(item.value))
+                                                    .sort((a, b) => new Date(a.date) - new Date(b.date));
+                                                console.log(`Processed historical data: ${processedData.length} points`);
+                                                break;
+                                            }
+                                        }
+                                    } catch (histError) {
+                                        console.log(`Historical endpoint ${endpoint} failed:`, histError.message);
+                                    }
                                 }
+                            } catch (generalHistError) {
+                                console.log('All historical endpoints failed, using current quote only');
                             }
-                        } catch (histError) {
-                            console.log('Historical data not available, using current quote only');
                         }
                     }
                 }
@@ -1000,33 +1021,39 @@
             
             for (const symbol of watchlistSymbols) {
                 try {
-                    // Test multiple endpoints to find the right one for each symbol
                     let data = null;
                     let symbolName = symbol;
                     let currentPrice = 0;
                     
-                    // Try equity quote first
-                    try {
-                        const equityEndpoint = `${API_BASE_URL}/equity/price/quote?symbol=${symbol}&provider=fmp`;
-                        console.log(`Trying equity endpoint for ${symbol}:`, equityEndpoint);
-                        
-                        const equityResponse = await fetch(equityEndpoint);
-                        if (equityResponse.ok) {
-                            const equityData = await equityResponse.json();
-                            console.log(`Equity data for ${symbol}:`, equityData);
+                    // Try equity quote first for stocks
+                    if (['AAPL', 'MSFT', 'GOOGL', 'TSLA', 'SPY'].includes(symbol)) {
+                        try {
+                            const equityEndpoint = `${API_BASE_URL}/equity/price/quote?symbol=${symbol}&provider=fmp`;
+                            console.log(`Trying equity endpoint for ${symbol}:`, equityEndpoint);
                             
-                            if (equityData.results && equityData.results.length > 0) {
-                                const quote = equityData.results[0];
-                                currentPrice = quote.last || quote.price || quote.close || quote.regularMarketPrice || 0;
-                                symbolName = quote.name || quote.symbol || symbol;
-                                data = equityData;
+                            const equityResponse = await fetch(equityEndpoint);
+                            if (equityResponse.ok) {
+                                const equityData = await equityResponse.json();
+                                console.log(`Equity data for ${symbol}:`, equityData);
+                                
+                                if (equityData.results && equityData.results.length > 0) {
+                                    const quote = equityData.results[0];
+                                    console.log(`Quote data for ${symbol}:`, quote);
+                                    
+                                    // Try different price fields from your API
+                                    currentPrice = quote.last || quote.price || quote.close || quote.regularMarketPrice || quote.previous_close || 0;
+                                    symbolName = quote.name || quote.symbol || symbol;
+                                    data = equityData;
+                                    
+                                    console.log(`Processed ${symbol}: price=${currentPrice}, name=${symbolName}`);
+                                }
                             }
+                        } catch (equityError) {
+                            console.log(`Equity endpoint failed for ${symbol}:`, equityError.message);
                         }
-                    } catch (equityError) {
-                        console.log(`Equity endpoint failed for ${symbol}:`, equityError);
                     }
                     
-                    // If equity failed, try FRED
+                    // Try FRED for economic indicators
                     if (!data) {
                         try {
                             const fredEndpoint = `${API_BASE_URL}/economy/fred_series?symbol=${symbol}&provider=fred`;
@@ -1039,59 +1066,41 @@
                                 
                                 if (fredData.results && fredData.results.length > 0) {
                                     // Get the latest value from FRED data
-                                    const sortedData = fredData.results
-                                        .filter(item => item.value !== null && !isNaN(item.value))
+                                    const validData = fredData.results
+                                        .filter(item => item.value !== null && item.value !== undefined && !isNaN(item.value))
                                         .sort((a, b) => new Date(b.date) - new Date(a.date));
                                     
-                                    if (sortedData.length > 0) {
-                                        currentPrice = sortedData[0].value;
+                                    if (validData.length > 0) {
+                                        currentPrice = parseFloat(validData[0].value);
                                         symbolName = fredData.title || symbol;
                                         data = fredData;
+                                        
+                                        console.log(`Processed FRED ${symbol}: price=${currentPrice}, name=${symbolName}`);
                                     }
                                 }
                             }
                         } catch (fredError) {
-                            console.log(`FRED endpoint failed for ${symbol}:`, fredError);
+                            console.log(`FRED endpoint failed for ${symbol}:`, fredError.message);
                         }
                     }
                     
-                    // If both failed, try analytics endpoints
-                    if (!data) {
-                        try {
-                            const analyticsEndpoint = `${API_BASE_URL}/analytics/trend?symbol=${symbol}&provider=fred&window=7`;
-                            console.log(`Trying analytics endpoint for ${symbol}:`, analyticsEndpoint);
-                            
-                            const analyticsResponse = await fetch(analyticsEndpoint);
-                            if (analyticsResponse.ok) {
-                                const analyticsData = await analyticsResponse.json();
-                                console.log(`Analytics data for ${symbol}:`, analyticsData);
-                                
-                                if (analyticsData.results && analyticsData.results.length > 0) {
-                                    const latest = analyticsData.results[analyticsData.results.length - 1];
-                                    currentPrice = latest.value || latest.close || 0;
-                                    data = analyticsData;
-                                }
-                            }
-                        } catch (analyticsError) {
-                            console.log(`Analytics endpoint failed for ${symbol}:`, analyticsError);
-                        }
-                    }
-                    
-                    // Calculate percentage changes (mock data for now since we'd need historical data)
+                    // Calculate realistic percentage changes (mock data for now)
                     const changes = {
-                        '1d': (Math.random() - 0.5) * 10,
-                        '1w': (Math.random() - 0.5) * 20,
-                        '1m': (Math.random() - 0.5) * 30,
-                        '3m': (Math.random() - 0.5) * 40,
-                        '1y': (Math.random() - 0.5) * 100
+                        '1d': (Math.random() - 0.5) * 4,   // ±2% daily change
+                        '1w': (Math.random() - 0.5) * 8,   // ±4% weekly change  
+                        '1m': (Math.random() - 0.5) * 15,  // ±7.5% monthly change
+                        '3m': (Math.random() - 0.5) * 25,  // ±12.5% quarterly change
+                        '1y': (Math.random() - 0.5) * 60   // ±30% yearly change
                     };
                     
                     watchlistData[symbol] = {
                         name: symbolName,
                         price: currentPrice,
                         changes: changes,
-                        hasData: !!data
+                        hasData: !!data && currentPrice > 0
                     };
+                    
+                    console.log(`Final watchlist data for ${symbol}:`, watchlistData[symbol]);
                     
                 } catch (error) {
                     console.error(`Error loading data for ${symbol}:`, error);
@@ -1104,6 +1113,7 @@
                 }
             }
             
+            console.log('All watchlist data loaded:', watchlistData);
             renderWatchlist();
         }
         
@@ -1122,12 +1132,31 @@
         function renderWatchlist() {
             const tbody = document.getElementById('watchlistBody');
             
+            if (Object.keys(watchlistData).length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #888;">No data available</td></tr>';
+                return;
+            }
+            
             const html = watchlistSymbols.map(symbol => {
                 const data = watchlistData[symbol];
-                if (!data) return '';
+                if (!data) {
+                    return `<tr><td colspan="7" style="text-align: center; padding: 10px; color: #888;">Loading ${symbol}...</td></tr>`;
+                }
+                
+                // Format price based on value range
+                let formattedPrice;
+                if (data.price === 0) {
+                    formattedPrice = 'N/A';
+                } else if (data.price >= 1000) {
+                    formattedPrice = `${data.price.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                } else if (data.price >= 1) {
+                    formattedPrice = `${data.price.toFixed(2)}`;
+                } else {
+                    formattedPrice = data.price.toFixed(4); // For rates/percentages
+                }
                 
                 return `
-                    <tr onclick="addSymbolToActiveChart('${symbol}')">
+                    <tr onclick="addSymbolToActiveChart('${symbol}')" style="cursor: pointer;">
                         <td>
                             <div class="symbol-cell">
                                 <div class="symbol-icon">${symbol.charAt(0)}</div>
@@ -1137,7 +1166,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="price-cell">$${data.price.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                        <td class="price-cell">${formattedPrice}</td>
                         <td class="change-cell ${data.changes['1d'] >= 0 ? 'positive' : 'negative'}">
                             ${data.changes['1d'] >= 0 ? '+' : ''}${data.changes['1d'].toFixed(2)}%
                         </td>
@@ -1158,6 +1187,7 @@
             }).join('');
             
             tbody.innerHTML = html;
+            console.log('Watchlist table rendered with data');
         }
         
         // Add symbol from watchlist to active chart
