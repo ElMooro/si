@@ -1038,14 +1038,18 @@
                                 
                                 if (equityData.results && equityData.results.length > 0) {
                                     const quote = equityData.results[0];
-                                    console.log(`Quote data for ${symbol}:`, quote);
+                                    console.log(`Raw quote data for ${symbol}:`, JSON.stringify(quote, null, 2));
                                     
-                                    // Try different price fields from your API
-                                    currentPrice = quote.last || quote.price || quote.close || quote.regularMarketPrice || quote.previous_close || 0;
-                                    symbolName = quote.name || quote.symbol || symbol;
+                                    // Try all possible price fields from your API
+                                    currentPrice = quote.last || quote.price || quote.close || quote.regularMarketPrice || 
+                                                  quote.previous_close || quote.open || quote.current_price || 
+                                                  quote.market_price || quote.quote || quote.value || 0;
+                                    
+                                    symbolName = quote.name || quote.symbol || quote.company_name || symbol;
                                     data = equityData;
                                     
                                     console.log(`Processed ${symbol}: price=${currentPrice}, name=${symbolName}`);
+                                    console.log(`Available quote fields: ${Object.keys(quote).join(', ')}`);
                                 }
                             }
                         } catch (equityError) {
@@ -1076,6 +1080,7 @@
                                         data = fredData;
                                         
                                         console.log(`Processed FRED ${symbol}: price=${currentPrice}, name=${symbolName}`);
+                                        console.log(`Latest FRED data point:`, validData[0]);
                                     }
                                 }
                             }
