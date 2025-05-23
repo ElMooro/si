@@ -508,8 +508,10 @@
         <div class="search-section">
             <div class="search-container">
                 <input type="text" class="search-box" id="searchBox" 
-                       placeholder="Search financial data (e.g., AAPL, GDP, DGS10, unemployment)..." 
-                       onkeyup="debounceSearch(this.value)">
+                       placeholder="Search financial data (e.g., AAPL, GDP, inflation, unemployment)..." 
+                       onkeyup="debounceSearch(this.value)"
+                       onfocus="showPopularSuggestions()"
+                       autocomplete="off">
                 <span class="search-icon">🔍</span>
                 <div class="search-results" id="searchResults" style="display: none;"></div>
             </div>
@@ -563,20 +565,42 @@
             '#AF7AC5', '#48C9B0', '#EC7063', '#5DADE2', '#F5B041'
         ];
         
-        // Sample data for search suggestions
+        // Sample data for search suggestions with more comprehensive data
         const sampleIndicators = [
-            { symbol: 'AAPL', name: 'Apple Inc.', type: 'equity', provider: 'fmp' },
-            { symbol: 'MSFT', name: 'Microsoft Corporation', type: 'equity', provider: 'fmp' },
-            { symbol: 'GOOGL', name: 'Alphabet Inc.', type: 'equity', provider: 'fmp' },
-            { symbol: 'TSLA', name: 'Tesla, Inc.', type: 'equity', provider: 'fmp' },
-            { symbol: 'SPY', name: 'SPDR S&P 500 ETF Trust', type: 'equity', provider: 'polygon' },
-            { symbol: 'DGS10', name: '10-Year Treasury Constant Maturity Rate', type: 'economy', provider: 'fred' },
-            { symbol: 'DGS2', name: '2-Year Treasury Constant Maturity Rate', type: 'economy', provider: 'fred' },
-            { symbol: 'GDP', name: 'Gross Domestic Product', type: 'economy', provider: 'fred' },
-            { symbol: 'CPIAUCSL', name: 'Consumer Price Index for All Urban Consumers', type: 'economy', provider: 'fred' },
-            { symbol: 'UNRATE', name: 'Unemployment Rate', type: 'economy', provider: 'fred' },
-            { symbol: 'FEDFUNDS', name: 'Federal Funds Effective Rate', type: 'economy', provider: 'fred' },
-            { symbol: 'VIXCLS', name: 'CBOE Volatility Index: VIX', type: 'economy', provider: 'fred' }
+            // Stocks
+            { symbol: 'AAPL', name: 'Apple Inc.', type: 'equity', provider: 'fmp', category: 'Technology' },
+            { symbol: 'MSFT', name: 'Microsoft Corporation', type: 'equity', provider: 'fmp', category: 'Technology' },
+            { symbol: 'GOOGL', name: 'Alphabet Inc.', type: 'equity', provider: 'fmp', category: 'Technology' },
+            { symbol: 'AMZN', name: 'Amazon.com Inc.', type: 'equity', provider: 'fmp', category: 'Technology' },
+            { symbol: 'TSLA', name: 'Tesla, Inc.', type: 'equity', provider: 'fmp', category: 'Automotive' },
+            { symbol: 'NVDA', name: 'NVIDIA Corporation', type: 'equity', provider: 'fmp', category: 'Technology' },
+            { symbol: 'META', name: 'Meta Platforms Inc.', type: 'equity', provider: 'fmp', category: 'Technology' },
+            { symbol: 'SPY', name: 'SPDR S&P 500 ETF Trust', type: 'equity', provider: 'polygon', category: 'ETF' },
+            { symbol: 'QQQ', name: 'Invesco QQQ Trust', type: 'equity', provider: 'polygon', category: 'ETF' },
+            { symbol: 'IWM', name: 'iShares Russell 2000 ETF', type: 'equity', provider: 'polygon', category: 'ETF' },
+            
+            // FRED Economic Indicators
+            { symbol: 'DGS10', name: '10-Year Treasury Constant Maturity Rate', type: 'economy', provider: 'fred', category: 'Interest Rates' },
+            { symbol: 'DGS2', name: '2-Year Treasury Constant Maturity Rate', type: 'economy', provider: 'fred', category: 'Interest Rates' },
+            { symbol: 'DGS30', name: '30-Year Treasury Constant Maturity Rate', type: 'economy', provider: 'fred', category: 'Interest Rates' },
+            { symbol: 'FEDFUNDS', name: 'Federal Funds Effective Rate', type: 'economy', provider: 'fred', category: 'Interest Rates' },
+            { symbol: 'GDP', name: 'Gross Domestic Product', type: 'economy', provider: 'fred', category: 'Economic Growth' },
+            { symbol: 'CPIAUCSL', name: 'Consumer Price Index for All Urban Consumers', type: 'economy', provider: 'fred', category: 'Inflation' },
+            { symbol: 'CPILFESL', name: 'Core CPI (Less Food & Energy)', type: 'economy', provider: 'fred', category: 'Inflation' },
+            { symbol: 'UNRATE', name: 'Unemployment Rate', type: 'economy', provider: 'fred', category: 'Labor Market' },
+            { symbol: 'PAYEMS', name: 'All Employees: Total Nonfarm Payrolls', type: 'economy', provider: 'fred', category: 'Labor Market' },
+            { symbol: 'VIXCLS', name: 'CBOE Volatility Index: VIX', type: 'economy', provider: 'fred', category: 'Market Volatility' },
+            { symbol: 'DEXUSEU', name: 'U.S. / Euro Foreign Exchange Rate', type: 'economy', provider: 'fred', category: 'Currency' },
+            { symbol: 'DEXJPUS', name: 'Japan / U.S. Foreign Exchange Rate', type: 'economy', provider: 'fred', category: 'Currency' },
+            { symbol: 'DEXCHUS', name: 'China / U.S. Foreign Exchange Rate', type: 'economy', provider: 'fred', category: 'Currency' },
+            { symbol: 'M2SL', name: 'M2 Money Stock', type: 'economy', provider: 'fred', category: 'Money Supply' },
+            { symbol: 'HOUST', name: 'Housing Starts: Total: New Privately Owned Housing Units', type: 'economy', provider: 'fred', category: 'Housing' },
+            { symbol: 'CSUSHPISA', name: 'S&P/Case-Shiller U.S. National Home Price Index', type: 'economy', provider: 'fred', category: 'Housing' },
+            { symbol: 'INDPRO', name: 'Industrial Production Index', type: 'economy', provider: 'fred', category: 'Manufacturing' },
+            { symbol: 'UMCSENT', name: 'University of Michigan: Consumer Sentiment', type: 'economy', provider: 'fred', category: 'Consumer Confidence' },
+            { symbol: 'T10Y2Y', name: '10-Year Treasury Minus 2-Year Treasury', type: 'economy', provider: 'fred', category: 'Yield Curve' },
+            { symbol: 'DCOILWTICO', name: 'Crude Oil Prices: West Texas Intermediate', type: 'economy', provider: 'fred', category: 'Commodities' },
+            { symbol: 'GOLDAMGBD228NLBM', name: 'Gold Fixing Price', type: 'economy', provider: 'fred', category: 'Commodities' }
         ];
         
         // Initialize the dashboard
@@ -651,28 +675,82 @@
             const lowerQuery = query.toLowerCase();
             const results = sampleIndicators.filter(indicator => 
                 indicator.symbol.toLowerCase().includes(lowerQuery) ||
-                indicator.name.toLowerCase().includes(lowerQuery)
+                indicator.name.toLowerCase().includes(lowerQuery) ||
+                (indicator.category && indicator.category.toLowerCase().includes(lowerQuery))
             );
             
             if (results.length === 0) {
-                resultsDiv.innerHTML = '<div class="search-item" style="text-align:center; color:#888;">No results found. Try symbols like AAPL, GDP, DGS10</div>';
+                resultsDiv.innerHTML = `
+                    <div class="search-item" style="text-align:center; color:#888; padding: 20px;">
+                        No results found for "${query}"<br>
+                        <small>Try: AAPL, GDP, DGS10, unemployment, CPI, etc.</small>
+                    </div>`;
             } else {
-                const html = results.map(result => `
-                    <div class="search-item" onclick="addSearchResultToChart('${result.symbol}', '${result.type}', '${result.provider}', '${result.name.replace(/'/g, "\\'")}')">
-                        <div class="search-item-left">
-                            <div class="search-item-symbol">${result.symbol}</div>
-                            <div class="search-item-name">${result.name}</div>
-                        </div>
-                        <div class="search-item-source">${result.provider}</div>
-                    </div>
-                `).join('');
+                // Group results by category for better organization
+                const grouped = results.reduce((acc, result) => {
+                    const category = result.category || 'Other';
+                    if (!acc[category]) acc[category] = [];
+                    acc[category].push(result);
+                    return acc;
+                }, {});
+                
+                let html = '';
+                Object.entries(grouped).forEach(([category, items]) => {
+                    if (Object.keys(grouped).length > 1) {
+                        html += `<div style="padding: 8px 20px; background: #1a1a1a; color: #888; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #222;">${category}</div>`;
+                    }
+                    
+                    items.slice(0, 5).forEach(result => {
+                        html += `
+                            <div class="search-item" onclick="addSearchResultToChart('${result.symbol}', '${result.type}', '${result.provider}', '${result.name.replace(/'/g, "\\'")}')">
+                                <div class="search-item-left">
+                                    <div class="search-item-symbol">${result.symbol}</div>
+                                    <div class="search-item-name">${result.name}</div>
+                                </div>
+                                <div class="search-item-source">${result.provider}</div>
+                            </div>
+                        `;
+                    });
+                });
+                
                 resultsDiv.innerHTML = html;
             }
             
             resultsDiv.style.display = 'block';
         }
         
-        // Add search result to chart
+        // Show popular suggestions when search box is focused
+        function showPopularSuggestions() {
+            const searchBox = document.getElementById('searchBox');
+            if (searchBox.value.trim() === '') {
+                const popularItems = [
+                    'AAPL', 'MSFT', 'GOOGL', 'SPY', 'QQQ',
+                    'GDP', 'DGS10', 'UNRATE', 'CPIAUCSL', 'FEDFUNDS'
+                ];
+                
+                const resultsDiv = document.getElementById('searchResults');
+                const html = `
+                    <div style="padding: 8px 20px; background: #1a1a1a; color: #888; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #222;">
+                        Popular Searches
+                    </div>
+                    ${popularItems.map(symbol => {
+                        const indicator = sampleIndicators.find(ind => ind.symbol === symbol);
+                        if (!indicator) return '';
+                        return `
+                            <div class="search-item" onclick="addSearchResultToChart('${indicator.symbol}', '${indicator.type}', '${indicator.provider}', '${indicator.name.replace(/'/g, "\\'")}')">
+                                <div class="search-item-left">
+                                    <div class="search-item-symbol">${indicator.symbol}</div>
+                                    <div class="search-item-name">${indicator.name}</div>
+                                </div>
+                                <div class="search-item-source">${indicator.provider}</div>
+                            </div>
+                        `;
+                    }).join('')}
+                `;
+                resultsDiv.innerHTML = html;
+                resultsDiv.style.display = 'block';
+            }
+        }
         function addSearchResultToChart(symbol, type, provider, name) {
             let targetChartId = activeChartId;
             if (!targetChartId) {
@@ -1041,9 +1119,9 @@
                                     console.log(`Raw quote data for ${symbol}:`, JSON.stringify(quote, null, 2));
                                     
                                     // Try all possible price fields from your API
-                                    currentPrice = quote.last || quote.price || quote.close || quote.regularMarketPrice || 
-                                                  quote.previous_close || quote.open || quote.current_price || 
-                                                  quote.market_price || quote.quote || quote.value || 0;
+                                    currentPrice = quote.last_price || quote.last || quote.price || quote.close || 
+                                                  quote.regularMarketPrice || quote.previous_close || quote.open || 
+                                                  quote.current_price || quote.market_price || quote.quote || quote.value || 0;
                                     
                                     symbolName = quote.name || quote.symbol || quote.company_name || symbol;
                                     data = equityData;
@@ -1071,9 +1149,10 @@
                                 if (fredData.results && fredData.results.length > 0) {
                                     // Get the latest value from FRED data
                                     const validData = fredData.results
-                                        .filter(item => item.value !== null && item.value !== undefined && !isNaN(item.value))
+                                        .filter(item => item.value !== null && item.value !== undefined && !isNaN(parseFloat(item.value)))
                                         .sort((a, b) => new Date(b.date) - new Date(a.date));
                                     
+                                    console.log(`FRED valid data count for ${symbol}:`, validData.length);
                                     if (validData.length > 0) {
                                         currentPrice = parseFloat(validData[0].value);
                                         symbolName = fredData.title || symbol;
@@ -1081,6 +1160,8 @@
                                         
                                         console.log(`Processed FRED ${symbol}: price=${currentPrice}, name=${symbolName}`);
                                         console.log(`Latest FRED data point:`, validData[0]);
+                                    } else {
+                                        console.log(`No valid FRED data for ${symbol}`);
                                     }
                                 }
                             }
