@@ -6,7 +6,6 @@
     <title>OpenBB Financial Intelligence Platform</title>
     
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -594,16 +593,38 @@
         // Check API connection
         async function checkAPIConnection() {
             try {
-                const response = await fetch(`${API_BASE_URL}/economy/fred_series?symbol=DGS10&provider=fred`);
+                console.log('Testing API connection...');
+                
+                // Test with a simple FRED endpoint first
+                const testEndpoint = `${API_BASE_URL}/economy/fred_series?symbol=DGS10&provider=fred`;
+                console.log('Testing endpoint:', testEndpoint);
+                
+                const response = await fetch(testEndpoint);
+                console.log('API response status:', response.status);
+                
                 if (response.ok) {
+                    const data = await response.json();
+                    console.log('API test data:', data);
+                    
                     document.getElementById('apiStatus').classList.add('connected');
                     document.getElementById('apiStatusText').textContent = 'API Connected';
+                    
+                    showTemporaryMessage('Successfully connected to OpenBB API!', 'info');
                 } else {
-                    throw new Error('API not responding');
+                    const errorText = await response.text();
+                    console.error('API error response:', errorText);
+                    throw new Error(`API returned ${response.status}: ${errorText}`);
                 }
             } catch (error) {
-                document.getElementById('apiStatusText').textContent = 'API Disconnected';
                 console.error('API connection failed:', error);
+                document.getElementById('apiStatusText').textContent = 'API Disconnected';
+                showTemporaryMessage(`API connection failed: ${error.message}`, 'error');
+                
+                // Test if CORS is the issue
+                console.log('Testing CORS...');
+                fetch(API_BASE_URL, { mode: 'no-cors' })
+                    .then(() => console.log('Server is reachable but CORS might be blocking'))
+                    .catch(err => console.log('Server unreachable:', err));
             }
         }
         
@@ -759,30 +780,81 @@
                     endpoint = `${API_BASE_URL}/economy/fred_series?symbol=${symbol}&provider=${provider}`;
                 }
                 
+                console.log('Fetching data from:', endpoint);
+                
                 const response = await fetch(endpoint);
+                console.log('Response status:', response.status);
+                
                 if (!response.ok) {
-                    throw new Error(`API error: ${response.status}`);
+                    const errorText = await response.text();
+                    console.error('API error response:', errorText);
+                    throw new Error(`API error: ${response.status} - ${errorText}`);
                 }
                 
                 const data = await response.json();
+                console.log('Raw API response:', data);
                 
-                // Process the data based on type
-                let processedData;
-                if (type === 'economy' && data.results) {
-                    processedData = data.results.map(item => ({
-                        date: item.date,
-                        value: item.value
-                    })).filter(item => item.value !== null);
-                } else if (type === 'equity' && data.results) {
-                    // For equity data, we'll need historical data
-                    // This is a simplified version - you might need to call a different endpoint
-                    processedData = [{
-                        date: new Date().toISOString().split('T')[0],
-                        value: data.results[0]?.last || data.results[0]?.price || 0
-                    }];
-                } else {
-                    throw new Error('No data available');
+                // Process the data based on your API structure
+                let processedData = [];
+                
+                if (type === 'economy') {
+                    // Handle FRED data structure from your API
+                    if (data.results && Array.isArray(data.results)) {
+                        processedData = data.results
+                            .filter(item => item.value !== null && item.value !== undefined && !isNaN(item.value))
+                            .map(item => ({
+                                date: item.date,
+                                value: parseFloat(item.value)
+                            }))
+                            .sort((a, b) => new Date(a.date) - new Date(b.date));
+                    } else if (data.data && Array.isArray(data.data)) {
+                        // Alternative structure
+                        processedData = data.data
+                            .filter(item => item.value !== null && item.value !== undefined && !isNaN(item.value))
+                            .map(item => ({
+                                date: item.date,
+                                value: parseFloat(item.value)
+                            }))
+                            .sort((a, b) => new Date(a.date) - new Date(b.date));
+                    }
+                } else if (type === 'equity') {
+                    // Handle equity quote data
+                    if (data.results && data.results.length > 0) {
+                        const quote = data.results[0];
+                        const currentPrice = quote.last || quote.price || quote.close || quote.regularMarketPrice || 0;
+                        
+                        // For now, create a single data point for current price
+                        // In a full implementation, you'd call historical data endpoint
+                        processedData = [{
+                            date: new Date().toISOString().split('T')[0],
+                            value: currentPrice
+                        }];
+                        
+                        // Try to get historical data if available
+                        try {
+                            const historicalEndpoint = `${API_BASE_URL}/equity/price/historical?symbol=${symbol}&provider=${provider}&period=1y`;
+                            const historicalResponse = await fetch(historicalEndpoint);
+                            if (historicalResponse.ok) {
+                                const historicalData = await historicalResponse.json();
+                                if (historicalData.results && historicalData.results.length > 0) {
+                                    processedData = historicalData.results.map(item => ({
+                                        date: item.date,
+                                        value: item.close || item.price || item.value
+                                    })).filter(item => item.value !== null && !isNaN(item.value))
+                                    .sort((a, b) => new Date(a.date) - new Date(b.date));
+                                }
+                            }
+                        } catch (histError) {
+                            console.log('Historical data not available, using current quote only');
+                        }
+                    }
                 }
+                
+                if (processedData.length === 0) {
+                    throw new Error('No valid data points found in API response');
+                }
+                
+                console.log('Processed data:', processedData);
                 
                 chart.data[symbol] = processedData;
                 updateChartRender(chartId);
@@ -791,7 +863,7 @@
             } catch (error) {
                 console.error(`Error loading data for ${symbol}:`, error);
                 if (canvasDiv) {
-                    canvasDiv.innerHTML = `<div class="chart-message" style="color: #ff4444;">Error loading ${symbol}: ${error.message}</div>`;
+                    canvasDiv.innerHTML = `<div class="chart-message" style="color: #ff4444;">Error loading ${symbol}: ${error.message}<br><small>Check console for details</small></div>`;
                 }
             }
         }
@@ -928,48 +1000,106 @@
             
             for (const symbol of watchlistSymbols) {
                 try {
-                    // Determine the appropriate endpoint and provider
-                    let endpoint, provider;
-                    if (['AAPL', 'MSFT', 'GOOGL', 'TSLA', 'SPY'].includes(symbol)) {
-                        endpoint = `${API_BASE_URL}/equity/price/quote?symbol=${symbol}&provider=fmp`;
-                        provider = 'fmp';
-                    } else {
-                        endpoint = `${API_BASE_URL}/economy/fred_series?symbol=${symbol}&provider=fred`;
-                        provider = 'fred';
+                    // Test multiple endpoints to find the right one for each symbol
+                    let data = null;
+                    let symbolName = symbol;
+                    let currentPrice = 0;
+                    
+                    // Try equity quote first
+                    try {
+                        const equityEndpoint = `${API_BASE_URL}/equity/price/quote?symbol=${symbol}&provider=fmp`;
+                        console.log(`Trying equity endpoint for ${symbol}:`, equityEndpoint);
+                        
+                        const equityResponse = await fetch(equityEndpoint);
+                        if (equityResponse.ok) {
+                            const equityData = await equityResponse.json();
+                            console.log(`Equity data for ${symbol}:`, equityData);
+                            
+                            if (equityData.results && equityData.results.length > 0) {
+                                const quote = equityData.results[0];
+                                currentPrice = quote.last || quote.price || quote.close || quote.regularMarketPrice || 0;
+                                symbolName = quote.name || quote.symbol || symbol;
+                                data = equityData;
+                            }
+                        }
+                    } catch (equityError) {
+                        console.log(`Equity endpoint failed for ${symbol}:`, equityError);
                     }
                     
-                    const response = await fetch(endpoint);
-                    if (response.ok) {
-                        const data = await response.json();
-                        
-                        let currentPrice = 0;
-                        let symbolName = symbol;
-                        
-                        if (provider === 'fmp' && data.results && data.results.length > 0) {
-                            currentPrice = data.results[0].last || data.results[0].price || 0;
-                            symbolName = data.results[0].name || symbol;
-                        } else if (provider === 'fred' && data.results && data.results.length > 0) {
-                            // Get the latest value from FRED data
-                            const sortedData = data.results.sort((a, b) => new Date(b.date) - new Date(a.date));
-                            currentPrice = sortedData[0].value || 0;
-                            symbolName = data.title || symbol;
+                    // If equity failed, try FRED
+                    if (!data) {
+                        try {
+                            const fredEndpoint = `${API_BASE_URL}/economy/fred_series?symbol=${symbol}&provider=fred`;
+                            console.log(`Trying FRED endpoint for ${symbol}:`, fredEndpoint);
+                            
+                            const fredResponse = await fetch(fredEndpoint);
+                            if (fredResponse.ok) {
+                                const fredData = await fredResponse.json();
+                                console.log(`FRED data for ${symbol}:`, fredData);
+                                
+                                if (fredData.results && fredData.results.length > 0) {
+                                    // Get the latest value from FRED data
+                                    const sortedData = fredData.results
+                                        .filter(item => item.value !== null && !isNaN(item.value))
+                                        .sort((a, b) => new Date(b.date) - new Date(a.date));
+                                    
+                                    if (sortedData.length > 0) {
+                                        currentPrice = sortedData[0].value;
+                                        symbolName = fredData.title || symbol;
+                                        data = fredData;
+                                    }
+                                }
+                            }
+                        } catch (fredError) {
+                            console.log(`FRED endpoint failed for ${symbol}:`, fredError);
                         }
-                        
-                        // Calculate percentage changes (mock data for now)
-                        const changes = calculateMockChanges(currentPrice);
-                        
-                        watchlistData[symbol] = {
-                            name: symbolName,
-                            price: currentPrice,
-                            changes: changes
-                        };
                     }
+                    
+                    // If both failed, try analytics endpoints
+                    if (!data) {
+                        try {
+                            const analyticsEndpoint = `${API_BASE_URL}/analytics/trend?symbol=${symbol}&provider=fred&window=7`;
+                            console.log(`Trying analytics endpoint for ${symbol}:`, analyticsEndpoint);
+                            
+                            const analyticsResponse = await fetch(analyticsEndpoint);
+                            if (analyticsResponse.ok) {
+                                const analyticsData = await analyticsResponse.json();
+                                console.log(`Analytics data for ${symbol}:`, analyticsData);
+                                
+                                if (analyticsData.results && analyticsData.results.length > 0) {
+                                    const latest = analyticsData.results[analyticsData.results.length - 1];
+                                    currentPrice = latest.value || latest.close || 0;
+                                    data = analyticsData;
+                                }
+                            }
+                        } catch (analyticsError) {
+                            console.log(`Analytics endpoint failed for ${symbol}:`, analyticsError);
+                        }
+                    }
+                    
+                    // Calculate percentage changes (mock data for now since we'd need historical data)
+                    const changes = {
+                        '1d': (Math.random() - 0.5) * 10,
+                        '1w': (Math.random() - 0.5) * 20,
+                        '1m': (Math.random() - 0.5) * 30,
+                        '3m': (Math.random() - 0.5) * 40,
+                        '1y': (Math.random() - 0.5) * 100
+                    };
+                    
+                    watchlistData[symbol] = {
+                        name: symbolName,
+                        price: currentPrice,
+                        changes: changes,
+                        hasData: !!data
+                    };
+                    
                 } catch (error) {
                     console.error(`Error loading data for ${symbol}:`, error);
                     watchlistData[symbol] = {
                         name: symbol,
                         price: 0,
-                        changes: { '1d': 0, '1w': 0, '1m': 0, '3m': 0, '1y': 0 }
+                        changes: { '1d': 0, '1w': 0, '1m': 0, '3m': 0, '1y': 0 },
+                        hasData: false
                     };
                 }
             }
