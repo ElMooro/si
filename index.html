@@ -1382,9 +1382,23 @@
         let histogramChart = null;
 
         function initializeCategories() {
+            console.log('Starting category initialization...');
             const categoryList = document.getElementById('categoryList');
             
+            if (!categoryList) {
+                console.error('Category list element not found!');
+                return;
+            }
+            
+            // Clear existing content
+            categoryList.innerHTML = '';
+            
+            let categoryCount = 0;
+            
             Object.entries(economicData).forEach(([mainCategory, subcategories]) => {
+                console.log(`Adding category: ${mainCategory}`);
+                categoryCount++;
+                
                 const mainDiv = document.createElement('div');
                 mainDiv.className = 'main-category';
                 
@@ -1438,6 +1452,13 @@
                 mainDiv.appendChild(subcatContainer);
                 categoryList.appendChild(mainDiv);
             });
+            
+            console.log(`Categories initialized: ${categoryCount} main categories added`);
+            
+            // If no categories were added, show an error
+            if (categoryCount === 0) {
+                categoryList.innerHTML = '<div style="padding: 20px; color: #ff9800;">Error: No categories loaded. Check console for details.</div>';
+            }
         }
 
         function toggleMainCategory(category) {
