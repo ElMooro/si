@@ -496,8 +496,102 @@
     <script>
         const API_BASE = 'https://ped8gafyuz.us-east-1.awsapprunner.com';
         
-        // Comprehensive FRED categories and series
+        // Comprehensive FRED, ECB, NY Fed, and OFR categories and series
         const fredData = {
+            'European Central Bank (ECB)': {
+                'Open Market Operations': [
+                    { symbol: 'ECBESTRVOLW', name: 'ECB Main Refinancing Operations' },
+                    { symbol: 'ECBLTRO', name: 'ECB Longer-Term Refinancing Operations' },
+                    { symbol: 'ECBMRRFD', name: 'ECB Marginal Lending Facility Rate' },
+                    { symbol: 'ECBDFR', name: 'ECB Deposit Facility Rate' },
+                    { symbol: 'ECBMPRFD', name: 'ECB Main Refinancing Rate' }
+                ],
+                'Consumer Expectations': [
+                    { symbol: 'ECBCEPI1YF', name: 'ECB Consumer Inflation Expectations - 1 Year' },
+                    { symbol: 'ECBCEPI3YF', name: 'ECB Consumer Inflation Expectations - 3 Year' },
+                    { symbol: 'ECBCECGDP', name: 'ECB Consumer GDP Growth Expectations' },
+                    { symbol: 'ECBCEUEMP', name: 'ECB Consumer Unemployment Expectations' }
+                ],
+                'Monetary Analysis': [
+                    { symbol: 'ECBM1', name: 'ECB M1 Money Supply' },
+                    { symbol: 'ECBM2', name: 'ECB M2 Money Supply' },
+                    { symbol: 'ECBM3', name: 'ECB M3 Money Supply' },
+                    { symbol: 'ECBASSETA', name: 'ECB Total Assets' }
+                ],
+                'Financial Conditions': [
+                    { symbol: 'EURORSCIS', name: 'Euro Area Systemic Stress Indicator' },
+                    { symbol: 'ECBFCI', name: 'ECB Financial Conditions Index' },
+                    { symbol: 'ECBCISS', name: 'ECB Composite Indicator of Systemic Stress' }
+                ],
+                'Credit & Lending': [
+                    { symbol: 'ECBLENDING', name: 'ECB Bank Lending Survey' },
+                    { symbol: 'ECBBLSCRED', name: 'ECB Credit Standards' },
+                    { symbol: 'ECBBLSDEM', name: 'ECB Loan Demand' }
+                ]
+            },
+            'New York Fed': {
+                'Primary Dealers & Markets': [
+                    { symbol: 'PDPOSGS', name: 'Primary Dealer Positions - Treasury Securities' },
+                    { symbol: 'PDPOSMBS', name: 'Primary Dealer Positions - MBS' },
+                    { symbol: 'PDPOSCORP', name: 'Primary Dealer Positions - Corporate Securities' },
+                    { symbol: 'RPONTSYD', name: 'Overnight Repo Rate' },
+                    { symbol: 'RPGT1DTD', name: 'Term Repo Rate' }
+                ],
+                'Treasury Market': [
+                    { symbol: 'TSFR', name: 'Treasury Secured Financing Rate' },
+                    { symbol: 'BGCR', name: 'Broad General Collateral Rate' },
+                    { symbol: 'TGCR', name: 'Tri-Party General Collateral Rate' },
+                    { symbol: 'DTWEXBGS', name: 'Trade Weighted Dollar Index - Broad' }
+                ],
+                'Market Expectations': [
+                    { symbol: 'T5YIFR', name: '5-Year Forward Inflation Expectation Rate' },
+                    { symbol: 'T10YIE', name: '10-Year Breakeven Inflation Rate' },
+                    { symbol: 'T5YIE', name: '5-Year Breakeven Inflation Rate' },
+                    { symbol: 'DFEDTARU', name: 'Fed Funds Target Rate - Upper' }
+                ],
+                'Financial Stress': [
+                    { symbol: 'NYFSI', name: 'NY Fed Financial Stress Index' },
+                    { symbol: 'NYFEDCOMM', name: 'NY Fed Commodity Index' },
+                    { symbol: 'TERMSPREAD', name: 'Term Spread' }
+                ],
+                'Consumer Credit': [
+                    { symbol: 'CCLACBW027SBOG', name: 'Consumer Credit Outstanding' },
+                    { symbol: 'CARACBW027SBOG', name: 'Auto Loans Outstanding' },
+                    { symbol: 'CRDQUSAPABIS', name: 'Credit to Private Sector' }
+                ]
+            },
+            'Office of Financial Research (OFR)': {
+                'Financial Stress Indicators': [
+                    { symbol: 'STLFSI4', name: 'OFR Financial Stress Index' },
+                    { symbol: 'OFRFSI', name: 'OFR Financial Stress Index (Alternative)' },
+                    { symbol: 'VIXCLS', name: 'VIX - Market Volatility' },
+                    { symbol: 'TEDRATE', name: 'TED Spread' },
+                    { symbol: 'BAMLH0A0HYM2', name: 'High Yield Spread' }
+                ],
+                'Systemic Risk': [
+                    { symbol: 'SRISK', name: 'Systemic Risk Measure' },
+                    { symbol: 'CATFIN', name: 'Conditional Capital Shortfall' },
+                    { symbol: 'COVAR', name: 'Conditional Value at Risk' },
+                    { symbol: 'DLEVERAGE', name: 'Financial Sector Leverage' }
+                ],
+                'Bank Monitoring': [
+                    { symbol: 'BANKSTRESS', name: 'Bank Stress Test Results' },
+                    { symbol: 'TIER1RATIO', name: 'Tier 1 Capital Ratio' },
+                    { symbol: 'LEVERAGE', name: 'Leverage Ratio' },
+                    { symbol: 'LIQUIDCOV', name: 'Liquidity Coverage Ratio' }
+                ],
+                'Market Liquidity': [
+                    { symbol: 'BIDASK', name: 'Bid-Ask Spreads' },
+                    { symbol: 'MKDEPTH', name: 'Market Depth' },
+                    { symbol: 'TURNOVER', name: 'Market Turnover' },
+                    { symbol: 'ILLIQ', name: 'Illiquidity Measure' }
+                ],
+                'Interconnectedness': [
+                    { symbol: 'NETWORK', name: 'Financial Network Connectivity' },
+                    { symbol: 'CONTAGION', name: 'Contagion Risk Index' },
+                    { symbol: 'CORRELATION', name: 'Market Correlation Index' }
+                ]
+            },
             'Money, Banking, & Finance': {
                 'Interest Rates': [
                     { symbol: 'DFF', name: 'Federal Funds Rate' },
@@ -1021,6 +1115,33 @@
             return { change, percentChange };
         }
 
+        function calculateYTDChange(data) {
+            if (!data || data.length < 2) return null;
+            
+            const latest = data[data.length - 1];
+            const currentYear = latest.date.getFullYear();
+            const startOfYear = new Date(currentYear, 0, 1);
+            
+            // Find the first data point of the current year
+            let yearStart = null;
+            for (let i = 0; i < data.length; i++) {
+                if (data[i].date >= startOfYear) {
+                    yearStart = i > 0 ? data[i - 1] : data[i];
+                    break;
+                }
+            }
+            
+            if (!yearStart) {
+                // If no data for start of year, use the oldest available data
+                yearStart = data[0];
+            }
+            
+            const change = latest.value - yearStart.value;
+            const percentChange = yearStart.value !== 0 ? (change / yearStart.value) * 100 : 0;
+            
+            return { change, percentChange };
+        }
+
         function updateWatchlistDisplay() {
             const container = document.getElementById('watchlistContent');
             
@@ -1043,14 +1164,12 @@
                         <tr>
                             <th>Series</th>
                             <th>Current Value</th>
-                            <th>Daily Change</th>
                             <th>Daily %</th>
-                            <th>Weekly Change</th>
                             <th>Weekly %</th>
-                            <th>Monthly Change</th>
                             <th>Monthly %</th>
-                            <th>Quarterly Change</th>
                             <th>Quarterly %</th>
+                            <th>YTD %</th>
+                            <th>1 Year %</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -1066,6 +1185,8 @@
                 const weekly = calculateChange(data, 7);
                 const monthly = calculateChange(data, 30);
                 const quarterly = calculateChange(data, 90);
+                const ytd = calculateYTDChange(data);
+                const yearly = calculateChange(data, 365);
                 
                 tableHTML += `
                     <tr>
@@ -1074,14 +1195,12 @@
                             <div class="series-symbol-cell">${item.symbol}</div>
                         </td>
                         <td class="value-cell">${formatValue(latest.value)}</td>
-                        <td class="value-cell ${getChangeClass(daily?.change)}">${formatChange(daily?.change)}</td>
                         <td class="value-cell ${getChangeClass(daily?.percentChange)}">${formatPercent(daily?.percentChange)}</td>
-                        <td class="value-cell ${getChangeClass(weekly?.change)}">${formatChange(weekly?.change)}</td>
                         <td class="value-cell ${getChangeClass(weekly?.percentChange)}">${formatPercent(weekly?.percentChange)}</td>
-                        <td class="value-cell ${getChangeClass(monthly?.change)}">${formatChange(monthly?.change)}</td>
                         <td class="value-cell ${getChangeClass(monthly?.percentChange)}">${formatPercent(monthly?.percentChange)}</td>
-                        <td class="value-cell ${getChangeClass(quarterly?.change)}">${formatChange(quarterly?.change)}</td>
                         <td class="value-cell ${getChangeClass(quarterly?.percentChange)}">${formatPercent(quarterly?.percentChange)}</td>
+                        <td class="value-cell ${getChangeClass(ytd?.percentChange)}">${formatPercent(ytd?.percentChange)}</td>
+                        <td class="value-cell ${getChangeClass(yearly?.percentChange)}">${formatPercent(yearly?.percentChange)}</td>
                         <td><button class="remove-btn" onclick="removeFromWatchlist('${item.symbol}')">Remove</button></td>
                     </tr>
                 `;
