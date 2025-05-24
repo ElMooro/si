@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global Economic Data Watchlist - Enhanced</title>
+    <title>FRED Universal Search - Economic Data Explorer</title>
     <style>
         * {
             margin: 0;
@@ -13,2146 +13,856 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #0a0a0a;
+            background: #0a0e1b;
             color: #e0e0e0;
-            line-height: 1.6;
+            min-height: 100vh;
         }
 
         .container {
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        .sidebar {
-            width: 400px;
-            background: #1a1a1a;
-            border-right: 1px solid #333;
-            overflow-y: auto;
-            padding: 20px;
-        }
-
-        .main-content {
-            flex: 1;
-            overflow-y: auto;
+            max-width: 1400px;
+            margin: 0 auto;
             padding: 20px;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 30px;
-            padding: 25px;
+            margin-bottom: 40px;
+            padding: 30px;
             background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%);
-            border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
-            animation: pulse 4s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 0.5; }
-            50% { transform: scale(1.1); opacity: 0.3; }
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
         }
 
         .header h1 {
             font-size: 2.5em;
             margin-bottom: 10px;
             color: #ffffff;
-            position: relative;
-            z-index: 1;
         }
 
         .header p {
-            font-size: 1.1em;
+            font-size: 1.2em;
             color: #b3c5ff;
-            position: relative;
-            z-index: 1;
         }
 
-        .live-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: #ff5252;
-            color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.85em;
-            font-weight: 600;
-            margin-left: 20px;
-            animation: live-pulse 2s ease-in-out infinite;
-        }
-
-        .live-dot {
-            width: 8px;
-            height: 8px;
-            background: white;
-            border-radius: 50%;
-            animation: blink 1.5s ease-in-out infinite;
-        }
-
-        @keyframes live-pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
+        .search-section {
+            background: #1a1f2e;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
 
         .search-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-input-wrapper {
+            flex: 1;
+            min-width: 300px;
             position: relative;
-            margin-bottom: 25px;
         }
 
         .search-input {
             width: 100%;
-            padding: 12px 40px 12px 16px;
-            background: #2a2a2a;
-            color: #e0e0e0;
-            border: 1px solid #444;
+            padding: 15px 50px 15px 20px;
+            background: #2a3142;
+            color: #fff;
+            border: 2px solid #3949ab;
             border-radius: 8px;
-            font-size: 14px;
+            font-size: 16px;
             transition: all 0.3s ease;
         }
 
         .search-input:focus {
             outline: none;
-            border-color: #3949ab;
+            border-color: #5c6bc0;
             box-shadow: 0 0 0 3px rgba(57, 73, 171, 0.2);
         }
 
         .search-icon {
             position: absolute;
-            right: 12px;
+            right: 15px;
             top: 50%;
             transform: translateY(-50%);
-            color: #888;
+            color: #5c6bc0;
+            font-size: 20px;
         }
 
-        .search-results {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: #2a2a2a;
-            border: 1px solid #444;
-            border-radius: 0 0 8px 8px;
-            max-height: 400px;
-            overflow-y: auto;
-            display: none;
-            z-index: 1000;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-
-        .search-result-item {
-            padding: 10px 16px;
+        .search-btn {
+            padding: 15px 30px;
+            background: #3949ab;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
-            border-bottom: 1px solid #333;
+            transition: all 0.3s ease;
+        }
+
+        .search-btn:hover {
+            background: #5c6bc0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(57, 73, 171, 0.3);
+        }
+
+        .search-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .filters {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.2s ease;
+            gap: 15px;
+            flex-wrap: wrap;
         }
 
-        .search-result-item:hover {
-            background: #333;
-            transform: translateX(5px);
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
         }
 
-        .search-result-info {
-            flex: 1;
-        }
-
-        .search-result-title {
-            color: #4a9eff;
-            font-weight: 500;
-            font-size: 0.9em;
-        }
-
-        .search-result-symbol {
+        .filter-label {
+            font-size: 12px;
             color: #888;
-            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .category-browser {
+        .filter-select {
+            padding: 8px 12px;
+            background: #2a3142;
+            color: #fff;
+            border: 1px solid #444;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .popular-searches {
             margin-top: 20px;
         }
 
-        .category-browser h3 {
-            color: #4a9eff;
-            font-size: 1.2em;
-            margin-bottom: 15px;
-        }
-
-        .main-category {
-            margin-bottom: 15px;
-        }
-
-        .main-category-header {
-            padding: 12px;
-            background: #2a2a2a;
-            border-radius: 8px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: 600;
-            transition: all 0.2s ease;
-        }
-
-        .main-category-header:hover {
-            background: #333;
-            transform: translateX(2px);
-        }
-
-        .main-category-header.active {
-            background: #3949ab;
-            box-shadow: 0 2px 8px rgba(57, 73, 171, 0.3);
-        }
-
-        .category-count {
-            font-size: 0.85em;
+        .popular-searches h3 {
+            font-size: 14px;
             color: #888;
-            background: #1a1a1a;
-            padding: 2px 8px;
-            border-radius: 12px;
-        }
-
-        .subcategories {
-            margin-left: 20px;
-            margin-top: 10px;
-            display: none;
-            animation: slideDown 0.3s ease;
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .subcategories.show {
-            display: block;
-        }
-
-        .subcategory {
             margin-bottom: 10px;
         }
 
-        .subcategory-header {
-            padding: 10px;
-            background: #222;
-            border-radius: 6px;
-            cursor: pointer;
+        .popular-tags {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.9em;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .popular-tag {
+            padding: 6px 16px;
+            background: #2a3142;
+            border: 1px solid #444;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
             transition: all 0.2s ease;
         }
 
-        .subcategory-header:hover {
-            background: #333;
-            transform: translateX(5px);
+        .popular-tag:hover {
+            background: #3949ab;
+            border-color: #3949ab;
+            transform: scale(1.05);
         }
 
-        .series-list {
-            margin-left: 20px;
-            margin-top: 8px;
+        .results-section {
             display: none;
         }
 
-        .series-list.show {
-            display: block;
-        }
-
-        .series-item {
-            padding: 8px 10px;
-            background: #1a1a1a;
-            margin-bottom: 4px;
-            border-radius: 4px;
-            cursor: pointer;
+        .results-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.85em;
-            transition: all 0.2s ease;
+            margin-bottom: 20px;
         }
 
-        .series-item:hover {
-            background: #2a2a2a;
-            transform: translateX(3px);
+        .results-count {
+            font-size: 18px;
+            color: #5c6bc0;
         }
 
-        .series-name {
-            color: #4a9eff;
-            flex: 1;
-            margin-right: 10px;
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
         }
 
-        .series-symbol {
-            color: #666;
-            font-family: monospace;
-            font-size: 0.8em;
-        }
-
-        .add-btn {
-            padding: 4px 12px;
-            background: #4caf50;
-            border: none;
-            border-radius: 4px;
-            color: white;
-            font-size: 0.8em;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.2s ease;
-        }
-
-        .add-btn:hover {
-            background: #5cbf60;
-            transform: scale(1.05);
-        }
-
-        .add-btn:disabled {
-            background: #666;
-            cursor: not-allowed;
-            transform: scale(1);
-        }
-
-        .analytics-panel {
-            background: #1a1a1a;
-            border: 1px solid #333;
+        .result-card {
+            background: #1a1f2e;
+            border: 1px solid #2a3142;
             border-radius: 12px;
             padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .analytics-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .analytics-title {
-            font-size: 1.4em;
-            color: #4a9eff;
-        }
-
-        .analytics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .analytics-card {
-            background: #222;
-            border: 1px solid #333;
-            border-radius: 8px;
-            padding: 15px;
             transition: all 0.3s ease;
+            cursor: pointer;
         }
 
-        .analytics-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        .result-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            border-color: #3949ab;
         }
 
-        .analytics-card h4 {
-            color: #888;
-            font-size: 0.9em;
-            font-weight: 500;
+        .result-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #5c6bc0;
             margin-bottom: 8px;
         }
 
-        .analytics-value {
-            font-size: 1.8em;
-            font-weight: bold;
-            color: #4a9eff;
-        }
-
-        .analytics-subtitle {
-            font-size: 0.8em;
+        .result-id {
+            font-family: monospace;
+            font-size: 13px;
             color: #666;
-            margin-top: 4px;
+            margin-bottom: 12px;
         }
 
-        .heatmap-container {
-            background: #222;
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 20px;
+        .result-meta {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
         }
 
-        .heatmap-title {
-            color: #4a9eff;
-            font-size: 1.1em;
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 13px;
+            color: #888;
+        }
+
+        .meta-icon {
+            font-size: 16px;
+        }
+
+        .result-description {
+            font-size: 14px;
+            color: #ccc;
+            line-height: 1.5;
             margin-bottom: 15px;
         }
 
-        .heatmap-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 8px;
+        .result-actions {
+            display: flex;
+            gap: 10px;
         }
 
-        .heatmap-cell {
-            padding: 12px;
+        .action-btn {
+            padding: 8px 16px;
+            background: #2a3142;
+            color: #fff;
+            border: 1px solid #444;
             border-radius: 6px;
-            text-align: center;
-            transition: all 0.3s ease;
+            font-size: 13px;
             cursor: pointer;
-            position: relative;
-            overflow: hidden;
+            transition: all 0.2s ease;
         }
 
-        .heatmap-cell::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
-            transform: translateX(-100%);
-            transition: transform 0.6s ease;
+        .action-btn:hover {
+            background: #3949ab;
+            border-color: #3949ab;
         }
 
-        .heatmap-cell:hover::before {
-            transform: translateX(100%);
+        .loading {
+            text-align: center;
+            padding: 60px;
+            font-size: 18px;
+            color: #666;
         }
 
-        .heatmap-cell:hover {
-            transform: scale(1.05);
-            z-index: 10;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #333;
+            border-top-color: #5c6bc0;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
         }
 
-        .heatmap-symbol {
-            font-weight: 600;
-            font-size: 0.9em;
-            margin-bottom: 4px;
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
-        .heatmap-value {
-            font-size: 0.85em;
+        .no-results {
+            text-align: center;
+            padding: 60px;
+            color: #666;
         }
 
-        .heatmap-extreme-positive {
-            background: #4caf50;
-            color: white;
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 40px;
         }
 
-        .heatmap-positive {
-            background: #2e7d32;
-            color: white;
+        .page-btn {
+            padding: 8px 16px;
+            background: #2a3142;
+            color: #fff;
+            border: 1px solid #444;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
 
-        .heatmap-mild-positive {
-            background: #1b5e20;
-            color: white;
+        .page-btn:hover:not(:disabled) {
+            background: #3949ab;
+            border-color: #3949ab;
         }
 
-        .heatmap-neutral {
-            background: #424242;
-            color: #ccc;
+        .page-btn.active {
+            background: #3949ab;
+            border-color: #3949ab;
         }
 
-        .heatmap-mild-negative {
-            background: #b71c1c;
-            color: white;
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
-        .heatmap-negative {
-            background: #c62828;
-            color: white;
-        }
-
-        .heatmap-extreme-negative {
-            background: #d32f2f;
-            color: white;
-        }
-
-        .watchlist-container {
-            background: #1a1a1a;
-            border: 1px solid #333;
+        .watchlist-panel {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            background: #1a1f2e;
+            border: 1px solid #3949ab;
             border-radius: 12px;
-            padding: 25px;
-            margin-bottom: 30px;
+            padding: 20px;
+            width: 300px;
+            max-height: 400px;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            display: none;
         }
 
         .watchlist-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 15px;
+            margin-bottom: 15px;
         }
 
         .watchlist-title {
-            font-size: 1.8em;
-            color: #4a9eff;
-        }
-
-        .watchlist-controls {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .watchlist-btn {
-            padding: 8px 16px;
-            background: #2a2a2a;
-            border: 1px solid #444;
-            border-radius: 6px;
-            color: #e0e0e0;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .watchlist-btn:hover {
-            background: #333;
-            border-color: #555;
-            transform: translateY(-1px);
-        }
-
-        .watchlist-btn.active {
-            background: #3949ab;
-            border-color: #3949ab;
-        }
-
-        .watchlist-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.95em;
-        }
-
-        .watchlist-table th,
-        .watchlist-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #333;
-        }
-
-        .watchlist-table th {
-            background: #222;
-            color: #4a9eff;
+            font-size: 16px;
             font-weight: 600;
-            position: sticky;
-            top: 0;
-            z-index: 10;
+            color: #5c6bc0;
+        }
+
+        .watchlist-count {
+            background: #3949ab;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        .watchlist-items {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .watchlist-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: #2a3142;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        .watchlist-item-name {
+            flex: 1;
+            margin-right: 10px;
+            overflow: hidden;
+            text-overflow: ellipsis;
             white-space: nowrap;
-        }
-
-        .watchlist-table tr {
-            transition: all 0.2s ease;
-        }
-
-        .watchlist-table tr:hover {
-            background: #222;
-            transform: translateX(2px);
-        }
-
-        .series-name-cell {
-            color: #4a9eff;
-            font-weight: 500;
-        }
-
-        .series-symbol-cell {
-            color: #666;
-            font-size: 0.85em;
-        }
-
-        .value-cell {
-            text-align: right;
-            font-family: monospace;
-        }
-
-        .sparkline-cell {
-            width: 120px;
-            height: 40px;
-            padding: 5px;
-        }
-
-        .sparkline {
-            width: 100%;
-            height: 100%;
-        }
-
-        .positive {
-            color: #4caf50;
-        }
-
-        .negative {
-            color: #ff5252;
-        }
-
-        .neutral {
-            color: #888;
         }
 
         .remove-btn {
             padding: 4px 8px;
             background: #d32f2f;
+            color: white;
             border: none;
             border-radius: 4px;
-            color: white;
-            font-size: 0.8em;
+            font-size: 11px;
             cursor: pointer;
-            transition: all 0.2s ease;
         }
 
         .remove-btn:hover {
             background: #f44336;
-            transform: scale(1.05);
         }
 
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #888;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px;
-            color: #666;
-        }
-
-        .empty-state h3 {
-            font-size: 1.3em;
-            margin-bottom: 10px;
-        }
-
-        .stats-bar {
-            background: #222;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-around;
-            text-align: center;
-        }
-
-        .stat-item {
-            flex: 1;
-            transition: all 0.3s ease;
-        }
-
-        .stat-item:hover {
-            transform: translateY(-2px);
-        }
-
-        .stat-value {
-            font-size: 1.8em;
-            font-weight: bold;
-            color: #4a9eff;
-        }
-
-        .stat-label {
-            font-size: 0.9em;
-            color: #666;
-        }
-
-        .error-note {
-            background: #ff9800;
-            color: #000;
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-            font-size: 0.9em;
-        }
-
-        .trend-indicator {
-            display: inline-block;
-            margin-left: 5px;
-            font-size: 0.8em;
-        }
-
-        .trend-up {
-            color: #4caf50;
-        }
-
-        .trend-down {
-            color: #ff5252;
-        }
-
-        .correlation-matrix {
-            background: #222;
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 20px;
-            overflow-x: auto;
-        }
-
-        .correlation-title {
-            color: #4a9eff;
-            font-size: 1.1em;
-            margin-bottom: 15px;
-        }
-
-        .correlation-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85em;
-        }
-
-        .correlation-table th,
-        .correlation-table td {
-            padding: 8px;
-            text-align: center;
-            border: 1px solid #333;
-        }
-
-        .correlation-table th {
-            background: #1a1a1a;
-            color: #4a9eff;
-            font-weight: 600;
-        }
-
-        .correlation-cell {
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .correlation-cell:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 8px rgba(74, 158, 255, 0.4);
-            z-index: 10;
-            position: relative;
-        }
-
-        .risk-analysis-container {
-            background: #222;
-            border-radius: 8px;
-            padding: 20px;
-        }
-
-        .risk-title {
-            color: #4a9eff;
-            font-size: 1.2em;
-            margin-bottom: 20px;
-        }
-
-        .risk-metrics {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-
-        .risk-metric-card {
-            background: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 8px;
-            padding: 20px;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .risk-metric-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-
-        .risk-metric-card h5 {
-            color: #888;
-            font-size: 0.9em;
-            margin-bottom: 10px;
-        }
-
-        .risk-score {
-            font-size: 3em;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .risk-label {
-            font-size: 1.1em;
-            font-weight: 600;
-        }
-
-        .risk-low { color: #4caf50; }
-        .risk-moderate { color: #ff9800; }
-        .risk-high { color: #f44336; }
-        .risk-extreme { color: #d32f2f; }
-
-        .risk-percentile {
-            font-size: 2em;
-            color: #4a9eff;
-        }
-
-        .stress-count {
-            font-size: 2em;
-            color: #ff9800;
-        }
-
-        .risk-histogram {
-            background: #1a1a1a;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .histogram-title {
-            color: #4a9eff;
-            font-size: 1.1em;
-            margin-bottom: 15px;
-        }
-
-        .histogram-controls {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            align-items: center;
-        }
-
-        .histogram-controls select {
-            padding: 8px 12px;
-            background: #2a2a2a;
-            color: #e0e0e0;
-            border: 1px solid #444;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-
-        .histogram-btn {
-            padding: 8px 16px;
-            background: #3949ab;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s ease;
-        }
-
-        .histogram-btn:hover {
-            background: #4a5cc4;
-            transform: translateY(-1px);
-        }
-
-        #histogramContainer {
-            position: relative;
-            width: 100%;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        #riskHistogram {
-            width: 100%;
-            height: auto;
-            max-height: 400px;
-        }
-
-        .histogram-legend {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
+        .watchlist-actions {
             margin-top: 15px;
-            justify-content: center;
-        }
-
-        .legend-item {
             display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.85em;
-        }
-
-        .legend-color {
-            width: 20px;
-            height: 12px;
-            border-radius: 2px;
-        }
-
-        .risk-indicators {
-            background: #1a1a1a;
-            border-radius: 8px;
-            padding: 20px;
-        }
-
-        .risk-indicators h4 {
-            color: #4a9eff;
-            font-size: 1.1em;
-            margin-bottom: 15px;
-        }
-
-        #riskIndicatorsList {
-            display: grid;
             gap: 10px;
         }
 
-        .risk-indicator-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            background: #222;
-            border-radius: 6px;
-            border: 1px solid #333;
-            transition: all 0.2s ease;
-        }
-
-        .risk-indicator-item:hover {
-            background: #2a2a2a;
-            transform: translateX(5px);
-        }
-
-        .indicator-name {
-            color: #4a9eff;
-            font-weight: 500;
-        }
-
-        .indicator-value {
-            font-family: monospace;
-            font-size: 1.1em;
-            font-weight: bold;
-        }
-
-        .indicator-remove {
-            padding: 4px 8px;
-            background: #d32f2f;
+        .watchlist-action-btn {
+            flex: 1;
+            padding: 8px;
+            background: #3949ab;
             color: white;
             border: none;
-            border-radius: 4px;
-            font-size: 0.8em;
+            border-radius: 6px;
+            font-size: 13px;
             cursor: pointer;
-        }
-
-        .indicator-remove:hover {
-            background: #f44336;
-        }
-
-        .view-toggle {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .toggle-btn {
-            padding: 6px 12px;
-            background: #2a2a2a;
-            border: 1px solid #444;
-            border-radius: 4px;
-            color: #e0e0e0;
-            cursor: pointer;
-            font-size: 0.85em;
             transition: all 0.2s ease;
         }
 
-        .toggle-btn.active {
-            background: #3949ab;
-            border-color: #3949ab;
+        .watchlist-action-btn:hover {
+            background: #5c6bc0;
         }
 
-        .toggle-btn:hover {
-            background: #333;
-        }
-
-        @media (max-width: 1024px) {
+        @media (max-width: 768px) {
             .container {
+                padding: 10px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .search-container {
                 flex-direction: column;
             }
             
-            .sidebar {
-                width: 100%;
-                height: 50vh;
-                border-right: none;
-                border-bottom: 1px solid #333;
+            .search-input-wrapper {
+                min-width: auto;
             }
-
-            .analytics-grid {
+            
+            .results-grid {
                 grid-template-columns: 1fr;
             }
-
-            .heatmap-grid {
-                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            
+            .watchlist-panel {
+                width: calc(100% - 40px);
+                right: 20px;
+                left: 20px;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <aside class="sidebar">
-            <h2 style="color: #4a9eff; margin-bottom: 20px;">Global Economic Data Explorer</h2>
-            
+        <div class="header">
+            <h1>FRED Universal Search</h1>
+            <p>Search over 800,000 economic time series from the Federal Reserve</p>
+        </div>
+
+        <div class="search-section">
             <div class="search-container">
-                <input 
-                    type="text" 
-                    id="searchInput" 
-                    class="search-input" 
-                    placeholder="Search economic series..."
-                    autocomplete="off"
-                >
-                <span class="search-icon">🔍</span>
-                <div id="searchResults" class="search-results"></div>
-            </div>
-
-            <div class="category-browser">
-                <h3>Browse by Source</h3>
-                <div id="categoryList"></div>
-            </div>
-        </aside>
-
-        <main class="main-content">
-            <div class="header">
-                <h1>Global Economic Data Watchlist</h1>
-                <p>Track economic indicators from FRED, ECB, NY Fed, and OFR
-                    <span class="live-indicator">
-                        <span class="live-dot"></span>
-                        LIVE
-                    </span>
-                </p>
-                <div style="background: #ff9800; color: #000; padding: 10px; margin-top: 15px; border-radius: 6px; font-size: 0.9em;">
-                    <strong>Demo Mode:</strong> Currently using simulated data. To use real FRED data:
-                    <ol style="margin: 5px 0 0 20px;">
-                        <li>Get a free API key from <a href="https://fred.stlouisfed.org/docs/api/api_key.html" target="_blank" style="color: #000; text-decoration: underline;">FRED</a></li>
-                        <li>Replace 'YOUR_FRED_API_KEY' in the code</li>
-                        <li>Set USE_MOCK_DATA = false</li>
-                    </ol>
+                <div class="search-input-wrapper">
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        class="search-input" 
+                        placeholder="Search for economic indicators, GDP, inflation, unemployment..."
+                        autocomplete="off"
+                    >
+                    <span class="search-icon">🔍</span>
                 </div>
+                <button id="searchBtn" class="search-btn" onclick="performSearch()">Search FRED</button>
             </div>
 
-            <div id="errorNote" class="error-note" style="display: none;">
-                Note: Some series may not be available through the API. FRED series typically have the best coverage.
-            </div>
-
-            <div id="analyticsPanel" class="analytics-panel" style="display: none;">
-                <div class="analytics-header">
-                    <h3 class="analytics-title">Market Analytics</h3>
-                    <div class="view-toggle">
-                        <button class="toggle-btn active" onclick="toggleView('analytics')">Analytics</button>
-                        <button class="toggle-btn" onclick="toggleView('correlation')">Correlation</button>
-                    </div>
-                </div>
-                
-                <div id="analyticsContent">
-                    <div class="analytics-grid">
-                        <div class="analytics-card">
-                            <h4>Market Momentum</h4>
-                            <div class="analytics-value" id="marketMomentum">--</div>
-                            <div class="analytics-subtitle">Based on % gainers</div>
-                        </div>
-                        <div class="analytics-card">
-                            <h4>Volatility Index</h4>
-                            <div class="analytics-value" id="volatilityIndex">--</div>
-                            <div class="analytics-subtitle">Average daily change</div>
-                        </div>
-                        <div class="analytics-card">
-                            <h4>Trend Strength</h4>
-                            <div class="analytics-value" id="trendStrength">--</div>
-                            <div class="analytics-subtitle">Weekly momentum</div>
-                        </div>
-                        <div class="analytics-card">
-                            <h4>Data Freshness</h4>
-                            <div class="analytics-value" id="dataFreshness">--</div>
-                            <div class="analytics-subtitle">Last update</div>
-                        </div>
-                    </div>
-
-                    <div class="heatmap-container">
-                        <h4 class="heatmap-title">Performance Heatmap (Daily %)</h4>
-                        <div id="heatmapGrid" class="heatmap-grid"></div>
-                    </div>
+            <div class="filters">
+                <div class="filter-group">
+                    <label class="filter-label">Sort By</label>
+                    <select id="sortOrder" class="filter-select">
+                        <option value="search_rank">Relevance</option>
+                        <option value="popularity">Popularity</option>
+                        <option value="title">Title (A-Z)</option>
+                        <option value="units">Units</option>
+                        <option value="frequency">Frequency</option>
+                        <option value="seasonal_adjustment">Seasonal Adjustment</option>
+                        <option value="last_updated">Last Updated</option>
+                    </select>
                 </div>
 
-                <div id="correlationContent" class="correlation-matrix" style="display: none;">
-                    <h4 class="correlation-title">Correlation Matrix</h4>
-                    <div id="correlationMatrix"></div>
+                <div class="filter-group">
+                    <label class="filter-label">Frequency</label>
+                    <select id="frequency" class="filter-select">
+                        <option value="">All</option>
+                        <option value="d">Daily</option>
+                        <option value="w">Weekly</option>
+                        <option value="bw">Biweekly</option>
+                        <option value="m">Monthly</option>
+                        <option value="q">Quarterly</option>
+                        <option value="sa">Semiannual</option>
+                        <option value="a">Annual</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Results Per Page</label>
+                    <select id="limit" class="filter-select">
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
                 </div>
             </div>
 
-            <div id="statsBar" class="stats-bar" style="display: none;">
-                <div class="stat-item">
-                    <div class="stat-value" id="totalSeries">0</div>
-                    <div class="stat-label">Series Tracked</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value positive" id="gainers">0</div>
-                    <div class="stat-label">Gainers</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value negative" id="losers">0</div>
-                    <div class="stat-label">Losers</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="dataPoints">0</div>
-                    <div class="stat-label">Data Points</div>
+            <div class="popular-searches">
+                <h3>Popular Searches:</h3>
+                <div class="popular-tags">
+                    <span class="popular-tag" onclick="quickSearch('GDP')">GDP</span>
+                    <span class="popular-tag" onclick="quickSearch('inflation')">Inflation</span>
+                    <span class="popular-tag" onclick="quickSearch('unemployment rate')">Unemployment</span>
+                    <span class="popular-tag" onclick="quickSearch('federal funds rate')">Fed Funds Rate</span>
+                    <span class="popular-tag" onclick="quickSearch('CPI')">CPI</span>
+                    <span class="popular-tag" onclick="quickSearch('treasury yield')">Treasury Yields</span>
+                    <span class="popular-tag" onclick="quickSearch('housing')">Housing</span>
+                    <span class="popular-tag" onclick="quickSearch('stock market')">Stock Market</span>
                 </div>
             </div>
+        </div>
 
-            <div class="watchlist-container">
-                <div class="watchlist-header">
-                    <h2 class="watchlist-title">My Watchlist</h2>
-                    <div class="watchlist-controls">
-                        <button class="watchlist-btn" onclick="toggleAutoRefresh()">
-                            <span id="autoRefreshIcon">▶️</span>
-                            <span id="autoRefreshText">Auto Refresh</span>
-                        </button>
-                        <button class="watchlist-btn" onclick="refreshAllData()">🔄 Refresh All</button>
-                        <button class="watchlist-btn" onclick="downloadWatchlist()">📥 Download CSV</button>
-                        <button class="watchlist-btn" onclick="clearWatchlist()">🗑️ Clear All</button>
-                    </div>
-                </div>
-
-                <div id="watchlistContent">
-                    <div class="empty-state">
-                        <h3>Your watchlist is empty</h3>
-                        <p>Search or browse categories to add series to your watchlist</p>
-                    </div>
-                </div>
+        <div id="resultsSection" class="results-section">
+            <div class="results-header">
+                <div class="results-count" id="resultsCount"></div>
+                <button class="action-btn" onclick="toggleWatchlist()">
+                    My Watchlist (<span id="watchlistBadge">0</span>)
+                </button>
             </div>
-        </main>
+            <div id="resultsGrid" class="results-grid"></div>
+            <div id="pagination" class="pagination"></div>
+        </div>
+
+        <div id="loadingSection" class="loading" style="display: none;">
+            <div class="loading-spinner"></div>
+            <div>Searching FRED database...</div>
+        </div>
+    </div>
+
+    <div id="watchlistPanel" class="watchlist-panel">
+        <div class="watchlist-header">
+            <span class="watchlist-title">My Watchlist</span>
+            <span class="watchlist-count" id="watchlistCountBadge">0</span>
+        </div>
+        <div id="watchlistItems" class="watchlist-items"></div>
+        <div class="watchlist-actions">
+            <button class="watchlist-action-btn" onclick="exportWatchlist()">Export CSV</button>
+            <button class="watchlist-action-btn" onclick="clearWatchlist()">Clear All</button>
+        </div>
     </div>
 
     <script>
-        // Global tab function to handle any tab switching
-        function showTab(tabName) {
-            console.log('showTab called with:', tabName);
-            // This function can be customized based on what tabs you have
-            const allTabs = document.querySelectorAll('.tab-content');
-            allTabs.forEach(tab => tab.style.display = 'none');
-            
-            const selectedTab = document.getElementById(tabName);
-            if (selectedTab) {
-                selectedTab.style.display = 'block';
-            }
-        }
-
-        const API_BASE = 'https://api.stlouisfed.org/fred';
-        const API_KEY = 'YOUR_FRED_API_KEY'; // You need to get a free API key from https://fred.stlouisfed.org/docs/api/api_key.html
+        // FRED API configuration
+        const FRED_API_KEY = 'YOUR_FRED_API_KEY'; // Get free key from https://fred.stlouisfed.org/docs/api/api_key.html
+        const FRED_API_BASE = 'https://api.stlouisfed.org/fred';
         
-        // Alternative: Use a proxy or mock data
-        const USE_MOCK_DATA = true; // Set to false when you have a working API
+        // Use demo mode if no API key
+        const USE_DEMO_MODE = FRED_API_KEY === 'YOUR_FRED_API_KEY';
         
-        // Comprehensive economic data series
-        const economicData = {
-            'Federal Reserve (FRED) - Interest Rates': {
-                'Policy Rates': [
-                    { symbol: 'DFF', name: 'Federal Funds Rate' },
-                    { symbol: 'EFFR', name: 'Effective Federal Funds Rate' },
-                    { symbol: 'SOFR', name: 'Secured Overnight Financing Rate' },
-                    { symbol: 'SOFR30DAYAVG', name: 'SOFR 30-Day Average' },
-                    { symbol: 'SOFR90DAYAVG', name: 'SOFR 90-Day Average' },
-                    { symbol: 'SOFR180DAYAVG', name: 'SOFR 180-Day Average' },
-                    { symbol: 'OBFR', name: 'Overnight Bank Funding Rate' },
-                    { symbol: 'DFEDTARU', name: 'Fed Funds Target Upper' },
-                    { symbol: 'DFEDTARL', name: 'Fed Funds Target Lower' },
-                    { symbol: 'IORB', name: 'Interest on Reserve Balances' }
-                ],
-                'Treasury Rates': [
-                    { symbol: 'DGS1MO', name: '1-Month Treasury' },
-                    { symbol: 'DGS3MO', name: '3-Month Treasury' },
-                    { symbol: 'DGS6MO', name: '6-Month Treasury' },
-                    { symbol: 'DGS1', name: '1-Year Treasury' },
-                    { symbol: 'DGS2', name: '2-Year Treasury' },
-                    { symbol: 'DGS3', name: '3-Year Treasury' },
-                    { symbol: 'DGS5', name: '5-Year Treasury' },
-                    { symbol: 'DGS7', name: '7-Year Treasury' },
-                    { symbol: 'DGS10', name: '10-Year Treasury' },
-                    { symbol: 'DGS20', name: '20-Year Treasury' },
-                    { symbol: 'DGS30', name: '30-Year Treasury' },
-                    { symbol: 'TB3MS', name: '3-Month T-Bill Secondary' },
-                    { symbol: 'TB6MS', name: '6-Month T-Bill Secondary' },
-                    { symbol: 'TB1YR', name: '1-Year T-Bill Secondary' }
-                ],
-                'TIPS & Breakevens': [
-                    { symbol: 'DFII5', name: '5-Year TIPS' },
-                    { symbol: 'DFII7', name: '7-Year TIPS' },
-                    { symbol: 'DFII10', name: '10-Year TIPS' },
-                    { symbol: 'DFII20', name: '20-Year TIPS' },
-                    { symbol: 'DFII30', name: '30-Year TIPS' },
-                    { symbol: 'T5YIE', name: '5-Year Breakeven Inflation' },
-                    { symbol: 'T10YIE', name: '10-Year Breakeven Inflation' },
-                    { symbol: 'T5YIFR', name: '5-Year Forward Inflation' },
-                    { symbol: 'RINF', name: 'Real Interest Rate' }
-                ],
-                'Spreads & Term Structure': [
-                    { symbol: 'T10Y2Y', name: '10Y-2Y Treasury Spread' },
-                    { symbol: 'T10Y3M', name: '10Y-3M Treasury Spread' },
-                    { symbol: 'T30Y5Y', name: '30Y-5Y Treasury Spread' },
-                    { symbol: 'T5Y3M', name: '5Y-3M Treasury Spread' },
-                    { symbol: 'T10YFF', name: '10Y-Fed Funds Spread' },
-                    { symbol: 'TEDRATE', name: 'TED Spread' }
-                ],
-                'Corporate & Credit': [
-                    { symbol: 'AAA', name: 'AAA Corporate Bond Yield' },
-                    { symbol: 'AA', name: 'AA Corporate Bond Yield' },
-                    { symbol: 'A', name: 'A Corporate Bond Yield' },
-                    { symbol: 'BBB', name: 'BBB Corporate Bond Yield' },
-                    { symbol: 'BAMLH0A0HYM2', name: 'High Yield Spread' },
-                    { symbol: 'BAMLC0A0CM', name: 'Investment Grade Spread' },
-                    { symbol: 'BAMLC0A1CAAAEY', name: 'AAA Corporate Spread' },
-                    { symbol: 'BAMLC0A4CBBBEY', name: 'BBB Corporate Spread' }
-                ],
-                'Mortgage & Consumer Rates': [
-                    { symbol: 'MORTGAGE30US', name: '30-Year Fixed Mortgage' },
-                    { symbol: 'MORTGAGE15US', name: '15-Year Fixed Mortgage' },
-                    { symbol: 'MORTGAGE5US', name: '5/1-Year ARM' },
-                    { symbol: 'MPRIME', name: 'Bank Prime Rate' },
-                    { symbol: 'PRIME', name: 'Prime Rate' },
-                    { symbol: 'TERMCBCCALLNS', name: 'Credit Card Rate' },
-                    { symbol: 'TERMCBPER24NS', name: '24-Month Personal Loan' },
-                    { symbol: 'RIFLPBCIANM48NS', name: '48-Month Auto Loan' }
-                ],
-                'International Rates': [
-                    { symbol: 'INTDSRUSM193N', name: 'US 3-Month Rate' },
-                    { symbol: 'INTDSRJPM193N', name: 'Japan 3-Month Rate' },
-                    { symbol: 'INTDSREUM193N', name: 'Euro Area 3-Month Rate' },
-                    { symbol: 'INTDSRGBM193N', name: 'UK 3-Month Rate' },
-                    { symbol: 'INTDSRCNM193N', name: 'China 3-Month Rate' },
-                    { symbol: 'INTDSRCHM193N', name: 'Switzerland 3-Month Rate' }
-                ],
-                'LIBOR Rates (Historical)': [
-                    { symbol: 'USD1MTD156N', name: '1-Month LIBOR' },
-                    { symbol: 'USD3MTD156N', name: '3-Month LIBOR' },
-                    { symbol: 'USD6MTD156N', name: '6-Month LIBOR' },
-                    { symbol: 'USD12MD156N', name: '12-Month LIBOR' },
-                    { symbol: 'USDONTD156N', name: 'Overnight LIBOR' }
-                ],
-                'Discount & Lending': [
-                    { symbol: 'INTDSRUSM193N', name: 'Discount Rate' },
-                    { symbol: 'DPCREDIT', name: 'Discount Window Borrowing' },
-                    { symbol: 'RESPPLLOPNWW', name: 'Fed Lending Rate' }
-                ]
-            },
-            'Federal Reserve (FRED) - Core Series': {
-                'Monetary Aggregates': [
-                    { symbol: 'M1SL', name: 'M1 Money Supply' },
-                    { symbol: 'M2SL', name: 'M2 Money Supply' },
-                    { symbol: 'BOGMBASE', name: 'Monetary Base' },
-                    { symbol: 'TOTRESNS', name: 'Total Reserves' },
-                    { symbol: 'WRESBAL', name: 'Reserve Balances with Fed Banks' }
-                ],
-                'Economic Indicators': [
-                    { symbol: 'GDP', name: 'Gross Domestic Product' },
-                    { symbol: 'GDPC1', name: 'Real GDP' },
-                    { symbol: 'UNRATE', name: 'Unemployment Rate' },
-                    { symbol: 'PAYEMS', name: 'Nonfarm Payrolls' },
-                    { symbol: 'CPIAUCSL', name: 'Consumer Price Index' },
-                    { symbol: 'CPILFESL', name: 'Core CPI' },
-                    { symbol: 'PPIACO', name: 'Producer Price Index' },
-                    { symbol: 'INDPRO', name: 'Industrial Production Index' },
-                    { symbol: 'HOUST', name: 'Housing Starts' },
-                    { symbol: 'PERMIT', name: 'Building Permits' }
-                ],
-                'Financial Markets': [
-                    { symbol: 'VIXCLS', name: 'VIX Volatility Index' },
-                    { symbol: 'TEDRATE', name: 'TED Spread' },
-                    { symbol: 'T10Y2Y', name: '10Y-2Y Treasury Spread' },
-                    { symbol: 'T10Y3M', name: '10Y-3M Treasury Spread' },
-                    { symbol: 'BAMLH0A0HYM2', name: 'High Yield Spread' },
-                    { symbol: 'DEXUSEU', name: 'USD/EUR Exchange Rate' },
-                    { symbol: 'DEXCHUS', name: 'CNY/USD Exchange Rate' },
-                    { symbol: 'DEXJPUS', name: 'JPY/USD Exchange Rate' },
-                    { symbol: 'DTWEXBGS', name: 'Trade Weighted Dollar Index' }
-                ]
-            },
-            'European Central Bank (ECB) - Attempt': {
-                'ECB Policy Rates': [
-                    { symbol: 'ECBDFR', name: 'ECB Deposit Facility Rate' },
-                    { symbol: 'ECBMPRFR', name: 'ECB Main Refinancing Rate' },
-                    { symbol: 'ECBMLFR', name: 'ECB Marginal Lending Rate' },
-                    { symbol: 'EUINTERESTRATE', name: 'Euro Area Interest Rate' }
-                ],
-                'Euro Area Indicators': [
-                    { symbol: 'EURM1', name: 'Euro Area M1' },
-                    { symbol: 'EURM2', name: 'Euro Area M2' },
-                    { symbol: 'EURM3', name: 'Euro Area M3' },
-                    { symbol: 'EURCPI', name: 'Euro Area CPI' },
-                    { symbol: 'EURGDP', name: 'Euro Area GDP' },
-                    { symbol: 'EURUNRATE', name: 'Euro Area Unemployment' }
-                ]
-            },
-            'New York Fed - Core Series': {
-                'NY Fed Markets': [
-                    { symbol: 'RPONTSYD', name: 'Overnight Repo Rate' },
-                    { symbol: 'SOFR', name: 'SOFR (also in FRED)' },
-                    { symbol: 'OBFR', name: 'Overnight Bank Funding Rate' },
-                    { symbol: 'TGCR', name: 'Tri-Party General Collateral Rate' },
-                    { symbol: 'BGCR', name: 'Broad General Collateral Rate' }
-                ],
-                'Primary Dealer Statistics': [
-                    { symbol: 'PDPOSGS', name: 'Primary Dealer Positions - Treasuries' },
-                    { symbol: 'PDPOSMBS', name: 'Primary Dealer Positions - MBS' },
-                    { symbol: 'PDPOSCORP', name: 'Primary Dealer Positions - Corporate' },
-                    { symbol: 'PDDURAS', name: 'Primary Dealer Duration Risk' }
-                ],
-                'Inflation Expectations': [
-                    { symbol: 'T5YIE', name: '5-Year Breakeven Inflation Rate' },
-                    { symbol: 'T10YIE', name: '10-Year Breakeven Inflation Rate' },
-                    { symbol: 'T5YIFR', name: '5-Year Forward Inflation Expectation' },
-                    { symbol: 'DFEDTARU', name: 'Fed Funds Target Upper Bound' }
-                ]
-            },
-            'Office of Financial Research (OFR)': {
-                'Financial Stress': [
-                    { symbol: 'STLFSI4', name: 'St. Louis Fed Financial Stress Index' },
-                    { symbol: 'NFCI', name: 'Chicago Fed Financial Conditions' },
-                    { symbol: 'ANFCI', name: 'Adjusted Financial Conditions' },
-                    { symbol: 'KCFSI', name: 'Kansas City Financial Stress' }
-                ],
-                'Systemic Risk Indicators': [
-                    { symbol: 'SRISK', name: 'Systemic Risk Measure' },
-                    { symbol: 'LEVERAGE', name: 'Financial Sector Leverage' },
-                    { symbol: 'MKTCAP', name: 'Market Capitalization Ratio' }
-                ]
-            },
-            'Additional FRED Series': {
-                'Employment Details': [
-                    { symbol: 'CIVPART', name: 'Labor Force Participation Rate' },
-                    { symbol: 'EMRATIO', name: 'Employment-Population Ratio' },
-                    { symbol: 'UNEMPLOY', name: 'Unemployed Persons' },
-                    { symbol: 'ICSA', name: 'Initial Jobless Claims' },
-                    { symbol: 'CCSA', name: 'Continued Claims' },
-                    { symbol: 'U6RATE', name: 'U-6 Unemployment Rate' },
-                    { symbol: 'MEHOINUSA672N', name: 'Median Household Income' }
-                ],
-                'Housing Market': [
-                    { symbol: 'CSUSHPISA', name: 'Case-Shiller Home Price Index' },
-                    { symbol: 'MSPUS', name: 'Median Sales Price of Houses' },
-                    { symbol: 'EXHOSLUSM495S', name: 'Existing Home Sales' },
-                    { symbol: 'HSN1F', name: 'New Home Sales' },
-                    { symbol: 'MSACSR', name: 'Monthly Supply of Houses' }
-                ],
-                'Manufacturing': [
-                    { symbol: 'DGORDER', name: 'Durable Goods Orders' },
-                    { symbol: 'NEWORDER', name: 'Manufacturers New Orders' },
-                    { symbol: 'UMCSENT', name: 'Consumer Sentiment' },
-                    { symbol: 'GACDISA066MSFRBNY', name: 'Empire State Index' },
-                    { symbol: 'MANEMP', name: 'Manufacturing Employment' }
-                ],
-                'Credit & Banking': [
-                    { symbol: 'TOTBKCR', name: 'Bank Credit, All Banks' },
-                    { symbol: 'BUSLOANS', name: 'Business Loans' },
-                    { symbol: 'REALLN', name: 'Real Estate Loans' },
-                    { symbol: 'CONSUMER', name: 'Consumer Loans' },
-                    { symbol: 'DPSACBW027SBOG', name: 'Deposits, All Banks' },
-                    { symbol: 'H8B1001NCBCMG', name: 'Commercial Paper Outstanding' }
-                ],
-                'Commodities': [
-                    { symbol: 'DCOILWTICO', name: 'WTI Crude Oil Price' },
-                    { symbol: 'GOLDAMGBD228NLBM', name: 'Gold Price London Fix' },
-                    { symbol: 'DHHNGSP', name: 'Natural Gas Price' },
-                    { symbol: 'DCOILBRENTEU', name: 'Brent Crude Oil Price' },
-                    { symbol: 'PALLFNFINDEXM', name: 'Global Commodity Index' }
-                ],
-                'Government Finance': [
-                    { symbol: 'GFDEBTN', name: 'Federal Debt Total' },
-                    { symbol: 'GFDEGDQ188S', name: 'Federal Debt to GDP Ratio' },
-                    { symbol: 'FYFSD', name: 'Federal Surplus or Deficit' },
-                    { symbol: 'FYFR', name: 'Federal Receipts' },
-                    { symbol: 'FYONET', name: 'Federal Net Outlays' }
-                ]
-            }
-        };
-
+        let currentPage = 0;
+        let totalResults = 0;
         let watchlist = [];
-        let seriesData = {};
-        let searchTimeout;
-        let failedSeries = new Set();
-        let autoRefreshInterval = null;
-        let currentView = 'analytics';
-        let riskIndicators = [];
-        let histogramChart = null;
 
-        function initializeCategories() {
-            console.log('Starting category initialization...');
-            const categoryList = document.getElementById('categoryList');
-            
-            if (!categoryList) {
-                console.error('Category list element not found!');
-                return;
+        // Demo data for when API key is not available
+        const demoData = [
+            { id: 'GDP', title: 'Gross Domestic Product', units: 'Billions of Dollars', frequency: 'Quarterly', seasonal_adjustment: 'Seasonally Adjusted Annual Rate', last_updated: '2024-01-15', popularity: 100, notes: 'The market value of goods and services produced by labor and property in the United States.' },
+            { id: 'UNRATE', title: 'Unemployment Rate', units: 'Percent', frequency: 'Monthly', seasonal_adjustment: 'Seasonally Adjusted', last_updated: '2024-02-01', popularity: 95, notes: 'The unemployment rate represents the number of unemployed as a percentage of the labor force.' },
+            { id: 'CPIAUCSL', title: 'Consumer Price Index for All Urban Consumers', units: 'Index 1982-1984=100', frequency: 'Monthly', seasonal_adjustment: 'Seasonally Adjusted', last_updated: '2024-02-13', popularity: 98, notes: 'The Consumer Price Index for All Urban Consumers: All Items.' },
+            { id: 'DFF', title: 'Federal Funds Effective Rate', units: 'Percent', frequency: 'Daily', seasonal_adjustment: 'Not Seasonally Adjusted', last_updated: '2024-02-20', popularity: 92, notes: 'The federal funds rate is the interest rate at which depository institutions trade federal funds.' },
+            { id: 'DGS10', title: '10-Year Treasury Constant Maturity Rate', units: 'Percent', frequency: 'Daily', seasonal_adjustment: 'Not Seasonally Adjusted', last_updated: '2024-02-20', popularity: 90, notes: 'Treasury securities adjusted to constant maturity of 10 years.' },
+            { id: 'HOUST', title: 'Housing Starts: Total', units: 'Thousands of Units', frequency: 'Monthly', seasonal_adjustment: 'Seasonally Adjusted Annual Rate', last_updated: '2024-02-16', popularity: 85, notes: 'New privately owned housing units started.' },
+            { id: 'INDPRO', title: 'Industrial Production Index', units: 'Index 2017=100', frequency: 'Monthly', seasonal_adjustment: 'Seasonally Adjusted', last_updated: '2024-02-15', popularity: 82, notes: 'The Industrial Production Index measures real production output.' },
+            { id: 'PAYEMS', title: 'All Employees: Total Nonfarm', units: 'Thousands of Persons', frequency: 'Monthly', seasonal_adjustment: 'Seasonally Adjusted', last_updated: '2024-02-02', popularity: 94, notes: 'All Employees: Total Nonfarm, commonly known as Total Nonfarm Payroll.' },
+            { id: 'DEXUSEU', title: 'U.S. / Euro Foreign Exchange Rate', units: 'U.S. Dollars to One Euro', frequency: 'Daily', seasonal_adjustment: 'Not Seasonally Adjusted', last_updated: '2024-02-20', popularity: 88, notes: 'Exchange rate between US Dollar and Euro.' },
+            { id: 'VIXCLS', title: 'CBOE Volatility Index: VIX', units: 'Index', frequency: 'Daily', seasonal_adjustment: 'Not Seasonally Adjusted', last_updated: '2024-02-20', popularity: 91, notes: 'VIX measures market expectation of near term volatility.' }
+        ];
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            if (USE_DEMO_MODE) {
+                showDemoNotice();
             }
             
-            // Clear existing content
-            categoryList.innerHTML = '';
-            
-            let categoryCount = 0;
-            
-            Object.entries(economicData).forEach(([mainCategory, subcategories]) => {
-                console.log(`Adding category: ${mainCategory}`);
-                categoryCount++;
-                
-                const mainDiv = document.createElement('div');
-                mainDiv.className = 'main-category';
-                
-                const totalSeries = Object.values(subcategories).reduce((acc, arr) => acc + arr.length, 0);
-                
-                const mainHeader = document.createElement('div');
-                mainHeader.className = 'main-category-header';
-                mainHeader.innerHTML = `
-                    <span>${mainCategory}</span>
-                    <span class="category-count">${totalSeries}</span>
-                `;
-                mainHeader.onclick = () => toggleMainCategory(mainCategory);
-                
-                const subcatContainer = document.createElement('div');
-                subcatContainer.className = 'subcategories';
-                subcatContainer.id = `main-${mainCategory.replace(/[^a-zA-Z0-9]/g, '-')}`;
-                
-                Object.entries(subcategories).forEach(([subcat, series]) => {
-                    const subcatDiv = document.createElement('div');
-                    subcatDiv.className = 'subcategory';
-                    
-                    const subcatHeader = document.createElement('div');
-                    subcatHeader.className = 'subcategory-header';
-                    subcatHeader.innerHTML = `
-                        <span>${subcat}</span>
-                        <span class="category-count">${series.length}</span>
-                    `;
-                    subcatHeader.onclick = () => toggleSubcategory(mainCategory, subcat);
-                    
-                    const seriesList = document.createElement('div');
-                    seriesList.className = 'series-list';
-                    seriesList.id = `series-${mainCategory.replace(/[^a-zA-Z0-9]/g, '-')}-${subcat.replace(/[^a-zA-Z0-9]/g, '-')}`;
-                    
-                    series.forEach(item => {
-                        const seriesItem = document.createElement('div');
-                        seriesItem.className = 'series-item';
-                        seriesItem.innerHTML = `
-                            <span class="series-name">${item.name}</span>
-                            <span class="series-symbol">${item.symbol}</span>
-                            <button class="add-btn" id="btn-${item.symbol}" onclick="addToWatchlist('${item.symbol}', '${item.name.replace(/'/g, "\\'")}')">Add</button>
-                        `;
-                        seriesList.appendChild(seriesItem);
-                    });
-                    
-                    subcatDiv.appendChild(subcatHeader);
-                    subcatDiv.appendChild(seriesList);
-                    subcatContainer.appendChild(subcatDiv);
-                });
-                
-                mainDiv.appendChild(mainHeader);
-                mainDiv.appendChild(subcatContainer);
-                categoryList.appendChild(mainDiv);
-            });
-            
-            console.log(`Categories initialized: ${categoryCount} main categories added`);
-            
-            // If no categories were added, show an error
-            if (categoryCount === 0) {
-                categoryList.innerHTML = '<div style="padding: 20px; color: #ff9800;">Error: No categories loaded. Check console for details.</div>';
+            // Load saved watchlist
+            const saved = localStorage.getItem('fredWatchlist');
+            if (saved) {
+                watchlist = JSON.parse(saved);
+                updateWatchlistDisplay();
             }
-        }
-
-        function toggleMainCategory(category) {
-            const id = `main-${category.replace(/[^a-zA-Z0-9]/g, '-')}`;
-            const element = document.getElementById(id);
-            const header = element.previousElementSibling;
             
-            document.querySelectorAll('.subcategories').forEach(sub => {
-                if (sub.id !== id) {
-                    sub.classList.remove('show');
-                    sub.previousElementSibling.classList.remove('active');
+            // Enter key triggers search
+            document.getElementById('searchInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    performSearch();
                 }
             });
-            
-            element.classList.toggle('show');
-            header.classList.toggle('active');
-        }
-
-        function toggleSubcategory(mainCategory, subCategory) {
-            const id = `series-${mainCategory.replace(/[^a-zA-Z0-9]/g, '-')}-${subCategory.replace(/[^a-zA-Z0-9]/g, '-')}`;
-            const element = document.getElementById(id);
-            
-            const parent = element.closest('.subcategories');
-            parent.querySelectorAll('.series-list').forEach(list => {
-                if (list.id !== id) {
-                    list.classList.remove('show');
-                }
-            });
-            
-            element.classList.toggle('show');
-        }
-
-        // Search functionality
-        document.getElementById('searchInput').addEventListener('input', function(e) {
-            clearTimeout(searchTimeout);
-            const query = e.target.value.toLowerCase().trim();
-            
-            if (query.length < 2) {
-                document.getElementById('searchResults').style.display = 'none';
-                return;
-            }
-            
-            searchTimeout = setTimeout(() => performSearch(query), 300);
         });
 
-        function performSearch(query) {
-            const results = [];
-            
-            Object.entries(economicData).forEach(([mainCat, subcats]) => {
-                Object.entries(subcats).forEach(([subcat, series]) => {
-                    series.forEach(item => {
-                        if (item.name.toLowerCase().includes(query) || 
-                            item.symbol.toLowerCase().includes(query)) {
-                            results.push({
-                                ...item,
-                                category: `${mainCat} > ${subcat}`
-                            });
-                        }
-                    });
-                });
-            });
-            
-            displaySearchResults(results.slice(0, 20));
-        }
-
-        function displaySearchResults(results) {
-            const container = document.getElementById('searchResults');
-            
-            if (results.length === 0) {
-                container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">No results found</div>';
-            } else {
-                container.innerHTML = results.map(item => `
-                    <div class="search-result-item">
-                        <div class="search-result-info">
-                            <div class="search-result-title">${item.name}</div>
-                            <div class="search-result-symbol">${item.symbol} - ${item.category}</div>
-                        </div>
-                        <button class="add-btn" onclick="addToWatchlist('${item.symbol}', '${item.name.replace(/'/g, "\\'")}')">Add</button>
-                    </div>
-                `).join('');
-            }
-            
-            container.style.display = 'block';
-        }
-
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.search-container')) {
-                document.getElementById('searchResults').style.display = 'none';
-            }
-        });
-
-        async function addToWatchlist(symbol, name) {
-            if (watchlist.find(item => item.symbol === symbol)) {
-                alert('This series is already in your watchlist');
-                return;
-            }
-            
-            const btn = document.getElementById(`btn-${symbol}`) || event.target;
-            btn.textContent = 'Loading...';
-            btn.disabled = true;
-            
-            try {
-                const data = await fetchSeriesData(symbol);
-                if (data && data.length > 0) {
-                    seriesData[symbol] = data;
-                    watchlist.push({ symbol, name });
-                    updateWatchlistDisplay();
-                    updateStats();
-                    updateAnalytics();
-                    
-                    document.getElementById('searchResults').style.display = 'none';
-                    document.getElementById('searchInput').value = '';
-                    
-                    if (failedSeries.size > 0) {
-                        document.getElementById('errorNote').style.display = 'block';
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading series:', error);
-                failedSeries.add(symbol);
-                alert(`Unable to load data for ${symbol}. This series may not be available through the API.`);
-            } finally {
-                btn.textContent = 'Add';
-                btn.disabled = false;
-            }
-        }
-
-        async function fetchSeriesData(symbol) {
-            try {
-                if (USE_MOCK_DATA || API_KEY === 'YOUR_FRED_API_KEY') {
-                    console.log(`Using mock data for ${symbol}`);
-                    return generateMockData(symbol);
-                }
-                
-                // Use official FRED API
-                const endDate = new Date().toISOString().split('T')[0];
-                const startDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-                
-                const url = `${API_BASE}/series/observations?series_id=${symbol}&api_key=${API_KEY}&file_type=json&observation_start=${startDate}&observation_end=${endDate}`;
-                console.log(`Fetching: ${url}`);
-                
-                const response = await fetch(url, {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const data = await response.json();
-                console.log(`Response for ${symbol}:`, data);
-                
-                if (!data.observations || data.observations.length === 0) {
-                    throw new Error('No data available');
-                }
-                
-                const processedData = data.observations
-                    .filter(obs => obs.value !== '.')
-                    .map(obs => ({
-                        date: new Date(obs.date),
-                        value: parseFloat(obs.value)
-                    }))
-                    .filter(item => !isNaN(item.value))
-                    .sort((a, b) => a.date - b.date);
-                
-                if (processedData.length === 0) {
-                    throw new Error('No valid data points');
-                }
-                
-                console.log(`Successfully fetched ${processedData.length} data points for ${symbol}`);
-                return processedData;
-                
-            } catch (error) {
-                console.error(`Error fetching ${symbol}:`, error);
-                console.warn('Falling back to mock data');
-                return generateMockData(symbol);
-            }
-        }
-
-        // Mock data generator for testing
-        function generateMockData(symbol) {
-            const data = [];
-            const now = new Date();
-            
-            // Different patterns for different types of indicators
-            let baseValue, volatility, trend;
-            
-            if (symbol.includes('DGS') || symbol.includes('Treasury')) {
-                // Treasury rates
-                baseValue = parseFloat(symbol.replace('DGS', '')) || 3;
-                volatility = 0.1;
-                trend = 0.001;
-            } else if (symbol === 'VIX' || symbol === 'VIXCLS') {
-                // VIX
-                baseValue = 18;
-                volatility = 3;
-                trend = 0;
-            } else if (symbol.includes('SPREAD') || symbol.includes('Y2Y') || symbol.includes('Y3M')) {
-                // Spreads
-                baseValue = 1.5;
-                volatility = 0.2;
-                trend = -0.001;
-            } else if (symbol === 'DFF' || symbol === 'EFFR') {
-                // Fed Funds
-                baseValue = 5.25;
-                volatility = 0.05;
-                trend = 0;
-            } else if (symbol.includes('M1') || symbol.includes('M2')) {
-                // Money supply
-                baseValue = 20000;
-                volatility = 100;
-                trend = 50;
-            } else {
-                // Generic
-                baseValue = Math.random() * 100 + 50;
-                volatility = Math.random() * 5 + 1;
-                trend = (Math.random() - 0.5) * 0.1;
-            }
-            
-            // Generate data points
-            for (let i = 365; i >= 0; i--) {
-                const date = new Date(now);
-                date.setDate(date.getDate() - i);
-                
-                // Skip weekends for more realistic data
-                if (date.getDay() === 0 || date.getDay() === 6) continue;
-                
-                const randomWalk = (Math.random() - 0.5) * volatility;
-                const trendComponent = trend * (365 - i);
-                const seasonalComponent = Math.sin((365 - i) / 365 * Math.PI * 2) * volatility * 0.5;
-                
-                let value = baseValue + randomWalk + trendComponent + seasonalComponent;
-                
-                // Add some occasional spikes for realism
-                if (Math.random() < 0.02) {
-                    value += (Math.random() - 0.5) * volatility * 3;
-                }
-                
-                data.push({
-                    date: date,
-                    value: Math.max(0, value)
-                });
-            }
-            
-            console.log(`Generated ${data.length} mock data points for ${symbol}`);
-            return data;
-        }
-
-        function calculateChange(data, days) {
-            if (!data || data.length < 2) return null;
-            
-            const latest = data[data.length - 1];
-            const targetDate = new Date(latest.date);
-            targetDate.setDate(targetDate.getDate() - days);
-            
-            let closest = null;
-            let minDiff = Infinity;
-            
-            for (let i = data.length - 2; i >= 0; i--) {
-                const diff = Math.abs(data[i].date - targetDate);
-                if (diff < minDiff) {
-                    minDiff = diff;
-                    closest = data[i];
-                }
-                if (data[i].date < targetDate && minDiff < 7 * 24 * 60 * 60 * 1000) break;
-            }
-            
-            if (!closest) return null;
-            
-            const change = latest.value - closest.value;
-            const percentChange = closest.value !== 0 ? (change / closest.value) * 100 : 0;
-            
-            return { change, percentChange };
-        }
-
-        function calculateYTDChange(data) {
-            if (!data || data.length < 2) return null;
-            
-            const latest = data[data.length - 1];
-            const currentYear = latest.date.getFullYear();
-            const startOfYear = new Date(currentYear, 0, 1);
-            
-            let yearStart = null;
-            for (let i = 0; i < data.length; i++) {
-                if (data[i].date >= startOfYear) {
-                    yearStart = i > 0 ? data[i - 1] : data[i];
-                    break;
-                }
-            }
-            
-            if (!yearStart) {
-                yearStart = data[0];
-            }
-            
-            const change = latest.value - yearStart.value;
-            const percentChange = yearStart.value !== 0 ? (change / yearStart.value) * 100 : 0;
-            
-            return { change, percentChange };
-        }
-
-        function createSparkline(data, width = 120, height = 40) {
-            if (!data || data.length < 2) return '';
-            
-            // Take last 30 data points for sparkline
-            const recentData = data.slice(-30);
-            const values = recentData.map(d => d.value);
-            const min = Math.min(...values);
-            const max = Math.max(...values);
-            const range = max - min || 1;
-            
-            const points = recentData.map((d, i) => {
-                const x = (i / (recentData.length - 1)) * width;
-                const y = height - ((d.value - min) / range) * height;
-                return `${x},${y}`;
-            }).join(' ');
-            
-            const firstValue = recentData[0].value;
-            const lastValue = recentData[recentData.length - 1].value;
-            const color = lastValue >= firstValue ? '#4caf50' : '#ff5252';
-            
-            return `
-                <svg class="sparkline" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
-                    <polyline
-                        fill="none"
-                        stroke="${color}"
-                        stroke-width="2"
-                        points="${points}"
-                    />
-                    <circle cx="${width}" cy="${height - ((lastValue - min) / range) * height}" r="3" fill="${color}"/>
-                </svg>
+        function showDemoNotice() {
+            const notice = document.createElement('div');
+            notice.style.cssText = 'background: #ff9800; color: #000; padding: 10px; text-align: center; font-weight: 600;';
+            notice.innerHTML = `
+                Demo Mode: To search real FRED data, get a free API key from 
+                <a href="https://fred.stlouisfed.org/docs/api/api_key.html" target="_blank" style="color: #000; text-decoration: underline;">
+                    fred.stlouisfed.org
+                </a> and update the code.
             `;
+            document.body.insertBefore(notice, document.body.firstChild);
+        }
+
+        async function performSearch(page = 0) {
+            const searchText = document.getElementById('searchInput').value.trim();
+            if (!searchText) {
+                alert('Please enter a search term');
+                return;
+            }
+            
+            currentPage = page;
+            showLoading(true);
+            
+            try {
+                let results;
+                
+                if (USE_DEMO_MODE) {
+                    // Filter demo data based on search
+                    results = {
+                        seriess: demoData.filter(item => 
+                            item.title.toLowerCase().includes(searchText.toLowerCase()) ||
+                            item.id.toLowerCase().includes(searchText.toLowerCase()) ||
+                            item.notes.toLowerCase().includes(searchText.toLowerCase())
+                        ),
+                        count: demoData.length
+                    };
+                } else {
+                    // Real FRED API call
+                    const limit = document.getElementById('limit').value;
+                    const orderBy = document.getElementById('sortOrder').value;
+                    const offset = page * limit;
+                    
+                    const url = `${FRED_API_BASE}/series/search?search_text=${encodeURIComponent(searchText)}&api_key=${FRED_API_KEY}&file_type=json&limit=${limit}&offset=${offset}&order_by=${orderBy}`;
+                    
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error('API request failed');
+                    
+                    results = await response.json();
+                }
+                
+                displayResults(results);
+            } catch (error) {
+                console.error('Search error:', error);
+                alert('Error searching FRED database. ' + (USE_DEMO_MODE ? 'Showing demo data.' : 'Please check your API key.'));
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function displayResults(data) {
+            const resultsSection = document.getElementById('resultsSection');
+            const resultsGrid = document.getElementById('resultsGrid');
+            const resultsCount = document.getElementById('resultsCount');
+            
+            totalResults = data.count || 0;
+            const series = data.seriess || [];
+            
+            if (series.length === 0) {
+                resultsGrid.innerHTML = '<div class="no-results">No results found. Try different search terms.</div>';
+                resultsCount.textContent = 'No results';
+                resultsSection.style.display = 'block';
+                return;
+            }
+            
+            resultsCount.textContent = `Found ${totalResults.toLocaleString()} series`;
+            resultsSection.style.display = 'block';
+            
+            resultsGrid.innerHTML = series.map(item => `
+                <div class="result-card" onclick="viewSeriesDetails('${item.id}')">
+                    <div class="result-title">${item.title || 'Untitled'}</div>
+                    <div class="result-id">${item.id}</div>
+                    <div class="result-meta">
+                        ${item.units ? `<div class="meta-item"><span class="meta-icon">📊</span> ${item.units}</div>` : ''}
+                        ${item.frequency ? `<div class="meta-item"><span class="meta-icon">📅</span> ${getFrequencyLabel(item.frequency)}</div>` : ''}
+                        ${item.seasonal_adjustment ? `<div class="meta-item"><span class="meta-icon">📈</span> ${item.seasonal_adjustment}</div>` : ''}
+                    </div>
+                    ${item.notes ? `<div class="result-description">${truncateText(item.notes, 150)}</div>` : ''}
+                    <div class="result-actions">
+                        <button class="action-btn" onclick="event.stopPropagation(); addToWatchlist('${item.id}', '${(item.title || '').replace(/'/g, "\\'")}')">
+                            ${watchlist.find(w => w.id === item.id) ? '✓ In Watchlist' : '+ Add to Watchlist'}
+                        </button>
+                        <button class="action-btn" onclick="event.stopPropagation(); viewChart('${item.id}')">View Chart</button>
+                    </div>
+                </div>
+            `).join('');
+            
+            updatePagination();
+        }
+
+        function updatePagination() {
+            const pagination = document.getElementById('pagination');
+            const limit = parseInt(document.getElementById('limit').value);
+            const totalPages = Math.ceil(totalResults / limit);
+            
+            if (totalPages <= 1) {
+                pagination.innerHTML = '';
+                return;
+            }
+            
+            let html = '';
+            
+            // Previous button
+            html += `<button class="page-btn" onclick="performSearch(${currentPage - 1})" ${currentPage === 0 ? 'disabled' : ''}>Previous</button>`;
+            
+            // Page numbers
+            const maxButtons = 5;
+            let startPage = Math.max(0, currentPage - Math.floor(maxButtons / 2));
+            let endPage = Math.min(totalPages - 1, startPage + maxButtons - 1);
+            
+            if (endPage - startPage < maxButtons - 1) {
+                startPage = Math.max(0, endPage - maxButtons + 1);
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="performSearch(${i})">${i + 1}</button>`;
+            }
+            
+            // Next button
+            html += `<button class="page-btn" onclick="performSearch(${currentPage + 1})" ${currentPage >= totalPages - 1 ? 'disabled' : ''}>Next</button>`;
+            
+            pagination.innerHTML = html;
+        }
+
+        function getFrequencyLabel(freq) {
+            const frequencies = {
+                'd': 'Daily',
+                'w': 'Weekly',
+                'bw': 'Biweekly',
+                'm': 'Monthly',
+                'q': 'Quarterly',
+                'sa': 'Semiannual',
+                'a': 'Annual'
+            };
+            return frequencies[freq] || freq;
+        }
+
+        function truncateText(text, maxLength) {
+            if (text.length <= maxLength) return text;
+            return text.substr(0, maxLength) + '...';
+        }
+
+        function quickSearch(term) {
+            document.getElementById('searchInput').value = term;
+            performSearch();
+        }
+
+        function showLoading(show) {
+            document.getElementById('loadingSection').style.display = show ? 'block' : 'none';
+            document.getElementById('resultsSection').style.display = show ? 'none' : 'block';
+        }
+
+        function addToWatchlist(id, title) {
+            const existingIndex = watchlist.findIndex(item => item.id === id);
+            
+            if (existingIndex >= 0) {
+                // Remove from watchlist
+                watchlist.splice(existingIndex, 1);
+            } else {
+                // Add to watchlist
+                watchlist.push({ id, title, addedAt: new Date().toISOString() });
+            }
+            
+            localStorage.setItem('fredWatchlist', JSON.stringify(watchlist));
+            updateWatchlistDisplay();
+            
+            // Update button text if results are displayed
+            const resultsGrid = document.getElementById('resultsGrid');
+            if (resultsGrid.innerHTML) {
+                performSearch(currentPage); // Refresh current page
+            }
         }
 
         function updateWatchlistDisplay() {
-            const container = document.getElementById('watchlistContent');
+            const badge = document.getElementById('watchlistBadge');
+            const countBadge = document.getElementById('watchlistCountBadge');
+            const itemsContainer = document.getElementById('watchlistItems');
+            
+            badge.textContent = watchlist.length;
+            countBadge.textContent = watchlist.length;
             
             if (watchlist.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <h3>Your watchlist is empty</h3>
-                        <p>Search or browse categories to add series to your watchlist</p>
-                    </div>
-                `;
-                document.getElementById('statsBar').style.display = 'none';
-                document.getElementById('analyticsPanel').style.display = 'none';
-                return;
-            }
-            
-            document.getElementById('statsBar').style.display = 'flex';
-            document.getElementById('analyticsPanel').style.display = 'block';
-            
-            let tableHTML = `
-                <table class="watchlist-table">
-                    <thead>
-                        <tr>
-                            <th>Series</th>
-                            <th>Sparkline</th>
-                            <th>Current Value</th>
-                            <th>Daily %</th>
-                            <th>Weekly %</th>
-                            <th>Monthly %</th>
-                            <th>Quarterly %</th>
-                            <th>YTD %</th>
-                            <th>1 Year %</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-            
-            watchlist.forEach(item => {
-                const data = seriesData[item.symbol];
-                if (!data || data.length === 0) return;
-                
-                const latest = data[data.length - 1];
-                const daily = calculateChange(data, 1);
-                const weekly = calculateChange(data, 7);
-                const monthly = calculateChange(data, 30);
-                const quarterly = calculateChange(data, 90);
-                const ytd = calculateYTDChange(data);
-                const yearly = calculateChange(data, 365);
-                
-                const sparkline = createSparkline(data);
-                
-                tableHTML += `
-                    <tr>
-                        <td>
-                            <div class="series-name-cell">${item.name}</div>
-                            <div class="series-symbol-cell">${item.symbol}</div>
-                        </td>
-                        <td class="sparkline-cell">${sparkline}</td>
-                        <td class="value-cell">${formatValue(latest.value)}</td>
-                        <td class="value-cell ${getChangeClass(daily?.percentChange)}">${formatPercent(daily?.percentChange)}</td>
-                        <td class="value-cell ${getChangeClass(weekly?.percentChange)}">${formatPercent(weekly?.percentChange)}</td>
-                        <td class="value-cell ${getChangeClass(monthly?.percentChange)}">${formatPercent(monthly?.percentChange)}</td>
-                        <td class="value-cell ${getChangeClass(quarterly?.percentChange)}">${formatPercent(quarterly?.percentChange)}</td>
-                        <td class="value-cell ${getChangeClass(ytd?.percentChange)}">${formatPercent(ytd?.percentChange)}</td>
-                        <td class="value-cell ${getChangeClass(yearly?.percentChange)}">${formatPercent(yearly?.percentChange)}</td>
-                        <td><button class="remove-btn" onclick="removeFromWatchlist('${item.symbol}')">Remove</button></td>
-                    </tr>
-                `;
-            });
-            
-            tableHTML += '</tbody></table>';
-            container.innerHTML = tableHTML;
-        }
-
-        function updateStats() {
-            let gainers = 0;
-            let losers = 0;
-            let totalDataPoints = 0;
-            
-            watchlist.forEach(item => {
-                const data = seriesData[item.symbol];
-                if (!data || data.length === 0) return;
-                
-                totalDataPoints += data.length;
-                const daily = calculateChange(data, 1);
-                if (daily) {
-                    if (daily.percentChange > 0) gainers++;
-                    else if (daily.percentChange < 0) losers++;
-                }
-            });
-            
-            document.getElementById('totalSeries').textContent = watchlist.length;
-            document.getElementById('gainers').textContent = gainers;
-            document.getElementById('losers').textContent = losers;
-            document.getElementById('dataPoints').textContent = formatNumber(totalDataPoints);
-        }
-
-        function updateAnalytics() {
-            if (watchlist.length === 0) return;
-            
-            // Calculate market momentum
-            let totalGainers = 0;
-            let totalChange = 0;
-            let volatilitySum = 0;
-            let trendStrength = 0;
-            
-            watchlist.forEach(item => {
-                const data = seriesData[item.symbol];
-                if (!data || data.length === 0) return;
-                
-                const daily = calculateChange(data, 1);
-                const weekly = calculateChange(data, 7);
-                
-                if (daily) {
-                    if (daily.percentChange > 0) totalGainers++;
-                    totalChange += daily.percentChange;
-                    volatilitySum += Math.abs(daily.percentChange);
-                }
-                
-                if (weekly && daily) {
-                    trendStrength += (Math.sign(weekly.percentChange) === Math.sign(daily.percentChange)) ? 1 : 0;
-                }
-            });
-            
-            const momentum = (totalGainers / watchlist.length * 100).toFixed(1) + '%';
-            const avgVolatility = (volatilitySum / watchlist.length).toFixed(2) + '%';
-            const trend = (trendStrength / watchlist.length * 100).toFixed(0) + '%';
-            
-            document.getElementById('marketMomentum').textContent = momentum;
-            document.getElementById('volatilityIndex').textContent = avgVolatility;
-            document.getElementById('trendStrength').textContent = trend;
-            
-            // Update data freshness
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-            document.getElementById('dataFreshness').textContent = timeStr;
-            
-            // Update heatmap
-            updateHeatmap();
-            
-            // Update correlation matrix if that view is selected
-            if (currentView === 'correlation') {
-                updateCorrelationMatrix();
-            }
-        }
-
-        function updateHeatmap() {
-            const heatmapGrid = document.getElementById('heatmapGrid');
-            heatmapGrid.innerHTML = '';
-            
-            const heatmapData = [];
-            
-            watchlist.forEach(item => {
-                const data = seriesData[item.symbol];
-                if (!data || data.length === 0) return;
-                
-                const daily = calculateChange(data, 1);
-                if (daily) {
-                    heatmapData.push({
-                        symbol: item.symbol,
-                        name: item.name,
-                        change: daily.percentChange
-                    });
-                }
-            });
-            
-            // Sort by change percentage
-            heatmapData.sort((a, b) => b.change - a.change);
-            
-            heatmapData.forEach(item => {
-                const cell = document.createElement('div');
-                cell.className = 'heatmap-cell ' + getHeatmapClass(item.change);
-                cell.innerHTML = `
-                    <div class="heatmap-symbol">${item.symbol}</div>
-                    <div class="heatmap-value">${formatPercent(item.change)}</div>
-                `;
-                cell.title = item.name;
-                heatmapGrid.appendChild(cell);
-            });
-        }
-
-        function getHeatmapClass(change) {
-            if (change > 5) return 'heatmap-extreme-positive';
-            if (change > 2) return 'heatmap-positive';
-            if (change > 0.5) return 'heatmap-mild-positive';
-            if (change > -0.5) return 'heatmap-neutral';
-            if (change > -2) return 'heatmap-mild-negative';
-            if (change > -5) return 'heatmap-negative';
-            return 'heatmap-extreme-negative';
-        }
-
-        function calculateCorrelation(data1, data2) {
-            // Find overlapping dates
-            const dates1 = data1.map(d => d.date.toISOString().split('T')[0]);
-            const dates2 = data2.map(d => d.date.toISOString().split('T')[0]);
-            const commonDates = dates1.filter(date => dates2.includes(date));
-            
-            if (commonDates.length < 10) return null;
-            
-            // Get values for common dates
-            const values1 = [];
-            const values2 = [];
-            
-            commonDates.forEach(date => {
-                const v1 = data1.find(d => d.date.toISOString().split('T')[0] === date);
-                const v2 = data2.find(d => d.date.toISOString().split('T')[0] === date);
-                if (v1 && v2) {
-                    values1.push(v1.value);
-                    values2.push(v2.value);
-                }
-            });
-            
-            // Calculate percentage changes
-            const changes1 = [];
-            const changes2 = [];
-            
-            for (let i = 1; i < values1.length; i++) {
-                if (values1[i-1] !== 0 && values2[i-1] !== 0) {
-                    changes1.push((values1[i] - values1[i-1]) / values1[i-1] * 100);
-                    changes2.push((values2[i] - values2[i-1]) / values2[i-1] * 100);
-                }
-            }
-            
-            if (changes1.length < 5) return null;
-            
-            // Calculate correlation coefficient
-            const n = changes1.length;
-            const sum1 = changes1.reduce((a, b) => a + b, 0);
-            const sum2 = changes2.reduce((a, b) => a + b, 0);
-            const sum1Sq = changes1.reduce((a, b) => a + b * b, 0);
-            const sum2Sq = changes2.reduce((a, b) => a + b * b, 0);
-            const pSum = changes1.reduce((a, b, i) => a + b * changes2[i], 0);
-            
-            const num = pSum - (sum1 * sum2 / n);
-            const den = Math.sqrt((sum1Sq - sum1 * sum1 / n) * (sum2Sq - sum2 * sum2 / n));
-            
-            if (den === 0) return 0;
-            
-            return num / den;
-        }
-
-        function updateCorrelationMatrix() {
-            const container = document.getElementById('correlationMatrix');
-            
-            if (watchlist.length < 2) {
-                container.innerHTML = '<p style="text-align: center; color: #666;">Add at least 2 series to see correlations</p>';
-                return;
-            }
-            
-            let html = '<table class="correlation-table"><thead><tr><th></th>';
-            
-            // Headers
-            watchlist.forEach(item => {
-                html += `<th>${item.symbol}</th>`;
-            });
-            html += '</tr></thead><tbody>';
-            
-            // Calculate correlation matrix
-            const correlations = {};
-            
-            for (let i = 0; i < watchlist.length; i++) {
-                html += `<tr><th>${watchlist[i].symbol}</th>`;
-                
-                for (let j = 0; j < watchlist.length; j++) {
-                    if (i === j) {
-                        html += '<td class="correlation-cell" style="background: #4a9eff; color: white;">1.00</td>';
-                    } else {
-                        const key = `${watchlist[i].symbol}-${watchlist[j].symbol}`;
-                        const reverseKey = `${watchlist[j].symbol}-${watchlist[i].symbol}`;
-                        
-                        let corr;
-                        if (correlations[key] !== undefined) {
-                            corr = correlations[key];
-                        } else if (correlations[reverseKey] !== undefined) {
-                            corr = correlations[reverseKey];
-                        } else {
-                            corr = calculateCorrelation(
-                                seriesData[watchlist[i].symbol],
-                                seriesData[watchlist[j].symbol]
-                            );
-                            correlations[key] = corr;
-                        }
-                        
-                        if (corr !== null) {
-                            const color = getCorrelationColor(corr);
-                            html += `<td class="correlation-cell" style="background: ${color}; color: white;">${corr.toFixed(2)}</td>`;
-                        } else {
-                            html += '<td class="correlation-cell" style="background: #333; color: #666;">N/A</td>';
-                        }
-                    }
-                }
-                
-                html += '</tr>';
-            }
-            
-            html += '</tbody></table>';
-            container.innerHTML = html;
-        }
-
-        function getCorrelationColor(corr) {
-            // Color scale from red (negative) to green (positive)
-            if (corr >= 0.7) return '#4caf50';
-            if (corr >= 0.5) return '#66bb6a';
-            if (corr >= 0.3) return '#81c784';
-            if (corr >= 0.1) return '#a5d6a7';
-            if (corr >= -0.1) return '#757575';
-            if (corr >= -0.3) return '#ef9a9a';
-            if (corr >= -0.5) return '#e57373';
-            if (corr >= -0.7) return '#ef5350';
-            return '#f44336';
-        }
-
-        function toggleView(view) {
-            currentView = view;
-            
-            // Update button states
-            document.querySelectorAll('.toggle-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            
-            // Show/hide content
-            document.getElementById('analyticsContent').style.display = 'none';
-            document.getElementById('correlationContent').style.display = 'none';
-            document.getElementById('riskContent').style.display = 'none';
-            
-            if (view === 'analytics') {
-                document.getElementById('analyticsContent').style.display = 'block';
-            } else if (view === 'correlation') {
-                document.getElementById('correlationContent').style.display = 'block';
-                updateCorrelationMatrix();
-            } else if (view === 'risk') {
-                document.getElementById('riskContent').style.display = 'block';
-                updateRiskAnalysis();
-                updateRiskHistogram();
-            }
-        }
-
-        function toggleAutoRefresh() {
-            const btn = event.target.closest('.watchlist-btn');
-            const icon = document.getElementById('autoRefreshIcon');
-            const text = document.getElementById('autoRefreshText');
-            
-            if (autoRefreshInterval) {
-                clearInterval(autoRefreshInterval);
-                autoRefreshInterval = null;
-                btn.classList.remove('active');
-                icon.textContent = '▶️';
-                text.textContent = 'Auto Refresh';
+                itemsContainer.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">No items in watchlist</div>';
             } else {
-                autoRefreshInterval = setInterval(() => {
-                    refreshAllData();
-                }, 60000); // Refresh every 60 seconds
-                btn.classList.add('active');
-                icon.textContent = '⏸️';
-                text.textContent = 'Stop Auto';
-                
-                // Initial refresh
-                refreshAllData();
+                itemsContainer.innerHTML = watchlist.map(item => `
+                    <div class="watchlist-item">
+                        <div class="watchlist-item-name" title="${item.title}">${item.title}</div>
+                        <button class="remove-btn" onclick="addToWatchlist('${item.id}', '${item.title.replace(/'/g, "\\'")}')">Remove</button>
+                    </div>
+                `).join('');
             }
         }
+
+        function toggleWatchlist() {
+            const panel = document.getElementById('watchlistPanel');
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function exportWatchlist() {
+            if (watchlist.length === 0) {
+                alert('Watchlist is empty');
+                return;
+            }
+            
+            let csv = 'Series ID,Title,Added Date\n';
+            watchlist.forEach(item => {
+                csv += `"${item.id}","${item.title}","${item.addedAt}"\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `fred_watchlist_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        function clearWatchlist() {
+            if (confirm('Clear entire watchlist?')) {
+                watchlist = [];
+                localStorage.removeItem('fredWatchlist');
+                updateWatchlistDisplay();
+                
+                // Refresh results if displayed
+                const resultsGrid = document.getElementById('resultsGrid');
+                if (resultsGrid.innerHTML && resultsGrid.innerHTML !== '') {
+                    performSearch(currentPage);
+                }
+            }
+        }
+
+        function viewSeriesDetails(seriesId) {
+            // In a real implementation, this would show detailed series information
+            window.open(`https://fred.stlouisfed.org/series/${seriesId}`, '_blank');
+        }
+
+        function viewChart(seriesId) {
+            // In a real implementation, this would display an interactive chart
+            window.open(`https://fred.stlouisfed.org/graph/?g=${seriesId}`, '_blank');
+        }
+    </script>
+</body>
+</html>
