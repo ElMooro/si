@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FRED Data Watchlist Dashboard</title>
+    <title>Global Economic Data Watchlist</title>
     <style>
         * {
             margin: 0;
@@ -411,6 +411,15 @@
             color: #666;
         }
 
+        .error-note {
+            background: #ff9800;
+            color: #000;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+        }
+
         @media (max-width: 1024px) {
             .container {
                 flex-direction: column;
@@ -428,14 +437,14 @@
 <body>
     <div class="container">
         <aside class="sidebar">
-            <h2 style="color: #4a9eff; margin-bottom: 20px;">FRED Data Explorer</h2>
+            <h2 style="color: #4a9eff; margin-bottom: 20px;">Global Economic Data Explorer</h2>
             
             <div class="search-container">
                 <input 
                     type="text" 
                     id="searchInput" 
                     class="search-input" 
-                    placeholder="Search FRED series..."
+                    placeholder="Search economic series..."
                     autocomplete="off"
                 >
                 <span class="search-icon">🔍</span>
@@ -443,15 +452,19 @@
             </div>
 
             <div class="category-browser">
-                <h3>Browse by Category</h3>
+                <h3>Browse by Source</h3>
                 <div id="categoryList"></div>
             </div>
         </aside>
 
         <main class="main-content">
             <div class="header">
-                <h1>FRED Economic Data Watchlist</h1>
-                <p>Build your custom watchlist with real-time economic indicators</p>
+                <h1>Global Economic Data Watchlist</h1>
+                <p>Track economic indicators from FRED, ECB, NY Fed, and OFR</p>
+            </div>
+
+            <div id="errorNote" class="error-note" style="display: none;">
+                Note: Some series may not be available through the API. FRED series typically have the best coverage.
             </div>
 
             <div id="statsBar" class="stats-bar" style="display: none;">
@@ -496,375 +509,152 @@
     <script>
         const API_BASE = 'https://ped8gafyuz.us-east-1.awsapprunner.com';
         
-        // Comprehensive FRED, ECB, NY Fed, and OFR categories and series
-        const fredData = {
-            'European Central Bank (ECB)': {
-                'Open Market Operations': [
-                    { symbol: 'ECBESTRVOLW', name: 'ECB Main Refinancing Operations' },
-                    { symbol: 'ECBLTRO', name: 'ECB Longer-Term Refinancing Operations' },
-                    { symbol: 'ECBMRRFD', name: 'ECB Marginal Lending Facility Rate' },
-                    { symbol: 'ECBDFR', name: 'ECB Deposit Facility Rate' },
-                    { symbol: 'ECBMPRFD', name: 'ECB Main Refinancing Rate' }
-                ],
-                'Consumer Expectations': [
-                    { symbol: 'ECBCEPI1YF', name: 'ECB Consumer Inflation Expectations - 1 Year' },
-                    { symbol: 'ECBCEPI3YF', name: 'ECB Consumer Inflation Expectations - 3 Year' },
-                    { symbol: 'ECBCECGDP', name: 'ECB Consumer GDP Growth Expectations' },
-                    { symbol: 'ECBCEUEMP', name: 'ECB Consumer Unemployment Expectations' }
-                ],
-                'Monetary Analysis': [
-                    { symbol: 'ECBM1', name: 'ECB M1 Money Supply' },
-                    { symbol: 'ECBM2', name: 'ECB M2 Money Supply' },
-                    { symbol: 'ECBM3', name: 'ECB M3 Money Supply' },
-                    { symbol: 'ECBASSETA', name: 'ECB Total Assets' }
-                ],
-                'Financial Conditions': [
-                    { symbol: 'EURORSCIS', name: 'Euro Area Systemic Stress Indicator' },
-                    { symbol: 'ECBFCI', name: 'ECB Financial Conditions Index' },
-                    { symbol: 'ECBCISS', name: 'ECB Composite Indicator of Systemic Stress' }
-                ],
-                'Credit & Lending': [
-                    { symbol: 'ECBLENDING', name: 'ECB Bank Lending Survey' },
-                    { symbol: 'ECBBLSCRED', name: 'ECB Credit Standards' },
-                    { symbol: 'ECBBLSDEM', name: 'ECB Loan Demand' }
-                ]
-            },
-            'New York Fed': {
-                'Primary Dealers & Markets': [
-                    { symbol: 'PDPOSGS', name: 'Primary Dealer Positions - Treasury Securities' },
-                    { symbol: 'PDPOSMBS', name: 'Primary Dealer Positions - MBS' },
-                    { symbol: 'PDPOSCORP', name: 'Primary Dealer Positions - Corporate Securities' },
-                    { symbol: 'RPONTSYD', name: 'Overnight Repo Rate' },
-                    { symbol: 'RPGT1DTD', name: 'Term Repo Rate' }
-                ],
-                'Treasury Market': [
-                    { symbol: 'TSFR', name: 'Treasury Secured Financing Rate' },
-                    { symbol: 'BGCR', name: 'Broad General Collateral Rate' },
-                    { symbol: 'TGCR', name: 'Tri-Party General Collateral Rate' },
-                    { symbol: 'DTWEXBGS', name: 'Trade Weighted Dollar Index - Broad' }
-                ],
-                'Market Expectations': [
-                    { symbol: 'T5YIFR', name: '5-Year Forward Inflation Expectation Rate' },
-                    { symbol: 'T10YIE', name: '10-Year Breakeven Inflation Rate' },
-                    { symbol: 'T5YIE', name: '5-Year Breakeven Inflation Rate' },
-                    { symbol: 'DFEDTARU', name: 'Fed Funds Target Rate - Upper' }
-                ],
-                'Financial Stress': [
-                    { symbol: 'NYFSI', name: 'NY Fed Financial Stress Index' },
-                    { symbol: 'NYFEDCOMM', name: 'NY Fed Commodity Index' },
-                    { symbol: 'TERMSPREAD', name: 'Term Spread' }
-                ],
-                'Consumer Credit': [
-                    { symbol: 'CCLACBW027SBOG', name: 'Consumer Credit Outstanding' },
-                    { symbol: 'CARACBW027SBOG', name: 'Auto Loans Outstanding' },
-                    { symbol: 'CRDQUSAPABIS', name: 'Credit to Private Sector' }
-                ]
-            },
-            'Office of Financial Research (OFR)': {
-                'Financial Stress Indicators': [
-                    { symbol: 'STLFSI4', name: 'OFR Financial Stress Index' },
-                    { symbol: 'OFRFSI', name: 'OFR Financial Stress Index (Alternative)' },
-                    { symbol: 'VIXCLS', name: 'VIX - Market Volatility' },
-                    { symbol: 'TEDRATE', name: 'TED Spread' },
-                    { symbol: 'BAMLH0A0HYM2', name: 'High Yield Spread' }
-                ],
-                'Systemic Risk': [
-                    { symbol: 'SRISK', name: 'Systemic Risk Measure' },
-                    { symbol: 'CATFIN', name: 'Conditional Capital Shortfall' },
-                    { symbol: 'COVAR', name: 'Conditional Value at Risk' },
-                    { symbol: 'DLEVERAGE', name: 'Financial Sector Leverage' }
-                ],
-                'Bank Monitoring': [
-                    { symbol: 'BANKSTRESS', name: 'Bank Stress Test Results' },
-                    { symbol: 'TIER1RATIO', name: 'Tier 1 Capital Ratio' },
-                    { symbol: 'LEVERAGE', name: 'Leverage Ratio' },
-                    { symbol: 'LIQUIDCOV', name: 'Liquidity Coverage Ratio' }
-                ],
-                'Market Liquidity': [
-                    { symbol: 'BIDASK', name: 'Bid-Ask Spreads' },
-                    { symbol: 'MKDEPTH', name: 'Market Depth' },
-                    { symbol: 'TURNOVER', name: 'Market Turnover' },
-                    { symbol: 'ILLIQ', name: 'Illiquidity Measure' }
-                ],
-                'Interconnectedness': [
-                    { symbol: 'NETWORK', name: 'Financial Network Connectivity' },
-                    { symbol: 'CONTAGION', name: 'Contagion Risk Index' },
-                    { symbol: 'CORRELATION', name: 'Market Correlation Index' }
-                ]
-            },
-            'Money, Banking, & Finance': {
+        // Comprehensive economic data series
+        const economicData = {
+            'Federal Reserve (FRED) - Core Series': {
                 'Interest Rates': [
                     { symbol: 'DFF', name: 'Federal Funds Rate' },
-                    { symbol: 'DGS10', name: '10-Year Treasury Rate' },
+                    { symbol: 'EFFR', name: 'Effective Federal Funds Rate' },
+                    { symbol: 'SOFR', name: 'Secured Overnight Financing Rate' },
+                    { symbol: 'DGS1', name: '1-Year Treasury Rate' },
                     { symbol: 'DGS2', name: '2-Year Treasury Rate' },
                     { symbol: 'DGS5', name: '5-Year Treasury Rate' },
+                    { symbol: 'DGS10', name: '10-Year Treasury Rate' },
                     { symbol: 'DGS30', name: '30-Year Treasury Rate' },
                     { symbol: 'TB3MS', name: '3-Month Treasury Bill' },
-                    { symbol: 'TB6MS', name: '6-Month Treasury Bill' },
-                    { symbol: 'DFEDTARU', name: 'Fed Funds Target Range - Upper' },
-                    { symbol: 'DFEDTARL', name: 'Fed Funds Target Range - Lower' },
-                    { symbol: 'SOFR', name: 'Secured Overnight Financing Rate' },
-                    { symbol: 'EFFR', name: 'Effective Federal Funds Rate' },
-                    { symbol: 'OBFR', name: 'Overnight Bank Funding Rate' },
-                    { symbol: 'AMERIBOR', name: 'American Interbank Offered Rate' },
+                    { symbol: 'MORTGAGE30US', name: '30-Year Mortgage Rate' },
                     { symbol: 'PRIME', name: 'Prime Rate' }
                 ],
-                'Exchange Rates': [
-                    { symbol: 'DEXUSEU', name: 'USD/EUR Exchange Rate' },
-                    { symbol: 'DEXCHUS', name: 'CNY/USD Exchange Rate' },
-                    { symbol: 'DEXJPUS', name: 'JPY/USD Exchange Rate' },
-                    { symbol: 'DEXUSUK', name: 'USD/GBP Exchange Rate' },
-                    { symbol: 'DEXCAUS', name: 'CAD/USD Exchange Rate' },
-                    { symbol: 'DEXMXUS', name: 'MXN/USD Exchange Rate' },
-                    { symbol: 'DEXKOUS', name: 'KRW/USD Exchange Rate' },
-                    { symbol: 'DEXINUS', name: 'INR/USD Exchange Rate' },
-                    { symbol: 'DTWEXBGS', name: 'Trade Weighted Dollar Index' }
-                ],
-                'Monetary Data': [
+                'Monetary Aggregates': [
                     { symbol: 'M1SL', name: 'M1 Money Supply' },
                     { symbol: 'M2SL', name: 'M2 Money Supply' },
-                    { symbol: 'M1V', name: 'M1 Money Velocity' },
-                    { symbol: 'M2V', name: 'M2 Money Velocity' },
                     { symbol: 'BOGMBASE', name: 'Monetary Base' },
                     { symbol: 'TOTRESNS', name: 'Total Reserves' },
-                    { symbol: 'REQRESNS', name: 'Required Reserves' },
-                    { symbol: 'EXCSRESNS', name: 'Excess Reserves' },
-                    { symbol: 'WRESBAL', name: 'Reserve Balances' },
-                    { symbol: 'CURRSL', name: 'Currency in Circulation' },
+                    { symbol: 'WRESBAL', name: 'Reserve Balances with Fed Banks' },
                     { symbol: 'RESPPNTEPNWW', name: 'Eligible Collateral' },
-                    { symbol: 'RESPPALGUONNWW', name: 'Treasury Securities' },
-                    { symbol: 'SWP1690', name: 'Liquidity Swaps' },
-                    { symbol: 'OTHL1690', name: 'Credit Facilities' }
+                    { symbol: 'RESPPALGUONNWW', name: 'Treasury Securities Held' },
+                    { symbol: 'SWP1690', name: 'Central Bank Liquidity Swaps' },
+                    { symbol: 'OTHL1690', name: 'Loans: Credit Facilities' }
                 ],
-                'Financial Indicators': [
+                'Economic Indicators': [
+                    { symbol: 'GDP', name: 'Gross Domestic Product' },
+                    { symbol: 'GDPC1', name: 'Real GDP' },
+                    { symbol: 'UNRATE', name: 'Unemployment Rate' },
+                    { symbol: 'PAYEMS', name: 'Nonfarm Payrolls' },
+                    { symbol: 'CPIAUCSL', name: 'Consumer Price Index' },
+                    { symbol: 'CPILFESL', name: 'Core CPI' },
+                    { symbol: 'PPIACO', name: 'Producer Price Index' },
+                    { symbol: 'INDPRO', name: 'Industrial Production Index' },
+                    { symbol: 'HOUST', name: 'Housing Starts' },
+                    { symbol: 'PERMIT', name: 'Building Permits' }
+                ],
+                'Financial Markets': [
                     { symbol: 'VIXCLS', name: 'VIX Volatility Index' },
                     { symbol: 'TEDRATE', name: 'TED Spread' },
                     { symbol: 'T10Y2Y', name: '10Y-2Y Treasury Spread' },
                     { symbol: 'T10Y3M', name: '10Y-3M Treasury Spread' },
                     { symbol: 'BAMLH0A0HYM2', name: 'High Yield Spread' },
-                    { symbol: 'BAMLC0A0CM', name: 'Investment Grade Spread' },
-                    { symbol: 'DCOILWTICO', name: 'WTI Crude Oil Price' },
-                    { symbol: 'GOLDAMGBD228NLBM', name: 'Gold Price' },
-                    { symbol: 'STLFSI4', name: 'Financial Stress Index' }
-                ],
-                'Banking': [
-                    { symbol: 'DPSACBW027SBOG', name: 'Deposits at Commercial Banks' },
-                    { symbol: 'TOTBKCR', name: 'Bank Credit' },
-                    { symbol: 'BUSLOANS', name: 'Business Loans' },
-                    { symbol: 'REALLN', name: 'Real Estate Loans' },
-                    { symbol: 'CONSUMER', name: 'Consumer Loans' },
-                    { symbol: 'REVOLSL', name: 'Revolving Consumer Credit' },
-                    { symbol: 'USGSEC', name: 'Treasury & Agency Securities' }
-                ],
-                'Business Lending': [
-                    { symbol: 'BCLOANSNSA', name: 'Commercial & Industrial Loans' },
-                    { symbol: 'TOTCI', name: 'Total C&I Loans' },
-                    { symbol: 'ECOMPCTNSA', name: 'Commercial Paper Outstanding' },
-                    { symbol: 'NCBCELQ027S', name: 'Corporate Equities' }
-                ],
-                'Foreign Exchange Intervention': [
-                    { symbol: 'BOGZ1FL313011303Q', name: 'Foreign Exchange Reserves' }
+                    { symbol: 'DEXUSEU', name: 'USD/EUR Exchange Rate' },
+                    { symbol: 'DEXCHUS', name: 'CNY/USD Exchange Rate' },
+                    { symbol: 'DEXJPUS', name: 'JPY/USD Exchange Rate' },
+                    { symbol: 'DTWEXBGS', name: 'Trade Weighted Dollar Index' }
                 ]
             },
-            'Population, Employment, & Labor Markets': {
-                'Current Population Survey': [
-                    { symbol: 'UNRATE', name: 'Unemployment Rate' },
+            'European Central Bank (ECB) - Attempt': {
+                'ECB Policy Rates': [
+                    { symbol: 'ECBDFR', name: 'ECB Deposit Facility Rate' },
+                    { symbol: 'ECBMPRFR', name: 'ECB Main Refinancing Rate' },
+                    { symbol: 'ECBMLFR', name: 'ECB Marginal Lending Rate' },
+                    { symbol: 'EUINTERESTRATE', name: 'Euro Area Interest Rate' }
+                ],
+                'Euro Area Indicators': [
+                    { symbol: 'EURM1', name: 'Euro Area M1' },
+                    { symbol: 'EURM2', name: 'Euro Area M2' },
+                    { symbol: 'EURM3', name: 'Euro Area M3' },
+                    { symbol: 'EURCPI', name: 'Euro Area CPI' },
+                    { symbol: 'EURGDP', name: 'Euro Area GDP' },
+                    { symbol: 'EURUNRATE', name: 'Euro Area Unemployment' }
+                ]
+            },
+            'New York Fed - Core Series': {
+                'NY Fed Markets': [
+                    { symbol: 'RPONTSYD', name: 'Overnight Repo Rate' },
+                    { symbol: 'SOFR', name: 'SOFR (also in FRED)' },
+                    { symbol: 'OBFR', name: 'Overnight Bank Funding Rate' },
+                    { symbol: 'TGCR', name: 'Tri-Party General Collateral Rate' },
+                    { symbol: 'BGCR', name: 'Broad General Collateral Rate' }
+                ],
+                'Primary Dealer Statistics': [
+                    { symbol: 'PDPOSGS', name: 'Primary Dealer Positions - Treasuries' },
+                    { symbol: 'PDPOSMBS', name: 'Primary Dealer Positions - MBS' },
+                    { symbol: 'PDPOSCORP', name: 'Primary Dealer Positions - Corporate' },
+                    { symbol: 'PDDURAS', name: 'Primary Dealer Duration Risk' }
+                ],
+                'Inflation Expectations': [
+                    { symbol: 'T5YIE', name: '5-Year Breakeven Inflation Rate' },
+                    { symbol: 'T10YIE', name: '10-Year Breakeven Inflation Rate' },
+                    { symbol: 'T5YIFR', name: '5-Year Forward Inflation Expectation' },
+                    { symbol: 'DFEDTARU', name: 'Fed Funds Target Upper Bound' }
+                ]
+            },
+            'Office of Financial Research (OFR)': {
+                'Financial Stress': [
+                    { symbol: 'STLFSI4', name: 'St. Louis Fed Financial Stress Index' },
+                    { symbol: 'NFCI', name: 'Chicago Fed Financial Conditions' },
+                    { symbol: 'ANFCI', name: 'Adjusted Financial Conditions' },
+                    { symbol: 'KCFSI', name: 'Kansas City Financial Stress' }
+                ],
+                'Systemic Risk Indicators': [
+                    { symbol: 'SRISK', name: 'Systemic Risk Measure' },
+                    { symbol: 'LEVERAGE', name: 'Financial Sector Leverage' },
+                    { symbol: 'MKTCAP', name: 'Market Capitalization Ratio' }
+                ]
+            },
+            'Additional FRED Series': {
+                'Employment Details': [
                     { symbol: 'CIVPART', name: 'Labor Force Participation Rate' },
                     { symbol: 'EMRATIO', name: 'Employment-Population Ratio' },
                     { symbol: 'UNEMPLOY', name: 'Unemployed Persons' },
-                    { symbol: 'CLF16OV', name: 'Civilian Labor Force' },
-                    { symbol: 'CE16OV', name: 'Civilian Employment' },
-                    { symbol: 'UEMPLT5', name: 'Unemployed Less Than 5 Weeks' },
-                    { symbol: 'UEMP5TO14', name: 'Unemployed 5-14 Weeks' },
-                    { symbol: 'UEMP15T26', name: 'Unemployed 15-26 Weeks' },
-                    { symbol: 'UEMP27OV', name: 'Unemployed 27+ Weeks' }
+                    { symbol: 'ICSA', name: 'Initial Jobless Claims' },
+                    { symbol: 'CCSA', name: 'Continued Claims' },
+                    { symbol: 'U6RATE', name: 'U-6 Unemployment Rate' },
+                    { symbol: 'MEHOINUSA672N', name: 'Median Household Income' }
                 ],
-                'Current Employment Statistics': [
-                    { symbol: 'PAYEMS', name: 'Nonfarm Payrolls' },
-                    { symbol: 'USCONS', name: 'Construction Employment' },
-                    { symbol: 'MANEMP', name: 'Manufacturing Employment' },
-                    { symbol: 'USTRADE', name: 'Retail Trade Employment' },
-                    { symbol: 'USFIRE', name: 'Financial Activities Employment' },
-                    { symbol: 'USPBS', name: 'Professional & Business Services' },
-                    { symbol: 'USEHS', name: 'Education & Health Services' },
-                    { symbol: 'USLAH', name: 'Leisure & Hospitality' },
-                    { symbol: 'USGOVT', name: 'Government Employment' },
-                    { symbol: 'CES0500000003', name: 'Average Hourly Earnings' },
-                    { symbol: 'AWHAETP', name: 'Average Weekly Hours' }
-                ],
-                'ADP Employment': [
-                    { symbol: 'ADPWNUSNERSA', name: 'ADP National Employment' },
-                    { symbol: 'ADPEMNUSNERNSA', name: 'ADP Total Nonfarm Private' }
-                ],
-                'Education': [
-                    { symbol: 'LREM25TTUSM156S', name: 'Employment Rate: Bachelor\'s Degree' },
-                    { symbol: 'LREM25FEUSM156S', name: 'Female Employment Rate: Bachelor\'s' }
-                ],
-                'Income Distribution': [
-                    { symbol: 'MEHOINUSA672N', name: 'Median Household Income' },
-                    { symbol: 'DSPIC96', name: 'Disposable Personal Income' },
-                    { symbol: 'A229RC0', name: 'Personal Income' },
-                    { symbol: 'GINIALLRH', name: 'Gini Index' },
-                    { symbol: 'WFRBST01134', name: 'Share of Total Net Worth: Top 1%' }
-                ],
-                'Job Openings and Labor Turnover': [
-                    { symbol: 'JTSJOL', name: 'Job Openings' },
-                    { symbol: 'JTSQUR', name: 'Quits Rate' },
-                    { symbol: 'JTSHIR', name: 'Hires Rate' },
-                    { symbol: 'JTSSEP', name: 'Separations Rate' },
-                    { symbol: 'JTSLDR', name: 'Layoffs & Discharges Rate' }
-                ],
-                'Labor Market Conditions': [
-                    { symbol: 'NFCIINDEXM', name: 'Labor Market Conditions Index' },
-                    { symbol: 'UMCSENT', name: 'Consumer Sentiment' }
-                ],
-                'Population': [
-                    { symbol: 'POPTHM', name: 'Population' },
-                    { symbol: 'POP', name: 'Total Population' },
-                    { symbol: 'LFWA64TTUSM647S', name: 'Working Age Population' }
-                ],
-                'Productivity & Costs': [
-                    { symbol: 'OPHNFB', name: 'Nonfarm Business Output Per Hour' },
-                    { symbol: 'ULCNFB', name: 'Unit Labor Costs' },
-                    { symbol: 'COMPRNFB', name: 'Real Compensation Per Hour' }
-                ],
-                'Weekly Initial Claims': [
-                    { symbol: 'ICSA', name: 'Initial Claims' },
-                    { symbol: 'IC4WSA', name: '4-Week Moving Average' },
-                    { symbol: 'CCSA', name: 'Continued Claims' }
-                ]
-            },
-            'National Accounts': {
-                'National Income & Product Accounts': [
-                    { symbol: 'GDP', name: 'Gross Domestic Product' },
-                    { symbol: 'GDPC1', name: 'Real GDP' },
-                    { symbol: 'GDPPOT', name: 'Real Potential GDP' },
-                    { symbol: 'NYGDPMKTPCDWLD', name: 'World GDP Per Capita' },
-                    { symbol: 'GDPDEF', name: 'GDP Deflator' },
-                    { symbol: 'PCECC96', name: 'Real Personal Consumption' },
-                    { symbol: 'GPDIC1', name: 'Real Gross Private Investment' },
-                    { symbol: 'GCEC1', name: 'Real Government Consumption' },
-                    { symbol: 'NETEXC', name: 'Real Net Exports' }
-                ],
-                'Federal Government Debt': [
-                    { symbol: 'GFDEBTN', name: 'Federal Debt: Total Public Debt' },
-                    { symbol: 'GFDEGDQ188S', name: 'Federal Debt to GDP Ratio' },
-                    { symbol: 'FYGFD', name: 'Gross Federal Debt' },
-                    { symbol: 'FYGFDPUB', name: 'Federal Debt Held by Public' },
-                    { symbol: 'FDHBFRBN', name: 'Debt Held by Federal Reserve' }
-                ],
-                'Flow of Funds': [
-                    { symbol: 'BOGZ1FL893064105Q', name: 'Corporate Debt Securities' },
-                    { symbol: 'HHMSDODNS', name: 'Household Debt Service Ratio' },
-                    { symbol: 'TDSP', name: 'Household Debt Service Payments' }
-                ],
-                'U.S. Trade & International Transactions': [
-                    { symbol: 'BOPGSTB', name: 'Trade Balance' },
-                    { symbol: 'NETEXP', name: 'Net Exports' },
-                    { symbol: 'IMPGS', name: 'Imports' },
-                    { symbol: 'EXPGS', name: 'Exports' },
-                    { symbol: 'BOPGTB', name: 'Trade Balance: Goods' }
-                ]
-            },
-            'Production & Business Activity': {
-                'Business Cycle Expansions & Contractions': [
-                    { symbol: 'USREC', name: 'Recession Indicator' },
-                    { symbol: 'USRECM', name: 'Monthly Recession Indicator' }
-                ],
-                'Business Surveys': [
-                    { symbol: 'UMCSENT', name: 'Consumer Sentiment' },
-                    { symbol: 'MICH', name: 'Michigan Consumer Sentiment' },
-                    { symbol: 'GACDISA066MSFRBNY', name: 'Empire State Index' },
-                    { symbol: 'DPROSMFRBPHIL', name: 'Philly Fed Index' },
-                    { symbol: 'BSCICP02USM460S', name: 'Business Confidence' }
-                ],
-                'Construction': [
-                    { symbol: 'HOUST', name: 'Housing Starts' },
-                    { symbol: 'PERMIT', name: 'Building Permits' },
-                    { symbol: 'COMPUTSA', name: 'Housing Completions' },
-                    { symbol: 'TTLCONS', name: 'Total Construction Spending' },
-                    { symbol: 'PRRESCONS', name: 'Private Residential Construction' }
-                ],
-                'Housing': [
+                'Housing Market': [
                     { symbol: 'CSUSHPISA', name: 'Case-Shiller Home Price Index' },
                     { symbol: 'MSPUS', name: 'Median Sales Price of Houses' },
-                    { symbol: 'MORTGAGE30US', name: '30-Year Mortgage Rate' },
-                    { symbol: 'MORTGAGE15US', name: '15-Year Mortgage Rate' },
-                    { symbol: 'RHORUSQ156N', name: 'Homeownership Rate' },
-                    { symbol: 'HSNGPERMITNS', name: 'New Housing Permits' },
                     { symbol: 'EXHOSLUSM495S', name: 'Existing Home Sales' },
-                    { symbol: 'HSN1F', name: 'New Home Sales' }
-                ],
-                'Industrial Production & Capacity Utilization': [
-                    { symbol: 'INDPRO', name: 'Industrial Production Index' },
-                    { symbol: 'TCU', name: 'Capacity Utilization' },
-                    { symbol: 'CAPUTLB50001SQ', name: 'Manufacturing Capacity Utilization' },
-                    { symbol: 'IPG2211A2N', name: 'Electric Power Generation' }
+                    { symbol: 'HSN1F', name: 'New Home Sales' },
+                    { symbol: 'MSACSR', name: 'Monthly Supply of Houses' }
                 ],
                 'Manufacturing': [
                     { symbol: 'DGORDER', name: 'Durable Goods Orders' },
-                    { symbol: 'NEWORDER', name: 'Manufacturers\' New Orders' },
-                    { symbol: 'AMTMNO', name: 'Value of Manufacturers\' Orders' },
-                    { symbol: 'BUSINV', name: 'Business Inventories' },
-                    { symbol: 'ISRATIO', name: 'Inventory to Sales Ratio' }
+                    { symbol: 'NEWORDER', name: 'Manufacturers New Orders' },
+                    { symbol: 'UMCSENT', name: 'Consumer Sentiment' },
+                    { symbol: 'GACDISA066MSFRBNY', name: 'Empire State Index' },
+                    { symbol: 'MANEMP', name: 'Manufacturing Employment' }
                 ],
-                'Retail Trade': [
-                    { symbol: 'RSXFS', name: 'Retail Sales Ex Food Services' },
-                    { symbol: 'RETAILIMSA', name: 'Retail Sales' },
-                    { symbol: 'RSAFS', name: 'Retail & Food Services Sales' },
-                    { symbol: 'MRTSSM44X72USS', name: 'Retail Trade Sales' }
-                ],
-                'Transportation': [
-                    { symbol: 'RAILFRTINTERMODAL', name: 'Rail Freight Intermodal' },
-                    { symbol: 'HTRUCKSSAAR', name: 'Heavy Truck Sales' },
-                    { symbol: 'TOTALSA', name: 'Vehicle Sales' },
-                    { symbol: 'ALTSALES', name: 'Light Vehicle Sales' }
-                ],
-                'Wholesale Trade': [
-                    { symbol: 'WHLSLRIMSA', name: 'Wholesale Trade: Sales' },
-                    { symbol: 'WHLSLRIRSA', name: 'Wholesale Trade: Inventories' }
-                ]
-            },
-            'Prices': {
-                'Consumer Price Indexes': [
-                    { symbol: 'CPIAUCSL', name: 'Consumer Price Index' },
-                    { symbol: 'CPILFESL', name: 'Core CPI' },
-                    { symbol: 'CPIMEDSL', name: 'Medical Care CPI' },
-                    { symbol: 'CPIUFDSL', name: 'Food CPI' },
-                    { symbol: 'CPITRNSL', name: 'Transportation CPI' },
-                    { symbol: 'CUSR0000SAH1', name: 'Shelter CPI' },
-                    { symbol: 'CPIENGSL', name: 'Energy CPI' },
-                    { symbol: 'CPIAPPSL', name: 'Apparel CPI' },
-                    { symbol: 'CPIEDUSL', name: 'Education CPI' }
-                ],
-                'Producer Price Indexes': [
-                    { symbol: 'PPIACO', name: 'Producer Price Index' },
-                    { symbol: 'PPIFGS', name: 'PPI: Finished Goods' },
-                    { symbol: 'PPIFCG', name: 'PPI: Finished Consumer Goods' },
-                    { symbol: 'PPICRM', name: 'PPI: Crude Materials' },
-                    { symbol: 'PPIIDC', name: 'PPI: Industrial Commodities' }
-                ],
-                'House Price Indexes': [
-                    { symbol: 'CSUSHPINSA', name: 'Case-Shiller National Index' },
-                    { symbol: 'USSTHPI', name: 'All-Transactions House Price Index' },
-                    { symbol: 'SPCS20RSA', name: 'S&P/CS 20-City Index' },
-                    { symbol: 'ASPNHSUS', name: 'Average Sales Price' }
+                'Credit & Banking': [
+                    { symbol: 'TOTBKCR', name: 'Bank Credit, All Banks' },
+                    { symbol: 'BUSLOANS', name: 'Business Loans' },
+                    { symbol: 'REALLN', name: 'Real Estate Loans' },
+                    { symbol: 'CONSUMER', name: 'Consumer Loans' },
+                    { symbol: 'DPSACBW027SBOG', name: 'Deposits, All Banks' },
+                    { symbol: 'H8B1001NCBCMG', name: 'Commercial Paper Outstanding' }
                 ],
                 'Commodities': [
-                    { symbol: 'DCOILWTICO', name: 'WTI Crude Oil' },
-                    { symbol: 'GOLDAMGBD228NLBM', name: 'Gold Price' },
+                    { symbol: 'DCOILWTICO', name: 'WTI Crude Oil Price' },
+                    { symbol: 'GOLDAMGBD228NLBM', name: 'Gold Price London Fix' },
                     { symbol: 'DHHNGSP', name: 'Natural Gas Price' },
-                    { symbol: 'DCOILBRENTEU', name: 'Brent Crude Oil' },
+                    { symbol: 'DCOILBRENTEU', name: 'Brent Crude Oil Price' },
                     { symbol: 'PALLFNFINDEXM', name: 'Global Commodity Index' }
                 ],
-                'Import/Export Price Indexes': [
-                    { symbol: 'IR', name: 'Import Price Index' },
-                    { symbol: 'IQ', name: 'Export Price Index' }
-                ],
-                'Employment Cost Index': [
-                    { symbol: 'ECIALLCIV', name: 'Employment Cost Index' },
-                    { symbol: 'ECIWAG', name: 'ECI: Wages & Salaries' },
-                    { symbol: 'ECIBNF', name: 'ECI: Benefits' }
+                'Government Finance': [
+                    { symbol: 'GFDEBTN', name: 'Federal Debt Total' },
+                    { symbol: 'GFDEGDQ188S', name: 'Federal Debt to GDP Ratio' },
+                    { symbol: 'FYFSD', name: 'Federal Surplus or Deficit' },
+                    { symbol: 'FYFR', name: 'Federal Receipts' },
+                    { symbol: 'FYONET', name: 'Federal Net Outlays' }
                 ]
             }
         };
@@ -872,11 +662,12 @@
         let watchlist = [];
         let seriesData = {};
         let searchTimeout;
+        let failedSeries = new Set();
 
         function initializeCategories() {
             const categoryList = document.getElementById('categoryList');
             
-            Object.entries(fredData).forEach(([mainCategory, subcategories]) => {
+            Object.entries(economicData).forEach(([mainCategory, subcategories]) => {
                 const mainDiv = document.createElement('div');
                 mainDiv.className = 'main-category';
                 
@@ -916,7 +707,7 @@
                         seriesItem.innerHTML = `
                             <span class="series-name">${item.name}</span>
                             <span class="series-symbol">${item.symbol}</span>
-                            <button class="add-btn" onclick="addToWatchlist('${item.symbol}', '${item.name.replace(/'/g, "\\'")}')">Add</button>
+                            <button class="add-btn" id="btn-${item.symbol}" onclick="addToWatchlist('${item.symbol}', '${item.name.replace(/'/g, "\\'")}')">Add</button>
                         `;
                         seriesList.appendChild(seriesItem);
                     });
@@ -937,7 +728,6 @@
             const element = document.getElementById(id);
             const header = element.previousElementSibling;
             
-            // Close all other main categories
             document.querySelectorAll('.subcategories').forEach(sub => {
                 if (sub.id !== id) {
                     sub.classList.remove('show');
@@ -953,7 +743,6 @@
             const id = `series-${mainCategory.replace(/[^a-zA-Z0-9]/g, '-')}-${subCategory.replace(/[^a-zA-Z0-9]/g, '-')}`;
             const element = document.getElementById(id);
             
-            // Close all other series lists in this category
             const parent = element.closest('.subcategories');
             parent.querySelectorAll('.series-list').forEach(list => {
                 if (list.id !== id) {
@@ -980,7 +769,7 @@
         function performSearch(query) {
             const results = [];
             
-            Object.entries(fredData).forEach(([mainCat, subcats]) => {
+            Object.entries(economicData).forEach(([mainCat, subcats]) => {
                 Object.entries(subcats).forEach(([subcat, series]) => {
                     series.forEach(item => {
                         if (item.name.toLowerCase().includes(query) || 
@@ -994,7 +783,7 @@
                 });
             });
             
-            displaySearchResults(results.slice(0, 20)); // Limit to 20 results
+            displaySearchResults(results.slice(0, 20));
         }
 
         function displaySearchResults(results) {
@@ -1017,7 +806,6 @@
             container.style.display = 'block';
         }
 
-        // Hide search results when clicking outside
         document.addEventListener('click', function(e) {
             if (!e.target.closest('.search-container')) {
                 document.getElementById('searchResults').style.display = 'none';
@@ -1030,8 +818,7 @@
                 return;
             }
             
-            // Show loading state
-            const btn = event.target;
+            const btn = document.getElementById(`btn-${symbol}`) || event.target;
             btn.textContent = 'Loading...';
             btn.disabled = true;
             
@@ -1043,13 +830,17 @@
                     updateWatchlistDisplay();
                     updateStats();
                     
-                    // Hide search results if adding from search
                     document.getElementById('searchResults').style.display = 'none';
                     document.getElementById('searchInput').value = '';
+                    
+                    if (failedSeries.size > 0) {
+                        document.getElementById('errorNote').style.display = 'block';
+                    }
                 }
             } catch (error) {
                 console.error('Error loading series:', error);
-                alert('Error loading series data. Please try again.');
+                failedSeries.add(symbol);
+                alert(`Unable to load data for ${symbol}. This series may not be available through the API.`);
             } finally {
                 btn.textContent = 'Add';
                 btn.disabled = false;
@@ -1058,26 +849,56 @@
 
         async function fetchSeriesData(symbol) {
             try {
+                // Try the standard FRED endpoint first
                 const url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=fred`;
+                console.log(`Fetching: ${url}`);
+                
                 const response = await fetch(url);
                 
-                if (!response.ok) throw new Error('Failed to fetch data');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
                 
                 const data = await response.json();
+                console.log(`Response for ${symbol}:`, data);
                 
                 let results = [];
-                if (data && data.data) results = data.data;
-                else if (data && data.results) results = data.results;
-                else if (Array.isArray(data)) results = data;
+                if (data && data.data && Array.isArray(data.data)) {
+                    results = data.data;
+                } else if (data && data.results && Array.isArray(data.results)) {
+                    results = data.results;
+                } else if (Array.isArray(data)) {
+                    results = data;
+                }
                 
-                if (results.length === 0) throw new Error('No data available');
+                if (results.length === 0) {
+                    throw new Error('No data available');
+                }
                 
-                const processedData = results.map(item => ({
-                    date: new Date(item.date || item.Date),
-                    value: parseFloat(item[symbol] || item.value || item.Value || 0)
-                })).filter(item => !isNaN(item.value))
+                const processedData = results.map(item => {
+                    // Try different possible field names
+                    const date = item.date || item.Date || item.DATE;
+                    const value = parseFloat(
+                        item[symbol] || 
+                        item.value || 
+                        item.Value || 
+                        item.VALUE ||
+                        item.close ||
+                        item.Close ||
+                        item.price ||
+                        item.Price ||
+                        0
+                    );
+                    
+                    return { date: new Date(date), value };
+                }).filter(item => item.date && !isNaN(item.value))
                   .sort((a, b) => a.date - b.date);
                 
+                if (processedData.length === 0) {
+                    throw new Error('No valid data points');
+                }
+                
+                console.log(`Successfully fetched ${processedData.length} data points for ${symbol}`);
                 return processedData;
                 
             } catch (error) {
@@ -1093,7 +914,6 @@
             const targetDate = new Date(latest.date);
             targetDate.setDate(targetDate.getDate() - days);
             
-            // Find the closest data point to target date
             let closest = null;
             let minDiff = Infinity;
             
@@ -1103,7 +923,6 @@
                     minDiff = diff;
                     closest = data[i];
                 }
-                // Stop if we've gone too far back
                 if (data[i].date < targetDate && minDiff < 7 * 24 * 60 * 60 * 1000) break;
             }
             
@@ -1122,7 +941,6 @@
             const currentYear = latest.date.getFullYear();
             const startOfYear = new Date(currentYear, 0, 1);
             
-            // Find the first data point of the current year
             let yearStart = null;
             for (let i = 0; i < data.length; i++) {
                 if (data[i].date >= startOfYear) {
@@ -1132,7 +950,6 @@
             }
             
             if (!yearStart) {
-                // If no data for start of year, use the oldest available data
                 yearStart = data[0];
             }
             
@@ -1222,8 +1039,8 @@
                 totalDataPoints += data.length;
                 const daily = calculateChange(data, 1);
                 if (daily) {
-                    if (daily.change > 0) gainers++;
-                    else if (daily.change < 0) losers++;
+                    if (daily.percentChange > 0) gainers++;
+                    else if (daily.percentChange < 0) losers++;
                 }
             });
             
@@ -1235,15 +1052,11 @@
 
         function formatValue(value) {
             if (value === null || value === undefined) return '-';
-            if (Math.abs(value) >= 1000000) return (value / 1000000).toFixed(2) + 'M';
-            if (Math.abs(value) >= 1000) return (value / 1000).toFixed(2) + 'K';
+            if (Math.abs(value) >= 1e9) return (value / 1e9).toFixed(2) + 'B';
+            if (Math.abs(value) >= 1e6) return (value / 1e6).toFixed(2) + 'M';
+            if (Math.abs(value) >= 1e3) return (value / 1e3).toFixed(2) + 'K';
+            if (Math.abs(value) < 1) return value.toFixed(4);
             return value.toFixed(2);
-        }
-
-        function formatChange(value) {
-            if (value === null || value === undefined) return '-';
-            const sign = value > 0 ? '+' : '';
-            return sign + formatValue(value);
         }
 
         function formatPercent(value) {
@@ -1274,7 +1087,9 @@
             btn.disabled = true;
             
             try {
-                const promises = watchlist.map(item => fetchSeriesData(item.symbol));
+                const promises = watchlist.map(item => 
+                    fetchSeriesData(item.symbol).catch(() => null)
+                );
                 const results = await Promise.all(promises);
                 
                 results.forEach((data, index) => {
@@ -1300,7 +1115,7 @@
                 return;
             }
             
-            let csv = 'Series,Symbol,Current Value,Daily Change,Daily %,Weekly Change,Weekly %,Monthly Change,Monthly %,Quarterly Change,Quarterly %\n';
+            let csv = 'Series,Symbol,Current Value,Daily %,Weekly %,Monthly %,Quarterly %,YTD %,1 Year %\n';
             
             watchlist.forEach(item => {
                 const data = seriesData[item.symbol];
@@ -1311,19 +1126,23 @@
                 const weekly = calculateChange(data, 7);
                 const monthly = calculateChange(data, 30);
                 const quarterly = calculateChange(data, 90);
+                const ytd = calculateYTDChange(data);
+                const yearly = calculateChange(data, 365);
                 
                 csv += `"${item.name}",${item.symbol},${latest.value},`;
-                csv += `${daily?.change || ''},${daily?.percentChange || ''},`;
-                csv += `${weekly?.change || ''},${weekly?.percentChange || ''},`;
-                csv += `${monthly?.change || ''},${monthly?.percentChange || ''},`;
-                csv += `${quarterly?.change || ''},${quarterly?.percentChange || ''}\n`;
+                csv += `${daily?.percentChange || ''},`;
+                csv += `${weekly?.percentChange || ''},`;
+                csv += `${monthly?.percentChange || ''},`;
+                csv += `${quarterly?.percentChange || ''},`;
+                csv += `${ytd?.percentChange || ''},`;
+                csv += `${yearly?.percentChange || ''}\n`;
             });
             
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `fred_watchlist_${new Date().toISOString().split('T')[0]}.csv`;
+            a.download = `watchlist_${new Date().toISOString().split('T')[0]}.csv`;
             a.click();
             window.URL.revokeObjectURL(url);
         }
