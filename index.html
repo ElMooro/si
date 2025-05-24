@@ -368,16 +368,17 @@
                     const date = item.date || item.Date || item.time || item.timestamp;
                     
                     // The value is stored under the symbol name
-                    let value = parseFloat(
-                        item[symbol] || 
+                    let value = item[symbol] || 
                         item.value || 
                         item.Value || 
                         item.close || 
                         item.Close || 
                         item.price || 
                         item.Price || 
-                        0
-                    );
+                        0;
+                    
+                    // Parse to float
+                    value = parseFloat(value);
                     
                     return { date, value };
                 }).filter(item => item.date && !isNaN(item.value));
