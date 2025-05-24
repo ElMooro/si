@@ -816,61 +816,370 @@
     <script>
         const API_BASE = 'https://ped8gafyuz.us-east-1.awsapprunner.com';
         
-        // Comprehensive economic data series
+        // Comprehensive economic data series with complete FRED categories
         const economicData = {
-            'Federal Reserve (FRED) - Core Series': {
-                'Interest Rates': [
-                    { symbol: 'DFF', name: 'Federal Funds Rate' },
+            'FRED > Money, Banking, & Finance': {
+                'Interest Rates (440+ series)': [
+                    // Federal Funds and Policy Rates
+                    { symbol: 'DFF', name: 'Federal Funds Rate (Daily)' },
                     { symbol: 'EFFR', name: 'Effective Federal Funds Rate' },
+                    { symbol: 'OBFR', name: 'Overnight Bank Funding Rate' },
                     { symbol: 'SOFR', name: 'Secured Overnight Financing Rate' },
+                    { symbol: 'DFEDTARU', name: 'Fed Funds Target Range - Upper' },
+                    { symbol: 'DFEDTARL', name: 'Fed Funds Target Range - Lower' },
+                    { symbol: 'DFEDTAR', name: 'Fed Funds Target Rate' },
+                    { symbol: 'FEDFUNDS', name: 'Federal Funds Rate (Monthly)' },
+                    
+                    // Treasury Rates - Bills
+                    { symbol: 'DTB4WK', name: '4-Week Treasury Bill' },
+                    { symbol: 'DTB3', name: '3-Month Treasury Bill' },
+                    { symbol: 'DTB6', name: '6-Month Treasury Bill' },
+                    { symbol: 'TB3MS', name: '3-Month Treasury Bill (Monthly)' },
+                    { symbol: 'TB6MS', name: '6-Month Treasury Bill (Monthly)' },
+                    
+                    // Treasury Rates - Notes and Bonds
                     { symbol: 'DGS1', name: '1-Year Treasury Rate' },
                     { symbol: 'DGS2', name: '2-Year Treasury Rate' },
+                    { symbol: 'DGS3', name: '3-Year Treasury Rate' },
                     { symbol: 'DGS5', name: '5-Year Treasury Rate' },
+                    { symbol: 'DGS7', name: '7-Year Treasury Rate' },
                     { symbol: 'DGS10', name: '10-Year Treasury Rate' },
+                    { symbol: 'DGS20', name: '20-Year Treasury Rate' },
                     { symbol: 'DGS30', name: '30-Year Treasury Rate' },
-                    { symbol: 'TB3MS', name: '3-Month Treasury Bill' },
-                    { symbol: 'MORTGAGE30US', name: '30-Year Mortgage Rate' },
-                    { symbol: 'PRIME', name: 'Prime Rate' }
+                    
+                    // TIPS and Real Rates
+                    { symbol: 'DFII5', name: '5-Year TIPS' },
+                    { symbol: 'DFII10', name: '10-Year TIPS' },
+                    { symbol: 'DFII20', name: '20-Year TIPS' },
+                    { symbol: 'DFII30', name: '30-Year TIPS' },
+                    { symbol: 'T5YIE', name: '5-Year Breakeven Inflation Rate' },
+                    { symbol: 'T10YIE', name: '10-Year Breakeven Inflation Rate' },
+                    { symbol: 'T5YIFR', name: '5-Year Forward Inflation Expectation' },
+                    
+                    // Corporate and Credit Rates
+                    { symbol: 'AAA', name: 'Moody\'s AAA Corporate Bond Yield' },
+                    { symbol: 'BAA', name: 'Moody\'s BAA Corporate Bond Yield' },
+                    { symbol: 'BAMLH0A0HYM2', name: 'High Yield Index OAS' },
+                    { symbol: 'BAMLC0A0CM', name: 'Investment Grade Index OAS' },
+                    
+                    // Mortgage Rates
+                    { symbol: 'MORTGAGE30US', name: '30-Year Fixed Mortgage Rate' },
+                    { symbol: 'MORTGAGE15US', name: '15-Year Fixed Mortgage Rate' },
+                    { symbol: 'MORTGAGE5US', name: '5/1 ARM Mortgage Rate' },
+                    
+                    // Bank and Consumer Rates
+                    { symbol: 'PRIME', name: 'Bank Prime Loan Rate' },
+                    { symbol: 'MPRIME', name: 'Bank Prime Rate (Monthly)' },
+                    { symbol: 'DPRIME', name: 'Prime Rate Charged by Banks' },
+                    { symbol: 'TERMCBPER24NS', name: '24-Month Personal Loan Rate' },
+                    { symbol: 'TERMCBCCALLNS', name: 'Credit Card Interest Rate' },
+                    
+                    // International Rates
+                    { symbol: 'INTDSREUM193N', name: 'Euro Area Interest Rate' },
+                    { symbol: 'INTDSRGBM193N', name: 'UK Interest Rate' },
+                    { symbol: 'INTDSRJPM193N', name: 'Japan Interest Rate' },
+                    { symbol: 'INTDSRCNM193N', name: 'China Interest Rate' },
+                    
+                    // Spreads
+                    { symbol: 'T10Y2Y', name: '10-Year Treasury Minus 2-Year' },
+                    { symbol: 'T10Y3M', name: '10-Year Treasury Minus 3-Month' },
+                    { symbol: 'TEDRATE', name: 'TED Spread' },
+                    { symbol: 'BAAFFM', name: 'BAA-FF Spread' }
                 ],
-                'Monetary Aggregates': [
+                'Exchange Rates (9+ series)': [
+                    { symbol: 'DEXUSEU', name: 'US Dollar to Euro' },
+                    { symbol: 'DEXUSUK', name: 'US Dollar to British Pound' },
+                    { symbol: 'DEXJPUS', name: 'Japanese Yen to US Dollar' },
+                    { symbol: 'DEXCHUS', name: 'Chinese Yuan to US Dollar' },
+                    { symbol: 'DEXCAUS', name: 'Canadian Dollar to US Dollar' },
+                    { symbol: 'DEXMXUS', name: 'Mexican Peso to US Dollar' },
+                    { symbol: 'DEXKOUS', name: 'Korean Won to US Dollar' },
+                    { symbol: 'DEXINUS', name: 'Indian Rupee to US Dollar' },
+                    { symbol: 'DEXBZUS', name: 'Brazilian Real to US Dollar' },
+                    { symbol: 'DEXSFUS', name: 'South African Rand to US Dollar' },
+                    { symbol: 'DEXAUUS', name: 'Australian Dollar to US Dollar' },
+                    { symbol: 'DTWEXBGS', name: 'Trade Weighted Dollar Index - Broad' },
+                    { symbol: 'DTWEXAFEGS', name: 'Trade Weighted Dollar - Advanced Foreign Economies' },
+                    { symbol: 'DTWEXEMEGS', name: 'Trade Weighted Dollar - Emerging Markets' }
+                ],
+                'Monetary Data (1,100+ series)': [
+                    // Money Supply
                     { symbol: 'M1SL', name: 'M1 Money Supply' },
                     { symbol: 'M2SL', name: 'M2 Money Supply' },
+                    { symbol: 'M1V', name: 'M1 Money Velocity' },
+                    { symbol: 'M2V', name: 'M2 Money Velocity' },
+                    { symbol: 'WM1NS', name: 'M1 Money Stock (Weekly)' },
+                    { symbol: 'WM2NS', name: 'M2 Money Stock (Weekly)' },
+                    { symbol: 'MZMSL', name: 'MZM Money Stock (Discontinued)' },
+                    { symbol: 'MZMV', name: 'MZM Velocity' },
+                    
+                    // Monetary Base and Reserves
                     { symbol: 'BOGMBASE', name: 'Monetary Base' },
+                    { symbol: 'AMBSL', name: 'Adjusted Monetary Base' },
                     { symbol: 'TOTRESNS', name: 'Total Reserves' },
+                    { symbol: 'REQRESNS', name: 'Required Reserves' },
+                    { symbol: 'EXCSRESNS', name: 'Excess Reserves' },
                     { symbol: 'WRESBAL', name: 'Reserve Balances with Fed Banks' },
+                    { symbol: 'RESBALNS', name: 'Reserve Balances (Not Seasonally Adjusted)' },
+                    
+                    // Fed Balance Sheet Items
+                    { symbol: 'WALCL', name: 'Fed Total Assets' },
                     { symbol: 'RESPPNTEPNWW', name: 'Eligible Collateral' },
                     { symbol: 'RESPPALGUONNWW', name: 'Treasury Securities Held' },
-                    { symbol: 'SWP1690', name: 'Central Bank Liquidity Swaps' },
-                    { symbol: 'OTHL1690', name: 'Loans: Credit Facilities' }
+                    { symbol: 'WSHOMCB', name: 'Mortgage-Backed Securities Held' },
+                    { symbol: 'SWPT', name: 'Central Bank Liquidity Swaps' },
+                    { symbol: 'SWP1690', name: 'Swaps Maturing 16-90 Days' },
+                    { symbol: 'OTHL1690', name: 'Loans Maturing 16-90 Days' },
+                    
+                    // Currency
+                    { symbol: 'CURRSL', name: 'Currency in Circulation' },
+                    { symbol: 'WCURRNS', name: 'Currency in Circulation (Weekly)' },
+                    { symbol: 'CURRCIR', name: 'Currency Component of M1' }
                 ],
-                'Economic Indicators': [
+                'Financial Indicators (2,200+ series)': [
+                    // Volatility and Risk
+                    { symbol: 'VIXCLS', name: 'VIX - CBOE Volatility Index' },
+                    { symbol: 'VXOCLS', name: 'VXO - Old VIX' },
+                    { symbol: 'EVZCLS', name: 'Euro Currency Volatility Index' },
+                    { symbol: 'GVZCLS', name: 'Gold Volatility Index' },
+                    { symbol: 'OVXCLS', name: 'Oil Volatility Index' },
+                    
+                    // Financial Stress Indices
+                    { symbol: 'STLFSI4', name: 'St. Louis Fed Financial Stress Index' },
+                    { symbol: 'NFCI', name: 'Chicago Fed National Financial Conditions Index' },
+                    { symbol: 'ANFCI', name: 'Adjusted NFCI' },
+                    { symbol: 'KCFSI', name: 'Kansas City Financial Stress Index' },
+                    { symbol: 'CFSI', name: 'Cleveland Financial Stress Index' },
+                    
+                    // Credit Spreads
+                    { symbol: 'BAMLH0A0HYM2', name: 'High Yield Spread' },
+                    { symbol: 'BAMLC0A0CM', name: 'Investment Grade Spread' },
+                    { symbol: 'BAMLH0A1HYBB', name: 'BB-Rated Spread' },
+                    { symbol: 'BAMLH0A2HYB', name: 'B-Rated Spread' },
+                    { symbol: 'BAMLH0A3HYC', name: 'CCC-Rated Spread' }
+                ],
+                'Banking (5,100+ series)': [
+                    // Bank Assets and Liabilities
+                    { symbol: 'DPSACBW027SBOG', name: 'Deposits, All Commercial Banks' },
+                    { symbol: 'TOTBKCR', name: 'Bank Credit, All Banks' },
+                    { symbol: 'USGSEC', name: 'Treasury & Agency Securities Held' },
+                    { symbol: 'OTHSEC', name: 'Other Securities Held by Banks' },
+                    { symbol: 'TOTLL', name: 'Total Loans and Leases' },
+                    
+                    // Loan Categories
+                    { symbol: 'BUSLOANS', name: 'Commercial and Industrial Loans' },
+                    { symbol: 'REALLN', name: 'Real Estate Loans' },
+                    { symbol: 'CONSUMER', name: 'Consumer Loans' },
+                    { symbol: 'REVOLSL', name: 'Revolving Consumer Credit' },
+                    { symbol: 'NONREVSL', name: 'Non-Revolving Consumer Credit' },
+                    
+                    // Bank Performance
+                    { symbol: 'USROE', name: 'Return on Equity for US Banks' },
+                    { symbol: 'USROA', name: 'Return on Assets for US Banks' },
+                    { symbol: 'USNIM', name: 'Net Interest Margin for US Banks' },
+                    { symbol: 'NDFACBW027SBOG', name: 'Delinquency Rate on All Loans' }
+                ],
+                'Business Lending (2,200+ series)': [
+                    { symbol: 'BCLOANSNSA', name: 'Commercial & Industrial Loans (NSA)' },
+                    { symbol: 'BUSLOANS', name: 'Business Loans, All Banks' },
+                    { symbol: 'CILOANSNSA', name: 'C&I Loans (Not Seasonally Adjusted)' },
+                    { symbol: 'TOTCI', name: 'Total C&I Loans Outstanding' },
+                    { symbol: 'ECOMPCTNSA', name: 'Commercial Paper Outstanding' },
+                    { symbol: 'COMPOUT', name: 'Commercial Paper Outstanding (Total)' },
+                    { symbol: 'DTCTHFNM', name: 'Total Consumer Credit Outstanding' },
+                    { symbol: 'TOTALSL', name: 'Total Consumer Credit' }
+                ]
+            },
+            'FRED > Population, Employment, & Labor Markets': {
+                'Current Population Survey (6,800+ series)': [
+                    { symbol: 'UNRATE', name: 'Unemployment Rate' },
+                    { symbol: 'CIVPART', name: 'Labor Force Participation Rate' },
+                    { symbol: 'EMRATIO', name: 'Employment-Population Ratio' },
+                    { symbol: 'UNEMPLOY', name: 'Unemployed Persons (Thousands)' },
+                    { symbol: 'CLF16OV', name: 'Civilian Labor Force' },
+                    { symbol: 'CE16OV', name: 'Civilian Employment' },
+                    { symbol: 'UEMPLT5', name: 'Unemployed Less Than 5 Weeks' },
+                    { symbol: 'UEMP5TO14', name: 'Unemployed 5-14 Weeks' },
+                    { symbol: 'UEMP15T26', name: 'Unemployed 15-26 Weeks' },
+                    { symbol: 'UEMP27OV', name: 'Unemployed 27+ Weeks' },
+                    { symbol: 'U6RATE', name: 'U-6 Unemployment Rate' },
+                    { symbol: 'NROU', name: 'Natural Rate of Unemployment' }
+                ],
+                'Current Employment Statistics (390+ series)': [
+                    { symbol: 'PAYEMS', name: 'All Employees: Total Nonfarm' },
+                    { symbol: 'USCONS', name: 'Construction Employment' },
+                    { symbol: 'MANEMP', name: 'Manufacturing Employment' },
+                    { symbol: 'USTRADE', name: 'Retail Trade Employment' },
+                    { symbol: 'USFIRE', name: 'Financial Activities Employment' },
+                    { symbol: 'USPBS', name: 'Professional & Business Services' },
+                    { symbol: 'USEHS', name: 'Education & Health Services' },
+                    { symbol: 'USLAH', name: 'Leisure & Hospitality' },
+                    { symbol: 'USGOVT', name: 'Government Employment' },
+                    { symbol: 'CES0500000003', name: 'Average Hourly Earnings' },
+                    { symbol: 'AWHAETP', name: 'Average Weekly Hours' },
+                    { symbol: 'AWHNONAG', name: 'Average Weekly Hours - Private' }
+                ],
+                'Weekly Initial Claims (9+ series)': [
+                    { symbol: 'ICSA', name: 'Initial Claims' },
+                    { symbol: 'IC4WSA', name: '4-Week Moving Average' },
+                    { symbol: 'CCSA', name: 'Continued Claims' },
+                    { symbol: 'ICNSA', name: 'Initial Claims (NSA)' },
+                    { symbol: 'CCNSA', name: 'Continued Claims (NSA)' }
+                ],
+                'Income Distribution (220+ series)': [
+                    { symbol: 'MEHOINUSA672N', name: 'Real Median Household Income' },
+                    { symbol: 'DSPIC96', name: 'Real Disposable Personal Income' },
+                    { symbol: 'A229RC0', name: 'Personal Income' },
+                    { symbol: 'GINIALLRH', name: 'Gini Index of Income Inequality' },
+                    { symbol: 'WFRBST01134', name: 'Share of Total Net Worth: Top 1%' },
+                    { symbol: 'WFRBSB50215', name: 'Share of Total Net Worth: Bottom 50%' }
+                ]
+            },
+            'FRED > National Accounts': {
+                'National Income & Product Accounts (13,000+ series)': [
                     { symbol: 'GDP', name: 'Gross Domestic Product' },
                     { symbol: 'GDPC1', name: 'Real GDP' },
-                    { symbol: 'UNRATE', name: 'Unemployment Rate' },
-                    { symbol: 'PAYEMS', name: 'Nonfarm Payrolls' },
-                    { symbol: 'CPIAUCSL', name: 'Consumer Price Index' },
-                    { symbol: 'CPILFESL', name: 'Core CPI' },
-                    { symbol: 'PPIACO', name: 'Producer Price Index' },
+                    { symbol: 'GDPPOT', name: 'Real Potential GDP' },
+                    { symbol: 'GDPDEF', name: 'GDP Deflator' },
+                    { symbol: 'NYGDPMKTPCDWLD', name: 'World GDP Per Capita' },
+                    { symbol: 'PCECC96', name: 'Real Personal Consumption' },
+                    { symbol: 'GPDIC1', name: 'Real Gross Private Investment' },
+                    { symbol: 'GCEC1', name: 'Real Government Consumption' },
+                    { symbol: 'NETEXC', name: 'Real Net Exports' },
+                    { symbol: 'A191RL1Q225SBEA', name: 'Real GDP Growth Rate' }
+                ],
+                'Federal Government Debt': [
+                    { symbol: 'GFDEBTN', name: 'Federal Debt: Total Public Debt' },
+                    { symbol: 'GFDEGDQ188S', name: 'Federal Debt to GDP Ratio' },
+                    { symbol: 'FYGFD', name: 'Gross Federal Debt' },
+                    { symbol: 'FYGFDPUB', name: 'Federal Debt Held by Public' },
+                    { symbol: 'FDHBFRBN', name: 'Debt Held by Federal Reserve' },
+                    { symbol: 'FDHBFIN', name: 'Debt Held by Foreign & International' },
+                    { symbol: 'FYONET', name: 'Federal Net Outlays' },
+                    { symbol: 'FYFR', name: 'Federal Receipts' },
+                    { symbol: 'FYFSD', name: 'Federal Surplus or Deficit' }
+                ],
+                'U.S. Trade & International Transactions (360+ series)': [
+                    { symbol: 'BOPGSTB', name: 'Trade Balance: Goods and Services' },
+                    { symbol: 'NETEXP', name: 'Net Exports of Goods and Services' },
+                    { symbol: 'IMPGS', name: 'Imports of Goods and Services' },
+                    { symbol: 'EXPGS', name: 'Exports of Goods and Services' },
+                    { symbol: 'BOPGTB', name: 'Trade Balance: Goods' },
+                    { symbol: 'IEAXGS', name: 'Exports: Goods' },
+                    { symbol: 'IEAMGS', name: 'Imports: Goods' }
+                ]
+            },
+            'FRED > Prices': {
+                'Consumer Price Indexes (8,000+ series)': [
+                    { symbol: 'CPIAUCSL', name: 'CPI: All Items' },
+                    { symbol: 'CPILFESL', name: 'CPI: All Items Less Food & Energy' },
+                    { symbol: 'CPIMEDSL', name: 'CPI: Medical Care' },
+                    { symbol: 'CPIUFDSL', name: 'CPI: Food' },
+                    { symbol: 'CPITRNSL', name: 'CPI: Transportation' },
+                    { symbol: 'CUSR0000SAH1', name: 'CPI: Shelter' },
+                    { symbol: 'CPIENGSL', name: 'CPI: Energy' },
+                    { symbol: 'CPIAPPSL', name: 'CPI: Apparel' },
+                    { symbol: 'CPIEDUSL', name: 'CPI: Education' },
+                    { symbol: 'CPIAUCNS', name: 'CPI: All Items (NSA)' }
+                ],
+                'Producer Price Indexes (32,000+ series)': [
+                    { symbol: 'PPIACO', name: 'PPI: All Commodities' },
+                    { symbol: 'PPIFGS', name: 'PPI: Finished Goods' },
+                    { symbol: 'PPIFCG', name: 'PPI: Finished Consumer Goods' },
+                    { symbol: 'PPICRM', name: 'PPI: Crude Materials' },
+                    { symbol: 'PPIIDC', name: 'PPI: Industrial Commodities' },
+                    { symbol: 'PPIENG', name: 'PPI: Energy' },
+                    { symbol: 'PPIFGS', name: 'PPI: Finished Goods' }
+                ],
+                'Commodities (3,000+ series)': [
+                    { symbol: 'DCOILWTICO', name: 'WTI Crude Oil Price' },
+                    { symbol: 'DCOILBRENTEU', name: 'Brent Crude Oil Price' },
+                    { symbol: 'GOLDAMGBD228NLBM', name: 'Gold Price: London Fixing' },
+                    { symbol: 'DHHNGSP', name: 'Natural Gas Price: Henry Hub' },
+                    { symbol: 'PALLFNFINDEXM', name: 'Global Price Index of All Commodities' },
+                    { symbol: 'DPROPANEMBTX', name: 'Propane Prices' },
+                    { symbol: 'GASREGW', name: 'Regular Gasoline Price' }
+                ]
+            },
+            'FRED > Production & Business Activity': {
+                'Industrial Production & Capacity Utilization (10,000+ series)': [
                     { symbol: 'INDPRO', name: 'Industrial Production Index' },
-                    { symbol: 'HOUST', name: 'Housing Starts' },
-                    { symbol: 'PERMIT', name: 'Building Permits' }
+                    { symbol: 'TCU', name: 'Total Capacity Utilization' },
+                    { symbol: 'CAPUTLB50001SQ', name: 'Manufacturing Capacity Utilization' },
+                    { symbol: 'IPG2211A2N', name: 'Electric Power Generation' },
+                    { symbol: 'IPB50001N', name: 'Industrial Production: Manufacturing' },
+                    { symbol: 'IPMANSICS', name: 'Manufacturing: ISM Report' }
                 ],
-                'Financial Markets': [
-                    { symbol: 'VIXCLS', name: 'VIX Volatility Index' },
-                    { symbol: 'TEDRATE', name: 'TED Spread' },
-                    { symbol: 'T10Y2Y', name: '10Y-2Y Treasury Spread' },
-                    { symbol: 'T10Y3M', name: '10Y-3M Treasury Spread' },
-                    { symbol: 'BAMLH0A0HYM2', name: 'High Yield Spread' },
-                    { symbol: 'DEXUSEU', name: 'USD/EUR Exchange Rate' },
-                    { symbol: 'DEXCHUS', name: 'CNY/USD Exchange Rate' },
-                    { symbol: 'DEXJPUS', name: 'JPY/USD Exchange Rate' },
-                    { symbol: 'DTWEXBGS', name: 'Trade Weighted Dollar Index' }
+                'Housing (15,000+ series)': [
+                    { symbol: 'HOUST', name: 'Housing Starts: Total' },
+                    { symbol: 'PERMIT', name: 'Building Permits' },
+                    { symbol: 'COMPUTSA', name: 'Housing Completions' },
+                    { symbol: 'CSUSHPISA', name: 'Case-Shiller National Home Price Index' },
+                    { symbol: 'MSPUS', name: 'Median Sales Price of Houses Sold' },
+                    { symbol: 'MORTGAGE30US', name: '30-Year Fixed Mortgage Rate' },
+                    { symbol: 'MORTGAGE15US', name: '15-Year Fixed Mortgage Rate' },
+                    { symbol: 'RHORUSQ156N', name: 'Homeownership Rate' },
+                    { symbol: 'EXHOSLUSM495S', name: 'Existing Home Sales' },
+                    { symbol: 'HSN1F', name: 'New One Family Houses Sold' }
                 ],
-                'Financial Stress': [
-                    { symbol: 'STLFSI4', name: 'St. Louis Fed Financial Stress Index' },
-                    { symbol: 'NFCI', name: 'Chicago Fed Financial Conditions' },
-                    { symbol: 'ANFCI', name: 'Adjusted Financial Conditions' },
-                    { symbol: 'KCFSI', name: 'Kansas City Financial Stress' }
+                'Manufacturing (6,000+ series)': [
+                    { symbol: 'DGORDER', name: 'Durable Goods Orders' },
+                    { symbol: 'NEWORDER', name: 'Manufacturers\' New Orders' },
+                    { symbol: 'AMTMNO', name: 'Manufacturers\' New Orders: Total' },
+                    { symbol: 'BUSINV', name: 'Total Business Inventories' },
+                    { symbol: 'ISRATIO', name: 'Total Business: Inventory to Sales Ratio' },
+                    { symbol: 'MNFCTRSMSA', name: 'Manufacturers\' Shipments' }
+                ],
+                'Retail Trade (4,000+ series)': [
+                    { symbol: 'RSXFS', name: 'Retail Sales Ex Food Services' },
+                    { symbol: 'RETAILIMSA', name: 'Retail Sales: Total' },
+                    { symbol: 'RSAFS', name: 'Retail & Food Services Sales' },
+                    { symbol: 'MRTSSM44X72USS', name: 'Retail Trade Sales' },
+                    { symbol: 'RSGASSN', name: 'Retail Sales: Gasoline Stations' }
+                ],
+                'Business Surveys': [
+                    { symbol: 'UMCSENT', name: 'University of Michigan Consumer Sentiment' },
+                    { symbol: 'MICH', name: 'Michigan Consumer Sentiment Index' },
+                    { symbol: 'GACDISA066MSFRBNY', name: 'Empire State Manufacturing Index' },
+                    { symbol: 'DPROSMFRBPHIL', name: 'Philadelphia Fed Business Outlook' },
+                    { symbol: 'BSCICP02USM460S', name: 'Business Confidence' },
+                    { symbol: 'NMFCI', name: 'Chicago Fed National Activity Index' }
+                ]
+            },
+            'European Central Bank (ECB)': {
+                'ECB Policy Rates': [
+                    { symbol: 'ECBDFR', name: 'ECB Deposit Facility Rate' },
+                    { symbol: 'ECBMPRFR', name: 'ECB Main Refinancing Operations Rate' },
+                    { symbol: 'ECBMLFR', name: 'ECB Marginal Lending Facility Rate' },
+                    { symbol: 'EUINTERESTRATE', name: 'Euro Area Interest Rate' }
+                ],
+                'Euro Area Indicators': [
+                    { symbol: 'CLVMEURSCAB1GQEA19', name: 'Euro Area Real GDP' },
+                    { symbol: 'EA19MABMM301GYSAM', name: 'Euro Area M3' },
+                    { symbol: 'LRHUTTTTEZM156S', name: 'Euro Area Unemployment Rate' },
+                    { symbol: 'FPCPITOTLZGEUR', name: 'Euro Area Inflation Rate' }
+                ]
+            },
+            'New York Fed': {
+                'NY Fed Operations': [
+                    { symbol: 'RPONTSYD', name: 'Overnight Repo Rate' },
+                    { symbol: 'RPONTTLD', name: 'Term Repo Rate' },
+                    { symbol: 'TGCR', name: 'Tri-Party General Collateral Rate' },
+                    { symbol: 'BGCR', name: 'Broad General Collateral Rate' },
+                    { symbol: 'SOFR', name: 'SOFR (Secured Overnight Financing Rate)' }
+                ],
+                'Primary Dealer Positions': [
+                    { symbol: 'PDPOSGS', name: 'Primary Dealer Positions: US Treasuries' },
+                    { symbol: 'PDPOSMBS', name: 'Primary Dealer Positions: MBS' },
+                    { symbol: 'PDPOSCORP', name: 'Primary Dealer Positions: Corporate Securities' }
+                ]
+            },
+            'Office of Financial Research (OFR)': {
+                'Financial Stress Indicators': [
+                    { symbol: 'STLFSI4', name: 'St. Louis Fed Financial Stress Index (v4)' },
+                    { symbol: 'STLFSI3', name: 'St. Louis Fed Financial Stress Index (v3)' },
+                    { symbol: 'STLFSI2', name: 'St. Louis Fed Financial Stress Index (v2)' },
+                    { symbol: 'STLFSI', name: 'St. Louis Fed Financial Stress Index (v1)' }
                 ]
             }
         };
