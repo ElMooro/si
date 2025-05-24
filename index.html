@@ -328,7 +328,7 @@
                         if (Array.isArray(data[key])) {
                             console.log(`Found array in data.${key} with ${data[key].length} items`);
                             if (data[key].length > 0) {
-                                console.log(`First item in data.${key}:`, data[key][0]);
+                                console.log(`First item in data.${key}:`, JSON.stringify(data[key][0], null, 2));
                             }
                         }
                     });
@@ -381,10 +381,12 @@
                 
                 console.log(`Processed ${processedData.length} valid items for ${symbol}`);
                 if (processedData.length > 0) {
-                    console.log(`Sample processed data for ${symbol}:`, processedData[0]);
+                    console.log(`Sample processed data for ${symbol}:`, JSON.stringify(processedData[0], null, 2));
+                    console.log(`Last data point for ${symbol}:`, JSON.stringify(processedData[processedData.length - 1], null, 2));
                 }
                 
-                return processedData;
+                // Sort by date
+                return processedData.sort((a, b) => new Date(a.date) - new Date(b.date));
                 
             } catch (error) {
                 console.error(`Error fetching ${symbol}:`, error);
