@@ -466,8 +466,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>FRED Universal Search</h1>
-            <p>Search over 800,000 economic time series from the Federal Reserve</p>
+            <h1>Macro Intelligence Platform - Universal Search</h1>
+            <p>Search economic data from FRED, ECB, NY Fed, Treasury, OFR and more</p>
         </div>
 
         <div class="search-section">
@@ -568,16 +568,13 @@
     </div>
 
     <script>
-        // FRED API configuration
-        const FRED_API_KEY = 'YOUR_FRED_API_KEY'; // Get free key from https://fred.stlouisfed.org/docs/api/api_key.html
-        const FRED_API_BASE = 'https://api.stlouisfed.org/fred';
-        
-        // Use demo mode if no API key
-        const USE_DEMO_MODE = FRED_API_KEY === 'YOUR_FRED_API_KEY';
+        // Your Macro Intelligence Platform API
+        const API_BASE = 'https://ped8gafyuz.us-east-1.awsapprunner.com';
         
         let currentPage = 0;
         let totalResults = 0;
         let watchlist = [];
+        let searchResults = [];
 
         // Demo data for when API key is not available
         const demoData = [
@@ -595,16 +592,15 @@
 
         // Initialize on load
         document.addEventListener('DOMContentLoaded', () => {
-            if (USE_DEMO_MODE) {
-                showDemoNotice();
-            }
-            
             // Load saved watchlist
-            const saved = localStorage.getItem('fredWatchlist');
+            const saved = localStorage.getItem('macroWatchlist');
             if (saved) {
                 watchlist = JSON.parse(saved);
                 updateWatchlistDisplay();
             }
+            
+            // Test API connection
+            testAPIConnection();
             
             // Enter key triggers search
             document.getElementById('searchInput').addEventListener('keypress', (e) => {
@@ -614,16 +610,16 @@
             });
         });
 
-        function showDemoNotice() {
-            const notice = document.createElement('div');
-            notice.style.cssText = 'background: #ff9800; color: #000; padding: 10px; text-align: center; font-weight: 600;';
-            notice.innerHTML = `
-                Demo Mode: To search real FRED data, get a free API key from 
-                <a href="https://fred.stlouisfed.org/docs/api/api_key.html" target="_blank" style="color: #000; text-decoration: underline;">
-                    fred.stlouisfed.org
-                </a> and update the code.
-            `;
-            document.body.insertBefore(notice, document.body.firstChild);
+        async function testAPIConnection() {
+            try {
+                const response = await fetch(`${API_BASE}/api/v1/universal/providers`);
+                if (response.ok) {
+                    const providers = await response.json();
+                    console.log('Connected to Macro Intelligence Platform. Available providers:', providers);
+                }
+            } catch (error) {
+                console.error('API connection test failed:', error);
+            }
         }
 
         async function performSearch(page = 0) {
@@ -637,36 +633,49 @@
             showLoading(true);
             
             try {
-                let results;
+                // Use your universal search endpoint
+                const response = await fetch(`${API_BASE}/api/v1/universal/search?query=${encodeURIComponent(searchText)}`);
                 
-                if (USE_DEMO_MODE) {
-                    // Filter demo data based on search
-                    results = {
-                        seriess: demoData.filter(item => 
-                            item.title.toLowerCase().includes(searchText.toLowerCase()) ||
-                            item.id.toLowerCase().includes(searchText.toLowerCase()) ||
-                            item.notes.toLowerCase().includes(searchText.toLowerCase())
-                        ),
-                        count: demoData.length
-                    };
-                } else {
-                    // Real FRED API call
-                    const limit = document.getElementById('limit').value;
-                    const orderBy = document.getElementById('sortOrder').value;
-                    const offset = page * limit;
-                    
-                    const url = `${FRED_API_BASE}/series/search?search_text=${encodeURIComponent(searchText)}&api_key=${FRED_API_KEY}&file_type=json&limit=${limit}&offset=${offset}&order_by=${orderBy}`;
-                    
-                    const response = await fetch(url);
-                    if (!response.ok) throw new Error('API request failed');
-                    
-                    results = await response.json();
+                if (!response.ok) {
+                    throw new Error(`Search failed: ${response.status}`);
                 }
                 
-                displayResults(results);
+                const data = await response.json();
+                console.log('Search results:', data);
+                
+                // Store results for pagination
+                searchResults = data.results || data || [];
+                
+                // Handle pagination
+                const limit = parseInt(document.getElementById('limit').value);
+                const offset = page * limit;
+                const paginatedResults = searchResults.slice(offset, offset + limit);
+                
+                displayResults({
+                    series: paginatedResults,
+                    count: searchResults.length
+                });
+                
             } catch (error) {
                 console.error('Search error:', error);
-                alert('Error searching FRED database. ' + (USE_DEMO_MODE ? 'Showing demo data.' : 'Please check your API key.'));
+                
+                // Try search suggestions as fallback
+                try {
+                    const suggestResponse = await fetch(`${API_BASE}/api/v1/interactive/search-suggestions?query=${encodeURIComponent(searchText)}`);
+                    if (suggestResponse.ok) {
+                        const suggestions = await suggestResponse.json();
+                        displayResults({
+                            series: suggestions.map(s => ({
+                                id: s.symbol || s,
+                                title: s.name || s,
+                                provider: s.provider || 'fred'
+                            })),
+                            count: suggestions.length
+                        });
+                    }
+                } catch (fallbackError) {
+                    alert('Search failed. Please try again.');
+                }
             } finally {
                 showLoading(false);
             }
@@ -678,7 +687,7 @@
             const resultsCount = document.getElementById('resultsCount');
             
             totalResults = data.count || 0;
-            const series = data.seriess || [];
+            const series = data.series || [];
             
             if (series.length === 0) {
                 resultsGrid.innerHTML = '<div class="no-results">No results found. Try different search terms.</div>';
@@ -687,27 +696,34 @@
                 return;
             }
             
-            resultsCount.textContent = `Found ${totalResults.toLocaleString()} series`;
+            resultsCount.textContent = `Found ${totalResults} series`;
             resultsSection.style.display = 'block';
             
-            resultsGrid.innerHTML = series.map(item => `
-                <div class="result-card" onclick="viewSeriesDetails('${item.id}')">
-                    <div class="result-title">${item.title || 'Untitled'}</div>
-                    <div class="result-id">${item.id}</div>
-                    <div class="result-meta">
-                        ${item.units ? `<div class="meta-item"><span class="meta-icon">📊</span> ${item.units}</div>` : ''}
-                        ${item.frequency ? `<div class="meta-item"><span class="meta-icon">📅</span> ${getFrequencyLabel(item.frequency)}</div>` : ''}
-                        ${item.seasonal_adjustment ? `<div class="meta-item"><span class="meta-icon">📈</span> ${item.seasonal_adjustment}</div>` : ''}
+            resultsGrid.innerHTML = series.map(item => {
+                const symbol = item.symbol || item.id || item;
+                const title = item.name || item.title || symbol;
+                const provider = item.provider || 'fred';
+                
+                return `
+                    <div class="result-card" onclick="viewSeriesDetails('${symbol}', '${provider}')">
+                        <div class="result-title">${title}</div>
+                        <div class="result-id">${symbol}</div>
+                        <div class="result-meta">
+                            <div class="meta-item"><span class="meta-icon">🏢</span> ${provider.toUpperCase()}</div>
+                            ${item.units ? `<div class="meta-item"><span class="meta-icon">📊</span> ${item.units}</div>` : ''}
+                            ${item.frequency ? `<div class="meta-item"><span class="meta-icon">📅</span> ${getFrequencyLabel(item.frequency)}</div>` : ''}
+                        </div>
+                        ${item.description || item.notes ? `<div class="result-description">${truncateText(item.description || item.notes, 150)}</div>` : ''}
+                        <div class="result-actions">
+                            <button class="action-btn" onclick="event.stopPropagation(); addToWatchlist('${symbol}', '${title.replace(/'/g, "\\'")}', '${provider}')">
+                                ${watchlist.find(w => w.symbol === symbol) ? '✓ In Watchlist' : '+ Add to Watchlist'}
+                            </button>
+                            <button class="action-btn" onclick="event.stopPropagation(); viewChart('${symbol}', '${provider}')">View Chart</button>
+                            <button class="action-btn" onclick="event.stopPropagation(); fetchLatestData('${symbol}', '${provider}')">Get Data</button>
+                        </div>
                     </div>
-                    ${item.notes ? `<div class="result-description">${truncateText(item.notes, 150)}</div>` : ''}
-                    <div class="result-actions">
-                        <button class="action-btn" onclick="event.stopPropagation(); addToWatchlist('${item.id}', '${(item.title || '').replace(/'/g, "\\'")}')">
-                            ${watchlist.find(w => w.id === item.id) ? '✓ In Watchlist' : '+ Add to Watchlist'}
-                        </button>
-                        <button class="action-btn" onclick="event.stopPropagation(); viewChart('${item.id}')">View Chart</button>
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
             
             updatePagination();
         }
@@ -866,3 +882,4 @@
     </script>
 </body>
 </html>
+<a href="fred-search.html" target="_blank">FRED Universal Search - Economic Data Explorer</a>
