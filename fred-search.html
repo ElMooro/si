@@ -677,7 +677,7 @@
                 console.log(`Searching for: ${searchText}`);
                 
                 // Try different search approaches
-                let searchResults = [];
+                let searchResultsArray = [];
                 
                 // Approach 1: Try the universal search endpoint
                 try {
@@ -688,12 +688,23 @@
                         const searchData = await searchResponse.json();
                         console.log('Search data:', searchData);
                         
+                        // Handle different response formats
                         if (Array.isArray(searchData)) {
-                            searchResults = searchData;
-                        } else if (searchData.results) {
-                            searchResults = searchData.results;
-                        } else if (searchData.data) {
-                            searchResults = searchData.data;
+                            searchResultsArray = searchData;
+                        } else if (searchData.results && Array.isArray(searchData.results)) {
+                            searchResultsArray = searchData.results;
+                        } else if (searchData.data && Array.isArray(searchData.data)) {
+                            searchResultsArray = searchData.data;
+                        } else if (searchData.series && Array.isArray(searchData.series)) {
+                            searchResultsArray = searchData.series;
+                        } else if (typeof searchData === 'object') {
+                            // If it's an object with symbol properties, convert to array
+                            searchResultsArray = Object.keys(searchData).map(key => ({
+                                symbol: key,
+                                name: searchData[key].name || searchData[key].title || key,
+                                provider: searchData[key].provider || 'fred',
+                                ...searchData[key]
+                            }));
                         }
                     }
                 } catch (e) {
@@ -701,7 +712,7 @@
                 }
                 
                 // Approach 2: If no results, try search suggestions
-                if (searchResults.length === 0) {
+                if (searchResultsArray.length === 0) {
                     try {
                         const suggestResponse = await fetch(`${API_BASE}/api/v1/interactive/search-suggestions?query=${encodeURIComponent(searchText)}`);
                         console.log('Suggestions response status:', suggestResponse.status);
@@ -711,7 +722,7 @@
                             console.log('Suggestions:', suggestions);
                             
                             if (Array.isArray(suggestions)) {
-                                searchResults = suggestions.map(s => {
+                                searchResultsArray = suggestions.map(s => {
                                     if (typeof s === 'string') {
                                         return { symbol: s, name: s, provider: 'fred' };
                                     }
@@ -721,6 +732,13 @@
                                         provider: s.provider || 'fred'
                                     };
                                 });
+                            } else if (typeof suggestions === 'object') {
+                                // Handle object response
+                                searchResultsArray = Object.keys(suggestions).map(key => ({
+                                    symbol: key,
+                                    name: suggestions[key].name || suggestions[key] || key,
+                                    provider: 'fred'
+                                }));
                             }
                         }
                     } catch (e) {
@@ -729,28 +747,42 @@
                 }
                 
                 // Approach 3: If still no results, try common series
-                if (searchResults.length === 0 && searchText.toLowerCase().includes('gdp')) {
-                    searchResults = [
-                        { symbol: 'GDP', name: 'Gross Domestic Product', provider: 'fred' },
-                        { symbol: 'GDPC1', name: 'Real GDP', provider: 'fred' },
-                        { symbol: 'GDPPOT', name: 'GDP Potential', provider: 'fred' }
-                    ];
-                } else if (searchResults.length === 0 && searchText.toLowerCase().includes('inflation')) {
-                    searchResults = [
-                        { symbol: 'CPIAUCSL', name: 'Consumer Price Index', provider: 'fred' },
-                        { symbol: 'CPILFESL', name: 'Core CPI', provider: 'fred' },
-                        { symbol: 'T5YIE', name: '5-Year Breakeven Inflation', provider: 'fred' }
-                    ];
-                } else if (searchResults.length === 0 && searchText.toLowerCase().includes('unemployment')) {
-                    searchResults = [
-                        { symbol: 'UNRATE', name: 'Unemployment Rate', provider: 'fred' },
-                        { symbol: 'CIVPART', name: 'Labor Force Participation Rate', provider: 'fred' },
-                        { symbol: 'EMRATIO', name: 'Employment-Population Ratio', provider: 'fred' }
-                    ];
+                if (searchResultsArray.length === 0) {
+                    const searchLower = searchText.toLowerCase();
+                    if (searchLower.includes('gdp')) {
+                        searchResultsArray = [
+                            { symbol: 'GDP', name: 'Gross Domestic Product', provider: 'fred' },
+                            { symbol: 'GDPC1', name: 'Real GDP', provider: 'fred' },
+                            { symbol: 'GDPPOT', name: 'GDP Potential', provider: 'fred' }
+                        ];
+                    } else if (searchLower.includes('inflation') || searchLower.includes('cpi')) {
+                        searchResultsArray = [
+                            { symbol: 'CPIAUCSL', name: 'Consumer Price Index', provider: 'fred' },
+                            { symbol: 'CPILFESL', name: 'Core CPI', provider: 'fred' },
+                            { symbol: 'T5YIE', name: '5-Year Breakeven Inflation', provider: 'fred' }
+                        ];
+                    } else if (searchLower.includes('unemployment')) {
+                        searchResultsArray = [
+                            { symbol: 'UNRATE', name: 'Unemployment Rate', provider: 'fred' },
+                            { symbol: 'CIVPART', name: 'Labor Force Participation Rate', provider: 'fred' },
+                            { symbol: 'EMRATIO', name: 'Employment-Population Ratio', provider: 'fred' }
+                        ];
+                    } else if (searchLower.includes('dxy')) {
+                        searchResultsArray = [
+                            { symbol: 'DTWEXBGS', name: 'Trade Weighted US Dollar Index', provider: 'fred' },
+                            { symbol: 'DEXUSEU', name: 'US Dollar / Euro Exchange Rate', provider: 'fred' }
+                        ];
+                    } else if (searchLower.includes('housing')) {
+                        searchResultsArray = [
+                            { symbol: 'HOUST', name: 'Housing Starts', provider: 'fred' },
+                            { symbol: 'MORTGAGE30US', name: '30-Year Mortgage Rate', provider: 'fred' },
+                            { symbol: 'CSUSHPISA', name: 'Case-Shiller Home Price Index', provider: 'fred' }
+                        ];
+                    }
                 }
                 
-                // Store for pagination
-                this.searchResults = searchResults;
+                // Store for pagination - ensure it's an array
+                searchResults = Array.isArray(searchResultsArray) ? searchResultsArray : [];
                 
                 // Paginate results
                 const limit = parseInt(document.getElementById('limit').value);
@@ -775,12 +807,16 @@
                     { symbol: 'VIXCLS', name: 'VIX Volatility Index', provider: 'fred' }
                 ];
                 
+                const filtered = defaultSeries.filter(s => 
+                    s.name.toLowerCase().includes(searchText.toLowerCase()) ||
+                    s.symbol.toLowerCase().includes(searchText.toLowerCase())
+                );
+                
+                searchResults = filtered.length > 0 ? filtered : defaultSeries;
+                
                 displayResults({
-                    series: defaultSeries.filter(s => 
-                        s.name.toLowerCase().includes(searchText.toLowerCase()) ||
-                        s.symbol.toLowerCase().includes(searchText.toLowerCase())
-                    ),
-                    count: defaultSeries.length
+                    series: searchResults,
+                    count: searchResults.length
                 });
                 
                 console.log('Showing filtered default series due to search error');
