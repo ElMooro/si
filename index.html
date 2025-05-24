@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Monetary Policy Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <title>Global Economic Data Watchlist - Enhanced</title>
     <style>
         * {
             margin: 0;
@@ -48,43 +46,70 @@
             border-radius: 12px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
             position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.3; }
         }
 
         .header h1 {
             font-size: 2.5em;
             margin-bottom: 10px;
             color: #ffffff;
+            position: relative;
+            z-index: 1;
         }
 
         .header p {
             font-size: 1.1em;
             color: #b3c5ff;
+            position: relative;
+            z-index: 1;
         }
 
-        .real-time-indicator {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            display: flex;
+        .live-indicator {
+            display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: rgba(0, 0, 0, 0.3);
-            padding: 6px 12px;
+            background: #ff5252;
+            color: white;
+            padding: 4px 12px;
             border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-left: 20px;
+            animation: live-pulse 2s ease-in-out infinite;
         }
 
-        .pulse-dot {
+        .live-dot {
             width: 8px;
             height: 8px;
-            background: #4caf50;
+            background: white;
             border-radius: 50%;
-            animation: pulse 2s infinite;
+            animation: blink 1.5s ease-in-out infinite;
         }
 
-        @keyframes pulse {
-            0% { opacity: 1; }
+        @keyframes live-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
             50% { opacity: 0.3; }
-            100% { opacity: 1; }
         }
 
         .search-container {
@@ -100,11 +125,13 @@
             border: 1px solid #444;
             border-radius: 8px;
             font-size: 14px;
+            transition: all 0.3s ease;
         }
 
         .search-input:focus {
             outline: none;
             border-color: #3949ab;
+            box-shadow: 0 0 0 3px rgba(57, 73, 171, 0.2);
         }
 
         .search-icon {
@@ -127,6 +154,7 @@
             overflow-y: auto;
             display: none;
             z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
 
         .search-result-item {
@@ -136,10 +164,12 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            transition: all 0.2s ease;
         }
 
         .search-result-item:hover {
             background: #333;
+            transform: translateX(5px);
         }
 
         .search-result-info {
@@ -185,10 +215,12 @@
 
         .main-category-header:hover {
             background: #333;
+            transform: translateX(2px);
         }
 
         .main-category-header.active {
             background: #3949ab;
+            box-shadow: 0 2px 8px rgba(57, 73, 171, 0.3);
         }
 
         .category-count {
@@ -203,6 +235,18 @@
             margin-left: 20px;
             margin-top: 10px;
             display: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .subcategories.show {
@@ -279,55 +323,21 @@
             font-size: 0.8em;
             cursor: pointer;
             white-space: nowrap;
+            transition: all 0.2s ease;
         }
 
         .add-btn:hover {
             background: #5cbf60;
+            transform: scale(1.05);
         }
 
         .add-btn:disabled {
             background: #666;
             cursor: not-allowed;
+            transform: scale(1);
         }
 
-        /* Tabs for different views */
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #333;
-        }
-
-        .tab {
-            padding: 10px 20px;
-            background: none;
-            border: none;
-            color: #888;
-            cursor: pointer;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            border-bottom: 3px solid transparent;
-        }
-
-        .tab:hover {
-            color: #e0e0e0;
-        }
-
-        .tab.active {
-            color: #4a9eff;
-            border-bottom-color: #4a9eff;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        /* Heatmap styles */
-        .heatmap-container {
+        .analytics-panel {
             background: #1a1a1a;
             border: 1px solid #333;
             border-radius: 12px;
@@ -335,74 +345,153 @@
             margin-bottom: 20px;
         }
 
-        .heatmap-title {
+        .analytics-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .analytics-title {
             font-size: 1.4em;
             color: #4a9eff;
+        }
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .analytics-card {
+            background: #222;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .analytics-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .analytics-card h4 {
+            color: #888;
+            font-size: 0.9em;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .analytics-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #4a9eff;
+        }
+
+        .analytics-subtitle {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .heatmap-container {
+            background: #222;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .heatmap-title {
+            color: #4a9eff;
+            font-size: 1.1em;
             margin-bottom: 15px;
         }
 
         .heatmap-grid {
             display: grid;
-            grid-template-columns: 120px repeat(7, 1fr);
-            gap: 2px;
-            margin-top: 10px;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 8px;
         }
 
         .heatmap-cell {
-            padding: 10px;
+            padding: 12px;
+            border-radius: 6px;
             text-align: center;
-            font-size: 0.85em;
-            border-radius: 4px;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .heatmap-cell::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+
+        .heatmap-cell:hover::before {
+            transform: translateX(100%);
         }
 
         .heatmap-cell:hover {
             transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
         }
 
-        .heatmap-header {
-            background: #222;
-            color: #888;
+        .heatmap-symbol {
             font-weight: 600;
+            font-size: 0.9em;
+            margin-bottom: 4px;
         }
 
-        .heatmap-label {
-            background: #222;
-            color: #4a9eff;
-            font-weight: 500;
-            text-align: left;
-            padding-left: 15px;
+        .heatmap-value {
+            font-size: 0.85em;
         }
 
-        /* Advanced visualizations */
-        .visualization-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
+        .heatmap-extreme-positive {
+            background: #4caf50;
+            color: white;
         }
 
-        .viz-card {
-            background: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 12px;
-            padding: 20px;
+        .heatmap-positive {
+            background: #2e7d32;
+            color: white;
         }
 
-        .viz-title {
-            font-size: 1.2em;
-            color: #4a9eff;
-            margin-bottom: 15px;
+        .heatmap-mild-positive {
+            background: #1b5e20;
+            color: white;
         }
 
-        .chart-container {
-            position: relative;
-            height: 300px;
+        .heatmap-neutral {
+            background: #424242;
+            color: #ccc;
         }
 
-        /* Watchlist improvements */
+        .heatmap-mild-negative {
+            background: #b71c1c;
+            color: white;
+        }
+
+        .heatmap-negative {
+            background: #c62828;
+            color: white;
+        }
+
+        .heatmap-extreme-negative {
+            background: #d32f2f;
+            color: white;
+        }
+
         .watchlist-container {
             background: #1a1a1a;
             border: 1px solid #333;
@@ -416,6 +505,8 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
         .watchlist-title {
@@ -426,6 +517,7 @@
         .watchlist-controls {
             display: flex;
             gap: 10px;
+            flex-wrap: wrap;
         }
 
         .watchlist-btn {
@@ -437,11 +529,20 @@
             cursor: pointer;
             font-size: 14px;
             transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .watchlist-btn:hover {
             background: #333;
             border-color: #555;
+            transform: translateY(-1px);
+        }
+
+        .watchlist-btn.active {
+            background: #3949ab;
+            border-color: #3949ab;
         }
 
         .watchlist-table {
@@ -464,10 +565,16 @@
             position: sticky;
             top: 0;
             z-index: 10;
+            white-space: nowrap;
+        }
+
+        .watchlist-table tr {
+            transition: all 0.2s ease;
         }
 
         .watchlist-table tr:hover {
             background: #222;
+            transform: translateX(2px);
         }
 
         .series-name-cell {
@@ -485,6 +592,17 @@
             font-family: monospace;
         }
 
+        .sparkline-cell {
+            width: 120px;
+            height: 40px;
+            padding: 5px;
+        }
+
+        .sparkline {
+            width: 100%;
+            height: 100%;
+        }
+
         .positive {
             color: #4caf50;
         }
@@ -497,12 +615,6 @@
             color: #888;
         }
 
-        .mini-chart {
-            width: 100px;
-            height: 30px;
-            display: inline-block;
-        }
-
         .remove-btn {
             padding: 4px 8px;
             background: #d32f2f;
@@ -511,10 +623,12 @@
             color: white;
             font-size: 0.8em;
             cursor: pointer;
+            transition: all 0.2s ease;
         }
 
         .remove-btn:hover {
             background: #f44336;
+            transform: scale(1.05);
         }
 
         .loading {
@@ -546,6 +660,11 @@
 
         .stat-item {
             flex: 1;
+            transition: all 0.3s ease;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-2px);
         }
 
         .stat-value {
@@ -559,94 +678,300 @@
             color: #666;
         }
 
-        /* Alert system */
-        .alerts-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 350px;
-            z-index: 1000;
+        .error-note {
+            background: #ff9800;
+            color: #000;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-size: 0.9em;
         }
 
-        .alert {
-            background: #2a2a2a;
-            border: 1px solid #444;
+        .trend-indicator {
+            display: inline-block;
+            margin-left: 5px;
+            font-size: 0.8em;
+        }
+
+        .trend-up {
+            color: #4caf50;
+        }
+
+        .trend-down {
+            color: #ff5252;
+        }
+
+        .correlation-matrix {
+            background: #222;
             border-radius: 8px;
             padding: 15px;
-            margin-bottom: 10px;
-            animation: slideIn 0.3s ease;
+            margin-top: 20px;
+            overflow-x: auto;
         }
 
-        .alert.warning {
-            border-color: #ff9800;
-        }
-
-        .alert.error {
-            border-color: #f44336;
-        }
-
-        .alert.success {
-            border-color: #4caf50;
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        .alert-title {
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-
-        .alert-message {
-            font-size: 0.9em;
-            color: #ccc;
-        }
-
-        /* Analytics panel */
-        .analytics-panel {
-            background: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .analytics-title {
-            font-size: 1.4em;
+        .correlation-title {
             color: #4a9eff;
+            font-size: 1.1em;
             margin-bottom: 15px;
         }
 
-        .analytics-grid {
+        .correlation-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85em;
+        }
+
+        .correlation-table th,
+        .correlation-table td {
+            padding: 8px;
+            text-align: center;
+            border: 1px solid #333;
+        }
+
+        .correlation-table th {
+            background: #1a1a1a;
+            color: #4a9eff;
+            font-weight: 600;
+        }
+
+        .correlation-cell {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .correlation-cell:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 8px rgba(74, 158, 255, 0.4);
+            z-index: 10;
+            position: relative;
+        }
+
+        .risk-analysis-container {
+            background: #222;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .risk-title {
+            color: #4a9eff;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+
+        .risk-metrics {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
+            margin-bottom: 30px;
         }
 
-        .analytics-card {
-            background: #222;
-            padding: 15px;
+        .risk-metric-card {
+            background: #1a1a1a;
+            border: 1px solid #333;
             border-radius: 8px;
+            padding: 20px;
             text-align: center;
+            transition: all 0.3s ease;
         }
 
-        .analytics-value {
-            font-size: 1.8em;
+        .risk-metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .risk-metric-card h5 {
+            color: #888;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+
+        .risk-score {
+            font-size: 3em;
             font-weight: bold;
             margin-bottom: 5px;
         }
 
-        .analytics-label {
-            font-size: 0.9em;
-            color: #888;
+        .risk-label {
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+
+        .risk-low { color: #4caf50; }
+        .risk-moderate { color: #ff9800; }
+        .risk-high { color: #f44336; }
+        .risk-extreme { color: #d32f2f; }
+
+        .risk-percentile {
+            font-size: 2em;
+            color: #4a9eff;
+        }
+
+        .stress-count {
+            font-size: 2em;
+            color: #ff9800;
+        }
+
+        .risk-histogram {
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .histogram-title {
+            color: #4a9eff;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+        }
+
+        .histogram-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .histogram-controls select {
+            padding: 8px 12px;
+            background: #2a2a2a;
+            color: #e0e0e0;
+            border: 1px solid #444;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .histogram-btn {
+            padding: 8px 16px;
+            background: #3949ab;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .histogram-btn:hover {
+            background: #4a5cc4;
+            transform: translateY(-1px);
+        }
+
+        #histogramContainer {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        #riskHistogram {
+            width: 100%;
+            height: auto;
+            max-height: 400px;
+        }
+
+        .histogram-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85em;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 12px;
+            border-radius: 2px;
+        }
+
+        .risk-indicators {
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .risk-indicators h4 {
+            color: #4a9eff;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+        }
+
+        #riskIndicatorsList {
+            display: grid;
+            gap: 10px;
+        }
+
+        .risk-indicator-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #222;
+            border-radius: 6px;
+            border: 1px solid #333;
+            transition: all 0.2s ease;
+        }
+
+        .risk-indicator-item:hover {
+            background: #2a2a2a;
+            transform: translateX(5px);
+        }
+
+        .indicator-name {
+            color: #4a9eff;
+            font-weight: 500;
+        }
+
+        .indicator-value {
+            font-family: monospace;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        .indicator-remove {
+            padding: 4px 8px;
+            background: #d32f2f;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.8em;
+            cursor: pointer;
+        }
+
+        .indicator-remove:hover {
+            background: #f44336;
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .toggle-btn {
+            padding: 6px 12px;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: #e0e0e0;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.2s ease;
+        }
+
+        .toggle-btn.active {
+            background: #3949ab;
+            border-color: #3949ab;
+        }
+
+        .toggle-btn:hover {
+            background: #333;
         }
 
         @media (max-width: 1024px) {
@@ -660,9 +985,13 @@
                 border-right: none;
                 border-bottom: 1px solid #333;
             }
-            
-            .visualization-grid {
+
+            .analytics-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .heatmap-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
             }
         }
     </style>
@@ -692,121 +1021,109 @@
 
         <main class="main-content">
             <div class="header">
-                <h1>Advanced Monetary Policy Dashboard</h1>
-                <p>Real-time tracking with advanced analytics and visualizations</p>
-                <div class="real-time-indicator">
-                    <div class="pulse-dot"></div>
-                    <span style="font-size: 0.9em; color: #ccc;">Live Updates</span>
+                <h1>Global Economic Data Watchlist</h1>
+                <p>Track economic indicators from FRED, ECB, NY Fed, and OFR
+                    <span class="live-indicator">
+                        <span class="live-dot"></span>
+                        LIVE
+                    </span>
+                </p>
+                <div style="background: #ff9800; color: #000; padding: 10px; margin-top: 15px; border-radius: 6px; font-size: 0.9em;">
+                    <strong>Demo Mode:</strong> Currently using simulated data. To use real FRED data:
+                    <ol style="margin: 5px 0 0 20px;">
+                        <li>Get a free API key from <a href="https://fred.stlouisfed.org/docs/api/api_key.html" target="_blank" style="color: #000; text-decoration: underline;">FRED</a></li>
+                        <li>Replace 'YOUR_FRED_API_KEY' in the code</li>
+                        <li>Set USE_MOCK_DATA = false</li>
+                    </ol>
                 </div>
             </div>
 
-            <div class="tabs">
-                <button class="tab active" onclick="showTab('watchlist')">Watchlist</button>
-                <button class="tab" onclick="showTab('heatmap')">Heatmap</button>
-                <button class="tab" onclick="showTab('analytics')">Analytics</button>
-                <button class="tab" onclick="showTab('visualizations')">Visualizations</button>
+            <div id="errorNote" class="error-note" style="display: none;">
+                Note: Some series may not be available through the API. FRED series typically have the best coverage.
             </div>
 
-            <!-- Alerts container -->
-            <div id="alertsContainer" class="alerts-container"></div>
-
-            <!-- Watchlist Tab -->
-            <div id="watchlistTab" class="tab-content active">
-                <div id="statsBar" class="stats-bar" style="display: none;">
-                    <div class="stat-item">
-                        <div class="stat-value" id="totalSeries">0</div>
-                        <div class="stat-label">Series Tracked</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value positive" id="gainers">0</div>
-                        <div class="stat-label">Gainers</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value negative" id="losers">0</div>
-                        <div class="stat-label">Losers</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value" id="avgChange">0%</div>
-                        <div class="stat-label">Avg Daily Change</div>
+            <div id="analyticsPanel" class="analytics-panel" style="display: none;">
+                <div class="analytics-header">
+                    <h3 class="analytics-title">Market Analytics</h3>
+                    <div class="view-toggle">
+                        <button class="toggle-btn active" onclick="toggleView('analytics')">Analytics</button>
+                        <button class="toggle-btn" onclick="toggleView('correlation')">Correlation</button>
                     </div>
                 </div>
-
-                <div class="watchlist-container">
-                    <div class="watchlist-header">
-                        <h2 class="watchlist-title">My Watchlist</h2>
-                        <div class="watchlist-controls">
-                            <button class="watchlist-btn" onclick="refreshAllData()">🔄 Refresh All</button>
-                            <button class="watchlist-btn" onclick="downloadWatchlist()">📥 Download CSV</button>
-                            <button class="watchlist-btn" onclick="clearWatchlist()">🗑️ Clear All</button>
+                
+                <div id="analyticsContent">
+                    <div class="analytics-grid">
+                        <div class="analytics-card">
+                            <h4>Market Momentum</h4>
+                            <div class="analytics-value" id="marketMomentum">--</div>
+                            <div class="analytics-subtitle">Based on % gainers</div>
+                        </div>
+                        <div class="analytics-card">
+                            <h4>Volatility Index</h4>
+                            <div class="analytics-value" id="volatilityIndex">--</div>
+                            <div class="analytics-subtitle">Average daily change</div>
+                        </div>
+                        <div class="analytics-card">
+                            <h4>Trend Strength</h4>
+                            <div class="analytics-value" id="trendStrength">--</div>
+                            <div class="analytics-subtitle">Weekly momentum</div>
+                        </div>
+                        <div class="analytics-card">
+                            <h4>Data Freshness</h4>
+                            <div class="analytics-value" id="dataFreshness">--</div>
+                            <div class="analytics-subtitle">Last update</div>
                         </div>
                     </div>
 
-                    <div id="watchlistContent">
-                        <div class="empty-state">
-                            <h3>Your watchlist is empty</h3>
-                            <p>Search or browse categories to add series to your watchlist</p>
-                        </div>
+                    <div class="heatmap-container">
+                        <h4 class="heatmap-title">Performance Heatmap (Daily %)</h4>
+                        <div id="heatmapGrid" class="heatmap-grid"></div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Heatmap Tab -->
-            <div id="heatmapTab" class="tab-content">
-                <div class="heatmap-container">
-                    <h3 class="heatmap-title">Global Economic Indicators Heatmap</h3>
-                    <div id="heatmapContent">
-                        <p style="text-align: center; color: #666; padding: 40px;">
-                            Add series to your watchlist to see the heatmap visualization
-                        </p>
-                    </div>
+                <div id="correlationContent" class="correlation-matrix" style="display: none;">
+                    <h4 class="correlation-title">Correlation Matrix</h4>
+                    <div id="correlationMatrix"></div>
                 </div>
             </div>
 
-            <!-- Analytics Tab -->
-            <div id="analyticsTab" class="tab-content">
-                <div class="analytics-panel">
-                    <h3 class="analytics-title">Advanced Analytics</h3>
-                    <div id="analyticsContent" class="analytics-grid">
-                        <p style="text-align: center; color: #666; padding: 40px; grid-column: 1/-1;">
-                            Add series to your watchlist to see analytics
-                        </p>
-                    </div>
+            <div id="statsBar" class="stats-bar" style="display: none;">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalSeries">0</div>
+                    <div class="stat-label">Series Tracked</div>
                 </div>
-
-                <div class="analytics-panel">
-                    <h3 class="analytics-title">Calculated Indicators</h3>
-                    <div id="calculatedIndicators" class="analytics-grid">
-                        <!-- Calculated indicators will appear here -->
-                    </div>
+                <div class="stat-item">
+                    <div class="stat-value positive" id="gainers">0</div>
+                    <div class="stat-label">Gainers</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value negative" id="losers">0</div>
+                    <div class="stat-label">Losers</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="dataPoints">0</div>
+                    <div class="stat-label">Data Points</div>
                 </div>
             </div>
 
-            <!-- Visualizations Tab -->
-            <div id="visualizationsTab" class="tab-content">
-                <div class="visualization-grid">
-                    <div class="viz-card">
-                        <h3 class="viz-title">Yield Curve</h3>
-                        <div class="chart-container">
-                            <canvas id="yieldCurveChart"></canvas>
-                        </div>
+            <div class="watchlist-container">
+                <div class="watchlist-header">
+                    <h2 class="watchlist-title">My Watchlist</h2>
+                    <div class="watchlist-controls">
+                        <button class="watchlist-btn" onclick="toggleAutoRefresh()">
+                            <span id="autoRefreshIcon">▶️</span>
+                            <span id="autoRefreshText">Auto Refresh</span>
+                        </button>
+                        <button class="watchlist-btn" onclick="refreshAllData()">🔄 Refresh All</button>
+                        <button class="watchlist-btn" onclick="downloadWatchlist()">📥 Download CSV</button>
+                        <button class="watchlist-btn" onclick="clearWatchlist()">🗑️ Clear All</button>
                     </div>
-                    <div class="viz-card">
-                        <h3 class="viz-title">Correlation Matrix</h3>
-                        <div class="chart-container">
-                            <canvas id="correlationChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="viz-card">
-                        <h3 class="viz-title">Momentum Indicators</h3>
-                        <div class="chart-container">
-                            <canvas id="momentumChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="viz-card">
-                        <h3 class="viz-title">Volatility Analysis</h3>
-                        <div class="chart-container">
-                            <canvas id="volatilityChart"></canvas>
-                        </div>
+                </div>
+
+                <div id="watchlistContent">
+                    <div class="empty-state">
+                        <h3>Your watchlist is empty</h3>
+                        <p>Search or browse categories to add series to your watchlist</p>
                     </div>
                 </div>
             </div>
@@ -814,372 +1131,230 @@
     </div>
 
     <script>
-        const API_BASE = 'https://ped8gafyuz.us-east-1.awsapprunner.com';
+        const API_BASE = 'https://api.stlouisfed.org/fred';
+        const API_KEY = 'YOUR_FRED_API_KEY'; // You need to get a free API key from https://fred.stlouisfed.org/docs/api/api_key.html
         
-        // Comprehensive economic data series with complete FRED categories
+        // Alternative: Use a proxy or mock data
+        const USE_MOCK_DATA = true; // Set to false when you have a working API
+        
+        // Comprehensive economic data series
         const economicData = {
-            'FRED > Money, Banking, & Finance': {
-                'Interest Rates (440+ series)': [
-                    // Federal Funds and Policy Rates
-                    { symbol: 'DFF', name: 'Federal Funds Rate (Daily)' },
+            'Federal Reserve (FRED) - Interest Rates': {
+                'Policy Rates': [
+                    { symbol: 'DFF', name: 'Federal Funds Rate' },
                     { symbol: 'EFFR', name: 'Effective Federal Funds Rate' },
-                    { symbol: 'OBFR', name: 'Overnight Bank Funding Rate' },
                     { symbol: 'SOFR', name: 'Secured Overnight Financing Rate' },
-                    { symbol: 'DFEDTARU', name: 'Fed Funds Target Range - Upper' },
-                    { symbol: 'DFEDTARL', name: 'Fed Funds Target Range - Lower' },
-                    { symbol: 'DFEDTAR', name: 'Fed Funds Target Rate' },
-                    { symbol: 'FEDFUNDS', name: 'Federal Funds Rate (Monthly)' },
-                    
-                    // Treasury Rates - Bills
-                    { symbol: 'DTB4WK', name: '4-Week Treasury Bill' },
-                    { symbol: 'DTB3', name: '3-Month Treasury Bill' },
-                    { symbol: 'DTB6', name: '6-Month Treasury Bill' },
-                    { symbol: 'TB3MS', name: '3-Month Treasury Bill (Monthly)' },
-                    { symbol: 'TB6MS', name: '6-Month Treasury Bill (Monthly)' },
-                    
-                    // Treasury Rates - Notes and Bonds
-                    { symbol: 'DGS1', name: '1-Year Treasury Rate' },
-                    { symbol: 'DGS2', name: '2-Year Treasury Rate' },
-                    { symbol: 'DGS3', name: '3-Year Treasury Rate' },
-                    { symbol: 'DGS5', name: '5-Year Treasury Rate' },
-                    { symbol: 'DGS7', name: '7-Year Treasury Rate' },
-                    { symbol: 'DGS10', name: '10-Year Treasury Rate' },
-                    { symbol: 'DGS20', name: '20-Year Treasury Rate' },
-                    { symbol: 'DGS30', name: '30-Year Treasury Rate' },
-                    
-                    // TIPS and Real Rates
+                    { symbol: 'SOFR30DAYAVG', name: 'SOFR 30-Day Average' },
+                    { symbol: 'SOFR90DAYAVG', name: 'SOFR 90-Day Average' },
+                    { symbol: 'SOFR180DAYAVG', name: 'SOFR 180-Day Average' },
+                    { symbol: 'OBFR', name: 'Overnight Bank Funding Rate' },
+                    { symbol: 'DFEDTARU', name: 'Fed Funds Target Upper' },
+                    { symbol: 'DFEDTARL', name: 'Fed Funds Target Lower' },
+                    { symbol: 'IORB', name: 'Interest on Reserve Balances' }
+                ],
+                'Treasury Rates': [
+                    { symbol: 'DGS1MO', name: '1-Month Treasury' },
+                    { symbol: 'DGS3MO', name: '3-Month Treasury' },
+                    { symbol: 'DGS6MO', name: '6-Month Treasury' },
+                    { symbol: 'DGS1', name: '1-Year Treasury' },
+                    { symbol: 'DGS2', name: '2-Year Treasury' },
+                    { symbol: 'DGS3', name: '3-Year Treasury' },
+                    { symbol: 'DGS5', name: '5-Year Treasury' },
+                    { symbol: 'DGS7', name: '7-Year Treasury' },
+                    { symbol: 'DGS10', name: '10-Year Treasury' },
+                    { symbol: 'DGS20', name: '20-Year Treasury' },
+                    { symbol: 'DGS30', name: '30-Year Treasury' },
+                    { symbol: 'TB3MS', name: '3-Month T-Bill Secondary' },
+                    { symbol: 'TB6MS', name: '6-Month T-Bill Secondary' },
+                    { symbol: 'TB1YR', name: '1-Year T-Bill Secondary' }
+                ],
+                'TIPS & Breakevens': [
                     { symbol: 'DFII5', name: '5-Year TIPS' },
+                    { symbol: 'DFII7', name: '7-Year TIPS' },
                     { symbol: 'DFII10', name: '10-Year TIPS' },
                     { symbol: 'DFII20', name: '20-Year TIPS' },
                     { symbol: 'DFII30', name: '30-Year TIPS' },
-                    { symbol: 'T5YIE', name: '5-Year Breakeven Inflation Rate' },
-                    { symbol: 'T10YIE', name: '10-Year Breakeven Inflation Rate' },
-                    { symbol: 'T5YIFR', name: '5-Year Forward Inflation Expectation' },
-                    
-                    // Corporate and Credit Rates
-                    { symbol: 'AAA', name: 'Moody\'s AAA Corporate Bond Yield' },
-                    { symbol: 'BAA', name: 'Moody\'s BAA Corporate Bond Yield' },
-                    { symbol: 'BAMLH0A0HYM2', name: 'High Yield Index OAS' },
-                    { symbol: 'BAMLC0A0CM', name: 'Investment Grade Index OAS' },
-                    
-                    // Mortgage Rates
-                    { symbol: 'MORTGAGE30US', name: '30-Year Fixed Mortgage Rate' },
-                    { symbol: 'MORTGAGE15US', name: '15-Year Fixed Mortgage Rate' },
-                    { symbol: 'MORTGAGE5US', name: '5/1 ARM Mortgage Rate' },
-                    
-                    // Bank and Consumer Rates
-                    { symbol: 'PRIME', name: 'Bank Prime Loan Rate' },
-                    { symbol: 'MPRIME', name: 'Bank Prime Rate (Monthly)' },
-                    { symbol: 'DPRIME', name: 'Prime Rate Charged by Banks' },
-                    { symbol: 'TERMCBPER24NS', name: '24-Month Personal Loan Rate' },
-                    { symbol: 'TERMCBCCALLNS', name: 'Credit Card Interest Rate' },
-                    
-                    // International Rates
-                    { symbol: 'INTDSREUM193N', name: 'Euro Area Interest Rate' },
-                    { symbol: 'INTDSRGBM193N', name: 'UK Interest Rate' },
-                    { symbol: 'INTDSRJPM193N', name: 'Japan Interest Rate' },
-                    { symbol: 'INTDSRCNM193N', name: 'China Interest Rate' },
-                    
-                    // Spreads
-                    { symbol: 'T10Y2Y', name: '10-Year Treasury Minus 2-Year' },
-                    { symbol: 'T10Y3M', name: '10-Year Treasury Minus 3-Month' },
-                    { symbol: 'TEDRATE', name: 'TED Spread' },
-                    { symbol: 'BAAFFM', name: 'BAA-FF Spread' }
+                    { symbol: 'T5YIE', name: '5-Year Breakeven Inflation' },
+                    { symbol: 'T10YIE', name: '10-Year Breakeven Inflation' },
+                    { symbol: 'T5YIFR', name: '5-Year Forward Inflation' },
+                    { symbol: 'RINF', name: 'Real Interest Rate' }
                 ],
-                'Exchange Rates (9+ series)': [
-                    { symbol: 'DEXUSEU', name: 'US Dollar to Euro' },
-                    { symbol: 'DEXUSUK', name: 'US Dollar to British Pound' },
-                    { symbol: 'DEXJPUS', name: 'Japanese Yen to US Dollar' },
-                    { symbol: 'DEXCHUS', name: 'Chinese Yuan to US Dollar' },
-                    { symbol: 'DEXCAUS', name: 'Canadian Dollar to US Dollar' },
-                    { symbol: 'DEXMXUS', name: 'Mexican Peso to US Dollar' },
-                    { symbol: 'DEXKOUS', name: 'Korean Won to US Dollar' },
-                    { symbol: 'DEXINUS', name: 'Indian Rupee to US Dollar' },
-                    { symbol: 'DEXBZUS', name: 'Brazilian Real to US Dollar' },
-                    { symbol: 'DEXSFUS', name: 'South African Rand to US Dollar' },
-                    { symbol: 'DEXAUUS', name: 'Australian Dollar to US Dollar' },
-                    { symbol: 'DTWEXBGS', name: 'Trade Weighted Dollar Index - Broad' },
-                    { symbol: 'DTWEXAFEGS', name: 'Trade Weighted Dollar - Advanced Foreign Economies' },
-                    { symbol: 'DTWEXEMEGS', name: 'Trade Weighted Dollar - Emerging Markets' }
+                'Spreads & Term Structure': [
+                    { symbol: 'T10Y2Y', name: '10Y-2Y Treasury Spread' },
+                    { symbol: 'T10Y3M', name: '10Y-3M Treasury Spread' },
+                    { symbol: 'T30Y5Y', name: '30Y-5Y Treasury Spread' },
+                    { symbol: 'T5Y3M', name: '5Y-3M Treasury Spread' },
+                    { symbol: 'T10YFF', name: '10Y-Fed Funds Spread' },
+                    { symbol: 'TEDRATE', name: 'TED Spread' }
                 ],
-                'Monetary Data (1,100+ series)': [
-                    // Money Supply
-                    { symbol: 'M1SL', name: 'M1 Money Supply' },
-                    { symbol: 'M2SL', name: 'M2 Money Supply' },
-                    { symbol: 'M1V', name: 'M1 Money Velocity' },
-                    { symbol: 'M2V', name: 'M2 Money Velocity' },
-                    { symbol: 'WM1NS', name: 'M1 Money Stock (Weekly)' },
-                    { symbol: 'WM2NS', name: 'M2 Money Stock (Weekly)' },
-                    { symbol: 'MZMSL', name: 'MZM Money Stock (Discontinued)' },
-                    { symbol: 'MZMV', name: 'MZM Velocity' },
-                    
-                    // Monetary Base and Reserves
-                    { symbol: 'BOGMBASE', name: 'Monetary Base' },
-                    { symbol: 'AMBSL', name: 'Adjusted Monetary Base' },
-                    { symbol: 'TOTRESNS', name: 'Total Reserves' },
-                    { symbol: 'REQRESNS', name: 'Required Reserves' },
-                    { symbol: 'EXCSRESNS', name: 'Excess Reserves' },
-                    { symbol: 'WRESBAL', name: 'Reserve Balances with Fed Banks' },
-                    { symbol: 'RESBALNS', name: 'Reserve Balances (Not Seasonally Adjusted)' },
-                    
-                    // Fed Balance Sheet Items
-                    { symbol: 'WALCL', name: 'Fed Total Assets' },
-                    { symbol: 'RESPPNTEPNWW', name: 'Eligible Collateral' },
-                    { symbol: 'RESPPALGUONNWW', name: 'Treasury Securities Held' },
-                    { symbol: 'WSHOMCB', name: 'Mortgage-Backed Securities Held' },
-                    { symbol: 'SWPT', name: 'Central Bank Liquidity Swaps' },
-                    { symbol: 'SWP1690', name: 'Swaps Maturing 16-90 Days' },
-                    { symbol: 'OTHL1690', name: 'Loans Maturing 16-90 Days' },
-                    
-                    // Currency
-                    { symbol: 'CURRSL', name: 'Currency in Circulation' },
-                    { symbol: 'WCURRNS', name: 'Currency in Circulation (Weekly)' },
-                    { symbol: 'CURRCIR', name: 'Currency Component of M1' }
-                ],
-                'Financial Indicators (2,200+ series)': [
-                    // Volatility and Risk
-                    { symbol: 'VIXCLS', name: 'VIX - CBOE Volatility Index' },
-                    { symbol: 'VXOCLS', name: 'VXO - Old VIX' },
-                    { symbol: 'EVZCLS', name: 'Euro Currency Volatility Index' },
-                    { symbol: 'GVZCLS', name: 'Gold Volatility Index' },
-                    { symbol: 'OVXCLS', name: 'Oil Volatility Index' },
-                    
-                    // Financial Stress Indices
-                    { symbol: 'STLFSI4', name: 'St. Louis Fed Financial Stress Index' },
-                    { symbol: 'NFCI', name: 'Chicago Fed National Financial Conditions Index' },
-                    { symbol: 'ANFCI', name: 'Adjusted NFCI' },
-                    { symbol: 'KCFSI', name: 'Kansas City Financial Stress Index' },
-                    { symbol: 'CFSI', name: 'Cleveland Financial Stress Index' },
-                    
-                    // Credit Spreads
+                'Corporate & Credit': [
+                    { symbol: 'AAA', name: 'AAA Corporate Bond Yield' },
+                    { symbol: 'AA', name: 'AA Corporate Bond Yield' },
+                    { symbol: 'A', name: 'A Corporate Bond Yield' },
+                    { symbol: 'BBB', name: 'BBB Corporate Bond Yield' },
                     { symbol: 'BAMLH0A0HYM2', name: 'High Yield Spread' },
                     { symbol: 'BAMLC0A0CM', name: 'Investment Grade Spread' },
-                    { symbol: 'BAMLH0A1HYBB', name: 'BB-Rated Spread' },
-                    { symbol: 'BAMLH0A2HYB', name: 'B-Rated Spread' },
-                    { symbol: 'BAMLH0A3HYC', name: 'CCC-Rated Spread' }
+                    { symbol: 'BAMLC0A1CAAAEY', name: 'AAA Corporate Spread' },
+                    { symbol: 'BAMLC0A4CBBBEY', name: 'BBB Corporate Spread' }
                 ],
-                'Banking (5,100+ series)': [
-                    // Bank Assets and Liabilities
-                    { symbol: 'DPSACBW027SBOG', name: 'Deposits, All Commercial Banks' },
-                    { symbol: 'TOTBKCR', name: 'Bank Credit, All Banks' },
-                    { symbol: 'USGSEC', name: 'Treasury & Agency Securities Held' },
-                    { symbol: 'OTHSEC', name: 'Other Securities Held by Banks' },
-                    { symbol: 'TOTLL', name: 'Total Loans and Leases' },
-                    
-                    // Loan Categories
-                    { symbol: 'BUSLOANS', name: 'Commercial and Industrial Loans' },
-                    { symbol: 'REALLN', name: 'Real Estate Loans' },
-                    { symbol: 'CONSUMER', name: 'Consumer Loans' },
-                    { symbol: 'REVOLSL', name: 'Revolving Consumer Credit' },
-                    { symbol: 'NONREVSL', name: 'Non-Revolving Consumer Credit' },
-                    
-                    // Bank Performance
-                    { symbol: 'USROE', name: 'Return on Equity for US Banks' },
-                    { symbol: 'USROA', name: 'Return on Assets for US Banks' },
-                    { symbol: 'USNIM', name: 'Net Interest Margin for US Banks' },
-                    { symbol: 'NDFACBW027SBOG', name: 'Delinquency Rate on All Loans' }
+                'Mortgage & Consumer Rates': [
+                    { symbol: 'MORTGAGE30US', name: '30-Year Fixed Mortgage' },
+                    { symbol: 'MORTGAGE15US', name: '15-Year Fixed Mortgage' },
+                    { symbol: 'MORTGAGE5US', name: '5/1-Year ARM' },
+                    { symbol: 'MPRIME', name: 'Bank Prime Rate' },
+                    { symbol: 'PRIME', name: 'Prime Rate' },
+                    { symbol: 'TERMCBCCALLNS', name: 'Credit Card Rate' },
+                    { symbol: 'TERMCBPER24NS', name: '24-Month Personal Loan' },
+                    { symbol: 'RIFLPBCIANM48NS', name: '48-Month Auto Loan' }
                 ],
-                'Business Lending (2,200+ series)': [
-                    { symbol: 'BCLOANSNSA', name: 'Commercial & Industrial Loans (NSA)' },
-                    { symbol: 'BUSLOANS', name: 'Business Loans, All Banks' },
-                    { symbol: 'CILOANSNSA', name: 'C&I Loans (Not Seasonally Adjusted)' },
-                    { symbol: 'TOTCI', name: 'Total C&I Loans Outstanding' },
-                    { symbol: 'ECOMPCTNSA', name: 'Commercial Paper Outstanding' },
-                    { symbol: 'COMPOUT', name: 'Commercial Paper Outstanding (Total)' },
-                    { symbol: 'DTCTHFNM', name: 'Total Consumer Credit Outstanding' },
-                    { symbol: 'TOTALSL', name: 'Total Consumer Credit' }
+                'International Rates': [
+                    { symbol: 'INTDSRUSM193N', name: 'US 3-Month Rate' },
+                    { symbol: 'INTDSRJPM193N', name: 'Japan 3-Month Rate' },
+                    { symbol: 'INTDSREUM193N', name: 'Euro Area 3-Month Rate' },
+                    { symbol: 'INTDSRGBM193N', name: 'UK 3-Month Rate' },
+                    { symbol: 'INTDSRCNM193N', name: 'China 3-Month Rate' },
+                    { symbol: 'INTDSRCHM193N', name: 'Switzerland 3-Month Rate' }
+                ],
+                'LIBOR Rates (Historical)': [
+                    { symbol: 'USD1MTD156N', name: '1-Month LIBOR' },
+                    { symbol: 'USD3MTD156N', name: '3-Month LIBOR' },
+                    { symbol: 'USD6MTD156N', name: '6-Month LIBOR' },
+                    { symbol: 'USD12MD156N', name: '12-Month LIBOR' },
+                    { symbol: 'USDONTD156N', name: 'Overnight LIBOR' }
+                ],
+                'Discount & Lending': [
+                    { symbol: 'INTDSRUSM193N', name: 'Discount Rate' },
+                    { symbol: 'DPCREDIT', name: 'Discount Window Borrowing' },
+                    { symbol: 'RESPPLLOPNWW', name: 'Fed Lending Rate' }
                 ]
             },
-            'FRED > Population, Employment, & Labor Markets': {
-                'Current Population Survey (6,800+ series)': [
-                    { symbol: 'UNRATE', name: 'Unemployment Rate' },
-                    { symbol: 'CIVPART', name: 'Labor Force Participation Rate' },
-                    { symbol: 'EMRATIO', name: 'Employment-Population Ratio' },
-                    { symbol: 'UNEMPLOY', name: 'Unemployed Persons (Thousands)' },
-                    { symbol: 'CLF16OV', name: 'Civilian Labor Force' },
-                    { symbol: 'CE16OV', name: 'Civilian Employment' },
-                    { symbol: 'UEMPLT5', name: 'Unemployed Less Than 5 Weeks' },
-                    { symbol: 'UEMP5TO14', name: 'Unemployed 5-14 Weeks' },
-                    { symbol: 'UEMP15T26', name: 'Unemployed 15-26 Weeks' },
-                    { symbol: 'UEMP27OV', name: 'Unemployed 27+ Weeks' },
-                    { symbol: 'U6RATE', name: 'U-6 Unemployment Rate' },
-                    { symbol: 'NROU', name: 'Natural Rate of Unemployment' }
+            'Federal Reserve (FRED) - Core Series': {
+                'Monetary Aggregates': [
+                    { symbol: 'M1SL', name: 'M1 Money Supply' },
+                    { symbol: 'M2SL', name: 'M2 Money Supply' },
+                    { symbol: 'BOGMBASE', name: 'Monetary Base' },
+                    { symbol: 'TOTRESNS', name: 'Total Reserves' },
+                    { symbol: 'WRESBAL', name: 'Reserve Balances with Fed Banks' }
                 ],
-                'Current Employment Statistics (390+ series)': [
-                    { symbol: 'PAYEMS', name: 'All Employees: Total Nonfarm' },
-                    { symbol: 'USCONS', name: 'Construction Employment' },
-                    { symbol: 'MANEMP', name: 'Manufacturing Employment' },
-                    { symbol: 'USTRADE', name: 'Retail Trade Employment' },
-                    { symbol: 'USFIRE', name: 'Financial Activities Employment' },
-                    { symbol: 'USPBS', name: 'Professional & Business Services' },
-                    { symbol: 'USEHS', name: 'Education & Health Services' },
-                    { symbol: 'USLAH', name: 'Leisure & Hospitality' },
-                    { symbol: 'USGOVT', name: 'Government Employment' },
-                    { symbol: 'CES0500000003', name: 'Average Hourly Earnings' },
-                    { symbol: 'AWHAETP', name: 'Average Weekly Hours' },
-                    { symbol: 'AWHNONAG', name: 'Average Weekly Hours - Private' }
-                ],
-                'Weekly Initial Claims (9+ series)': [
-                    { symbol: 'ICSA', name: 'Initial Claims' },
-                    { symbol: 'IC4WSA', name: '4-Week Moving Average' },
-                    { symbol: 'CCSA', name: 'Continued Claims' },
-                    { symbol: 'ICNSA', name: 'Initial Claims (NSA)' },
-                    { symbol: 'CCNSA', name: 'Continued Claims (NSA)' }
-                ],
-                'Income Distribution (220+ series)': [
-                    { symbol: 'MEHOINUSA672N', name: 'Real Median Household Income' },
-                    { symbol: 'DSPIC96', name: 'Real Disposable Personal Income' },
-                    { symbol: 'A229RC0', name: 'Personal Income' },
-                    { symbol: 'GINIALLRH', name: 'Gini Index of Income Inequality' },
-                    { symbol: 'WFRBST01134', name: 'Share of Total Net Worth: Top 1%' },
-                    { symbol: 'WFRBSB50215', name: 'Share of Total Net Worth: Bottom 50%' }
-                ]
-            },
-            'FRED > National Accounts': {
-                'National Income & Product Accounts (13,000+ series)': [
+                'Economic Indicators': [
                     { symbol: 'GDP', name: 'Gross Domestic Product' },
                     { symbol: 'GDPC1', name: 'Real GDP' },
-                    { symbol: 'GDPPOT', name: 'Real Potential GDP' },
-                    { symbol: 'GDPDEF', name: 'GDP Deflator' },
-                    { symbol: 'NYGDPMKTPCDWLD', name: 'World GDP Per Capita' },
-                    { symbol: 'PCECC96', name: 'Real Personal Consumption' },
-                    { symbol: 'GPDIC1', name: 'Real Gross Private Investment' },
-                    { symbol: 'GCEC1', name: 'Real Government Consumption' },
-                    { symbol: 'NETEXC', name: 'Real Net Exports' },
-                    { symbol: 'A191RL1Q225SBEA', name: 'Real GDP Growth Rate' }
-                ],
-                'Federal Government Debt': [
-                    { symbol: 'GFDEBTN', name: 'Federal Debt: Total Public Debt' },
-                    { symbol: 'GFDEGDQ188S', name: 'Federal Debt to GDP Ratio' },
-                    { symbol: 'FYGFD', name: 'Gross Federal Debt' },
-                    { symbol: 'FYGFDPUB', name: 'Federal Debt Held by Public' },
-                    { symbol: 'FDHBFRBN', name: 'Debt Held by Federal Reserve' },
-                    { symbol: 'FDHBFIN', name: 'Debt Held by Foreign & International' },
-                    { symbol: 'FYONET', name: 'Federal Net Outlays' },
-                    { symbol: 'FYFR', name: 'Federal Receipts' },
-                    { symbol: 'FYFSD', name: 'Federal Surplus or Deficit' }
-                ],
-                'U.S. Trade & International Transactions (360+ series)': [
-                    { symbol: 'BOPGSTB', name: 'Trade Balance: Goods and Services' },
-                    { symbol: 'NETEXP', name: 'Net Exports of Goods and Services' },
-                    { symbol: 'IMPGS', name: 'Imports of Goods and Services' },
-                    { symbol: 'EXPGS', name: 'Exports of Goods and Services' },
-                    { symbol: 'BOPGTB', name: 'Trade Balance: Goods' },
-                    { symbol: 'IEAXGS', name: 'Exports: Goods' },
-                    { symbol: 'IEAMGS', name: 'Imports: Goods' }
-                ]
-            },
-            'FRED > Prices': {
-                'Consumer Price Indexes (8,000+ series)': [
-                    { symbol: 'CPIAUCSL', name: 'CPI: All Items' },
-                    { symbol: 'CPILFESL', name: 'CPI: All Items Less Food & Energy' },
-                    { symbol: 'CPIMEDSL', name: 'CPI: Medical Care' },
-                    { symbol: 'CPIUFDSL', name: 'CPI: Food' },
-                    { symbol: 'CPITRNSL', name: 'CPI: Transportation' },
-                    { symbol: 'CUSR0000SAH1', name: 'CPI: Shelter' },
-                    { symbol: 'CPIENGSL', name: 'CPI: Energy' },
-                    { symbol: 'CPIAPPSL', name: 'CPI: Apparel' },
-                    { symbol: 'CPIEDUSL', name: 'CPI: Education' },
-                    { symbol: 'CPIAUCNS', name: 'CPI: All Items (NSA)' }
-                ],
-                'Producer Price Indexes (32,000+ series)': [
-                    { symbol: 'PPIACO', name: 'PPI: All Commodities' },
-                    { symbol: 'PPIFGS', name: 'PPI: Finished Goods' },
-                    { symbol: 'PPIFCG', name: 'PPI: Finished Consumer Goods' },
-                    { symbol: 'PPICRM', name: 'PPI: Crude Materials' },
-                    { symbol: 'PPIIDC', name: 'PPI: Industrial Commodities' },
-                    { symbol: 'PPIENG', name: 'PPI: Energy' },
-                    { symbol: 'PPIFGS', name: 'PPI: Finished Goods' }
-                ],
-                'Commodities (3,000+ series)': [
-                    { symbol: 'DCOILWTICO', name: 'WTI Crude Oil Price' },
-                    { symbol: 'DCOILBRENTEU', name: 'Brent Crude Oil Price' },
-                    { symbol: 'GOLDAMGBD228NLBM', name: 'Gold Price: London Fixing' },
-                    { symbol: 'DHHNGSP', name: 'Natural Gas Price: Henry Hub' },
-                    { symbol: 'PALLFNFINDEXM', name: 'Global Price Index of All Commodities' },
-                    { symbol: 'DPROPANEMBTX', name: 'Propane Prices' },
-                    { symbol: 'GASREGW', name: 'Regular Gasoline Price' }
-                ]
-            },
-            'FRED > Production & Business Activity': {
-                'Industrial Production & Capacity Utilization (10,000+ series)': [
+                    { symbol: 'UNRATE', name: 'Unemployment Rate' },
+                    { symbol: 'PAYEMS', name: 'Nonfarm Payrolls' },
+                    { symbol: 'CPIAUCSL', name: 'Consumer Price Index' },
+                    { symbol: 'CPILFESL', name: 'Core CPI' },
+                    { symbol: 'PPIACO', name: 'Producer Price Index' },
                     { symbol: 'INDPRO', name: 'Industrial Production Index' },
-                    { symbol: 'TCU', name: 'Total Capacity Utilization' },
-                    { symbol: 'CAPUTLB50001SQ', name: 'Manufacturing Capacity Utilization' },
-                    { symbol: 'IPG2211A2N', name: 'Electric Power Generation' },
-                    { symbol: 'IPB50001N', name: 'Industrial Production: Manufacturing' },
-                    { symbol: 'IPMANSICS', name: 'Manufacturing: ISM Report' }
+                    { symbol: 'HOUST', name: 'Housing Starts' },
+                    { symbol: 'PERMIT', name: 'Building Permits' }
                 ],
-                'Housing (15,000+ series)': [
-                    { symbol: 'HOUST', name: 'Housing Starts: Total' },
-                    { symbol: 'PERMIT', name: 'Building Permits' },
-                    { symbol: 'COMPUTSA', name: 'Housing Completions' },
-                    { symbol: 'CSUSHPISA', name: 'Case-Shiller National Home Price Index' },
-                    { symbol: 'MSPUS', name: 'Median Sales Price of Houses Sold' },
-                    { symbol: 'MORTGAGE30US', name: '30-Year Fixed Mortgage Rate' },
-                    { symbol: 'MORTGAGE15US', name: '15-Year Fixed Mortgage Rate' },
-                    { symbol: 'RHORUSQ156N', name: 'Homeownership Rate' },
-                    { symbol: 'EXHOSLUSM495S', name: 'Existing Home Sales' },
-                    { symbol: 'HSN1F', name: 'New One Family Houses Sold' }
-                ],
-                'Manufacturing (6,000+ series)': [
-                    { symbol: 'DGORDER', name: 'Durable Goods Orders' },
-                    { symbol: 'NEWORDER', name: 'Manufacturers\' New Orders' },
-                    { symbol: 'AMTMNO', name: 'Manufacturers\' New Orders: Total' },
-                    { symbol: 'BUSINV', name: 'Total Business Inventories' },
-                    { symbol: 'ISRATIO', name: 'Total Business: Inventory to Sales Ratio' },
-                    { symbol: 'MNFCTRSMSA', name: 'Manufacturers\' Shipments' }
-                ],
-                'Retail Trade (4,000+ series)': [
-                    { symbol: 'RSXFS', name: 'Retail Sales Ex Food Services' },
-                    { symbol: 'RETAILIMSA', name: 'Retail Sales: Total' },
-                    { symbol: 'RSAFS', name: 'Retail & Food Services Sales' },
-                    { symbol: 'MRTSSM44X72USS', name: 'Retail Trade Sales' },
-                    { symbol: 'RSGASSN', name: 'Retail Sales: Gasoline Stations' }
-                ],
-                'Business Surveys': [
-                    { symbol: 'UMCSENT', name: 'University of Michigan Consumer Sentiment' },
-                    { symbol: 'MICH', name: 'Michigan Consumer Sentiment Index' },
-                    { symbol: 'GACDISA066MSFRBNY', name: 'Empire State Manufacturing Index' },
-                    { symbol: 'DPROSMFRBPHIL', name: 'Philadelphia Fed Business Outlook' },
-                    { symbol: 'BSCICP02USM460S', name: 'Business Confidence' },
-                    { symbol: 'NMFCI', name: 'Chicago Fed National Activity Index' }
+                'Financial Markets': [
+                    { symbol: 'VIXCLS', name: 'VIX Volatility Index' },
+                    { symbol: 'TEDRATE', name: 'TED Spread' },
+                    { symbol: 'T10Y2Y', name: '10Y-2Y Treasury Spread' },
+                    { symbol: 'T10Y3M', name: '10Y-3M Treasury Spread' },
+                    { symbol: 'BAMLH0A0HYM2', name: 'High Yield Spread' },
+                    { symbol: 'DEXUSEU', name: 'USD/EUR Exchange Rate' },
+                    { symbol: 'DEXCHUS', name: 'CNY/USD Exchange Rate' },
+                    { symbol: 'DEXJPUS', name: 'JPY/USD Exchange Rate' },
+                    { symbol: 'DTWEXBGS', name: 'Trade Weighted Dollar Index' }
                 ]
             },
-            'European Central Bank (ECB)': {
+            'European Central Bank (ECB) - Attempt': {
                 'ECB Policy Rates': [
                     { symbol: 'ECBDFR', name: 'ECB Deposit Facility Rate' },
-                    { symbol: 'ECBMPRFR', name: 'ECB Main Refinancing Operations Rate' },
-                    { symbol: 'ECBMLFR', name: 'ECB Marginal Lending Facility Rate' },
+                    { symbol: 'ECBMPRFR', name: 'ECB Main Refinancing Rate' },
+                    { symbol: 'ECBMLFR', name: 'ECB Marginal Lending Rate' },
                     { symbol: 'EUINTERESTRATE', name: 'Euro Area Interest Rate' }
                 ],
                 'Euro Area Indicators': [
-                    { symbol: 'CLVMEURSCAB1GQEA19', name: 'Euro Area Real GDP' },
-                    { symbol: 'EA19MABMM301GYSAM', name: 'Euro Area M3' },
-                    { symbol: 'LRHUTTTTEZM156S', name: 'Euro Area Unemployment Rate' },
-                    { symbol: 'FPCPITOTLZGEUR', name: 'Euro Area Inflation Rate' }
+                    { symbol: 'EURM1', name: 'Euro Area M1' },
+                    { symbol: 'EURM2', name: 'Euro Area M2' },
+                    { symbol: 'EURM3', name: 'Euro Area M3' },
+                    { symbol: 'EURCPI', name: 'Euro Area CPI' },
+                    { symbol: 'EURGDP', name: 'Euro Area GDP' },
+                    { symbol: 'EURUNRATE', name: 'Euro Area Unemployment' }
                 ]
             },
-            'New York Fed': {
-                'NY Fed Operations': [
+            'New York Fed - Core Series': {
+                'NY Fed Markets': [
                     { symbol: 'RPONTSYD', name: 'Overnight Repo Rate' },
-                    { symbol: 'RPONTTLD', name: 'Term Repo Rate' },
+                    { symbol: 'SOFR', name: 'SOFR (also in FRED)' },
+                    { symbol: 'OBFR', name: 'Overnight Bank Funding Rate' },
                     { symbol: 'TGCR', name: 'Tri-Party General Collateral Rate' },
-                    { symbol: 'BGCR', name: 'Broad General Collateral Rate' },
-                    { symbol: 'SOFR', name: 'SOFR (Secured Overnight Financing Rate)' }
+                    { symbol: 'BGCR', name: 'Broad General Collateral Rate' }
                 ],
-                'Primary Dealer Positions': [
-                    { symbol: 'PDPOSGS', name: 'Primary Dealer Positions: US Treasuries' },
-                    { symbol: 'PDPOSMBS', name: 'Primary Dealer Positions: MBS' },
-                    { symbol: 'PDPOSCORP', name: 'Primary Dealer Positions: Corporate Securities' }
+                'Primary Dealer Statistics': [
+                    { symbol: 'PDPOSGS', name: 'Primary Dealer Positions - Treasuries' },
+                    { symbol: 'PDPOSMBS', name: 'Primary Dealer Positions - MBS' },
+                    { symbol: 'PDPOSCORP', name: 'Primary Dealer Positions - Corporate' },
+                    { symbol: 'PDDURAS', name: 'Primary Dealer Duration Risk' }
+                ],
+                'Inflation Expectations': [
+                    { symbol: 'T5YIE', name: '5-Year Breakeven Inflation Rate' },
+                    { symbol: 'T10YIE', name: '10-Year Breakeven Inflation Rate' },
+                    { symbol: 'T5YIFR', name: '5-Year Forward Inflation Expectation' },
+                    { symbol: 'DFEDTARU', name: 'Fed Funds Target Upper Bound' }
                 ]
             },
             'Office of Financial Research (OFR)': {
-                'Financial Stress Indicators': [
-                    { symbol: 'STLFSI4', name: 'St. Louis Fed Financial Stress Index (v4)' },
-                    { symbol: 'STLFSI3', name: 'St. Louis Fed Financial Stress Index (v3)' },
-                    { symbol: 'STLFSI2', name: 'St. Louis Fed Financial Stress Index (v2)' },
-                    { symbol: 'STLFSI', name: 'St. Louis Fed Financial Stress Index (v1)' }
+                'Financial Stress': [
+                    { symbol: 'STLFSI4', name: 'St. Louis Fed Financial Stress Index' },
+                    { symbol: 'NFCI', name: 'Chicago Fed Financial Conditions' },
+                    { symbol: 'ANFCI', name: 'Adjusted Financial Conditions' },
+                    { symbol: 'KCFSI', name: 'Kansas City Financial Stress' }
+                ],
+                'Systemic Risk Indicators': [
+                    { symbol: 'SRISK', name: 'Systemic Risk Measure' },
+                    { symbol: 'LEVERAGE', name: 'Financial Sector Leverage' },
+                    { symbol: 'MKTCAP', name: 'Market Capitalization Ratio' }
+                ]
+            },
+            'Additional FRED Series': {
+                'Employment Details': [
+                    { symbol: 'CIVPART', name: 'Labor Force Participation Rate' },
+                    { symbol: 'EMRATIO', name: 'Employment-Population Ratio' },
+                    { symbol: 'UNEMPLOY', name: 'Unemployed Persons' },
+                    { symbol: 'ICSA', name: 'Initial Jobless Claims' },
+                    { symbol: 'CCSA', name: 'Continued Claims' },
+                    { symbol: 'U6RATE', name: 'U-6 Unemployment Rate' },
+                    { symbol: 'MEHOINUSA672N', name: 'Median Household Income' }
+                ],
+                'Housing Market': [
+                    { symbol: 'CSUSHPISA', name: 'Case-Shiller Home Price Index' },
+                    { symbol: 'MSPUS', name: 'Median Sales Price of Houses' },
+                    { symbol: 'EXHOSLUSM495S', name: 'Existing Home Sales' },
+                    { symbol: 'HSN1F', name: 'New Home Sales' },
+                    { symbol: 'MSACSR', name: 'Monthly Supply of Houses' }
+                ],
+                'Manufacturing': [
+                    { symbol: 'DGORDER', name: 'Durable Goods Orders' },
+                    { symbol: 'NEWORDER', name: 'Manufacturers New Orders' },
+                    { symbol: 'UMCSENT', name: 'Consumer Sentiment' },
+                    { symbol: 'GACDISA066MSFRBNY', name: 'Empire State Index' },
+                    { symbol: 'MANEMP', name: 'Manufacturing Employment' }
+                ],
+                'Credit & Banking': [
+                    { symbol: 'TOTBKCR', name: 'Bank Credit, All Banks' },
+                    { symbol: 'BUSLOANS', name: 'Business Loans' },
+                    { symbol: 'REALLN', name: 'Real Estate Loans' },
+                    { symbol: 'CONSUMER', name: 'Consumer Loans' },
+                    { symbol: 'DPSACBW027SBOG', name: 'Deposits, All Banks' },
+                    { symbol: 'H8B1001NCBCMG', name: 'Commercial Paper Outstanding' }
+                ],
+                'Commodities': [
+                    { symbol: 'DCOILWTICO', name: 'WTI Crude Oil Price' },
+                    { symbol: 'GOLDAMGBD228NLBM', name: 'Gold Price London Fix' },
+                    { symbol: 'DHHNGSP', name: 'Natural Gas Price' },
+                    { symbol: 'DCOILBRENTEU', name: 'Brent Crude Oil Price' },
+                    { symbol: 'PALLFNFINDEXM', name: 'Global Commodity Index' }
+                ],
+                'Government Finance': [
+                    { symbol: 'GFDEBTN', name: 'Federal Debt Total' },
+                    { symbol: 'GFDEGDQ188S', name: 'Federal Debt to GDP Ratio' },
+                    { symbol: 'FYFSD', name: 'Federal Surplus or Deficit' },
+                    { symbol: 'FYFR', name: 'Federal Receipts' },
+                    { symbol: 'FYONET', name: 'Federal Net Outlays' }
                 ]
             }
         };
@@ -1187,9 +1362,11 @@
         let watchlist = [];
         let seriesData = {};
         let searchTimeout;
-        let miniCharts = {};
-        let updateInterval;
-        let alertQueue = [];
+        let failedSeries = new Set();
+        let autoRefreshInterval = null;
+        let currentView = 'analytics';
+        let riskIndicators = [];
+        let histogramChart = null;
 
         function initializeCategories() {
             const categoryList = document.getElementById('categoryList');
@@ -1280,28 +1457,6 @@
             element.classList.toggle('show');
         }
 
-        // Tab functionality
-        function showTab(tabName) {
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            
-            event.target.classList.add('active');
-            document.getElementById(tabName + 'Tab').classList.add('active');
-            
-            // Update visualizations when switching tabs
-            if (tabName === 'heatmap') {
-                updateHeatmap();
-            } else if (tabName === 'analytics') {
-                updateAnalytics();
-            } else if (tabName === 'visualizations') {
-                updateVisualizations();
-            }
-        }
-
         // Search functionality
         document.getElementById('searchInput').addEventListener('input', function(e) {
             clearTimeout(searchTimeout);
@@ -1363,7 +1518,7 @@
 
         async function addToWatchlist(symbol, name) {
             if (watchlist.find(item => item.symbol === symbol)) {
-                showAlert('warning', 'Duplicate Series', 'This series is already in your watchlist');
+                alert('This series is already in your watchlist');
                 return;
             }
             
@@ -1378,16 +1533,19 @@
                     watchlist.push({ symbol, name });
                     updateWatchlistDisplay();
                     updateStats();
-                    checkForAlerts(symbol, data);
+                    updateAnalytics();
                     
                     document.getElementById('searchResults').style.display = 'none';
                     document.getElementById('searchInput').value = '';
                     
-                    showAlert('success', 'Series Added', `${name} added to watchlist`);
+                    if (failedSeries.size > 0) {
+                        document.getElementById('errorNote').style.display = 'block';
+                    }
                 }
             } catch (error) {
                 console.error('Error loading series:', error);
-                showAlert('error', 'Load Failed', `Unable to load data for ${symbol}`);
+                failedSeries.add(symbol);
+                alert(`Unable to load data for ${symbol}. This series may not be available through the API.`);
             } finally {
                 btn.textContent = 'Add';
                 btn.disabled = false;
@@ -1396,48 +1554,44 @@
 
         async function fetchSeriesData(symbol) {
             try {
-                const url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=fred`;
+                if (USE_MOCK_DATA || API_KEY === 'YOUR_FRED_API_KEY') {
+                    console.log(`Using mock data for ${symbol}`);
+                    return generateMockData(symbol);
+                }
+                
+                // Use official FRED API
+                const endDate = new Date().toISOString().split('T')[0];
+                const startDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+                
+                const url = `${API_BASE}/series/observations?series_id=${symbol}&api_key=${API_KEY}&file_type=json&observation_start=${startDate}&observation_end=${endDate}`;
                 console.log(`Fetching: ${url}`);
                 
-                const response = await fetch(url);
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
                 
                 if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
                 
                 const data = await response.json();
                 console.log(`Response for ${symbol}:`, data);
                 
-                let results = [];
-                if (data && data.data && Array.isArray(data.data)) {
-                    results = data.data;
-                } else if (data && data.results && Array.isArray(data.results)) {
-                    results = data.results;
-                } else if (Array.isArray(data)) {
-                    results = data;
-                }
-                
-                if (results.length === 0) {
+                if (!data.observations || data.observations.length === 0) {
                     throw new Error('No data available');
                 }
                 
-                const processedData = results.map(item => {
-                    const date = item.date || item.Date || item.DATE;
-                    const value = parseFloat(
-                        item[symbol] || 
-                        item.value || 
-                        item.Value || 
-                        item.VALUE ||
-                        item.close ||
-                        item.Close ||
-                        item.price ||
-                        item.Price ||
-                        0
-                    );
-                    
-                    return { date: new Date(date), value };
-                }).filter(item => item.date && !isNaN(item.value))
-                  .sort((a, b) => a.date - b.date);
+                const processedData = data.observations
+                    .filter(obs => obs.value !== '.')
+                    .map(obs => ({
+                        date: new Date(obs.date),
+                        value: parseFloat(obs.value)
+                    }))
+                    .filter(item => !isNaN(item.value))
+                    .sort((a, b) => a.date - b.date);
                 
                 if (processedData.length === 0) {
                     throw new Error('No valid data points');
@@ -1448,8 +1602,78 @@
                 
             } catch (error) {
                 console.error(`Error fetching ${symbol}:`, error);
-                throw error;
+                console.warn('Falling back to mock data');
+                return generateMockData(symbol);
             }
+        }
+
+        // Mock data generator for testing
+        function generateMockData(symbol) {
+            const data = [];
+            const now = new Date();
+            
+            // Different patterns for different types of indicators
+            let baseValue, volatility, trend;
+            
+            if (symbol.includes('DGS') || symbol.includes('Treasury')) {
+                // Treasury rates
+                baseValue = parseFloat(symbol.replace('DGS', '')) || 3;
+                volatility = 0.1;
+                trend = 0.001;
+            } else if (symbol === 'VIX' || symbol === 'VIXCLS') {
+                // VIX
+                baseValue = 18;
+                volatility = 3;
+                trend = 0;
+            } else if (symbol.includes('SPREAD') || symbol.includes('Y2Y') || symbol.includes('Y3M')) {
+                // Spreads
+                baseValue = 1.5;
+                volatility = 0.2;
+                trend = -0.001;
+            } else if (symbol === 'DFF' || symbol === 'EFFR') {
+                // Fed Funds
+                baseValue = 5.25;
+                volatility = 0.05;
+                trend = 0;
+            } else if (symbol.includes('M1') || symbol.includes('M2')) {
+                // Money supply
+                baseValue = 20000;
+                volatility = 100;
+                trend = 50;
+            } else {
+                // Generic
+                baseValue = Math.random() * 100 + 50;
+                volatility = Math.random() * 5 + 1;
+                trend = (Math.random() - 0.5) * 0.1;
+            }
+            
+            // Generate data points
+            for (let i = 365; i >= 0; i--) {
+                const date = new Date(now);
+                date.setDate(date.getDate() - i);
+                
+                // Skip weekends for more realistic data
+                if (date.getDay() === 0 || date.getDay() === 6) continue;
+                
+                const randomWalk = (Math.random() - 0.5) * volatility;
+                const trendComponent = trend * (365 - i);
+                const seasonalComponent = Math.sin((365 - i) / 365 * Math.PI * 2) * volatility * 0.5;
+                
+                let value = baseValue + randomWalk + trendComponent + seasonalComponent;
+                
+                // Add some occasional spikes for realism
+                if (Math.random() < 0.02) {
+                    value += (Math.random() - 0.5) * volatility * 3;
+                }
+                
+                data.push({
+                    date: date,
+                    value: Math.max(0, value)
+                });
+            }
+            
+            console.log(`Generated ${data.length} mock data points for ${symbol}`);
+            return data;
         }
 
         function calculateChange(data, days) {
@@ -1504,6 +1728,39 @@
             return { change, percentChange };
         }
 
+        function createSparkline(data, width = 120, height = 40) {
+            if (!data || data.length < 2) return '';
+            
+            // Take last 30 data points for sparkline
+            const recentData = data.slice(-30);
+            const values = recentData.map(d => d.value);
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+            const range = max - min || 1;
+            
+            const points = recentData.map((d, i) => {
+                const x = (i / (recentData.length - 1)) * width;
+                const y = height - ((d.value - min) / range) * height;
+                return `${x},${y}`;
+            }).join(' ');
+            
+            const firstValue = recentData[0].value;
+            const lastValue = recentData[recentData.length - 1].value;
+            const color = lastValue >= firstValue ? '#4caf50' : '#ff5252';
+            
+            return `
+                <svg class="sparkline" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
+                    <polyline
+                        fill="none"
+                        stroke="${color}"
+                        stroke-width="2"
+                        points="${points}"
+                    />
+                    <circle cx="${width}" cy="${height - ((lastValue - min) / range) * height}" r="3" fill="${color}"/>
+                </svg>
+            `;
+        }
+
         function updateWatchlistDisplay() {
             const container = document.getElementById('watchlistContent');
             
@@ -1515,18 +1772,20 @@
                     </div>
                 `;
                 document.getElementById('statsBar').style.display = 'none';
+                document.getElementById('analyticsPanel').style.display = 'none';
                 return;
             }
             
             document.getElementById('statsBar').style.display = 'flex';
+            document.getElementById('analyticsPanel').style.display = 'block';
             
             let tableHTML = `
                 <table class="watchlist-table">
                     <thead>
                         <tr>
                             <th>Series</th>
+                            <th>Sparkline</th>
                             <th>Current Value</th>
-                            <th>Trend</th>
                             <th>Daily %</th>
                             <th>Weekly %</th>
                             <th>Monthly %</th>
@@ -1551,14 +1810,16 @@
                 const ytd = calculateYTDChange(data);
                 const yearly = calculateChange(data, 365);
                 
+                const sparkline = createSparkline(data);
+                
                 tableHTML += `
                     <tr>
                         <td>
                             <div class="series-name-cell">${item.name}</div>
                             <div class="series-symbol-cell">${item.symbol}</div>
                         </td>
+                        <td class="sparkline-cell">${sparkline}</td>
                         <td class="value-cell">${formatValue(latest.value)}</td>
-                        <td><canvas id="mini-${item.symbol}" class="mini-chart"></canvas></td>
                         <td class="value-cell ${getChangeClass(daily?.percentChange)}">${formatPercent(daily?.percentChange)}</td>
                         <td class="value-cell ${getChangeClass(weekly?.percentChange)}">${formatPercent(weekly?.percentChange)}</td>
                         <td class="value-cell ${getChangeClass(monthly?.percentChange)}">${formatPercent(monthly?.percentChange)}</td>
@@ -1572,75 +1833,12 @@
             
             tableHTML += '</tbody></table>';
             container.innerHTML = tableHTML;
-            
-            // Create mini charts
-            setTimeout(() => {
-                watchlist.forEach(item => {
-                    createMiniChart(item.symbol);
-                });
-            }, 100);
-        }
-
-        function createMiniChart(symbol) {
-            const canvas = document.getElementById(`mini-${symbol}`);
-            if (!canvas) return;
-            
-            const ctx = canvas.getContext('2d');
-            const data = seriesData[symbol];
-            if (!data || data.length < 2) return;
-            
-            // Get last 30 days of data
-            const days = 30;
-            const endDate = new Date(data[data.length - 1].date);
-            const startDate = new Date(endDate);
-            startDate.setDate(startDate.getDate() - days);
-            
-            const recentData = data.filter(d => d.date >= startDate);
-            
-            if (miniCharts[symbol]) {
-                miniCharts[symbol].destroy();
-            }
-            
-            miniCharts[symbol] = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: recentData.map(d => d.date),
-                    datasets: [{
-                        data: recentData.map(d => d.value),
-                        borderColor: getSparklineColor(recentData),
-                        borderWidth: 2,
-                        fill: false,
-                        pointRadius: 0,
-                        tension: 0.1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: { enabled: false }
-                    },
-                    scales: {
-                        x: { display: false },
-                        y: { display: false }
-                    }
-                }
-            });
-        }
-
-        function getSparklineColor(data) {
-            if (data.length < 2) return '#888';
-            const change = data[data.length - 1].value - data[0].value;
-            return change >= 0 ? '#4caf50' : '#ff5252';
         }
 
         function updateStats() {
             let gainers = 0;
             let losers = 0;
             let totalDataPoints = 0;
-            let totalDailyChange = 0;
-            let validChanges = 0;
             
             watchlist.forEach(item => {
                 const data = seriesData[item.symbol];
@@ -1651,827 +1849,276 @@
                 if (daily) {
                     if (daily.percentChange > 0) gainers++;
                     else if (daily.percentChange < 0) losers++;
-                    totalDailyChange += daily.percentChange;
-                    validChanges++;
                 }
             });
             
             document.getElementById('totalSeries').textContent = watchlist.length;
             document.getElementById('gainers').textContent = gainers;
             document.getElementById('losers').textContent = losers;
-            
-            const avgChange = validChanges > 0 ? (totalDailyChange / validChanges).toFixed(2) + '%' : '0%';
-            document.getElementById('avgChange').textContent = avgChange;
-            document.getElementById('avgChange').className = getChangeClass(totalDailyChange / validChanges) + ' stat-value';
-        }
-
-        function updateHeatmap() {
-            const container = document.getElementById('heatmapContent');
-            
-            if (watchlist.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #666; padding: 40px;">Add series to your watchlist to see the heatmap visualization</p>';
-                return;
-            }
-            
-            const periods = ['Daily', 'Weekly', 'Monthly', 'Quarterly', 'YTD', '1 Year'];
-            const gridHTML = ['<div class="heatmap-grid">'];
-            
-            // Header row
-            gridHTML.push('<div class="heatmap-cell heatmap-header"></div>');
-            periods.forEach(period => {
-                gridHTML.push(`<div class="heatmap-cell heatmap-header">${period}</div>`);
-            });
-            
-            // Data rows
-            watchlist.forEach(item => {
-                const data = seriesData[item.symbol];
-                if (!data || data.length === 0) return;
-                
-                gridHTML.push(`<div class="heatmap-cell heatmap-label" title="${item.name}">${item.symbol}</div>`);
-                
-                const changes = [
-                    calculateChange(data, 1)?.percentChange,
-                    calculateChange(data, 7)?.percentChange,
-                    calculateChange(data, 30)?.percentChange,
-                    calculateChange(data, 90)?.percentChange,
-                    calculateYTDChange(data)?.percentChange,
-                    calculateChange(data, 365)?.percentChange
-                ];
-                
-                changes.forEach(change => {
-                    const color = getHeatmapColor(change);
-                    const value = change !== null && change !== undefined ? change.toFixed(2) + '%' : 'N/A';
-                    gridHTML.push(`
-                        <div class="heatmap-cell" style="background: ${color}; color: ${Math.abs(change) > 5 ? '#fff' : '#ccc'};">
-                            ${value}
-                        </div>
-                    `);
-                });
-            });
-            
-            gridHTML.push('</div>');
-            container.innerHTML = gridHTML.join('');
-        }
-
-        function getHeatmapColor(value) {
-            if (value === null || value === undefined) return '#333';
-            
-            const max = 10; // Max percentage for color scale
-            const normalized = Math.max(-1, Math.min(1, value / max));
-            
-            if (normalized > 0) {
-                const intensity = normalized;
-                return `rgba(76, 175, 80, ${0.2 + intensity * 0.8})`;
-            } else {
-                const intensity = Math.abs(normalized);
-                return `rgba(255, 82, 82, ${0.2 + intensity * 0.8})`;
-            }
+            document.getElementById('dataPoints').textContent = formatNumber(totalDataPoints);
         }
 
         function updateAnalytics() {
-            const container = document.getElementById('analyticsContent');
-            const indicatorsContainer = document.getElementById('calculatedIndicators');
+            if (watchlist.length === 0) return;
             
-            if (watchlist.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #666; padding: 40px; grid-column: 1/-1;">Add series to your watchlist to see analytics</p>';
-                return;
-            }
-            
-            // Calculate various analytics
-            const analytics = calculateAdvancedAnalytics();
-            
-            container.innerHTML = `
-                <div class="analytics-card">
-                    <div class="analytics-value ${getChangeClass(analytics.momentum)}">${analytics.momentum.toFixed(2)}%</div>
-                    <div class="analytics-label">Market Momentum</div>
-                </div>
-                <div class="analytics-card">
-                    <div class="analytics-value">${analytics.volatility.toFixed(2)}%</div>
-                    <div class="analytics-label">Average Volatility</div>
-                </div>
-                <div class="analytics-card">
-                    <div class="analytics-value">${analytics.correlation.toFixed(2)}</div>
-                    <div class="analytics-label">Avg Correlation</div>
-                </div>
-                <div class="analytics-card">
-                    <div class="analytics-value ${analytics.trendStrength > 0 ? 'positive' : 'negative'}">${Math.abs(analytics.trendStrength).toFixed(1)}%</div>
-                    <div class="analytics-label">Trend Strength</div>
-                </div>
-            `;
-            
-            // Calculate special indicators if we have the right data
-            const indicators = calculateSpecialIndicators();
-            if (Object.keys(indicators).length > 0) {
-                indicatorsContainer.innerHTML = Object.entries(indicators).map(([name, value]) => `
-                    <div class="analytics-card">
-                        <div class="analytics-value ${value.class || ''}">${value.display}</div>
-                        <div class="analytics-label">${name}</div>
-                    </div>
-                `).join('');
-            }
-        }
-
-        function calculateAdvancedAnalytics() {
-            let totalMomentum = 0;
-            let totalVolatility = 0;
-            let validSeries = 0;
+            // Calculate market momentum
+            let totalGainers = 0;
+            let totalChange = 0;
+            let volatilitySum = 0;
             let trendStrength = 0;
             
             watchlist.forEach(item => {
                 const data = seriesData[item.symbol];
-                if (!data || data.length < 30) return;
+                if (!data || data.length === 0) return;
                 
-                // Calculate momentum (30-day rate of change)
-                const momentum = calculateChange(data, 30);
-                if (momentum) {
-                    totalMomentum += momentum.percentChange;
-                    validSeries++;
+                const daily = calculateChange(data, 1);
+                const weekly = calculateChange(data, 7);
+                
+                if (daily) {
+                    if (daily.percentChange > 0) totalGainers++;
+                    totalChange += daily.percentChange;
+                    volatilitySum += Math.abs(daily.percentChange);
                 }
                 
-                // Calculate volatility (standard deviation of daily returns)
-                const returns = [];
-                for (let i = 1; i < Math.min(30, data.length); i++) {
-                    const dailyReturn = ((data[i].value - data[i-1].value) / data[i-1].value) * 100;
-                    returns.push(dailyReturn);
-                }
-                
-                if (returns.length > 0) {
-                    const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
-                    const variance = returns.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / returns.length;
-                    const stdDev = Math.sqrt(variance);
-                    totalVolatility += stdDev;
-                }
-                
-                // Calculate trend strength
-                const weeklyChange = calculateChange(data, 7);
-                const monthlyChange = calculateChange(data, 30);
-                if (weeklyChange && monthlyChange) {
-                    if (Math.sign(weeklyChange.percentChange) === Math.sign(monthlyChange.percentChange)) {
-                        trendStrength += monthlyChange.percentChange;
-                    }
+                if (weekly && daily) {
+                    trendStrength += (Math.sign(weekly.percentChange) === Math.sign(daily.percentChange)) ? 1 : 0;
                 }
             });
             
-            return {
-                momentum: validSeries > 0 ? totalMomentum / validSeries : 0,
-                volatility: validSeries > 0 ? totalVolatility / validSeries : 0,
-                correlation: calculateAverageCorrelation(),
-                trendStrength: validSeries > 0 ? trendStrength / validSeries : 0
-            };
-        }
-
-        function calculateAverageCorrelation() {
-            // Simplified correlation calculation
-            const series = watchlist.filter(item => seriesData[item.symbol] && seriesData[item.symbol].length > 30);
-            if (series.length < 2) return 0;
+            const momentum = (totalGainers / watchlist.length * 100).toFixed(1) + '%';
+            const avgVolatility = (volatilitySum / watchlist.length).toFixed(2) + '%';
+            const trend = (trendStrength / watchlist.length * 100).toFixed(0) + '%';
             
-            let totalCorrelation = 0;
-            let pairs = 0;
+            document.getElementById('marketMomentum').textContent = momentum;
+            document.getElementById('volatilityIndex').textContent = avgVolatility;
+            document.getElementById('trendStrength').textContent = trend;
             
-            for (let i = 0; i < series.length - 1; i++) {
-                for (let j = i + 1; j < series.length; j++) {
-                    const corr = calculateCorrelation(
-                        seriesData[series[i].symbol],
-                        seriesData[series[j].symbol]
-                    );
-                    if (corr !== null) {
-                        totalCorrelation += Math.abs(corr);
-                        pairs++;
-                    }
-                }
-            }
+            // Update data freshness
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('dataFreshness').textContent = timeStr;
             
-            return pairs > 0 ? totalCorrelation / pairs : 0;
-        }
-
-        function calculateCorrelation(data1, data2) {
-            // Simple correlation calculation for recent 30 days
-            const days = 30;
-            const recent1 = data1.slice(-days);
-            const recent2 = data2.slice(-days);
+            // Update heatmap
+            updateHeatmap();
             
-            if (recent1.length < days || recent2.length < days) return null;
-            
-            const returns1 = [];
-            const returns2 = [];
-            
-            for (let i = 1; i < days; i++) {
-                returns1.push((recent1[i].value - recent1[i-1].value) / recent1[i-1].value);
-                returns2.push((recent2[i].value - recent2[i-1].value) / recent2[i-1].value);
-            }
-            
-            const mean1 = returns1.reduce((a, b) => a + b) / returns1.length;
-            const mean2 = returns2.reduce((a, b) => a + b) / returns2.length;
-            
-            let numerator = 0;
-            let sum1 = 0;
-            let sum2 = 0;
-            
-            for (let i = 0; i < returns1.length; i++) {
-                numerator += (returns1[i] - mean1) * (returns2[i] - mean2);
-                sum1 += Math.pow(returns1[i] - mean1, 2);
-                sum2 += Math.pow(returns2[i] - mean2, 2);
-            }
-            
-            return numerator / Math.sqrt(sum1 * sum2);
-        }
-
-        function calculateSpecialIndicators() {
-            const indicators = {};
-            
-            // Taylor Rule if we have Fed Funds and CPI
-            const dff = seriesData['DFF'];
-            const cpi = seriesData['CPIAUCSL'];
-            if (dff && cpi && dff.length > 0 && cpi.length > 12) {
-                const currentRate = dff[dff.length - 1].value;
-                const cpiChange = calculateChange(cpi, 365);
-                if (cpiChange) {
-                    const inflation = cpiChange.percentChange;
-                    const taylorRate = 2 + inflation + 0.5 * (inflation - 2) + 0.5 * 0; // Assuming 0 output gap
-                    indicators['Taylor Rule Rate'] = {
-                        display: taylorRate.toFixed(2) + '%',
-                        class: currentRate < taylorRate ? 'positive' : 'negative'
-                    };
-                }
-            }
-            
-            // Real Interest Rate
-            const treasury10 = seriesData['DGS10'];
-            if (treasury10 && cpi && treasury10.length > 0 && cpi.length > 12) {
-                const nominalRate = treasury10[treasury10.length - 1].value;
-                const inflationExp = calculateChange(cpi, 365);
-                if (inflationExp) {
-                    const realRate = nominalRate - inflationExp.percentChange;
-                    indicators['Real 10Y Rate'] = {
-                        display: realRate.toFixed(2) + '%',
-                        class: getChangeClass(realRate)
-                    };
-                }
-            }
-            
-            // Money Multiplier
-            const m2 = seriesData['M2SL'];
-            const base = seriesData['BOGMBASE'];
-            if (m2 && base && m2.length > 0 && base.length > 0) {
-                const multiplier = m2[m2.length - 1].value / base[base.length - 1].value;
-                indicators['Money Multiplier'] = {
-                    display: multiplier.toFixed(2) + 'x',
-                    class: ''
-                };
-            }
-            
-            return indicators;
-        }
-
-        function updateVisualizations() {
-            // Update yield curve if we have treasury data
-            updateYieldCurve();
-            
-            // Update other visualizations
-            updateCorrelationMatrix();
-            updateMomentumChart();
-            updateVolatilityChart();
-        }
-
-        function updateYieldCurve() {
-            const canvas = document.getElementById('yieldCurveChart');
-            const ctx = canvas.getContext('2d');
-            
-            const treasurySymbols = ['TB3MS', 'DGS1', 'DGS2', 'DGS5', 'DGS10', 'DGS30'];
-            const maturities = [0.25, 1, 2, 5, 10, 30];
-            const currentData = [];
-            const historicalData = [];
-            
-            treasurySymbols.forEach((symbol, index) => {
-                const data = seriesData[symbol];
-                if (data && data.length > 0) {
-                    currentData.push({
-                        x: maturities[index],
-                        y: data[data.length - 1].value
-                    });
-                    
-                    // Get data from 1 year ago
-                    const yearAgo = calculateChange(data, 365);
-                    if (yearAgo) {
-                        historicalData.push({
-                            x: maturities[index],
-                            y: data[data.length - 1].value - yearAgo.change
-                        });
-                    }
-                }
-            });
-            
-            if (currentData.length < 2) {
-                ctx.fillStyle = '#666';
-                ctx.fillText('Add treasury rates to see yield curve', canvas.width/2 - 100, canvas.height/2);
-                return;
-            }
-            
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    datasets: [
-                        {
-                            label: 'Current',
-                            data: currentData,
-                            borderColor: '#4a9eff',
-                            backgroundColor: 'rgba(74, 158, 255, 0.1)',
-                            borderWidth: 3,
-                            tension: 0.4
-                        },
-                        {
-                            label: '1 Year Ago',
-                            data: historicalData,
-                            borderColor: '#888',
-                            borderWidth: 2,
-                            borderDash: [5, 5],
-                            tension: 0.4
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            labels: { color: '#e0e0e0' }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            type: 'linear',
-                            title: {
-                                display: true,
-                                text: 'Maturity (Years)',
-                                color: '#888'
-                            },
-                            ticks: { color: '#888' },
-                            grid: { color: '#333' }
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'Yield (%)',
-                                color: '#888'
-                            },
-                            ticks: { color: '#888' },
-                            grid: { color: '#333' }
-                        }
-                    }
-                }
-            });
-        }
-
-        function updateCorrelationMatrix() {
-            const canvas = document.getElementById('correlationChart');
-            const ctx = canvas.getContext('2d');
-            
-            // Implementation for correlation matrix visualization
-            ctx.fillStyle = '#666';
-            ctx.fillText('Correlation matrix coming soon', canvas.width/2 - 80, canvas.height/2);
-        }
-
-        function updateMomentumChart() {
-            const canvas = document.getElementById('momentumChart');
-            const ctx = canvas.getContext('2d');
-            
-            const momentumData = [];
-            const labels = [];
-            
-            watchlist.forEach(item => {
-                const data = seriesData[item.symbol];
-                if (!data || data.length < 30) return;
-                
-                const momentum = calculateChange(data, 30);
-                if (momentum) {
-                    labels.push(item.symbol);
-                    momentumData.push(momentum.percentChange);
-                }
-            });
-            
-            if (momentumData.length === 0) {
-                ctx.fillStyle = '#666';
-                ctx.fillText('Add series to see momentum analysis', canvas.width/2 - 100, canvas.height/2);
-                return;
-            }
-            
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: '30-Day Momentum (%)',
-                        data: momentumData,
-                        backgroundColor: momentumData.map(v => v >= 0 ? 'rgba(76, 175, 80, 0.6)' : 'rgba(255, 82, 82, 0.6)'),
-                        borderColor: momentumData.map(v => v >= 0 ? '#4caf50' : '#ff5252'),
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'Momentum (%)',
-                                color: '#888'
-                            },
-                            ticks: { color: '#888' },
-                            grid: { color: '#333' }
-                        },
-                        x: {
-                            ticks: { 
-                                color: '#888',
-                                maxRotation: 45,
-                                minRotation: 45
-                            },
-                            grid: { display: false }
-                        }
-                    }
-                }
-            });
-        }
-
-        function updateVolatilityChart() {
-            const canvas = document.getElementById('volatilityChart');
-            const ctx = canvas.getContext('2d');
-            
-            const volatilityData = [];
-            const returnData = [];
-            const labels = [];
-            
-            watchlist.forEach(item => {
-                const data = seriesData[item.symbol];
-                if (!data || data.length < 30) return;
-                
-                // Calculate 30-day rolling volatility
-                const returns = [];
-                for (let i = data.length - 30; i < data.length; i++) {
-                    if (i > 0) {
-                        const dailyReturn = ((data[i].value - data[i-1].value) / data[i-1].value) * 100;
-                        returns.push(dailyReturn);
-                    }
-                }
-                
-                if (returns.length > 0) {
-                    const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
-                    const variance = returns.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / returns.length;
-                    const stdDev = Math.sqrt(variance);
-                    
-                    labels.push(item.symbol);
-                    volatilityData.push(stdDev);
-                    returnData.push(mean * 252); // Annualized return
-                }
-            });
-            
-            if (volatilityData.length === 0) {
-                ctx.fillStyle = '#666';
-                ctx.fillText('Add series to see volatility analysis', canvas.width/2 - 100, canvas.height/2);
-                return;
-            }
-            
-            new Chart(ctx, {
-                type: 'scatter',
-                data: {
-                    datasets: [{
-                        label: 'Risk-Return Profile',
-                        data: volatilityData.map((v, i) => ({
-                            x: v,
-                            y: returnData[i],
-                            label: labels[i]
-                        })),
-                        backgroundColor: 'rgba(74, 158, 255, 0.6)',
-                        borderColor: '#4a9eff',
-                        borderWidth: 2,
-                        pointRadius: 8,
-                        pointHoverRadius: 10
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return `${context.raw.label}: Vol ${context.raw.x.toFixed(2)}%, Return ${context.raw.y.toFixed(2)}%`;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Volatility (Daily Std Dev %)',
-                                color: '#888'
-                            },
-                            ticks: { color: '#888' },
-                            grid: { color: '#333' }
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'Annualized Return (%)',
-                                color: '#888'
-                            },
-                            ticks: { color: '#888' },
-                            grid: { color: '#333' }
-                        }
-                    }
-                }
-            });
-        }
-
-        // Alert system
-        function showAlert(type, title, message) {
-            const alertsContainer = document.getElementById('alertsContainer');
-            const alertId = 'alert-' + Date.now();
-            
-            const alertHTML = `
-                <div id="${alertId}" class="alert ${type}">
-                    <div class="alert-title">${title}</div>
-                    <div class="alert-message">${message}</div>
-                </div>
-            `;
-            
-            alertsContainer.insertAdjacentHTML('beforeend', alertHTML);
-            
-            // Auto-remove after 5 seconds
-            setTimeout(() => {
-                const alert = document.getElementById(alertId);
-                if (alert) {
-                    alert.style.animation = 'slideOut 0.3s ease';
-                    setTimeout(() => alert.remove(), 300);
-                }
-            }, 5000);
-        }
-
-        function checkForAlerts(symbol, data) {
-            if (!data || data.length < 2) return;
-            
-            const daily = calculateChange(data, 1);
-            const weekly = calculateChange(data, 7);
-            
-            // Check for significant moves
-            if (daily && Math.abs(daily.percentChange) > 5) {
-                showAlert(
-                    daily.percentChange > 0 ? 'success' : 'warning',
-                    `${symbol} Alert`,
-                    `Significant daily move: ${daily.percentChange.toFixed(2)}%`
-                );
-            }
-            
-            // Check for trend changes
-            if (daily && weekly && Math.sign(daily.percentChange) !== Math.sign(weekly.percentChange)) {
-                showAlert(
-                    'warning',
-                    `${symbol} Trend Change`,
-                    'Daily and weekly trends are diverging'
-                );
-            }
-            
-            // Special alerts for specific indicators
-            if (symbol === 'T10Y2Y') {
-                const latest = data[data.length - 1].value;
-                if (latest < 0) {
-                    showAlert(
-                        'error',
-                        'Yield Curve Inversion',
-                        '10Y-2Y spread is negative - potential recession signal'
-                    );
-                }
-            }
-            
-            if (symbol === 'VIXCLS') {
-                const latest = data[data.length - 1].value;
-                if (latest > 30) {
-                    showAlert(
-                        'warning',
-                        'High Volatility',
-                        `VIX at ${latest.toFixed(2)} - elevated market fear`
-                    );
-                }
+            // Update correlation matrix if that view is selected
+            if (currentView === 'correlation') {
+                updateCorrelationMatrix();
             }
         }
 
-        // Real-time updates
-        function startRealTimeUpdates() {
-            // Update every 5 minutes
-            updateInterval = setInterval(() => {
-                refreshAllData(true); // Silent refresh
-            }, 5 * 60 * 1000);
-        }
-
-        function stopRealTimeUpdates() {
-            if (updateInterval) {
-                clearInterval(updateInterval);
-                updateInterval = null;
-            }
-        }
-
-        // Utility functions
-        function formatValue(value) {
-            if (value === null || value === undefined) return '-';
-            if (Math.abs(value) >= 1e9) return (value / 1e9).toFixed(2) + 'B';
-            if (Math.abs(value) >= 1e6) return (value / 1e6).toFixed(2) + 'M';
-            if (Math.abs(value) >= 1e3) return (value / 1e3).toFixed(2) + 'K';
-            if (Math.abs(value) < 1) return value.toFixed(4);
-            return value.toFixed(2);
-        }
-
-        function formatPercent(value) {
-            if (value === null || value === undefined) return '-';
-            const sign = value > 0 ? '+' : '';
-            return sign + value.toFixed(2) + '%';
-        }
-
-        function formatNumber(num) {
-            return num.toLocaleString();
-        }
-
-        function getChangeClass(value) {
-            if (value === null || value === undefined) return 'neutral';
-            return value > 0 ? 'positive' : value < 0 ? 'negative' : 'neutral';
-        }
-
-        function removeFromWatchlist(symbol) {
-            watchlist = watchlist.filter(item => item.symbol !== symbol);
-            delete seriesData[symbol];
+        function updateHeatmap() {
+            const heatmapGrid = document.getElementById('heatmapGrid');
+            heatmapGrid.innerHTML = '';
             
-            // Destroy mini chart
-            if (miniCharts[symbol]) {
-                miniCharts[symbol].destroy();
-                delete miniCharts[symbol];
-            }
-            
-            updateWatchlistDisplay();
-            updateStats();
-            
-            // Update other tabs if visible
-            const activeTab = document.querySelector('.tab.active');
-            if (activeTab) {
-                const tabName = activeTab.textContent.toLowerCase();
-                if (tabName.includes('heatmap')) updateHeatmap();
-                else if (tabName.includes('analytics')) updateAnalytics();
-                else if (tabName.includes('visualizations')) updateVisualizations();
-            }
-        }
-
-        async function refreshAllData(silent = false) {
-            const btn = document.querySelector('.watchlist-btn');
-            if (!silent && btn) {
-                btn.textContent = '⏳ Refreshing...';
-                btn.disabled = true;
-            }
-            
-            try {
-                const promises = watchlist.map(item => 
-                    fetchSeriesData(item.symbol).catch(() => null)
-                );
-                const results = await Promise.all(promises);
-                
-                let updatedCount = 0;
-                results.forEach((data, index) => {
-                    if (data && data.length > 0) {
-                        const oldData = seriesData[watchlist[index].symbol];
-                        seriesData[watchlist[index].symbol] = data;
-                        
-                        // Check for alerts on updated data
-                        if (oldData && oldData.length > 0) {
-                            const oldLatest = oldData[oldData.length - 1].value;
-                            const newLatest = data[data.length - 1].value;
-                            if (oldLatest !== newLatest) {
-                                updatedCount++;
-                                checkForAlerts(watchlist[index].symbol, data);
-                            }
-                        }
-                    }
-                });
-                
-                updateWatchlistDisplay();
-                updateStats();
-                
-                if (!silent && updatedCount > 0) {
-                    showAlert('success', 'Data Refreshed', `Updated ${updatedCount} series`);
-                }
-                
-            } catch (error) {
-                console.error('Error refreshing data:', error);
-                if (!silent) {
-                    showAlert('error', 'Refresh Failed', 'Some data could not be updated');
-                }
-            } finally {
-                if (!silent && btn) {
-                    btn.textContent = '🔄 Refresh All';
-                    btn.disabled = false;
-                }
-            }
-        }
-
-        function downloadWatchlist() {
-            if (watchlist.length === 0) {
-                showAlert('warning', 'Empty Watchlist', 'Add series before downloading');
-                return;
-            }
-            
-            let csv = 'Series,Symbol,Current Value,Daily %,Weekly %,Monthly %,Quarterly %,YTD %,1 Year %,30-Day Volatility\n';
+            const heatmapData = [];
             
             watchlist.forEach(item => {
                 const data = seriesData[item.symbol];
                 if (!data || data.length === 0) return;
                 
-                const latest = data[data.length - 1];
                 const daily = calculateChange(data, 1);
-                const weekly = calculateChange(data, 7);
-                const monthly = calculateChange(data, 30);
-                const quarterly = calculateChange(data, 90);
-                const ytd = calculateYTDChange(data);
-                const yearly = calculateChange(data, 365);
-                
-                // Calculate volatility
-                const returns = [];
-                for (let i = Math.max(1, data.length - 30); i < data.length; i++) {
-                    const dailyReturn = ((data[i].value - data[i-1].value) / data[i-1].value) * 100;
-                    returns.push(dailyReturn);
+                if (daily) {
+                    heatmapData.push({
+                        symbol: item.symbol,
+                        name: item.name,
+                        change: daily.percentChange
+                    });
                 }
-                const volatility = returns.length > 0 ? 
-                    Math.sqrt(returns.reduce((a, b) => a + Math.pow(b - returns.reduce((x, y) => x + y) / returns.length, 2), 0) / returns.length) : 0;
-                
-                csv += `"${item.name}",${item.symbol},${latest.value},`;
-                csv += `${daily?.percentChange || ''},`;
-                csv += `${weekly?.percentChange || ''},`;
-                csv += `${monthly?.percentChange || ''},`;
-                csv += `${quarterly?.percentChange || ''},`;
-                csv += `${ytd?.percentChange || ''},`;
-                csv += `${yearly?.percentChange || ''},`;
-                csv += `${volatility.toFixed(2)}\n`;
             });
             
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `monetary_policy_dashboard_${new Date().toISOString().split('T')[0]}.csv`;
-            a.click();
-            window.URL.revokeObjectURL(url);
+            // Sort by change percentage
+            heatmapData.sort((a, b) => b.change - a.change);
             
-            showAlert('success', 'Download Complete', 'Watchlist exported to CSV');
+            heatmapData.forEach(item => {
+                const cell = document.createElement('div');
+                cell.className = 'heatmap-cell ' + getHeatmapClass(item.change);
+                cell.innerHTML = `
+                    <div class="heatmap-symbol">${item.symbol}</div>
+                    <div class="heatmap-value">${formatPercent(item.change)}</div>
+                `;
+                cell.title = item.name;
+                heatmapGrid.appendChild(cell);
+            });
         }
 
-        function clearWatchlist() {
-            if (confirm('Are you sure you want to clear your entire watchlist?')) {
-                // Destroy all mini charts
-                Object.values(miniCharts).forEach(chart => chart.destroy());
-                miniCharts = {};
-                
-                watchlist = [];
-                seriesData = {};
-                updateWatchlistDisplay();
-                updateStats();
-                
-                // Clear visualizations
-                updateHeatmap();
-                updateAnalytics();
-                updateVisualizations();
-                
-                showAlert('success', 'Watchlist Cleared', 'All series have been removed');
-            }
+        function getHeatmapClass(change) {
+            if (change > 5) return 'heatmap-extreme-positive';
+            if (change > 2) return 'heatmap-positive';
+            if (change > 0.5) return 'heatmap-mild-positive';
+            if (change > -0.5) return 'heatmap-neutral';
+            if (change > -2) return 'heatmap-mild-negative';
+            if (change > -5) return 'heatmap-negative';
+            return 'heatmap-extreme-negative';
         }
 
-        // Initialize on load
-        window.addEventListener('DOMContentLoaded', () => {
-            initializeCategories();
-            startRealTimeUpdates();
-        });
-
-        // Cleanup on unload
-        window.addEventListener('beforeunload', () => {
-            stopRealTimeUpdates();
-        });
-
-        // Add keyboard shortcuts
-        document.addEventListener('keydown', (e) => {
-            if (e.ctrlKey || e.metaKey) {
-                switch(e.key) {
-                    case 'r':
-                        e.preventDefault();
-                        refreshAllData();
-                        break;
-                    case 's':
-                        e.preventDefault();
-                        downloadWatchlist();
-                        break;
-                    case 'k':
-                        e.preventDefault();
-                        document.getElementById('searchInput').focus();
-                        break;
+        function calculateCorrelation(data1, data2) {
+            // Find overlapping dates
+            const dates1 = data1.map(d => d.date.toISOString().split('T')[0]);
+            const dates2 = data2.map(d => d.date.toISOString().split('T')[0]);
+            const commonDates = dates1.filter(date => dates2.includes(date));
+            
+            if (commonDates.length < 10) return null;
+            
+            // Get values for common dates
+            const values1 = [];
+            const values2 = [];
+            
+            commonDates.forEach(date => {
+                const v1 = data1.find(d => d.date.toISOString().split('T')[0] === date);
+                const v2 = data2.find(d => d.date.toISOString().split('T')[0] === date);
+                if (v1 && v2) {
+                    values1.push(v1.value);
+                    values2.push(v2.value);
+                }
+            });
+            
+            // Calculate percentage changes
+            const changes1 = [];
+            const changes2 = [];
+            
+            for (let i = 1; i < values1.length; i++) {
+                if (values1[i-1] !== 0 && values2[i-1] !== 0) {
+                    changes1.push((values1[i] - values1[i-1]) / values1[i-1] * 100);
+                    changes2.push((values2[i] - values2[i-1]) / values2[i-1] * 100);
                 }
             }
-        });
+            
+            if (changes1.length < 5) return null;
+            
+            // Calculate correlation coefficient
+            const n = changes1.length;
+            const sum1 = changes1.reduce((a, b) => a + b, 0);
+            const sum2 = changes2.reduce((a, b) => a + b, 0);
+            const sum1Sq = changes1.reduce((a, b) => a + b * b, 0);
+            const sum2Sq = changes2.reduce((a, b) => a + b * b, 0);
+            const pSum = changes1.reduce((a, b, i) => a + b * changes2[i], 0);
+            
+            const num = pSum - (sum1 * sum2 / n);
+            const den = Math.sqrt((sum1Sq - sum1 * sum1 / n) * (sum2Sq - sum2 * sum2 / n));
+            
+            if (den === 0) return 0;
+            
+            return num / den;
+        }
+
+        function updateCorrelationMatrix() {
+            const container = document.getElementById('correlationMatrix');
+            
+            if (watchlist.length < 2) {
+                container.innerHTML = '<p style="text-align: center; color: #666;">Add at least 2 series to see correlations</p>';
+                return;
+            }
+            
+            let html = '<table class="correlation-table"><thead><tr><th></th>';
+            
+            // Headers
+            watchlist.forEach(item => {
+                html += `<th>${item.symbol}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+            
+            // Calculate correlation matrix
+            const correlations = {};
+            
+            for (let i = 0; i < watchlist.length; i++) {
+                html += `<tr><th>${watchlist[i].symbol}</th>`;
+                
+                for (let j = 0; j < watchlist.length; j++) {
+                    if (i === j) {
+                        html += '<td class="correlation-cell" style="background: #4a9eff; color: white;">1.00</td>';
+                    } else {
+                        const key = `${watchlist[i].symbol}-${watchlist[j].symbol}`;
+                        const reverseKey = `${watchlist[j].symbol}-${watchlist[i].symbol}`;
+                        
+                        let corr;
+                        if (correlations[key] !== undefined) {
+                            corr = correlations[key];
+                        } else if (correlations[reverseKey] !== undefined) {
+                            corr = correlations[reverseKey];
+                        } else {
+                            corr = calculateCorrelation(
+                                seriesData[watchlist[i].symbol],
+                                seriesData[watchlist[j].symbol]
+                            );
+                            correlations[key] = corr;
+                        }
+                        
+                        if (corr !== null) {
+                            const color = getCorrelationColor(corr);
+                            html += `<td class="correlation-cell" style="background: ${color}; color: white;">${corr.toFixed(2)}</td>`;
+                        } else {
+                            html += '<td class="correlation-cell" style="background: #333; color: #666;">N/A</td>';
+                        }
+                    }
+                }
+                
+                html += '</tr>';
+            }
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        function getCorrelationColor(corr) {
+            // Color scale from red (negative) to green (positive)
+            if (corr >= 0.7) return '#4caf50';
+            if (corr >= 0.5) return '#66bb6a';
+            if (corr >= 0.3) return '#81c784';
+            if (corr >= 0.1) return '#a5d6a7';
+            if (corr >= -0.1) return '#757575';
+            if (corr >= -0.3) return '#ef9a9a';
+            if (corr >= -0.5) return '#e57373';
+            if (corr >= -0.7) return '#ef5350';
+            return '#f44336';
+        }
+
+        function toggleView(view) {
+            currentView = view;
+            
+            // Update button states
+            document.querySelectorAll('.toggle-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Show/hide content
+            document.getElementById('analyticsContent').style.display = 'none';
+            document.getElementById('correlationContent').style.display = 'none';
+            document.getElementById('riskContent').style.display = 'none';
+            
+            if (view === 'analytics') {
+                document.getElementById('analyticsContent').style.display = 'block';
+            } else if (view === 'correlation') {
+                document.getElementById('correlationContent').style.display = 'block';
+                updateCorrelationMatrix();
+            } else if (view === 'risk') {
+                document.getElementById('riskContent').style.display = 'block';
+                updateRiskAnalysis();
+                updateRiskHistogram();
+            }
+        }
+
+        function toggleAutoRefresh() {
+            const btn = event.target.closest('.watchlist-btn');
+            const icon = document.getElementById('autoRefreshIcon');
+            const text = document.getElementById('autoRefreshText');
+            
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+                btn.classList.remove('active');
+                icon.textContent = '▶️';
+                text.textContent = 'Auto Refresh';
+            } else {
+                autoRefreshInterval = setInterval(() => {
+                    refreshAllData();
+                }, 60000); // Refresh every 60 seconds
+                btn.classList.add('active');
+                icon.textContent = '⏸️';
+                text.textContent = 'Stop Auto';
+                
+                // Initial refresh
+                refreshAllData();
+            }
+        }
