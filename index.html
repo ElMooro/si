@@ -366,7 +366,10 @@
                 // Map the data - be flexible with field names
                 const processedData = results.map(item => {
                     const date = item.date || item.Date || item.time || item.timestamp;
-                    const value = parseFloat(
+                    
+                    // The value is stored under the symbol name
+                    let value = parseFloat(
+                        item[symbol] || 
                         item.value || 
                         item.Value || 
                         item.close || 
