@@ -3,990 +3,224 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FRED Universal Search - Economic Data Explorer</title>
+    <title>OpenBB Financial Intelligence Platform</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0a0e1b;
-            color: #e0e0e0;
-            min-height: 100vh;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 40px;
-            padding: 30px;
-            background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%);
-            border-radius: 16px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            color: #ffffff;
-        }
-
-        .header p {
-            font-size: 1.2em;
-            color: #b3c5ff;
-        }
-
-        .search-section {
-            background: #1a1f2e;
-            border-radius: 12px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-        }
-
-        .search-container {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .search-input-wrapper {
-            flex: 1;
-            min-width: 300px;
-            position: relative;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 15px 50px 15px 20px;
-            background: #2a3142;
-            color: #fff;
-            border: 2px solid #3949ab;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: #5c6bc0;
-            box-shadow: 0 0 0 3px rgba(57, 73, 171, 0.2);
-        }
-
-        .search-icon {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #5c6bc0;
-            font-size: 20px;
-        }
-
-        .search-btn {
-            padding: 15px 30px;
-            background: #3949ab;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .search-btn:hover {
-            background: #5c6bc0;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(57, 73, 171, 0.3);
-        }
-
-        .search-btn:disabled {
-            background: #666;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .filters {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .filter-label {
-            font-size: 12px;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .filter-select {
-            padding: 8px 12px;
-            background: #2a3142;
-            color: #fff;
-            border: 1px solid #444;
-            border-radius: 6px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-
-        .popular-searches {
-            margin-top: 20px;
-        }
-
-        .popular-searches h3 {
-            font-size: 14px;
-            color: #888;
-            margin-bottom: 10px;
-        }
-
-        .popular-tags {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .popular-tag {
-            padding: 6px 16px;
-            background: #2a3142;
-            border: 1px solid #444;
-            border-radius: 20px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .popular-tag:hover {
-            background: #3949ab;
-            border-color: #3949ab;
-            transform: scale(1.05);
-        }
-
-        .results-section {
-            display: none;
-        }
-
-        .results-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .results-count {
-            font-size: 18px;
-            color: #5c6bc0;
-        }
-
-        .results-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 20px;
-        }
-
-        .result-card {
-            background: #1a1f2e;
-            border: 1px solid #2a3142;
-            border-radius: 12px;
-            padding: 20px;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .result-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-            border-color: #3949ab;
-        }
-
-        .result-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #5c6bc0;
-            margin-bottom: 8px;
-        }
-
-        .result-id {
-            font-family: monospace;
-            font-size: 13px;
-            color: #666;
-            margin-bottom: 12px;
-        }
-
-        .result-meta {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-bottom: 12px;
-        }
-
-        .meta-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 13px;
-            color: #888;
-        }
-
-        .meta-icon {
-            font-size: 16px;
-        }
-
-        .result-description {
-            font-size: 14px;
-            color: #ccc;
-            line-height: 1.5;
-            margin-bottom: 15px;
-        }
-
-        .result-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .action-btn {
-            padding: 8px 16px;
-            background: #2a3142;
-            color: #fff;
-            border: 1px solid #444;
-            border-radius: 6px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .action-btn:hover {
-            background: #3949ab;
-            border-color: #3949ab;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 60px;
-            font-size: 18px;
-            color: #666;
-        }
-
-        .loading-spinner {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            border: 4px solid #333;
-            border-top-color: #5c6bc0;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .no-results {
-            text-align: center;
-            padding: 60px;
-            color: #666;
-        }
-
-        .pagination {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 40px;
-        }
-
-        .page-btn {
-            padding: 8px 16px;
-            background: #2a3142;
-            color: #fff;
-            border: 1px solid #444;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .page-btn:hover:not(:disabled) {
-            background: #3949ab;
-            border-color: #3949ab;
-        }
-
-        .page-btn.active {
-            background: #3949ab;
-            border-color: #3949ab;
-        }
-
-        .page-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .watchlist-panel {
-            position: fixed;
-            right: 20px;
-            bottom: 20px;
-            background: #1a1f2e;
-            border: 1px solid #3949ab;
-            border-radius: 12px;
-            padding: 20px;
-            width: 300px;
-            max-height: 400px;
-            overflow-y: auto;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-            display: none;
-        }
-
-        .watchlist-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .watchlist-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #5c6bc0;
-        }
-
-        .watchlist-count {
-            background: #3949ab;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-        }
-
-        .watchlist-items {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .watchlist-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            background: #2a3142;
-            border-radius: 8px;
-            font-size: 13px;
-        }
-
-        .watchlist-item-name {
-            flex: 1;
-            margin-right: 10px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .remove-btn {
-            padding: 4px 8px;
-            background: #d32f2f;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 11px;
-            cursor: pointer;
-        }
-
-        .remove-btn:hover {
-            background: #f44336;
-        }
-
-        .watchlist-actions {
-            margin-top: 15px;
-            display: flex;
-            gap: 10px;
-        }
-
-        .watchlist-action-btn {
-            flex: 1;
-            padding: 8px;
-            background: #3949ab;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .watchlist-action-btn:hover {
-            background: #5c6bc0;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
-            
-            .header {
-                padding: 20px;
-            }
-            
-            .header h1 {
-                font-size: 1.8em;
-            }
-            
-            .search-container {
-                flex-direction: column;
-            }
-            
-            .search-input-wrapper {
-                min-width: auto;
-            }
-            
-            .results-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .watchlist-panel {
-                width: calc(100% - 40px);
-                right: 20px;
-                left: 20px;
-            }
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #0a0a0a; color: #e0e0e0; overflow-x: hidden; }
+        nav { background: #121212; border-bottom: 1px solid #282828; padding: 15px 20px; position: sticky; top: 0; z-index: 1000; display: flex; justify-content: space-between; align-items: center; }
+        .nav-logo { font-size: 22px; font-weight: bold; background: linear-gradient(45deg, #00ff88, #00ccff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .nav-links { display: flex; gap: 25px; align-items: center; }
+        .nav-links a { color: #ccc; text-decoration: none; font-size: 14px; transition: color 0.3s; position: relative; }
+        .nav-links a:hover { color: #00ff88; }
+        .nav-links a.active { color: #00ff88; }
+        .nav-links a.active::after { content: ''; position: absolute; bottom: -5px; left: 0; right: 0; height: 2px; background: #00ff88; }
+        .hero { background: linear-gradient(180deg, #121212 0%, #0a0a0a 100%); padding: 80px 20px; text-align: center; border-bottom: 1px solid #282828; }
+        .hero h1 { font-size: 48px; margin-bottom: 20px; background: linear-gradient(45deg, #00ff88, #00ccff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero p { font-size: 20px; color: #aaa; max-width: 600px; margin: 0 auto 40px; line-height: 1.6; }
+        .live-ticker { background: #181818; border-radius: 10px; padding: 20px; max-width: 800px; margin: 0 auto; display: flex; justify-content: space-around; gap: 30px; flex-wrap: wrap; }
+        .ticker-item { text-align: center; }
+        .ticker-symbol { font-size: 14px; color: #888; margin-bottom: 5px; }
+        .ticker-value { font-size: 24px; font-weight: bold; color: #fff; margin-bottom: 5px; }
+        .ticker-change { font-size: 16px; font-weight: bold; }
+        .positive { color: #00dd77; }
+        .negative { color: #ff4444; }
+        .modules-section { padding: 60px 20px; max-width: 1200px; margin: 0 auto; }
+        .section-title { font-size: 32px; text-align: center; margin-bottom: 50px; color: #fff; }
+        .modules-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+        .module-card { background: #131313; border: 1px solid #282828; border-radius: 10px; padding: 30px; transition: all 0.3s; cursor: pointer; text-decoration: none; color: inherit; display: block; }
+        .module-card:hover { border-color: #00ff88; transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0, 255, 136, 0.2); }
+        .module-icon { font-size: 48px; margin-bottom: 20px; }
+        .module-title { font-size: 20px; font-weight: bold; color: #fff; margin-bottom: 10px; }
+        .module-description { font-size: 14px; color: #aaa; line-height: 1.5; }
+        .features-section { background: #121212; padding: 60px 20px; border-top: 1px solid #282828; }
+        .features-grid { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px; }
+        .feature-item { text-align: center; }
+        .feature-icon { font-size: 36px; margin-bottom: 15px; color: #00ff88; }
+        .feature-title { font-size: 18px; font-weight: bold; color: #fff; margin-bottom: 10px; }
+        .feature-text { font-size: 14px; color: #aaa; line-height: 1.5; }
+        .footer { background: #0a0a0a; border-top: 1px solid #282828; padding: 30px 20px; text-align: center; color: #666; font-size: 14px; }
+        .loading-pulse { animation: pulse 1.5s infinite ease-in-out; }
+        @keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+        @media (max-width: 768px) { .hero h1 { font-size: 36px; } .hero p { font-size: 18px; } .nav-links { gap: 15px; } .nav-links a { font-size: 12px; } .modules-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Macro Intelligence Platform - Universal Search</h1>
-            <p>Search economic data from FRED, ECB, NY Fed, Treasury, OFR and more</p>
+    <nav>
+        <div class="nav-logo">📊 OPENBB</div>
+        <div class="nav-links">
+            <a href="index.html" class="active">Home</a>
+            <a href="macroeconomic-platform.html">Macro Dashboard</a>
+            <a href="ai_predictions.html">AI Signals</a>
+            <a href="exponential-search-dashboard.html">Search</a>
+            <a href="openbb-realtime-dashboard.html">Live Data</a>
+            <a href="scraper_dashboard.html">Scraper Monitor</a>
+            <a href="ai-predictions-supabase.html">Login</a>
         </div>
-
-        <div class="search-section">
-            <div class="search-container">
-                <div class="search-input-wrapper">
-                    <input 
-                        type="text" 
-                        id="searchInput" 
-                        class="search-input" 
-                        placeholder="Search for economic indicators, GDP, inflation, unemployment..."
-                        autocomplete="off"
-                    >
-                    <span class="search-icon">🔍</span>
-                </div>
-                <button id="searchBtn" class="search-btn" onclick="performSearch()">Search FRED</button>
+    </nav>
+    
+    <div class="hero">
+        <h1>Next-Gen Macro Data Terminal</h1>
+        <p>Institutional-grade financial intelligence powered by AI, real-time data streams, and exponential search technology</p>
+        <div class="live-ticker" id="liveTicker">
+            <div class="ticker-item">
+                <div class="ticker-symbol">BITCOIN</div>
+                <div class="ticker-value loading-pulse">Loading...</div>
+                <div class="ticker-change">—</div>
             </div>
-
-            <div class="filters">
-                <div class="filter-group">
-                    <label class="filter-label">Sort By</label>
-                    <select id="sortOrder" class="filter-select">
-                        <option value="search_rank">Relevance</option>
-                        <option value="popularity">Popularity</option>
-                        <option value="title">Title (A-Z)</option>
-                        <option value="units">Units</option>
-                        <option value="frequency">Frequency</option>
-                        <option value="seasonal_adjustment">Seasonal Adjustment</option>
-                        <option value="last_updated">Last Updated</option>
-                    </select>
-                </div>
-
-                <div class="filter-group">
-                    <label class="filter-label">Frequency</label>
-                    <select id="frequency" class="filter-select">
-                        <option value="">All</option>
-                        <option value="d">Daily</option>
-                        <option value="w">Weekly</option>
-                        <option value="bw">Biweekly</option>
-                        <option value="m">Monthly</option>
-                        <option value="q">Quarterly</option>
-                        <option value="sa">Semiannual</option>
-                        <option value="a">Annual</option>
-                    </select>
-                </div>
-
-                <div class="filter-group">
-                    <label class="filter-label">Results Per Page</label>
-                    <select id="limit" class="filter-select">
-                        <option value="20">20</option>
-                        <option value="50">50</option>
-                        <option value="100">100</option>
-                    </select>
-                </div>
+            <div class="ticker-item">
+                <div class="ticker-symbol">VIX</div>
+                <div class="ticker-value loading-pulse">Loading...</div>
+                <div class="ticker-change">—</div>
             </div>
-
-            <div class="popular-searches">
-                <h3>Popular Searches:</h3>
-                <div class="popular-tags">
-                    <span class="popular-tag" onclick="quickSearch('GDP')">GDP</span>
-                    <span class="popular-tag" onclick="quickSearch('inflation')">Inflation</span>
-                    <span class="popular-tag" onclick="quickSearch('unemployment rate')">Unemployment</span>
-                    <span class="popular-tag" onclick="quickSearch('federal funds rate')">Fed Funds Rate</span>
-                    <span class="popular-tag" onclick="quickSearch('CPI')">CPI</span>
-                    <span class="popular-tag" onclick="quickSearch('treasury yield')">Treasury Yields</span>
-                    <span class="popular-tag" onclick="quickSearch('housing')">Housing</span>
-                    <span class="popular-tag" onclick="quickSearch('stock market')">Stock Market</span>
-                </div>
+            <div class="ticker-item">
+                <div class="ticker-symbol">GDP YoY %</div>
+                <div class="ticker-value loading-pulse">Loading...</div>
+                <div class="ticker-change">—</div>
             </div>
-        </div>
-
-        <div id="resultsSection" class="results-section">
-            <div class="results-header">
-                <div class="results-count" id="resultsCount"></div>
-                <button class="action-btn" onclick="toggleWatchlist()">
-                    My Watchlist (<span id="watchlistBadge">0</span>)
-                </button>
+            <div class="ticker-item">
+                <div class="ticker-symbol">DXY</div>
+                <div class="ticker-value loading-pulse">Loading...</div>
+                <div class="ticker-change">—</div>
             </div>
-            <div id="resultsGrid" class="results-grid"></div>
-            <div id="pagination" class="pagination"></div>
-        </div>
-
-        <div id="loadingSection" class="loading" style="display: none;">
-            <div class="loading-spinner"></div>
-            <div>Searching FRED database...</div>
         </div>
     </div>
-
-    <div id="watchlistPanel" class="watchlist-panel">
-        <div class="watchlist-header">
-            <span class="watchlist-title">My Watchlist</span>
-            <span class="watchlist-count" id="watchlistCountBadge">0</span>
-        </div>
-        <div id="watchlistItems" class="watchlist-items"></div>
-        <div class="watchlist-actions">
-            <button class="watchlist-action-btn" onclick="exportWatchlist()">Export CSV</button>
-            <button class="watchlist-action-btn" onclick="clearWatchlist()">Clear All</button>
+    
+    <div class="modules-section">
+        <h2 class="section-title">Financial Intelligence Modules</h2>
+        <div class="modules-grid">
+            <a href="openbb-realtime-dashboard.html" class="module-card">
+                <div class="module-icon">🚀</div>
+                <div class="module-title">Real-Time Dashboard</div>
+                <div class="module-description">Live WebSocket data streams for market indices, crypto, and volatility indicators with sub-second updates</div>
+            </a>
+            <a href="macroeconomic-platform.html" class="module-card">
+                <div class="module-icon">📈</div>
+                <div class="module-title">Macro Data Dashboard</div>
+                <div class="module-description">Comprehensive economic indicators from FRED, ECB, NY Fed with advanced charting and watchlists</div>
+            </a>
+            <a href="ai_predictions.html" class="module-card">
+                <div class="module-icon">🤖</div>
+                <div class="module-title">AI Predictions</div>
+                <div class="module-description">Machine learning market signals updated daily with crisis detection and confidence scoring</div>
+            </a>
+            <a href="exponential-search-dashboard.html" class="module-card">
+                <div class="module-icon">🔍</div>
+                <div class="module-title">Exponential Search</div>
+                <div class="module-description">Ultra-fast search across 10,000+ financial indicators with Black Swan detection capabilities</div>
+            </a>
+            <a href="ai-predictions-supabase.html" class="module-card">
+                <div class="module-icon">🔐</div>
+                <div class="module-title">Authenticated Platform</div>
+                <div class="module-description">Secure access to premium features, personalized watchlists, and signal tracking</div>
+            </a>
+            <a href="scraper_dashboard.html" class="module-card">
+                <div class="module-icon">🗂️</div>
+                <div class="module-title">Data Monitor</div>
+                <div class="module-description">Track data ingestion, scraping schedules, and system health in real-time</div>
+            </a>
         </div>
     </div>
-
+    
+    <div class="features-section">
+        <h2 class="section-title">Platform Features</h2>
+        <div class="features-grid">
+            <div class="feature-item">
+                <div class="feature-icon">⚡</div>
+                <div class="feature-title">Real-Time Data</div>
+                <div class="feature-text">WebSocket connections for instant market updates</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">��️</div>
+                <div class="feature-title">Institutional Grade</div>
+                <div class="feature-text">Enterprise-level data quality and reliability</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🌍</div>
+                <div class="feature-title">Global Coverage</div>
+                <div class="feature-text">Economic data from Fed, ECB, OFR, Treasury</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🧠</div>
+                <div class="feature-title">AI Powered</div>
+                <div class="feature-text">Advanced ML models for market predictions</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🦢</div>
+                <div class="feature-title">Black Swan Detection</div>
+                <div class="feature-text">Early warning system for market anomalies</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">📊</div>
+                <div class="feature-title">Advanced Charts</div>
+                <div class="feature-text">Technical indicators, MACD, Z-scores, signals</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        OpenBB Financial Intelligence Platform © 2025 | Powered by AWS Lambda + Supabase
+    </div>
+    
     <script>
-        // Your Macro Intelligence Platform API
         const API_BASE = 'https://ped8gafyuz.us-east-1.awsapprunner.com';
+        const WEBSOCKET_URL = 'https://7xaylc6nonthix4j377lelbnmm0tziuj.lambda-url.us-east-1.on.aws/';
         
-        let currentPage = 0;
-        let totalResults = 0;
-        let watchlist = [];
-        let searchResults = [];
-
-        // Demo data for when API key is not available
-        const demoData = [
-            { id: 'GDP', title: 'Gross Domestic Product', units: 'Billions of Dollars', frequency: 'Quarterly', seasonal_adjustment: 'Seasonally Adjusted Annual Rate', last_updated: '2024-01-15', popularity: 100, notes: 'The market value of goods and services produced by labor and property in the United States.' },
-            { id: 'UNRATE', title: 'Unemployment Rate', units: 'Percent', frequency: 'Monthly', seasonal_adjustment: 'Seasonally Adjusted', last_updated: '2024-02-01', popularity: 95, notes: 'The unemployment rate represents the number of unemployed as a percentage of the labor force.' },
-            { id: 'CPIAUCSL', title: 'Consumer Price Index for All Urban Consumers', units: 'Index 1982-1984=100', frequency: 'Monthly', seasonal_adjustment: 'Seasonally Adjusted', last_updated: '2024-02-13', popularity: 98, notes: 'The Consumer Price Index for All Urban Consumers: All Items.' },
-            { id: 'DFF', title: 'Federal Funds Effective Rate', units: 'Percent', frequency: 'Daily', seasonal_adjustment: 'Not Seasonally Adjusted', last_updated: '2024-02-20', popularity: 92, notes: 'The federal funds rate is the interest rate at which depository institutions trade federal funds.' },
-            { id: 'DGS10', title: '10-Year Treasury Constant Maturity Rate', units: 'Percent', frequency: 'Daily', seasonal_adjustment: 'Not Seasonally Adjusted', last_updated: '2024-02-20', popularity: 90, notes: 'Treasury securities adjusted to constant maturity of 10 years.' },
-            { id: 'HOUST', title: 'Housing Starts: Total', units: 'Thousands of Units', frequency: 'Monthly', seasonal_adjustment: 'Seasonally Adjusted Annual Rate', last_updated: '2024-02-16', popularity: 85, notes: 'New privately owned housing units started.' },
-            { id: 'INDPRO', title: 'Industrial Production Index', units: 'Index 2017=100', frequency: 'Monthly', seasonal_adjustment: 'Seasonally Adjusted', last_updated: '2024-02-15', popularity: 82, notes: 'The Industrial Production Index measures real production output.' },
-            { id: 'PAYEMS', title: 'All Employees: Total Nonfarm', units: 'Thousands of Persons', frequency: 'Monthly', seasonal_adjustment: 'Seasonally Adjusted', last_updated: '2024-02-02', popularity: 94, notes: 'All Employees: Total Nonfarm, commonly known as Total Nonfarm Payroll.' },
-            { id: 'DEXUSEU', title: 'U.S. / Euro Foreign Exchange Rate', units: 'U.S. Dollars to One Euro', frequency: 'Daily', seasonal_adjustment: 'Not Seasonally Adjusted', last_updated: '2024-02-20', popularity: 88, notes: 'Exchange rate between US Dollar and Euro.' },
-            { id: 'VIXCLS', title: 'CBOE Volatility Index: VIX', units: 'Index', frequency: 'Daily', seasonal_adjustment: 'Not Seasonally Adjusted', last_updated: '2024-02-20', popularity: 91, notes: 'VIX measures market expectation of near term volatility.' }
-        ];
-
-        // Initialize on load
-        document.addEventListener('DOMContentLoaded', () => {
-            // Load saved watchlist
-            const saved = localStorage.getItem('macroWatchlist');
-            if (saved) {
-                watchlist = JSON.parse(saved);
-                updateWatchlistDisplay();
-            }
-            
-            // Test API connection
-            testAPIConnection();
-            
-            // Enter key triggers search
-            document.getElementById('searchInput').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    performSearch();
-                }
-            });
-            
-            // Add debug button
-            const debugBtn = document.createElement('button');
-            debugBtn.textContent = 'Test API';
-            debugBtn.style.cssText = 'position: fixed; bottom: 10px; right: 10px; padding: 10px; background: #ff9800; color: white; border: none; border-radius: 5px; cursor: pointer; z-index: 1000;';
-            debugBtn.onclick = debugAPI;
-            document.body.appendChild(debugBtn);
-        });
-
-        async function testAPIConnection() {
+        async function loadLiveData() {
             try {
-                const response = await fetch(`${API_BASE}/api/v1/universal/providers`);
-                if (response.ok) {
-                    const providers = await response.json();
-                    console.log('Connected to Macro Intelligence Platform. Available providers:', providers);
-                } else {
-                    console.log('API test returned status:', response.status);
+                const wsResponse = await fetch(WEBSOCKET_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'getData' })
+                });
+                
+                if (wsResponse.ok) {
+                    const wsData = await wsResponse.json();
+                    updateTicker('BITCOIN', wsData.BTC || 0, wsData.BTC_change || 0);
+                    updateTicker('VIX', wsData.VIX || 0, wsData.VIX_change || 0);
+                    updateTicker('DXY', wsData.DXY || 0, wsData.DXY_change || 0);
+                }
+                
+                const gdpResponse = await fetch(`${API_BASE}/api/v1/universal/data?symbol=GDP&provider=fred_direct&include_changes=true`);
+                if (gdpResponse.ok) {
+                    const gdpData = await gdpResponse.json();
+                    if (gdpData.metrics) {
+                        updateTicker('GDP YoY %', gdpData.metrics.yearly_change || 0, 0);
+                    }
                 }
             } catch (error) {
-                console.error('API connection test failed:', error);
+                console.error('Error loading live data:', error);
             }
         }
-
-        async function debugAPI() {
-            console.log('=== API Debug Test ===');
-            
-            // Test different endpoints
-            const endpoints = [
-                '/api/v1/universal/providers',
-                '/api/v1/universal/search?query=GDP',
-                '/api/v1/interactive/search-suggestions?query=GDP',
-                '/api/v1/universal/data?symbol=GDP&provider=fred'
-            ];
-            
-            for (const endpoint of endpoints) {
-                try {
-                    console.log(`Testing: ${API_BASE}${endpoint}`);
-                    const response = await fetch(`${API_BASE}${endpoint}`);
-                    console.log(`Status: ${response.status}`);
+        
+        function updateTicker(symbol, value, change) {
+            const tickerItems = document.querySelectorAll('.ticker-item');
+            tickerItems.forEach(item => {
+                const symbolDiv = item.querySelector('.ticker-symbol');
+                if (symbolDiv.textContent === symbol) {
+                    const valueDiv = item.querySelector('.ticker-value');
+                    const changeDiv = item.querySelector('.ticker-change');
                     
-                    if (response.ok) {
-                        const data = await response.json();
-                        console.log('Response:', data);
+                    valueDiv.classList.remove('loading-pulse');
+                    
+                    if (symbol === 'GDP YoY %') {
+                        valueDiv.textContent = value.toFixed(2) + '%';
+                        changeDiv.textContent = 'Annual';
+                        changeDiv.className = 'ticker-change';
+                    } else if (symbol === 'BITCOIN') {
+                        valueDiv.textContent = '$' + value.toLocaleString();
+                        changeDiv.textContent = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
+                        changeDiv.className = 'ticker-change ' + (change >= 0 ? 'positive' : 'negative');
                     } else {
-                        const text = await response.text();
-                        console.log('Error response:', text);
-                    }
-                } catch (error) {
-                    console.log('Failed:', error.message);
-                }
-            }
-            
-            alert('Check browser console for API debug results');
-        }
-
-        async function performSearch(page = 0) {
-            const searchText = document.getElementById('searchInput').value.trim();
-            if (!searchText) {
-                alert('Please enter a search term');
-                return;
-            }
-            
-            currentPage = page;
-            showLoading(true);
-            
-            try {
-                console.log(`Searching for: ${searchText}`);
-                
-                // Try different search approaches
-                let searchResults = [];
-                
-                // Approach 1: Try the universal search endpoint
-                try {
-                    const searchResponse = await fetch(`${API_BASE}/api/v1/universal/search?query=${encodeURIComponent(searchText)}`);
-                    console.log('Search response status:', searchResponse.status);
-                    
-                    if (searchResponse.ok) {
-                        const searchData = await searchResponse.json();
-                        console.log('Search data:', searchData);
-                        
-                        if (Array.isArray(searchData)) {
-                            searchResults = searchData;
-                        } else if (searchData.results) {
-                            searchResults = searchData.results;
-                        } else if (searchData.data) {
-                            searchResults = searchData.data;
-                        }
-                    }
-                } catch (e) {
-                    console.log('Universal search failed:', e);
-                }
-                
-                // Approach 2: If no results, try search suggestions
-                if (searchResults.length === 0) {
-                    try {
-                        const suggestResponse = await fetch(`${API_BASE}/api/v1/interactive/search-suggestions?query=${encodeURIComponent(searchText)}`);
-                        console.log('Suggestions response status:', suggestResponse.status);
-                        
-                        if (suggestResponse.ok) {
-                            const suggestions = await suggestResponse.json();
-                            console.log('Suggestions:', suggestions);
-                            
-                            if (Array.isArray(suggestions)) {
-                                searchResults = suggestions.map(s => {
-                                    if (typeof s === 'string') {
-                                        return { symbol: s, name: s, provider: 'fred' };
-                                    }
-                                    return {
-                                        symbol: s.symbol || s.id || s,
-                                        name: s.name || s.title || s.symbol || s,
-                                        provider: s.provider || 'fred'
-                                    };
-                                });
-                            }
-                        }
-                    } catch (e) {
-                        console.log('Search suggestions failed:', e);
+                        valueDiv.textContent = value.toFixed(2);
+                        changeDiv.textContent = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
+                        changeDiv.className = 'ticker-change ' + (change >= 0 ? 'positive' : 'negative');
                     }
                 }
-                
-                // Approach 3: If still no results, try common series
-                if (searchResults.length === 0 && searchText.toLowerCase().includes('gdp')) {
-                    searchResults = [
-                        { symbol: 'GDP', name: 'Gross Domestic Product', provider: 'fred' },
-                        { symbol: 'GDPC1', name: 'Real GDP', provider: 'fred' },
-                        { symbol: 'GDPPOT', name: 'GDP Potential', provider: 'fred' }
-                    ];
-                } else if (searchResults.length === 0 && searchText.toLowerCase().includes('inflation')) {
-                    searchResults = [
-                        { symbol: 'CPIAUCSL', name: 'Consumer Price Index', provider: 'fred' },
-                        { symbol: 'CPILFESL', name: 'Core CPI', provider: 'fred' },
-                        { symbol: 'T5YIE', name: '5-Year Breakeven Inflation', provider: 'fred' }
-                    ];
-                } else if (searchResults.length === 0 && searchText.toLowerCase().includes('unemployment')) {
-                    searchResults = [
-                        { symbol: 'UNRATE', name: 'Unemployment Rate', provider: 'fred' },
-                        { symbol: 'CIVPART', name: 'Labor Force Participation Rate', provider: 'fred' },
-                        { symbol: 'EMRATIO', name: 'Employment-Population Ratio', provider: 'fred' }
-                    ];
-                }
-                
-                // Store for pagination
-                this.searchResults = searchResults;
-                
-                // Paginate results
-                const limit = parseInt(document.getElementById('limit').value);
-                const offset = page * limit;
-                const paginatedResults = searchResults.slice(offset, offset + limit);
-                
-                displayResults({
-                    series: paginatedResults,
-                    count: searchResults.length
-                });
-                
-            } catch (error) {
-                console.error('Search error:', error);
-                
-                // Show some default series if search completely fails
-                const defaultSeries = [
-                    { symbol: 'DFF', name: 'Federal Funds Rate', provider: 'fred' },
-                    { symbol: 'GDP', name: 'Gross Domestic Product', provider: 'fred' },
-                    { symbol: 'UNRATE', name: 'Unemployment Rate', provider: 'fred' },
-                    { symbol: 'CPIAUCSL', name: 'Consumer Price Index', provider: 'fred' },
-                    { symbol: 'DGS10', name: '10-Year Treasury Rate', provider: 'fred' },
-                    { symbol: 'VIXCLS', name: 'VIX Volatility Index', provider: 'fred' }
-                ];
-                
-                displayResults({
-                    series: defaultSeries.filter(s => 
-                        s.name.toLowerCase().includes(searchText.toLowerCase()) ||
-                        s.symbol.toLowerCase().includes(searchText.toLowerCase())
-                    ),
-                    count: defaultSeries.length
-                });
-                
-                console.log('Showing filtered default series due to search error');
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        function displayResults(data) {
-            const resultsSection = document.getElementById('resultsSection');
-            const resultsGrid = document.getElementById('resultsGrid');
-            const resultsCount = document.getElementById('resultsCount');
-            
-            totalResults = data.count || 0;
-            const series = data.series || [];
-            
-            if (series.length === 0) {
-                resultsGrid.innerHTML = '<div class="no-results">No results found. Try different search terms.</div>';
-                resultsCount.textContent = 'No results';
-                resultsSection.style.display = 'block';
-                return;
-            }
-            
-            resultsCount.textContent = `Found ${totalResults} series`;
-            resultsSection.style.display = 'block';
-            
-            resultsGrid.innerHTML = series.map(item => {
-                const symbol = item.symbol || item.id || item;
-                const title = item.name || item.title || symbol;
-                const provider = item.provider || 'fred';
-                
-                return `
-                    <div class="result-card" onclick="viewSeriesDetails('${symbol}', '${provider}')">
-                        <div class="result-title">${title}</div>
-                        <div class="result-id">${symbol}</div>
-                        <div class="result-meta">
-                            <div class="meta-item"><span class="meta-icon">🏢</span> ${provider.toUpperCase()}</div>
-                            ${item.units ? `<div class="meta-item"><span class="meta-icon">📊</span> ${item.units}</div>` : ''}
-                            ${item.frequency ? `<div class="meta-item"><span class="meta-icon">📅</span> ${getFrequencyLabel(item.frequency)}</div>` : ''}
-                        </div>
-                        ${item.description || item.notes ? `<div class="result-description">${truncateText(item.description || item.notes, 150)}</div>` : ''}
-                        <div class="result-actions">
-                            <button class="action-btn" onclick="event.stopPropagation(); addToWatchlist('${symbol}', '${title.replace(/'/g, "\\'")}', '${provider}')">
-                                ${watchlist.find(w => w.symbol === symbol) ? '✓ In Watchlist' : '+ Add to Watchlist'}
-                            </button>
-                            <button class="action-btn" onclick="event.stopPropagation(); viewChart('${symbol}', '${provider}')">View Chart</button>
-                            <button class="action-btn" onclick="event.stopPropagation(); fetchLatestData('${symbol}', '${provider}')">Get Data</button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            
-            updatePagination();
-        }
-
-        function updatePagination() {
-            const pagination = document.getElementById('pagination');
-            const limit = parseInt(document.getElementById('limit').value);
-            const totalPages = Math.ceil(totalResults / limit);
-            
-            if (totalPages <= 1) {
-                pagination.innerHTML = '';
-                return;
-            }
-            
-            let html = '';
-            
-            // Previous button
-            html += `<button class="page-btn" onclick="performSearch(${currentPage - 1})" ${currentPage === 0 ? 'disabled' : ''}>Previous</button>`;
-            
-            // Page numbers
-            const maxButtons = 5;
-            let startPage = Math.max(0, currentPage - Math.floor(maxButtons / 2));
-            let endPage = Math.min(totalPages - 1, startPage + maxButtons - 1);
-            
-            if (endPage - startPage < maxButtons - 1) {
-                startPage = Math.max(0, endPage - maxButtons + 1);
-            }
-            
-            for (let i = startPage; i <= endPage; i++) {
-                html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="performSearch(${i})">${i + 1}</button>`;
-            }
-            
-            // Next button
-            html += `<button class="page-btn" onclick="performSearch(${currentPage + 1})" ${currentPage >= totalPages - 1 ? 'disabled' : ''}>Next</button>`;
-            
-            pagination.innerHTML = html;
-        }
-
-        function getFrequencyLabel(freq) {
-            const frequencies = {
-                'd': 'Daily',
-                'w': 'Weekly',
-                'bw': 'Biweekly',
-                'm': 'Monthly',
-                'q': 'Quarterly',
-                'sa': 'Semiannual',
-                'a': 'Annual'
-            };
-            return frequencies[freq] || freq;
-        }
-
-        function truncateText(text, maxLength) {
-            if (text.length <= maxLength) return text;
-            return text.substr(0, maxLength) + '...';
-        }
-
-        function quickSearch(term) {
-            document.getElementById('searchInput').value = term;
-            performSearch();
-        }
-
-        function showLoading(show) {
-            document.getElementById('loadingSection').style.display = show ? 'block' : 'none';
-            document.getElementById('resultsSection').style.display = show ? 'none' : 'block';
-        }
-
-        function addToWatchlist(id, title) {
-            const existingIndex = watchlist.findIndex(item => item.id === id);
-            
-            if (existingIndex >= 0) {
-                // Remove from watchlist
-                watchlist.splice(existingIndex, 1);
-            } else {
-                // Add to watchlist
-                watchlist.push({ id, title, addedAt: new Date().toISOString() });
-            }
-            
-            localStorage.setItem('fredWatchlist', JSON.stringify(watchlist));
-            updateWatchlistDisplay();
-            
-            // Update button text if results are displayed
-            const resultsGrid = document.getElementById('resultsGrid');
-            if (resultsGrid.innerHTML) {
-                performSearch(currentPage); // Refresh current page
-            }
-        }
-
-        function updateWatchlistDisplay() {
-            const badge = document.getElementById('watchlistBadge');
-            const countBadge = document.getElementById('watchlistCountBadge');
-            const itemsContainer = document.getElementById('watchlistItems');
-            
-            badge.textContent = watchlist.length;
-            countBadge.textContent = watchlist.length;
-            
-            if (watchlist.length === 0) {
-                itemsContainer.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">No items in watchlist</div>';
-            } else {
-                itemsContainer.innerHTML = watchlist.map(item => `
-                    <div class="watchlist-item">
-                        <div class="watchlist-item-name" title="${item.title}">${item.title}</div>
-                        <button class="remove-btn" onclick="addToWatchlist('${item.id}', '${item.title.replace(/'/g, "\\'")}')">Remove</button>
-                    </div>
-                `).join('');
-            }
-        }
-
-        function toggleWatchlist() {
-            const panel = document.getElementById('watchlistPanel');
-            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-        }
-
-        function exportWatchlist() {
-            if (watchlist.length === 0) {
-                alert('Watchlist is empty');
-                return;
-            }
-            
-            let csv = 'Series ID,Title,Added Date\n';
-            watchlist.forEach(item => {
-                csv += `"${item.id}","${item.title}","${item.addedAt}"\n`;
             });
-            
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `fred_watchlist_${new Date().toISOString().split('T')[0]}.csv`;
-            a.click();
-            window.URL.revokeObjectURL(url);
         }
-
-        function clearWatchlist() {
-            if (confirm('Clear entire watchlist?')) {
-                watchlist = [];
-                localStorage.removeItem('fredWatchlist');
-                updateWatchlistDisplay();
-                
-                // Refresh results if displayed
-                const resultsGrid = document.getElementById('resultsGrid');
-                if (resultsGrid.innerHTML && resultsGrid.innerHTML !== '') {
-                    performSearch(currentPage);
-                }
-            }
-        }
-
-        function viewSeriesDetails(seriesId) {
-            // In a real implementation, this would show detailed series information
-            window.open(`https://fred.stlouisfed.org/series/${seriesId}`, '_blank');
-        }
-
-        function viewChart(seriesId) {
-            // In a real implementation, this would display an interactive chart
-            window.open(`https://fred.stlouisfed.org/graph/?g=${seriesId}`, '_blank');
-        }
+        
+        loadLiveData();
+        setInterval(loadLiveData, 30000);
     </script>
 </body>
 </html>
