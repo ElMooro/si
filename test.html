@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Playground - OpenBB Developer Tools</title>
+    
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: #131313;
+            border: 1px solid #282828;
+            border-radius: 10px;
+        }
+        
+        .title {
+            font-size: 28px;
+            color: #00ff88;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #888;
+            font-size: 14px;
+        }
+        
+        .test-section {
+            background: #131313;
+            border: 1px solid #282828;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            color: #00aaff;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .test-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .test-btn {
+            background: #252525;
+            border: 1px solid #383838;
+            color: #ccc;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        
+        .test-btn:hover {
+            background: #333;
+            border-color: #555;
+            color: #fff;
+        }
+        
+        .test-btn.primary {
+            background: #00dd77;
+            color: #000;
+            border-color: #00dd77;
+        }
+        
+        .test-btn.primary:hover {
+            background: #00ff88;
+        }
+        
+        .test-btn.danger {
+            background: #ff4444;
+            color: #fff;
+            border-color: #ff4444;
+        }
+        
+        .test-input {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        .test-input:focus {
+            outline: none;
+            border-color: #00ff88;
+        }
+        
+        .output-area {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 15px;
+            font-size: 12px;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .output-area pre {
+            margin: 0;
+            white-space: pre-wrap;
+        }
+        
+        .success { color: #00dd77; }
+        .error { color: #ff4444; }
+        .info { color: #00aaff; }
+        .warning { color: #ffaa00; }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .status-indicator.active { background: #00dd77; }
+        .status-indicator.inactive { background: #ff4444; }
+        .status-indicator.loading { background: #ffaa00; animation: pulse 1s infinite; }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .json-editor {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 15px;
+            font-size: 12px;
+            font-family: inherit;
+            width: 100%;
+            min-height: 200px;
+            resize: vertical;
+        }
+        
+        .quick-link {
+            color: #00ff88;
+            text-decoration: none;
+            margin: 0 5px;
+        }
+        
+        .quick-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 class="title">🧪 OpenBB Developer Test Playground</h1>
+        <p class="subtitle">Test APIs, WebSocket connections, and debug functionality</p>
+        <p style="margin-top: 10px; font-size: 12px; color: #666;">
+            Quick Links: 
+            <a href="index.html" class="quick-link">Home</a> |
+            <a href="macroeconomic-platform.html" class="quick-link">Macro Dashboard</a> |
+            <a href="openbb-realtime-dashboard.html" class="quick-link">Live Data</a>
+        </p>
+    </div>
+    
+    <!-- Supabase Auth Test -->
+    <div class="test-section">
+        <h2 class="section-title">
+            <span class="status-indicator" id="supabaseStatus"></span>
+            🔐 Supabase Authentication Test
+        </h2>
+        
+        <div class="test-controls">
+            <button class="test-btn" onclick="testSupabaseConnection()">Test Connection</button>
+            <button class="test-btn" onclick="testSupabaseAuth()">Test Auth Flow</button>
+            <button class="test-btn danger" onclick="clearSupabaseSession()">Clear Session</button>
+        </div>
+        
+        <input type="email" class="test-input" id="testEmail" placeholder="test@example.com">
+        <input type="password" class="test-input" id="testPassword" placeholder="password123">
+        
+        <div class="output-area" id="supabaseOutput">
+            <pre>Supabase test output will appear here...</pre>
+        </div>
+    </div>
+    
+    <!-- WebSocket Test -->
+    <div class="test-section">
+        <h2 class="section-title">
+            <span class="status-indicator" id="websocketStatus"></span>
+            🚀 WebSocket / Lambda Function URL Test
+        </h2>
+        
+        <div class="test-controls">
+            <button class="test-btn primary" onclick="testWebSocketPing()">Ping</button>
+            <button class="test-btn" onclick="testWebSocketData()">Get Data</button>
+            <button class="test-btn" onclick="testWebSocketCustom()">Custom Request</button>
+        </div>
+        
+        <textarea class="json-editor" id="websocketPayload">{
+  "action": "test",
+  "timestamp": "2025-05-29T00:00:00Z"
+}</textarea>
+        
+        <div class="output-area" id="websocketOutput">
+            <pre>WebSocket test output will appear here...</pre>
+        </div>
+    </div>
+    
+    <!-- API Endpoint Test -->
+    <div class="test-section">
+        <h2 class="section-title">
+            <span class="status-indicator" id="apiStatus"></span>
+            📡 API Endpoint Test
+        </h2>
+        
+        <div class="test-controls">
+            <button class="test-btn" onclick="testHealthEndpoint()">Health Check</button>
+            <button class="test-btn" onclick="testUniversalData()">Universal Data</button>
+            <button class="test-btn" onclick="testS3Access()">S3 Access</button>
+        </div>
+        
+        <input type="text" class="test-input" id="testSymbol" placeholder="Symbol (e.g., FEDFUNDS, SPY, sofr)">
+        <input type="text" class="test-input" id="testProvider" placeholder="Provider (e.g., fred_direct, polygon_direct)">
+        
+        <div class="output-area" id="apiOutput">
+            <pre>API test output will appear here...</pre>
+        </div>
+    </div>
+    
+    <!-- JSON Formatter -->
+    <div class="test-section">
+        <h2 class="section-title">
+            📝 JSON Formatter & Validator
+        </h2>
+        
+        <div class="test-controls">
+            <button class="test-btn" onclick="formatJSON()">Format JSON</button>
+            <button class="test-btn" onclick="validateJSON()">Validate</button>
+            <button class="test-btn danger" onclick="clearJSON()">Clear</button>
+        </div>
+        
+        <textarea class="json-editor" id="jsonInput" placeholder="Paste JSON here...">{}</textarea>
+        
+        <div class="output-area" id="jsonOutput">
+            <pre>Formatted JSON will appear here...</pre>
+        </div>
+    </div>
+    
+    <!-- Chart Test -->
+    <div class="test-section">
+        <h2 class="section-title">
+            📊 Plotly Chart Test
+        </h2>
+        
+        <div class="test-controls">
+            <button class="test-btn" onclick="testBasicChart()">Basic Chart</button>
+            <button class="test-btn" onclick="testCandlestickChart()">Candlestick</button>
+            <button class="test-btn" onclick="testMultiAxisChart()">Multi-Axis</button>
+        </div>
+        
+        <div id="testChart" style="height: 400px; background: #0a0a0a; border-radius: 6px; margin-top: 15px;"></div>
+    </div>
+    
+    <script>
+        // Configuration
+        const API_BASE = 'https://ped8gafyuz.us-east-1.awsapprunner.com';
+        const WEBSOCKET_URL = 'https://7xaylc6nonthix4j377lelbnmm0tziuj.lambda-url.us-east-1.on.aws/';
+        const SUPABASE_PROXY_URL = 'https://j4o7j86qqb.execute-api.us-east-1.amazonaws.com/prod/config';
+        const S3_BASE = 'https://macro-data-lake.s3.amazonaws.com';
+        
+        let supabase = null;
+        
+        // Utility function to log output
+        function log(section, message, type = 'info') {
+            const output = document.getElementById(section + 'Output');
+            const timestamp = new Date().toISOString();
+            const colorClass = type;
+            
+            output.innerHTML += `<span class="${colorClass}">[${timestamp}] ${message}</span>\n`;
+            output.scrollTop = output.scrollHeight;
+        }
+        
+        // Update status indicator
+        function updateStatus(section, status) {
+            const indicator = document.getElementById(section + 'Status');
+            indicator.className = 'status-indicator ' + status;
+        }
+        
+        // Supabase Tests
+        async function testSupabaseConnection() {
+            updateStatus('supabase', 'loading');
+            log('supabase', 'Testing Supabase connection...', 'info');
+            
+            try {
+                const response = await fetch(SUPABASE_PROXY_URL);
+                log('supabase', `Proxy response: ${response.status} ${response.statusText}`, 'info');
+                
+                if (response.ok) {
+                    const config = await response.json();
+                    log('supabase', 'Config received successfully', 'success');
+                    log('supabase', `URL: ${config.url}`, 'info');
+                    log('supabase', `Anon Key: ${config.anon_key.substring(0, 20)}...`, 'info');
+                    
+                    // Initialize Supabase
+                    supabase = createClient(config.url, config.anon_key);
+                    log('supabase', 'Supabase client initialized', 'success');
+                    updateStatus('supabase', 'active');
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                log('supabase', `Connection failed: ${error.message}`, 'error');
+                updateStatus('supabase', 'inactive');
+            }
+        }
+        
+        async function testSupabaseAuth() {
+            if (!supabase) {
+                log('supabase', 'Please test connection first', 'warning');
+                return;
+            }
+            
+            const email = document.getElementById('testEmail').value || 'test@example.com';
+            const password = document.getElementById('testPassword').value || 'password123';
+            
+            log('supabase', `Attempting sign in with ${email}...`, 'info');
+            
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+                
+                if (error) throw error;
+                
+                log('supabase', 'Sign in successful!', 'success');
+                log('supabase', `User ID: ${data.user.id}`, 'info');
+                log('supabase', `Email: ${data.user.email}`, 'info');
+                log('supabase', `Session: ${data.session ? 'Active' : 'None'}`, 'info');
+            } catch (error) {
+                log('supabase', `Auth failed: ${error.message}`, 'error');
+            }
+        }
+        
+        async function clearSupabaseSession() {
+            if (!supabase) {
+                log('supabase', 'No active Supabase client', 'warning');
+                return;
+            }
+            
+            await supabase.auth.signOut();
+            log('supabase', 'Session cleared', 'success');
+        }
+        
+        // WebSocket Tests
+        async function testWebSocketPing() {
+            updateStatus('websocket', 'loading');
+            log('websocket', 'Sending ping to WebSocket endpoint...', 'info');
+            
+            const startTime = Date.now();
+            
+            try {
+                const response = await fetch(WEBSOCKET_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'test' })
+                });
+                
+                const latency = Date.now() - startTime;
+                log('websocket', `Response received in ${latency}ms`, 'info');
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log('websocket', `Response: ${JSON.stringify(data, null, 2)}`, 'success');
+                    updateStatus('websocket', 'active');
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                log('websocket', `Ping failed: ${error.message}`, 'error');
+                updateStatus('websocket', 'inactive');
+            }
+        }
+        
+        async function testWebSocketData() {
+            updateStatus('websocket', 'loading');
+            log('websocket', 'Requesting market data...', 'info');
+            
+            try {
+                const response = await fetch(WEBSOCKET_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'getData' })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log('websocket', 'Market data received:', 'success');
+                    log('websocket', JSON.stringify(data, null, 2), 'info');
+                    updateStatus('websocket', 'active');
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                log('websocket', `Data request failed: ${error.message}`, 'error');
+                updateStatus('websocket', 'inactive');
+            }
+        }
+        
+        async function testWebSocketCustom() {
+            const payload = document.getElementById('websocketPayload').value;
+            
+            try {
+                const parsedPayload = JSON.parse(payload);
+                log('websocket', 'Sending custom payload...', 'info');
+                
+                const response = await fetch(WEBSOCKET_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(parsedPayload)
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log('websocket', 'Custom response:', 'success');
+                    log('websocket', JSON.stringify(data, null, 2), 'info');
+                } else {
+                    const text = await response.text();
+                    log('websocket', `Response: ${text}`, 'error');
+                }
+            } catch (error) {
+                log('websocket', `Invalid JSON or request failed: ${error.message}`, 'error');
+            }
+        }
+        
+        // API Tests
+        async function testHealthEndpoint() {
+            updateStatus('api', 'loading');
+            log('api', 'Testing health endpoint...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/v1/health`);
+                log('api', `Health check: ${response.status} ${response.statusText}`, 'info');
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log('api', JSON.stringify(data, null, 2), 'success');
+                    updateStatus('api', 'active');
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                log('api', `Health check failed: ${error.message}`, 'error');
+                updateStatus('api', 'inactive');
+            }
+        }
+        
+        async function testUniversalData() {
+            const symbol = document.getElementById('testSymbol').value || 'FEDFUNDS';
+            const provider = document.getElementById('testProvider').value || 'fred_direct';
+            
+            updateStatus('api', 'loading');
+            log('api', `Fetching data for ${symbol} from ${provider}...`, 'info');
+            
+            try {
+                const url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&include_changes=true`;
+                const response = await fetch(url);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log('api', 'Data received:', 'success');
+                    log('api', JSON.stringify(data, null, 2), 'info');
+                    updateStatus('api', 'active');
+                } else {
+                    const error = await response.text();
+                    log('api', `Error: ${error}`, 'error');
+                    updateStatus('api', 'inactive');
+                }
+            } catch (error) {
+                log('api', `Request failed: ${error.message}`, 'error');
+                updateStatus('api', 'inactive');
+            }
+        }
+        
+        async function testS3Access() {
+            log('api', 'Testing S3 bucket access...', 'info');
+            
+            try {
+                const response = await fetch(`${S3_BASE}/predictions/ai_output.json?t=${Date.now()}`);
+                log('api', `S3 response: ${response.status} ${response.statusText}`, 'info');
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log('api', 'S3 data accessible:', 'success');
+                    log('api', `Predictions timestamp: ${data.timestamp || 'N/A'}`, 'info');
+                    log('api', `Overall signal: ${data.overall_signal || 'N/A'}`, 'info');
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                log('api', `S3 access failed: ${error.message}`, 'error');
+            }
+        }
+        
+        // JSON Tools
+        function formatJSON() {
+            const input = document.getElementById('jsonInput').value;
+            const output = document.getElementById('jsonOutput');
+            
+            try {
+                const parsed = JSON.parse(input);
+                const formatted = JSON.stringify(parsed, null, 2);
+                output.innerHTML = `<pre class="success">${formatted}</pre>`;
+            } catch (error) {
+                output.innerHTML = `<pre class="error">Invalid JSON: ${error.message}</pre>`;
+            }
+        }
+        
+        function validateJSON() {
+            const input = document.getElementById('jsonInput').value;
+            const output = document.getElementById('jsonOutput');
+            
+            try {
+                JSON.parse(input);
+                output.innerHTML = '<pre class="success">✓ Valid JSON</pre>';
+            } catch (error) {
+                output.innerHTML = `<pre class="error">✗ Invalid JSON: ${error.message}</pre>`;
+            }
+        }
+        
+        function clearJSON() {
+            document.getElementById('jsonInput').value = '{}';
+            document.getElementById('jsonOutput').innerHTML = '<pre>Formatted JSON will appear here...</pre>';
+        }
+        
+        // Chart Tests
+        function testBasicChart() {
+            const data = [{
+                x: ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05'],
+                y: [100, 110, 105, 120, 115],
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Test Data',
+                line: { color: '#00ff88' }
+            }];
+            
+            const layout = {
+                title: 'Basic Line Chart Test',
+                paper_bgcolor: '#0a0a0a',
+                plot_bgcolor: '#0a0a0a',
+                font: { color: '#aaa' },
+                xaxis: { gridcolor: '#333' },
+                yaxis: { gridcolor: '#333' }
+            };
+            
+            Plotly.newPlot('testChart', data, layout);
+        }
+        
+        function testCandlestickChart() {
+            const x = ['2025-01-01', '2025-01-02', '2025-01-03', '2025-01-04', '2025-01-05'];
+            
+            const trace = {
+                x: x,
+                close: [116, 118, 117, 120, 119],
+                high: [118, 119, 120, 121, 120],
+                low: [115, 116, 116, 118, 117],
+                open: [115, 117, 119, 119, 118],
+                type: 'candlestick',
+                xaxis: 'x',
+                yaxis: 'y'
+            };
+            
+            const layout = {
+                title: 'Candlestick Chart Test',
+                paper_bgcolor: '#0a0a0a',
+                plot_bgcolor: '#0a0a0a',
+                font: { color: '#aaa' },
+                xaxis: { gridcolor: '#333' },
+                yaxis: { gridcolor: '#333' }
+            };
+            
+            Plotly.newPlot('testChart', [trace], layout);
+        }
+        
+        function testMultiAxisChart() {
+            const trace1 = {
+                x: ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05'],
+                y: [100, 110, 105, 120, 115],
+                name: 'Price',
+                type: 'scatter',
+                line: { color: '#00ff88' }
+            };
+            
+            const trace2 = {
+                x: ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05'],
+                y: [1000, 1200, 800, 1500, 1100],
+                name: 'Volume',
+                type: 'bar',
+                yaxis: 'y2',
+                marker: { color: '#00aaff' }
+            };
+            
+            const layout = {
+                title: 'Multi-Axis Chart Test',
+                paper_bgcolor: '#0a0a0a',
+                plot_bgcolor: '#0a0a0a',
+                font: { color: '#aaa' },
+                xaxis: { gridcolor: '#333' },
+                yaxis: {
+                    title: 'Price',
+                    gridcolor: '#333',
+                    side: 'left'
+                },
+                yaxis2: {
+                    title: 'Volume',
+                    gridcolor: '#333',
+                    overlaying: 'y',
+                    side: 'right'
+                }
+            };
+            
+            Plotly.newPlot('testChart', [trace1, trace2], layout);
+        }
+        
+        // Initialize status indicators
+        updateStatus('supabase', 'inactive');
+        updateStatus('websocket', 'inactive');
+        updateStatus('api', 'inactive');
+        
+        // Auto-test on load
+        window.addEventListener('load', () => {
+            log('api', 'Developer test playground loaded', 'success');
+            log('api', 'Available endpoints:', 'info');
+            log('api', `- API Base: ${API_BASE}`, 'info');
+            log('api', `- WebSocket: ${WEBSOCKET_URL}`, 'info');
+            log('api', `- Supabase Proxy: ${SUPABASE_PROXY_URL}`, 'info');
+            log('api', `- S3 Bucket: ${S3_BASE}`, 'info');
+        });
+    </script>
+</body>
+</html>
