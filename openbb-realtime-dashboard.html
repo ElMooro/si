@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Dashboard - OpenBB Financial Intelligence</title>
+    
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+        
+        /* Navigation Bar */
+        nav {
+            background: #121212;
+            border-bottom: 1px solid #282828;
+            padding: 15px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-logo {
+            font-size: 22px;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 25px;
+            align-items: center;
+        }
+        
+        .nav-links a {
+            color: #ccc;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+            position: relative;
+        }
+        
+        .nav-links a:hover {
+            color: #00ff88;
+        }
+        
+        .nav-links a.active {
+            color: #00ff88;
+        }
+        
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #00ff88;
+        }
+        
+        /* Connection Status */
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 15px;
+            background: #131313;
+            border-radius: 6px;
+            border: 1px solid #282828;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ff4444;
+            transition: all 0.3s;
+        }
+        
+        .status-dot.connected {
+            background: #00dd77;
+            box-shadow: 0 0 10px rgba(0, 221, 119, 0.5);
+        }
+        
+        .status-dot.connecting {
+            background: #ffaa00;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .status-text {
+            font-size: 14px;
+            color: #aaa;
+        }
+        
+        /* Main Container */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header Section */
+        .header-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .page-title {
+            font-size: 36px;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .page-subtitle {
+            font-size: 16px;
+            color: #aaa;
+        }
+        
+        /* Control Panel */
+        .control-panel {
+            background: #131313;
+            border: 1px solid #282828;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .control-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .control-btn {
+            background: #252525;
+            border: 1px solid #383838;
+            color: #ccc;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .control-btn:hover {
+            background: #333;
+            border-color: #555;
+            color: #fff;
+        }
+        
+        .control-btn.active {
+            background: #00dd77;
+            color: #000;
+            border-color: #00dd77;
+        }
+        
+        .control-btn.danger {
+            background: #ff4444;
+            color: #fff;
+            border-color: #ff4444;
+        }
+        
+        .control-btn.danger:hover {
+            background: #ff5555;
+        }
+        
+        /* Live Ticker Grid */
+        .ticker-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .ticker-card {
+            background: #131313;
+            border: 1px solid #282828;
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .ticker-card.updating {
+            border-color: #00ff88;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+        }
+        
+        .ticker-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .ticker-symbol {
+            font-size: 20px;
+            font-weight: bold;
+            color: #fff;
+        }
+        
+        .ticker-name {
+            font-size: 14px;
+            color: #888;
+        }
+        
+        .ticker-price {
+            font-size: 32px;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+        
+        .ticker-change {
+            font-size: 18px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .positive { color: #00dd77; }
+        .negative { color: #ff4444; }
+        .neutral { color: #888; }
+        
+        .change-arrow {
+            font-size: 24px;
+        }
+        
+        .ticker-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #282828;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+        }
+        
+        /* Live Chart Section */
+        .chart-section {
+            background: #131313;
+            border: 1px solid #282828;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .chart-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #fff;
+        }
+        
+        .timeframe-selector {
+            display: flex;
+            gap: 5px;
+            background: #0a0a0a;
+            padding: 3px;
+            border-radius: 6px;
+        }
+        
+        .timeframe-btn {
+            background: transparent;
+            border: none;
+            color: #888;
+            padding: 6px 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 12px;
+            border-radius: 4px;
+        }
+        
+        .timeframe-btn:hover {
+            background: #252525;
+            color: #fff;
+        }
+        
+        .timeframe-btn.active {
+            background: #00dd77;
+            color: #000;
+            font-weight: bold;
+        }
+        
+        .live-chart {
+            height: 400px;
+            background: #0a0a0a;
+            border-radius: 6px;
+        }
+        
+        /* Data Stream Log */
+        .stream-log {
+            background: #131313;
+            border: 1px solid #282828;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stream-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .stream-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+        }
+        
+        .stream-content {
+            background: #0a0a0a;
+            border-radius: 6px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+        }
+        
+        .stream-entry {
+            padding: 5px 0;
+            border-bottom: 1px solid #1a1a1a;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .stream-timestamp {
+            color: #666;
+            min-width: 80px;
+        }
+        
+        .stream-data {
+            color: #00ff88;
+            flex: 1;
+        }
+        
+        /* Performance Metrics */
+        .metrics-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .metric-card {
+            background: #131313;
+            border: 1px solid #282828;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .metric-label {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        
+        .metric-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #00ff88;
+            margin-bottom: 5px;
+        }
+        
+        .metric-unit {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+        }
+        
+        .loading-content {
+            text-align: center;
+        }
+        
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #333;
+            border-top-color: #00ff88;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .ticker-grid {
+                grid-template-columns: 1fr;
+            }
+            .control-panel {
+                flex-direction: column;
+            }
+            .control-group {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #0f0f0f;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #444;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-logo">📊 OPENBB</div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="macroeconomic-platform.html">Macro Dashboard</a>
+            <a href="ai_predictions.html">AI Signals</a>
+            <a href="exponential-search-dashboard.html">Search</a>
+            <a href="openbb-realtime-dashboard.html" class="active">Live Data</a>
+            <a href="scraper_dashboard.html">Scraper Monitor</a>
+            <a href="ai-predictions-supabase.html">Login</a>
+        </div>
+        <div class="connection-status">
+            <div class="status-dot" id="statusDot"></div>
+            <span class="status-text" id="statusText">Disconnected</span>
+        </div>
+    </nav>
+    
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p style="color: #fff; font-size: 18px;">Initializing Real-Time Connection...</p>
+        </div>
+    </div>
+    
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Header -->
+        <div class="header-section">
+            <h1 class="page-title">🚀 Real-Time Market Data</h1>
+            <p class="page-subtitle">Live WebSocket data streams with sub-second updates</p>
+        </div>
+        
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <div class="control-group">
+                <button class="control-btn active" id="connectBtn" onclick="toggleConnection()">
+                    <span id="connectIcon">🔌</span>
+                    <span id="connectText">Connect</span>
+                </button>
+                <button class="control-btn" onclick="testConnection()">
+                    🧪 Test Connection
+                </button>
+                <button class="control-btn" onclick="refreshData()">
+                    🔄 Refresh Data
+                </button>
+            </div>
+            <div class="control-group">
+                <button class="control-btn" id="autoUpdateBtn" onclick="toggleAutoUpdate()">
+                    ⏱️ Auto Update: OFF
+                </button>
+                <button class="control-btn danger" onclick="clearLog()">
+                    🗑️ Clear Log
+                </button>
+            </div>
+        </div>
+        
+        <!-- Performance Metrics -->
+        <div class="metrics-section">
+            <div class="metric-card">
+                <div class="metric-label">Latency</div>
+                <div class="metric-value" id="latencyValue">—</div>
+                <div class="metric-unit">ms</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Updates/Min</div>
+                <div class="metric-value" id="updatesValue">0</div>
+                <div class="metric-unit">per minute</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Uptime</div>
+                <div class="metric-value" id="uptimeValue">00:00</div>
+                <div class="metric-unit">mm:ss</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Data Points</div>
+                <div class="metric-value" id="dataPointsValue">0</div>
+                <div class="metric-unit">total</div>
+            </div>
+        </div>
+        
+        <!-- Live Ticker Grid -->
+        <div class="ticker-grid">
+            <div class="ticker-card" id="ticker_SPX">
+                <div class="ticker-header">
+                    <div>
+                        <div class="ticker-symbol">SPX</div>
+                        <div class="ticker-name">S&P 500 Index</div>
+                    </div>
+                </div>
+                <div class="ticker-price" id="price_SPX">—</div>
+                <div class="ticker-change" id="change_SPX">
+                    <span class="change-arrow">—</span>
+                    <span>—</span>
+                </div>
+                <div class="ticker-stats">
+                    <div class="stat-item">
+                        <div class="stat-label">High</div>
+                        <div class="stat-value" id="high_SPX">—</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Low</div>
+                        <div class="stat-value" id="low_SPX">—</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Volume</div>
+                        <div class="stat-value" id="volume_SPX">—</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Time</div>
+                        <div class="stat-value" id="time_SPX">—</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="ticker-card" id="ticker_VIX">
+                <div class="ticker-header">
+                    <div>
+                        <div class="ticker-symbol">VIX</div>
+                        <div class="ticker-name">Volatility Index</div>
+                    </div>
+                </div>
+                <div class="ticker-price" id="price_VIX">—</div>
+                <div class="ticker-change" id="change_VIX">
+                    <span class="change-arrow">—</span>
+                    <span>—</span>
+                </div>
+                <div class="ticker-stats">
+                    <div class="stat-item">
+                        <div class="stat-label">High</div>
+                        <div class="stat-value" id="high_VIX">—</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Low</div>
+                        <div class="stat-value" id="low_VIX">—</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Volume</div>
+                        <div class="stat-value" id="volume_VIX">—</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Time</div>
+                        <div class="stat-value" id="time_VIX">—</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="ticker-card" id="ticker_BTC">
+                <div class="ticker-header">
+                    <div>
+                        <div class="ticker-symbol">BTC</div>
+                        <div class="ticker-name">Bitcoin USD</div>
+                    </div>
+                </div>
+                <div class="ticker-price" id="price_BTC">—</div>
+                <div class="ticker-change" id="change_BTC">
+                    <span class="change-arrow">—</span>
+                    <span>—</span>
+                </div>
+                <div class="ticker-stats">
+                    <div class="stat-item">
+                        <div class="stat-label">High</div>
+                        <div class="stat-value" id="high_BTC">—</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Low</div>
+                        <div class="stat-value" id="low_BTC">—</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Volume</div>
+                        <div class="stat-value" id="volume_BTC">—</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Time</div>
+                        <div class="stat-value" id="time_BTC">—</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="ticker-card" id="ticker_DXY">
+                <div class="ticker-header">
+                    <div>
+                        <div class="ticker-symbol">DXY</div>
+                        <div class="ticker-name">US Dollar Index</div>
+                    </div>
+                </div>
+                <div class="ticker-price" id="price_DXY">—</div>
+                <div class="ticker-change" id="change_DXY">
+                    <span class="change-arrow">—</span>
+                    <span>—</span>
+                </div>
+                <div class="ticker-stats">
+                    <div class="stat-item">
+                        <div class="stat-label">High</div>
+                        <div class="stat-value" id="high_DXY">—</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Low</div>
+                        <div class="stat-value" id="low_DXY">—</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Volume</div>
+                        <div class="stat-value" id="volume_DXY">—</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Time</div>
+                        <div class="stat-value" id="time_DXY">—</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Live Chart -->
+        <div class="chart-section">
+            <div class="chart-header">
+                <h2 class="chart-title">📈 Real-Time Price Movement</h2>
+                <div class="timeframe-selector">
+                    <button class="timeframe-btn active" onclick="changeTimeframe('1m')">1M</button>
+                    <button class="timeframe-btn" onclick="changeTimeframe('5m')">5M</button>
+                    <button class="timeframe-btn" onclick="changeTimeframe('15m')">15M</button>
+                    <button class="timeframe-btn" onclick="changeTimeframe('1h')">1H</button>
+                </div>
+            </div>
+            <div class="live-chart" id="liveChart"></div>
+        </div>
+        
+        <!-- Data Stream Log -->
+        <div class="stream-log">
+            <div class="stream-header">
+                <h3 class="stream-title">📡 Data Stream Log</h3>
+                <span style="color: #666; font-size: 12px;">Latest 100 entries</span>
+            </div>
+            <div class="stream-content" id="streamLog">
+                <div class="stream-entry">
+                    <span class="stream-timestamp">00:00:00</span>
+                    <span class="stream-data">Waiting for connection...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Configuration
+        const WEBSOCKET_URL = 'https://7xaylc6nonthix4j377lelbnmm0tziuj.lambda-url.us-east-1.on.aws/';
+        
+        // State
+        let isConnected = false;
+        let autoUpdate = false;
+        let updateInterval = null;
+        let startTime = null;
+        let uptimeInterval = null;
+        let dataCount = 0;
+        let updateCount = 0;
+        let lastUpdateTime = Date.now();
+        let chartData = {
+            SPX: [],
+            VIX: [],
+            BTC: [],
+            DXY: []
+        };
+        let currentTimeframe = '1m';
+        
+        // Initialize
+        function init() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+            updateConnectionStatus('disconnected');
+            initializeChart();
+        }
+        
+        // Toggle connection
+        function toggleConnection() {
+            if (isConnected) {
+                disconnect();
+            } else {
+                connect();
+            }
+        }
+        
+        // Connect to WebSocket
+        async function connect() {
+            updateConnectionStatus('connecting');
+            addLogEntry('Connecting to WebSocket endpoint...');
+            
+            try {
+                const response = await fetch(WEBSOCKET_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'getData' })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    isConnected = true;
+                    startTime = Date.now();
+                    updateConnectionStatus('connected');
+                    processData(data);
+                    addLogEntry('Connected successfully!');
+                    startUptimeTimer();
+                } else {
+                    throw new Error('Connection failed');
+                }
+            } catch (error) {
+                console.error('Connection error:', error);
+                updateConnectionStatus('disconnected');
+                addLogEntry('Connection failed: ' + error.message, 'error');
+            }
+        }
+        
+        // Disconnect
+        function disconnect() {
+            isConnected = false;
+            updateConnectionStatus('disconnected');
+            addLogEntry('Disconnected from WebSocket');
+            stopUptimeTimer();
+            if (autoUpdate) {
+                toggleAutoUpdate();
+            }
+        }
+        
+        // Test connection
+        async function testConnection() {
+            addLogEntry('Testing connection...');
+            const startTest = Date.now();
+            
+            try {
+                const response = await fetch(WEBSOCKET_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'test' })
+                });
+                
+                const latency = Date.now() - startTest;
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('latencyValue').textContent = latency;
+                    addLogEntry(`Test successful! Latency: ${latency}ms, Status: ${data.status}`);
+                } else {
+                    throw new Error('Test failed');
+                }
+            } catch (error) {
+                addLogEntry('Test failed: ' + error.message, 'error');
+            }
+        }
+        
+        // Refresh data
+        async function refreshData() {
+            if (!isConnected) {
+                addLogEntry('Not connected. Please connect first.', 'error');
+                return;
+            }
+            
+            const startRefresh = Date.now();
+            
+            try {
+                const response = await fetch(WEBSOCKET_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'getData' })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const latency = Date.now() - startRefresh;
+                    document.getElementById('latencyValue').textContent = latency;
+                    processData(data);
+                    addLogEntry(`Data refreshed in ${latency}ms`);
+                } else {
+                    throw new Error('Refresh failed');
+                }
+            } catch (error) {
+                addLogEntry('Refresh failed: ' + error.message, 'error');
+            }
+        }
+        
+        // Toggle auto update
+        function toggleAutoUpdate() {
+            autoUpdate = !autoUpdate;
+            const btn = document.getElementById('autoUpdateBtn');
+            
+            if (autoUpdate) {
+                if (!isConnected) {
+                    addLogEntry('Please connect first', 'error');
+                    autoUpdate = false;
+                    return;
+                }
+                
+                btn.innerHTML = '⏱️ Auto Update: ON';
+                btn.classList.add('active');
+                updateInterval = setInterval(refreshData, 5000); // Update every 5 seconds
+                addLogEntry('Auto update enabled (5s interval)');
+            } else {
+                btn.innerHTML = '⏱️ Auto Update: OFF';
+                btn.classList.remove('active');
+                if (updateInterval) {
+                    clearInterval(updateInterval);
+                    updateInterval = null;
+                }
+                addLogEntry('Auto update disabled');
+            }
+        }
+        
+        // Process incoming data
+        function processData(data) {
+            updateCount++;
+            const now = new Date();
+            
+            // Update tickers
+            const symbols = ['SPX', 'VIX', 'BTC', 'DXY'];
+            symbols.forEach(symbol => {
+                if (data[symbol] !== undefined) {
+                    updateTicker(symbol, {
+                        price: data[symbol],
+                        change: data[`${symbol}_change`] || 0,
+                        high: data[`${symbol}_high`] || data[symbol] * 1.01,
+                        low: data[`${symbol}_low`] || data[symbol] * 0.99,
+                        volume: data[`${symbol}_volume`] || Math.floor(Math.random() * 1000000),
+                        time: now.toLocaleTimeString()
+                    });
+                    
+                    // Add to chart data
+                    chartData[symbol].push({
+                        x: now,
+                        y: data[symbol]
+                    });
+                    
+                    // Keep only last 500 points
+                    if (chartData[symbol].length > 500) {
+                        chartData[symbol].shift();
+                    }
+                }
+            });
+            
+            updateChart();
+            updateMetrics();
+            dataCount += symbols.length;
+        }
+        
+        // Update ticker display
+        function updateTicker(symbol, data) {
+            const card = document.getElementById(`ticker_${symbol}`);
+            card.classList.add('updating');
+            setTimeout(() => card.classList.remove('updating'), 300);
+            
+            // Price
+            const priceEl = document.getElementById(`price_${symbol}`);
+            if (symbol === 'BTC') {
+                priceEl.textContent = ' + data.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            } else {
+                priceEl.textContent = data.price.toFixed(2);
+            }
+            
+            // Change
+            const changeEl = document.getElementById(`change_${symbol}`);
+            const changeClass = data.change >= 0 ? 'positive' : 'negative';
+            const arrow = data.change >= 0 ? '▲' : '▼';
+            const changeText = (data.change >= 0 ? '+' : '') + data.change.toFixed(2) + '%';
+            
+            changeEl.innerHTML = `
+                <span class="change-arrow ${changeClass}">${arrow}</span>
+                <span class="${changeClass}">${changeText}</span>
+            `;
+            
+            // Stats
+            document.getElementById(`high_${symbol}`).textContent = 
+                symbol === 'BTC' ? data.high.toLocaleString('en-US', { minimumFractionDigits: 2 }) : data.high.toFixed(2);
+            document.getElementById(`low_${symbol}`).textContent = 
+                symbol === 'BTC' ? data.low.toLocaleString('en-US', { minimumFractionDigits: 2 }) : data.low.toFixed(2);
+            document.getElementById(`volume_${symbol}`).textContent = 
+                data.volume > 1000000 ? (data.volume / 1000000).toFixed(1) + 'M' : 
+                data.volume > 1000 ? (data.volume / 1000).toFixed(0) + 'K' : 
+                data.volume.toString();
+            document.getElementById(`time_${symbol}`).textContent = data.time;
+        }
+        
+        // Initialize chart
+        function initializeChart() {
+            const data = [];
+            const layout = {
+                paper_bgcolor: '#0a0a0a',
+                plot_bgcolor: '#0a0a0a',
+                font: { color: '#aaa' },
+                xaxis: {
+                    type: 'date',
+                    gridcolor: '#22222250',
+                    tickfont: { color: '#888' }
+                },
+                yaxis: {
+                    gridcolor: '#22222250',
+                    tickfont: { color: '#888' }
+                },
+                margin: { t: 20, r: 80, b: 40, l: 80 },
+                showlegend: true,
+                legend: {
+                    orientation: 'h',
+                    y: 1.1,
+                    x: 0.5,
+                    xanchor: 'center'
+                }
+            };
+            
+            Plotly.newPlot('liveChart', data, layout, { responsive: true });
+        }
+        
+        // Update chart
+        function updateChart() {
+            const traces = [];
+            const colors = {
+                SPX: '#00ff88',
+                VIX: '#ff4444',
+                BTC: '#00aaff',
+                DXY: '#ffaa00'
+            };
+            
+            Object.keys(chartData).forEach(symbol => {
+                if (chartData[symbol].length > 0) {
+                    // Filter data based on timeframe
+                    const filteredData = filterDataByTimeframe(chartData[symbol], currentTimeframe);
+                    
+                    traces.push({
+                        x: filteredData.map(d => d.x),
+                        y: filteredData.map(d => d.y),
+                        type: 'scatter',
+                        mode: 'lines',
+                        name: symbol,
+                        line: { color: colors[symbol], width: 2 }
+                    });
+                }
+            });
+            
+            Plotly.react('liveChart', traces);
+        }
+        
+        // Filter data by timeframe
+        function filterDataByTimeframe(data, timeframe) {
+            if (data.length === 0) return data;
+            
+            const now = new Date();
+            let cutoff = new Date();
+            
+            switch(timeframe) {
+                case '1m':
+                    cutoff.setMinutes(now.getMinutes() - 1);
+                    break;
+                case '5m':
+                    cutoff.setMinutes(now.getMinutes() - 5);
+                    break;
+                case '15m':
+                    cutoff.setMinutes(now.getMinutes() - 15);
+                    break;
+                case '1h':
+                    cutoff.setHours(now.getHours() - 1);
+                    break;
+            }
+            
+            return data.filter(d => d.x >= cutoff);
+        }
+        
+        // Change timeframe
+        function changeTimeframe(timeframe) {
+            currentTimeframe = timeframe;
+            
+            // Update button states
+            document.querySelectorAll('.timeframe-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            updateChart();
+        }
+        
+        // Update connection status
+        function updateConnectionStatus(status) {
+            const dot = document.getElementById('statusDot');
+            const text = document.getElementById('statusText');
+            const connectBtn = document.getElementById('connectBtn');
+            const connectIcon = document.getElementById('connectIcon');
+            const connectText = document.getElementById('connectText');
+            
+            dot.className = 'status-dot';
+            
+            switch(status) {
+                case 'connected':
+                    dot.classList.add('connected');
+                    text.textContent = 'Connected';
+                    connectBtn.classList.add('active');
+                    connectIcon.textContent = '✓';
+                    connectText.textContent = 'Connected';
+                    break;
+                case 'connecting':
+                    dot.classList.add('connecting');
+                    text.textContent = 'Connecting...';
+                    connectIcon.textContent = '⏳';
+                    connectText.textContent = 'Connecting...';
+                    break;
+                case 'disconnected':
+                    text.textContent = 'Disconnected';
+                    connectBtn.classList.remove('active');
+                    connectIcon.textContent = '🔌';
+                    connectText.textContent = 'Connect';
+                    break;
+            }
+        }
+        
+        // Update metrics
+        function updateMetrics() {
+            // Updates per minute
+            const timeDiff = (Date.now() - lastUpdateTime) / 1000 / 60; // minutes
+            const updatesPerMin = Math.round(updateCount / timeDiff);
+            document.getElementById('updatesValue').textContent = updatesPerMin;
+            
+            // Data points
+            document.getElementById('dataPointsValue').textContent = dataCount;
+        }
+        
+        // Start uptime timer
+        function startUptimeTimer() {
+            uptimeInterval = setInterval(() => {
+                if (startTime) {
+                    const uptime = Math.floor((Date.now() - startTime) / 1000);
+                    const minutes = Math.floor(uptime / 60);
+                    const seconds = uptime % 60;
+                    document.getElementById('uptimeValue').textContent = 
+                        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }
+            }, 1000);
+        }
+        
+        // Stop uptime timer
+        function stopUptimeTimer() {
+            if (uptimeInterval) {
+                clearInterval(uptimeInterval);
+                uptimeInterval = null;
+            }
+            document.getElementById('uptimeValue').textContent = '00:00';
+        }
+        
+        // Add log entry
+        function addLogEntry(message, type = 'info') {
+            const log = document.getElementById('streamLog');
+            const entry = document.createElement('div');
+            entry.className = 'stream-entry';
+            
+            const timestamp = new Date().toLocaleTimeString('en-US', { 
+                hour12: false, 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit' 
+            });
+            
+            const color = type === 'error' ? '#ff4444' : '#00ff88';
+            
+            entry.innerHTML = `
+                <span class="stream-timestamp">${timestamp}</span>
+                <span class="stream-data" style="color: ${color}">${message}</span>
+            `;
+            
+            log.appendChild(entry);
+            
+            // Keep only last 100 entries
+            while (log.children.length > 100) {
+                log.removeChild(log.firstChild);
+            }
+            
+            // Scroll to bottom
+            log.scrollTop = log.scrollHeight;
+        }
+        
+        // Clear log
+        function clearLog() {
+            const log = document.getElementById('streamLog');
+            log.innerHTML = `
+                <div class="stream-entry">
+                    <span class="stream-timestamp">00:00:00</span>
+                    <span class="stream-data">Log cleared</span>
+                </div>
+            `;
+        }
+        
+        // Initialize on load
+        window.addEventListener('load', init);
+        
+        // Cleanup on unload
+        window.addEventListener('beforeunload', () => {
+            if (isConnected) {
+                disconnect();
+            }
+        });
+    </script>
+</body>
+</html>
