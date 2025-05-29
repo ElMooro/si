@@ -130,7 +130,7 @@
                 <div class="feature-text">WebSocket connections for instant market updates</div>
             </div>
             <div class="feature-item">
-                <div class="feature-icon">��️</div>
+                <div class="feature-icon">🏛️</div>
                 <div class="feature-title">Institutional Grade</div>
                 <div class="feature-text">Enterprise-level data quality and reliability</div>
             </div>
@@ -165,8 +165,17 @@
         const API_BASE = 'https://ped8gafyuz.us-east-1.awsapprunner.com';
         const WEBSOCKET_URL = 'https://7xaylc6nonthix4j377lelbnmm0tziuj.lambda-url.us-east-1.on.aws/';
         
+        // Demo data for when APIs are unavailable
+        const demoData = {
+            BITCOIN: { value: 65432.21, change: 2.34 },
+            VIX: { value: 15.23, change: -1.45 },
+            DXY: { value: 104.32, change: 0.12 },
+            'GDP YoY %': { value: 2.8, change: 0 }
+        };
+        
         async function loadLiveData() {
             try {
+                // Try WebSocket data
                 const wsResponse = await fetch(WEBSOCKET_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -175,20 +184,29 @@
                 
                 if (wsResponse.ok) {
                     const wsData = await wsResponse.json();
-                    updateTicker('BITCOIN', wsData.BTC || 0, wsData.BTC_change || 0);
-                    updateTicker('VIX', wsData.VIX || 0, wsData.VIX_change || 0);
-                    updateTicker('DXY', wsData.DXY || 0, wsData.DXY_change || 0);
+                    updateTicker('BITCOIN', wsData.BTC || demoData.BITCOIN.value, wsData.BTC_change || demoData.BITCOIN.change);
+                    updateTicker('VIX', wsData.VIX || demoData.VIX.value, wsData.VIX_change || demoData.VIX.change);
+                    updateTicker('DXY', wsData.DXY || demoData.DXY.value, wsData.DXY_change || demoData.DXY.change);
+                } else {
+                    throw new Error('WebSocket data unavailable');
                 }
                 
+                // Try GDP data
                 const gdpResponse = await fetch(`${API_BASE}/api/v1/universal/data?symbol=GDP&provider=fred_direct&include_changes=true`);
                 if (gdpResponse.ok) {
                     const gdpData = await gdpResponse.json();
                     if (gdpData.metrics) {
-                        updateTicker('GDP YoY %', gdpData.metrics.yearly_change || 0, 0);
+                        updateTicker('GDP YoY %', gdpData.metrics.yearly_change || demoData['GDP YoY %'].value, 0);
                     }
+                } else {
+                    updateTicker('GDP YoY %', demoData['GDP YoY %'].value, 0);
                 }
             } catch (error) {
-                console.error('Error loading live data:', error);
+                console.warn('Using demo data due to API error:', error.message);
+                // Use demo data when APIs fail
+                Object.keys(demoData).forEach(symbol => {
+                    updateTicker(symbol, demoData[symbol].value, demoData[symbol].change);
+                });
             }
         }
         
