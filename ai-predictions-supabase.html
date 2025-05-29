@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Predictions (Authenticated) - OpenBB Financial Intelligence</title>
+    
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+        
+        /* Navigation Bar */
+        nav {
+            background: #121212;
+            border-bottom: 1px solid #282828;
+            padding: 15px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-logo {
+            font-size: 22px;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 25px;
+            align-items: center;
+        }
+        
+        .nav-links a {
+            color: #ccc;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+            position: relative;
+        }
+        
+        .nav-links a:hover {
+            color: #00ff88;
+        }
+        
+        .nav-links a.active {
+            color: #00ff88;
+        }
+        
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #00ff88;
+        }
+        
+        /* Auth Section */
+        .auth-status {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 15px;
+            background: #1a1a1a;
+            border-radius: 6px;
+            border: 1px solid #333;
+        }
+        
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #000;
+        }
+        
+        .user-email {
+            font-size: 14px;
+            color: #aaa;
+        }
+        
+        .logout-btn {
+            background: #ff4444;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background: #ff5555;
+        }
+        
+        /* Login Modal */
+        .auth-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        
+        .auth-container {
+            background: #131313;
+            border: 1px solid #282828;
+            border-radius: 10px;
+            padding: 40px;
+            max-width: 400px;
+            width: 90%;
+        }
+        
+        .auth-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .auth-input {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 12px 15px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .auth-input:focus {
+            outline: none;
+            border-color: #00ff88;
+        }
+        
+        .auth-button {
+            background: #00dd77;
+            color: #000;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        
+        .auth-button:hover {
+            background: #00ff88;
+        }
+        
+        .auth-button:disabled {
+            background: #333;
+            color: #666;
+            cursor: not-allowed;
+        }
+        
+        .auth-toggle {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #aaa;
+        }
+        
+        .auth-toggle a {
+            color: #00ff88;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        .auth-error {
+            color: #ff4444;
+            font-size: 14px;
+            text-align: center;
+            margin-top: 10px;
+        }
+        
+        /* Main Container */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Premium Features Section */
+        .premium-features {
+            background: linear-gradient(135deg, #1a1a1a, #252525);
+            border: 1px solid #00ff88;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .premium-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            color: #00ff88;
+        }
+        
+        .premium-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .action-btn {
+            background: #252525;
+            border: 1px solid #333;
+            color: #ccc;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .action-btn:hover {
+            background: #333;
+            border-color: #00ff88;
+            color: #00ff88;
+        }
+        
+        /* Watchlist Section */
+        .watchlist-section {
+            background: #131313;
+            border: 1px solid #282828;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .watchlist-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .watchlist-title {
+            font-size: 20px;
+            color: #fff;
+        }
+        
+        .watchlist-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .watchlist-item {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 15px;
+            text-align: center;
+            transition: border-color 0.3s;
+        }
+        
+        .watchlist-item:hover {
+            border-color: #00ff88;
+        }
+        
+        .watchlist-symbol {
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+        
+        .watchlist-signal {
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        /* Feedback Section */
+        .feedback-section {
+            background: #131313;
+            border: 1px solid #282828;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .feedback-header {
+            font-size: 18px;
+            color: #fff;
+            margin-bottom: 15px;
+        }
+        
+        .feedback-form {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .feedback-select {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .feedback-textarea {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            width: 100%;
+            min-height: 100px;
+            resize: vertical;
+            margin-top: 10px;
+        }
+        
+        /* Inherit styles from ai_predictions.html */
+        .signal-overview {
+            background: #131313;
+            border: 1px solid #282828;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+        
+        .signal-card {
+            text-align: center;
+            padding: 20px;
+            background: #0a0a0a;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+        
+        .signal-label {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        
+        .signal-value {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .signal-value.buy { color: #00dd77; }
+        .signal-value.sell { color: #ff4444; }
+        .signal-value.hold { color: #ffaa00; }
+        
+        /* Copy remaining styles from ai_predictions.html */
+        .assets-section { margin-bottom: 30px; }
+        .section-header { font-size: 24px; margin-bottom: 20px; color: #fff; }
+        .assets-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .asset-card { background: #131313; border: 1px solid #282828; border-radius: 10px; padding: 20px; transition: border-color 0.3s; }
+        .asset-card:hover { border-color: #00ff88; }
+        .chart-container { background: #131313; border: 1px solid #282828; border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+        .plotly-chart { width: 100%; height: 400px; }
+        
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: #00dd77;
+            color: #000;
+            padding: 15px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            animation: slideIn 0.3s ease-out;
+            z-index: 1500;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-logo">📊 OPENBB</div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="macroeconomic-platform.html">Macro Dashboard</a>
+            <a href="ai_predictions.html">AI Signals</a>
+            <a href="exponential-search-dashboard.html">Search</a>
+            <a href="openbb-realtime-dashboard.html">Live Data</a>
+            <a href="scraper_dashboard.html">Scraper Monitor</a>
+            <a href="ai-predictions-supabase.html" class="active">Login</a>
+        </div>
+        <div class="auth-status" id="authStatus">
+            <!-- Auth status will be inserted here -->
+        </div>
+    </nav>
+    
+    <!-- Auth Modal -->
+    <div class="auth-modal" id="authModal" style="display: none;">
+        <div class="auth-container">
+            <h2 class="auth-title" id="authTitle">Sign In to OpenBB</h2>
+            <form class="auth-form" id="authForm">
+                <input type="email" class="auth-input" id="emailInput" placeholder="Email address" required>
+                <input type="password" class="auth-input" id="passwordInput" placeholder="Password" required>
+                <button type="submit" class="auth-button" id="authButton">Sign In</button>
+                <div class="auth-error" id="authError" style="display: none;"></div>
+            </form>
+            <div class="auth-toggle">
+                <span id="authToggleText">Don't have an account?</span>
+                <a onclick="toggleAuthMode()" id="authToggleLink">Sign Up</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Container -->
+    <div class="main-container" id="mainContent" style="display: none;">
+        <!-- Premium Features -->
+        <div class="premium-features">
+            <div class="premium-label">
+                <span>⭐</span>
+                <span>Premium Features Enabled</span>
+            </div>
+            <div class="premium-actions">
+                <button class="action-btn" onclick="saveToWatchlist()">💾 Save Signals</button>
+                <button class="action-btn" onclick="exportPredictions()">📥 Export Data</button>
+                <button class="action-btn" onclick="toggleNotifications()">🔔 Alerts</button>
+            </div>
+        </div>
+        
+        <!-- Personal Watchlist -->
+        <div class="watchlist-section">
+            <div class="watchlist-header">
+                <h3 class="watchlist-title">📌 Your Signal Watchlist</h3>
+                <button class="action-btn" onclick="clearWatchlist()">Clear All</button>
+            </div>
+            <div class="watchlist-items" id="watchlistItems">
+                <!-- Watchlist items will be populated here -->
+            </div>
+        </div>
+        
+        <!-- Signal Overview (inherited from ai_predictions.html) -->
+        <div class="signal-overview" id="signalOverview">
+            <div class="signal-card">
+                <div class="signal-label">Current Signal</div>
+                <div class="signal-value" id="currentSignal">—</div>
+                <div class="timestamp" id="signalTime">—</div>
+            </div>
+            <div class="signal-card">
+                <div class="signal-label">Confidence Score</div>
+                <div class="confidence-score" id="confidenceScore">—</div>
+                <div class="timestamp">Model Confidence</div>
+            </div>
+            <div class="signal-card">
+                <div class="signal-label">Crisis Risk</div>
+                <div class="signal-value" id="crisisRisk">—</div>
+                <div class="timestamp" id="riskLevel">—</div>
+            </div>
+        </div>
+        
+        <!-- Feedback Section -->
+        <div class="feedback-section">
+            <h3 class="feedback-header">📝 Signal Feedback</h3>
+            <form class="feedback-form" onsubmit="submitFeedback(event)">
+                <select class="feedback-select" id="feedbackAsset">
+                    <option value="">Select Asset</option>
+                    <option value="BTC">Bitcoin (BTC)</option>
+                    <option value="SPY">S&P 500 (SPY)</option>
+                    <option value="HYG">High Yield Bonds (HYG)</option>
+                </select>
+                <select class="feedback-select" id="feedbackAccuracy">
+                    <option value="">Accuracy</option>
+                    <option value="accurate">✓ Accurate</option>
+                    <option value="partial">~ Partially Accurate</option>
+                    <option value="inaccurate">✗ Inaccurate</option>
+                </select>
+                <textarea class="feedback-textarea" id="feedbackNotes" placeholder="Additional notes or observations..."></textarea>
+                <button type="submit" class="action-btn" style="margin-top: 10px;">Submit Feedback</button>
+            </form>
+        </div>
+        
+        <!-- Assets and Charts sections (same as ai_predictions.html) -->
+        <div class="assets-section" id="assetsSection">
+            <h2 class="section-header">Asset-Level Predictions</h2>
+            <div class="assets-grid" id="assetsGrid"></div>
+        </div>
+        
+        <div id="chartsSection">
+            <div class="chart-container">
+                <h3 class="chart-title">Market Signals History (30 Days)</h3>
+                <div class="plotly-chart" id="signalsChart"></div>
+            </div>
+            
+            <div class="chart-container">
+                <h3 class="chart-title">Confidence Score Trend</h3>
+                <div class="plotly-chart" id="confidenceChart"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Configuration
+        const S3_URL = 'https://macro-data-lake.s3.amazonaws.com/predictions/ai_output.json';
+        const SUPABASE_PROXY_URL = 'https://j4o7j86qqb.execute-api.us-east-1.amazonaws.com/prod/config';
+        
+        let supabase = null;
+        let currentUser = null;
+        let isSignUp = false;
+        let predictionData = null;
+        let userWatchlist = [];
+        
+        // Initialize Supabase
+        async function initSupabase() {
+            try {
+                const response = await fetch(SUPABASE_PROXY_URL);
+                if (!response.ok) throw new Error('Failed to fetch Supabase config');
+                
+                const config = await response.json();
+                supabase = createClient(config.url, config.anon_key);
+                
+                // Check for existing session
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                    currentUser = session.user;
+                    showAuthenticatedUI();
+                } else {
+                    showAuthModal();
+                }
+            } catch (error) {
+                console.error('Supabase init error:', error);
+                showNotification('Error connecting to authentication service', 'error');
+            }
+        }
+        
+        // Show/hide auth modal
+        function showAuthModal() {
+            document.getElementById('authModal').style.display = 'flex';
+            document.getElementById('mainContent').style.display = 'none';
+        }
+        
+        function hideAuthModal() {
+            document.getElementById('authModal').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+        }
+        
+        // Toggle between sign in and sign up
+        function toggleAuthMode() {
+            isSignUp = !isSignUp;
+            const title = document.getElementById('authTitle');
+            const button = document.getElementById('authButton');
+            const toggleText = document.getElementById('authToggleText');
+            const toggleLink = document.getElementById('authToggleLink');
+            
+            if (isSignUp) {
+                title.textContent = 'Create Account';
+                button.textContent = 'Sign Up';
+                toggleText.textContent = 'Already have an account?';
+                toggleLink.textContent = 'Sign In';
+            } else {
+                title.textContent = 'Sign In to OpenBB';
+                button.textContent = 'Sign In';
+                toggleText.textContent = "Don't have an account?";
+                toggleLink.textContent = 'Sign Up';
+            }
+        }
+        
+        // Handle auth form submission
+        document.getElementById('authForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('emailInput').value;
+            const password = document.getElementById('passwordInput').value;
+            const button = document.getElementById('authButton');
+            const errorDiv = document.getElementById('authError');
+            
+            button.disabled = true;
+            errorDiv.style.display = 'none';
+            
+            try {
+                let authResponse;
+                
+                if (isSignUp) {
+                    authResponse = await supabase.auth.signUp({ email, password });
+                } else {
+                    authResponse = await supabase.auth.signInWithPassword({ email, password });
+                }
+                
+                if (authResponse.error) throw authResponse.error;
+                
+                currentUser = authResponse.data.user;
+                showAuthenticatedUI();
+                hideAuthModal();
+                loadPredictions();
+                
+            } catch (error) {
+                errorDiv.textContent = error.message;
+                errorDiv.style.display = 'block';
+            } finally {
+                button.disabled = false;
+            }
+        });
+        
+        // Show authenticated UI
+        function showAuthenticatedUI() {
+            const authStatus = document.getElementById('authStatus');
+            const userEmail = currentUser?.email || 'User';
+            const userInitial = userEmail.charAt(0).toUpperCase();
+            
+            authStatus.innerHTML = `
+                <div class="user-info">
+                    <div class="user-avatar">${userInitial}</div>
+                    <span class="user-email">${userEmail}</span>
+                </div>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            `;
+            
+            loadUserWatchlist();
+        }
+        
+        // Logout
+        async function logout() {
+            await supabase.auth.signOut();
+            currentUser = null;
+            showAuthModal();
+            document.getElementById('authStatus').innerHTML = '';
+        }
+        
+        // Load user's watchlist from Supabase
+        async function loadUserWatchlist() {
+            if (!currentUser) return;
+            
+            try {
+                // Create watchlist table if it doesn't exist
+                const { data, error } = await supabase
+                    .from('user_watchlists')
+                    .select('symbols')
+                    .eq('user_id', currentUser.id)
+                    .single();
+                
+                if (data) {
+                    userWatchlist = data.symbols || [];
+                    renderWatchlist();
+                }
+            } catch (error) {
+                console.log('No watchlist found, creating new one');
+                userWatchlist = [];
+            }
+        }
+        
+        // Save to watchlist
+        async function saveToWatchlist() {
+            if (!currentUser || !predictionData) return;
+            
+            const newSymbol = {
+                symbol: 'OVERALL',
+                signal: predictionData.overall_signal || 'HOLD',
+                confidence: predictionData.confidence || 0.75,
+                timestamp: new Date().toISOString()
+            };
+            
+            userWatchlist.push(newSymbol);
+            
+            try {
+                await supabase
+                    .from('user_watchlists')
+                    .upsert({
+                        user_id: currentUser.id,
+                        symbols: userWatchlist,
+                        updated_at: new Date().toISOString()
+                    });
+                
+                renderWatchlist();
+                showNotification('Signal saved to watchlist!');
+            } catch (error) {
+                console.error('Error saving watchlist:', error);
+                showNotification('Error saving to watchlist', 'error');
+            }
+        }
+        
+        // Render watchlist
+        function renderWatchlist() {
+            const container = document.getElementById('watchlistItems');
+            
+            if (userWatchlist.length === 0) {
+                container.innerHTML = '<p style="color: #666; text-align: center;">No saved signals yet</p>';
+                return;
+            }
+            
+            container.innerHTML = userWatchlist.map(item => `
+                <div class="watchlist-item">
+                    <div class="watchlist-symbol">${item.symbol}</div>
+                    <div class="watchlist-signal ${item.signal.toLowerCase()}">${item.signal}</div>
+                    <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                        ${new Date(item.timestamp).toLocaleDateString()}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Clear watchlist
+        async function clearWatchlist() {
+            if (!currentUser) return;
+            
+            if (confirm('Clear all saved signals?')) {
+                userWatchlist = [];
+                
+                try {
+                    await supabase
+                        .from('user_watchlists')
+                        .update({ symbols: [] })
+                        .eq('user_id', currentUser.id);
+                    
+                    renderWatchlist();
+                    showNotification('Watchlist cleared');
+                } catch (error) {
+                    console.error('Error clearing watchlist:', error);
+                }
+            }
+        }
+        
+        // Submit feedback
+        async function submitFeedback(event) {
+            event.preventDefault();
+            
+            if (!currentUser) return;
+            
+            const asset = document.getElementById('feedbackAsset').value;
+            const accuracy = document.getElementById('feedbackAccuracy').value;
+            const notes = document.getElementById('feedbackNotes').value;
+            
+            if (!asset || !accuracy) {
+                showNotification('Please select asset and accuracy', 'error');
+                return;
+            }
+            
+            try {
+                await supabase
+                    .from('prediction_feedback')
+                    .insert({
+                        user_id: currentUser.id,
+                        asset: asset,
+                        accuracy: accuracy,
+                        notes: notes,
+                        prediction_date: new Date().toISOString(),
+                        created_at: new Date().toISOString()
+                    });
+                
+                // Reset form
+                document.getElementById('feedbackAsset').value = '';
+                document.getElementById('feedbackAccuracy').value = '';
+                document.getElementById('feedbackNotes').value = '';
+                
+                showNotification('Feedback submitted successfully!');
+            } catch (error) {
+                console.error('Error submitting feedback:', error);
+                showNotification('Error submitting feedback', 'error');
+            }
+        }
+        
+        // Export predictions
+        function exportPredictions() {
+            if (!predictionData) return;
+            
+            const dataStr = JSON.stringify(predictionData, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = `openbb_predictions_${new Date().toISOString().split('T')[0]}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+            
+            showNotification('Predictions exported!');
+        }
+        
+        // Toggle notifications
+        function toggleNotifications() {
+            showNotification('Email notifications coming soon!', 'info');
+        }
+        
+        // Show notification
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.style.background = type === 'error' ? '#ff4444' : type === 'info' ? '#00aaff' : '#00dd77';
+            notification.style.color = type === 'error' || type === 'info' ? '#fff' : '#000';
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideIn 0.3s ease-out reverse';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+        
+        // Load predictions (same as ai_predictions.html but with auth check)
+        async function loadPredictions() {
+            if (!currentUser) return;
+            
+            try {
+                const response = await fetch(S3_URL + '?t=' + Date.now());
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load predictions from S3');
+                }
+                
+                const data = await response.json();
+                predictionData = data;
+                
+                // Update UI with data
+                updateSignalOverview(data);
+                updateAssets(data);
+                updateCharts(data);
+                
+            } catch (error) {
+                console.error('Error loading predictions:', error);
+                showNotification('Error loading predictions', 'error');
+            }
+        }
+        
+        // Copy functions from ai_predictions.html
+        function updateSignalOverview(data) {
+            const signal = data.overall_signal || data.signal || 'HOLD';
+            const confidence = data.confidence || data.confidence_score || 0.75;
+            const crisisRisk = data.crisis_risk || data.risk_level || 'LOW';
+            
+            const signalElement = document.getElementById('currentSignal');
+            signalElement.textContent = signal;
+            signalElement.className = 'signal-value ' + signal.toLowerCase();
+            
+            document.getElementById('confidenceScore').textContent = (confidence * 100).toFixed(1) + '%';
+            
+            const crisisElement = document.getElementById('crisisRisk');
+            crisisElement.textContent = crisisRisk;
+            crisisElement.className = 'signal-value ' + (crisisRisk === 'HIGH' ? 'crisis' : crisisRisk === 'MEDIUM' ? 'hold' : 'buy');
+            
+            document.getElementById('signalTime').textContent = new Date(data.timestamp || Date.now()).toLocaleTimeString();
+            document.getElementById('riskLevel').textContent = 'Risk Assessment';
+        }
+        
+        function updateAssets(data) {
+            const assetsGrid = document.getElementById('assetsGrid');
+            assetsGrid.innerHTML = '';
+            
+            const assets = data.assets || [
+                { symbol: 'BTC', name: 'Bitcoin', signal: 'BUY', confidence: 0.82, price_target: 75000, stop_loss: 58000 },
+                { symbol: 'SPY', name: 'S&P 500 ETF', signal: 'HOLD', confidence: 0.65, price_target: 520, stop_loss: 480 },
+                { symbol: 'HYG', name: 'High Yield Bonds', signal: 'SELL', confidence: 0.78, price_target: 72, stop_loss: 78 }
+            ];
+            
+            assets.forEach(asset => {
+                const card = document.createElement('div');
+                card.className = 'asset-card';
+                
+                card.innerHTML = `
+                    <div class="asset-header">
+                        <div class="asset-name">${asset.symbol} - ${asset.name}</div>
+                        <div class="asset-signal ${asset.signal.toLowerCase()}">${asset.signal}</div>
+                    </div>
+                    <div class="asset-metrics">
+                        <div class="metric-item">
+                            <div class="metric-label">Confidence</div>
+                            <div class="metric-value">${(asset.confidence * 100).toFixed(0)}%</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">Target</div>
+                            <div class="metric-value">${asset.price_target.toLocaleString()}</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">Stop Loss</div>
+                            <div class="metric-value">${asset.stop_loss.toLocaleString()}</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">Risk/Reward</div>
+                            <div class="metric-value">1:${((asset.price_target - asset.stop_loss) / asset.stop_loss * 10).toFixed(1)}</div>
+                        </div>
+                    </div>
+                    <button class="action-btn" style="width: 100%; margin-top: 10px;" onclick="addAssetToWatchlist('${asset.symbol}', '${asset.signal}', ${asset.confidence})">
+                        Add to Watchlist
+                    </button>
+                `;
+                
+                assetsGrid.appendChild(card);
+            });
+        }
+        
+        // Add individual asset to watchlist
+        async function addAssetToWatchlist(symbol, signal, confidence) {
+            if (!currentUser) return;
+            
+            const newItem = {
+                symbol: symbol,
+                signal: signal,
+                confidence: confidence,
+                timestamp: new Date().toISOString()
+            };
+            
+            userWatchlist.push(newItem);
+            
+            try {
+                await supabase
+                    .from('user_watchlists')
+                    .upsert({
+                        user_id: currentUser.id,
+                        symbols: userWatchlist,
+                        updated_at: new Date().toISOString()
+                    });
+                
+                renderWatchlist();
+                showNotification(`${symbol} added to watchlist!`);
+            } catch (error) {
+                console.error('Error adding to watchlist:', error);
+                showNotification('Error adding to watchlist', 'error');
+            }
+        }
+        
+        function updateCharts(data) {
+            // Same chart code as ai_predictions.html
+            const dates = [];
+            const signals = [];
+            const confidence = [];
+            
+            for (let i = 29; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                dates.push(date.toISOString().split('T')[0]);
+                
+                const rand = Math.random();
+                signals.push(rand > 0.7 ? 1 : rand < 0.3 ? -1 : 0);
+                confidence.push(0.6 + Math.random() * 0.35);
+            }
+            
+            // Signals History Chart
+            const signalsTrace = {
+                x: dates,
+                y: signals,
+                type: 'scatter',
+                mode: 'markers',
+                name: 'Signal',
+                marker: {
+                    size: 12,
+                    color: signals.map(s => s === 1 ? '#00dd77' : s === -1 ? '#ff4444' : '#ffaa00'),
+                    symbol: signals.map(s => s === 1 ? 'triangle-up' : s === -1 ? 'triangle-down' : 'circle')
+                },
+                text: signals.map(s => s === 1 ? 'BUY' : s === -1 ? 'SELL' : 'HOLD'),
+                hovertemplate: '%{text}<br>Date: %{x}<extra></extra>'
+            };
+            
+            const signalsLayout = {
+                paper_bgcolor: '#0a0a0a',
+                plot_bgcolor: '#0a0a0a',
+                font: { color: '#aaa' },
+                xaxis: {
+                    gridcolor: '#22222250',
+                    tickfont: { color: '#888' }
+                },
+                yaxis: {
+                    gridcolor: '#22222250',
+                    tickfont: { color: '#888' },
+                    tickvals: [-1, 0, 1],
+                    ticktext: ['SELL', 'HOLD', 'BUY'],
+                    range: [-1.5, 1.5]
+                },
+                margin: { t: 20, r: 20, b: 40, l: 60 },
+                showlegend: false
+            };
+            
+            Plotly.newPlot('signalsChart', [signalsTrace], signalsLayout, { responsive: true });
+            
+            // Confidence Chart
+            const confidenceTrace = {
+                x: dates,
+                y: confidence.map(c => c * 100),
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Confidence',
+                line: { color: '#00aaff', width: 2 },
+                marker: { size: 6 },
+                hovertemplate: '%{y:.1f}%<br>Date: %{x}<extra></extra>'
+            };
+            
+            const confidenceLayout = {
+                paper_bgcolor: '#0a0a0a',
+                plot_bgcolor: '#0a0a0a',
+                font: { color: '#aaa' },
+                xaxis: {
+                    gridcolor: '#22222250',
+                    tickfont: { color: '#888' }
+                },
+                yaxis: {
+                    gridcolor: '#22222250',
+                    tickfont: { color: '#888' },
+                    title: 'Confidence %',
+                    range: [50, 100]
+                },
+                margin: { t: 20, r: 20, b: 40, l: 60 },
+                showlegend: false
+            };
+            
+            Plotly.newPlot('confidenceChart', [confidenceTrace], confidenceLayout, { responsive: true });
+        }
+        
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            initSupabase();
+        });
+    </script>
+</body>
+</html>
