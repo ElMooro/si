@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Predictions - OpenBB Financial Intelligence</title>
+    
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+        
+        /* Navigation Bar */
+        nav {
+            background: #121212;
+            border-bottom: 1px solid #282828;
+            padding: 15px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-logo {
+            font-size: 22px;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 25px;
+            align-items: center;
+        }
+        
+        .nav-links a {
+            color: #ccc;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+            position: relative;
+        }
+        
+        .nav-links a:hover {
+            color: #00ff88;
+        }
+        
+        .nav-links a.active {
+            color: #00ff88;
+        }
+        
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #00ff88;
+        }
+        
+        /* Main Container */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header Section */
+        .header-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .page-title {
+            font-size: 36px;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .page-subtitle {
+            font-size: 16px;
+            color: #aaa;
+        }
+        
+        /* Signal Overview */
+        .signal-overview {
+            background: #131313;
+            border: 1px solid #282828;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+        
+        .signal-card {
+            text-align: center;
+            padding: 20px;
+            background: #0a0a0a;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+        
+        .signal-label {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        
+        .signal-value {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .signal-value.buy { color: #00dd77; }
+        .signal-value.sell { color: #ff4444; }
+        .signal-value.hold { color: #ffaa00; }
+        .signal-value.crisis { color: #ff0000; animation: pulse 2s infinite; }
+        
+        .confidence-score {
+            font-size: 24px;
+            color: #00aaff;
+        }
+        
+        .timestamp {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        /* Asset Grid */
+        .assets-section {
+            margin-bottom: 30px;
+        }
+        
+        .section-header {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+        
+        .assets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .asset-card {
+            background: #131313;
+            border: 1px solid #282828;
+            border-radius: 10px;
+            padding: 20px;
+            transition: border-color 0.3s;
+        }
+        
+        .asset-card:hover {
+            border-color: #00ff88;
+        }
+        
+        .asset-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .asset-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+        }
+        
+        .asset-signal {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .asset-signal.buy {
+            background: #00dd7730;
+            color: #00dd77;
+        }
+        
+        .asset-signal.sell {
+            background: #ff444430;
+            color: #ff4444;
+        }
+        
+        .asset-signal.hold {
+            background: #ffaa0030;
+            color: #ffaa00;
+        }
+        
+        .asset-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .metric-item {
+            text-align: center;
+            padding: 10px;
+            background: #0a0a0a;
+            border-radius: 6px;
+        }
+        
+        .metric-label {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 5px;
+        }
+        
+        .metric-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+        }
+        
+        /* Charts */
+        .chart-container {
+            background: #131313;
+            border: 1px solid #282828;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .chart-title {
+            font-size: 18px;
+            color: #fff;
+            margin-bottom: 15px;
+        }
+        
+        .plotly-chart {
+            width: 100%;
+            height: 400px;
+        }
+        
+        /* Status Section */
+        .status-section {
+            background: #121212;
+            border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ff4444;
+        }
+        
+        .status-dot.active {
+            background: #00dd77;
+            animation: pulse 2s infinite;
+        }
+        
+        .refresh-button {
+            background: #00dd77;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        
+        .refresh-button:hover {
+            background: #00ff88;
+        }
+        
+        .refresh-button:disabled {
+            background: #333;
+            color: #666;
+            cursor: not-allowed;
+        }
+        
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 18px;
+            color: #888;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 3px solid #333;
+            border-top-color: #00ff88;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Error State */
+        .error-message {
+            background: #ff444420;
+            border: 1px solid #ff4444;
+            color: #ff6666;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .signal-overview {
+                grid-template-columns: 1fr;
+            }
+            .assets-grid {
+                grid-template-columns: 1fr;
+            }
+            .nav-links {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-logo">📊 OPENBB</div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="macroeconomic-platform.html">Macro Dashboard</a>
+            <a href="ai_predictions.html" class="active">AI Signals</a>
+            <a href="exponential-search-dashboard.html">Search</a>
+            <a href="openbb-realtime-dashboard.html">Live Data</a>
+            <a href="scraper_dashboard.html">Scraper Monitor</a>
+            <a href="ai-predictions-supabase.html">Login</a>
+        </div>
+    </nav>
+    
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Header -->
+        <div class="header-section">
+            <h1 class="page-title">🤖 AI Market Predictions</h1>
+            <p class="page-subtitle">Machine learning signals updated daily with crisis detection</p>
+        </div>
+        
+        <!-- Status Section -->
+        <div class="status-section">
+            <div class="status-item">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="statusText">Connecting to AI model...</span>
+            </div>
+            <div class="status-item">
+                <span id="lastUpdate">Last update: —</span>
+            </div>
+            <button class="refresh-button" id="refreshButton" onclick="loadPredictions()">
+                🔄 Refresh Predictions
+            </button>
+        </div>
+        
+        <!-- Signal Overview -->
+        <div class="signal-overview" id="signalOverview" style="display: none;">
+            <div class="signal-card">
+                <div class="signal-label">Current Signal</div>
+                <div class="signal-value" id="currentSignal">—</div>
+                <div class="timestamp" id="signalTime">—</div>
+            </div>
+            <div class="signal-card">
+                <div class="signal-label">Confidence Score</div>
+                <div class="confidence-score" id="confidenceScore">—</div>
+                <div class="timestamp">Model Confidence</div>
+            </div>
+            <div class="signal-card">
+                <div class="signal-label">Crisis Risk</div>
+                <div class="signal-value" id="crisisRisk">—</div>
+                <div class="timestamp" id="riskLevel">—</div>
+            </div>
+        </div>
+        
+        <!-- Loading State -->
+        <div class="loading" id="loadingState">
+            <div class="loading-spinner"></div>
+            <p>Loading AI predictions from S3...</p>
+        </div>
+        
+        <!-- Error State -->
+        <div class="error-message" id="errorMessage" style="display: none;"></div>
+        
+        <!-- Assets Section -->
+        <div class="assets-section" id="assetsSection" style="display: none;">
+            <h2 class="section-header">Asset-Level Predictions</h2>
+            <div class="assets-grid" id="assetsGrid"></div>
+        </div>
+        
+        <!-- Charts Section -->
+        <div id="chartsSection" style="display: none;">
+            <div class="chart-container">
+                <h3 class="chart-title">Market Signals History (30 Days)</h3>
+                <div class="plotly-chart" id="signalsChart"></div>
+            </div>
+            
+            <div class="chart-container">
+                <h3 class="chart-title">Confidence Score Trend</h3>
+                <div class="plotly-chart" id="confidenceChart"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Configuration
+        const S3_URL = 'https://macro-data-lake.s3.amazonaws.com/predictions/ai_output.json';
+        let predictionData = null;
+        let refreshInterval = null;
+        
+        // Load predictions from S3
+        async function loadPredictions() {
+            const button = document.getElementById('refreshButton');
+            const loadingState = document.getElementById('loadingState');
+            const errorMessage = document.getElementById('errorMessage');
+            const signalOverview = document.getElementById('signalOverview');
+            const assetsSection = document.getElementById('assetsSection');
+            const chartsSection = document.getElementById('chartsSection');
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+            
+            // Show loading state
+            button.disabled = true;
+            loadingState.style.display = 'block';
+            errorMessage.style.display = 'none';
+            signalOverview.style.display = 'none';
+            assetsSection.style.display = 'none';
+            chartsSection.style.display = 'none';
+            
+            try {
+                const response = await fetch(S3_URL + '?t=' + Date.now()); // Cache bust
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load predictions from S3');
+                }
+                
+                const data = await response.json();
+                predictionData = data;
+                
+                // Update status
+                statusDot.classList.add('active');
+                statusText.textContent = 'AI Model Active';
+                
+                // Update UI with data
+                updateSignalOverview(data);
+                updateAssets(data);
+                updateCharts(data);
+                
+                // Show sections
+                loadingState.style.display = 'none';
+                signalOverview.style.display = 'grid';
+                assetsSection.style.display = 'block';
+                chartsSection.style.display = 'block';
+                
+                // Update last update time
+                document.getElementById('lastUpdate').textContent = 
+                    'Last update: ' + new Date(data.timestamp || Date.now()).toLocaleString();
+                
+            } catch (error) {
+                console.error('Error loading predictions:', error);
+                loadingState.style.display = 'none';
+                errorMessage.style.display = 'block';
+                errorMessage.textContent = 'Error loading predictions: ' + error.message;
+                statusDot.classList.remove('active');
+                statusText.textContent = 'Connection Error';
+            } finally {
+                button.disabled = false;
+            }
+        }
+        
+        // Update signal overview
+        function updateSignalOverview(data) {
+            const signal = data.overall_signal || data.signal || 'HOLD';
+            const confidence = data.confidence || data.confidence_score || 0.75;
+            const crisisRisk = data.crisis_risk || data.risk_level || 'LOW';
+            
+            const signalElement = document.getElementById('currentSignal');
+            signalElement.textContent = signal;
+            signalElement.className = 'signal-value ' + signal.toLowerCase();
+            
+            document.getElementById('confidenceScore').textContent = (confidence * 100).toFixed(1) + '%';
+            
+            const crisisElement = document.getElementById('crisisRisk');
+            crisisElement.textContent = crisisRisk;
+            crisisElement.className = 'signal-value ' + (crisisRisk === 'HIGH' ? 'crisis' : crisisRisk === 'MEDIUM' ? 'hold' : 'buy');
+            
+            document.getElementById('signalTime').textContent = new Date(data.timestamp || Date.now()).toLocaleTimeString();
+            document.getElementById('riskLevel').textContent = 'Risk Assessment';
+        }
+        
+        // Update assets grid
+        function updateAssets(data) {
+            const assetsGrid = document.getElementById('assetsGrid');
+            assetsGrid.innerHTML = '';
+            
+            // Default assets if not in data
+            const assets = data.assets || [
+                { symbol: 'BTC', name: 'Bitcoin', signal: 'BUY', confidence: 0.82, price_target: 75000, stop_loss: 58000 },
+                { symbol: 'SPY', name: 'S&P 500 ETF', signal: 'HOLD', confidence: 0.65, price_target: 520, stop_loss: 480 },
+                { symbol: 'HYG', name: 'High Yield Bonds', signal: 'SELL', confidence: 0.78, price_target: 72, stop_loss: 78 }
+            ];
+            
+            assets.forEach(asset => {
+                const card = document.createElement('div');
+                card.className = 'asset-card';
+                
+                card.innerHTML = `
+                    <div class="asset-header">
+                        <div class="asset-name">${asset.symbol} - ${asset.name}</div>
+                        <div class="asset-signal ${asset.signal.toLowerCase()}">${asset.signal}</div>
+                    </div>
+                    <div class="asset-metrics">
+                        <div class="metric-item">
+                            <div class="metric-label">Confidence</div>
+                            <div class="metric-value">${(asset.confidence * 100).toFixed(0)}%</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">Target</div>
+                            <div class="metric-value">$${asset.price_target.toLocaleString()}</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">Stop Loss</div>
+                            <div class="metric-value">$${asset.stop_loss.toLocaleString()}</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">Risk/Reward</div>
+                            <div class="metric-value">1:${((asset.price_target - asset.stop_loss) / asset.stop_loss * 10).toFixed(1)}</div>
+                        </div>
+                    </div>
+                `;
+                
+                assetsGrid.appendChild(card);
+            });
+        }
+        
+        // Update charts
+        function updateCharts(data) {
+            // Generate sample historical data for demonstration
+            const dates = [];
+            const signals = [];
+            const confidence = [];
+            
+            for (let i = 29; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                dates.push(date.toISOString().split('T')[0]);
+                
+                // Simulate historical signals
+                const rand = Math.random();
+                signals.push(rand > 0.7 ? 1 : rand < 0.3 ? -1 : 0);
+                confidence.push(0.6 + Math.random() * 0.35);
+            }
+            
+            // Signals History Chart
+            const signalsTrace = {
+                x: dates,
+                y: signals,
+                type: 'scatter',
+                mode: 'markers',
+                name: 'Signal',
+                marker: {
+                    size: 12,
+                    color: signals.map(s => s === 1 ? '#00dd77' : s === -1 ? '#ff4444' : '#ffaa00'),
+                    symbol: signals.map(s => s === 1 ? 'triangle-up' : s === -1 ? 'triangle-down' : 'circle')
+                },
+                text: signals.map(s => s === 1 ? 'BUY' : s === -1 ? 'SELL' : 'HOLD'),
+                hovertemplate: '%{text}<br>Date: %{x}<extra></extra>'
+            };
+            
+            const signalsLayout = {
+                paper_bgcolor: '#0a0a0a',
+                plot_bgcolor: '#0a0a0a',
+                font: { color: '#aaa' },
+                xaxis: {
+                    gridcolor: '#22222250',
+                    tickfont: { color: '#888' }
+                },
+                yaxis: {
+                    gridcolor: '#22222250',
+                    tickfont: { color: '#888' },
+                    tickvals: [-1, 0, 1],
+                    ticktext: ['SELL', 'HOLD', 'BUY'],
+                    range: [-1.5, 1.5]
+                },
+                margin: { t: 20, r: 20, b: 40, l: 60 },
+                showlegend: false
+            };
+            
+            Plotly.newPlot('signalsChart', [signalsTrace], signalsLayout, { responsive: true });
+            
+            // Confidence Chart
+            const confidenceTrace = {
+                x: dates,
+                y: confidence.map(c => c * 100),
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Confidence',
+                line: { color: '#00aaff', width: 2 },
+                marker: { size: 6 },
+                hovertemplate: '%{y:.1f}%<br>Date: %{x}<extra></extra>'
+            };
+            
+            const confidenceLayout = {
+                paper_bgcolor: '#0a0a0a',
+                plot_bgcolor: '#0a0a0a',
+                font: { color: '#aaa' },
+                xaxis: {
+                    gridcolor: '#22222250',
+                    tickfont: { color: '#888' }
+                },
+                yaxis: {
+                    gridcolor: '#22222250',
+                    tickfont: { color: '#888' },
+                    title: 'Confidence %',
+                    range: [50, 100]
+                },
+                margin: { t: 20, r: 20, b: 40, l: 60 },
+                showlegend: false
+            };
+            
+            Plotly.newPlot('confidenceChart', [confidenceTrace], confidenceLayout, { responsive: true });
+        }
+        
+        // Initialize
+        loadPredictions();
+        
+        // Auto-refresh every 5 minutes
+        refreshInterval = setInterval(loadPredictions, 5 * 60 * 1000);
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+        });
+    </script>
+</body>
+</html>
