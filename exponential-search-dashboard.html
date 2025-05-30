@@ -482,13 +482,13 @@
     <nav>
         <div class="nav-logo">📊 OPENBB</div>
         <div class="nav-links">
-            <a href="index.html">Home</a>
-            <a href="macroeconomic-platform.html">Macro Dashboard</a>
-            <a href="ai_predictions.html">AI Signals</a>
-            <a href="exponential-search-dashboard.html" class="active">Search</a>
-            <a href="openbb-realtime-dashboard.html">Live Data</a>
-            <a href="scraper_dashboard.html">Scraper Monitor</a>
-            <a href="ai-predictions-supabase.html">Login</a>
+            <a href="/">Home</a>
+            <a href="/dashboard">Macro Dashboard</a>
+            <a href="/ai-signals">AI Signals</a>
+            <a href="/search" class="active">Search</a>
+            <a href="/realtime">Live Data</a>
+            <a href="/scraper">Scraper Monitor</a>
+            <a href="/login">Login</a>
         </div>
     </nav>
     
@@ -574,7 +574,7 @@
         <!-- Loading State -->
         <div class="loading" id="loadingState">
             <div class="loading-spinner"></div>
-            <p>Loading search index from S3...</p>
+            <p>Loading search index...</p>
         </div>
         
         <!-- Results Section -->
@@ -603,9 +603,9 @@
     </div>
     
     <script>
-        // Configuration
-        const INDEX_URL = 'https://macro-data-lake.s3.amazonaws.com/index/universal_indicator_index.min.json';
-        const API_BASE = 'https://ped8gafyuz.us-east-1.awsapprunner.com';
+        // Configuration - Updated to use your backend
+        const API_BASE = window.location.origin; // Uses the same origin as the frontend
+        const INDEX_ENDPOINT = '/api/search/index'; // Your backend endpoint for the index
         
         let searchIndex = null;
         let fuseInstance = null;
@@ -617,16 +617,25 @@
             type: 'all'
         };
         
-        // Load search index
+        // Load search index from your backend
         async function loadSearchIndex() {
             const loadingState = document.getElementById('loadingState');
             const resultsSection = document.getElementById('resultsSection');
             
             try {
-                const response = await fetch(INDEX_URL + '?t=' + Date.now());
-                if (!response.ok) throw new Error('Failed to load search index');
+                // First try to load from your backend endpoint
+                const response = await fetch(`${API_BASE}${INDEX_ENDPOINT}`);
                 
-                searchIndex = await response.json();
+                if (!response.ok) {
+                    // Fallback to S3 if backend is not available
+                    console.log('Backend index not available, falling back to S3...');
+                    const s3Response = await fetch('https://macro-data-lake.s3.amazonaws.com/index/universal_indicator_index.min.json?t=' + Date.now());
+                    if (!s3Response.ok) throw new Error('Failed to load search index from both sources');
+                    searchIndex = await s3Response.json();
+                } else {
+                    searchIndex = await response.json();
+                }
+                
                 allIndicators = searchIndex.indicators || [];
                 
                 // Initialize Fuse.js for fuzzy search
@@ -824,11 +833,13 @@
             });
         }
         
-        // Load indicator data
+        // Load indicator data using your backend endpoints
         async function loadIndicatorData(indicator) {
             try {
                 const provider = getProviderForSource(indicator.source);
-                const url = `${API_BASE}/api/v1/universal/data?symbol=${indicator.symbol}&provider=${provider}&include_changes=true`;
+                
+                // Use your backend's universal data endpoint
+                const url = `${API_BASE}/api/universal/data?symbol=${indicator.symbol}&provider=${provider}&include_changes=true`;
                 
                 const response = await fetch(url);
                 if (!response.ok) return;
@@ -894,7 +905,7 @@
             return value.toFixed(4);
         }
         
-        // Load mini chart
+        // Load mini chart using your backend
         async function loadMiniChart(symbol, provider) {
             try {
                 const endDate = new Date().toISOString().split('T')[0];
@@ -902,7 +913,8 @@
                 startDate.setMonth(startDate.getMonth() - 6);
                 const startDateStr = startDate.toISOString().split('T')[0];
                 
-                const url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&start_date=${startDateStr}&end_date=${endDate}`;
+                // Use your backend's universal data endpoint
+                const url = `${API_BASE}/api/universal/data?symbol=${symbol}&provider=${provider}&start_date=${startDateStr}&end_date=${endDate}`;
                 
                 const response = await fetch(url);
                 if (!response.ok) return;
@@ -970,7 +982,7 @@
             document.getElementById('detailModal').style.display = 'none';
         }
         
-        // Load full details
+        // Load full details using your backend
         async function loadFullDetails(indicator) {
             const provider = getProviderForSource(indicator.source);
             const detailsDiv = document.getElementById('modalDetails');
@@ -994,7 +1006,8 @@
                 startDate.setFullYear(startDate.getFullYear() - 5);
                 const startDateStr = startDate.toISOString().split('T')[0];
                 
-                const url = `${API_BASE}/api/v1/universal/data?symbol=${indicator.symbol}&provider=${provider}&start_date=${startDateStr}&end_date=${endDate}`;
+                // Use your backend's universal data endpoint
+                const url = `${API_BASE}/api/universal/data?symbol=${indicator.symbol}&provider=${provider}&start_date=${startDateStr}&end_date=${endDate}`;
                 
                 const response = await fetch(url);
                 if (!response.ok) return;
@@ -1045,16 +1058,33 @@
             }
         }
         
-        // Add to watchlist
-        function addToWatchlist(symbol) {
-            // This would integrate with your existing watchlist system
-            alert(`Added ${symbol} to watchlist!`);
+        // Add to watchlist - integrate with your backend
+        async function addToWatchlist(symbol) {
+            try {
+                // This should call your backend's watchlist endpoint
+                const response = await fetch(`${API_BASE}/api/watchlist/add`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ symbol })
+                });
+                
+                if (response.ok) {
+                    alert(`Added ${symbol} to watchlist!`);
+                } else {
+                    alert(`Failed to add ${symbol} to watchlist`);
+                }
+            } catch (error) {
+                console.error('Error adding to watchlist:', error);
+                alert(`Error adding ${symbol} to watchlist`);
+            }
         }
         
-        // View full chart
+        // View full chart - navigate to your dashboard
         function viewFullChart(symbol) {
-            // This would navigate to your main charting dashboard
-            window.location.href = `macroeconomic-platform.html?symbol=${symbol}`;
+            // Navigate to your main dashboard with the symbol
+            window.location.href = `/dashboard?symbol=${symbol}`;
         }
         
         // Search input handler
