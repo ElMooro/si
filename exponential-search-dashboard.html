@@ -602,7 +602,16 @@
             border-radius: 6px;
         }
         
-        /* Responsive */
+        /* Pending data state */
+        .result-card.pending-data {
+            opacity: 0.8;
+            border-style: dashed;
+        }
+        
+        .result-card.pending-data .chart-preview {
+            opacity: 0.5;
+        }
+        
         @media (max-width: 768px) {
             .filter-section {
                 grid-template-columns: 1fr;
@@ -1012,6 +1021,7 @@
             
             const promises = indicators.map(async (indicator) => {
                 try {
+                    // First try S3 proxy
                     const response = await fetch(LAMBDA_ENDPOINTS.s3DataProxy, {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
@@ -1041,7 +1051,14 @@
                                 };
                                 
                                 console.log(`Loaded data for ${indicator.symbol}: ${latest?.value}`);
+                            } else {
+                                console.log(`No observations for ${indicator.symbol}, trying AppRunner...`);
+                                // Try AppRunner as fallback
+                                await tryAppRunnerForIndicator(indicator.symbol);
                             }
+                        } else {
+                            // Try AppRunner as fallback
+                            await tryAppRunnerForIndicator(indicator.symbol);
                         }
                     }
                 } catch (error) {
@@ -1051,6 +1068,34 @@
             
             await Promise.allSettled(promises);
             console.log('Finished loading indicator data');
+        }
+        
+        // Try to get data from AppRunner API
+        async function tryAppRunnerForIndicator(symbol) {
+            try {
+                // Try FRED endpoint
+                const fredResponse = await fetch(`${API_BASE}/api/fred/series/${symbol}`);
+                if (fredResponse.ok) {
+                    const data = await fredResponse.json();
+                    if (data.observations && data.observations.length > 0) {
+                        appRunnerData[symbol] = data;
+                        console.log(`Got ${symbol} data from AppRunner FRED endpoint`);
+                        return;
+                    }
+                }
+                
+                // Try stock quote endpoint for equity symbols
+                if (['SPY', 'QQQ', 'IWM', 'DIA', 'VTI'].includes(symbol)) {
+                    const stockResponse = await fetch(`${API_BASE}/api/stock/quote/${symbol}`);
+                    if (stockResponse.ok) {
+                        const data = await stockResponse.json();
+                        appRunnerData[symbol] = data;
+                        console.log(`Got ${symbol} data from AppRunner stock endpoint`);
+                    }
+                }
+            } catch (error) {
+                console.log(`AppRunner data not available for ${symbol}`);
+            }
         }
         
         // Update category filter buttons with counts
@@ -2005,6 +2050,9 @@
                         latestValue = formatValue(indicator.appRunnerData.value);
                     }
                     lastUpdate = 'API';
+                } else {
+                    // No data yet - show pending status
+                    lastUpdate = 'Pending';
                 }
                 
                 const aiForcast = indicator.aiPrediction ? 
@@ -2013,12 +2061,16 @@
                 // Safe symbol for IDs (replace special characters)
                 const safeSymbol = indicator.symbol.replace(/[^a-zA-Z0-9]/g, '_');
                 
+                // Determine if we should show this as pending data
+                const isPending = latestValue === '—' && lastUpdate === 'Pending';
+                
                 return `
-                    <div class="result-card ${isBlackSwan ? 'black-swan' : ''}" 
+                    <div class="result-card ${isBlackSwan ? 'black-swan' : ''} ${isPending ? 'pending-data' : ''}" 
                          onclick="showDetails('${indicator.symbol}')"
                          data-symbol="${indicator.symbol}">
                         ${hasAIPrediction ? '<div class="ai-badge">🤖 AI</div>' : ''}
                         ${hasLiveData ? '<div class="ai-badge" style="background: linear-gradient(135deg, #00ff88, #00ccff);">🔴 LIVE</div>' : ''}
+                        ${isPending ? '<div class="ai-badge" style="background: #666;">⏳ PENDING</div>' : ''}
                         
                         <div class="result-header">
                             <div>
@@ -2059,7 +2111,7 @@
                         
                         <div class="chart-preview" id="preview_${safeSymbol}">
                             <div style="padding: 60px; text-align: center; color: #666;">
-                                Loading Chart...
+                                ${isPending ? 'Data pending...' : 'Loading Chart...'}
                             </div>
                         </div>
                         
