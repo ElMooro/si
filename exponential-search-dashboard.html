@@ -798,10 +798,13 @@
             
             // WebSocket Services
             openbbWebsocketBroadcast: "https://p6kvtojb2y6r4orgbtxh7ld3nu0pfktz.lambda-url.us-east-1.on.aws/",
-            openbbWebsocketHandler: "https://5w3opjisqqeyfpmtovcnn6myse0ajpuq.lambda-url.us-east-1.on.aws/"
+            openbbWebsocketHandler: "https://5w3opjisqqeyfpmtovcnn6myse0ajpuq.lambda-url.us-east-1.on.aws/",
+            
+            // S3 Data Proxy - NEW! No more CORS errors!
+            s3DataProxy: "https://xjvj65rk6wxaofmz2cqxhvfiky0orhtj.lambda-url.us-east-1.on.aws/"
         };
         
-        // S3 bucket
+        // S3 bucket (now accessed via proxy)
         const S3_BUCKET = 'https://macro-data-lake.s3.amazonaws.com';
         
         // Global state
@@ -830,6 +833,9 @@
         // Initialize the application
         async function initialize() {
             console.log('Initializing Exponential Search Dashboard...');
+            
+            // Test S3 proxy first
+            await testS3Proxy();
             
             // Load data from all sources in parallel
             const loadPromises = [
@@ -870,11 +876,12 @@
             }
         }
         
-        // Load search index from createUniversalIndex Lambda
+        // Load search index from createUniversalIndex Lambda and S3 proxy
         async function loadSearchIndex() {
             try {
                 console.log('Loading search index from Lambda...');
                 
+                // First try to get the index from the Lambda function
                 const response = await fetch(LAMBDA_ENDPOINTS.createUniversalIndex, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -889,22 +896,153 @@
                     if (data.indicators) {
                         searchIndex = data.indicators;
                     } else if (data.files) {
-                        // If we get file list, we need to parse indicators from it
-                        searchIndex = parseIndicatorsFromFiles(data.files);
+                        // If we get file list, load actual data from S3 proxy
+                        console.log('Loading indicator data from S3 proxy...');
+                        await loadIndicatorDataFromS3Proxy(data.files);
                     }
                     
                     updateSourceStatus('index', true);
                 } else {
                     console.error('Failed to load search index');
-                    updateSourceStatus('index', false, true);
-                    // Use fallback data
-                    searchIndex = getHardcodedIndicators();
+                    // Try S3 proxy as fallback
+                    await loadAllIndicatorsFromS3Proxy();
                 }
                 
             } catch (error) {
                 console.error('Error loading search index:', error);
+                // Try S3 proxy as fallback
+                await loadAllIndicatorsFromS3Proxy();
+            }
+        }
+        
+        // Load all indicators from S3 proxy - NO MORE CORS ERRORS!
+        async function loadAllIndicatorsFromS3Proxy() {
+            try {
+                console.log('Loading all indicators from S3 proxy...');
+                
+                const response = await fetch(LAMBDA_ENDPOINTS.s3DataProxy, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({action: 'getAll'})
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    console.log('Successfully loaded indicator data from S3:', data.indicators);
+                    
+                    // Process indicators from S3
+                    const indicators = [];
+                    for (const [symbol, info] of Object.entries(data.indicators)) {
+                        indicators.push({
+                            symbol: symbol,
+                            name: generateIndicatorName(symbol),
+                            source: 'S3',
+                            data: info.data,
+                            lastUpdated: info.lastUpdated,
+                            file: info.file
+                        });
+                        
+                        // Store the data for later use
+                        if (info.data && info.data.observations) {
+                            scrapedData[symbol] = {
+                                value: info.data.observations[info.data.observations.length - 1]?.value,
+                                observations: info.data.observations,
+                                source: 'S3'
+                            };
+                        }
+                    }
+                    
+                    searchIndex = indicators;
+                    updateSourceStatus('index', true);
+                    console.log(`Loaded ${indicators.length} indicators from S3 proxy`);
+                } else {
+                    console.error('Failed to load from S3 proxy:', data.error);
+                    updateSourceStatus('index', false, true);
+                    searchIndex = getHardcodedIndicators();
+                }
+                
+            } catch (error) {
+                console.error('Error loading from S3 proxy:', error);
                 updateSourceStatus('index', false, true);
                 searchIndex = getHardcodedIndicators();
+            }
+        }
+        
+        // Load specific indicator data from S3 proxy
+        async function loadIndicatorDataFromS3Proxy(files) {
+            try {
+                const indicators = [];
+                
+                // Extract indicator names from files
+                const indicatorNames = files
+                    .filter(file => file.endsWith('.json'))
+                    .map(file => {
+                        const match = file.match(/([A-Z0-9]+)\.json$/);
+                        return match ? match[1] : null;
+                    })
+                    .filter(name => name !== null);
+                
+                console.log(`Loading ${indicatorNames.length} indicators from S3 proxy...`);
+                
+                // Load data for each indicator (batched for efficiency)
+                for (let i = 0; i < indicatorNames.length; i += 10) {
+                    const batch = indicatorNames.slice(i, i + 10);
+                    const promises = batch.map(symbol => loadSpecificIndicatorFromS3(symbol));
+                    const results = await Promise.allSettled(promises);
+                    
+                    results.forEach((result, index) => {
+                        if (result.status === 'fulfilled' && result.value) {
+                            indicators.push(result.value);
+                        }
+                    });
+                }
+                
+                searchIndex = indicators;
+                console.log(`Successfully loaded ${indicators.length} indicators from S3`);
+                
+            } catch (error) {
+                console.error('Error loading indicator data from S3:', error);
+            }
+        }
+        
+        // Load specific indicator from S3 proxy
+        async function loadSpecificIndicatorFromS3(indicatorName) {
+            try {
+                const response = await fetch(LAMBDA_ENDPOINTS.s3DataProxy, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        action: 'get',
+                        indicator: indicatorName
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.status === 'success' && data.data) {
+                    // Store in scraped data for later use
+                    if (data.data.observations) {
+                        scrapedData[indicatorName] = {
+                            value: data.data.observations[data.data.observations.length - 1]?.value,
+                            observations: data.data.observations,
+                            source: 'S3',
+                            lastUpdated: data.lastUpdated
+                        };
+                    }
+                    
+                    return {
+                        symbol: indicatorName,
+                        name: data.data.name || generateIndicatorName(indicatorName),
+                        source: 'S3',
+                        data: data.data,
+                        lastUpdated: data.lastUpdated
+                    };
+                }
+                
+                return null;
+            } catch (error) {
+                console.error(`Error loading ${indicatorName} from S3:`, error);
+                return null;
             }
         }
         
@@ -957,11 +1095,12 @@
             }
         }
         
-        // Load scraped data
+        // Load scraped data from S3 proxy instead of direct S3 access
         async function loadScrapedData() {
             try {
                 console.log('Loading scraped data...');
                 
+                // First try the scraper Lambda
                 const response = await fetch(LAMBDA_ENDPOINTS.scrapeMacroData, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -970,24 +1109,97 @@
                 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('Scraped data loaded:', data);
+                    console.log('Scraped data loaded from Lambda:', data);
                     
                     // Process scraped data
                     if (data.data) {
-                        scrapedData = data.data;
+                        scrapedData = { ...scrapedData, ...data.data };
                     } else if (data.indicators) {
-                        scrapedData = data.indicators;
+                        scrapedData = { ...scrapedData, ...data.indicators };
                     }
                     
                     updateSourceStatus('scraper', true);
-                    
                 } else {
-                    console.error('Failed to load scraped data');
-                    updateSourceStatus('scraper', false, true);
+                    console.error('Failed to load from scraper Lambda, trying S3 proxy...');
+                    // Fallback to S3 proxy
+                    await loadScrapedDataFromS3Proxy();
                 }
                 
             } catch (error) {
                 console.error('Error loading scraped data:', error);
+                // Fallback to S3 proxy
+                await loadScrapedDataFromS3Proxy();
+            }
+        }
+        
+        // Load scraped data from S3 proxy - NEW FUNCTION
+        async function loadScrapedDataFromS3Proxy() {
+            try {
+                console.log('Loading scraped data from S3 proxy...');
+                
+                // List all available scraped data
+                const listResponse = await fetch(LAMBDA_ENDPOINTS.s3DataProxy, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({action: 'list'})
+                });
+                
+                if (listResponse.ok) {
+                    const listData = await listResponse.json();
+                    
+                    if (listData.status === 'success' && listData.indicators) {
+                        console.log(`Found ${listData.indicators.length} indicators in S3`);
+                        
+                        // Load latest scraped data files
+                        const scrapedFiles = listData.indicators.filter(ind => 
+                            ind.includes('scraped') || ind.includes('latest')
+                        );
+                        
+                        // If no specific scraped files, just use all indicators
+                        const filesToLoad = scrapedFiles.length > 0 ? scrapedFiles : listData.indicators.slice(0, 50);
+                        
+                        for (const indicator of filesToLoad) {
+                            try {
+                                const dataResponse = await fetch(LAMBDA_ENDPOINTS.s3DataProxy, {
+                                    method: 'POST',
+                                    headers: {'Content-Type': 'application/json'},
+                                    body: JSON.stringify({
+                                        action: 'get',
+                                        indicator: indicator
+                                    })
+                                });
+                                
+                                if (dataResponse.ok) {
+                                    const indicatorData = await dataResponse.json();
+                                    if (indicatorData.status === 'success' && indicatorData.data) {
+                                        // Extract the latest value
+                                        const observations = indicatorData.data.observations;
+                                        if (observations && observations.length > 0) {
+                                            const latest = observations[observations.length - 1];
+                                            const previous = observations[observations.length - 2];
+                                            
+                                            scrapedData[indicator] = {
+                                                value: parseFloat(latest.value),
+                                                change: previous ? ((parseFloat(latest.value) - parseFloat(previous.value)) / parseFloat(previous.value) * 100) : 0,
+                                                date: latest.date,
+                                                source: 'S3-scraped',
+                                                observations: observations
+                                            };
+                                        }
+                                    }
+                                }
+                            } catch (err) {
+                                console.error(`Error loading ${indicator}:`, err);
+                            }
+                        }
+                        
+                        updateSourceStatus('scraper', true);
+                        console.log(`Loaded ${Object.keys(scrapedData).length} indicators from S3 proxy`);
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error loading scraped data from S3 proxy:', error);
                 updateSourceStatus('scraper', false, true);
             }
         }
@@ -1267,8 +1479,9 @@
             return tags;
         }
         
-        // Parse indicators from file list
+        // Parse indicators from file list (no longer needed with S3 proxy)
         function parseIndicatorsFromFiles(files) {
+            console.log('Note: This function is deprecated. Use S3 proxy instead.');
             const indicators = [];
             
             if (Array.isArray(files)) {
@@ -1288,6 +1501,32 @@
             }
             
             return indicators;
+        }
+        
+        // Test S3 proxy connection
+        async function testS3Proxy() {
+            console.log('Testing S3 proxy connection...');
+            try {
+                const response = await fetch(LAMBDA_ENDPOINTS.s3DataProxy, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({action: 'list'})
+                });
+                
+                const data = await response.json();
+                console.log('S3 Proxy test result:', data);
+                
+                if (data.status === 'success') {
+                    console.log(`S3 Proxy working! Found ${data.indicators?.length || 0} indicators`);
+                    return true;
+                } else {
+                    console.error('S3 Proxy error:', data.error);
+                    return false;
+                }
+            } catch (error) {
+                console.error('S3 Proxy connection failed:', error);
+                return false;
+            }
         }
         
         // Setup event listeners
@@ -1828,15 +2067,57 @@
             try {
                 let chartData = [];
                 
-                // Try to get data from AppRunner first (most reliable historical data)
-                if (indicator.appRunnerData && indicator.appRunnerData.observations) {
+                // First priority: Check if we have S3 data with observations
+                if (indicator.scrapedData && indicator.scrapedData.observations) {
+                    chartData = indicator.scrapedData.observations.map(obs => ({
+                        date: obs.date,
+                        value: parseFloat(obs.value),
+                        source: 'S3'
+                    }));
+                    console.log(`Using S3 data for ${indicator.symbol} chart (${chartData.length} points)`);
+                }
+                
+                // Second priority: Try to get from AppRunner if no S3 data
+                if (chartData.length === 0 && indicator.appRunnerData && indicator.appRunnerData.observations) {
                     chartData = indicator.appRunnerData.observations.map(obs => ({
                         date: obs.date,
                         value: parseFloat(obs.value),
                         source: 'AppRunner'
                     }));
-                } else {
-                    // Try to fetch from AppRunner API
+                    console.log(`Using AppRunner data for ${indicator.symbol} chart`);
+                }
+                
+                // Third priority: Try to fetch from S3 proxy if not already loaded
+                if (chartData.length === 0 && !indicator.scrapedData) {
+                    try {
+                        console.log(`Fetching ${indicator.symbol} data from S3 proxy...`);
+                        const response = await fetch(LAMBDA_ENDPOINTS.s3DataProxy, {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({
+                                action: 'get',
+                                indicator: indicator.symbol
+                            })
+                        });
+                        
+                        if (response.ok) {
+                            const s3Data = await response.json();
+                            if (s3Data.status === 'success' && s3Data.data && s3Data.data.observations) {
+                                chartData = s3Data.data.observations.map(obs => ({
+                                    date: obs.date,
+                                    value: parseFloat(obs.value),
+                                    source: 'S3-Direct'
+                                }));
+                                console.log(`Loaded ${chartData.length} data points from S3 proxy`);
+                            }
+                        }
+                    } catch (error) {
+                        console.error(`Error fetching ${indicator.symbol} from S3:`, error);
+                    }
+                }
+                
+                // Fourth priority: Try AppRunner API
+                if (chartData.length === 0) {
                     try {
                         const response = await fetch(`${API_BASE}/api/fred/series/${indicator.symbol}`);
                         if (response.ok) {
@@ -1850,13 +2131,14 @@
                             }
                         }
                     } catch (error) {
-                        console.error('Error fetching chart data:', error);
+                        console.error('Error fetching chart data from AppRunner:', error);
                     }
                 }
                 
-                // If no real data, generate mock data
+                // Last resort: Generate mock data
                 if (chartData.length === 0) {
-                    chartData = generateMockChartData(indicator.symbol, 365 * 2); // 2 years
+                    console.log(`No real data available for ${indicator.symbol}, using mock data`);
+                    chartData = generateMockChartData(indicator.symbol, 365 * 2);
                 }
                 
                 if (chartData.length > 0) {
