@@ -846,7 +846,13 @@
                 startRealtimeUpdates()
             ];
             
-            await Promise.allSettled(loadPromises);
+            const results = await Promise.allSettled(loadPromises);
+            
+            // Log results for debugging
+            results.forEach((result, index) => {
+                const names = ['SearchIndex', 'AIPredictions', 'ScrapedData', 'AppRunnerData', 'RealtimeUpdates'];
+                console.log(`${names[index]} load result:`, result.status);
+            });
             
             // Build comprehensive search index from all sources
             buildUnifiedSearchIndex();
@@ -892,20 +898,12 @@
                     const data = await response.json();
                     console.log('Search index loaded:', data);
                     
-                    // Extract indicators from the response
-                    if (data.indicators && Array.isArray(data.indicators)) {
-                        // Filter out any invalid indicators
-                        searchIndex = data.indicators.filter(ind => ind && ind.symbol);
-                        console.log(`Loaded ${searchIndex.length} valid indicators from Lambda`);
-                    } else if (data.files) {
-                        // If we get file list, load actual data from S3 proxy
-                        console.log('Loading indicator data from S3 proxy...');
-                        await loadIndicatorsFromS3Proxy();
-                    }
+                    // Always load from S3 proxy for comprehensive data
+                    console.log('Loading comprehensive indicator data from S3 proxy...');
+                    await loadIndicatorsFromS3Proxy();
                     
-                    updateSourceStatus('index', true);
                 } else {
-                    console.error('Failed to load search index');
+                    console.error('Failed to load search index from Lambda');
                     // Try S3 proxy as fallback
                     await loadIndicatorsFromS3Proxy();
                 }
@@ -1168,7 +1166,7 @@
                     const data = await response.json();
                     console.log('AI predictions loaded:', data);
                     
-                    // Extract predictions
+                    // Extract predictions from different possible formats
                     if (data.market_analysis && data.market_analysis.predictions) {
                         aiPredictions = data.market_analysis.predictions;
                     } else if (data.predictions) {
@@ -1186,8 +1184,22 @@
                                 change: indicator.daily_change
                             };
                         });
+                    } else if (data.market_analysis && data.market_analysis.indicators) {
+                        // Another possible format
+                        aiPredictions = {};
+                        Object.keys(data.market_analysis.indicators).forEach(symbol => {
+                            const indicator = data.market_analysis.indicators[symbol];
+                            aiPredictions[symbol] = {
+                                forecast: indicator.ai_signal || indicator.signal || 'Analysis pending',
+                                sentiment: indicator.sentiment || 'neutral',
+                                confidence: indicator.confidence || 0.75,
+                                value: indicator.current_value || indicator.value,
+                                change: indicator.daily_change || indicator.change
+                            };
+                        });
                     }
                     
+                    console.log('Processed AI predictions for indicators:', Object.keys(aiPredictions));
                     updateSourceStatus('mlPredictor', true);
                     document.getElementById('aiPredictionCount').textContent = Object.keys(aiPredictions).length;
                     
@@ -1218,8 +1230,21 @@
                     const data = await response.json();
                     console.log('Scraped data loaded from Lambda:', data);
                     
-                    // Process scraped data
-                    if (data.data) {
+                    // Process scraped data - check different possible formats
+                    if (data.macro_data && data.macro_data.indicators) {
+                        // Format: { macro_data: { indicators: { symbol: {...} } } }
+                        Object.keys(data.macro_data.indicators).forEach(symbol => {
+                            const indicator = data.macro_data.indicators[symbol];
+                            scrapedData[symbol] = {
+                                value: indicator.current_value || indicator.value,
+                                change: indicator.daily_change || indicator.change || 0,
+                                date: indicator.last_updated || new Date().toISOString(),
+                                source: 'Lambda-scraper',
+                                ...indicator
+                            };
+                        });
+                        console.log('Processed scraped data for:', Object.keys(scrapedData));
+                    } else if (data.data) {
                         scrapedData = { ...scrapedData, ...data.data };
                     } else if (data.indicators) {
                         scrapedData = { ...scrapedData, ...data.indicators };
