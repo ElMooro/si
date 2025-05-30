@@ -893,8 +893,10 @@
                     console.log('Search index loaded:', data);
                     
                     // Extract indicators from the response
-                    if (data.indicators) {
-                        searchIndex = data.indicators;
+                    if (data.indicators && Array.isArray(data.indicators)) {
+                        // Filter out any invalid indicators
+                        searchIndex = data.indicators.filter(ind => ind && ind.symbol);
+                        console.log(`Loaded ${searchIndex.length} valid indicators from Lambda`);
                     } else if (data.files) {
                         // If we get file list, load actual data from S3 proxy
                         console.log('Loading indicator data from S3 proxy...');
@@ -928,22 +930,32 @@
                 
                 const data = await response.json();
                 
-                if (data.status === 'success') {
-                    console.log(`Successfully loaded ${data.total} indicators from S3`);
+                if (data.status === 'success' && data.indicators) {
+                    console.log(`Successfully loaded ${data.total || data.indicators.length} indicators from S3`);
+                    
+                    // Filter and validate indicators
+                    const validIndicators = data.indicators.filter(ind => {
+                        if (!ind || !ind.symbol) {
+                            console.warn('Invalid indicator found:', ind);
+                            return false;
+                        }
+                        return true;
+                    });
                     
                     // Store indicators with enhanced metadata
-                    searchIndex = data.indicators;
+                    searchIndex = validIndicators;
                     
                     // Group by category for better organization
                     const byCategory = {};
-                    data.indicators.forEach(ind => {
-                        if (!byCategory[ind.category]) {
-                            byCategory[ind.category] = [];
+                    validIndicators.forEach(ind => {
+                        const category = ind.category || 'other';
+                        if (!byCategory[category]) {
+                            byCategory[category] = [];
                         }
-                        byCategory[ind.category].push(ind);
+                        byCategory[category].push(ind);
                         
                         // Also store in scrapedData for later use
-                        if (ind.latest_value !== null) {
+                        if (ind.latest_value !== null && ind.latest_value !== undefined) {
                             scrapedData[ind.symbol] = {
                                 value: ind.latest_value,
                                 change: ind.daily_change,
@@ -967,7 +979,7 @@
                     updateCategoryFilterCounts(byCategory);
                     
                 } else {
-                    console.error('Failed to load indicators from S3 proxy:', data.error);
+                    console.error('Failed to load indicators from S3 proxy:', data.error || 'Unknown error');
                     // Fallback to getAll method
                     await loadAllIndicatorsFromS3Proxy();
                 }
@@ -1514,6 +1526,8 @@
         
         // Helper functions for data enrichment
         function generateIndicatorName(symbol) {
+            if (!symbol) return 'Unknown Indicator';
+            
             const nameMap = {
                 'VIXCLS': 'CBOE Volatility Index',
                 'DGS10': '10-Year Treasury Rate',
@@ -1524,45 +1538,79 @@
                 'UNRATE': 'Unemployment Rate',
                 'GDP': 'Gross Domestic Product',
                 'SOFR': 'Secured Overnight Financing Rate',
-                'BAMLH0A0HYM2': 'US High Yield Spread'
+                'BAMLH0A0HYM2': 'US High Yield Spread',
+                'DEXUSEU': 'USD/EUR Exchange Rate',
+                'DTWEXBGS': 'Trade Weighted US Dollar Index',
+                'USREC': 'US Recession Indicator',
+                'HOUST': 'Housing Starts',
+                'INDPRO': 'Industrial Production Index',
+                'RETAILSL': 'Retail Sales',
+                'UMCSENT': 'University of Michigan Consumer Sentiment',
+                'PAYEMS': 'Nonfarm Payrolls',
+                'M2SL': 'M2 Money Supply',
+                'WALCL': 'Fed Balance Sheet',
+                'PCE': 'Personal Consumption Expenditures',
+                'MORTGAGE30US': '30-Year Mortgage Rate',
+                'DEXJPUS': 'USD/JPY Exchange Rate',
+                'TEDRATE': 'TED Spread',
+                'DFEDTARU': 'Fed Funds Target Rate',
+                'CIVPART': 'Labor Force Participation Rate',
+                'RSXFS': 'Real Retail Sales'
             };
             
             return nameMap[symbol] || symbol;
         }
         
         function detectCategory(indicator) {
+            if (!indicator || !indicator.symbol) return 'other';
+            
             const symbol = indicator.symbol.toUpperCase();
             
-            if (symbol.includes('VIX') || symbol.includes('VOL')) return 'volatility';
-            if (symbol.includes('BAML') || symbol.includes('CREDIT')) return 'credit';
-            if (symbol.includes('DGS') || symbol.includes('RATE') || symbol.includes('SOFR')) return 'rates';
-            if (symbol.includes('T10Y') || symbol.includes('YIELD')) return 'rates';
-            if (symbol.includes('USD') || symbol.includes('DXY') || symbol.includes('DEX')) return 'currency';
-            if (symbol.includes('GDP') || symbol.includes('CPI') || symbol.includes('RECESSION')) return 'economic';
-            if (symbol.includes('UNRATE') || symbol.includes('PAYEMS')) return 'employment';
-            if (symbol.includes('SP') || symbol.includes('SPY') || symbol.includes('QQQ')) return 'equity';
+            if (symbol.includes('VIX') || symbol.includes('VOL') || symbol.includes('MOVE') || symbol.includes('GVZ')) return 'volatility';
+            if (symbol.includes('BAML') || symbol.includes('CREDIT') || symbol.includes('TED')) return 'credit';
+            if (symbol.includes('DGS') || symbol.includes('RATE') || symbol.includes('SOFR') || symbol.includes('DFF') || symbol.includes('MORTGAGE')) return 'rates';
+            if (symbol.includes('T10Y') || symbol.includes('YIELD') || symbol.includes('DFEDTARU')) return 'rates';
+            if (symbol.includes('USD') || symbol.includes('DXY') || symbol.includes('DEX') || symbol.includes('DTWEX')) return 'currency';
+            if (symbol.includes('GDP') || symbol.includes('CPI') || symbol.includes('RECESSION') || symbol.includes('USREC') || symbol.includes('PCE')) return 'economic';
+            if (symbol.includes('UNRATE') || symbol.includes('PAYEMS') || symbol.includes('CIVPART')) return 'employment';
+            if (symbol.includes('SP') || symbol.includes('SPY') || symbol.includes('QQQ') || symbol.includes('IWM') || symbol.includes('DIA') || symbol.includes('VTI')) return 'equity';
+            if (symbol.includes('WRESBAL') || symbol.includes('WALCL') || symbol.includes('M2')) return 'liquidity';
+            if (symbol.includes('HOUST') || symbol.includes('HOUSING')) return 'housing';
+            if (symbol.includes('INDPRO') || symbol.includes('INDUSTRIAL')) return 'industrial';
+            if (symbol.includes('RETAIL') || symbol.includes('RSXFS') || symbol.includes('UMCSENT')) return 'consumer';
+            if (symbol.includes('STLFSI')) return 'risk';
             
             return 'economic';
         }
         
         function calculatePriority(indicator) {
-            // Black Swan indicators
-            const blackSwanSymbols = ['VIXCLS', 'BAMLH0A0HYM2', 'T10Y2Y', 'SOFR', 'STLFSI2'];
-            if (blackSwanSymbols.includes(indicator.symbol)) return 10;
+            if (!indicator || !indicator.symbol) return 5;
             
-            // High priority
-            const highPrioritySymbols = ['DGS10', 'DFF', 'USREC', 'SP500'];
-            if (highPrioritySymbols.includes(indicator.symbol)) return 9;
+            const symbol = indicator.symbol.toUpperCase();
             
-            // Medium priority
-            const mediumPrioritySymbols = ['CPIAUCSL', 'UNRATE', 'GDP', 'DEXUSEU'];
-            if (mediumPrioritySymbols.includes(indicator.symbol)) return 8;
+            // Black Swan indicators (Priority 10)
+            const blackSwanSymbols = ['VIXCLS', 'BAMLH0A0HYM2', 'T10Y2Y', 'SOFR', 'STLFSI2', 'WRESBAL', 'DTWEXBGS', 'GVZCLS', 'MOVE', 'BAMLC0A0CM'];
+            if (blackSwanSymbols.includes(symbol)) return 10;
             
-            // Default
-            return 7;
+            // Critical priority (Priority 9)
+            const criticalSymbols = ['DGS10', 'DFF', 'USREC', 'TEDRATE', 'DFEDTARU'];
+            if (criticalSymbols.includes(symbol)) return 9;
+            
+            // High priority (Priority 8)
+            const highPrioritySymbols = ['CPIAUCSL', 'UNRATE', 'GDP', 'DEXUSEU', 'SP500', 'SPY', 'M2SL', 'WALCL', 'PCE'];
+            if (highPrioritySymbols.includes(symbol)) return 8;
+            
+            // Medium priority (Priority 7)
+            const mediumPrioritySymbols = ['QQQ', 'IWM', 'DIA', 'VTI', 'HOUST', 'INDPRO', 'RETAILSL', 'PAYEMS', 'MORTGAGE30US', 'DEXJPUS'];
+            if (mediumPrioritySymbols.includes(symbol)) return 7;
+            
+            // Default priority
+            return 6;
         }
         
         function generateTags(indicator) {
+            if (!indicator || !indicator.symbol) return [];
+            
             const tags = [];
             
             if (indicator.category) tags.push(indicator.category);
@@ -1570,8 +1618,16 @@
             if (indicator.hasLive) tags.push('real-time');
             if (indicator.priority >= 10) tags.push('black-swan');
             if (indicator.priority >= 9) tags.push('critical');
+            if (indicator.priority >= 8) tags.push('high-priority');
             
-            return tags;
+            // Add specific tags based on symbol
+            const symbol = indicator.symbol.toUpperCase();
+            if (symbol.includes('VIX')) tags.push('fear-gauge');
+            if (symbol.includes('YIELD') || symbol.includes('T10Y')) tags.push('yield-curve');
+            if (symbol.includes('USD') || symbol.includes('DEX')) tags.push('forex');
+            if (symbol.includes('RECESSION')) tags.push('recession-indicator');
+            
+            return [...new Set(tags)]; // Remove duplicates
         }
         
         // Parse indicators from file list (no longer needed with S3 proxy)
