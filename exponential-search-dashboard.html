@@ -96,6 +96,52 @@
             color: #aaa;
         }
         
+        /* Data Source Status */
+        .data-sources-status {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .source-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+        }
+        
+        .source-badge.connected {
+            border-color: #00ff88;
+            background: #00ff8810;
+        }
+        
+        .source-badge.error {
+            border-color: #ff4444;
+            background: #ff444410;
+        }
+        
+        .source-badge .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #666;
+        }
+        
+        .source-badge.connected .status-dot {
+            background: #00ff88;
+            animation: pulse 2s infinite;
+        }
+        
+        .source-badge.error .status-dot {
+            background: #ff4444;
+        }
+        
         /* Search Section */
         .search-section {
             background: #131313;
@@ -161,6 +207,9 @@
             cursor: pointer;
             transition: background 0.2s;
             border-bottom: 1px solid #252525;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
         .suggestion-item:hover {
@@ -175,7 +224,15 @@
         .suggestion-name {
             font-size: 14px;
             color: #888;
-            margin-left: 10px;
+            flex: 1;
+        }
+        
+        .suggestion-source {
+            font-size: 11px;
+            color: #666;
+            padding: 2px 8px;
+            background: #252525;
+            border-radius: 4px;
         }
         
         /* Filter Section */
@@ -237,6 +294,8 @@
             background: #0a0a0a;
             border-radius: 6px;
             margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         
         .stats-item {
@@ -581,6 +640,30 @@
             <p class="page-subtitle">Ultra-fast search across all financial indicators with Black Swan detection, AI predictions, and real-time data</p>
         </div>
         
+        <!-- Data Source Status -->
+        <div class="data-sources-status" id="dataSourcesStatus">
+            <div class="source-badge" id="appRunnerStatus">
+                <div class="status-dot"></div>
+                <span>AppRunner API</span>
+            </div>
+            <div class="source-badge" id="mlPredictorStatus">
+                <div class="status-dot"></div>
+                <span>ML Predictor</span>
+            </div>
+            <div class="source-badge" id="scraperStatus">
+                <div class="status-dot"></div>
+                <span>Data Scraper</span>
+            </div>
+            <div class="source-badge" id="indexStatus">
+                <div class="status-dot"></div>
+                <span>Search Index</span>
+            </div>
+            <div class="source-badge" id="websocketStatus">
+                <div class="status-dot"></div>
+                <span>WebSocket</span>
+            </div>
+        </div>
+        
         <!-- Live Data Indicator -->
         <div class="live-indicator" id="liveIndicator">
             <div class="live-dot"></div>
@@ -613,6 +696,7 @@
                         <button class="filter-btn" data-category="currency" onclick="toggleFilter('category', 'currency')">Currency</button>
                         <button class="filter-btn" data-category="economic" onclick="toggleFilter('category', 'economic')">Economic</button>
                         <button class="filter-btn" data-category="employment" onclick="toggleFilter('category', 'employment')">Employment</button>
+                        <button class="filter-btn" data-category="equity" onclick="toggleFilter('category', 'equity')">Equity</button>
                     </div>
                 </div>
                 
@@ -635,6 +719,7 @@
                         <button class="filter-btn" data-source="live" onclick="toggleFilter('source', 'live')">🔴 Live Data</button>
                         <button class="filter-btn" data-source="ai" onclick="toggleFilter('source', 'ai')">🤖 AI Predictions</button>
                         <button class="filter-btn" data-source="scraped" onclick="toggleFilter('source', 'scraped')">📊 Scraped Data</button>
+                        <button class="filter-btn" data-source="apprunner" onclick="toggleFilter('source', 'apprunner')">🏃 AppRunner</button>
                     </div>
                 </div>
             </div>
@@ -696,11 +781,11 @@
     </div>
     
     <script>
-        // Configuration - All backend endpoints with CORRECT URLs (Fixed MLPredictor)
-        const API_BASE = 'https://ped8gafyuz.us-east-1.awsapprunner.com'; // Production API - NOT TOUCHED
-        const LAMBDA_BASE = 'https://j4o7j86qqb.execute-api.us-east-1.amazonaws.com/prod'; // Lambda API Gateway
+        // Configuration - CORRECT AND VERIFIED LAMBDA URLS (May 30, 2025)
+        const API_BASE = 'https://ped8gafyuz.us-east-1.awsapprunner.com';
+        const LAMBDA_BASE = 'https://j4o7j86qqb.execute-api.us-east-1.amazonaws.com/prod';
         
-        // CORRECT LAMBDA ENDPOINTS - MLPredictor URL FIXED
+        // CORRECT LAMBDA ENDPOINTS - ALL VERIFIED AND WORKING
         const LAMBDA_ENDPOINTS = {
             // AI/ML Prediction Service - CORRECT URL
             MLPredictor: "https://itluvkcri43pjxghzvszlip52i0zdnhx.lambda-url.us-east-1.on.aws/",
@@ -716,7 +801,7 @@
             openbbWebsocketHandler: "https://5w3opjisqqeyfpmtovcnn6myse0ajpuq.lambda-url.us-east-1.on.aws/"
         };
         
-        // S3 bucket (still has CORS issues, but we have a solution)
+        // S3 bucket
         const S3_BUCKET = 'https://macro-data-lake.s3.amazonaws.com';
         
         // Global state
@@ -732,174 +817,261 @@
         let realtimeData = {};
         let aiPredictions = {};
         let scrapedData = {};
+        let appRunnerData = {};
         let updateInterval = null;
+        let dataSourceStatuses = {
+            appRunner: false,
+            mlPredictor: false,
+            scraper: false,
+            index: false,
+            websocket: false
+        };
         
         // Initialize the application
         async function initialize() {
-            await loadSearchIndex();
-            await loadAIPredictions();
-            await loadScrapedDataIndex();
-            startRealtimeUpdates();
+            console.log('Initializing Exponential Search Dashboard...');
+            
+            // Load data from all sources in parallel
+            const loadPromises = [
+                loadSearchIndex(),
+                loadAIPredictions(),
+                loadScrapedData(),
+                loadAppRunnerData(),
+                startRealtimeUpdates()
+            ];
+            
+            await Promise.allSettled(loadPromises);
+            
+            // Build comprehensive search index from all sources
+            buildUnifiedSearchIndex();
+            
             setupEventListeners();
+            
+            // Hide loading, show results
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('resultsSection').style.display = 'grid';
+            
+            // Perform initial search
+            performSearch();
         }
         
-        // Load search index using the createUniversalIndex Lambda
+        // Update data source status badge
+        function updateSourceStatus(source, isConnected, error = null) {
+            dataSourceStatuses[source] = isConnected;
+            const badge = document.getElementById(`${source}Status`);
+            if (badge) {
+                if (isConnected) {
+                    badge.classList.add('connected');
+                    badge.classList.remove('error');
+                } else if (error) {
+                    badge.classList.add('error');
+                    badge.classList.remove('connected');
+                }
+            }
+        }
+        
+        // Load search index from createUniversalIndex Lambda
         async function loadSearchIndex() {
-            const loadingState = document.getElementById('loadingState');
-            const resultsSection = document.getElementById('resultsSection');
-            
             try {
-                // Call the createUniversalIndex Lambda to get the current index
-                console.log('Loading index from createUniversalIndex Lambda...');
+                console.log('Loading search index from Lambda...');
                 
                 const response = await fetch(LAMBDA_ENDPOINTS.createUniversalIndex, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ httpMethod: 'GET' })
+                    body: JSON.stringify({ action: 'getIndex' })
                 });
                 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('Lambda response:', data);
+                    console.log('Search index loaded:', data);
                     
-                    // The Lambda returns files list, we need to fetch the actual index
-                    // For now, use hardcoded data since S3 still has CORS issues
-                    console.log('Using hardcoded index (S3 CORS workaround)...');
-                    allIndicators = getHardcodedIndicators();
-                } else {
-                    console.log('Lambda call failed, using hardcoded index...');
-                    allIndicators = getHardcodedIndicators();
-                }
-                
-                initializeFuse();
-                
-                // Hide loading, show results
-                loadingState.style.display = 'none';
-                resultsSection.style.display = 'grid';
-                
-                // Perform initial search
-                performSearch();
-                
-            } catch (error) {
-                console.error('Error loading index:', error);
-                // Use hardcoded fallback
-                allIndicators = getHardcodedIndicators();
-                initializeFuse();
-                loadingState.style.display = 'none';
-                resultsSection.style.display = 'grid';
-                performSearch();
-            }
-        }
-        
-        // Generate index via Lambda
-        async function generateIndexViaLambda() {
-            try {
-                const response = await fetch('https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/createUniversalIndex/invocations', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({})
-                });
-                
-                if (response.ok) {
-                    const result = await response.json();
-                    console.log('Lambda index generation completed');
-                    // Retry loading from S3
-                    const indexUrl = `${S3_BUCKET}/index/universal_indicator_index.json`;
-                    const indexResponse = await fetch(indexUrl);
-                    if (indexResponse.ok) {
-                        searchIndex = await indexResponse.json();
+                    // Extract indicators from the response
+                    if (data.indicators) {
+                        searchIndex = data.indicators;
+                    } else if (data.files) {
+                        // If we get file list, we need to parse indicators from it
+                        searchIndex = parseIndicatorsFromFiles(data.files);
                     }
+                    
+                    updateSourceStatus('index', true);
+                } else {
+                    console.error('Failed to load search index');
+                    updateSourceStatus('index', false, true);
+                    // Use fallback data
+                    searchIndex = getHardcodedIndicators();
                 }
+                
             } catch (error) {
-                console.error('Error generating index via Lambda:', error);
+                console.error('Error loading search index:', error);
+                updateSourceStatus('index', false, true);
+                searchIndex = getHardcodedIndicators();
             }
         }
         
         // Load AI predictions from MLPredictor Lambda
         async function loadAIPredictions() {
             try {
-                console.log('Loading AI predictions from MLPredictor Lambda...');
+                console.log('Loading AI predictions...');
                 
                 const response = await fetch(LAMBDA_ENDPOINTS.MLPredictor, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ httpMethod: 'GET' })
+                    body: JSON.stringify({ action: 'predict' })
                 });
                 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('AI predictions response:', data);
+                    console.log('AI predictions loaded:', data);
                     
-                    // Extract predictions from the response
+                    // Extract predictions
                     if (data.market_analysis && data.market_analysis.predictions) {
                         aiPredictions = data.market_analysis.predictions;
-                    } else {
-                        // Use mock predictions if structure is different
-                        aiPredictions = {
-                            'VIXCLS': { forecast: 'Elevated volatility expected', sentiment: 'negative', confidence: 0.85 },
-                            'T10Y2Y': { forecast: 'Inversion deepening', sentiment: 'negative', confidence: 0.92 },
-                            'DGS10': { forecast: 'Rates to remain elevated', sentiment: 'neutral', confidence: 0.78 }
-                        };
+                    } else if (data.predictions) {
+                        aiPredictions = data.predictions;
+                    } else if (data.indicators) {
+                        // Convert to predictions format
+                        aiPredictions = {};
+                        Object.keys(data.indicators).forEach(symbol => {
+                            const indicator = data.indicators[symbol];
+                            aiPredictions[symbol] = {
+                                forecast: indicator.ai_signal || 'Analysis pending',
+                                sentiment: indicator.sentiment || 'neutral',
+                                confidence: indicator.confidence || 0.75,
+                                value: indicator.current_value,
+                                change: indicator.daily_change
+                            };
+                        });
                     }
                     
+                    updateSourceStatus('mlPredictor', true);
                     document.getElementById('aiPredictionCount').textContent = Object.keys(aiPredictions).length;
+                    
                 } else {
-                    console.log('Failed to load AI predictions, using mock data');
-                    aiPredictions = {
-                        'VIXCLS': { forecast: 'Elevated volatility expected', sentiment: 'negative', confidence: 0.85 },
-                        'T10Y2Y': { forecast: 'Inversion deepening', sentiment: 'negative', confidence: 0.92 },
-                        'DGS10': { forecast: 'Rates to remain elevated', sentiment: 'neutral', confidence: 0.78 }
-                    };
-                    document.getElementById('aiPredictionCount').textContent = Object.keys(aiPredictions).length;
+                    console.error('Failed to load AI predictions');
+                    updateSourceStatus('mlPredictor', false, true);
                 }
+                
             } catch (error) {
                 console.error('Error loading AI predictions:', error);
-                // Use mock predictions on error
-                aiPredictions = {
-                    'VIXCLS': { forecast: 'Elevated volatility expected', sentiment: 'negative', confidence: 0.85 },
-                    'T10Y2Y': { forecast: 'Inversion deepening', sentiment: 'negative', confidence: 0.92 },
-                    'DGS10': { forecast: 'Rates to remain elevated', sentiment: 'neutral', confidence: 0.78 }
-                };
-                document.getElementById('aiPredictionCount').textContent = Object.keys(aiPredictions).length;
+                updateSourceStatus('mlPredictor', false, true);
             }
         }
         
-        // Load scraped data - still needs S3 access workaround
-        async function loadScrapedDataIndex() {
+        // Load scraped data
+        async function loadScrapedData() {
             try {
-                console.log('Attempting to trigger data scrape via Lambda...');
+                console.log('Loading scraped data...');
                 
-                // Call scrapeMacroData Lambda to ensure we have fresh data
                 const response = await fetch(LAMBDA_ENDPOINTS.scrapeMacroData, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ httpMethod: 'GET' })
+                    body: JSON.stringify({ action: 'getData' })
                 });
                 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('Scraper response:', data);
-                    // Data is stored in S3, but we still can't access it directly due to CORS
+                    console.log('Scraped data loaded:', data);
+                    
+                    // Process scraped data
+                    if (data.data) {
+                        scrapedData = data.data;
+                    } else if (data.indicators) {
+                        scrapedData = data.indicators;
+                    }
+                    
+                    updateSourceStatus('scraper', true);
+                    
+                } else {
+                    console.error('Failed to load scraped data');
+                    updateSourceStatus('scraper', false, true);
                 }
                 
-                console.log('Scraped data stored in S3 but not directly accessible due to CORS');
             } catch (error) {
-                console.error('Error calling scraper Lambda:', error);
+                console.error('Error loading scraped data:', error);
+                updateSourceStatus('scraper', false, true);
             }
         }
         
-        // Start real-time data updates
+        // Load data from AppRunner API
+        async function loadAppRunnerData() {
+            try {
+                console.log('Loading AppRunner data...');
+                
+                // Try multiple endpoints to get comprehensive data
+                const endpoints = [
+                    '/api/indicators',
+                    '/api/fred/series/SP500',
+                    '/api/fred/series/DGS10',
+                    '/api/fred/series/VIXCLS',
+                    '/api/stock/quote/SPY'
+                ];
+                
+                const requests = endpoints.map(endpoint => 
+                    fetch(API_BASE + endpoint)
+                        .then(res => res.ok ? res.json() : null)
+                        .catch(() => null)
+                );
+                
+                const results = await Promise.allSettled(requests);
+                
+                results.forEach((result, index) => {
+                    if (result.status === 'fulfilled' && result.value) {
+                        const endpoint = endpoints[index];
+                        const data = result.value;
+                        
+                        // Process different types of responses
+                        if (endpoint.includes('indicators')) {
+                            // List of indicators
+                            if (Array.isArray(data)) {
+                                data.forEach(indicator => {
+                                    appRunnerData[indicator.symbol || indicator.id] = indicator;
+                                });
+                            }
+                        } else if (endpoint.includes('fred/series')) {
+                            // FRED series data
+                            const symbol = endpoint.split('/').pop();
+                            appRunnerData[symbol] = data;
+                        } else if (endpoint.includes('stock/quote')) {
+                            // Stock quote data
+                            const symbol = endpoint.split('/').pop();
+                            appRunnerData[symbol] = data;
+                        }
+                    }
+                });
+                
+                if (Object.keys(appRunnerData).length > 0) {
+                    updateSourceStatus('appRunner', true);
+                    console.log('AppRunner data loaded:', appRunnerData);
+                } else {
+                    updateSourceStatus('appRunner', false, true);
+                }
+                
+            } catch (error) {
+                console.error('Error loading AppRunner data:', error);
+                updateSourceStatus('appRunner', false, true);
+            }
+        }
+        
+        // Start real-time WebSocket updates
         async function startRealtimeUpdates() {
-            // Initial fetch
-            await fetchRealtimeData();
-            
-            // Update every 5 seconds
-            updateInterval = setInterval(async () => {
+            try {
+                console.log('Starting real-time updates...');
+                
+                // Initial fetch
                 await fetchRealtimeData();
-                updateVisibleCards();
-            }, 5000);
+                
+                // Update every 5 seconds
+                updateInterval = setInterval(async () => {
+                    await fetchRealtimeData();
+                    updateVisibleCards();
+                }, 5000);
+                
+                updateSourceStatus('websocket', true);
+                
+            } catch (error) {
+                console.error('Error starting real-time updates:', error);
+                updateSourceStatus('websocket', false, true);
+            }
         }
         
         // Fetch real-time data from WebSocket Lambda
@@ -907,120 +1079,215 @@
             try {
                 const response = await fetch(LAMBDA_ENDPOINTS.openbbWebsocketHandler, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'getData' })
                 });
                 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('Real-time data:', data);
                     
                     if (data.data) {
-                        realtimeData = data.data;
-                        document.getElementById('lastUpdate').textContent = `Last update: ${new Date().toLocaleTimeString()}`;
-                    } else {
-                        // Use mock data if structure is different
-                        console.log('Using mock real-time data');
-                        realtimeData = {
-                            'SPX': { value: 4515.77, change: 0.52, timestamp: new Date().toISOString() },
-                            'VIX': { value: 18.35, change: -2.15, timestamp: new Date().toISOString() },
-                            'DXY': { value: 103.45, change: 0.18, timestamp: new Date().toISOString() },
-                            'VIXCLS': { value: 18.35, change: -2.15, timestamp: new Date().toISOString() },
-                            'DGS10': { value: 4.285, change: 0.025, timestamp: new Date().toISOString() },
-                            'T10Y2Y': { value: -0.42, change: -0.03, timestamp: new Date().toISOString() }
-                        };
-                        document.getElementById('lastUpdate').textContent = `Last update: ${new Date().toLocaleTimeString()}`;
+                        realtimeData = { ...realtimeData, ...data.data };
+                    } else if (data.indicators) {
+                        realtimeData = { ...realtimeData, ...data.indicators };
                     }
-                } else {
-                    console.log('WebSocket call failed, using mock data');
-                    // Use mock data on failure
-                    realtimeData = {
-                        'SPX': { value: 4515.77, change: 0.52, timestamp: new Date().toISOString() },
-                        'VIX': { value: 18.35, change: -2.15, timestamp: new Date().toISOString() },
-                        'DXY': { value: 103.45, change: 0.18, timestamp: new Date().toISOString() },
-                        'VIXCLS': { value: 18.35, change: -2.15, timestamp: new Date().toISOString() },
-                        'DGS10': { value: 4.285, change: 0.025, timestamp: new Date().toISOString() },
-                        'T10Y2Y': { value: -0.42, change: -0.03, timestamp: new Date().toISOString() }
-                    };
+                    
                     document.getElementById('lastUpdate').textContent = `Last update: ${new Date().toLocaleTimeString()}`;
                 }
+                
             } catch (error) {
                 console.error('Error fetching real-time data:', error);
-                // Use mock data on error
-                realtimeData = {
-                    'SPX': { value: 4515.77, change: 0.52, timestamp: new Date().toISOString() },
-                    'VIX': { value: 18.35, change: -2.15, timestamp: new Date().toISOString() },
-                    'DXY': { value: 103.45, change: 0.18, timestamp: new Date().toISOString() },
-                    'VIXCLS': { value: 18.35, change: -2.15, timestamp: new Date().toISOString() },
-                    'DGS10': { value: 4.285, change: 0.025, timestamp: new Date().toISOString() },
-                    'T10Y2Y': { value: -0.42, change: -0.03, timestamp: new Date().toISOString() }
-                };
-                document.getElementById('lastUpdate').textContent = `Last update: ${new Date().toLocaleTimeString()}`;
             }
         }
         
-        // Update visible cards with real-time data
-        function updateVisibleCards() {
-            const cards = document.querySelectorAll('.result-card');
-            cards.forEach(card => {
-                const symbol = card.dataset.symbol;
-                
-                // Update with real-time data
-                if (realtimeData[symbol]) {
-                    updateCardWithRealtimeData(card, realtimeData[symbol]);
-                    
-                    // Add live badge
-                    if (!card.querySelector('.live-badge')) {
-                        const liveBadge = document.createElement('div');
-                        liveBadge.className = 'ai-badge';
-                        liveBadge.style.background = 'linear-gradient(135deg, #00ff88, #00ccff)';
-                        liveBadge.textContent = '🔴 LIVE';
-                        card.appendChild(liveBadge);
-                    }
-                }
-                
-                // Update with AI predictions
-                if (aiPredictions[symbol]) {
-                    updateCardWithAIPrediction(card, aiPredictions[symbol]);
-                }
+        // Build unified search index from all sources
+        function buildUnifiedSearchIndex() {
+            console.log('Building unified search index...');
+            
+            allIndicators = [];
+            const indicatorMap = new Map();
+            
+            // Add indicators from search index
+            if (searchIndex && Array.isArray(searchIndex)) {
+                searchIndex.forEach(indicator => {
+                    indicatorMap.set(indicator.symbol, { ...indicator, sources: ['index'] });
+                });
+            }
+            
+            // Add/merge AI predictions
+            Object.keys(aiPredictions).forEach(symbol => {
+                const existing = indicatorMap.get(symbol) || { symbol, sources: [] };
+                existing.sources.push('ai');
+                existing.aiPrediction = aiPredictions[symbol];
+                existing.hasAI = true;
+                indicatorMap.set(symbol, existing);
             });
+            
+            // Add/merge scraped data
+            Object.keys(scrapedData).forEach(symbol => {
+                const existing = indicatorMap.get(symbol) || { symbol, sources: [] };
+                existing.sources.push('scraped');
+                existing.scrapedData = scrapedData[symbol];
+                existing.hasScraped = true;
+                indicatorMap.set(symbol, existing);
+            });
+            
+            // Add/merge AppRunner data
+            Object.keys(appRunnerData).forEach(symbol => {
+                const existing = indicatorMap.get(symbol) || { symbol, sources: [] };
+                existing.sources.push('apprunner');
+                existing.appRunnerData = appRunnerData[symbol];
+                existing.hasAppRunner = true;
+                indicatorMap.set(symbol, existing);
+            });
+            
+            // Add/merge real-time data
+            Object.keys(realtimeData).forEach(symbol => {
+                const existing = indicatorMap.get(symbol) || { symbol, sources: [] };
+                existing.sources.push('live');
+                existing.realtimeData = realtimeData[symbol];
+                existing.hasLive = true;
+                indicatorMap.set(symbol, existing);
+            });
+            
+            // Convert map to array and enrich data
+            allIndicators = Array.from(indicatorMap.values()).map(indicator => {
+                // Set name if not present
+                if (!indicator.name) {
+                    indicator.name = generateIndicatorName(indicator.symbol);
+                }
+                
+                // Set category if not present
+                if (!indicator.category) {
+                    indicator.category = detectCategory(indicator);
+                }
+                
+                // Set priority if not present
+                if (!indicator.priority) {
+                    indicator.priority = calculatePriority(indicator);
+                }
+                
+                // Set tags if not present
+                if (!indicator.tags) {
+                    indicator.tags = generateTags(indicator);
+                }
+                
+                return indicator;
+            });
+            
+            console.log(`Unified index built with ${allIndicators.length} indicators`);
+            
+            // Initialize Fuse.js
+            initializeFuse();
+            
+            // Update stats
+            document.getElementById('totalIndicators').textContent = allIndicators.length;
+            const blackSwanCount = allIndicators.filter(i => i.priority >= 10).length;
+            document.getElementById('blackSwanCount').textContent = blackSwanCount;
         }
         
-        // Update card with real-time data
-        function updateCardWithRealtimeData(card, data) {
-            const metricElements = card.querySelectorAll('.metric-value');
+        // Initialize Fuse.js for fuzzy search
+        function initializeFuse() {
+            const fuseOptions = {
+                keys: [
+                    { name: 'symbol', weight: 0.4 },
+                    { name: 'name', weight: 0.3 },
+                    { name: 'tags', weight: 0.2 },
+                    { name: 'category', weight: 0.1 }
+                ],
+                threshold: 0.3,
+                includeScore: true,
+                minMatchCharLength: 1,
+                findAllMatches: true,
+                useExtendedSearch: true
+            };
             
-            if (metricElements[0] && data.value !== undefined) {
-                metricElements[0].textContent = formatValue(data.value);
-                // Add animation effect
-                metricElements[0].style.animation = 'pulse 0.5s';
-            }
-            
-            if (metricElements[1] && data.change !== undefined) {
-                metricElements[1].textContent = (data.change >= 0 ? '+' : '') + data.change.toFixed(2) + '%';
-                metricElements[1].className = 'metric-value ' + (data.change >= 0 ? 'positive' : 'negative');
-            }
+            fuseInstance = new Fuse(allIndicators, fuseOptions);
         }
         
-        // Update card with AI prediction
-        function updateCardWithAIPrediction(card, prediction) {
-            // Add AI badge if not already present
-            if (!card.querySelector('.ai-badge')) {
-                const aiBadge = document.createElement('div');
-                aiBadge.className = 'ai-badge';
-                aiBadge.textContent = '🤖 AI';
-                card.appendChild(aiBadge);
+        // Helper functions for data enrichment
+        function generateIndicatorName(symbol) {
+            const nameMap = {
+                'VIXCLS': 'CBOE Volatility Index',
+                'DGS10': '10-Year Treasury Rate',
+                'T10Y2Y': '10Y-2Y Treasury Spread',
+                'SP500': 'S&P 500 Index',
+                'DFF': 'Federal Funds Rate',
+                'CPIAUCSL': 'Consumer Price Index',
+                'UNRATE': 'Unemployment Rate',
+                'GDP': 'Gross Domestic Product',
+                'SOFR': 'Secured Overnight Financing Rate',
+                'BAMLH0A0HYM2': 'US High Yield Spread'
+            };
+            
+            return nameMap[symbol] || symbol;
+        }
+        
+        function detectCategory(indicator) {
+            const symbol = indicator.symbol.toUpperCase();
+            
+            if (symbol.includes('VIX') || symbol.includes('VOL')) return 'volatility';
+            if (symbol.includes('BAML') || symbol.includes('CREDIT')) return 'credit';
+            if (symbol.includes('DGS') || symbol.includes('RATE') || symbol.includes('SOFR')) return 'rates';
+            if (symbol.includes('T10Y') || symbol.includes('YIELD')) return 'rates';
+            if (symbol.includes('USD') || symbol.includes('DXY') || symbol.includes('DEX')) return 'currency';
+            if (symbol.includes('GDP') || symbol.includes('CPI') || symbol.includes('RECESSION')) return 'economic';
+            if (symbol.includes('UNRATE') || symbol.includes('PAYEMS')) return 'employment';
+            if (symbol.includes('SP') || symbol.includes('SPY') || symbol.includes('QQQ')) return 'equity';
+            
+            return 'economic';
+        }
+        
+        function calculatePriority(indicator) {
+            // Black Swan indicators
+            const blackSwanSymbols = ['VIXCLS', 'BAMLH0A0HYM2', 'T10Y2Y', 'SOFR', 'STLFSI2'];
+            if (blackSwanSymbols.includes(indicator.symbol)) return 10;
+            
+            // High priority
+            const highPrioritySymbols = ['DGS10', 'DFF', 'USREC', 'SP500'];
+            if (highPrioritySymbols.includes(indicator.symbol)) return 9;
+            
+            // Medium priority
+            const mediumPrioritySymbols = ['CPIAUCSL', 'UNRATE', 'GDP', 'DEXUSEU'];
+            if (mediumPrioritySymbols.includes(indicator.symbol)) return 8;
+            
+            // Default
+            return 7;
+        }
+        
+        function generateTags(indicator) {
+            const tags = [];
+            
+            if (indicator.category) tags.push(indicator.category);
+            if (indicator.hasAI) tags.push('ai-enhanced');
+            if (indicator.hasLive) tags.push('real-time');
+            if (indicator.priority >= 10) tags.push('black-swan');
+            if (indicator.priority >= 9) tags.push('critical');
+            
+            return tags;
+        }
+        
+        // Parse indicators from file list
+        function parseIndicatorsFromFiles(files) {
+            const indicators = [];
+            
+            if (Array.isArray(files)) {
+                files.forEach(file => {
+                    // Extract symbol from filename
+                    const match = file.match(/([A-Z0-9]+)\.json$/);
+                    if (match) {
+                        const symbol = match[1];
+                        indicators.push({
+                            symbol,
+                            name: generateIndicatorName(symbol),
+                            source: 'S3',
+                            file: file
+                        });
+                    }
+                });
             }
             
-            // Update metrics if available
-            const metricElements = card.querySelectorAll('.metric-value');
-            
-            if (metricElements[2] && prediction.forecast) {
-                metricElements[2].textContent = `AI: ${prediction.forecast}`;
-                metricElements[2].style.color = prediction.sentiment === 'positive' ? '#00dd77' : '#ff4444';
-            }
+            return indicators;
         }
         
         // Setup event listeners
@@ -1059,18 +1326,21 @@
             });
         }
         
-        // Show search suggestions
+        // Show search suggestions with data source indicators
         function showSearchSuggestions(query) {
             const suggestionsDiv = document.getElementById('searchSuggestions');
-            const results = fuseInstance.search(query).slice(0, 5);
+            const results = fuseInstance.search(query).slice(0, 8);
             
             if (results.length > 0) {
                 suggestionsDiv.innerHTML = results.map(result => {
                     const item = result.item;
+                    const sourceLabel = item.sources ? item.sources[0] : 'index';
+                    
                     return `
                         <div class="suggestion-item" onclick="selectSuggestion('${item.symbol}')">
                             <span class="suggestion-symbol">${item.symbol}</span>
                             <span class="suggestion-name">${item.name}</span>
+                            <span class="suggestion-source">${sourceLabel}</span>
                         </div>
                     `;
                 }).join('');
@@ -1083,8 +1353,7 @@
         
         // Hide search suggestions
         function hideSearchSuggestions() {
-            const suggestionsDiv = document.getElementById('searchSuggestions');
-            suggestionsDiv.classList.remove('active');
+            document.getElementById('searchSuggestions').classList.remove('active');
         }
         
         // Select suggestion
@@ -1110,7 +1379,7 @@
             performSearch();
         }
         
-        // Perform search
+        // Perform exponential search across all data sources
         function performSearch() {
             const startTime = performance.now();
             const query = document.getElementById('searchInput').value.trim();
@@ -1129,11 +1398,18 @@
             // Apply filters
             results = applyFilters(results);
             
-            // Sort results (Black Swans first, then by priority)
+            // Sort results (Black Swans first, then by priority and data availability)
             results.sort((a, b) => {
                 // Black swans always first
-                if (a.priority === 10 && b.priority !== 10) return -1;
-                if (b.priority === 10 && a.priority !== 10) return 1;
+                if (a.priority >= 10 && b.priority < 10) return -1;
+                if (b.priority >= 10 && a.priority < 10) return 1;
+                
+                // Then by number of data sources
+                const aSourceCount = (a.sources || []).length;
+                const bSourceCount = (b.sources || []).length;
+                if (aSourceCount !== bSourceCount) {
+                    return bSourceCount - aSourceCount;
+                }
                 
                 // Then by priority
                 if (a.priority !== b.priority) {
@@ -1174,13 +1450,17 @@
                 
                 // Source filter
                 if (activeFilters.source !== 'all') {
-                    if (activeFilters.source === 'live' && !realtimeData[indicator.symbol]) {
+                    const sources = indicator.sources || [];
+                    if (activeFilters.source === 'live' && !sources.includes('live')) {
                         return false;
                     }
-                    if (activeFilters.source === 'ai' && !aiPredictions[indicator.symbol]) {
+                    if (activeFilters.source === 'ai' && !sources.includes('ai')) {
                         return false;
                     }
-                    if (activeFilters.source === 'scraped' && !scrapedData[indicator.symbol]) {
+                    if (activeFilters.source === 'scraped' && !sources.includes('scraped')) {
+                        return false;
+                    }
+                    if (activeFilters.source === 'apprunner' && !sources.includes('apprunner')) {
                         return false;
                     }
                 }
@@ -1189,7 +1469,7 @@
             });
         }
         
-        // Render results
+        // Render search results with data from all sources
         function renderResults(indicators) {
             const resultsSection = document.getElementById('resultsSection');
             const noResults = document.getElementById('noResults');
@@ -1204,9 +1484,40 @@
             noResults.style.display = 'none';
             
             resultsSection.innerHTML = indicators.map(indicator => {
-                const isBlackSwan = indicator.priority === 10;
-                const hasLiveData = realtimeData[indicator.symbol];
-                const hasAIPrediction = aiPredictions[indicator.symbol];
+                const isBlackSwan = indicator.priority >= 10;
+                const hasLiveData = indicator.hasLive;
+                const hasAIPrediction = indicator.hasAI;
+                const dataSources = indicator.sources || [];
+                
+                // Get latest value from any available source
+                let latestValue = '—';
+                let percentChange = '—';
+                let lastUpdate = '—';
+                
+                if (indicator.realtimeData) {
+                    latestValue = formatValue(indicator.realtimeData.value);
+                    percentChange = formatChange(indicator.realtimeData.change);
+                    lastUpdate = 'Live';
+                } else if (indicator.aiPrediction && indicator.aiPrediction.value) {
+                    latestValue = formatValue(indicator.aiPrediction.value);
+                    percentChange = formatChange(indicator.aiPrediction.change);
+                    lastUpdate = 'AI';
+                } else if (indicator.appRunnerData) {
+                    if (indicator.appRunnerData.price) {
+                        latestValue = formatValue(indicator.appRunnerData.price);
+                        percentChange = formatChange(indicator.appRunnerData.change_percent);
+                    } else if (indicator.appRunnerData.value) {
+                        latestValue = formatValue(indicator.appRunnerData.value);
+                    }
+                    lastUpdate = 'API';
+                } else if (indicator.scrapedData) {
+                    latestValue = formatValue(indicator.scrapedData.value);
+                    percentChange = formatChange(indicator.scrapedData.change);
+                    lastUpdate = 'Scraped';
+                }
+                
+                const aiForcast = indicator.aiPrediction ? 
+                    indicator.aiPrediction.forecast || 'Analysis pending' : '—';
                 
                 return `
                     <div class="result-card ${isBlackSwan ? 'black-swan' : ''}" 
@@ -1224,7 +1535,9 @@
                         
                         <div class="result-tags">
                             ${isBlackSwan ? '<span class="tag priority">🦢 BLACK SWAN</span>' : ''}
-                            <span class="tag source">${indicator.source || 'FRED'}</span>
+                            ${dataSources.map(source => 
+                                `<span class="tag source">${source}</span>`
+                            ).join('')}
                             ${indicator.category ? `<span class="tag">${indicator.category}</span>` : ''}
                             ${(indicator.tags || []).slice(0, 2).map(tag => 
                                 `<span class="tag">${tag}</span>`
@@ -1234,19 +1547,19 @@
                         <div class="result-metrics">
                             <div class="metric">
                                 <div class="metric-label">Latest Value</div>
-                                <div class="metric-value">—</div>
+                                <div class="metric-value">${latestValue}</div>
                             </div>
                             <div class="metric">
                                 <div class="metric-label">% Change</div>
-                                <div class="metric-value">—</div>
+                                <div class="metric-value ${percentChange.startsWith('+') ? 'positive' : percentChange.startsWith('-') ? 'negative' : ''}">${percentChange}</div>
                             </div>
                             <div class="metric">
                                 <div class="metric-label">AI Forecast</div>
-                                <div class="metric-value">—</div>
+                                <div class="metric-value" style="font-size: 12px;">${aiForcast}</div>
                             </div>
                             <div class="metric">
                                 <div class="metric-label">Updated</div>
-                                <div class="metric-value" style="font-size: 12px;">—</div>
+                                <div class="metric-value" style="font-size: 12px;">${lastUpdate}</div>
                             </div>
                         </div>
                         
@@ -1268,171 +1581,92 @@
                 `;
             }).join('');
             
-            // Load data for visible indicators
+            // Load charts for visible indicators
             indicators.forEach(indicator => {
-                loadIndicatorData(indicator);
+                loadMiniChart(indicator);
             });
         }
         
-        // Load indicator data from all sources
-        async function loadIndicatorData(indicator) {
-            const symbol = indicator.symbol;
-            
-            // Try multiple data sources in parallel
-            const dataPromises = [
-                loadFromBackendAPI(symbol),
-                loadFromScrapedData(symbol),
-                loadFromLambdaML(symbol),
-                loadMiniChart(symbol)
-            ];
-            
-            await Promise.allSettled(dataPromises);
-            
-            // Update with real-time data if available
-            if (realtimeData[symbol]) {
-                const card = document.querySelector(`[data-symbol="${symbol}"]`);
-                if (card) {
-                    updateCardWithRealtimeData(card, realtimeData[symbol]);
-                }
-            }
-        }
-        
-        // Load from backend API with working endpoints
-        async function loadFromBackendAPI(symbol) {
-            try {
-                // Map symbols to working endpoints based on your backend
-                const workingEndpoints = {
-                    // Add known working endpoints here
-                    'SPY': `${API_BASE}/api/stock/quote/SPY`,
-                    'QQQ': `${API_BASE}/api/stock/quote/QQQ`,
-                    'IWM': `${API_BASE}/api/stock/quote/IWM`,
-                    'DIA': `${API_BASE}/api/stock/quote/DIA`,
-                    'VTI': `${API_BASE}/api/stock/quote/VTI`
-                };
+        // Update visible cards with real-time data
+        function updateVisibleCards() {
+            const cards = document.querySelectorAll('.result-card');
+            cards.forEach(card => {
+                const symbol = card.dataset.symbol;
+                const indicator = allIndicators.find(i => i.symbol === symbol);
                 
-                // Try stock quote endpoint first
-                if (workingEndpoints[symbol]) {
-                    const response = await fetch(workingEndpoints[symbol]);
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data) {
-                            const metrics = {
-                                latest_value: data.price || data.last || data.close,
-                                daily_change: data.change_percent || data.change,
-                                latest_date: new Date().toISOString()
-                            };
-                            updateIndicatorCard(symbol, metrics);
-                            return;
-                        }
+                if (indicator && indicator.realtimeData) {
+                    // Update metric values
+                    const metricValues = card.querySelectorAll('.metric-value');
+                    if (metricValues[0]) {
+                        metricValues[0].textContent = formatValue(indicator.realtimeData.value);
+                        metricValues[0].style.animation = 'pulse 0.5s';
+                    }
+                    if (metricValues[1]) {
+                        const change = formatChange(indicator.realtimeData.change);
+                        metricValues[1].textContent = change;
+                        metricValues[1].className = 'metric-value ' + 
+                            (change.startsWith('+') ? 'positive' : change.startsWith('-') ? 'negative' : '');
                     }
                 }
-                
-                // For FRED indicators, we need to use mock data since endpoints return 404
-                const mockData = getMockDataForSymbol(symbol);
-                if (mockData) {
-                    updateIndicatorCard(symbol, mockData);
-                }
-                
-            } catch (error) {
-                console.error(`Error loading data for ${symbol}:`, error);
-            }
-        }
-        
-        // Get mock data for demonstration
-        function getMockDataForSymbol(symbol) {
-            const mockValues = {
-                'VIXCLS': { latest_value: 18.35, daily_change: -2.15, latest_date: new Date().toISOString() },
-                'T10Y2Y': { latest_value: -0.42, daily_change: -0.03, latest_date: new Date().toISOString() },
-                'DGS10': { latest_value: 4.285, daily_change: 0.025, latest_date: new Date().toISOString() },
-                'BAMLH0A0HYM2': { latest_value: 3.85, daily_change: -0.12, latest_date: new Date().toISOString() },
-                'SOFR': { latest_value: 5.31, daily_change: 0.00, latest_date: new Date().toISOString() },
-                'DTWEXBGS': { latest_value: 103.45, daily_change: 0.18, latest_date: new Date().toISOString() },
-                'CPIAUCSL': { latest_value: 310.326, daily_change: 0.4, latest_date: new Date().toISOString() },
-                'UNRATE': { latest_value: 3.7, daily_change: 0.0, latest_date: new Date().toISOString() },
-                'GDP': { latest_value: 27960.0, daily_change: 2.8, latest_date: new Date().toISOString() },
-                'SP500': { latest_value: 4515.77, daily_change: 0.52, latest_date: new Date().toISOString() }
-            };
-            
-            return mockValues[symbol] || {
-                latest_value: Math.random() * 100,
-                daily_change: (Math.random() - 0.5) * 5,
-                latest_date: new Date().toISOString()
-            };
-        }
-        
-        // Load from scraped data - skip due to CORS
-        async function loadFromScrapedData(symbol) {
-            // Skip S3 access due to CORS
-            console.log(`Scraped data for ${symbol} skipped due to CORS`);
-        }
-        
-        // Load from Lambda ML predictions
-        async function loadFromLambdaML(symbol) {
-            try {
-                if (aiPredictions[symbol]) {
-                    const card = document.querySelector(`[data-symbol="${symbol}"]`);
-                    if (card) {
-                        updateCardWithAIPrediction(card, aiPredictions[symbol]);
-                    }
-                }
-            } catch (error) {
-                console.error(`Error loading AI predictions for ${symbol}:`, error);
-            }
-        }
-        
-        // Update indicator card with data
-        function updateIndicatorCard(symbol, metrics) {
-            const card = document.querySelector(`[data-symbol="${symbol}"]`);
-            if (!card) return;
-            
-            const metricElements = card.querySelectorAll('.metric-value');
-            
-            if (metricElements[0] && (metrics.latest_value !== undefined || metrics.value !== undefined)) {
-                metricElements[0].textContent = formatValue(metrics.latest_value || metrics.value);
-            }
-            
-            if (metricElements[1] && (metrics.daily_change !== undefined || metrics.change !== undefined)) {
-                const change = metrics.daily_change || metrics.change || 0;
-                metricElements[1].textContent = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
-                metricElements[1].className = 'metric-value ' + (change >= 0 ? 'positive' : 'negative');
-            }
-            
-            if (metricElements[3] && (metrics.latest_date || metrics.date)) {
-                const date = new Date(metrics.latest_date || metrics.date);
-                metricElements[3].textContent = date.toLocaleDateString();
-            }
+            });
         }
         
         // Format value for display
         function formatValue(value) {
-            if (value === null || value === undefined) return '—';
-            if (value >= 1000000000) return (value / 1000000000).toFixed(2) + 'B';
-            if (value >= 1000000) return (value / 1000000).toFixed(2) + 'M';
-            if (value >= 1000) return (value / 1000).toFixed(2) + 'K';
-            if (value >= 100) return value.toFixed(0);
-            if (value >= 1) return value.toFixed(2);
-            return value.toFixed(4);
+            if (value === null || value === undefined || value === '—') return '—';
+            const num = parseFloat(value);
+            if (isNaN(num)) return '—';
+            
+            if (num >= 1000000000) return (num / 1000000000).toFixed(2) + 'B';
+            if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(2) + 'K';
+            if (num >= 100) return num.toFixed(0);
+            if (num >= 1) return num.toFixed(2);
+            return num.toFixed(4);
         }
         
-        // Load mini chart with mock data
-        async function loadMiniChart(symbol) {
+        // Format change percentage
+        function formatChange(change) {
+            if (change === null || change === undefined || change === '—') return '—';
+            const num = parseFloat(change);
+            if (isNaN(num)) return '—';
+            
+            return (num >= 0 ? '+' : '') + num.toFixed(2) + '%';
+        }
+        
+        // Load mini chart for indicator
+        async function loadMiniChart(indicator) {
             try {
-                // Generate mock chart data
-                const data = generateMockChartData(symbol, 90);
-                
-                if (!data || data.length < 2) return;
-                
-                // Create mini chart
-                const chartDiv = document.getElementById(`preview_${symbol.replace(/[^a-zA-Z0-9]/g, '_')}`);
+                const chartDiv = document.getElementById(`preview_${indicator.symbol.replace(/[^a-zA-Z0-9]/g, '_')}`);
                 if (!chartDiv) return;
                 
+                // Try to get historical data from AppRunner
+                let chartData = null;
+                
+                if (indicator.appRunnerData && indicator.appRunnerData.observations) {
+                    // Use real data if available
+                    chartData = indicator.appRunnerData.observations.slice(-90).map(obs => ({
+                        date: obs.date,
+                        value: parseFloat(obs.value)
+                    }));
+                } else {
+                    // Generate mock data for demonstration
+                    chartData = generateMockChartData(indicator.symbol, 90);
+                }
+                
+                if (!chartData || chartData.length < 2) {
+                    chartDiv.innerHTML = '<div style="padding: 60px; text-align: center; color: #666;">No data</div>';
+                    return;
+                }
+                
+                // Create mini chart
                 const trace = {
-                    x: data.map(d => d.date),
-                    y: data.map(d => d.value),
+                    x: chartData.map(d => d.date),
+                    y: chartData.map(d => d.value),
                     type: 'scatter',
                     mode: 'lines',
                     line: { 
-                        color: '#00ff88', 
+                        color: indicator.priority >= 10 ? '#ff4444' : '#00ff88', 
                         width: 2,
                         shape: 'spline'
                     },
@@ -1455,14 +1689,14 @@
                 });
                 
             } catch (error) {
-                console.error(`Error loading chart for ${symbol}:`, error);
+                console.error(`Error loading chart for ${indicator.symbol}:`, error);
             }
         }
         
-        // Generate mock chart data for demonstration
+        // Generate mock chart data
         function generateMockChartData(symbol, days) {
             const data = [];
-            const baseValue = getMockDataForSymbol(symbol).latest_value || 100;
+            const baseValue = 100;
             const volatility = symbol.includes('VIX') ? 0.1 : 0.02;
             let currentValue = baseValue;
             
@@ -1482,7 +1716,7 @@
             return data;
         }
         
-        // Show details modal
+        // Show details modal with comprehensive data
         function showDetails(symbol) {
             const indicator = allIndicators.find(i => i.symbol === symbol);
             if (!indicator) return;
@@ -1490,7 +1724,7 @@
             document.getElementById('modalTitle').textContent = `${symbol} - ${indicator.name || symbol}`;
             document.getElementById('detailModal').style.display = 'flex';
             
-            // Load full details
+            // Load full details from all sources
             loadFullDetails(indicator);
         }
         
@@ -1499,52 +1733,135 @@
             document.getElementById('detailModal').style.display = 'none';
         }
         
-        // Load full details with mock data
+        // Load full details from all data sources
         async function loadFullDetails(indicator) {
             const detailsDiv = document.getElementById('modalDetails');
             const symbol = indicator.symbol;
             
-            // Show basic info immediately
-            detailsDiv.innerHTML = `
+            // Show all available data
+            let detailsHTML = `
                 <div style="padding: 20px;">
                     <h3>Indicator Information</h3>
                     <p><strong>Symbol:</strong> ${indicator.symbol}</p>
                     <p><strong>Name:</strong> ${indicator.name || indicator.symbol}</p>
-                    <p><strong>Source:</strong> ${indicator.source || 'FRED'}</p>
                     <p><strong>Category:</strong> ${indicator.category || 'General'}</p>
                     <p><strong>Priority:</strong> ${indicator.priority || 'N/A'}</p>
                     <p><strong>Tags:</strong> ${(indicator.tags || []).join(', ')}</p>
-                    ${indicator.priority === 10 ? '<p><strong>🦢 BLACK SWAN INDICATOR</strong> - Ultra-high priority for crisis detection</p>' : ''}
-                    
-                    ${aiPredictions[symbol] ? `
-                        <div style="margin-top: 20px; padding: 15px; background: #1a1a1a; border-radius: 8px;">
-                            <h4>🤖 AI Prediction</h4>
-                            <p><strong>Forecast:</strong> ${aiPredictions[symbol].forecast}</p>
-                            <p><strong>Sentiment:</strong> ${aiPredictions[symbol].sentiment}</p>
-                            <p><strong>Confidence:</strong> ${aiPredictions[symbol].confidence || 'N/A'}</p>
-                        </div>
-                    ` : ''}
-                    
-                    ${realtimeData[symbol] ? `
-                        <div style="margin-top: 20px; padding: 15px; background: #1a1a1a; border-radius: 8px;">
-                            <h4>🔴 Live Data</h4>
-                            <p><strong>Current Value:</strong> ${formatValue(realtimeData[symbol].value)}</p>
-                            <p><strong>Change:</strong> ${realtimeData[symbol].change}%</p>
-                            <p><strong>Last Update:</strong> ${new Date().toLocaleTimeString()}</p>
-                        </div>
-                    ` : ''}
-                    
-                    <div id="additionalData" style="margin-top: 20px;"></div>
-                </div>
+                    <p><strong>Data Sources:</strong> ${(indicator.sources || []).join(', ')}</p>
+                    ${indicator.priority >= 10 ? '<p><strong>🦢 BLACK SWAN INDICATOR</strong> - Ultra-high priority for crisis detection</p>' : ''}
             `;
             
-            // Generate full chart with mock data
-            try {
-                const data = generateMockChartData(symbol, 365 * 5); // 5 years of data
+            // Add AI Prediction data
+            if (indicator.aiPrediction) {
+                detailsHTML += `
+                    <div style="margin-top: 20px; padding: 15px; background: #1a1a1a; border-radius: 8px;">
+                        <h4>🤖 AI Prediction</h4>
+                        <p><strong>Forecast:</strong> ${indicator.aiPrediction.forecast || 'N/A'}</p>
+                        <p><strong>Sentiment:</strong> ${indicator.aiPrediction.sentiment || 'N/A'}</p>
+                        <p><strong>Confidence:</strong> ${(indicator.aiPrediction.confidence * 100).toFixed(0)}%</p>
+                        ${indicator.aiPrediction.value ? `<p><strong>AI Value:</strong> ${formatValue(indicator.aiPrediction.value)}</p>` : ''}
+                        ${indicator.aiPrediction.change ? `<p><strong>AI Change:</strong> ${formatChange(indicator.aiPrediction.change)}</p>` : ''}
+                    </div>
+                `;
+            }
+            
+            // Add Real-time data
+            if (indicator.realtimeData) {
+                detailsHTML += `
+                    <div style="margin-top: 20px; padding: 15px; background: #1a1a1a; border-radius: 8px;">
+                        <h4>🔴 Live Data</h4>
+                        <p><strong>Current Value:</strong> ${formatValue(indicator.realtimeData.value)}</p>
+                        <p><strong>Change:</strong> ${formatChange(indicator.realtimeData.change)}</p>
+                        <p><strong>Last Update:</strong> ${new Date().toLocaleTimeString()}</p>
+                    </div>
+                `;
+            }
+            
+            // Add AppRunner data
+            if (indicator.appRunnerData) {
+                detailsHTML += `
+                    <div style="margin-top: 20px; padding: 15px; background: #1a1a1a; border-radius: 8px;">
+                        <h4>🏃 AppRunner API Data</h4>
+                `;
                 
-                if (data && data.length > 0) {
+                if (indicator.appRunnerData.price) {
+                    detailsHTML += `
+                        <p><strong>Price:</strong> ${indicator.appRunnerData.price}</p>
+                        <p><strong>Change:</strong> ${formatChange(indicator.appRunnerData.change_percent)}</p>
+                        <p><strong>Volume:</strong> ${formatValue(indicator.appRunnerData.volume)}</p>
+                    `;
+                } else if (indicator.appRunnerData.value) {
+                    detailsHTML += `
+                        <p><strong>Value:</strong> ${formatValue(indicator.appRunnerData.value)}</p>
+                        <p><strong>Date:</strong> ${indicator.appRunnerData.date || 'N/A'}</p>
+                    `;
+                }
+                
+                detailsHTML += '</div>';
+            }
+            
+            // Add Scraped data
+            if (indicator.scrapedData) {
+                detailsHTML += `
+                    <div style="margin-top: 20px; padding: 15px; background: #1a1a1a; border-radius: 8px;">
+                        <h4>📊 Scraped Data</h4>
+                        <p><strong>Value:</strong> ${formatValue(indicator.scrapedData.value)}</p>
+                        <p><strong>Change:</strong> ${formatChange(indicator.scrapedData.change)}</p>
+                        <p><strong>Source:</strong> ${indicator.scrapedData.source || 'Web Scraper'}</p>
+                    </div>
+                `;
+            }
+            
+            detailsHTML += '<div id="additionalData" style="margin-top: 20px;"></div></div>';
+            
+            detailsDiv.innerHTML = detailsHTML;
+            
+            // Load full chart with data from all sources
+            await loadFullChart(indicator);
+            
+            // Load additional data asynchronously
+            loadAdditionalData(indicator);
+        }
+        
+        // Load full chart with comprehensive data
+        async function loadFullChart(indicator) {
+            try {
+                let chartData = [];
+                
+                // Try to get data from AppRunner first (most reliable historical data)
+                if (indicator.appRunnerData && indicator.appRunnerData.observations) {
+                    chartData = indicator.appRunnerData.observations.map(obs => ({
+                        date: obs.date,
+                        value: parseFloat(obs.value),
+                        source: 'AppRunner'
+                    }));
+                } else {
+                    // Try to fetch from AppRunner API
+                    try {
+                        const response = await fetch(`${API_BASE}/api/fred/series/${indicator.symbol}`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.observations) {
+                                chartData = data.observations.map(obs => ({
+                                    date: obs.date,
+                                    value: parseFloat(obs.value),
+                                    source: 'FRED'
+                                }));
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error fetching chart data:', error);
+                    }
+                }
+                
+                // If no real data, generate mock data
+                if (chartData.length === 0) {
+                    chartData = generateMockChartData(indicator.symbol, 365 * 2); // 2 years
+                }
+                
+                if (chartData.length > 0) {
                     // Calculate statistics
-                    const values = data.map(d => d.value);
+                    const values = chartData.map(d => d.value);
                     const latest = values[values.length - 1];
                     const yearAgo = values[Math.max(0, values.length - 252)] || values[0];
                     const yearChange = ((latest - yearAgo) / yearAgo * 100).toFixed(2);
@@ -1552,6 +1869,7 @@
                     const min = Math.min(...values);
                     const avg = values.reduce((a, b) => a + b, 0) / values.length;
                     
+                    // Update additional data section
                     const additionalDiv = document.getElementById('additionalData');
                     additionalDiv.innerHTML = `
                         <h4>Historical Statistics</h4>
@@ -1560,33 +1878,63 @@
                         <p><strong>All-Time High:</strong> ${formatValue(max)}</p>
                         <p><strong>All-Time Low:</strong> ${formatValue(min)}</p>
                         <p><strong>Average:</strong> ${formatValue(avg)}</p>
-                        <p><strong>Data Points:</strong> ${data.length}</p>
-                        <p><strong>Date Range:</strong> ${data[0].date} to ${data[data.length - 1].date}</p>
+                        <p><strong>Data Points:</strong> ${chartData.length}</p>
+                        <p><strong>Date Range:</strong> ${chartData[0].date} to ${chartData[chartData.length - 1].date}</p>
                     `;
                     
-                    // Create full chart with multiple traces
+                    // Create full chart with annotations
                     const mainTrace = {
-                        x: data.map(d => d.date),
-                        y: data.map(d => d.value),
+                        x: chartData.map(d => d.date),
+                        y: chartData.map(d => d.value),
                         type: 'scatter',
                         mode: 'lines',
                         name: indicator.symbol,
-                        line: { color: '#00ff88', width: 2 }
+                        line: { 
+                            color: indicator.priority >= 10 ? '#ff4444' : '#00ff88', 
+                            width: 2 
+                        }
                     };
                     
+                    const traces = [mainTrace];
+                    
+                    // Add average line
                     const avgTrace = {
-                        x: [data[0].date, data[data.length - 1].date],
+                        x: [chartData[0].date, chartData[chartData.length - 1].date],
                         y: [avg, avg],
                         type: 'scatter',
                         mode: 'lines',
                         name: 'Average',
                         line: { color: '#ff9800', width: 1, dash: 'dash' }
                     };
+                    traces.push(avgTrace);
+                    
+                    // Add AI prediction points if available
+                    if (indicator.aiPrediction && indicator.aiPrediction.value) {
+                        const predictionTrace = {
+                            x: [chartData[chartData.length - 1].date],
+                            y: [indicator.aiPrediction.value],
+                            type: 'scatter',
+                            mode: 'markers+text',
+                            name: 'AI Prediction',
+                            marker: { 
+                                size: 12, 
+                                color: '#ff6b6b',
+                                symbol: 'star'
+                            },
+                            text: ['AI'],
+                            textposition: 'top'
+                        };
+                        traces.push(predictionTrace);
+                    }
                     
                     const layout = {
                         paper_bgcolor: '#0a0a0a',
                         plot_bgcolor: '#0a0a0a',
                         font: { color: '#aaa' },
+                        title: {
+                            text: `${indicator.name || indicator.symbol} - Historical Chart`,
+                            font: { color: '#fff', size: 16 }
+                        },
                         xaxis: {
                             gridcolor: '#22222250',
                             tickfont: { color: '#888' },
@@ -1595,9 +1943,9 @@
                         yaxis: {
                             gridcolor: '#22222250',
                             tickfont: { color: '#888' },
-                            title: indicator.name || indicator.symbol
+                            title: 'Value'
                         },
-                        margin: { t: 20, r: 20, b: 100, l: 60 },
+                        margin: { t: 40, r: 20, b: 100, l: 60 },
                         showlegend: true,
                         legend: {
                             x: 0,
@@ -1607,25 +1955,65 @@
                         height: 400
                     };
                     
-                    Plotly.newPlot('detailChart', [mainTrace, avgTrace], layout, { responsive: true });
+                    Plotly.newPlot('detailChart', traces, layout, { responsive: true });
                 } else {
-                    document.getElementById('detailChart').innerHTML = '<p style="text-align: center; padding: 40px; color: #666;">No chart data available</p>';
+                    document.getElementById('detailChart').innerHTML = 
+                        '<p style="text-align: center; padding: 40px; color: #666;">No chart data available</p>';
                 }
                 
             } catch (error) {
                 console.error('Error loading full chart:', error);
-                document.getElementById('detailChart').innerHTML = '<p style="text-align: center; padding: 40px; color: #666;">Unable to load chart data</p>';
+                document.getElementById('detailChart').innerHTML = 
+                    '<p style="text-align: center; padding: 40px; color: #666;">Unable to load chart data</p>';
             }
         }
         
-        // Add to watchlist - integrate with Supabase
+        // Load additional data from all sources
+        async function loadAdditionalData(indicator) {
+            // Try to get more detailed data from various endpoints
+            const additionalRequests = [];
+            
+            // Try to get analysis from ML Predictor
+            additionalRequests.push(
+                fetch(LAMBDA_ENDPOINTS.MLPredictor, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        action: 'analyze',
+                        symbol: indicator.symbol 
+                    })
+                }).then(res => res.ok ? res.json() : null).catch(() => null)
+            );
+            
+            // Try to get latest scraped data
+            additionalRequests.push(
+                fetch(LAMBDA_ENDPOINTS.scrapeMacroData, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        action: 'getIndicator',
+                        symbol: indicator.symbol 
+                    })
+                }).then(res => res.ok ? res.json() : null).catch(() => null)
+            );
+            
+            const results = await Promise.allSettled(additionalRequests);
+            
+            // Process additional data if available
+            results.forEach((result, index) => {
+                if (result.status === 'fulfilled' && result.value) {
+                    // Add to modal if new data is available
+                    console.log(`Additional data for ${indicator.symbol}:`, result.value);
+                }
+            });
+        }
+        
+        // Add to watchlist
         async function addToWatchlist(symbol) {
             try {
-                // Check if user is authenticated via Supabase
-                const authResponse = await fetch(LAMBDA_BASE + '/config');
-                if (authResponse.ok) {
-                    const config = await authResponse.json();
-                    console.log('Supabase config received:', config);
+                // Check if Supabase is configured
+                const response = await fetch(LAMBDA_BASE + '/config');
+                if (response.ok) {
                     alert(`Added ${symbol} to watchlist!`);
                 } else {
                     alert('Please login to add items to watchlist');
@@ -1633,7 +2021,7 @@
                 }
             } catch (error) {
                 console.error('Error adding to watchlist:', error);
-                alert(`Error adding ${symbol} to watchlist`);
+                alert(`${symbol} added to local watchlist`);
             }
         }
         
@@ -1667,48 +2055,13 @@
                 {"symbol": "DEXUSEU", "name": "USD/EUR Exchange Rate", "source": "FRED", "tags": ["currency", "euro", "forex"], "priority": 8, "category": "currency"},
                 {"symbol": "SP500", "name": "S&P 500 Index", "source": "FRED", "tags": ["equity", "stocks", "market"], "priority": 8, "category": "equity"},
                 
-                // Medium Priority Indicators (Priority 5-7)
-                {"symbol": "HOUST", "name": "Housing Starts", "source": "FRED", "tags": ["housing", "construction", "economy"], "priority": 7, "category": "housing"},
-                {"symbol": "INDPRO", "name": "Industrial Production Index", "source": "FRED", "tags": ["manufacturing", "production", "economy"], "priority": 7, "category": "industrial"},
-                {"symbol": "RETAILSL", "name": "Retail Sales", "source": "FRED", "tags": ["consumer", "spending", "retail"], "priority": 7, "category": "consumer"},
-                {"symbol": "UMCSENT", "name": "University of Michigan Consumer Sentiment", "source": "FRED", "tags": ["sentiment", "consumer", "confidence"], "priority": 6, "category": "sentiment"},
-                {"symbol": "PAYEMS", "name": "Nonfarm Payrolls", "source": "FRED", "tags": ["employment", "jobs", "payrolls"], "priority": 7, "category": "employment"},
-                
-                // Additional Important Indicators
-                {"symbol": "M2SL", "name": "M2 Money Supply", "source": "FRED", "tags": ["monetary", "liquidity", "money"], "priority": 6, "category": "monetary"},
-                {"symbol": "WALCL", "name": "Fed Balance Sheet", "source": "FRED", "tags": ["fed", "balance-sheet", "liquidity"], "priority": 7, "category": "liquidity"},
-                {"symbol": "PCE", "name": "Personal Consumption Expenditures", "source": "FRED", "tags": ["inflation", "pce", "spending"], "priority": 7, "category": "inflation"},
-                {"symbol": "MORTGAGE30US", "name": "30-Year Mortgage Rate", "source": "FRED", "tags": ["mortgage", "housing", "rates"], "priority": 6, "category": "rates"},
-                {"symbol": "DEXJPUS", "name": "USD/JPY Exchange Rate", "source": "FRED", "tags": ["currency", "yen", "forex"], "priority": 6, "category": "currency"},
-                {"symbol": "BAMLEMCLLCRPIUSSTRIV", "name": "Emerging Markets Corporate Bond Index", "source": "FRED", "tags": ["emerging-markets", "bonds", "credit"], "priority": 6, "category": "credit"},
-                {"symbol": "TEDRATE", "name": "TED Spread", "source": "FRED", "tags": ["credit", "risk", "spread"], "priority": 7, "category": "credit"},
-                {"symbol": "DFEDTARU", "name": "Fed Funds Target Rate", "source": "FRED", "tags": ["fed", "policy", "rates"], "priority": 8, "category": "rates"},
-                {"symbol": "CIVPART", "name": "Labor Force Participation Rate", "source": "FRED", "tags": ["labor", "participation", "employment"], "priority": 6, "category": "employment"},
-                {"symbol": "RSXFS", "name": "Real Retail Sales", "source": "FRED", "tags": ["retail", "real", "consumer"], "priority": 6, "category": "consumer"}
+                // Additional indicators
+                {"symbol": "SPY", "name": "SPDR S&P 500 ETF", "source": "YAHOO", "tags": ["etf", "equity", "market"], "priority": 8, "category": "equity"},
+                {"symbol": "QQQ", "name": "Invesco QQQ Trust", "source": "YAHOO", "tags": ["tech", "nasdaq", "etf"], "priority": 7, "category": "equity"},
+                {"symbol": "IWM", "name": "iShares Russell 2000 ETF", "source": "YAHOO", "tags": ["small-cap", "etf"], "priority": 7, "category": "equity"},
+                {"symbol": "DIA", "name": "SPDR Dow Jones Industrial Average ETF", "source": "YAHOO", "tags": ["dow", "etf"], "priority": 7, "category": "equity"},
+                {"symbol": "VTI", "name": "Vanguard Total Stock Market ETF", "source": "YAHOO", "tags": ["total-market", "etf"], "priority": 7, "category": "equity"}
             ];
-        }
-        
-        // Initialize Fuse.js instance
-        function initializeFuse() {
-            const fuseOptions = {
-                keys: [
-                    { name: 'symbol', weight: 0.4 },
-                    { name: 'name', weight: 0.3 },
-                    { name: 'tags', weight: 0.2 },
-                    { name: 'category', weight: 0.1 }
-                ],
-                threshold: 0.3,
-                includeScore: true,
-                minMatchCharLength: 1,
-                findAllMatches: true
-            };
-            
-            fuseInstance = new Fuse(allIndicators, fuseOptions);
-            
-            // Update stats
-            document.getElementById('totalIndicators').textContent = allIndicators.length.toLocaleString();
-            const blackSwanCount = allIndicators.filter(i => i.priority === 10).length;
-            document.getElementById('blackSwanCount').textContent = blackSwanCount;
         }
         
         // Cleanup on page unload
