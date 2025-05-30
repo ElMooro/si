@@ -931,38 +931,52 @@
                 if (data.status === 'success' && data.indicators) {
                     console.log(`Successfully loaded ${data.total || data.indicators.length} indicators from S3`);
                     
-                    // Filter and validate indicators
-                    const validIndicators = data.indicators.filter(ind => {
-                        if (!ind || !ind.symbol) {
+                    // Transform indicators to expected format
+                    const validIndicators = data.indicators.map(ind => {
+                        // Handle both 'id' and 'symbol' fields
+                        const symbol = ind.symbol || ind.id;
+                        if (!symbol) {
                             console.warn('Invalid indicator found:', ind);
-                            return false;
+                            return null;
                         }
-                        return true;
-                    });
+                        
+                        return {
+                            symbol: symbol,
+                            name: ind.name || ind.description || generateIndicatorName(symbol),
+                            category: ind.category || detectCategory({symbol}),
+                            priority: ind.priority || calculatePriority({symbol}),
+                            source: ind.source || 'S3',
+                            lastUpdate: ind.lastUpdate || ind.latest_date,
+                            latest_value: ind.latest_value || ind.value,
+                            daily_change: ind.daily_change || ind.change,
+                            latest_date: ind.latest_date || ind.lastUpdate,
+                            // Keep original data
+                            ...ind
+                        };
+                    }).filter(ind => ind !== null);
                     
-                    // Store indicators with enhanced metadata
+                    // Store indicators
                     searchIndex = validIndicators;
                     
                     // Group by category for better organization
                     const byCategory = {};
                     validIndicators.forEach(ind => {
-                        const category = ind.category || 'other';
+                        const category = ind.category || 'Other';
                         if (!byCategory[category]) {
                             byCategory[category] = [];
                         }
                         byCategory[category].push(ind);
                         
-                        // Also store in scrapedData for later use
-                        if (ind.latest_value !== null && ind.latest_value !== undefined) {
-                            scrapedData[ind.symbol] = {
-                                value: ind.latest_value,
-                                change: ind.daily_change,
-                                date: ind.latest_date,
-                                source: 'S3',
-                                category: ind.category,
-                                priority: ind.priority
-                            };
-                        }
+                        // Also store in scrapedData for later use - but we need actual data
+                        // We'll fetch the actual data for each indicator
+                        scrapedData[ind.symbol] = {
+                            symbol: ind.symbol,
+                            name: ind.name,
+                            category: ind.category,
+                            priority: ind.priority,
+                            source: 'S3',
+                            lastUpdate: ind.lastUpdate
+                        };
                     });
                     
                     // Log category distribution
@@ -976,6 +990,9 @@
                     // Update category filter counts
                     updateCategoryFilterCounts(byCategory);
                     
+                    // Now fetch actual data for some key indicators
+                    await loadDataForKeyIndicators(validIndicators.slice(0, 20));
+                    
                 } else {
                     console.error('Failed to load indicators from S3 proxy:', data.error || 'Unknown error');
                     // Fallback to getAll method
@@ -987,6 +1004,53 @@
                 // Fallback to getAll method
                 await loadAllIndicatorsFromS3Proxy();
             }
+        }
+        
+        // Load actual data for key indicators
+        async function loadDataForKeyIndicators(indicators) {
+            console.log(`Loading data for ${indicators.length} key indicators...`);
+            
+            const promises = indicators.map(async (indicator) => {
+                try {
+                    const response = await fetch(LAMBDA_ENDPOINTS.s3DataProxy, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            action: 'get',
+                            indicator: indicator.symbol
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result.status === 'success' && result.data) {
+                            // Update scraped data with actual values
+                            if (result.data.observations && result.data.observations.length > 0) {
+                                const observations = result.data.observations;
+                                const latest = observations[observations.length - 1];
+                                const previous = observations[Math.max(0, observations.length - 2)];
+                                
+                                scrapedData[indicator.symbol] = {
+                                    ...scrapedData[indicator.symbol],
+                                    value: latest ? parseFloat(latest.value) : null,
+                                    change: latest && previous ? 
+                                        ((parseFloat(latest.value) - parseFloat(previous.value)) / parseFloat(previous.value) * 100) : 0,
+                                    date: latest ? latest.date : null,
+                                    observations: observations,
+                                    hasData: true
+                                };
+                                
+                                console.log(`Loaded data for ${indicator.symbol}: ${latest?.value}`);
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error(`Error loading data for ${indicator.symbol}:`, error);
+                }
+            });
+            
+            await Promise.allSettled(promises);
+            console.log('Finished loading indicator data');
         }
         
         // Update category filter buttons with counts
