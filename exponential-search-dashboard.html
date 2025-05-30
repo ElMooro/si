@@ -939,6 +939,22 @@
                 
                 if (data.status === 'success' && data.indicators) {
                     console.log(`Successfully loaded ${data.total || data.indicators.length} indicators from S3`);
+                    console.log('Sample indicators:', data.indicators.slice(0, 5));
+                    
+                    // Check if these are data sources or actual indicators
+                    const firstIndicator = data.indicators[0];
+                    const isDataSource = firstIndicator && (
+                        firstIndicator.id === 'central' || 
+                        firstIndicator.id === 'fred' || 
+                        firstIndicator.id === 'nyfed' ||
+                        firstIndicator.id === 'ecb'
+                    );
+                    
+                    if (isDataSource) {
+                        console.log('These appear to be data sources, not indicators. Trying getAll method...');
+                        await loadAllIndicatorsFromS3Proxy();
+                        return;
+                    }
                     
                     // Transform indicators to expected format
                     const validIndicators = data.indicators.map(ind => {
@@ -976,8 +992,7 @@
                         }
                         byCategory[category].push(ind);
                         
-                        // Also store in scrapedData for later use - but we need actual data
-                        // We'll fetch the actual data for each indicator
+                        // Also store in scrapedData for later use
                         scrapedData[ind.symbol] = {
                             symbol: ind.symbol,
                             name: ind.name,
@@ -999,75 +1014,90 @@
                     // Update category filter counts
                     updateCategoryFilterCounts(byCategory);
                     
-                    // Now fetch actual data for some key indicators
-                    await loadDataForKeyIndicators(validIndicators.slice(0, 20));
+                    // Try to load real financial indicators from known symbols
+                    await loadKnownFinancialIndicators();
                     
                 } else {
                     console.error('Failed to load indicators from S3 proxy:', data.error || 'Unknown error');
-                    // Fallback to getAll method
-                    await loadAllIndicatorsFromS3Proxy();
+                    // Use hardcoded indicators as fallback
+                    searchIndex = getHardcodedIndicators();
+                    console.log('Using hardcoded indicators as fallback');
                 }
                 
             } catch (error) {
                 console.error('Error loading indicators from S3 proxy:', error);
-                // Fallback to getAll method
-                await loadAllIndicatorsFromS3Proxy();
+                // Use hardcoded indicators as fallback
+                searchIndex = getHardcodedIndicators();
+                console.log('Using hardcoded indicators as fallback');
             }
         }
         
-        // Load actual data for key indicators
-        async function loadDataForKeyIndicators(indicators) {
-            console.log(`Loading data for ${indicators.length} key indicators...`);
+        // Load known financial indicators
+        async function loadKnownFinancialIndicators() {
+            console.log('Loading known financial indicators...');
             
-            const promises = indicators.map(async (indicator) => {
+            // List of common financial indicators we expect
+            const knownIndicators = [
+                'VIXCLS', 'DGS10', 'DGS2', 'T10Y2Y', 'DFF', 'SOFR',
+                'CPIAUCSL', 'UNRATE', 'GDP', 'SP500', 'DEXUSEU',
+                'BAMLH0A0HYM2', 'WALCL', 'M2SL', 'STLFSI2', 'TEDRATE',
+                'MORTGAGE30US', 'HOUST', 'INDPRO', 'RETAILSL', 'PAYEMS'
+            ];
+            
+            // Try to load data for these known indicators
+            const promises = knownIndicators.slice(0, 10).map(async (symbol) => {
                 try {
-                    // First try S3 proxy
                     const response = await fetch(LAMBDA_ENDPOINTS.s3DataProxy, {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({
                             action: 'get',
-                            indicator: indicator.symbol
+                            indicator: symbol
                         })
                     });
                     
                     if (response.ok) {
                         const result = await response.json();
                         if (result.status === 'success' && result.data) {
-                            // Update scraped data with actual values
+                            console.log(`Found data for ${symbol}`);
+                            
+                            // Add to search index if not already there
+                            const existing = searchIndex.find(ind => ind.symbol === symbol);
+                            if (!existing) {
+                                searchIndex.push({
+                                    symbol: symbol,
+                                    name: generateIndicatorName(symbol),
+                                    category: detectCategory({symbol}),
+                                    priority: calculatePriority({symbol}),
+                                    source: 'S3'
+                                });
+                            }
+                            
+                            // Store the data
                             if (result.data.observations && result.data.observations.length > 0) {
                                 const observations = result.data.observations;
                                 const latest = observations[observations.length - 1];
                                 const previous = observations[Math.max(0, observations.length - 2)];
                                 
-                                scrapedData[indicator.symbol] = {
-                                    ...scrapedData[indicator.symbol],
+                                scrapedData[symbol] = {
                                     value: latest ? parseFloat(latest.value) : null,
                                     change: latest && previous ? 
                                         ((parseFloat(latest.value) - parseFloat(previous.value)) / parseFloat(previous.value) * 100) : 0,
                                     date: latest ? latest.date : null,
                                     observations: observations,
-                                    hasData: true
+                                    hasData: true,
+                                    source: 'S3'
                                 };
-                                
-                                console.log(`Loaded data for ${indicator.symbol}: ${latest?.value}`);
-                            } else {
-                                console.log(`No observations for ${indicator.symbol}, trying AppRunner...`);
-                                // Try AppRunner as fallback
-                                await tryAppRunnerForIndicator(indicator.symbol);
                             }
-                        } else {
-                            // Try AppRunner as fallback
-                            await tryAppRunnerForIndicator(indicator.symbol);
                         }
                     }
                 } catch (error) {
-                    console.error(`Error loading data for ${indicator.symbol}:`, error);
+                    console.log(`Could not load ${symbol}`);
                 }
             });
             
             await Promise.allSettled(promises);
-            console.log('Finished loading indicator data');
+            console.log('Finished loading known financial indicators');
         }
         
         // Try to get data from AppRunner API
