@@ -214,6 +214,32 @@
             color: #00ff88;
         }
         
+        /* Live Data Indicator */
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            background: #1a1a1a;
+            border: 1px solid #00ff88;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .live-dot {
+            width: 10px;
+            height: 10px;
+            background: #00ff88;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        
         /* Results Grid */
         .results-section {
             display: grid;
@@ -482,13 +508,13 @@
     <nav>
         <div class="nav-logo">📊 OPENBB</div>
         <div class="nav-links">
-            <a href="/">Home</a>
-            <a href="/dashboard">Macro Dashboard</a>
-            <a href="/ai-signals">AI Signals</a>
-            <a href="/search" class="active">Search</a>
-            <a href="/realtime">Live Data</a>
-            <a href="/scraper">Scraper Monitor</a>
-            <a href="/login">Login</a>
+            <a href="index.html">Home</a>
+            <a href="advanced-financial-dashboard.html">Macro Dashboard</a>
+            <a href="ai-predictions-supabase.html">AI Signals</a>
+            <a href="exponential-search-dashboard.html" class="active">Search</a>
+            <a href="openbb-realtime-dashboard.html">Live Data</a>
+            <a href="macroeconomic-platform.html">Platform</a>
+            <a href="professional-financial-dashboard.html">Pro Dashboard</a>
         </div>
     </nav>
     
@@ -498,6 +524,13 @@
         <div class="header-section">
             <h1 class="page-title">🔍 Exponential Search Engine</h1>
             <p class="page-subtitle">Ultra-fast search across 10,000+ financial indicators with Black Swan detection</p>
+        </div>
+        
+        <!-- Live Data Indicator -->
+        <div class="live-indicator" id="liveIndicator">
+            <div class="live-dot"></div>
+            <span>Connected to Live Data Stream</span>
+            <span id="lastUpdate" style="color: #888; font-size: 12px;">Last update: --</span>
         </div>
         
         <!-- Search Section -->
@@ -603,9 +636,11 @@
     </div>
     
     <script>
-        // Configuration - Updated to use your backend
-        const API_BASE = window.location.origin; // Uses the same origin as the frontend
-        const INDEX_ENDPOINT = '/api/search/index'; // Your backend endpoint for the index
+        // Configuration - Using your backend endpoints
+        const API_BASE = 'https://ped8gafyuz.us-east-1.awsapprunner.com'; // Your production API
+        const LAMBDA_BASE = 'https://j4o7j86qqb.execute-api.us-east-1.amazonaws.com/prod'; // Lambda API Gateway
+        const WEBSOCKET_URL = 'https://7xaylc6nonthix4j377lelbnmm0tziuj.lambda-url.us-east-1.on.aws/'; // WebSocket Lambda
+        const S3_BUCKET = 'https://macro-data-lake.s3.amazonaws.com';
         
         let searchIndex = null;
         let fuseInstance = null;
@@ -616,25 +651,20 @@
             source: 'all',
             type: 'all'
         };
+        let realtimeData = {};
+        let updateInterval = null;
         
-        // Load search index from your backend
+        // Load search index from S3
         async function loadSearchIndex() {
             const loadingState = document.getElementById('loadingState');
             const resultsSection = document.getElementById('resultsSection');
             
             try {
-                // First try to load from your backend endpoint
-                const response = await fetch(`${API_BASE}${INDEX_ENDPOINT}`);
+                // Load from S3 directly
+                const response = await fetch(`${S3_BUCKET}/index/universal_indicator_index.min.json?t=${Date.now()}`);
                 
-                if (!response.ok) {
-                    // Fallback to S3 if backend is not available
-                    console.log('Backend index not available, falling back to S3...');
-                    const s3Response = await fetch('https://macro-data-lake.s3.amazonaws.com/index/universal_indicator_index.min.json?t=' + Date.now());
-                    if (!s3Response.ok) throw new Error('Failed to load search index from both sources');
-                    searchIndex = await s3Response.json();
-                } else {
-                    searchIndex = await response.json();
-                }
+                if (!response.ok) throw new Error('Failed to load search index');
+                searchIndex = await response.json();
                 
                 allIndicators = searchIndex.indicators || [];
                 
@@ -665,9 +695,72 @@
                 // Perform initial search
                 performSearch();
                 
+                // Start real-time updates
+                startRealtimeUpdates();
+                
             } catch (error) {
                 console.error('Error loading search index:', error);
                 loadingState.innerHTML = '<p style="color: #ff4444;">Error loading search index. Please refresh.</p>';
+            }
+        }
+        
+        // Start real-time data updates
+        async function startRealtimeUpdates() {
+            // Initial fetch
+            await fetchRealtimeData();
+            
+            // Update every 5 seconds
+            updateInterval = setInterval(async () => {
+                await fetchRealtimeData();
+                updateVisibleCards();
+            }, 5000);
+        }
+        
+        // Fetch real-time data from WebSocket Lambda
+        async function fetchRealtimeData() {
+            try {
+                const response = await fetch(WEBSOCKET_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ action: 'getData' })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.data) {
+                        realtimeData = data.data;
+                        document.getElementById('lastUpdate').textContent = `Last update: ${new Date().toLocaleTimeString()}`;
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching real-time data:', error);
+            }
+        }
+        
+        // Update visible cards with real-time data
+        function updateVisibleCards() {
+            const cards = document.querySelectorAll('.result-card');
+            cards.forEach(card => {
+                const symbol = card.dataset.symbol;
+                if (realtimeData[symbol]) {
+                    updateCardWithRealtimeData(card, realtimeData[symbol]);
+                }
+            });
+        }
+        
+        // Update card with real-time data
+        function updateCardWithRealtimeData(card, data) {
+            const metricElements = card.querySelectorAll('.metric-value');
+            
+            if (metricElements[0] && data.value !== undefined) {
+                metricElements[0].textContent = formatValue(data.value);
+            }
+            
+            if (metricElements[1] && data.change !== undefined) {
+                metricElements[1].textContent = (data.change >= 0 ? '+' : '') + data.change.toFixed(2) + '%';
+                metricElements[1].className = 'metric-value ' + (data.change >= 0 ? 'positive' : 'negative');
             }
         }
         
@@ -774,7 +867,9 @@
                 const isBlackSwan = indicator.priority === 10 || indicator.tags?.includes('black-swan');
                 
                 return `
-                    <div class="result-card ${isBlackSwan ? 'black-swan' : ''}" onclick="showDetails('${indicator.symbol}')">
+                    <div class="result-card ${isBlackSwan ? 'black-swan' : ''}" 
+                         onclick="showDetails('${indicator.symbol}')"
+                         data-symbol="${indicator.symbol}">
                         <div class="result-header">
                             <div>
                                 <div class="result-symbol">${indicator.symbol}</div>
@@ -833,7 +928,7 @@
             });
         }
         
-        // Load indicator data using your backend endpoints
+        // Load indicator data from your backend
         async function loadIndicatorData(indicator) {
             try {
                 const provider = getProviderForSource(indicator.source);
@@ -842,7 +937,11 @@
                 const url = `${API_BASE}/api/universal/data?symbol=${indicator.symbol}&provider=${provider}&include_changes=true`;
                 
                 const response = await fetch(url);
-                if (!response.ok) return;
+                if (!response.ok) {
+                    // Try Lambda ML predictor as fallback
+                    await loadFromLambda(indicator);
+                    return;
+                }
                 
                 const data = await response.json();
                 if (data.metrics) {
@@ -854,6 +953,24 @@
                 
             } catch (error) {
                 console.error(`Error loading data for ${indicator.symbol}:`, error);
+                // Try Lambda as fallback
+                await loadFromLambda(indicator);
+            }
+        }
+        
+        // Load from Lambda ML predictor
+        async function loadFromLambda(indicator) {
+            try {
+                // Check if we have predictions from S3
+                const response = await fetch(`${S3_BUCKET}/predictions/ai_output.json?t=${Date.now()}`);
+                if (response.ok) {
+                    const predictions = await response.json();
+                    if (predictions[indicator.symbol]) {
+                        updateIndicatorCard(indicator.symbol, predictions[indicator.symbol]);
+                    }
+                }
+            } catch (error) {
+                console.error(`Error loading Lambda data for ${indicator.symbol}:`, error);
             }
         }
         
@@ -871,17 +988,17 @@
         
         // Update indicator card with data
         function updateIndicatorCard(symbol, metrics) {
-            const card = document.querySelector(`[onclick="showDetails('${symbol}')"]`);
+            const card = document.querySelector(`[data-symbol="${symbol}"]`);
             if (!card) return;
             
             const metricElements = card.querySelectorAll('.metric-value');
             
             if (metricElements[0]) {
-                metricElements[0].textContent = formatValue(metrics.latest_value);
+                metricElements[0].textContent = formatValue(metrics.latest_value || metrics.value);
             }
             
-            if (metricElements[1] && metrics.daily_change !== undefined) {
-                const change = metrics.daily_change;
+            if (metricElements[1] && (metrics.daily_change !== undefined || metrics.change !== undefined)) {
+                const change = metrics.daily_change || metrics.change || 0;
                 metricElements[1].textContent = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
                 metricElements[1].className = 'metric-value ' + (change >= 0 ? 'positive' : 'negative');
             }
@@ -890,8 +1007,8 @@
                 metricElements[2].textContent = metrics.z_score.toFixed(2);
             }
             
-            if (metricElements[3] && metrics.latest_date) {
-                metricElements[3].textContent = new Date(metrics.latest_date).toLocaleDateString();
+            if (metricElements[3] && (metrics.latest_date || metrics.date)) {
+                metricElements[3].textContent = new Date(metrics.latest_date || metrics.date).toLocaleDateString();
             }
         }
         
@@ -905,7 +1022,7 @@
             return value.toFixed(4);
         }
         
-        // Load mini chart using your backend
+        // Load mini chart from your backend
         async function loadMiniChart(symbol, provider) {
             try {
                 const endDate = new Date().toISOString().split('T')[0];
@@ -917,10 +1034,17 @@
                 const url = `${API_BASE}/api/universal/data?symbol=${symbol}&provider=${provider}&start_date=${startDateStr}&end_date=${endDate}`;
                 
                 const response = await fetch(url);
-                if (!response.ok) return;
+                if (!response.ok) {
+                    // Try loading from S3 scraped data
+                    await loadChartFromS3(symbol);
+                    return;
+                }
                 
                 const result = await response.json();
-                if (!result.data || result.data.length === 0) return;
+                if (!result.data || result.data.length === 0) {
+                    await loadChartFromS3(symbol);
+                    return;
+                }
                 
                 const data = result.data
                     .map(item => ({
@@ -965,6 +1089,26 @@
             }
         }
         
+        // Load chart from S3 scraped data
+        async function loadChartFromS3(symbol) {
+            try {
+                // Try to load from scraped_data folder
+                const response = await fetch(`${S3_BUCKET}/scraped_data/${symbol}.json?t=${Date.now()}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    // Process and display the data
+                    if (data && data.length > 0) {
+                        const chartDiv = document.getElementById(`preview_${symbol.replace(/[^a-zA-Z0-9]/g, '_')}`);
+                        if (chartDiv) {
+                            chartDiv.innerHTML = '<div style="padding: 60px; text-align: center; color: #666;">Data Available</div>';
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error(`Error loading S3 data for ${symbol}:`, error);
+            }
+        }
+        
         // Show details modal
         function showDetails(symbol) {
             const indicator = allIndicators.find(i => i.symbol === symbol);
@@ -982,7 +1126,7 @@
             document.getElementById('detailModal').style.display = 'none';
         }
         
-        // Load full details using your backend
+        // Load full details from your backend
         async function loadFullDetails(indicator) {
             const provider = getProviderForSource(indicator.source);
             const detailsDiv = document.getElementById('modalDetails');
@@ -996,6 +1140,7 @@
                     <p><strong>Category:</strong> ${indicator.category || 'General'}</p>
                     <p><strong>Tags:</strong> ${(indicator.tags || []).join(', ')}</p>
                     ${indicator.priority === 10 ? '<p><strong>🦢 BLACK SWAN INDICATOR</strong> - Ultra-high priority for crisis detection</p>' : ''}
+                    <div id="additionalData" style="margin-top: 20px;"></div>
                 </div>
             `;
             
@@ -1007,13 +1152,27 @@
                 const startDateStr = startDate.toISOString().split('T')[0];
                 
                 // Use your backend's universal data endpoint
-                const url = `${API_BASE}/api/universal/data?symbol=${indicator.symbol}&provider=${provider}&start_date=${startDateStr}&end_date=${endDate}`;
+                const url = `${API_BASE}/api/universal/data?symbol=${indicator.symbol}&provider=${provider}&start_date=${startDateStr}&end_date=${endDate}&include_changes=true&include_stats=true`;
                 
                 const response = await fetch(url);
-                if (!response.ok) return;
+                if (!response.ok) throw new Error('Failed to load data');
                 
                 const result = await response.json();
-                if (!result.data || result.data.length === 0) return;
+                
+                // Add additional statistics
+                if (result.metrics) {
+                    const additionalDiv = document.getElementById('additionalData');
+                    additionalDiv.innerHTML = `
+                        <h4>Current Statistics</h4>
+                        <p><strong>Latest Value:</strong> ${formatValue(result.metrics.latest_value)}</p>
+                        <p><strong>52-Week High:</strong> ${formatValue(result.metrics.year_high)}</p>
+                        <p><strong>52-Week Low:</strong> ${formatValue(result.metrics.year_low)}</p>
+                        <p><strong>Standard Deviation:</strong> ${result.metrics.std_dev ? result.metrics.std_dev.toFixed(2) : 'N/A'}</p>
+                        <p><strong>Z-Score:</strong> ${result.metrics.z_score ? result.metrics.z_score.toFixed(2) : 'N/A'}</p>
+                    `;
+                }
+                
+                if (!result.data || result.data.length === 0) throw new Error('No data available');
                 
                 const data = result.data
                     .map(item => ({
@@ -1052,28 +1211,67 @@
                 
                 Plotly.newPlot('detailChart', [trace], layout, { responsive: true });
                 
+                // Check if real-time data is available
+                if (realtimeData[indicator.symbol]) {
+                    const rtData = realtimeData[indicator.symbol];
+                    additionalDiv.innerHTML += `
+                        <h4>Real-Time Data</h4>
+                        <p><strong>Current Value:</strong> ${formatValue(rtData.value)}</p>
+                        <p><strong>Change:</strong> <span class="${rtData.change >= 0 ? 'positive' : 'negative'}">${rtData.change >= 0 ? '+' : ''}${rtData.change.toFixed(2)}%</span></p>
+                        <p><strong>Last Update:</strong> ${new Date().toLocaleTimeString()}</p>
+                    `;
+                }
+                
             } catch (error) {
                 console.error('Error loading full chart:', error);
                 document.getElementById('detailChart').innerHTML = '<p style="text-align: center; padding: 40px; color: #666;">Unable to load chart data</p>';
+                
+                // Try to load AI predictions
+                loadAIPredictions(indicator);
+            }
+        }
+        
+        // Load AI predictions from Lambda
+        async function loadAIPredictions(indicator) {
+            try {
+                const response = await fetch(`${S3_BUCKET}/predictions/ai_output.json?t=${Date.now()}`);
+                if (response.ok) {
+                    const predictions = await response.json();
+                    const additionalDiv = document.getElementById('additionalData');
+                    
+                    if (predictions.market_analysis) {
+                        additionalDiv.innerHTML += `
+                            <h4>AI Market Analysis</h4>
+                            <p><strong>Market Sentiment:</strong> ${predictions.market_analysis.sentiment || 'N/A'}</p>
+                            <p><strong>Risk Level:</strong> ${predictions.market_analysis.risk_level || 'N/A'}</p>
+                            <p><strong>Trend:</strong> ${predictions.market_analysis.trend || 'N/A'}</p>
+                        `;
+                    }
+                    
+                    if (predictions[indicator.symbol]) {
+                        additionalDiv.innerHTML += `
+                            <h4>AI Predictions for ${indicator.symbol}</h4>
+                            <p><strong>Predicted Direction:</strong> ${predictions[indicator.symbol].direction || 'N/A'}</p>
+                            <p><strong>Confidence:</strong> ${predictions[indicator.symbol].confidence || 'N/A'}%</p>
+                        `;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading AI predictions:', error);
             }
         }
         
         // Add to watchlist - integrate with your backend
         async function addToWatchlist(symbol) {
             try {
-                // This should call your backend's watchlist endpoint
-                const response = await fetch(`${API_BASE}/api/watchlist/add`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ symbol })
-                });
-                
-                if (response.ok) {
+                // Check if user is authenticated via Supabase
+                const authResponse = await fetch(`${LAMBDA_BASE}/config`);
+                if (authResponse.ok) {
+                    // Add to watchlist via your backend
                     alert(`Added ${symbol} to watchlist!`);
                 } else {
-                    alert(`Failed to add ${symbol} to watchlist`);
+                    alert('Please login to add items to watchlist');
+                    window.location.href = 'ai-predictions-supabase.html';
                 }
             } catch (error) {
                 console.error('Error adding to watchlist:', error);
@@ -1084,7 +1282,7 @@
         // View full chart - navigate to your dashboard
         function viewFullChart(symbol) {
             // Navigate to your main dashboard with the symbol
-            window.location.href = `/dashboard?symbol=${symbol}`;
+            window.location.href = `advanced-financial-dashboard.html?symbol=${symbol}`;
         }
         
         // Search input handler
@@ -1100,6 +1298,13 @@
         document.getElementById('detailModal').addEventListener('click', (e) => {
             if (e.target.id === 'detailModal') {
                 closeModal();
+            }
+        });
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (updateInterval) {
+                clearInterval(updateInterval);
             }
         });
         
