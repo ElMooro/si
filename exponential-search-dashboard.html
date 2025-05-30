@@ -898,27 +898,104 @@
                     } else if (data.files) {
                         // If we get file list, load actual data from S3 proxy
                         console.log('Loading indicator data from S3 proxy...');
-                        await loadIndicatorDataFromS3Proxy(data.files);
+                        await loadIndicatorsFromS3Proxy();
                     }
                     
                     updateSourceStatus('index', true);
                 } else {
                     console.error('Failed to load search index');
                     // Try S3 proxy as fallback
-                    await loadAllIndicatorsFromS3Proxy();
+                    await loadIndicatorsFromS3Proxy();
                 }
                 
             } catch (error) {
                 console.error('Error loading search index:', error);
                 // Try S3 proxy as fallback
+                await loadIndicatorsFromS3Proxy();
+            }
+        }
+        
+        // Load indicators using the new getIndicators action
+        async function loadIndicatorsFromS3Proxy() {
+            try {
+                console.log('Loading indicators from S3 proxy with categories...');
+                
+                const response = await fetch(LAMBDA_ENDPOINTS.s3DataProxy, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({action: 'getIndicators'})
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    console.log(`Successfully loaded ${data.total} indicators from S3`);
+                    
+                    // Store indicators with enhanced metadata
+                    searchIndex = data.indicators;
+                    
+                    // Group by category for better organization
+                    const byCategory = {};
+                    data.indicators.forEach(ind => {
+                        if (!byCategory[ind.category]) {
+                            byCategory[ind.category] = [];
+                        }
+                        byCategory[ind.category].push(ind);
+                        
+                        // Also store in scrapedData for later use
+                        if (ind.latest_value !== null) {
+                            scrapedData[ind.symbol] = {
+                                value: ind.latest_value,
+                                change: ind.daily_change,
+                                date: ind.latest_date,
+                                source: 'S3',
+                                category: ind.category,
+                                priority: ind.priority
+                            };
+                        }
+                    });
+                    
+                    // Log category distribution
+                    console.log('Indicators by category:');
+                    Object.entries(byCategory).forEach(([category, indicators]) => {
+                        console.log(`  ${category}: ${indicators.length} indicators`);
+                    });
+                    
+                    updateSourceStatus('index', true);
+                    
+                    // Update category filter counts
+                    updateCategoryFilterCounts(byCategory);
+                    
+                } else {
+                    console.error('Failed to load indicators from S3 proxy:', data.error);
+                    // Fallback to getAll method
+                    await loadAllIndicatorsFromS3Proxy();
+                }
+                
+            } catch (error) {
+                console.error('Error loading indicators from S3 proxy:', error);
+                // Fallback to getAll method
                 await loadAllIndicatorsFromS3Proxy();
             }
+        }
+        
+        // Update category filter buttons with counts
+        function updateCategoryFilterCounts(byCategory) {
+            const categoryFilters = document.getElementById('categoryFilters');
+            
+            // Update each category button with count
+            Object.entries(byCategory).forEach(([category, indicators]) => {
+                const button = categoryFilters.querySelector(`[data-category="${category}"]`);
+                if (button && !button.textContent.includes('(')) {
+                    button.textContent += ` (${indicators.length})`;
+                }
+            });
         }
         
         // Load all indicators from S3 proxy - NO MORE CORS ERRORS!
         async function loadAllIndicatorsFromS3Proxy() {
             try {
-                console.log('Loading all indicators from S3 proxy...');
+                console.log('Loading all indicators from S3 proxy (fallback method)...');
                 
                 const response = await fetch(LAMBDA_ENDPOINTS.s3DataProxy, {
                     method: 'POST',
@@ -940,14 +1017,23 @@
                             source: 'S3',
                             data: info.data,
                             lastUpdated: info.lastUpdated,
-                            file: info.file
+                            file: info.file,
+                            category: detectCategory({symbol}),
+                            priority: calculatePriority({symbol})
                         });
                         
                         // Store the data for later use
                         if (info.data && info.data.observations) {
+                            const observations = info.data.observations;
+                            const latest = observations[observations.length - 1];
+                            const previous = observations[Math.max(0, observations.length - 2)];
+                            
                             scrapedData[symbol] = {
-                                value: info.data.observations[info.data.observations.length - 1]?.value,
-                                observations: info.data.observations,
+                                value: latest ? parseFloat(latest.value) : null,
+                                change: latest && previous ? 
+                                    ((parseFloat(latest.value) - parseFloat(previous.value)) / parseFloat(previous.value) * 100) : 0,
+                                date: latest ? latest.date : null,
+                                observations: observations,
                                 source: 'S3'
                             };
                         }
@@ -1022,9 +1108,16 @@
                 if (data.status === 'success' && data.data) {
                     // Store in scraped data for later use
                     if (data.data.observations) {
+                        const observations = data.data.observations;
+                        const latest = observations[observations.length - 1];
+                        const previous = observations[Math.max(0, observations.length - 2)];
+                        
                         scrapedData[indicatorName] = {
-                            value: data.data.observations[data.data.observations.length - 1]?.value,
-                            observations: data.data.observations,
+                            value: latest ? parseFloat(latest.value) : null,
+                            change: latest && previous ? 
+                                ((parseFloat(latest.value) - parseFloat(previous.value)) / parseFloat(previous.value) * 100) : 0,
+                            date: latest ? latest.date : null,
+                            observations: observations,
                             source: 'S3',
                             lastUpdated: data.lastUpdated
                         };
@@ -1035,7 +1128,9 @@
                         name: data.data.name || generateIndicatorName(indicatorName),
                         source: 'S3',
                         data: data.data,
-                        lastUpdated: data.lastUpdated
+                        lastUpdated: data.lastUpdated,
+                        category: detectCategory({symbol: indicatorName}),
+                        priority: calculatePriority({symbol: indicatorName})
                     };
                 }
                 
@@ -1733,10 +1828,20 @@
                 let percentChange = '—';
                 let lastUpdate = '—';
                 
+                // Priority order: real-time > scraped > AI > AppRunner
                 if (indicator.realtimeData) {
                     latestValue = formatValue(indicator.realtimeData.value);
                     percentChange = formatChange(indicator.realtimeData.change);
                     lastUpdate = 'Live';
+                } else if (indicator.latest_value !== undefined && indicator.latest_value !== null) {
+                    // Use pre-computed latest value from S3 data
+                    latestValue = formatValue(indicator.latest_value);
+                    percentChange = formatChange(indicator.daily_change);
+                    lastUpdate = indicator.latest_date ? new Date(indicator.latest_date).toLocaleDateString() : 'S3';
+                } else if (indicator.scrapedData && indicator.scrapedData.value !== null) {
+                    latestValue = formatValue(indicator.scrapedData.value);
+                    percentChange = formatChange(indicator.scrapedData.change);
+                    lastUpdate = indicator.scrapedData.date || 'Scraped';
                 } else if (indicator.aiPrediction && indicator.aiPrediction.value) {
                     latestValue = formatValue(indicator.aiPrediction.value);
                     percentChange = formatChange(indicator.aiPrediction.change);
@@ -1749,10 +1854,6 @@
                         latestValue = formatValue(indicator.appRunnerData.value);
                     }
                     lastUpdate = 'API';
-                } else if (indicator.scrapedData) {
-                    latestValue = formatValue(indicator.scrapedData.value);
-                    percentChange = formatChange(indicator.scrapedData.change);
-                    lastUpdate = 'Scraped';
                 }
                 
                 const aiForcast = indicator.aiPrediction ? 
