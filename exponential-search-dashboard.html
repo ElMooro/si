@@ -893,40 +893,15 @@
                     console.log('Search index loaded:', data);
                     
                     // Extract indicators from the response
-                    if (data.indicators && Array.isArray(data.indicators)) {
-                        // Process indicators from the Lambda response
-                        const processedIndicators = data.indicators.map(ind => {
-                            // Handle case where indicator might be a string or object
-                            if (typeof ind === 'string') {
-                                return {
-                                    symbol: ind,
-                                    name: generateIndicatorName(ind),
-                                    source: 'index'
-                                };
-                            } else if (ind && ind.symbol) {
-                                return {
-                                    ...ind,
-                                    name: ind.name || generateIndicatorName(ind.symbol),
-                                    source: ind.source || 'index'
-                                };
-                            }
-                            return null;
-                        }).filter(ind => ind !== null);
-                        
-                        searchIndex = processedIndicators;
-                        updateSourceStatus('index', true);
-                        
-                        // Also try to load full data from S3 proxy
-                        await loadIndicatorsFromS3Proxy();
+                    if (data.indicators) {
+                        searchIndex = data.indicators;
                     } else if (data.files) {
                         // If we get file list, load actual data from S3 proxy
                         console.log('Loading indicator data from S3 proxy...');
                         await loadIndicatorsFromS3Proxy();
-                    } else {
-                        // Unexpected response format, try S3 proxy
-                        await loadIndicatorsFromS3Proxy();
                     }
                     
+                    updateSourceStatus('index', true);
                 } else {
                     console.error('Failed to load search index');
                     // Try S3 proxy as fallback
@@ -1181,38 +1156,23 @@
                     const data = await response.json();
                     console.log('AI predictions loaded:', data);
                     
-                    // Extract predictions from various possible response formats
+                    // Extract predictions
                     if (data.market_analysis && data.market_analysis.predictions) {
                         aiPredictions = data.market_analysis.predictions;
                     } else if (data.predictions) {
                         aiPredictions = data.predictions;
                     } else if (data.indicators) {
-                        // Convert indicators to predictions format
+                        // Convert to predictions format
                         aiPredictions = {};
-                        Object.entries(data.indicators).forEach(([symbol, indicator]) => {
-                            if (indicator && typeof indicator === 'object') {
-                                aiPredictions[symbol] = {
-                                    forecast: indicator.ai_signal || indicator.forecast || 'Analysis pending',
-                                    sentiment: indicator.sentiment || 'neutral',
-                                    confidence: indicator.confidence || 0.75,
-                                    value: indicator.current_value || indicator.value,
-                                    change: indicator.daily_change || indicator.change
-                                };
-                            }
-                        });
-                    } else if (data.market_analysis && data.market_analysis.indicators) {
-                        // Handle nested indicators structure
-                        aiPredictions = {};
-                        Object.entries(data.market_analysis.indicators).forEach(([symbol, indicator]) => {
-                            if (indicator && typeof indicator === 'object') {
-                                aiPredictions[symbol] = {
-                                    forecast: indicator.ai_signal || 'Analysis pending',
-                                    sentiment: indicator.sentiment || 'neutral',
-                                    confidence: indicator.confidence || 0.75,
-                                    value: indicator.current_value,
-                                    change: indicator.daily_change
-                                };
-                            }
+                        Object.keys(data.indicators).forEach(symbol => {
+                            const indicator = data.indicators[symbol];
+                            aiPredictions[symbol] = {
+                                forecast: indicator.ai_signal || 'Analysis pending',
+                                sentiment: indicator.sentiment || 'neutral',
+                                confidence: indicator.confidence || 0.75,
+                                value: indicator.current_value,
+                                change: indicator.daily_change
+                            };
                         });
                     }
                     
@@ -1246,20 +1206,8 @@
                     const data = await response.json();
                     console.log('Scraped data loaded from Lambda:', data);
                     
-                    // Process scraped data from various response formats
-                    if (data.macro_data) {
-                        // Handle macro_data format
-                        Object.entries(data.macro_data).forEach(([symbol, values]) => {
-                            if (values && typeof values === 'object') {
-                                scrapedData[symbol] = {
-                                    value: values.value || values.latest_value,
-                                    change: values.change || values.daily_change || 0,
-                                    date: values.date || values.latest_date,
-                                    source: 'Lambda-scraper'
-                                };
-                            }
-                        });
-                    } else if (data.data) {
+                    // Process scraped data
+                    if (data.data) {
                         scrapedData = { ...scrapedData, ...data.data };
                     } else if (data.indicators) {
                         scrapedData = { ...scrapedData, ...data.indicators };
@@ -1351,7 +1299,7 @@
             }
         }
         
-        // Load data from AppRunner API (with better error handling)
+        // Load data from AppRunner API
         async function loadAppRunnerData() {
             try {
                 console.log('Loading AppRunner data...');
@@ -1367,14 +1315,7 @@
                 
                 const requests = endpoints.map(endpoint => 
                     fetch(API_BASE + endpoint)
-                        .then(res => {
-                            if (res.ok) return res.json();
-                            // Log 404s but don't throw error
-                            if (res.status === 404) {
-                                console.log(`AppRunner endpoint not found: ${endpoint} (this is expected)`);
-                            }
-                            return null;
-                        })
+                        .then(res => res.ok ? res.json() : null)
                         .catch(() => null)
                 );
                 
@@ -1409,9 +1350,7 @@
                     updateSourceStatus('appRunner', true);
                     console.log('AppRunner data loaded:', appRunnerData);
                 } else {
-                    // Don't mark as error if endpoints are just not available
-                    console.log('No data from AppRunner API (endpoints return 404 - this is expected)');
-                    updateSourceStatus('appRunner', false, false); // false, false = not connected but not an error
+                    updateSourceStatus('appRunner', false, true);
                 }
                 
             } catch (error) {
@@ -1575,8 +1514,6 @@
         
         // Helper functions for data enrichment
         function generateIndicatorName(symbol) {
-            if (!symbol) return 'Unknown';
-            
             const nameMap = {
                 'VIXCLS': 'CBOE Volatility Index',
                 'DGS10': '10-Year Treasury Rate',
@@ -1594,8 +1531,6 @@
         }
         
         function detectCategory(indicator) {
-            if (!indicator || !indicator.symbol) return 'general';
-            
             const symbol = indicator.symbol.toUpperCase();
             
             if (symbol.includes('VIX') || symbol.includes('VOL')) return 'volatility';
@@ -1611,8 +1546,6 @@
         }
         
         function calculatePriority(indicator) {
-            if (!indicator || !indicator.symbol) return 5;
-            
             // Black Swan indicators
             const blackSwanSymbols = ['VIXCLS', 'BAMLH0A0HYM2', 'T10Y2Y', 'SOFR', 'STLFSI2'];
             if (blackSwanSymbols.includes(indicator.symbol)) return 10;
@@ -1630,8 +1563,6 @@
         }
         
         function generateTags(indicator) {
-            if (!indicator) return [];
-            
             const tags = [];
             
             if (indicator.category) tags.push(indicator.category);
@@ -1887,6 +1818,12 @@
             noResults.style.display = 'none';
             
             resultsSection.innerHTML = indicators.map(indicator => {
+                // Skip if no symbol
+                if (!indicator.symbol) {
+                    console.error('Indicator without symbol:', indicator);
+                    return '';
+                }
+                
                 const isBlackSwan = indicator.priority >= 10;
                 const hasLiveData = indicator.hasLive;
                 const hasAIPrediction = indicator.hasAI;
@@ -1927,6 +1864,9 @@
                 
                 const aiForcast = indicator.aiPrediction ? 
                     indicator.aiPrediction.forecast || 'Analysis pending' : '—';
+                
+                // Safe symbol for IDs (replace special characters)
+                const safeSymbol = indicator.symbol.replace(/[^a-zA-Z0-9]/g, '_');
                 
                 return `
                     <div class="result-card ${isBlackSwan ? 'black-swan' : ''}" 
@@ -1972,7 +1912,7 @@
                             </div>
                         </div>
                         
-                        <div class="chart-preview" id="preview_${indicator.symbol.replace(/[^a-zA-Z0-9]/g, '_')}">
+                        <div class="chart-preview" id="preview_${safeSymbol}">
                             <div style="padding: 60px; text-align: center; color: #666;">
                                 Loading Chart...
                             </div>
@@ -1992,7 +1932,9 @@
             
             // Load charts for visible indicators
             indicators.forEach(indicator => {
-                loadMiniChart(indicator);
+                if (indicator.symbol) {
+                    loadMiniChart(indicator);
+                }
             });
         }
         
