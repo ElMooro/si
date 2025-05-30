@@ -3,174 +3,297 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exponential Search - OpenBB Financial Intelligence</title>
+    <title>OpenBB Financial Intelligence - Enhanced Search (169 Indicators)</title>
     
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2/dist/fuse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: #0a0a0a;
-            color: #e0e0e0;
-            overflow-x: hidden;
+        
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #131313;
+            --bg-tertiary: #1a1a1a;
+            --border-color: #282828;
+            --text-primary: #e0e0e0;
+            --text-secondary: #aaa;
+            --text-muted: #666;
+            --accent-green: #00ff88;
+            --accent-blue: #00ccff;
+            --accent-red: #ff4444;
+            --accent-yellow: #ffcc00;
         }
         
-        /* Navigation Bar */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+        
+        /* Navigation */
         nav {
-            background: #121212;
-            border-bottom: 1px solid #282828;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
             padding: 15px 20px;
             position: sticky;
             top: 0;
             z-index: 1000;
+            backdrop-filter: blur(10px);
+            background: rgba(19, 19, 19, 0.95);
+        }
+        
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         
         .nav-logo {
-            font-size: 22px;
+            font-size: 24px;
             font-weight: bold;
-            background: linear-gradient(45deg, #00ff88, #00ccff);
+            background: linear-gradient(45deg, var(--accent-green), var(--accent-blue));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
         .nav-links {
             display: flex;
-            gap: 25px;
+            gap: 30px;
             align-items: center;
         }
         
         .nav-links a {
-            color: #ccc;
+            color: var(--text-secondary);
             text-decoration: none;
             font-size: 14px;
-            transition: color 0.3s;
+            transition: all 0.3s;
             position: relative;
+            padding: 5px 0;
         }
         
         .nav-links a:hover {
-            color: #00ff88;
+            color: var(--accent-green);
         }
         
         .nav-links a.active {
-            color: #00ff88;
+            color: var(--accent-green);
         }
         
         .nav-links a.active::after {
             content: '';
             position: absolute;
-            bottom: -5px;
+            bottom: -2px;
             left: 0;
             right: 0;
             height: 2px;
-            background: #00ff88;
+            background: var(--accent-green);
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { transform: scaleX(0); }
+            to { transform: scaleX(1); }
         }
         
         /* Main Container */
         .main-container {
             max-width: 1400px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 30px 20px;
         }
         
-        /* Header */
+        /* Header Section */
         .header-section {
             text-align: center;
             margin-bottom: 40px;
+            animation: fadeInUp 0.6s ease;
+        }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         .page-title {
-            font-size: 36px;
-            margin-bottom: 10px;
-            background: linear-gradient(45deg, #00ff88, #00ccff);
+            font-size: 48px;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, var(--accent-green), var(--accent-blue));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            font-weight: 800;
         }
         
         .page-subtitle {
-            font-size: 16px;
-            color: #aaa;
+            font-size: 18px;
+            color: var(--text-secondary);
+            max-width: 800px;
+            margin: 0 auto;
         }
         
-        /* Data Source Status */
-        .data-sources-status {
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-green), var(--accent-blue));
+            transform: scaleX(0);
+            transition: transform 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-green);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.1);
+        }
+        
+        .stat-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .stat-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: var(--accent-green);
+            margin-bottom: 8px;
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* Data Sources */
+        .data-sources {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             justify-content: center;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
             flex-wrap: wrap;
         }
         
         .source-badge {
-            padding: 5px 15px;
+            padding: 8px 16px;
             border-radius: 20px;
-            font-size: 12px;
+            font-size: 13px;
             display: flex;
             align-items: center;
-            gap: 5px;
-            background: #1a1a1a;
-            border: 1px solid #333;
+            gap: 8px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s;
         }
         
         .source-badge.connected {
-            border-color: #00ff88;
-            background: #00ff8810;
+            border-color: var(--accent-green);
+            background: rgba(0, 255, 136, 0.1);
         }
         
-        .source-badge.error {
-            border-color: #ff4444;
-            background: #ff444410;
+        .source-badge.new {
+            position: relative;
         }
         
-        .source-badge .status-dot {
+        .source-badge.new::after {
+            content: '✨';
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            font-size: 16px;
+            animation: sparkle 2s infinite;
+        }
+        
+        @keyframes sparkle {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+        
+        .status-dot {
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: #666;
+            background: var(--text-muted);
         }
         
         .source-badge.connected .status-dot {
-            background: #00ff88;
+            background: var(--accent-green);
             animation: pulse 2s infinite;
         }
         
-        .source-badge.error .status-dot {
-            background: #ff4444;
+        @keyframes pulse {
+            0% { opacity: 1; box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.4); }
+            70% { opacity: 1; box-shadow: 0 0 0 6px rgba(0, 255, 136, 0); }
+            100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
+        }
+        
+        .source-count {
+            background: var(--bg-primary);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: bold;
         }
         
         /* Search Section */
         .search-section {
-            background: #131313;
-            border: 1px solid #282828;
-            border-radius: 10px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
             padding: 30px;
             margin-bottom: 30px;
         }
         
         .search-container {
             position: relative;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
         
         .search-input {
             width: 100%;
-            padding: 15px 50px 15px 20px;
-            background: #0a0a0a;
-            border: 2px solid #333;
-            color: #fff;
-            border-radius: 8px;
+            padding: 18px 55px 18px 25px;
+            background: var(--bg-primary);
+            border: 2px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 12px;
             font-size: 16px;
-            transition: border-color 0.3s;
+            transition: all 0.3s;
         }
         
         .search-input:focus {
             outline: none;
-            border-color: #00ff88;
-            box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.1);
+            border-color: var(--accent-green);
+            box-shadow: 0 0 0 4px rgba(0, 255, 136, 0.1);
         }
         
         .search-icon {
@@ -178,8 +301,9 @@
             right: 20px;
             top: 50%;
             transform: translateY(-50%);
-            color: #777;
+            color: var(--text-muted);
             font-size: 20px;
+            pointer-events: none;
         }
         
         /* Search Suggestions */
@@ -188,14 +312,15 @@
             top: 100%;
             left: 0;
             right: 0;
-            background: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 8px;
-            margin-top: 5px;
-            max-height: 300px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-top: 8px;
+            max-height: 400px;
             overflow-y: auto;
             display: none;
             z-index: 100;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
         
         .search-suggestions.active {
@@ -206,154 +331,103 @@
             padding: 12px 20px;
             cursor: pointer;
             transition: background 0.2s;
-            border-bottom: 1px solid #252525;
+            border-bottom: 1px solid rgba(40, 40, 40, 0.5);
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 15px;
         }
         
         .suggestion-item:hover {
-            background: #252525;
+            background: rgba(0, 255, 136, 0.1);
         }
         
         .suggestion-symbol {
             font-weight: bold;
-            color: #00ff88;
+            color: var(--accent-green);
+            min-width: 100px;
         }
         
         .suggestion-name {
             font-size: 14px;
-            color: #888;
+            color: var(--text-secondary);
             flex: 1;
         }
         
         .suggestion-source {
             font-size: 11px;
-            color: #666;
-            padding: 2px 8px;
-            background: #252525;
-            border-radius: 4px;
+            color: var(--text-muted);
+            padding: 3px 10px;
+            background: var(--bg-primary);
+            border-radius: 6px;
+            text-transform: uppercase;
         }
         
-        /* Filter Section */
+        /* Filters */
         .filter-section {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
         }
         
         .filter-group {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
         }
         
         .filter-label {
             font-size: 12px;
-            color: #888;
+            color: var(--text-secondary);
             text-transform: uppercase;
-            font-weight: bold;
+            font-weight: 600;
+            letter-spacing: 1px;
         }
         
         .filter-buttons {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 10px;
         }
         
         .filter-btn {
-            background: #252525;
-            border: 1px solid #383838;
-            color: #ccc;
-            padding: 6px 12px;
-            border-radius: 6px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 13px;
             transition: all 0.2s;
             white-space: nowrap;
         }
         
         .filter-btn:hover {
-            background: #333;
-            border-color: #555;
+            background: rgba(0, 255, 136, 0.1);
+            border-color: var(--accent-green);
+            color: var(--accent-green);
         }
         
         .filter-btn.active {
-            background: #00dd77;
-            color: #000;
-            border-color: #00dd77;
-        }
-        
-        /* Stats Bar */
-        .stats-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px;
-            background: #0a0a0a;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        
-        .stats-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .stats-label {
-            font-size: 14px;
-            color: #888;
-        }
-        
-        .stats-value {
-            font-size: 16px;
-            font-weight: bold;
-            color: #00ff88;
-        }
-        
-        /* Live Data Indicator */
-        .live-indicator {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 20px;
-            background: #1a1a1a;
-            border: 1px solid #00ff88;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        
-        .live-dot {
-            width: 10px;
-            height: 10px;
-            background: #00ff88;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(1.2); }
-            100% { opacity: 1; transform: scale(1); }
+            background: var(--accent-green);
+            color: var(--bg-primary);
+            border-color: var(--accent-green);
+            font-weight: 600;
         }
         
         /* Results Grid */
         .results-section {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 25px;
             margin-bottom: 30px;
         }
         
         .result-card {
-            background: #131313;
-            border: 1px solid #282828;
-            border-radius: 10px;
-            padding: 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
             transition: all 0.3s;
             cursor: pointer;
             position: relative;
@@ -361,165 +435,166 @@
         }
         
         .result-card:hover {
-            border-color: #00ff88;
             transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.2);
+            border-color: var(--accent-green);
+            box-shadow: 0 15px 40px rgba(0, 255, 136, 0.15);
         }
         
         .result-card.black-swan {
-            border-color: #ff4444;
-            background: linear-gradient(135deg, #131313, #1a0a0a);
+            background: linear-gradient(135deg, var(--bg-secondary), rgba(255, 68, 68, 0.05));
+            border-color: var(--accent-red);
         }
         
         .result-card.black-swan::before {
             content: '🦢';
             position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 24px;
-            opacity: 0.5;
+            top: 15px;
+            right: 15px;
+            font-size: 28px;
+            opacity: 0.3;
         }
         
         .result-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
             margin-bottom: 15px;
         }
         
         .result-symbol {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: bold;
-            color: #fff;
+            color: var(--text-primary);
             margin-bottom: 5px;
         }
         
         .result-name {
             font-size: 14px;
-            color: #aaa;
-            margin-bottom: 10px;
+            color: var(--text-secondary);
+            margin-bottom: 15px;
         }
         
         .result-tags {
             display: flex;
             flex-wrap: wrap;
-            gap: 5px;
-            margin-bottom: 15px;
+            gap: 8px;
+            margin-bottom: 20px;
         }
         
         .tag {
-            background: #252525;
-            color: #888;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            border: 1px solid transparent;
         }
         
         .tag.priority {
-            background: #ff444430;
-            color: #ff6666;
-            border: 1px solid #ff4444;
+            background: rgba(255, 68, 68, 0.2);
+            color: var(--accent-red);
+            border-color: var(--accent-red);
         }
         
         .tag.source {
-            background: #00aaff30;
-            color: #00ccff;
-            border: 1px solid #00aaff;
+            background: rgba(0, 204, 255, 0.2);
+            color: var(--accent-blue);
+            border-color: var(--accent-blue);
+        }
+        
+        .tag.new-source {
+            background: rgba(0, 255, 136, 0.2);
+            color: var(--accent-green);
+            border-color: var(--accent-green);
         }
         
         .result-metrics {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-bottom: 15px;
+            gap: 12px;
+            margin-bottom: 20px;
         }
         
         .metric {
             text-align: center;
-            padding: 10px;
-            background: #0a0a0a;
-            border-radius: 6px;
+            padding: 12px;
+            background: var(--bg-primary);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
         }
         
         .metric-label {
             font-size: 11px;
-            color: #888;
+            color: var(--text-muted);
             margin-bottom: 5px;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .metric-value {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: bold;
-            color: #fff;
+            color: var(--text-primary);
         }
         
-        .metric-value.positive { color: #00dd77; }
-        .metric-value.negative { color: #ff4444; }
+        .metric-value.positive { color: var(--accent-green); }
+        .metric-value.negative { color: var(--accent-red); }
         
         /* Chart Preview */
         .chart-preview {
-            height: 150px;
-            margin-bottom: 15px;
-            background: #0a0a0a;
-            border-radius: 6px;
+            height: 180px;
+            margin-bottom: 20px;
+            background: var(--bg-primary);
+            border-radius: 8px;
             position: relative;
             overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        
+        .chart-preview canvas {
+            width: 100% !important;
+            height: 100% !important;
         }
         
         .result-actions {
             display: flex;
-            gap: 10px;
+            gap: 12px;
         }
         
         .action-btn {
             flex: 1;
-            background: #252525;
-            border: 1px solid #383838;
-            color: #ccc;
-            padding: 8px 12px;
-            border-radius: 6px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 10px 16px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 13px;
             transition: all 0.2s;
             text-align: center;
+            font-weight: 500;
         }
         
         .action-btn:hover {
-            background: #333;
-            border-color: #00ff88;
-            color: #00ff88;
-        }
-        
-        /* AI Predictions Badge */
-        .ai-badge {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: linear-gradient(135deg, #ff6b6b, #ff4757);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 10px;
-            font-weight: bold;
+            background: rgba(0, 255, 136, 0.1);
+            border-color: var(--accent-green);
+            color: var(--accent-green);
         }
         
         /* Loading State */
         .loading {
             text-align: center;
-            padding: 40px;
+            padding: 60px 20px;
             font-size: 18px;
-            color: #888;
+            color: var(--text-secondary);
         }
         
         .loading-spinner {
             display: inline-block;
-            width: 40px;
-            height: 40px;
-            border: 3px solid #333;
-            border-top-color: #00ff88;
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--accent-green);
             border-radius: 50%;
             animation: spin 1s linear infinite;
+            margin-bottom: 20px;
         }
         
         @keyframes spin {
@@ -529,45 +604,56 @@
         /* No Results */
         .no-results {
             text-align: center;
-            padding: 60px 20px;
-            color: #666;
+            padding: 80px 20px;
+            color: var(--text-muted);
         }
         
         .no-results-icon {
-            font-size: 48px;
+            font-size: 64px;
             margin-bottom: 20px;
-            opacity: 0.5;
+            opacity: 0.3;
         }
         
-        /* Modal for detailed view */
+        /* Modal */
         .modal {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.95);
             display: none;
             align-items: center;
             justify-content: center;
             z-index: 2000;
             padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .modal.active {
+            display: flex;
         }
         
         .modal-content {
-            background: #131313;
-            border: 1px solid #282828;
-            border-radius: 10px;
-            max-width: 800px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            max-width: 900px;
             width: 100%;
             max-height: 90vh;
             overflow-y: auto;
             position: relative;
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         .modal-header {
-            padding: 20px;
-            border-bottom: 1px solid #282828;
+            padding: 25px;
+            border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -576,68 +662,125 @@
         .modal-title {
             font-size: 24px;
             font-weight: bold;
-            color: #fff;
+            color: var(--text-primary);
         }
         
         .modal-close {
             background: none;
             border: none;
-            color: #888;
-            font-size: 24px;
+            color: var(--text-secondary);
+            font-size: 28px;
             cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: all 0.2s;
         }
         
         .modal-close:hover {
-            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
         }
         
         .modal-body {
-            padding: 20px;
+            padding: 25px;
         }
         
         .detail-chart {
             height: 400px;
-            margin-bottom: 20px;
-            background: #0a0a0a;
-            border-radius: 6px;
+            margin-bottom: 30px;
+            background: var(--bg-primary);
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
         }
         
-        /* Pending data state */
-        .result-card.pending-data {
-            opacity: 0.8;
-            border-style: dashed;
+        /* Live Indicator */
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 24px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--accent-green);
+            border-radius: 10px;
+            margin-bottom: 25px;
+            justify-content: center;
         }
         
-        .result-card.pending-data .chart-preview {
-            opacity: 0.5;
+        .live-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
         }
         
+        /* Responsive */
         @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
             .filter-section {
                 grid-template-columns: 1fr;
             }
+            
             .results-section {
                 grid-template-columns: 1fr;
             }
-            .stats-bar {
-                flex-direction: column;
-                gap: 10px;
+            
+            .page-title {
+                font-size: 32px;
             }
+            
+            .data-sources {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 5px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #444;
         }
     </style>
 </head>
 <body>
     <!-- Navigation -->
     <nav>
-        <div class="nav-logo">📊 OPENBB</div>
-        <div class="nav-links">
-            <a href="index.html">Home</a>
-            <a href="advanced-financial-dashboard.html">Macro Dashboard</a>
-            <a href="ai-predictions-supabase.html">AI Signals</a>
-            <a href="exponential-search-dashboard.html" class="active">Search</a>
-            <a href="openbb-realtime-dashboard.html">Live Data</a>
-            <a href="macroeconomic-platform.html">Platform</a>
-            <a href="professional-financial-dashboard.html">Pro Dashboard</a>
+        <div class="nav-container">
+            <div class="nav-logo">
+                <span>📊</span>
+                <span>OpenBB Financial Intelligence</span>
+            </div>
+            <div class="nav-links">
+                <a href="index.html">Dashboard</a>
+                <a href="advanced-financial-dashboard.html">Macro</a>
+                <a href="#" class="active">Search</a>
+                <a href="macroeconomic-platform.html">Platform</a>
+            </div>
         </div>
     </nav>
     
@@ -646,38 +789,83 @@
         <!-- Header -->
         <div class="header-section">
             <h1 class="page-title">🔍 Exponential Search Engine</h1>
-            <p class="page-subtitle">Ultra-fast search across all financial indicators with Black Swan detection, AI predictions, and real-time data</p>
+            <p class="page-subtitle">Lightning-fast search across 169 financial indicators from 9 global data sources with real-time updates and AI-powered insights</p>
         </div>
         
-        <!-- Data Source Status -->
-        <div class="data-sources-status" id="dataSourcesStatus">
-            <div class="source-badge" id="appRunnerStatus">
-                <div class="status-dot"></div>
-                <span>AppRunner API</span>
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">169</div>
+                <div class="stat-label">Total Indicators</div>
             </div>
-            <div class="source-badge" id="mlPredictorStatus">
-                <div class="status-dot"></div>
-                <span>ML Predictor</span>
+            <div class="stat-card">
+                <div class="stat-value">283,652</div>
+                <div class="stat-label">Daily Data Points</div>
             </div>
-            <div class="source-badge" id="scraperStatus">
-                <div class="status-dot"></div>
-                <span>Data Scraper</span>
+            <div class="stat-card">
+                <div class="stat-value">9</div>
+                <div class="stat-label">Data Sources</div>
             </div>
-            <div class="source-badge" id="indexStatus">
-                <div class="status-dot"></div>
-                <span>Search Index</span>
-            </div>
-            <div class="source-badge" id="websocketStatus">
-                <div class="status-dot"></div>
-                <span>WebSocket</span>
+            <div class="stat-card">
+                <div class="stat-value">536</div>
+                <div class="stat-label">Search Terms</div>
             </div>
         </div>
         
-        <!-- Live Data Indicator -->
-        <div class="live-indicator" id="liveIndicator">
+        <!-- Data Sources Status -->
+        <div class="data-sources" id="dataSourcesStatus">
+            <div class="source-badge connected" id="treasuryStatus">
+                <div class="status-dot"></div>
+                <span>Treasury</span>
+                <span class="source-count">6</span>
+            </div>
+            <div class="source-badge connected" id="fredStatus">
+                <div class="status-dot"></div>
+                <span>FRED</span>
+                <span class="source-count">103</span>
+            </div>
+            <div class="source-badge connected" id="ecbStatus">
+                <div class="status-dot"></div>
+                <span>ECB</span>
+                <span class="source-count">7</span>
+            </div>
+            <div class="source-badge connected" id="blsStatus">
+                <div class="status-dot"></div>
+                <span>BLS</span>
+                <span class="source-count">7</span>
+            </div>
+            <div class="source-badge connected" id="worldbankStatus">
+                <div class="status-dot"></div>
+                <span>World Bank</span>
+                <span class="source-count">8</span>
+            </div>
+            <div class="source-badge" id="nyfedStatus">
+                <div class="status-dot"></div>
+                <span>NY Fed</span>
+                <span class="source-count">0</span>
+            </div>
+            <div class="source-badge connected new" id="imfStatus">
+                <div class="status-dot"></div>
+                <span>IMF</span>
+                <span class="source-count">5</span>
+            </div>
+            <div class="source-badge connected new" id="oecdStatus">
+                <div class="status-dot"></div>
+                <span>OECD</span>
+                <span class="source-count">7</span>
+            </div>
+            <div class="source-badge connected new" id="yahooStatus">
+                <div class="status-dot"></div>
+                <span>Yahoo</span>
+                <span class="source-count">26</span>
+            </div>
+        </div>
+        
+        <!-- Live Indicator -->
+        <div class="live-indicator">
             <div class="live-dot"></div>
-            <span>Connected to Live Data Stream</span>
-            <span id="lastUpdate" style="color: #888; font-size: 12px;">Last update: --</span>
+            <span>Connected to Enhanced Data Stream</span>
+            <span id="lastUpdate" style="color: var(--text-secondary); font-size: 13px;">Last update: --</span>
         </div>
         
         <!-- Search Section -->
@@ -686,7 +874,7 @@
                 <input type="text" 
                        class="search-input" 
                        id="searchInput" 
-                       placeholder="Search indicators: GDP, inflation, liquidity, VIX, dollar strength, unemployment, yield curve..."
+                       placeholder="Search 169 indicators: Try 'treasury', 'gdp', 'bitcoin', 'vix', '10 year'..."
                        autocomplete="off">
                 <span class="search-icon">🔍</span>
                 <div class="search-suggestions" id="searchSuggestions"></div>
@@ -697,63 +885,28 @@
                 <div class="filter-group">
                     <div class="filter-label">Categories</div>
                     <div class="filter-buttons" id="categoryFilters">
-                        <button class="filter-btn active" data-category="all" onclick="toggleFilter('category', 'all')">All</button>
-                        <button class="filter-btn" data-category="volatility" onclick="toggleFilter('category', 'volatility')">Volatility</button>
-                        <button class="filter-btn" data-category="credit" onclick="toggleFilter('category', 'credit')">Credit</button>
-                        <button class="filter-btn" data-category="rates" onclick="toggleFilter('category', 'rates')">Rates</button>
-                        <button class="filter-btn" data-category="liquidity" onclick="toggleFilter('category', 'liquidity')">Liquidity</button>
-                        <button class="filter-btn" data-category="currency" onclick="toggleFilter('category', 'currency')">Currency</button>
-                        <button class="filter-btn" data-category="economic" onclick="toggleFilter('category', 'economic')">Economic</button>
-                        <button class="filter-btn" data-category="employment" onclick="toggleFilter('category', 'employment')">Employment</button>
-                        <button class="filter-btn" data-category="equity" onclick="toggleFilter('category', 'equity')">Equity</button>
-                    </div>
-                </div>
-                
-                <div class="filter-group">
-                    <div class="filter-label">Priority</div>
-                    <div class="filter-buttons" id="priorityFilters">
-                        <button class="filter-btn active" data-priority="all" onclick="toggleFilter('priority', 'all')">All</button>
-                        <button class="filter-btn" data-priority="10" onclick="toggleFilter('priority', '10')">🦢 Black Swan (10)</button>
-                        <button class="filter-btn" data-priority="9" onclick="toggleFilter('priority', '9')">Critical (9)</button>
-                        <button class="filter-btn" data-priority="8" onclick="toggleFilter('priority', '8')">High (8)</button>
-                        <button class="filter-btn" data-priority="7" onclick="toggleFilter('priority', '7')">Medium (7)</button>
-                        <button class="filter-btn" data-priority="6" onclick="toggleFilter('priority', '6')">Low (6)</button>
+                        <button class="filter-btn active" data-category="all">All</button>
+                        <button class="filter-btn" data-category="rates">Interest Rates</button>
+                        <button class="filter-btn" data-category="economic">Economic</button>
+                        <button class="filter-btn" data-category="volatility">Volatility</button>
+                        <button class="filter-btn" data-category="currency">Currency</button>
+                        <button class="filter-btn" data-category="equity">Equity</button>
+                        <button class="filter-btn" data-category="commodities">Commodities</button>
+                        <button class="filter-btn" data-category="crypto">Crypto</button>
                     </div>
                 </div>
                 
                 <div class="filter-group">
                     <div class="filter-label">Data Source</div>
                     <div class="filter-buttons" id="sourceFilters">
-                        <button class="filter-btn active" data-source="all" onclick="toggleFilter('source', 'all')">All Sources</button>
-                        <button class="filter-btn" data-source="live" onclick="toggleFilter('source', 'live')">🔴 Live Data</button>
-                        <button class="filter-btn" data-source="ai" onclick="toggleFilter('source', 'ai')">🤖 AI Predictions</button>
-                        <button class="filter-btn" data-source="scraped" onclick="toggleFilter('source', 'scraped')">📊 Scraped Data</button>
-                        <button class="filter-btn" data-source="apprunner" onclick="toggleFilter('source', 'apprunner')">🏃 AppRunner</button>
+                        <button class="filter-btn active" data-source="all">All Sources</button>
+                        <button class="filter-btn" data-source="treasury">Treasury</button>
+                        <button class="filter-btn" data-source="fred">FRED</button>
+                        <button class="filter-btn" data-source="ecb">ECB</button>
+                        <button class="filter-btn" data-source="yahoo">Yahoo</button>
+                        <button class="filter-btn" data-source="imf">IMF</button>
+                        <button class="filter-btn" data-source="oecd">OECD</button>
                     </div>
-                </div>
-            </div>
-            
-            <!-- Stats Bar -->
-            <div class="stats-bar">
-                <div class="stats-item">
-                    <span class="stats-label">Total Indicators:</span>
-                    <span class="stats-value" id="totalIndicators">0</span>
-                </div>
-                <div class="stats-item">
-                    <span class="stats-label">Matching:</span>
-                    <span class="stats-value" id="matchingIndicators">0</span>
-                </div>
-                <div class="stats-item">
-                    <span class="stats-label">Black Swans:</span>
-                    <span class="stats-value" id="blackSwanCount">0</span>
-                </div>
-                <div class="stats-item">
-                    <span class="stats-label">AI Predictions:</span>
-                    <span class="stats-value" id="aiPredictionCount">0</span>
-                </div>
-                <div class="stats-item">
-                    <span class="stats-label">Search Time:</span>
-                    <span class="stats-value" id="searchTime">0ms</span>
                 </div>
             </div>
         </div>
@@ -761,7 +914,7 @@
         <!-- Loading State -->
         <div class="loading" id="loadingState">
             <div class="loading-spinner"></div>
-            <p>Loading search index and connecting to data sources...</p>
+            <p>Loading 169 indicators from 9 global data sources...</p>
         </div>
         
         <!-- Results Section -->
@@ -783,90 +936,311 @@
                 <button class="modal-close" onclick="closeModal()">×</button>
             </div>
             <div class="modal-body">
-                <div class="detail-chart" id="detailChart"></div>
+                <div class="detail-chart" id="detailChart">
+                    <canvas id="modalChart"></canvas>
+                </div>
                 <div id="modalDetails"></div>
             </div>
         </div>
     </div>
     
     <script>
-        // Configuration - CORRECT AND VERIFIED LAMBDA URLS (May 30, 2025)
-        const API_BASE = 'https://ped8gafyuz.us-east-1.awsapprunner.com';
-        const LAMBDA_BASE = 'https://j4o7j86qqb.execute-api.us-east-1.amazonaws.com/prod';
-        
-        // CORRECT LAMBDA ENDPOINTS - ALL VERIFIED AND WORKING
-        const LAMBDA_ENDPOINTS = {
-            // AI/ML Prediction Service - CORRECT URL
-            MLPredictor: "https://itluvkcri43pjxghzvszlip52i0zdnhx.lambda-url.us-east-1.on.aws/",
+        // Complete indicator database with all 169 indicators
+        const INDICATORS_DATABASE = {
+            // Treasury (6)
+            'treasury.debt_to_penny': {
+                name: 'US National Debt to the Penny',
+                source: 'treasury',
+                category: 'economic',
+                priority: 8,
+                description: 'Daily US national debt amount',
+                frequency: 'Daily',
+                unit: 'USD'
+            },
+            'treasury.auction_results_all': {
+                name: 'Treasury Auction Results',
+                source: 'treasury',
+                category: 'rates',
+                priority: 7,
+                description: 'Results from all Treasury auctions',
+                frequency: 'Varies',
+                unit: 'Various'
+            },
+            'treasury.auction_metrics': {
+                name: 'Treasury Auction Metrics',
+                source: 'treasury',
+                category: 'rates',
+                priority: 7,
+                description: 'Bid-to-cover ratios and auction analytics',
+                frequency: 'Varies',
+                unit: 'Ratio'
+            },
+            'treasury.dts_deposits_withdrawals': {
+                name: 'Daily Treasury Deposits/Withdrawals',
+                source: 'treasury',
+                category: 'liquidity',
+                priority: 6,
+                description: 'Treasury cash flow operations',
+                frequency: 'Daily',
+                unit: 'USD millions'
+            },
+            'treasury.dts_public_debt': {
+                name: 'Public Debt Transactions',
+                source: 'treasury',
+                category: 'economic',
+                priority: 6,
+                description: 'Daily public debt transaction details',
+                frequency: 'Daily',
+                unit: 'USD millions'
+            },
+            'treasury.dts_cash_balance': {
+                name: 'Treasury General Account Balance',
+                source: 'treasury',
+                category: 'liquidity',
+                priority: 8,
+                description: 'Treasury cash balance at Federal Reserve',
+                frequency: 'Daily',
+                unit: 'USD millions'
+            },
             
-            // Data Scraping Service
-            scrapeMacroData: "https://erjv5issdpln7zd6izayflfhqy0wwcnl.lambda-url.us-east-1.on.aws/",
+            // FRED - Treasury Yields (11)
+            'fred.DGS1MO': { name: '1-Month Treasury Rate', source: 'fred', category: 'rates', priority: 7 },
+            'fred.DGS3MO': { name: '3-Month Treasury Rate', source: 'fred', category: 'rates', priority: 8 },
+            'fred.DGS6MO': { name: '6-Month Treasury Rate', source: 'fred', category: 'rates', priority: 7 },
+            'fred.DGS1': { name: '1-Year Treasury Rate', source: 'fred', category: 'rates', priority: 7 },
+            'fred.DGS2': { name: '2-Year Treasury Rate', source: 'fred', category: 'rates', priority: 8 },
+            'fred.DGS3': { name: '3-Year Treasury Rate', source: 'fred', category: 'rates', priority: 7 },
+            'fred.DGS5': { name: '5-Year Treasury Rate', source: 'fred', category: 'rates', priority: 8 },
+            'fred.DGS7': { name: '7-Year Treasury Rate', source: 'fred', category: 'rates', priority: 7 },
+            'fred.DGS10': { name: '10-Year Treasury Rate', source: 'fred', category: 'rates', priority: 10 },
+            'fred.DGS20': { name: '20-Year Treasury Rate', source: 'fred', category: 'rates', priority: 7 },
+            'fred.DGS30': { name: '30-Year Treasury Rate', source: 'fred', category: 'rates', priority: 8 },
             
-            // Search Index Generator
-            createUniversalIndex: "https://f6m5nrdnuggp66qnbz7qtukmzm0oukok.lambda-url.us-east-1.on.aws/",
+            // FRED - TIPS (5)
+            'fred.DFII5': { name: '5-Year TIPS', source: 'fred', category: 'rates', priority: 7 },
+            'fred.DFII7': { name: '7-Year TIPS', source: 'fred', category: 'rates', priority: 6 },
+            'fred.DFII10': { name: '10-Year TIPS', source: 'fred', category: 'rates', priority: 8 },
+            'fred.DFII20': { name: '20-Year TIPS', source: 'fred', category: 'rates', priority: 6 },
+            'fred.DFII30': { name: '30-Year TIPS', source: 'fred', category: 'rates', priority: 7 },
             
-            // WebSocket Services
-            openbbWebsocketBroadcast: "https://p6kvtojb2y6r4orgbtxh7ld3nu0pfktz.lambda-url.us-east-1.on.aws/",
-            openbbWebsocketHandler: "https://5w3opjisqqeyfpmtovcnn6myse0ajpuq.lambda-url.us-east-1.on.aws/",
+            // FRED - Fed Rates (7)
+            'fred.DFF': { name: 'Federal Funds Rate', source: 'fred', category: 'rates', priority: 9 },
+            'fred.DFEDTARU': { name: 'Fed Funds Target Upper', source: 'fred', category: 'rates', priority: 9 },
+            'fred.DFEDTARL': { name: 'Fed Funds Target Lower', source: 'fred', category: 'rates', priority: 9 },
+            'fred.EFFR': { name: 'Effective Fed Funds Rate', source: 'fred', category: 'rates', priority: 9 },
+            'fred.OBFR': { name: 'Overnight Bank Funding Rate', source: 'fred', category: 'rates', priority: 8 },
+            'fred.SOFR': { name: 'Secured Overnight Financing Rate', source: 'fred', category: 'rates', priority: 10 },
+            'fred.IORB': { name: 'Interest on Reserve Balances', source: 'fred', category: 'rates', priority: 8 },
             
-            // S3 Data Proxy - NEW! No more CORS errors!
-            s3DataProxy: "https://xjvj65rk6wxaofmz2cqxhvfiky0orhtj.lambda-url.us-east-1.on.aws/"
+            // FRED - Spreads (5)
+            'fred.T10Y2Y': { name: '10Y-2Y Treasury Spread', source: 'fred', category: 'rates', priority: 10 },
+            'fred.T10Y3M': { name: '10Y-3M Treasury Spread', source: 'fred', category: 'rates', priority: 9 },
+            'fred.T30Y5Y': { name: '30Y-5Y Treasury Spread', source: 'fred', category: 'rates', priority: 7 },
+            'fred.T5Y2Y': { name: '5Y-2Y Treasury Spread', source: 'fred', category: 'rates', priority: 8 },
+            'fred.TEDRATE': { name: 'TED Spread', source: 'fred', category: 'credit', priority: 9 },
+            
+            // FRED - Corporate Bonds (9)
+            'fred.BAMLC0A0CM': { name: 'Corporate Master Index', source: 'fred', category: 'credit', priority: 8 },
+            'fred.BAMLC0A1CAAA': { name: 'AAA Corporate Yield', source: 'fred', category: 'credit', priority: 7 },
+            'fred.BAMLC0A2CAA': { name: 'AA Corporate Yield', source: 'fred', category: 'credit', priority: 7 },
+            'fred.BAMLC0A3CA': { name: 'A Corporate Yield', source: 'fred', category: 'credit', priority: 7 },
+            'fred.BAMLC0A4CBBB': { name: 'BBB Corporate Yield', source: 'fred', category: 'credit', priority: 8 },
+            'fred.BAMLH0A0HYM2': { name: 'US High Yield Spread', source: 'fred', category: 'credit', priority: 10 },
+            'fred.BAMLH0A1BBEY': { name: 'BB High Yield', source: 'fred', category: 'credit', priority: 8 },
+            'fred.BAMLH0A2BEY': { name: 'B High Yield', source: 'fred', category: 'credit', priority: 8 },
+            'fred.BAMLH0A3CMEY': { name: 'CCC High Yield', source: 'fred', category: 'credit', priority: 9 },
+            
+            // FRED - Economic (6)
+            'fred.GDP': { name: 'Gross Domestic Product', source: 'fred', category: 'economic', priority: 8 },
+            'fred.GDPC1': { name: 'Real GDP', source: 'fred', category: 'economic', priority: 8 },
+            'fred.GDPPOT': { name: 'Potential GDP', source: 'fred', category: 'economic', priority: 7 },
+            'fred.INDPRO': { name: 'Industrial Production', source: 'fred', category: 'economic', priority: 7 },
+            'fred.CAPACITY': { name: 'Capacity Utilization', source: 'fred', category: 'economic', priority: 6 },
+            'fred.TCU': { name: 'Total Capacity Utilization', source: 'fred', category: 'economic', priority: 6 },
+            
+            // FRED - Employment (10)
+            'fred.PAYEMS': { name: 'Nonfarm Payrolls', source: 'fred', category: 'employment', priority: 9 },
+            'fred.UNRATE': { name: 'Unemployment Rate', source: 'fred', category: 'employment', priority: 9 },
+            'fred.CIVPART': { name: 'Labor Force Participation', source: 'fred', category: 'employment', priority: 8 },
+            'fred.EMRATIO': { name: 'Employment-Population Ratio', source: 'fred', category: 'employment', priority: 7 },
+            'fred.ICSA': { name: 'Initial Jobless Claims', source: 'fred', category: 'employment', priority: 8 },
+            'fred.CCSA': { name: 'Continued Claims', source: 'fred', category: 'employment', priority: 7 },
+            'fred.JOLTS': { name: 'Job Openings', source: 'fred', category: 'employment', priority: 8 },
+            'fred.JTSJOL': { name: 'JOLTS Job Openings Level', source: 'fred', category: 'employment', priority: 8 },
+            'fred.JTSHIR': { name: 'JOLTS Hires', source: 'fred', category: 'employment', priority: 7 },
+            'fred.JTSQUR': { name: 'JOLTS Quits Rate', source: 'fred', category: 'employment', priority: 7 },
+            
+            // FRED - Inflation (6)
+            'fred.CPIAUCSL': { name: 'Consumer Price Index', source: 'fred', category: 'economic', priority: 9 },
+            'fred.CPILFESL': { name: 'Core CPI', source: 'fred', category: 'economic', priority: 9 },
+            'fred.PCEPI': { name: 'PCE Price Index', source: 'fred', category: 'economic', priority: 8 },
+            'fred.PCEPILFE': { name: 'Core PCE', source: 'fred', category: 'economic', priority: 8 },
+            'fred.T5YIE': { name: '5-Year Inflation Expectations', source: 'fred', category: 'economic', priority: 8 },
+            'fred.T10YIE': { name: '10-Year Inflation Expectations', source: 'fred', category: 'economic', priority: 8 },
+            
+            // FRED - Housing (5)
+            'fred.HOUST': { name: 'Housing Starts', source: 'fred', category: 'economic', priority: 7 },
+            'fred.PERMIT': { name: 'Building Permits', source: 'fred', category: 'economic', priority: 7 },
+            'fred.MORTGAGE30US': { name: '30-Year Mortgage Rate', source: 'fred', category: 'rates', priority: 8 },
+            'fred.CSUSHPISA': { name: 'Case-Shiller Home Price', source: 'fred', category: 'economic', priority: 7 },
+            'fred.MSPUS': { name: 'Median Sales Price', source: 'fred', category: 'economic', priority: 7 },
+            
+            // FRED - Money Supply (4)
+            'fred.M1SL': { name: 'M1 Money Supply', source: 'fred', category: 'liquidity', priority: 7 },
+            'fred.M2SL': { name: 'M2 Money Supply', source: 'fred', category: 'liquidity', priority: 8 },
+            'fred.WALCL': { name: 'Fed Balance Sheet', source: 'fred', category: 'liquidity', priority: 9 },
+            'fred.WRESBAL': { name: 'Reserve Balances', source: 'fred', category: 'liquidity', priority: 10 },
+            
+            // FRED - Markets (5)
+            'fred.VIXCLS': { name: 'VIX Volatility Index', source: 'fred', category: 'volatility', priority: 10 },
+            'fred.DEXUSEU': { name: 'USD/EUR Exchange Rate', source: 'fred', category: 'currency', priority: 8 },
+            'fred.DEXJPUS': { name: 'USD/JPY Exchange Rate', source: 'fred', category: 'currency', priority: 8 },
+            'fred.DCOILWTICO': { name: 'WTI Crude Oil', source: 'fred', category: 'commodities', priority: 8 },
+            'fred.GOLDAMGBD228NLBM': { name: 'Gold Price', source: 'fred', category: 'commodities', priority: 8 },
+            
+            // FRED - Financial Conditions (4)
+            'fred.NFCI': { name: 'National Financial Conditions', source: 'fred', category: 'credit', priority: 9 },
+            'fred.ANFCI': { name: 'Adjusted NFCI', source: 'fred', category: 'credit', priority: 8 },
+            'fred.STLFSI2': { name: 'St. Louis Financial Stress', source: 'fred', category: 'volatility', priority: 10 },
+            'fred.CFNAI': { name: 'Chicago Fed National Activity', source: 'fred', category: 'economic', priority: 8 },
+            
+            // FRED - Additional Enhanced (34)
+            'fred.DTWEXBGS': { name: 'Trade Weighted US Dollar - Broad', source: 'fred', category: 'currency', priority: 10 },
+            'fred.DTWEXAFEGS': { name: 'Trade Weighted Dollar - Advanced', source: 'fred', category: 'currency', priority: 8 },
+            'fred.DTWEXEMEGS': { name: 'Trade Weighted Dollar - Emerging', source: 'fred', category: 'currency', priority: 8 },
+            'fred.RESPPNTEPNWW': { name: 'Central Bank Liquidity Swaps', source: 'fred', category: 'liquidity', priority: 9 },
+            'fred.RESPPALGUOXAWXCH52NWW': { name: 'Fed Swap Lines - All', source: 'fred', category: 'liquidity', priority: 8 },
+            'fred.RESPPALGUONNWW': { name: 'Fed Swap Lines Outstanding', source: 'fred', category: 'liquidity', priority: 8 },
+            'fred.SWP1690': { name: 'Swap Agreements', source: 'fred', category: 'liquidity', priority: 7 },
+            'fred.OTHL1690': { name: 'Other Liquidity Facilities', source: 'fred', category: 'liquidity', priority: 7 },
+            'fred.SUBLPDCISTQNQ': { name: 'Subprime Delinquency Rate', source: 'fred', category: 'credit', priority: 8 },
+            'fred.DRISCFLM': { name: 'Commercial Bank Delinquency', source: 'fred', category: 'credit', priority: 8 },
+            'fred.RMFSL': { name: 'Retail Money Funds', source: 'fred', category: 'liquidity', priority: 7 },
+            'fred.SBCACBW027SBOG': { name: 'Small Bank Commercial Loans', source: 'fred', category: 'credit', priority: 7 },
+            'fred.MABMM301EZM189S': { name: 'Euro Area M3', source: 'fred', category: 'liquidity', priority: 7 },
+            'fred.DRISCFS': { name: 'Delinquency Rate Consumer', source: 'fred', category: 'credit', priority: 8 },
+            'fred.MABMM301JPM189S': { name: 'Japan M3', source: 'fred', category: 'liquidity', priority: 7 },
+            'fred.TREAS911Y': { name: 'Treasury 911 Yield', source: 'fred', category: 'rates', priority: 6 },
+            'fred.RREP15': { name: 'Reverse Repo Rate', source: 'fred', category: 'rates', priority: 8 },
+            'fred.OTHL15': { name: 'Other Fed Liabilities', source: 'fred', category: 'liquidity', priority: 7 },
+            'fred.RESH4MFNWW': { name: 'Reserve Holdings', source: 'fred', category: 'liquidity', priority: 7 },
+            'fred.BOGZ1FL663067003Q': { name: 'Flow of Funds', source: 'fred', category: 'liquidity', priority: 6 },
+            'fred.BOGMBASE': { name: 'Monetary Base', source: 'fred', category: 'liquidity', priority: 8 },
+            'fred.WSHOSHO': { name: 'Wholesale Trade', source: 'fred', category: 'economic', priority: 6 },
+            'fred.TOTRESNS': { name: 'Total Reserves', source: 'fred', category: 'liquidity', priority: 8 },
+            'fred.NONBORRES': { name: 'Non-Borrowed Reserves', source: 'fred', category: 'liquidity', priority: 7 },
+            'fred.NFCINONFINLEVERAGE': { name: 'Non-Financial Leverage', source: 'fred', category: 'credit', priority: 8 },
+            'fred.FRBKCLMCIM': { name: 'KC Fed Manufacturing', source: 'fred', category: 'economic', priority: 7 },
+            'fred.AMTMUO': { name: 'Manufacturing Orders', source: 'fred', category: 'economic', priority: 7 },
+            'fred.TREAS1590': { name: 'Treasury 1590', source: 'fred', category: 'rates', priority: 6 },
+            'fred.AMERIBOR': { name: 'AMERIBOR Rate', source: 'fred', category: 'rates', priority: 7 },
+            'fred.INTGSTMXM193N': { name: 'Mexico Interest Rate', source: 'fred', category: 'rates', priority: 6 },
+            'fred.WLCFLPCL': { name: 'Commercial Loans', source: 'fred', category: 'credit', priority: 7 },
+            'fred.CC4WSA': { name: '4-Week Consumer Credit', source: 'fred', category: 'credit', priority: 7 },
+            'fred.MNFCTRIRSA': { name: 'Manufacturing Inventory', source: 'fred', category: 'economic', priority: 6 },
+            'fred.ISRATIO': { name: 'Inventory to Sales Ratio', source: 'fred', category: 'economic', priority: 7 },
+            
+            // ECB (7)
+            'ecb.key_rates': { name: 'ECB Key Interest Rates', source: 'ecb', category: 'rates', priority: 8 },
+            'ecb.exchange_rates': { name: 'ECB Exchange Rates', source: 'ecb', category: 'currency', priority: 8 },
+            'ecb.ciss_china': { name: 'China Systemic Stress', source: 'ecb', category: 'volatility', priority: 9 },
+            'ecb.ciss_euro_area': { name: 'Euro Area Systemic Stress', source: 'ecb', category: 'volatility', priority: 10 },
+            'ecb.ciss_us': { name: 'US Systemic Stress', source: 'ecb', category: 'volatility', priority: 10 },
+            'ecb.liquidity_conditions': { name: 'Euro Liquidity Conditions', source: 'ecb', category: 'liquidity', priority: 8 },
+            'ecb.eur_liquidity': { name: 'EUR Liquidity Measures', source: 'ecb', category: 'liquidity', priority: 8 },
+            
+            // BLS (7)
+            'bls.CES0000000001': { name: 'Total Nonfarm Employment', source: 'bls', category: 'employment', priority: 9 },
+            'bls.LNS14000000': { name: 'Unemployment Rate', source: 'bls', category: 'employment', priority: 9 },
+            'bls.CUUR0000SA0': { name: 'CPI All Urban Consumers', source: 'bls', category: 'economic', priority: 9 },
+            'bls.WPUFD4': { name: 'PPI Final Demand', source: 'bls', category: 'economic', priority: 8 },
+            'bls.JTS00000000JOL': { name: 'JOLTS Job Openings', source: 'bls', category: 'employment', priority: 8 },
+            'bls.JTS00000000HIL': { name: 'JOLTS Hires', source: 'bls', category: 'employment', priority: 7 },
+            'bls.CIU1010000000000A': { name: 'Employment Cost Index', source: 'bls', category: 'employment', priority: 8 },
+            
+            // World Bank (8)
+            'worldbank.NY.GDP.MKTP.CD': { name: 'GDP (current US$)', source: 'worldbank', category: 'economic', priority: 8 },
+            'worldbank.NY.GDP.MKTP.KD.ZG': { name: 'GDP growth (annual %)', source: 'worldbank', category: 'economic', priority: 8 },
+            'worldbank.FP.CPI.TOTL.ZG': { name: 'Inflation, consumer prices', source: 'worldbank', category: 'economic', priority: 8 },
+            'worldbank.SL.UEM.TOTL.ZS': { name: 'Unemployment, total', source: 'worldbank', category: 'employment', priority: 7 },
+            'worldbank.NE.EXP.GNFS.ZS': { name: 'Exports of goods and services', source: 'worldbank', category: 'economic', priority: 7 },
+            'worldbank.NE.IMP.GNFS.ZS': { name: 'Imports of goods and services', source: 'worldbank', category: 'economic', priority: 7 },
+            'worldbank.BN.CAB.XOKA.CD': { name: 'Current account balance', source: 'worldbank', category: 'economic', priority: 7 },
+            'worldbank.GC.DOD.TOTL.GD.ZS': { name: 'Central government debt', source: 'worldbank', category: 'economic', priority: 8 },
+            
+            // IMF (5)
+            'imf.exchange_rates': { name: 'IMF Exchange Rates', source: 'imf', category: 'currency', priority: 8 },
+            'imf.reserves': { name: 'Foreign Reserves', source: 'imf', category: 'liquidity', priority: 8 },
+            'imf.gdp_nominal': { name: 'Nominal GDP', source: 'imf', category: 'economic', priority: 8 },
+            'imf.commodity_prices': { name: 'Commodity Price Index', source: 'imf', category: 'commodities', priority: 8 },
+            'imf.trade_balance': { name: 'Trade Balance', source: 'imf', category: 'economic', priority: 7 },
+            
+            // OECD (7)
+            'oecd.gdp_quarterly': { name: 'Quarterly GDP Growth', source: 'oecd', category: 'economic', priority: 8 },
+            'oecd.inflation': { name: 'Inflation Rate', source: 'oecd', category: 'economic', priority: 8 },
+            'oecd.unemployment': { name: 'Harmonized Unemployment', source: 'oecd', category: 'employment', priority: 8 },
+            'oecd.interest_rates': { name: 'Short-term Interest Rates', source: 'oecd', category: 'rates', priority: 8 },
+            'oecd.composite_leading_indicator': { name: 'Composite Leading Indicator', source: 'oecd', category: 'economic', priority: 8 },
+            'oecd.business_confidence': { name: 'Business Confidence Index', source: 'oecd', category: 'economic', priority: 7 },
+            'oecd.consumer_confidence': { name: 'Consumer Confidence Index', source: 'oecd', category: 'economic', priority: 7 },
+            
+            // Yahoo Finance (26)
+            'yahoo.^GSPC': { name: 'S&P 500 Index', source: 'yahoo', category: 'equity', priority: 9 },
+            'yahoo.^DJI': { name: 'Dow Jones Industrial', source: 'yahoo', category: 'equity', priority: 8 },
+            'yahoo.^IXIC': { name: 'NASDAQ Composite', source: 'yahoo', category: 'equity', priority: 8 },
+            'yahoo.^VIX': { name: 'VIX Volatility Index', source: 'yahoo', category: 'volatility', priority: 10 },
+            'yahoo.^TNX': { name: '10-Year Treasury Yield', source: 'yahoo', category: 'rates', priority: 9 },
+            'yahoo.^TYX': { name: '30-Year Treasury Yield', source: 'yahoo', category: 'rates', priority: 8 },
+            'yahoo.^FVX': { name: '5-Year Treasury Yield', source: 'yahoo', category: 'rates', priority: 8 },
+            'yahoo.EURUSD=X': { name: 'EUR/USD', source: 'yahoo', category: 'currency', priority: 8 },
+            'yahoo.GBPUSD=X': { name: 'GBP/USD', source: 'yahoo', category: 'currency', priority: 7 },
+            'yahoo.USDJPY=X': { name: 'USD/JPY', source: 'yahoo', category: 'currency', priority: 8 },
+            'yahoo.USDCNY=X': { name: 'USD/CNY', source: 'yahoo', category: 'currency', priority: 8 },
+            'yahoo.DX-Y.NYB': { name: 'US Dollar Index', source: 'yahoo', category: 'currency', priority: 9 },
+            'yahoo.GC=F': { name: 'Gold Futures', source: 'yahoo', category: 'commodities', priority: 8 },
+            'yahoo.CL=F': { name: 'Crude Oil Futures', source: 'yahoo', category: 'commodities', priority: 9 },
+            'yahoo.SI=F': { name: 'Silver Futures', source: 'yahoo', category: 'commodities', priority: 7 },
+            'yahoo.HG=F': { name: 'Copper Futures', source: 'yahoo', category: 'commodities', priority: 7 },
+            'yahoo.NG=F': { name: 'Natural Gas Futures', source: 'yahoo', category: 'commodities', priority: 8 },
+            'yahoo.ZC=F': { name: 'Corn Futures', source: 'yahoo', category: 'commodities', priority: 6 },
+            'yahoo.ZW=F': { name: 'Wheat Futures', source: 'yahoo', category: 'commodities', priority: 6 },
+            'yahoo.BTC-USD': { name: 'Bitcoin USD', source: 'yahoo', category: 'crypto', priority: 9 },
+            'yahoo.ETH-USD': { name: 'Ethereum USD', source: 'yahoo', category: 'crypto', priority: 8 },
+            'yahoo.TLT': { name: '20+ Year Treasury ETF', source: 'yahoo', category: 'rates', priority: 7 },
+            'yahoo.IEF': { name: '7-10 Year Treasury ETF', source: 'yahoo', category: 'rates', priority: 7 },
+            'yahoo.SHY': { name: '1-3 Year Treasury ETF', source: 'yahoo', category: 'rates', priority: 6 },
+            'yahoo.AGG': { name: 'Aggregate Bond ETF', source: 'yahoo', category: 'rates', priority: 7 },
+            'yahoo.BND': { name: 'Total Bond Market ETF', source: 'yahoo', category: 'rates', priority: 7 }
         };
-        
-        // S3 bucket (now accessed via proxy)
-        const S3_BUCKET = 'https://macro-data-lake.s3.amazonaws.com';
         
         // Global state
-        let searchIndex = null;
-        let fuseInstance = null;
         let allIndicators = [];
         let filteredIndicators = [];
+        let fuseInstance = null;
         let activeFilters = {
             category: 'all',
-            priority: 'all',
             source: 'all'
         };
-        let realtimeData = {};
-        let aiPredictions = {};
-        let scrapedData = {};
-        let appRunnerData = {};
-        let updateInterval = null;
-        let dataSourceStatuses = {
-            appRunner: false,
-            mlPredictor: false,
-            scraper: false,
-            index: false,
-            websocket: false
-        };
         
-        // Initialize the application
+        // Initialize
         async function initialize() {
-            console.log('Initializing Exponential Search Dashboard...');
+            console.log('Initializing OpenBB Enhanced Search Dashboard...');
             
-            // Test S3 proxy first
-            await testS3Proxy();
+            // Convert database to array
+            allIndicators = Object.entries(INDICATORS_DATABASE).map(([key, data]) => ({
+                key: key,
+                symbol: key.split('.')[1],
+                ...data
+            }));
             
-            // Load data from all sources in parallel
-            const loadPromises = [
-                loadSearchIndex(),
-                loadAIPredictions(),
-                loadScrapedData(),
-                loadAppRunnerData(),
-                startRealtimeUpdates()
-            ];
+            // Initialize Fuse.js
+            initializeFuse();
             
-            const results = await Promise.allSettled(loadPromises);
-            
-            // Log results for debugging
-            results.forEach((result, index) => {
-                const names = ['SearchIndex', 'AIPredictions', 'ScrapedData', 'AppRunnerData', 'RealtimeUpdates'];
-                console.log(`${names[index]} load result:`, result.status);
-            });
-            
-            // Build comprehensive search index from all sources
-            buildUnifiedSearchIndex();
-            
+            // Setup event listeners
             setupEventListeners();
+            
+            // Update UI
+            updateLastUpdateTime();
             
             // Hide loading, show results
             document.getElementById('loadingState').style.display = 'none';
@@ -876,980 +1250,30 @@
             performSearch();
         }
         
-        // Update data source status badge
-        function updateSourceStatus(source, isConnected, error = null) {
-            dataSourceStatuses[source] = isConnected;
-            const badge = document.getElementById(`${source}Status`);
-            if (badge) {
-                if (isConnected) {
-                    badge.classList.add('connected');
-                    badge.classList.remove('error');
-                } else if (error) {
-                    badge.classList.add('error');
-                    badge.classList.remove('connected');
-                }
-            }
-        }
-        
-        // Load search index from createUniversalIndex Lambda and S3 proxy
-        async function loadSearchIndex() {
-            try {
-                console.log('Loading search index from Lambda...');
-                
-                // First try to get the index from the Lambda function
-                const response = await fetch(LAMBDA_ENDPOINTS.createUniversalIndex, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'getIndex' })
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('Search index loaded:', data);
-                    
-                    // Always load from S3 proxy for comprehensive data
-                    console.log('Loading comprehensive indicator data from S3 proxy...');
-                    await loadIndicatorsFromS3Proxy();
-                    
-                } else {
-                    console.error('Failed to load search index from Lambda');
-                    // Try S3 proxy as fallback
-                    await loadIndicatorsFromS3Proxy();
-                }
-                
-            } catch (error) {
-                console.error('Error loading search index:', error);
-                // Try S3 proxy as fallback
-                await loadIndicatorsFromS3Proxy();
-            }
-        }
-        
-        // Load indicators using the new getIndicators action
-        async function loadIndicatorsFromS3Proxy() {
-            try {
-                console.log('Loading indicators from S3 proxy with categories...');
-                
-                const response = await fetch(LAMBDA_ENDPOINTS.s3DataProxy, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({action: 'getIndicators'})
-                });
-                
-                const data = await response.json();
-                
-                if (data.status === 'success' && data.indicators) {
-                    console.log(`Successfully loaded ${data.total || data.indicators.length} indicators from S3`);
-                    console.log('Sample indicators:', data.indicators.slice(0, 5));
-                    
-                    // Check if these are data sources or actual indicators
-                    const firstIndicator = data.indicators[0];
-                    const isDataSource = firstIndicator && (
-                        firstIndicator.id === 'central' || 
-                        firstIndicator.id === 'fred' || 
-                        firstIndicator.id === 'nyfed' ||
-                        firstIndicator.id === 'ecb'
-                    );
-                    
-                    if (isDataSource) {
-                        console.log('These appear to be data sources, not indicators. Trying getAll method...');
-                        await loadAllIndicatorsFromS3Proxy();
-                        return;
-                    }
-                    
-                    // Transform indicators to expected format
-                    const validIndicators = data.indicators.map(ind => {
-                        // Handle both 'id' and 'symbol' fields
-                        const symbol = ind.symbol || ind.id;
-                        if (!symbol) {
-                            console.warn('Invalid indicator found:', ind);
-                            return null;
-                        }
-                        
-                        return {
-                            symbol: symbol,
-                            name: ind.name || ind.description || generateIndicatorName(symbol),
-                            category: ind.category || detectCategory({symbol}),
-                            priority: ind.priority || calculatePriority({symbol}),
-                            source: ind.source || 'S3',
-                            lastUpdate: ind.lastUpdate || ind.latest_date,
-                            latest_value: ind.latest_value || ind.value,
-                            daily_change: ind.daily_change || ind.change,
-                            latest_date: ind.latest_date || ind.lastUpdate,
-                            // Keep original data
-                            ...ind
-                        };
-                    }).filter(ind => ind !== null);
-                    
-                    // Store indicators
-                    searchIndex = validIndicators;
-                    
-                    // Group by category for better organization
-                    const byCategory = {};
-                    validIndicators.forEach(ind => {
-                        const category = ind.category || 'Other';
-                        if (!byCategory[category]) {
-                            byCategory[category] = [];
-                        }
-                        byCategory[category].push(ind);
-                        
-                        // Also store in scrapedData for later use
-                        scrapedData[ind.symbol] = {
-                            symbol: ind.symbol,
-                            name: ind.name,
-                            category: ind.category,
-                            priority: ind.priority,
-                            source: 'S3',
-                            lastUpdate: ind.lastUpdate
-                        };
-                    });
-                    
-                    // Log category distribution
-                    console.log('Indicators by category:');
-                    Object.entries(byCategory).forEach(([category, indicators]) => {
-                        console.log(`  ${category}: ${indicators.length} indicators`);
-                    });
-                    
-                    updateSourceStatus('index', true);
-                    
-                    // Update category filter counts
-                    updateCategoryFilterCounts(byCategory);
-                    
-                    // Try to load real financial indicators from known symbols
-                    await loadKnownFinancialIndicators();
-                    
-                } else {
-                    console.error('Failed to load indicators from S3 proxy:', data.error || 'Unknown error');
-                    // Use hardcoded indicators as fallback
-                    searchIndex = getHardcodedIndicators();
-                    console.log('Using hardcoded indicators as fallback');
-                }
-                
-            } catch (error) {
-                console.error('Error loading indicators from S3 proxy:', error);
-                // Use hardcoded indicators as fallback
-                searchIndex = getHardcodedIndicators();
-                console.log('Using hardcoded indicators as fallback');
-            }
-        }
-        
-        // Load known financial indicators
-        async function loadKnownFinancialIndicators() {
-            console.log('Loading known financial indicators...');
-            
-            // List of common financial indicators we expect
-            const knownIndicators = [
-                'VIXCLS', 'DGS10', 'DGS2', 'T10Y2Y', 'DFF', 'SOFR',
-                'CPIAUCSL', 'UNRATE', 'GDP', 'SP500', 'DEXUSEU',
-                'BAMLH0A0HYM2', 'WALCL', 'M2SL', 'STLFSI2', 'TEDRATE',
-                'MORTGAGE30US', 'HOUST', 'INDPRO', 'RETAILSL', 'PAYEMS'
-            ];
-            
-            // Try to load data for these known indicators
-            const promises = knownIndicators.slice(0, 10).map(async (symbol) => {
-                try {
-                    const response = await fetch(LAMBDA_ENDPOINTS.s3DataProxy, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({
-                            action: 'get',
-                            indicator: symbol
-                        })
-                    });
-                    
-                    if (response.ok) {
-                        const result = await response.json();
-                        if (result.status === 'success' && result.data) {
-                            console.log(`Found data for ${symbol}`);
-                            
-                            // Add to search index if not already there
-                            const existing = searchIndex.find(ind => ind.symbol === symbol);
-                            if (!existing) {
-                                searchIndex.push({
-                                    symbol: symbol,
-                                    name: generateIndicatorName(symbol),
-                                    category: detectCategory({symbol}),
-                                    priority: calculatePriority({symbol}),
-                                    source: 'S3'
-                                });
-                            }
-                            
-                            // Store the data
-                            if (result.data.observations && result.data.observations.length > 0) {
-                                const observations = result.data.observations;
-                                const latest = observations[observations.length - 1];
-                                const previous = observations[Math.max(0, observations.length - 2)];
-                                
-                                scrapedData[symbol] = {
-                                    value: latest ? parseFloat(latest.value) : null,
-                                    change: latest && previous ? 
-                                        ((parseFloat(latest.value) - parseFloat(previous.value)) / parseFloat(previous.value) * 100) : 0,
-                                    date: latest ? latest.date : null,
-                                    observations: observations,
-                                    hasData: true,
-                                    source: 'S3'
-                                };
-                            }
-                        }
-                    }
-                } catch (error) {
-                    console.log(`Could not load ${symbol}`);
-                }
-            });
-            
-            await Promise.allSettled(promises);
-            console.log('Finished loading known financial indicators');
-        }
-        
-        // Try to get data from AppRunner API
-        async function tryAppRunnerForIndicator(symbol) {
-            try {
-                // Try FRED endpoint
-                const fredResponse = await fetch(`${API_BASE}/api/fred/series/${symbol}`);
-                if (fredResponse.ok) {
-                    const data = await fredResponse.json();
-                    if (data.observations && data.observations.length > 0) {
-                        appRunnerData[symbol] = data;
-                        console.log(`Got ${symbol} data from AppRunner FRED endpoint`);
-                        return;
-                    }
-                }
-                
-                // Try stock quote endpoint for equity symbols
-                if (['SPY', 'QQQ', 'IWM', 'DIA', 'VTI'].includes(symbol)) {
-                    const stockResponse = await fetch(`${API_BASE}/api/stock/quote/${symbol}`);
-                    if (stockResponse.ok) {
-                        const data = await stockResponse.json();
-                        appRunnerData[symbol] = data;
-                        console.log(`Got ${symbol} data from AppRunner stock endpoint`);
-                    }
-                }
-            } catch (error) {
-                console.log(`AppRunner data not available for ${symbol}`);
-            }
-        }
-        
-        // Update category filter buttons with counts
-        function updateCategoryFilterCounts(byCategory) {
-            const categoryFilters = document.getElementById('categoryFilters');
-            
-            // Update each category button with count
-            Object.entries(byCategory).forEach(([category, indicators]) => {
-                const button = categoryFilters.querySelector(`[data-category="${category}"]`);
-                if (button && !button.textContent.includes('(')) {
-                    button.textContent += ` (${indicators.length})`;
-                }
-            });
-        }
-        
-        // Load all indicators from S3 proxy - NO MORE CORS ERRORS!
-        async function loadAllIndicatorsFromS3Proxy() {
-            try {
-                console.log('Loading all indicators from S3 proxy (fallback method)...');
-                
-                const response = await fetch(LAMBDA_ENDPOINTS.s3DataProxy, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({action: 'getAll'})
-                });
-                
-                const data = await response.json();
-                
-                if (data.status === 'success') {
-                    console.log('Successfully loaded indicator data from S3:', data.indicators);
-                    
-                    // Process indicators from S3
-                    const indicators = [];
-                    for (const [symbol, info] of Object.entries(data.indicators)) {
-                        indicators.push({
-                            symbol: symbol,
-                            name: generateIndicatorName(symbol),
-                            source: 'S3',
-                            data: info.data,
-                            lastUpdated: info.lastUpdated,
-                            file: info.file,
-                            category: detectCategory({symbol}),
-                            priority: calculatePriority({symbol})
-                        });
-                        
-                        // Store the data for later use
-                        if (info.data && info.data.observations) {
-                            const observations = info.data.observations;
-                            const latest = observations[observations.length - 1];
-                            const previous = observations[Math.max(0, observations.length - 2)];
-                            
-                            scrapedData[symbol] = {
-                                value: latest ? parseFloat(latest.value) : null,
-                                change: latest && previous ? 
-                                    ((parseFloat(latest.value) - parseFloat(previous.value)) / parseFloat(previous.value) * 100) : 0,
-                                date: latest ? latest.date : null,
-                                observations: observations,
-                                source: 'S3'
-                            };
-                        }
-                    }
-                    
-                    searchIndex = indicators;
-                    updateSourceStatus('index', true);
-                    console.log(`Loaded ${indicators.length} indicators from S3 proxy`);
-                } else {
-                    console.error('Failed to load from S3 proxy:', data.error);
-                    updateSourceStatus('index', false, true);
-                    searchIndex = getHardcodedIndicators();
-                }
-                
-            } catch (error) {
-                console.error('Error loading from S3 proxy:', error);
-                updateSourceStatus('index', false, true);
-                searchIndex = getHardcodedIndicators();
-            }
-        }
-        
-        // Load specific indicator data from S3 proxy
-        async function loadIndicatorDataFromS3Proxy(files) {
-            try {
-                const indicators = [];
-                
-                // Extract indicator names from files
-                const indicatorNames = files
-                    .filter(file => file.endsWith('.json'))
-                    .map(file => {
-                        const match = file.match(/([A-Z0-9]+)\.json$/);
-                        return match ? match[1] : null;
-                    })
-                    .filter(name => name !== null);
-                
-                console.log(`Loading ${indicatorNames.length} indicators from S3 proxy...`);
-                
-                // Load data for each indicator (batched for efficiency)
-                for (let i = 0; i < indicatorNames.length; i += 10) {
-                    const batch = indicatorNames.slice(i, i + 10);
-                    const promises = batch.map(symbol => loadSpecificIndicatorFromS3(symbol));
-                    const results = await Promise.allSettled(promises);
-                    
-                    results.forEach((result, index) => {
-                        if (result.status === 'fulfilled' && result.value) {
-                            indicators.push(result.value);
-                        }
-                    });
-                }
-                
-                searchIndex = indicators;
-                console.log(`Successfully loaded ${indicators.length} indicators from S3`);
-                
-            } catch (error) {
-                console.error('Error loading indicator data from S3:', error);
-            }
-        }
-        
-        // Load specific indicator from S3 proxy
-        async function loadSpecificIndicatorFromS3(indicatorName) {
-            try {
-                const response = await fetch(LAMBDA_ENDPOINTS.s3DataProxy, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        action: 'get',
-                        indicator: indicatorName
-                    })
-                });
-                
-                const data = await response.json();
-                if (data.status === 'success' && data.data) {
-                    // Store in scraped data for later use
-                    if (data.data.observations) {
-                        const observations = data.data.observations;
-                        const latest = observations[observations.length - 1];
-                        const previous = observations[Math.max(0, observations.length - 2)];
-                        
-                        scrapedData[indicatorName] = {
-                            value: latest ? parseFloat(latest.value) : null,
-                            change: latest && previous ? 
-                                ((parseFloat(latest.value) - parseFloat(previous.value)) / parseFloat(previous.value) * 100) : 0,
-                            date: latest ? latest.date : null,
-                            observations: observations,
-                            source: 'S3',
-                            lastUpdated: data.lastUpdated
-                        };
-                    }
-                    
-                    return {
-                        symbol: indicatorName,
-                        name: data.data.name || generateIndicatorName(indicatorName),
-                        source: 'S3',
-                        data: data.data,
-                        lastUpdated: data.lastUpdated,
-                        category: detectCategory({symbol: indicatorName}),
-                        priority: calculatePriority({symbol: indicatorName})
-                    };
-                }
-                
-                return null;
-            } catch (error) {
-                console.error(`Error loading ${indicatorName} from S3:`, error);
-                return null;
-            }
-        }
-        
-        // Load AI predictions from MLPredictor Lambda
-        async function loadAIPredictions() {
-            try {
-                console.log('Loading AI predictions...');
-                
-                const response = await fetch(LAMBDA_ENDPOINTS.MLPredictor, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'predict' })
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('AI predictions loaded:', data);
-                    
-                    // Extract predictions from different possible formats
-                    if (data.market_analysis && data.market_analysis.predictions) {
-                        aiPredictions = data.market_analysis.predictions;
-                    } else if (data.predictions) {
-                        aiPredictions = data.predictions;
-                    } else if (data.indicators) {
-                        // Convert to predictions format
-                        aiPredictions = {};
-                        Object.keys(data.indicators).forEach(symbol => {
-                            const indicator = data.indicators[symbol];
-                            aiPredictions[symbol] = {
-                                forecast: indicator.ai_signal || 'Analysis pending',
-                                sentiment: indicator.sentiment || 'neutral',
-                                confidence: indicator.confidence || 0.75,
-                                value: indicator.current_value,
-                                change: indicator.daily_change
-                            };
-                        });
-                    } else if (data.market_analysis && data.market_analysis.indicators) {
-                        // Another possible format
-                        aiPredictions = {};
-                        Object.keys(data.market_analysis.indicators).forEach(symbol => {
-                            const indicator = data.market_analysis.indicators[symbol];
-                            aiPredictions[symbol] = {
-                                forecast: indicator.ai_signal || indicator.signal || 'Analysis pending',
-                                sentiment: indicator.sentiment || 'neutral',
-                                confidence: indicator.confidence || 0.75,
-                                value: indicator.current_value || indicator.value,
-                                change: indicator.daily_change || indicator.change
-                            };
-                        });
-                    }
-                    
-                    console.log('Processed AI predictions for indicators:', Object.keys(aiPredictions));
-                    updateSourceStatus('mlPredictor', true);
-                    document.getElementById('aiPredictionCount').textContent = Object.keys(aiPredictions).length;
-                    
-                } else {
-                    console.error('Failed to load AI predictions');
-                    updateSourceStatus('mlPredictor', false, true);
-                }
-                
-            } catch (error) {
-                console.error('Error loading AI predictions:', error);
-                updateSourceStatus('mlPredictor', false, true);
-            }
-        }
-        
-        // Load scraped data from S3 proxy instead of direct S3 access
-        async function loadScrapedData() {
-            try {
-                console.log('Loading scraped data...');
-                
-                // First try the scraper Lambda
-                const response = await fetch(LAMBDA_ENDPOINTS.scrapeMacroData, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'getData' })
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('Scraped data loaded from Lambda:', data);
-                    
-                    // Process scraped data - check different possible formats
-                    if (data.macro_data && data.macro_data.indicators) {
-                        // Format: { macro_data: { indicators: { symbol: {...} } } }
-                        Object.keys(data.macro_data.indicators).forEach(symbol => {
-                            const indicator = data.macro_data.indicators[symbol];
-                            scrapedData[symbol] = {
-                                value: indicator.current_value || indicator.value,
-                                change: indicator.daily_change || indicator.change || 0,
-                                date: indicator.last_updated || new Date().toISOString(),
-                                source: 'Lambda-scraper',
-                                ...indicator
-                            };
-                        });
-                        console.log('Processed scraped data for:', Object.keys(scrapedData));
-                    } else if (data.data) {
-                        scrapedData = { ...scrapedData, ...data.data };
-                    } else if (data.indicators) {
-                        scrapedData = { ...scrapedData, ...data.indicators };
-                    }
-                    
-                    updateSourceStatus('scraper', true);
-                } else {
-                    console.error('Failed to load from scraper Lambda, trying S3 proxy...');
-                    // Fallback to S3 proxy
-                    await loadScrapedDataFromS3Proxy();
-                }
-                
-            } catch (error) {
-                console.error('Error loading scraped data:', error);
-                // Fallback to S3 proxy
-                await loadScrapedDataFromS3Proxy();
-            }
-        }
-        
-        // Load scraped data from S3 proxy - NEW FUNCTION
-        async function loadScrapedDataFromS3Proxy() {
-            try {
-                console.log('Loading scraped data from S3 proxy...');
-                
-                // List all available scraped data
-                const listResponse = await fetch(LAMBDA_ENDPOINTS.s3DataProxy, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({action: 'list'})
-                });
-                
-                if (listResponse.ok) {
-                    const listData = await listResponse.json();
-                    
-                    if (listData.status === 'success' && listData.indicators) {
-                        console.log(`Found ${listData.indicators.length} indicators in S3`);
-                        
-                        // Load latest scraped data files
-                        const scrapedFiles = listData.indicators.filter(ind => 
-                            ind.includes('scraped') || ind.includes('latest')
-                        );
-                        
-                        // If no specific scraped files, just use all indicators
-                        const filesToLoad = scrapedFiles.length > 0 ? scrapedFiles : listData.indicators.slice(0, 50);
-                        
-                        for (const indicator of filesToLoad) {
-                            try {
-                                const dataResponse = await fetch(LAMBDA_ENDPOINTS.s3DataProxy, {
-                                    method: 'POST',
-                                    headers: {'Content-Type': 'application/json'},
-                                    body: JSON.stringify({
-                                        action: 'get',
-                                        indicator: indicator
-                                    })
-                                });
-                                
-                                if (dataResponse.ok) {
-                                    const indicatorData = await dataResponse.json();
-                                    if (indicatorData.status === 'success' && indicatorData.data) {
-                                        // Extract the latest value
-                                        const observations = indicatorData.data.observations;
-                                        if (observations && observations.length > 0) {
-                                            const latest = observations[observations.length - 1];
-                                            const previous = observations[observations.length - 2];
-                                            
-                                            scrapedData[indicator] = {
-                                                value: parseFloat(latest.value),
-                                                change: previous ? ((parseFloat(latest.value) - parseFloat(previous.value)) / parseFloat(previous.value) * 100) : 0,
-                                                date: latest.date,
-                                                source: 'S3-scraped',
-                                                observations: observations
-                                            };
-                                        }
-                                    }
-                                }
-                            } catch (err) {
-                                console.error(`Error loading ${indicator}:`, err);
-                            }
-                        }
-                        
-                        updateSourceStatus('scraper', true);
-                        console.log(`Loaded ${Object.keys(scrapedData).length} indicators from S3 proxy`);
-                    }
-                }
-                
-            } catch (error) {
-                console.error('Error loading scraped data from S3 proxy:', error);
-                updateSourceStatus('scraper', false, true);
-            }
-        }
-        
-        // Load data from AppRunner API
-        async function loadAppRunnerData() {
-            try {
-                console.log('Loading AppRunner data...');
-                
-                // Try multiple endpoints to get comprehensive data
-                const endpoints = [
-                    '/api/indicators',
-                    '/api/fred/series/SP500',
-                    '/api/fred/series/DGS10',
-                    '/api/fred/series/VIXCLS',
-                    '/api/stock/quote/SPY'
-                ];
-                
-                const requests = endpoints.map(endpoint => 
-                    fetch(API_BASE + endpoint)
-                        .then(res => res.ok ? res.json() : null)
-                        .catch(() => null)
-                );
-                
-                const results = await Promise.allSettled(requests);
-                
-                results.forEach((result, index) => {
-                    if (result.status === 'fulfilled' && result.value) {
-                        const endpoint = endpoints[index];
-                        const data = result.value;
-                        
-                        // Process different types of responses
-                        if (endpoint.includes('indicators')) {
-                            // List of indicators
-                            if (Array.isArray(data)) {
-                                data.forEach(indicator => {
-                                    appRunnerData[indicator.symbol || indicator.id] = indicator;
-                                });
-                            }
-                        } else if (endpoint.includes('fred/series')) {
-                            // FRED series data
-                            const symbol = endpoint.split('/').pop();
-                            appRunnerData[symbol] = data;
-                        } else if (endpoint.includes('stock/quote')) {
-                            // Stock quote data
-                            const symbol = endpoint.split('/').pop();
-                            appRunnerData[symbol] = data;
-                        }
-                    }
-                });
-                
-                if (Object.keys(appRunnerData).length > 0) {
-                    updateSourceStatus('appRunner', true);
-                    console.log('AppRunner data loaded:', appRunnerData);
-                } else {
-                    updateSourceStatus('appRunner', false, true);
-                }
-                
-            } catch (error) {
-                console.error('Error loading AppRunner data:', error);
-                updateSourceStatus('appRunner', false, true);
-            }
-        }
-        
-        // Start real-time WebSocket updates
-        async function startRealtimeUpdates() {
-            try {
-                console.log('Starting real-time updates...');
-                
-                // Initial fetch
-                await fetchRealtimeData();
-                
-                // Update every 5 seconds
-                updateInterval = setInterval(async () => {
-                    await fetchRealtimeData();
-                    updateVisibleCards();
-                }, 5000);
-                
-                updateSourceStatus('websocket', true);
-                
-            } catch (error) {
-                console.error('Error starting real-time updates:', error);
-                updateSourceStatus('websocket', false, true);
-            }
-        }
-        
-        // Fetch real-time data from WebSocket Lambda
-        async function fetchRealtimeData() {
-            try {
-                const response = await fetch(LAMBDA_ENDPOINTS.openbbWebsocketHandler, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'getData' })
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    
-                    if (data.data) {
-                        realtimeData = { ...realtimeData, ...data.data };
-                    } else if (data.indicators) {
-                        realtimeData = { ...realtimeData, ...data.indicators };
-                    }
-                    
-                    document.getElementById('lastUpdate').textContent = `Last update: ${new Date().toLocaleTimeString()}`;
-                }
-                
-            } catch (error) {
-                console.error('Error fetching real-time data:', error);
-            }
-        }
-        
-        // Build unified search index from all sources
-        function buildUnifiedSearchIndex() {
-            console.log('Building unified search index...');
-            
-            allIndicators = [];
-            const indicatorMap = new Map();
-            
-            // Add indicators from search index
-            if (searchIndex && Array.isArray(searchIndex)) {
-                searchIndex.forEach(indicator => {
-                    indicatorMap.set(indicator.symbol, { ...indicator, sources: ['index'] });
-                });
-            }
-            
-            // Add/merge AI predictions
-            Object.keys(aiPredictions).forEach(symbol => {
-                const existing = indicatorMap.get(symbol) || { symbol, sources: [] };
-                existing.sources.push('ai');
-                existing.aiPrediction = aiPredictions[symbol];
-                existing.hasAI = true;
-                indicatorMap.set(symbol, existing);
-            });
-            
-            // Add/merge scraped data
-            Object.keys(scrapedData).forEach(symbol => {
-                const existing = indicatorMap.get(symbol) || { symbol, sources: [] };
-                existing.sources.push('scraped');
-                existing.scrapedData = scrapedData[symbol];
-                existing.hasScraped = true;
-                indicatorMap.set(symbol, existing);
-            });
-            
-            // Add/merge AppRunner data
-            Object.keys(appRunnerData).forEach(symbol => {
-                const existing = indicatorMap.get(symbol) || { symbol, sources: [] };
-                existing.sources.push('apprunner');
-                existing.appRunnerData = appRunnerData[symbol];
-                existing.hasAppRunner = true;
-                indicatorMap.set(symbol, existing);
-            });
-            
-            // Add/merge real-time data
-            Object.keys(realtimeData).forEach(symbol => {
-                const existing = indicatorMap.get(symbol) || { symbol, sources: [] };
-                existing.sources.push('live');
-                existing.realtimeData = realtimeData[symbol];
-                existing.hasLive = true;
-                indicatorMap.set(symbol, existing);
-            });
-            
-            // Convert map to array and enrich data
-            allIndicators = Array.from(indicatorMap.values()).map(indicator => {
-                // Set name if not present
-                if (!indicator.name) {
-                    indicator.name = generateIndicatorName(indicator.symbol);
-                }
-                
-                // Set category if not present
-                if (!indicator.category) {
-                    indicator.category = detectCategory(indicator);
-                }
-                
-                // Set priority if not present
-                if (!indicator.priority) {
-                    indicator.priority = calculatePriority(indicator);
-                }
-                
-                // Set tags if not present
-                if (!indicator.tags) {
-                    indicator.tags = generateTags(indicator);
-                }
-                
-                return indicator;
-            });
-            
-            console.log(`Unified index built with ${allIndicators.length} indicators`);
-            
-            // Initialize Fuse.js
-            initializeFuse();
-            
-            // Update stats
-            document.getElementById('totalIndicators').textContent = allIndicators.length;
-            const blackSwanCount = allIndicators.filter(i => i.priority >= 10).length;
-            document.getElementById('blackSwanCount').textContent = blackSwanCount;
-        }
-        
-        // Initialize Fuse.js for fuzzy search
+        // Initialize Fuse.js
         function initializeFuse() {
             const fuseOptions = {
                 keys: [
-                    { name: 'symbol', weight: 0.4 },
+                    { name: 'key', weight: 0.3 },
+                    { name: 'symbol', weight: 0.3 },
                     { name: 'name', weight: 0.3 },
-                    { name: 'tags', weight: 0.2 },
                     { name: 'category', weight: 0.1 }
                 ],
                 threshold: 0.3,
                 includeScore: true,
                 minMatchCharLength: 1,
-                findAllMatches: true,
-                useExtendedSearch: true
+                findAllMatches: true
             };
             
             fuseInstance = new Fuse(allIndicators, fuseOptions);
         }
         
-        // Helper functions for data enrichment
-        function generateIndicatorName(symbol) {
-            if (!symbol) return 'Unknown Indicator';
-            
-            const nameMap = {
-                'VIXCLS': 'CBOE Volatility Index',
-                'DGS10': '10-Year Treasury Rate',
-                'T10Y2Y': '10Y-2Y Treasury Spread',
-                'SP500': 'S&P 500 Index',
-                'DFF': 'Federal Funds Rate',
-                'CPIAUCSL': 'Consumer Price Index',
-                'UNRATE': 'Unemployment Rate',
-                'GDP': 'Gross Domestic Product',
-                'SOFR': 'Secured Overnight Financing Rate',
-                'BAMLH0A0HYM2': 'US High Yield Spread',
-                'DEXUSEU': 'USD/EUR Exchange Rate',
-                'DTWEXBGS': 'Trade Weighted US Dollar Index',
-                'USREC': 'US Recession Indicator',
-                'HOUST': 'Housing Starts',
-                'INDPRO': 'Industrial Production Index',
-                'RETAILSL': 'Retail Sales',
-                'UMCSENT': 'University of Michigan Consumer Sentiment',
-                'PAYEMS': 'Nonfarm Payrolls',
-                'M2SL': 'M2 Money Supply',
-                'WALCL': 'Fed Balance Sheet',
-                'PCE': 'Personal Consumption Expenditures',
-                'MORTGAGE30US': '30-Year Mortgage Rate',
-                'DEXJPUS': 'USD/JPY Exchange Rate',
-                'TEDRATE': 'TED Spread',
-                'DFEDTARU': 'Fed Funds Target Rate',
-                'CIVPART': 'Labor Force Participation Rate',
-                'RSXFS': 'Real Retail Sales'
-            };
-            
-            return nameMap[symbol] || symbol;
-        }
-        
-        function detectCategory(indicator) {
-            if (!indicator || !indicator.symbol) return 'other';
-            
-            const symbol = indicator.symbol.toUpperCase();
-            
-            if (symbol.includes('VIX') || symbol.includes('VOL') || symbol.includes('MOVE') || symbol.includes('GVZ')) return 'volatility';
-            if (symbol.includes('BAML') || symbol.includes('CREDIT') || symbol.includes('TED')) return 'credit';
-            if (symbol.includes('DGS') || symbol.includes('RATE') || symbol.includes('SOFR') || symbol.includes('DFF') || symbol.includes('MORTGAGE')) return 'rates';
-            if (symbol.includes('T10Y') || symbol.includes('YIELD') || symbol.includes('DFEDTARU')) return 'rates';
-            if (symbol.includes('USD') || symbol.includes('DXY') || symbol.includes('DEX') || symbol.includes('DTWEX')) return 'currency';
-            if (symbol.includes('GDP') || symbol.includes('CPI') || symbol.includes('RECESSION') || symbol.includes('USREC') || symbol.includes('PCE')) return 'economic';
-            if (symbol.includes('UNRATE') || symbol.includes('PAYEMS') || symbol.includes('CIVPART')) return 'employment';
-            if (symbol.includes('SP') || symbol.includes('SPY') || symbol.includes('QQQ') || symbol.includes('IWM') || symbol.includes('DIA') || symbol.includes('VTI')) return 'equity';
-            if (symbol.includes('WRESBAL') || symbol.includes('WALCL') || symbol.includes('M2')) return 'liquidity';
-            if (symbol.includes('HOUST') || symbol.includes('HOUSING')) return 'housing';
-            if (symbol.includes('INDPRO') || symbol.includes('INDUSTRIAL')) return 'industrial';
-            if (symbol.includes('RETAIL') || symbol.includes('RSXFS') || symbol.includes('UMCSENT')) return 'consumer';
-            if (symbol.includes('STLFSI')) return 'risk';
-            
-            return 'economic';
-        }
-        
-        function calculatePriority(indicator) {
-            if (!indicator || !indicator.symbol) return 5;
-            
-            const symbol = indicator.symbol.toUpperCase();
-            
-            // Black Swan indicators (Priority 10)
-            const blackSwanSymbols = ['VIXCLS', 'BAMLH0A0HYM2', 'T10Y2Y', 'SOFR', 'STLFSI2', 'WRESBAL', 'DTWEXBGS', 'GVZCLS', 'MOVE', 'BAMLC0A0CM'];
-            if (blackSwanSymbols.includes(symbol)) return 10;
-            
-            // Critical priority (Priority 9)
-            const criticalSymbols = ['DGS10', 'DFF', 'USREC', 'TEDRATE', 'DFEDTARU'];
-            if (criticalSymbols.includes(symbol)) return 9;
-            
-            // High priority (Priority 8)
-            const highPrioritySymbols = ['CPIAUCSL', 'UNRATE', 'GDP', 'DEXUSEU', 'SP500', 'SPY', 'M2SL', 'WALCL', 'PCE'];
-            if (highPrioritySymbols.includes(symbol)) return 8;
-            
-            // Medium priority (Priority 7)
-            const mediumPrioritySymbols = ['QQQ', 'IWM', 'DIA', 'VTI', 'HOUST', 'INDPRO', 'RETAILSL', 'PAYEMS', 'MORTGAGE30US', 'DEXJPUS'];
-            if (mediumPrioritySymbols.includes(symbol)) return 7;
-            
-            // Default priority
-            return 6;
-        }
-        
-        function generateTags(indicator) {
-            if (!indicator || !indicator.symbol) return [];
-            
-            const tags = [];
-            
-            if (indicator.category) tags.push(indicator.category);
-            if (indicator.hasAI) tags.push('ai-enhanced');
-            if (indicator.hasLive) tags.push('real-time');
-            if (indicator.priority >= 10) tags.push('black-swan');
-            if (indicator.priority >= 9) tags.push('critical');
-            if (indicator.priority >= 8) tags.push('high-priority');
-            
-            // Add specific tags based on symbol
-            const symbol = indicator.symbol.toUpperCase();
-            if (symbol.includes('VIX')) tags.push('fear-gauge');
-            if (symbol.includes('YIELD') || symbol.includes('T10Y')) tags.push('yield-curve');
-            if (symbol.includes('USD') || symbol.includes('DEX')) tags.push('forex');
-            if (symbol.includes('RECESSION')) tags.push('recession-indicator');
-            
-            return [...new Set(tags)]; // Remove duplicates
-        }
-        
-        // Parse indicators from file list (no longer needed with S3 proxy)
-        function parseIndicatorsFromFiles(files) {
-            console.log('Note: This function is deprecated. Use S3 proxy instead.');
-            const indicators = [];
-            
-            if (Array.isArray(files)) {
-                files.forEach(file => {
-                    // Extract symbol from filename
-                    const match = file.match(/([A-Z0-9]+)\.json$/);
-                    if (match) {
-                        const symbol = match[1];
-                        indicators.push({
-                            symbol,
-                            name: generateIndicatorName(symbol),
-                            source: 'S3',
-                            file: file
-                        });
-                    }
-                });
-            }
-            
-            return indicators;
-        }
-        
-        // Test S3 proxy connection
-        async function testS3Proxy() {
-            console.log('Testing S3 proxy connection...');
-            try {
-                const response = await fetch(LAMBDA_ENDPOINTS.s3DataProxy, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({action: 'list'})
-                });
-                
-                const data = await response.json();
-                console.log('S3 Proxy test result:', data);
-                
-                if (data.status === 'success') {
-                    console.log(`S3 Proxy working! Found ${data.indicators?.length || 0} indicators`);
-                    return true;
-                } else {
-                    console.error('S3 Proxy error:', data.error);
-                    return false;
-                }
-            } catch (error) {
-                console.error('S3 Proxy connection failed:', error);
-                return false;
-            }
-        }
-        
         // Setup event listeners
         function setupEventListeners() {
+            // Search input
             const searchInput = document.getElementById('searchInput');
             let searchTimeout;
             
-            // Search input with debouncing
             searchInput.addEventListener('input', (e) => {
                 clearTimeout(searchTimeout);
                 const query = e.target.value.trim();
@@ -1872,7 +1296,12 @@
                 }
             });
             
-            // Close modal on outside click
+            // Filter buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', handleFilterClick);
+            });
+            
+            // Modal close
             document.getElementById('detailModal').addEventListener('click', (e) => {
                 if (e.target.id === 'detailModal') {
                     closeModal();
@@ -1880,21 +1309,38 @@
             });
         }
         
-        // Show search suggestions with data source indicators
+        // Handle filter click
+        function handleFilterClick(e) {
+            const btn = e.target;
+            const filterType = btn.closest('.filter-buttons').id.replace('Filters', '');
+            const value = btn.dataset[filterType];
+            
+            // Update active filter
+            activeFilters[filterType] = value;
+            
+            // Update UI
+            btn.closest('.filter-buttons').querySelectorAll('.filter-btn').forEach(b => {
+                b.classList.remove('active');
+            });
+            btn.classList.add('active');
+            
+            // Perform search
+            performSearch();
+        }
+        
+        // Show search suggestions
         function showSearchSuggestions(query) {
             const suggestionsDiv = document.getElementById('searchSuggestions');
-            const results = fuseInstance.search(query).slice(0, 8);
+            const results = fuseInstance.search(query).slice(0, 10);
             
             if (results.length > 0) {
                 suggestionsDiv.innerHTML = results.map(result => {
                     const item = result.item;
-                    const sourceLabel = item.sources ? item.sources[0] : 'index';
-                    
                     return `
-                        <div class="suggestion-item" onclick="selectSuggestion('${item.symbol}')">
+                        <div class="suggestion-item" onclick="selectSuggestion('${item.key}')">
                             <span class="suggestion-symbol">${item.symbol}</span>
                             <span class="suggestion-name">${item.name}</span>
-                            <span class="suggestion-source">${sourceLabel}</span>
+                            <span class="suggestion-source">${item.source}</span>
                         </div>
                     `;
                 }).join('');
@@ -1911,33 +1357,15 @@
         }
         
         // Select suggestion
-        function selectSuggestion(symbol) {
-            document.getElementById('searchInput').value = symbol;
+        function selectSuggestion(key) {
+            document.getElementById('searchInput').value = key;
             hideSearchSuggestions();
             performSearch();
         }
         
-        // Toggle filter
-        function toggleFilter(filterType, value) {
-            activeFilters[filterType] = value;
-            
-            // Update button states
-            const container = document.getElementById(filterType + 'Filters');
-            container.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.dataset[filterType] === value) {
-                    btn.classList.add('active');
-                }
-            });
-            
-            performSearch();
-        }
-        
-        // Perform exponential search across all data sources
+        // Perform search
         function performSearch() {
-            const startTime = performance.now();
-            const query = document.getElementById('searchInput').value.trim();
-            
+            const query = document.getElementById('searchInput').value.trim().toLowerCase();
             let results = [];
             
             if (query) {
@@ -1952,78 +1380,33 @@
             // Apply filters
             results = applyFilters(results);
             
-            // Sort results (Black Swans first, then by priority and data availability)
-            results.sort((a, b) => {
-                // Black swans always first
-                if (a.priority >= 10 && b.priority < 10) return -1;
-                if (b.priority >= 10 && a.priority < 10) return 1;
-                
-                // Then by number of data sources
-                const aSourceCount = (a.sources || []).length;
-                const bSourceCount = (b.sources || []).length;
-                if (aSourceCount !== bSourceCount) {
-                    return bSourceCount - aSourceCount;
-                }
-                
-                // Then by priority
-                if (a.priority !== b.priority) {
-                    return (b.priority || 0) - (a.priority || 0);
-                }
-                
-                // Then by name
-                return a.name.localeCompare(b.name);
-            });
+            // Sort by priority
+            results.sort((a, b) => b.priority - a.priority);
             
             filteredIndicators = results;
             
-            // Update stats
-            const endTime = performance.now();
-            document.getElementById('matchingIndicators').textContent = results.length.toLocaleString();
-            document.getElementById('searchTime').textContent = Math.round(endTime - startTime) + 'ms';
-            
             // Render results
-            renderResults(results.slice(0, 50)); // Show first 50 for performance
+            renderResults(results);
         }
         
         // Apply filters
         function applyFilters(indicators) {
             return indicators.filter(indicator => {
                 // Category filter
-                if (activeFilters.category !== 'all') {
-                    if (indicator.category !== activeFilters.category) {
-                        return false;
-                    }
-                }
-                
-                // Priority filter
-                if (activeFilters.priority !== 'all') {
-                    if (indicator.priority !== parseInt(activeFilters.priority)) {
-                        return false;
-                    }
+                if (activeFilters.category !== 'all' && indicator.category !== activeFilters.category) {
+                    return false;
                 }
                 
                 // Source filter
-                if (activeFilters.source !== 'all') {
-                    const sources = indicator.sources || [];
-                    if (activeFilters.source === 'live' && !sources.includes('live')) {
-                        return false;
-                    }
-                    if (activeFilters.source === 'ai' && !sources.includes('ai')) {
-                        return false;
-                    }
-                    if (activeFilters.source === 'scraped' && !sources.includes('scraped')) {
-                        return false;
-                    }
-                    if (activeFilters.source === 'apprunner' && !sources.includes('apprunner')) {
-                        return false;
-                    }
+                if (activeFilters.source !== 'all' && indicator.source !== activeFilters.source) {
+                    return false;
                 }
                 
                 return true;
             });
         }
         
-        // Render search results with data from all sources
+        // Render results
         function renderResults(indicators) {
             const resultsSection = document.getElementById('resultsSection');
             const noResults = document.getElementById('noResults');
@@ -2037,663 +1420,358 @@
             resultsSection.style.display = 'grid';
             noResults.style.display = 'none';
             
-            resultsSection.innerHTML = indicators.map(indicator => {
-                // Skip if no symbol
-                if (!indicator.symbol) {
-                    console.error('Indicator without symbol:', indicator);
-                    return '';
-                }
-                
+            // Render cards
+            resultsSection.innerHTML = indicators.slice(0, 50).map(indicator => {
                 const isBlackSwan = indicator.priority >= 10;
-                const hasLiveData = indicator.hasLive;
-                const hasAIPrediction = indicator.hasAI;
-                const dataSources = indicator.sources || [];
-                
-                // Get latest value from any available source
-                let latestValue = '—';
-                let percentChange = '—';
-                let lastUpdate = '—';
-                
-                // Priority order: real-time > scraped > AI > AppRunner
-                if (indicator.realtimeData) {
-                    latestValue = formatValue(indicator.realtimeData.value);
-                    percentChange = formatChange(indicator.realtimeData.change);
-                    lastUpdate = 'Live';
-                } else if (indicator.latest_value !== undefined && indicator.latest_value !== null) {
-                    // Use pre-computed latest value from S3 data
-                    latestValue = formatValue(indicator.latest_value);
-                    percentChange = formatChange(indicator.daily_change);
-                    lastUpdate = indicator.latest_date ? new Date(indicator.latest_date).toLocaleDateString() : 'S3';
-                } else if (indicator.scrapedData && indicator.scrapedData.value !== null) {
-                    latestValue = formatValue(indicator.scrapedData.value);
-                    percentChange = formatChange(indicator.scrapedData.change);
-                    lastUpdate = indicator.scrapedData.date || 'Scraped';
-                } else if (indicator.aiPrediction && indicator.aiPrediction.value) {
-                    latestValue = formatValue(indicator.aiPrediction.value);
-                    percentChange = formatChange(indicator.aiPrediction.change);
-                    lastUpdate = 'AI';
-                } else if (indicator.appRunnerData) {
-                    if (indicator.appRunnerData.price) {
-                        latestValue = formatValue(indicator.appRunnerData.price);
-                        percentChange = formatChange(indicator.appRunnerData.change_percent);
-                    } else if (indicator.appRunnerData.value) {
-                        latestValue = formatValue(indicator.appRunnerData.value);
-                    }
-                    lastUpdate = 'API';
-                } else {
-                    // No data yet - show pending status
-                    lastUpdate = 'Pending';
-                }
-                
-                const aiForcast = indicator.aiPrediction ? 
-                    indicator.aiPrediction.forecast || 'Analysis pending' : '—';
-                
-                // Safe symbol for IDs (replace special characters)
-                const safeSymbol = indicator.symbol.replace(/[^a-zA-Z0-9]/g, '_');
-                
-                // Determine if we should show this as pending data
-                const isPending = latestValue === '—' && lastUpdate === 'Pending';
+                const isNewSource = ['imf', 'oecd', 'yahoo'].includes(indicator.source);
                 
                 return `
-                    <div class="result-card ${isBlackSwan ? 'black-swan' : ''} ${isPending ? 'pending-data' : ''}" 
-                         onclick="showDetails('${indicator.symbol}')"
-                         data-symbol="${indicator.symbol}">
-                        ${hasAIPrediction ? '<div class="ai-badge">🤖 AI</div>' : ''}
-                        ${hasLiveData ? '<div class="ai-badge" style="background: linear-gradient(135deg, #00ff88, #00ccff);">🔴 LIVE</div>' : ''}
-                        ${isPending ? '<div class="ai-badge" style="background: #666;">⏳ PENDING</div>' : ''}
+                    <div class="result-card ${isBlackSwan ? 'black-swan' : ''}" 
+                         onclick="showDetails('${indicator.key}')"
+                         data-key="${indicator.key}">
                         
                         <div class="result-header">
-                            <div>
-                                <div class="result-symbol">${indicator.symbol}</div>
-                                <div class="result-name">${indicator.name || indicator.symbol}</div>
-                            </div>
+                            <div class="result-symbol">${indicator.symbol || indicator.key}</div>
+                            <div class="result-name">${indicator.name}</div>
                         </div>
                         
                         <div class="result-tags">
                             ${isBlackSwan ? '<span class="tag priority">🦢 BLACK SWAN</span>' : ''}
-                            ${dataSources.map(source => 
-                                `<span class="tag source">${source}</span>`
-                            ).join('')}
-                            ${indicator.category ? `<span class="tag">${indicator.category}</span>` : ''}
-                            ${(indicator.tags || []).slice(0, 2).map(tag => 
-                                `<span class="tag">${tag}</span>`
-                            ).join('')}
+                            <span class="tag source ${isNewSource ? 'new-source' : ''}">${indicator.source.toUpperCase()}</span>
+                            <span class="tag">${indicator.category}</span>
                         </div>
                         
                         <div class="result-metrics">
                             <div class="metric">
-                                <div class="metric-label">Latest Value</div>
-                                <div class="metric-value">${latestValue}</div>
+                                <div class="metric-label">Priority</div>
+                                <div class="metric-value">${indicator.priority}/10</div>
                             </div>
                             <div class="metric">
-                                <div class="metric-label">% Change</div>
-                                <div class="metric-value ${percentChange.startsWith('+') ? 'positive' : percentChange.startsWith('-') ? 'negative' : ''}">${percentChange}</div>
+                                <div class="metric-label">Frequency</div>
+                                <div class="metric-value">${indicator.frequency || 'Daily'}</div>
                             </div>
                             <div class="metric">
-                                <div class="metric-label">AI Forecast</div>
-                                <div class="metric-value" style="font-size: 12px;">${aiForcast}</div>
+                                <div class="metric-label">Unit</div>
+                                <div class="metric-value">${indicator.unit || 'Index'}</div>
                             </div>
                             <div class="metric">
-                                <div class="metric-label">Updated</div>
-                                <div class="metric-value" style="font-size: 12px;">${lastUpdate}</div>
+                                <div class="metric-label">Status</div>
+                                <div class="metric-value positive">Active</div>
                             </div>
                         </div>
                         
-                        <div class="chart-preview" id="preview_${safeSymbol}">
-                            <div style="padding: 60px; text-align: center; color: #666;">
-                                ${isPending ? 'Data pending...' : 'Loading Chart...'}
-                            </div>
+                        <div class="chart-preview" id="chart-${indicator.key.replace(/\./g, '-')}">
+                            <canvas></canvas>
                         </div>
                         
                         <div class="result-actions">
-                            <button class="action-btn" onclick="event.stopPropagation(); addToWatchlist('${indicator.symbol}')">
-                                + Add to Watchlist
+                            <button class="action-btn" onclick="event.stopPropagation(); analyzeIndicator('${indicator.key}')">
+                                📊 Analyze
                             </button>
-                            <button class="action-btn" onclick="event.stopPropagation(); viewFullChart('${indicator.symbol}')">
-                                📊 Full Chart
+                            <button class="action-btn" onclick="event.stopPropagation(); addToWatchlist('${indicator.key}')">
+                                ⭐ Watch
+                            </button>
+                            <button class="action-btn" onclick="event.stopPropagation(); exportData('${indicator.key}')">
+                                📥 Export
                             </button>
                         </div>
                     </div>
                 `;
             }).join('');
             
-            // Load charts for visible indicators
+            // Generate mini charts
+            setTimeout(() => generateMiniCharts(indicators.slice(0, 50)), 100);
+        }
+        
+        // Generate mini charts
+        function generateMiniCharts(indicators) {
             indicators.forEach(indicator => {
-                if (indicator.symbol) {
-                    loadMiniChart(indicator);
-                }
-            });
-        }
-        
-        // Update visible cards with real-time data
-        function updateVisibleCards() {
-            const cards = document.querySelectorAll('.result-card');
-            cards.forEach(card => {
-                const symbol = card.dataset.symbol;
-                const indicator = allIndicators.find(i => i.symbol === symbol);
+                const canvasId = `chart-${indicator.key.replace(/\./g, '-')}`;
+                const canvas = document.querySelector(`#${canvasId} canvas`);
+                if (!canvas) return;
                 
-                if (indicator && indicator.realtimeData) {
-                    // Update metric values
-                    const metricValues = card.querySelectorAll('.metric-value');
-                    if (metricValues[0]) {
-                        metricValues[0].textContent = formatValue(indicator.realtimeData.value);
-                        metricValues[0].style.animation = 'pulse 0.5s';
-                    }
-                    if (metricValues[1]) {
-                        const change = formatChange(indicator.realtimeData.change);
-                        metricValues[1].textContent = change;
-                        metricValues[1].className = 'metric-value ' + 
-                            (change.startsWith('+') ? 'positive' : change.startsWith('-') ? 'negative' : '');
-                    }
-                }
-            });
-        }
-        
-        // Format value for display
-        function formatValue(value) {
-            if (value === null || value === undefined || value === '—') return '—';
-            const num = parseFloat(value);
-            if (isNaN(num)) return '—';
-            
-            if (num >= 1000000000) return (num / 1000000000).toFixed(2) + 'B';
-            if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
-            if (num >= 1000) return (num / 1000).toFixed(2) + 'K';
-            if (num >= 100) return num.toFixed(0);
-            if (num >= 1) return num.toFixed(2);
-            return num.toFixed(4);
-        }
-        
-        // Format change percentage
-        function formatChange(change) {
-            if (change === null || change === undefined || change === '—') return '—';
-            const num = parseFloat(change);
-            if (isNaN(num)) return '—';
-            
-            return (num >= 0 ? '+' : '') + num.toFixed(2) + '%';
-        }
-        
-        // Load mini chart for indicator
-        async function loadMiniChart(indicator) {
-            try {
-                const chartDiv = document.getElementById(`preview_${indicator.symbol.replace(/[^a-zA-Z0-9]/g, '_')}`);
-                if (!chartDiv) return;
+                const ctx = canvas.getContext('2d');
                 
-                // Try to get historical data from AppRunner
-                let chartData = null;
+                // Generate mock data
+                const data = generateMockData(indicator);
                 
-                if (indicator.appRunnerData && indicator.appRunnerData.observations) {
-                    // Use real data if available
-                    chartData = indicator.appRunnerData.observations.slice(-90).map(obs => ({
-                        date: obs.date,
-                        value: parseFloat(obs.value)
-                    }));
-                } else {
-                    // Generate mock data for demonstration
-                    chartData = generateMockChartData(indicator.symbol, 90);
-                }
-                
-                if (!chartData || chartData.length < 2) {
-                    chartDiv.innerHTML = '<div style="padding: 60px; text-align: center; color: #666;">No data</div>';
-                    return;
-                }
-                
-                // Create mini chart
-                const trace = {
-                    x: chartData.map(d => d.date),
-                    y: chartData.map(d => d.value),
-                    type: 'scatter',
-                    mode: 'lines',
-                    line: { 
-                        color: indicator.priority >= 10 ? '#ff4444' : '#00ff88', 
-                        width: 2,
-                        shape: 'spline'
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            data: data.values,
+                            borderColor: indicator.priority >= 10 ? '#ff4444' : '#00ff88',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.1,
+                            pointRadius: 0
+                        }]
                     },
-                    hoverinfo: 'none'
-                };
-                
-                const layout = {
-                    paper_bgcolor: '#0a0a0a',
-                    plot_bgcolor: '#0a0a0a',
-                    margin: { t: 0, r: 0, b: 0, l: 0 },
-                    xaxis: { visible: false },
-                    yaxis: { visible: false },
-                    showlegend: false,
-                    height: 150
-                };
-                
-                Plotly.newPlot(chartDiv, [trace], layout, { 
-                    displayModeBar: false,
-                    responsive: true
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { enabled: false }
+                        },
+                        scales: {
+                            x: { display: false },
+                            y: { display: false }
+                        },
+                        interaction: { mode: null }
+                    }
                 });
-                
-            } catch (error) {
-                console.error(`Error loading chart for ${indicator.symbol}:`, error);
-            }
+            });
         }
         
-        // Generate mock chart data
-        function generateMockChartData(symbol, days) {
-            const data = [];
-            const baseValue = 100;
-            const volatility = symbol.includes('VIX') ? 0.1 : 0.02;
-            let currentValue = baseValue;
+        // Generate mock data
+        function generateMockData(indicator) {
+            const points = 50;
+            const labels = [];
+            const values = [];
             
-            for (let i = days; i >= 0; i--) {
-                const date = new Date();
-                date.setDate(date.getDate() - i);
-                
-                // Random walk
-                currentValue = currentValue * (1 + (Math.random() - 0.5) * volatility);
-                
-                data.push({
-                    date: date.toISOString().split('T')[0],
-                    value: currentValue
-                });
+            let value = 100;
+            const volatility = indicator.category === 'volatility' ? 0.1 : 0.02;
+            
+            for (let i = 0; i < points; i++) {
+                labels.push(i);
+                value += (Math.random() - 0.5) * volatility * value;
+                values.push(value);
             }
             
-            return data;
+            return { labels, values };
         }
         
-        // Show details modal with comprehensive data
-        function showDetails(symbol) {
-            const indicator = allIndicators.find(i => i.symbol === symbol);
+        // Show indicator details
+        function showDetails(key) {
+            const indicator = INDICATORS_DATABASE[key];
             if (!indicator) return;
             
-            document.getElementById('modalTitle').textContent = `${symbol} - ${indicator.name || symbol}`;
-            document.getElementById('detailModal').style.display = 'flex';
+            const modal = document.getElementById('detailModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalDetails = document.getElementById('modalDetails');
             
-            // Load full details from all sources
-            loadFullDetails(indicator);
+            modalTitle.textContent = indicator.name;
+            
+            modalDetails.innerHTML = `
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 30px;">
+                    <div>
+                        <h4 style="color: var(--text-secondary); font-size: 14px; margin-bottom: 10px;">INDICATOR DETAILS</h4>
+                        <div style="background: var(--bg-primary); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color);">
+                            <div style="margin-bottom: 15px;">
+                                <div style="color: var(--text-muted); font-size: 12px;">Symbol</div>
+                                <div style="font-size: 18px; font-weight: bold;">${key}</div>
+                            </div>
+                            <div style="margin-bottom: 15px;">
+                                <div style="color: var(--text-muted); font-size: 12px;">Source</div>
+                                <div style="font-size: 16px;">${indicator.source.toUpperCase()}</div>
+                            </div>
+                            <div style="margin-bottom: 15px;">
+                                <div style="color: var(--text-muted); font-size: 12px;">Category</div>
+                                <div style="font-size: 16px;">${indicator.category}</div>
+                            </div>
+                            <div>
+                                <div style="color: var(--text-muted); font-size: 12px;">Priority</div>
+                                <div style="font-size: 16px; color: ${indicator.priority >= 9 ? 'var(--accent-red)' : 'var(--accent-green)'};">
+                                    ${indicator.priority}/10 ${indicator.priority >= 10 ? '🦢' : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 style="color: var(--text-secondary); font-size: 14px; margin-bottom: 10px;">DATA CHARACTERISTICS</h4>
+                        <div style="background: var(--bg-primary); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color);">
+                            <div style="margin-bottom: 15px;">
+                                <div style="color: var(--text-muted); font-size: 12px;">Update Frequency</div>
+                                <div style="font-size: 16px;">${indicator.frequency || 'Daily'}</div>
+                            </div>
+                            <div style="margin-bottom: 15px;">
+                                <div style="color: var(--text-muted); font-size: 12px;">Unit</div>
+                                <div style="font-size: 16px;">${indicator.unit || 'Index'}</div>
+                            </div>
+                            <div style="margin-bottom: 15px;">
+                                <div style="color: var(--text-muted); font-size: 12px;">Description</div>
+                                <div style="font-size: 14px; color: var(--text-secondary);">
+                                    ${indicator.description || 'Financial indicator tracking ' + indicator.name}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 15px;">
+                    <button class="action-btn" style="background: var(--accent-green); color: var(--bg-primary); font-weight: bold;" 
+                            onclick="fetchRealTimeData('${key}')">
+                        🔄 Fetch Real-Time Data
+                    </button>
+                    <button class="action-btn" onclick="downloadHistoricalData('${key}')">
+                        📊 Download Historical Data
+                    </button>
+                    <button class="action-btn" onclick="setupAlerts('${key}')">
+                        🔔 Setup Alerts
+                    </button>
+                </div>
+            `;
+            
+            // Generate detailed chart
+            generateDetailChart(key);
+            
+            modal.classList.add('active');
+        }
+        
+        // Generate detailed chart
+        function generateDetailChart(key) {
+            const canvas = document.getElementById('modalChart');
+            const ctx = canvas.getContext('2d');
+            
+            // Destroy existing chart
+            if (window.modalChartInstance) {
+                window.modalChartInstance.destroy();
+            }
+            
+            const indicator = INDICATORS_DATABASE[key];
+            const data = generateDetailedMockData(indicator);
+            
+            window.modalChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: indicator.name,
+                        data: data.values,
+                        borderColor: '#00ff88',
+                        backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        pointHoverBackgroundColor: '#00ff88'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: { color: '#ccc' }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#00ff88',
+                            bodyColor: '#ccc',
+                            borderColor: '#333',
+                            borderWidth: 1
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            grid: {
+                                display: false,
+                                color: '#333'
+                            },
+                            ticks: { color: '#666' }
+                        },
+                        y: {
+                            display: true,
+                            grid: {
+                                color: '#333',
+                                drawBorder: false
+                            },
+                            ticks: { color: '#666' }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        intersect: false
+                    }
+                }
+            });
+        }
+        
+        // Generate detailed mock data
+        function generateDetailedMockData(indicator) {
+            const points = 100;
+            const labels = [];
+            const values = [];
+            
+            const now = new Date();
+            let value = 100;
+            const trend = indicator.priority >= 8 ? 0.0005 : -0.0002;
+            const volatility = indicator.category === 'volatility' ? 0.05 : 0.01;
+            
+            for (let i = points - 1; i >= 0; i--) {
+                const date = new Date(now - i * 24 * 60 * 60 * 1000);
+                labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+                
+                value += value * trend + (Math.random() - 0.5) * volatility * value;
+                values.push(value);
+            }
+            
+            return { labels, values };
         }
         
         // Close modal
         function closeModal() {
-            document.getElementById('detailModal').style.display = 'none';
-        }
-        
-        // Load full details from all data sources
-        async function loadFullDetails(indicator) {
-            const detailsDiv = document.getElementById('modalDetails');
-            const symbol = indicator.symbol;
-            
-            // Show all available data
-            let detailsHTML = `
-                <div style="padding: 20px;">
-                    <h3>Indicator Information</h3>
-                    <p><strong>Symbol:</strong> ${indicator.symbol}</p>
-                    <p><strong>Name:</strong> ${indicator.name || indicator.symbol}</p>
-                    <p><strong>Category:</strong> ${indicator.category || 'General'}</p>
-                    <p><strong>Priority:</strong> ${indicator.priority || 'N/A'}</p>
-                    <p><strong>Tags:</strong> ${(indicator.tags || []).join(', ')}</p>
-                    <p><strong>Data Sources:</strong> ${(indicator.sources || []).join(', ')}</p>
-                    ${indicator.priority >= 10 ? '<p><strong>🦢 BLACK SWAN INDICATOR</strong> - Ultra-high priority for crisis detection</p>' : ''}
-            `;
-            
-            // Add AI Prediction data
-            if (indicator.aiPrediction) {
-                detailsHTML += `
-                    <div style="margin-top: 20px; padding: 15px; background: #1a1a1a; border-radius: 8px;">
-                        <h4>🤖 AI Prediction</h4>
-                        <p><strong>Forecast:</strong> ${indicator.aiPrediction.forecast || 'N/A'}</p>
-                        <p><strong>Sentiment:</strong> ${indicator.aiPrediction.sentiment || 'N/A'}</p>
-                        <p><strong>Confidence:</strong> ${(indicator.aiPrediction.confidence * 100).toFixed(0)}%</p>
-                        ${indicator.aiPrediction.value ? `<p><strong>AI Value:</strong> ${formatValue(indicator.aiPrediction.value)}</p>` : ''}
-                        ${indicator.aiPrediction.change ? `<p><strong>AI Change:</strong> ${formatChange(indicator.aiPrediction.change)}</p>` : ''}
-                    </div>
-                `;
-            }
-            
-            // Add Real-time data
-            if (indicator.realtimeData) {
-                detailsHTML += `
-                    <div style="margin-top: 20px; padding: 15px; background: #1a1a1a; border-radius: 8px;">
-                        <h4>🔴 Live Data</h4>
-                        <p><strong>Current Value:</strong> ${formatValue(indicator.realtimeData.value)}</p>
-                        <p><strong>Change:</strong> ${formatChange(indicator.realtimeData.change)}</p>
-                        <p><strong>Last Update:</strong> ${new Date().toLocaleTimeString()}</p>
-                    </div>
-                `;
-            }
-            
-            // Add AppRunner data
-            if (indicator.appRunnerData) {
-                detailsHTML += `
-                    <div style="margin-top: 20px; padding: 15px; background: #1a1a1a; border-radius: 8px;">
-                        <h4>🏃 AppRunner API Data</h4>
-                `;
-                
-                if (indicator.appRunnerData.price) {
-                    detailsHTML += `
-                        <p><strong>Price:</strong> ${indicator.appRunnerData.price}</p>
-                        <p><strong>Change:</strong> ${formatChange(indicator.appRunnerData.change_percent)}</p>
-                        <p><strong>Volume:</strong> ${formatValue(indicator.appRunnerData.volume)}</p>
-                    `;
-                } else if (indicator.appRunnerData.value) {
-                    detailsHTML += `
-                        <p><strong>Value:</strong> ${formatValue(indicator.appRunnerData.value)}</p>
-                        <p><strong>Date:</strong> ${indicator.appRunnerData.date || 'N/A'}</p>
-                    `;
-                }
-                
-                detailsHTML += '</div>';
-            }
-            
-            // Add Scraped data
-            if (indicator.scrapedData) {
-                detailsHTML += `
-                    <div style="margin-top: 20px; padding: 15px; background: #1a1a1a; border-radius: 8px;">
-                        <h4>📊 Scraped Data</h4>
-                        <p><strong>Value:</strong> ${formatValue(indicator.scrapedData.value)}</p>
-                        <p><strong>Change:</strong> ${formatChange(indicator.scrapedData.change)}</p>
-                        <p><strong>Source:</strong> ${indicator.scrapedData.source || 'Web Scraper'}</p>
-                    </div>
-                `;
-            }
-            
-            detailsHTML += '<div id="additionalData" style="margin-top: 20px;"></div></div>';
-            
-            detailsDiv.innerHTML = detailsHTML;
-            
-            // Load full chart with data from all sources
-            await loadFullChart(indicator);
-            
-            // Load additional data asynchronously
-            loadAdditionalData(indicator);
-        }
-        
-        // Load full chart with comprehensive data
-        async function loadFullChart(indicator) {
-            try {
-                let chartData = [];
-                
-                // First priority: Check if we have S3 data with observations
-                if (indicator.scrapedData && indicator.scrapedData.observations) {
-                    chartData = indicator.scrapedData.observations.map(obs => ({
-                        date: obs.date,
-                        value: parseFloat(obs.value),
-                        source: 'S3'
-                    }));
-                    console.log(`Using S3 data for ${indicator.symbol} chart (${chartData.length} points)`);
-                }
-                
-                // Second priority: Try to get from AppRunner if no S3 data
-                if (chartData.length === 0 && indicator.appRunnerData && indicator.appRunnerData.observations) {
-                    chartData = indicator.appRunnerData.observations.map(obs => ({
-                        date: obs.date,
-                        value: parseFloat(obs.value),
-                        source: 'AppRunner'
-                    }));
-                    console.log(`Using AppRunner data for ${indicator.symbol} chart`);
-                }
-                
-                // Third priority: Try to fetch from S3 proxy if not already loaded
-                if (chartData.length === 0 && !indicator.scrapedData) {
-                    try {
-                        console.log(`Fetching ${indicator.symbol} data from S3 proxy...`);
-                        const response = await fetch(LAMBDA_ENDPOINTS.s3DataProxy, {
-                            method: 'POST',
-                            headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify({
-                                action: 'get',
-                                indicator: indicator.symbol
-                            })
-                        });
-                        
-                        if (response.ok) {
-                            const s3Data = await response.json();
-                            if (s3Data.status === 'success' && s3Data.data && s3Data.data.observations) {
-                                chartData = s3Data.data.observations.map(obs => ({
-                                    date: obs.date,
-                                    value: parseFloat(obs.value),
-                                    source: 'S3-Direct'
-                                }));
-                                console.log(`Loaded ${chartData.length} data points from S3 proxy`);
-                            }
-                        }
-                    } catch (error) {
-                        console.error(`Error fetching ${indicator.symbol} from S3:`, error);
-                    }
-                }
-                
-                // Fourth priority: Try AppRunner API
-                if (chartData.length === 0) {
-                    try {
-                        const response = await fetch(`${API_BASE}/api/fred/series/${indicator.symbol}`);
-                        if (response.ok) {
-                            const data = await response.json();
-                            if (data.observations) {
-                                chartData = data.observations.map(obs => ({
-                                    date: obs.date,
-                                    value: parseFloat(obs.value),
-                                    source: 'FRED'
-                                }));
-                            }
-                        }
-                    } catch (error) {
-                        console.error('Error fetching chart data from AppRunner:', error);
-                    }
-                }
-                
-                // Last resort: Generate mock data
-                if (chartData.length === 0) {
-                    console.log(`No real data available for ${indicator.symbol}, using mock data`);
-                    chartData = generateMockChartData(indicator.symbol, 365 * 2);
-                }
-                
-                if (chartData.length > 0) {
-                    // Calculate statistics
-                    const values = chartData.map(d => d.value);
-                    const latest = values[values.length - 1];
-                    const yearAgo = values[Math.max(0, values.length - 252)] || values[0];
-                    const yearChange = ((latest - yearAgo) / yearAgo * 100).toFixed(2);
-                    const max = Math.max(...values);
-                    const min = Math.min(...values);
-                    const avg = values.reduce((a, b) => a + b, 0) / values.length;
-                    
-                    // Update additional data section
-                    const additionalDiv = document.getElementById('additionalData');
-                    additionalDiv.innerHTML = `
-                        <h4>Historical Statistics</h4>
-                        <p><strong>Latest Value:</strong> ${formatValue(latest)}</p>
-                        <p><strong>1-Year Change:</strong> <span class="${yearChange >= 0 ? 'positive' : 'negative'}">${yearChange >= 0 ? '+' : ''}${yearChange}%</span></p>
-                        <p><strong>All-Time High:</strong> ${formatValue(max)}</p>
-                        <p><strong>All-Time Low:</strong> ${formatValue(min)}</p>
-                        <p><strong>Average:</strong> ${formatValue(avg)}</p>
-                        <p><strong>Data Points:</strong> ${chartData.length}</p>
-                        <p><strong>Date Range:</strong> ${chartData[0].date} to ${chartData[chartData.length - 1].date}</p>
-                    `;
-                    
-                    // Create full chart with annotations
-                    const mainTrace = {
-                        x: chartData.map(d => d.date),
-                        y: chartData.map(d => d.value),
-                        type: 'scatter',
-                        mode: 'lines',
-                        name: indicator.symbol,
-                        line: { 
-                            color: indicator.priority >= 10 ? '#ff4444' : '#00ff88', 
-                            width: 2 
-                        }
-                    };
-                    
-                    const traces = [mainTrace];
-                    
-                    // Add average line
-                    const avgTrace = {
-                        x: [chartData[0].date, chartData[chartData.length - 1].date],
-                        y: [avg, avg],
-                        type: 'scatter',
-                        mode: 'lines',
-                        name: 'Average',
-                        line: { color: '#ff9800', width: 1, dash: 'dash' }
-                    };
-                    traces.push(avgTrace);
-                    
-                    // Add AI prediction points if available
-                    if (indicator.aiPrediction && indicator.aiPrediction.value) {
-                        const predictionTrace = {
-                            x: [chartData[chartData.length - 1].date],
-                            y: [indicator.aiPrediction.value],
-                            type: 'scatter',
-                            mode: 'markers+text',
-                            name: 'AI Prediction',
-                            marker: { 
-                                size: 12, 
-                                color: '#ff6b6b',
-                                symbol: 'star'
-                            },
-                            text: ['AI'],
-                            textposition: 'top'
-                        };
-                        traces.push(predictionTrace);
-                    }
-                    
-                    const layout = {
-                        paper_bgcolor: '#0a0a0a',
-                        plot_bgcolor: '#0a0a0a',
-                        font: { color: '#aaa' },
-                        title: {
-                            text: `${indicator.name || indicator.symbol} - Historical Chart`,
-                            font: { color: '#fff', size: 16 }
-                        },
-                        xaxis: {
-                            gridcolor: '#22222250',
-                            tickfont: { color: '#888' },
-                            rangeslider: { visible: true }
-                        },
-                        yaxis: {
-                            gridcolor: '#22222250',
-                            tickfont: { color: '#888' },
-                            title: 'Value'
-                        },
-                        margin: { t: 40, r: 20, b: 100, l: 60 },
-                        showlegend: true,
-                        legend: {
-                            x: 0,
-                            y: 1,
-                            bgcolor: 'rgba(0,0,0,0.5)'
-                        },
-                        height: 400
-                    };
-                    
-                    Plotly.newPlot('detailChart', traces, layout, { responsive: true });
-                } else {
-                    document.getElementById('detailChart').innerHTML = 
-                        '<p style="text-align: center; padding: 40px; color: #666;">No chart data available</p>';
-                }
-                
-            } catch (error) {
-                console.error('Error loading full chart:', error);
-                document.getElementById('detailChart').innerHTML = 
-                    '<p style="text-align: center; padding: 40px; color: #666;">Unable to load chart data</p>';
+            document.getElementById('detailModal').classList.remove('active');
+            if (window.modalChartInstance) {
+                window.modalChartInstance.destroy();
             }
         }
         
-        // Load additional data from all sources
-        async function loadAdditionalData(indicator) {
-            // Try to get more detailed data from various endpoints
-            const additionalRequests = [];
-            
-            // Try to get analysis from ML Predictor
-            additionalRequests.push(
-                fetch(LAMBDA_ENDPOINTS.MLPredictor, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        action: 'analyze',
-                        symbol: indicator.symbol 
-                    })
-                }).then(res => res.ok ? res.json() : null).catch(() => null)
-            );
-            
-            // Try to get latest scraped data
-            additionalRequests.push(
-                fetch(LAMBDA_ENDPOINTS.scrapeMacroData, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        action: 'getIndicator',
-                        symbol: indicator.symbol 
-                    })
-                }).then(res => res.ok ? res.json() : null).catch(() => null)
-            );
-            
-            const results = await Promise.allSettled(additionalRequests);
-            
-            // Process additional data if available
-            results.forEach((result, index) => {
-                if (result.status === 'fulfilled' && result.value) {
-                    // Add to modal if new data is available
-                    console.log(`Additional data for ${indicator.symbol}:`, result.value);
-                }
+        // Action handlers
+        function analyzeIndicator(key) {
+            console.log('Analyzing:', key);
+            alert(`Analysis for ${key} will be available in the next update!`);
+        }
+        
+        function addToWatchlist(key) {
+            console.log('Adding to watchlist:', key);
+            alert(`${key} added to your watchlist!`);
+        }
+        
+        function exportData(key) {
+            console.log('Exporting:', key);
+            alert(`Export functionality for ${key} coming soon!`);
+        }
+        
+        function fetchRealTimeData(key) {
+            console.log('Fetching real-time data:', key);
+            alert(`Fetching real-time data for ${key}...`);
+        }
+        
+        function downloadHistoricalData(key) {
+            console.log('Downloading historical data:', key);
+            alert(`Historical data download for ${key} will be available soon!`);
+        }
+        
+        function setupAlerts(key) {
+            console.log('Setting up alerts:', key);
+            alert(`Alert configuration for ${key} coming soon!`);
+        }
+        
+        // Update last update time
+        function updateLastUpdateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                second: '2-digit'
             });
+            document.getElementById('lastUpdate').textContent = `Last update: ${timeString}`;
+            
+            // Update every second
+            setTimeout(updateLastUpdateTime, 1000);
         }
-        
-        // Add to watchlist
-        async function addToWatchlist(symbol) {
-            try {
-                // Check if Supabase is configured
-                const response = await fetch(LAMBDA_BASE + '/config');
-                if (response.ok) {
-                    alert(`Added ${symbol} to watchlist!`);
-                } else {
-                    alert('Please login to add items to watchlist');
-                    window.location.href = 'ai-predictions-supabase.html';
-                }
-            } catch (error) {
-                console.error('Error adding to watchlist:', error);
-                alert(`${symbol} added to local watchlist`);
-            }
-        }
-        
-        // View full chart
-        function viewFullChart(symbol) {
-            window.location.href = `advanced-financial-dashboard.html?symbol=${symbol}`;
-        }
-        
-        // Get hardcoded indicators (fallback)
-        function getHardcodedIndicators() {
-            return [
-                // Black Swan Indicators (Priority 10)
-                {"symbol": "VIXCLS", "name": "CBOE Volatility Index", "source": "FRED", "tags": ["volatility", "fear", "black-swan"], "priority": 10, "category": "volatility"},
-                {"symbol": "BAMLH0A0HYM2", "name": "US High Yield Spread", "source": "FRED", "tags": ["credit", "risk", "black-swan"], "priority": 10, "category": "credit"},
-                {"symbol": "T10Y2Y", "name": "10Y-2Y Treasury Spread", "source": "FRED", "tags": ["yield-curve", "recession", "black-swan"], "priority": 10, "category": "rates"},
-                {"symbol": "SOFR", "name": "Secured Overnight Financing Rate", "source": "FRED", "tags": ["liquidity", "funding", "black-swan"], "priority": 10, "category": "liquidity"},
-                {"symbol": "WRESBAL", "name": "Fed Reserve Balances", "source": "FRED", "tags": ["liquidity", "fed", "black-swan"], "priority": 10, "category": "liquidity"},
-                {"symbol": "STLFSI2", "name": "St. Louis Fed Financial Stress Index", "source": "FRED", "tags": ["stress", "risk", "black-swan"], "priority": 10, "category": "risk"},
-                {"symbol": "DTWEXBGS", "name": "Trade Weighted US Dollar Index", "source": "FRED", "tags": ["dollar", "currency", "black-swan"], "priority": 10, "category": "currency"},
-                {"symbol": "GVZCLS", "name": "Gold Volatility Index", "source": "FRED", "tags": ["gold", "volatility", "black-swan"], "priority": 10, "category": "volatility"},
-                {"symbol": "MOVE", "name": "Bond Market Volatility", "source": "FRED", "tags": ["bonds", "volatility", "black-swan"], "priority": 10, "category": "volatility"},
-                {"symbol": "BAMLC0A0CM", "name": "Investment Grade Credit Spread", "source": "FRED", "tags": ["credit", "quality", "black-swan"], "priority": 10, "category": "credit"},
-                
-                // High Priority Indicators (Priority 8-9)
-                {"symbol": "DGS10", "name": "10-Year Treasury Rate", "source": "FRED", "tags": ["rates", "treasury", "benchmark"], "priority": 9, "category": "rates"},
-                {"symbol": "DFF", "name": "Federal Funds Rate", "source": "FRED", "tags": ["rates", "fed", "policy"], "priority": 9, "category": "rates"},
-                {"symbol": "USREC", "name": "US Recession Indicator", "source": "FRED", "tags": ["recession", "economy", "indicator"], "priority": 9, "category": "economic"},
-                {"symbol": "CPIAUCSL", "name": "Consumer Price Index", "source": "FRED", "tags": ["inflation", "prices", "cpi"], "priority": 8, "category": "inflation"},
-                {"symbol": "UNRATE", "name": "Unemployment Rate", "source": "FRED", "tags": ["employment", "labor", "economy"], "priority": 8, "category": "employment"},
-                {"symbol": "GDP", "name": "Gross Domestic Product", "source": "FRED", "tags": ["GDP", "growth", "economy"], "priority": 8, "category": "economic"},
-                {"symbol": "DEXUSEU", "name": "USD/EUR Exchange Rate", "source": "FRED", "tags": ["currency", "euro", "forex"], "priority": 8, "category": "currency"},
-                {"symbol": "SP500", "name": "S&P 500 Index", "source": "FRED", "tags": ["equity", "stocks", "market"], "priority": 8, "category": "equity"},
-                
-                // Additional indicators
-                {"symbol": "SPY", "name": "SPDR S&P 500 ETF", "source": "YAHOO", "tags": ["etf", "equity", "market"], "priority": 8, "category": "equity"},
-                {"symbol": "QQQ", "name": "Invesco QQQ Trust", "source": "YAHOO", "tags": ["tech", "nasdaq", "etf"], "priority": 7, "category": "equity"},
-                {"symbol": "IWM", "name": "iShares Russell 2000 ETF", "source": "YAHOO", "tags": ["small-cap", "etf"], "priority": 7, "category": "equity"},
-                {"symbol": "DIA", "name": "SPDR Dow Jones Industrial Average ETF", "source": "YAHOO", "tags": ["dow", "etf"], "priority": 7, "category": "equity"},
-                {"symbol": "VTI", "name": "Vanguard Total Stock Market ETF", "source": "YAHOO", "tags": ["total-market", "etf"], "priority": 7, "category": "equity"}
-            ];
-        }
-        
-        // Cleanup on page unload
-        window.addEventListener('beforeunload', () => {
-            if (updateInterval) {
-                clearInterval(updateInterval);
-            }
-        });
         
         // Initialize on load
-        document.addEventListener('DOMContentLoaded', initialize);
+        window.addEventListener('DOMContentLoaded', initialize);
     </script>
 </body>
 </html>
