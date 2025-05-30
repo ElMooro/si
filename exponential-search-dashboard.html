@@ -654,17 +654,78 @@
         let realtimeData = {};
         let updateInterval = null;
         
-        // Load search index from S3
+        // Fallback index loader
+        async function loadFallbackIndex() {
+            // Use your backend to fetch available indicators
+            try {
+                const response = await fetch(`${API_BASE}/api/indicators/list`);
+                if (response.ok) {
+                    const indicators = await response.json();
+                    return { indicators: indicators };
+                }
+            } catch (error) {
+                console.error('Error loading indicators list:', error);
+            }
+            
+            // Ultimate fallback with some default indicators
+            return {
+                indicators: [
+                    { symbol: 'DGS10', name: '10-Year Treasury Rate', source: 'FRED', tags: ['rates', 'treasury'], priority: 9 },
+                    { symbol: 'VIXCLS', name: 'CBOE Volatility Index', source: 'FRED', tags: ['volatility', 'fear'], priority: 10 },
+                    { symbol: 'DXY', name: 'US Dollar Index', source: 'FRED', tags: ['dollar', 'currency'], priority: 8 },
+                    { symbol: 'GDPC1', name: 'Real GDP', source: 'FRED', tags: ['GDP', 'growth'], priority: 7 },
+                    { symbol: 'CPIAUCSL', name: 'Consumer Price Index', source: 'FRED', tags: ['inflation', 'prices'], priority: 8 },
+                    { symbol: 'UNRATE', name: 'Unemployment Rate', source: 'FRED', tags: ['employment', 'labor'], priority: 7 },
+                    { symbol: 'EFFR', name: 'Federal Funds Rate', source: 'FRED', tags: ['rates', 'fed'], priority: 9 },
+                    { symbol: 'SP500', name: 'S&P 500 Index', source: 'FRED', tags: ['equity', 'stocks'], priority: 8 },
+                    { symbol: 'BAMLH0A0HYM2', name: 'High Yield Spread', source: 'FRED', tags: ['credit', 'risk'], priority: 10 },
+                    { symbol: 'T10Y2Y', name: 'Yield Curve', source: 'FRED', tags: ['rates', 'recession'], priority: 10 }
+                ]
+            };
+        }
+        
+        // Load search index from backend or S3
         async function loadSearchIndex() {
             const loadingState = document.getElementById('loadingState');
             const resultsSection = document.getElementById('resultsSection');
             
             try {
-                // Load from S3 directly
-                const response = await fetch(`${S3_BUCKET}/index/universal_indicator_index.min.json?t=${Date.now()}`);
+                // First try to load from your backend API which should handle CORS
+                let response = await fetch(`${API_BASE}/api/search/index`);
                 
-                if (!response.ok) throw new Error('Failed to load search index');
-                searchIndex = await response.json();
+                if (!response.ok) {
+                    console.log('Backend index endpoint not available, trying alternative methods...');
+                    
+                    // Try to load through your backend's proxy endpoint
+                    response = await fetch(`${API_BASE}/api/proxy/s3?path=index/universal_indicator_index.min.json`);
+                    
+                    if (!response.ok) {
+                        // Try Lambda function to get the index
+                        console.log('Trying Lambda function...');
+                        const lambdaResponse = await fetch('https://ped8gafyuz.us-east-1.awsapprunner.com/api/lambda/invoke', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                functionName: 'createUniversalIndex',
+                                action: 'getIndex'
+                            })
+                        });
+                        
+                        if (!lambdaResponse.ok) {
+                            // Final fallback: Use a hardcoded minimal index
+                            console.log('Using fallback index...');
+                            searchIndex = await loadFallbackIndex();
+                        } else {
+                            searchIndex = await lambdaResponse.json();
+                        }
+                    } else {
+                        searchIndex = await response.json();
+                    }
+                } else {
+                    searchIndex = await response.json();
+                }
                 
                 allIndicators = searchIndex.indicators || [];
                 
@@ -698,9 +759,10 @@
                 // Start real-time updates
                 startRealtimeUpdates();
                 
-            } catch (error) {
+                } catch (error) {
                 console.error('Error loading search index:', error);
-                loadingState.innerHTML = '<p style="color: #ff4444;">Error loading search index. Please refresh.</p>';
+                // Try to load a minimal working set
+                searchIndex = await loadFallbackIndex();
             }
         }
         
@@ -961,8 +1023,8 @@
         // Load from Lambda ML predictor
         async function loadFromLambda(indicator) {
             try {
-                // Check if we have predictions from S3
-                const response = await fetch(`${S3_BUCKET}/predictions/ai_output.json?t=${Date.now()}`);
+                // Load predictions through backend to avoid CORS
+                const response = await fetch(`${API_BASE}/api/predictions/latest`);
                 if (response.ok) {
                     const predictions = await response.json();
                     if (predictions[indicator.symbol]) {
@@ -970,7 +1032,7 @@
                     }
                 }
             } catch (error) {
-                console.error(`Error loading Lambda data for ${indicator.symbol}:`, error);
+                console.error(`Error loading predictions for ${indicator.symbol}:`, error);
             }
         }
         
@@ -1089,11 +1151,11 @@
             }
         }
         
-        // Load chart from S3 scraped data
+        // Load chart from backend scraped data
         async function loadChartFromS3(symbol) {
             try {
-                // Try to load from scraped_data folder
-                const response = await fetch(`${S3_BUCKET}/scraped_data/${symbol}.json?t=${Date.now()}`);
+                // Try to load through backend proxy to avoid CORS
+                const response = await fetch(`${API_BASE}/api/proxy/s3?path=scraped_data/${symbol}.json`);
                 if (response.ok) {
                     const data = await response.json();
                     // Process and display the data
@@ -1105,7 +1167,7 @@
                     }
                 }
             } catch (error) {
-                console.error(`Error loading S3 data for ${symbol}:`, error);
+                console.error(`Error loading data for ${symbol}:`, error);
             }
         }
         
@@ -1231,10 +1293,10 @@
             }
         }
         
-        // Load AI predictions from Lambda
+        // Load AI predictions from backend
         async function loadAIPredictions(indicator) {
             try {
-                const response = await fetch(`${S3_BUCKET}/predictions/ai_output.json?t=${Date.now()}`);
+                const response = await fetch(`${API_BASE}/api/predictions/latest`);
                 if (response.ok) {
                     const predictions = await response.json();
                     const additionalDiv = document.getElementById('additionalData');
