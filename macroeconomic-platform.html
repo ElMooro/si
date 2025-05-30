@@ -16,17 +16,69 @@
             overflow-x: hidden;
         }
        
+        /* Navigation Bar */
+        nav {
+            background: #121212;
+            border-bottom: 1px solid #282828;
+            padding: 15px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            font-size: 22px;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 25px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: #ccc;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: #00ff88;
+        }
+
+        .nav-links a.active {
+            color: #00ff88;
+        }
+
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #00ff88;
+        }
+
         /* Header */
         .header {
-            background: #121212;
+            background: #1a1a1a;
             padding: 15px 20px;
             border-bottom: 1px solid #282828;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            position: relative;
+            z-index: 999;
         }
         .logo {
             font-size: 22px;
@@ -988,9 +1040,34 @@
             background: linear-gradient(45deg, #0077ff, #00aaff);
             transform: scale(1.05);
         }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .nav-links {
+                gap: 15px;
+            }
+            
+            .nav-links a {
+                font-size: 12px;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- Navigation Bar -->
+    <nav>
+        <div class="nav-logo">📊 OPENBB</div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="macroeconomic-platform.html" class="active">Macro Dashboard</a>
+            <a href="ai_predictions.html">AI Signals</a>
+            <a href="exponential-search-dashboard.html">Search</a>
+            <a href="openbb-realtime-dashboard.html">Live Data</a>
+            <a href="scraper_dashboard.html">Scraper Monitor</a>
+            <a href="ai-predictions-supabase.html">Login</a>
+        </div>
+    </nav>
+
     <div class="header">
         <div class="logo">📊 OPENBB FINANCIAL INTELLIGENCE</div>
         <div class="header-controls">
@@ -2662,62 +2739,6 @@
                
                 if (closestItem) {
                     const historicalValue = closestItem.value || closestItem.close || closestItem.price || 0;
-                    if (historicalValue !== null && !isNaN(historicalValue)) {
-                        changeUnits[period] = latestValue - historicalValue;
-                    } else {
-                        changeUnits[period] = null;
-                    }
-                } else {
-                    changeUnits[period] = null;
-                }
-            }
-           
-            return changeUnits;
-        }
-       
-        // Calculate percentage changes from data array
-        function calculatePercentageChanges(data) {
-            if (!data || data.length < 2) {
-                return { '1d': null, '1w': null, '1m': null, '3m': null, '1y': null };
-            }
-           
-            const latestItem = data[data.length - 1];
-            const latestValue = latestItem.value || latestItem.close || latestItem.price || 0;
-            const latestDate = new Date(latestItem.date);
-           
-            if (!latestValue || latestValue === 0) {
-                return { '1d': null, '1w': null, '1m': null, '3m': null, '1y': null };
-            }
-           
-            const changes = {};
-            const periods = {
-                '1d': 1,
-                '1w': 7,
-                '1m': 30,
-                '3m': 90,
-                '1y': 365
-            };
-           
-            for (const [period, days] of Object.entries(periods)) {
-                const targetDate = new Date(latestDate);
-                targetDate.setDate(targetDate.getDate() - days);
-               
-                // Find closest data point
-                let closestItem = null;
-                let minDiff = Infinity;
-               
-                for (const item of data) {
-                    const itemDate = new Date(item.date);
-                    const diff = Math.abs(itemDate - targetDate);
-                   
-                    if (diff < minDiff && itemDate <= targetDate) {
-                        minDiff = diff;
-                        closestItem = item;
-                    }
-                }
-               
-                if (closestItem) {
-                    const historicalValue = closestItem.value || closestItem.close || closestItem.price || 0;
                     if (historicalValue && historicalValue !== 0) {
                         changes[period] = ((latestValue - historicalValue) / historicalValue * 100);
                     } else {
@@ -4057,6 +4078,134 @@
        
         // Initialize on page load
         window.onload = init;
+    </script>
+</body>
+</html> closestItem.value || closestItem.close || closestItem.price || 0;
+                    if (historicalValue !== null && !isNaN(historicalValue)) {
+                        changeUnits[period] = latestValue - historicalValue;
+                    } else {
+                        changeUnits[period] = null;
+                    }
+                } else {
+                    changeUnits[period] = null;
+                }
+            }
+           
+            return changeUnits;
+        }
+       
+        // Calculate percentage changes from data array
+        function calculatePercentageChanges(data) {
+            if (!data || data.length < 2) {
+                return { '1d': null, '1w': null, '1m': null, '3m': null, '1y': null };
+            }
+           
+            const latestItem = data[data.length - 1];
+            const latestValue = latestItem.value || latestItem.close || latestItem.price || 0;
+            const latestDate = new Date(latestItem.date);
+           
+            if (!latestValue || latestValue === 0) {
+                return { '1d': null, '1w': null, '1m': null, '3m': null, '1y': null };
+            }
+           
+            const changes = {};
+            const periods = {
+                '1d': 1,
+                '1w': 7,
+                '1m': 30,
+                '3m': 90,
+                '1y': 365
+            };
+           
+            for (const [period, days] of Object.entries(periods)) {
+                const targetDate = new Date(latestDate);
+                targetDate.setDate(targetDate.getDate() - days);
+               
+                // Find closest data point
+                let closestItem = null;
+                let minDiff = Infinity;
+               
+                for (const item of data) {
+                    const itemDate = new Date(item.date);
+                    const diff = Math.abs(itemDate - targetDate);
+                   
+                    if (diff < minDiff && itemDate <= targetDate) {
+                        minDiff = diff;
+                        closestItem = item;
+                    }
+                }
+               
+                if (closestItem) {
+                    const historicalValue =if (closestItem) {
+                    const historicalValue = closestItem.value || closestItem.close || closestItem.price || 0;
+                    if (historicalValue && historicalValue !== 0) {
+                        changes[period] = ((latestValue - historicalValue) / historicalValue * 100);
+                    } else {
+                        changes[period] = null;
+                    }
+                } else {
+                    changes[period] = null;
+                }
+            }
+           
+            return changes;
+        }
+       
+        // Calculate percentage changes from data array
+        function calculatePercentageChanges(data) {
+            if (!data || data.length < 2) {
+                return { '1d': null, '1w': null, '1m': null, '3m': null, '1y': null };
+            }
+           
+            const latestItem = data[data.length - 1];
+            const latestValue = latestItem.value || latestItem.close || latestItem.price || 0;
+            const latestDate = new Date(latestItem.date);
+           
+            if (!latestValue || latestValue === 0) {
+                return { '1d': null, '1w': null, '1m': null, '3m': null, '1y': null };
+            }
+           
+            const changes = {};
+            const periods = {
+                '1d': 1,
+                '1w': 7,
+                '1m': 30,
+                '3m': 90,
+                '1y': 365
+            };
+           
+            for (const [period, days] of Object.entries(periods)) {
+                const targetDate = new Date(latestDate);
+                targetDate.setDate(targetDate.getDate() - days);
+               
+                // Find closest data point
+                let closestItem = null;
+                let minDiff = Infinity;
+               
+                for (const item of data) {
+                    const itemDate = new Date(item.date);
+                    const diff = Math.abs(itemDate - targetDate);
+                   
+                    if (diff < minDiff && itemDate <= targetDate) {
+                        minDiff = diff;
+                        closestItem = item;
+                    }
+                }
+               
+                if (closestItem) {
+                    const historicalValue = closestItem.value || closestItem.close || closestItem.price || 0;
+                    if (historicalValue && historicalValue !== 0) {
+                        changes[period] = ((latestValue - historicalValue) / historicalValue * 100);
+                    } else {
+                        changes[period] = null;
+                    }
+                } else {
+                    changes[period] = null;
+                }
+            }
+           
+            return changes;
+        }
     </script>
 </body>
 </html>
