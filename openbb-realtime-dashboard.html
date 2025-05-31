@@ -815,51 +815,58 @@
         function createIndicatorCard(indicator) {
             const card = document.createElement('div');
             card.className = 'indicator-card';
-            card.dataset.symbol = indicator.symbol;
+            card.dataset.symbol = indicator.indicator_name || indicator.symbol;
             
             // Extract unit from description or use default
-            const unit = extractUnit(indicator.description || indicator.name);
+            const unit = extractUnit(indicator.description || indicator.indicator_name);
             
             // Generate mock percentage changes (in production, these would come from your data)
             const dailyChange = (Math.random() * 10 - 5).toFixed(2);
             const weeklyChange = (Math.random() * 20 - 10).toFixed(2);
             const monthlyChange = (Math.random() * 30 - 15).toFixed(2);
             
-            // Generate initial value
+            // Generate initial value based on indicator type
             let initialValue;
-            if (indicator.symbol.includes('RATE') || indicator.symbol.includes('DGS')) {
+            const name = (indicator.indicator_name || '').toUpperCase();
+            if (name.includes('RATE') || name.includes('DGS') || name.includes('SOFR')) {
                 initialValue = (Math.random() * 5 + 1).toFixed(3);
-            } else if (indicator.symbol.includes('INDEX')) {
-                initialValue = (Math.random() * 200 + 100).toFixed(2);
+            } else if (name.includes('INDEX') || name.includes('VIX')) {
+                initialValue = (Math.random() * 50 + 10).toFixed(2);
+            } else if (name.includes('CISS')) {
+                initialValue = (Math.random() * 1).toFixed(4);
             } else {
                 initialValue = (Math.random() * 1000).toFixed(2);
             }
             
+            // Format the display name and description
+            const displayName = indicator.indicator_name || indicator.symbol || 'Unknown';
+            const displayDescription = indicator.description || `${indicator.source} ${indicator.indicator_name}`;
+            
             card.innerHTML = `
                 <div class="indicator-header">
-                    <div class="indicator-symbol">${indicator.symbol}</div>
-                    <div class="indicator-name" title="${indicator.name}">${indicator.name}</div>
+                    <div class="indicator-symbol">${displayName}</div>
+                    <div class="indicator-name" title="${displayDescription}">${displayDescription}</div>
                 </div>
                 <div class="indicator-value">
-                    <span id="value_${indicator.symbol}">${initialValue}</span>
+                    <span id="value_${displayName}">${initialValue}</span>
                     <span class="indicator-unit">${unit}</span>
                 </div>
                 <div class="indicator-changes">
                     <div class="change-item">
                         <div class="change-label">Daily</div>
-                        <div class="change-value ${getChangeClass(dailyChange)}" id="daily_${indicator.symbol}">
+                        <div class="change-value ${getChangeClass(dailyChange)}" id="daily_${displayName}">
                             ${dailyChange > 0 ? '+' : ''}${dailyChange}%
                         </div>
                     </div>
                     <div class="change-item">
                         <div class="change-label">Weekly</div>
-                        <div class="change-value ${getChangeClass(weeklyChange)}" id="weekly_${indicator.symbol}">
+                        <div class="change-value ${getChangeClass(weeklyChange)}" id="weekly_${displayName}">
                             ${weeklyChange > 0 ? '+' : ''}${weeklyChange}%
                         </div>
                     </div>
                     <div class="change-item">
                         <div class="change-label">Monthly</div>
-                        <div class="change-value ${getChangeClass(monthlyChange)}" id="monthly_${indicator.symbol}">
+                        <div class="change-value ${getChangeClass(monthlyChange)}" id="monthly_${displayName}">
                             ${monthlyChange > 0 ? '+' : ''}${monthlyChange}%
                         </div>
                     </div>
@@ -1102,11 +1109,13 @@
         function showIndicatorDetails(indicator) {
             alert(`
 Indicator Details:
-Symbol: ${indicator.symbol}
-Name: ${indicator.name}
-Source: ${indicator.source}
+Key: ${indicator.indicator_key || 'N/A'}
+Symbol: ${indicator.indicator_name || 'N/A'}
+Source: ${indicator.source || 'N/A'}
 Description: ${indicator.description || 'N/A'}
+Category: ${indicator.category || 'N/A'}
 Tags: ${indicator.tags ? indicator.tags.join(', ') : 'None'}
+Data Points: ${indicator.data_points_count || 0}
             `);
         }
         
@@ -1242,9 +1251,11 @@ Tags: ${indicator.tags ? indicator.tags.join(', ') : 'None'}
             
             // Filter indicators for autocomplete
             const matches = allIndicators.filter(indicator => {
-                return indicator.symbol.toLowerCase().includes(query) ||
-                       indicator.name.toLowerCase().includes(query) ||
-                       (indicator.description && indicator.description.toLowerCase().includes(query));
+                const name = (indicator.indicator_name || '').toLowerCase();
+                const desc = (indicator.description || '').toLowerCase();
+                const key = (indicator.indicator_key || '').toLowerCase();
+                
+                return name.includes(query) || desc.includes(query) || key.includes(query);
             }).slice(0, 10); // Show max 10 suggestions
             
             if (matches.length === 0) {
@@ -1254,15 +1265,18 @@ Tags: ${indicator.tags ? indicator.tags.join(', ') : 'None'}
             
             // Build autocomplete items
             dropdown.innerHTML = matches.map((indicator, index) => {
-                const symbol = highlightMatch(indicator.symbol, query);
-                const name = highlightMatch(indicator.name, query);
+                const name = indicator.indicator_name || 'Unknown';
+                const desc = indicator.description || indicator.indicator_key || '';
+                
+                const highlightedName = highlightMatch(name, query);
+                const highlightedDesc = highlightMatch(desc, query);
                 
                 return `
                     <div class="autocomplete-item ${index === selectedAutocompleteIndex ? 'selected' : ''}" 
                          data-index="${index}"
-                         onclick="selectAutocomplete('${indicator.symbol}')">
-                        <span class="autocomplete-symbol">${symbol}</span>
-                        <span class="autocomplete-name">${name}</span>
+                         onclick="selectAutocomplete('${name}')">
+                        <span class="autocomplete-symbol">${highlightedName}</span>
+                        <span class="autocomplete-name">${highlightedDesc}</span>
                     </div>
                 `;
             }).join('');
@@ -1320,6 +1334,32 @@ Tags: ${indicator.tags ? indicator.tags.join(', ') : 'None'}
                     item.classList.add('selected');
                 } else {
                     item.classList.remove('selected');
+                }
+            });
+        }
+        
+        // Simulate data updates (in production, this would fetch real data)
+        function simulateDataUpdates(indicators) {
+            indicators.forEach(indicator => {
+                const name = indicator.indicator_name || indicator.symbol || 'Unknown';
+                const valueEl = document.getElementById(`value_${name}`);
+                if (valueEl) {
+                    // Generate mock value based on indicator type
+                    let value;
+                    const upperName = name.toUpperCase();
+                    if (upperName.includes('RATE') || upperName.includes('DGS')) {
+                        value = (Math.random() * 5 + 1).toFixed(3);
+                    } else if (upperName.includes('INDEX') || upperName.includes('VIX')) {
+                        value = (Math.random() * 50 + 10).toFixed(2);
+                    } else {
+                        value = (Math.random() * 1000).toFixed(2);
+                    }
+                    valueEl.textContent = value;
+                    
+                    // Add update animation
+                    const card = valueEl.closest('.indicator-card');
+                    card.classList.add('updating');
+                    setTimeout(() => card.classList.remove('updating'), 300);
                 }
             });
         }
