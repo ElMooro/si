@@ -483,7 +483,64 @@
             }
         }
         
-        /* Scrollbar Styling */
+        /* Indicator card color tags */
+        .indicator-tag {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid #282828;
+            transition: all 0.2s;
+        }
+        
+        .indicator-tag:hover {
+            transform: scale(1.1);
+            border-color: #fff;
+        }
+        
+        .indicator-tag.red { background: #ff4444; }
+        .indicator-tag.orange { background: #ff8800; }
+        .indicator-tag.blue { background: #0088ff; }
+        .indicator-tag.none { background: #333; }
+        
+        /* Edit mode */
+        .indicator-name.editing {
+            background: #252525;
+            border: 1px solid #00ff88;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 12px;
+            width: 100%;
+        }
+        
+        .edit-btn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #252525;
+            border: 1px solid #383838;
+            color: #888;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            opacity: 0;
+            transition: all 0.2s;
+        }
+        
+        .indicator-card:hover .edit-btn {
+            opacity: 1;
+        }
+        
+        .edit-btn:hover {
+            background: #333;
+            color: #fff;
+            border-color: #555;
+        }
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -633,6 +690,20 @@
         let activeSource = '';
         let isLoading = false;
         let selectedAutocompleteIndex = -1;
+        let indicatorTags = {}; // Store color tags for indicators
+        let indicatorNames = {}; // Store custom names for indicators
+        let indicatorData = {}; // Store real data for indicators
+        
+        // Load saved preferences from localStorage
+        try {
+            const savedTags = localStorage.getItem('indicatorTags');
+            if (savedTags) indicatorTags = JSON.parse(savedTags);
+            
+            const savedNames = localStorage.getItem('indicatorNames');
+            if (savedNames) indicatorNames = JSON.parse(savedNames);
+        } catch (e) {
+            console.log('Could not load saved preferences:', e);
+        }
         
         // Risk and Liquidity mappings (editable)
         let riskIndicators = {
@@ -805,9 +876,9 @@
                 grid.appendChild(card);
             });
             
-            // Simulate data updates
+            // Fetch real data for displayed indicators
             if (pageIndicators.length > 0) {
-                setTimeout(() => simulateDataUpdates(pageIndicators), 1000);
+                setTimeout(() => fetchRealDataForIndicators(), 100);
             }
         }
         
@@ -815,67 +886,127 @@
         function createIndicatorCard(indicator) {
             const card = document.createElement('div');
             card.className = 'indicator-card';
-            card.dataset.symbol = indicator.indicator_name || indicator.symbol;
+            const indicatorKey = indicator.indicator_key || `${indicator.source}.${indicator.indicator_name}`;
+            card.dataset.indicatorKey = indicatorKey;
             
-            // Extract unit from description or use default
-            const unit = extractUnit(indicator.description || indicator.indicator_name);
-            
-            // Generate mock percentage changes (in production, these would come from your data)
-            const dailyChange = (Math.random() * 10 - 5).toFixed(2);
-            const weeklyChange = (Math.random() * 20 - 10).toFixed(2);
-            const monthlyChange = (Math.random() * 30 - 15).toFixed(2);
-            
-            // Generate initial value based on indicator type
-            let initialValue;
-            const name = (indicator.indicator_name || '').toUpperCase();
-            if (name.includes('RATE') || name.includes('DGS') || name.includes('SOFR')) {
-                initialValue = (Math.random() * 5 + 1).toFixed(3);
-            } else if (name.includes('INDEX') || name.includes('VIX')) {
-                initialValue = (Math.random() * 50 + 10).toFixed(2);
-            } else if (name.includes('CISS')) {
-                initialValue = (Math.random() * 1).toFixed(4);
-            } else {
-                initialValue = (Math.random() * 1000).toFixed(2);
-            }
-            
-            // Format the display name and description
-            const displayName = indicator.indicator_name || indicator.symbol || 'Unknown';
+            // Get custom name or use default
+            const customName = indicatorNames[indicatorKey];
+            const displayName = customName || indicator.indicator_name || 'Unknown';
             const displayDescription = indicator.description || `${indicator.source} ${indicator.indicator_name}`;
             
+            // Extract unit from description
+            const unit = extractUnit(displayDescription);
+            
+            // Get saved color tag
+            const colorTag = indicatorTags[indicatorKey] || 'none';
+            
+            // Get real data or use placeholder
+            const data = indicatorData[indicatorKey] || {
+                currentValue: '—',
+                dailyChange: 0,
+                weeklyChange: 0,
+                monthlyChange: 0
+            };
+            
+            // Format current value
+            let formattedValue = '—';
+            if (data.currentValue !== '—' && data.currentValue !== undefined) {
+                if (Math.abs(data.currentValue) >= 1000) {
+                    formattedValue = (data.currentValue / 1000).toFixed(1) + 'K';
+                } else if (Math.abs(data.currentValue) >= 10) {
+                    formattedValue = data.currentValue.toFixed(2);
+                } else {
+                    formattedValue = data.currentValue.toFixed(3);
+                }
+            }
+            
             card.innerHTML = `
+                <button class="edit-btn" onclick="editIndicatorName('${indicatorKey}')">✏️</button>
+                <div class="indicator-tag ${colorTag}" onclick="cycleColorTag('${indicatorKey}')" title="Click to change color tag"></div>
                 <div class="indicator-header">
                     <div class="indicator-symbol">${displayName}</div>
-                    <div class="indicator-name" title="${displayDescription}">${displayDescription}</div>
+                    <div class="indicator-name" id="name_${indicatorKey}" title="${displayDescription}">${displayDescription}</div>
                 </div>
                 <div class="indicator-value">
-                    <span id="value_${displayName}">${initialValue}</span>
+                    <span id="value_${indicator.indicator_name}">${formattedValue}</span>
                     <span class="indicator-unit">${unit}</span>
                 </div>
                 <div class="indicator-changes">
                     <div class="change-item">
                         <div class="change-label">Daily</div>
-                        <div class="change-value ${getChangeClass(dailyChange)}" id="daily_${displayName}">
-                            ${dailyChange > 0 ? '+' : ''}${dailyChange}%
+                        <div class="change-value ${getChangeClass(data.dailyChange)}" id="daily_${indicator.indicator_name}">
+                            ${data.dailyChange !== 0 ? (data.dailyChange > 0 ? '+' : '') + data.dailyChange.toFixed(2) + '%' : '—'}
                         </div>
                     </div>
                     <div class="change-item">
                         <div class="change-label">Weekly</div>
-                        <div class="change-value ${getChangeClass(weeklyChange)}" id="weekly_${displayName}">
-                            ${weeklyChange > 0 ? '+' : ''}${weeklyChange}%
+                        <div class="change-value ${getChangeClass(data.weeklyChange)}" id="weekly_${indicator.indicator_name}">
+                            ${data.weeklyChange !== 0 ? (data.weeklyChange > 0 ? '+' : '') + data.weeklyChange.toFixed(2) + '%' : '—'}
                         </div>
                     </div>
                     <div class="change-item">
                         <div class="change-label">Monthly</div>
-                        <div class="change-value ${getChangeClass(monthlyChange)}" id="monthly_${displayName}">
-                            ${monthlyChange > 0 ? '+' : ''}${monthlyChange}%
+                        <div class="change-value ${getChangeClass(data.monthlyChange)}" id="monthly_${indicator.indicator_name}">
+                            ${data.monthlyChange !== 0 ? (data.monthlyChange > 0 ? '+' : '') + data.monthlyChange.toFixed(2) + '%' : '—'}
                         </div>
                     </div>
                 </div>
             `;
             
-            card.onclick = () => showIndicatorDetails(indicator);
+            card.onclick = (e) => {
+                // Don't trigger if clicking on edit button or color tag
+                if (!e.target.classList.contains('edit-btn') && !e.target.classList.contains('indicator-tag')) {
+                    showIndicatorDetails(indicator);
+                }
+            };
             
             return card;
+        }
+        
+        // Cycle through color tags
+        function cycleColorTag(indicatorKey) {
+            const colors = ['none', 'red', 'orange', 'blue'];
+            const currentColor = indicatorTags[indicatorKey] || 'none';
+            const currentIndex = colors.indexOf(currentColor);
+            const nextColor = colors[(currentIndex + 1) % colors.length];
+            
+            indicatorTags[indicatorKey] = nextColor;
+            
+            // Save to localStorage
+            try {
+                localStorage.setItem('indicatorTags', JSON.stringify(indicatorTags));
+            } catch (e) {
+                console.log('Could not save tags:', e);
+            }
+            
+            // Update display
+            const card = document.querySelector(`[data-indicator-key="${indicatorKey}"]`);
+            if (card) {
+                const tagEl = card.querySelector('.indicator-tag');
+                tagEl.className = `indicator-tag ${nextColor}`;
+            }
+        }
+        
+        // Edit indicator name
+        function editIndicatorName(indicatorKey) {
+            const card = document.querySelector(`[data-indicator-key="${indicatorKey}"]`);
+            const symbolEl = card.querySelector('.indicator-symbol');
+            const currentName = symbolEl.textContent;
+            
+            const newName = prompt('Enter new name for indicator:', currentName);
+            if (newName && newName.trim()) {
+                indicatorNames[indicatorKey] = newName.trim();
+                
+                // Save to localStorage
+                try {
+                    localStorage.setItem('indicatorNames', JSON.stringify(indicatorNames));
+                } catch (e) {
+                    console.log('Could not save names:', e);
+                }
+                
+                // Update display
+                symbolEl.textContent = newName.trim();
+            }
         }
         
         // Extract unit from description
@@ -1207,11 +1338,7 @@ Data Points: ${indicator.data_points_count || 0}
         // Auto-refresh data every 30 seconds
         setInterval(() => {
             if (!isLoading) {
-                const pageIndicators = filteredIndicators.slice(
-                    (currentPage - 1) * INDICATORS_PER_PAGE,
-                    currentPage * INDICATORS_PER_PAGE
-                );
-                simulateDataUpdates(pageIndicators);
+                fetchRealDataForIndicators();
             }
         }, 30000);
         
