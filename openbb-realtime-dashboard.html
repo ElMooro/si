@@ -501,6 +501,29 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #444;
         }
+        
+        /* Toast animations */
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -644,32 +667,114 @@
             document.getElementById('loadingOverlay').style.display = 'flex';
             
             try {
-                let url = `${OPENSEARCH_API}/api/search?limit=1000`;
+                // First, let's check if the API is responding
+                console.log('Loading indicators with query:', query, 'source:', source);
+                
+                let url = `${OPENSEARCH_API}/api/search`;
+                const params = new URLSearchParams();
+                
                 if (query) {
-                    url += `&q=${encodeURIComponent(query)}`;
+                    params.append('q', query);
                 }
                 if (source) {
-                    url += `&source=${source}`;
+                    params.append('source', source);
+                }
+                params.append('limit', '1000');
+                
+                if (params.toString()) {
+                    url += '?' + params.toString();
                 }
                 
-                const response = await fetch(url);
-                const data = await response.json();
+                console.log('Fetching from:', url);
                 
-                if (data.results) {
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    mode: 'cors'
+                });
+                
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                if (data.results && Array.isArray(data.results)) {
                     allIndicators = data.results;
                     filteredIndicators = allIndicators;
                     totalPages = Math.ceil(filteredIndicators.length / INDICATORS_PER_PAGE);
                     currentPage = 1;
                     displayIndicators();
                     updatePagination();
+                    
+                    // Show success message
+                    if (allIndicators.length === 0) {
+                        showError('No indicators found. Try a different search term.');
+                    } else {
+                        console.log(`Loaded ${allIndicators.length} indicators`);
+                    }
+                } else if (data.error) {
+                    throw new Error(data.error);
+                } else {
+                    // If no results property, maybe the data structure is different
+                    console.warn('Unexpected data structure:', data);
+                    showError('Unexpected response format from server');
                 }
             } catch (error) {
                 console.error('Error loading indicators:', error);
-                showError('Failed to load indicators');
+                showError(`Failed to load indicators: ${error.message}`);
+                
+                // Try to load some mock data so the UI isn't empty
+                loadMockData();
             } finally {
                 isLoading = false;
                 document.getElementById('loadingOverlay').style.display = 'none';
             }
+        }
+        
+        // Load mock data for testing
+        function loadMockData() {
+            console.log('Loading mock data for testing...');
+            
+            // Create mock indicators based on your project structure
+            const mockIndicators = [
+                { symbol: 'DTWEXBGS', name: 'Trade Weighted U.S. Dollar Index: Broad, Goods and Services', source: 'fred', description: 'Dollar index', tags: ['dollar', 'currency'] },
+                { symbol: 'VIX', name: 'CBOE Volatility Index', source: 'fred', description: 'Market volatility', tags: ['volatility', 'risk'] },
+                { symbol: 'DGS10', name: '10-Year Treasury Constant Maturity Rate', source: 'fred', description: 'Interest rate', tags: ['interest-rates', 'treasury'] },
+                { symbol: 'STLFSI4', name: 'St. Louis Fed Financial Stress Index', source: 'fred', description: 'Financial stress indicator', tags: ['financial-stress'] },
+                { symbol: 'M2SL', name: 'M2 Money Supply', source: 'fred', description: 'Money supply', tags: ['money-supply', 'liquidity'] },
+                { symbol: 'SOFR', name: 'Secured Overnight Financing Rate', source: 'fred', description: 'Interest rate', tags: ['interest-rates'] },
+                { symbol: 'BAMLC0A0CM', name: 'ICE BofA US Corporate Index', source: 'fred', description: 'Corporate bond index', tags: ['bonds', 'credit'] },
+                { symbol: 'DFF', name: 'Federal Funds Effective Rate', source: 'fred', description: 'Fed funds rate', tags: ['interest-rates', 'federal-reserve'] },
+                { symbol: 'BOGMBASE', name: 'Monetary Base', source: 'fred', description: 'Federal Reserve monetary base', tags: ['monetary-base', 'federal-reserve'] },
+                { symbol: 'CISS', name: 'Composite Indicator of Systemic Stress', source: 'ecb', description: 'ECB systemic stress', tags: ['financial-stress', 'europe'] }
+            ];
+            
+            // Add more indicators to reach 40 for display
+            for (let i = 1; i <= 30; i++) {
+                mockIndicators.push({
+                    symbol: `TEST${i}`,
+                    name: `Test Indicator ${i}`,
+                    source: i % 3 === 0 ? 'ecb' : i % 3 === 1 ? 'treasury' : 'fred',
+                    description: `Mock indicator for testing`,
+                    tags: ['test']
+                });
+            }
+            
+            allIndicators = mockIndicators;
+            filteredIndicators = mockIndicators;
+            totalPages = Math.ceil(filteredIndicators.length / INDICATORS_PER_PAGE);
+            currentPage = 1;
+            displayIndicators();
+            updatePagination();
+            
+            showError('Using mock data. Check console for API connection issues.');
         }
         
         // Get statistics
@@ -1066,7 +1171,28 @@ Tags: ${indicator.tags ? indicator.tags.join(', ') : 'None'}
         // Show error message
         function showError(message) {
             console.error(message);
-            // You could add a toast notification here
+            
+            // Create toast notification
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: #ff4444;
+                color: white;
+                padding: 15px 20px;
+                border-radius: 6px;
+                font-size: 14px;
+                z-index: 9999;
+                animation: slideIn 0.3s ease-out;
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease-out';
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
         }
         
         // Auto-refresh data every 30 seconds
@@ -1085,12 +1211,118 @@ Tags: ${indicator.tags ? indicator.tags.join(', ') : 'None'}
         
         // Handle enter key in search input
         document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('searchInput').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
+            const searchInput = document.getElementById('searchInput');
+            const autocompleteDropdown = document.getElementById('autocompleteDropdown');
+            
+            // Setup autocomplete
+            searchInput.addEventListener('input', handleAutocomplete);
+            searchInput.addEventListener('keydown', handleAutocompleteKeydown);
+            searchInput.addEventListener('blur', () => {
+                setTimeout(() => {
+                    autocompleteDropdown.classList.remove('show');
+                }, 200);
+            });
+            
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && selectedAutocompleteIndex === -1) {
                     searchIndicators();
                 }
             });
         });
+        
+        // Handle autocomplete
+        function handleAutocomplete(e) {
+            const query = e.target.value.toLowerCase().trim();
+            const dropdown = document.getElementById('autocompleteDropdown');
+            
+            if (query.length < 2) {
+                dropdown.classList.remove('show');
+                return;
+            }
+            
+            // Filter indicators for autocomplete
+            const matches = allIndicators.filter(indicator => {
+                return indicator.symbol.toLowerCase().includes(query) ||
+                       indicator.name.toLowerCase().includes(query) ||
+                       (indicator.description && indicator.description.toLowerCase().includes(query));
+            }).slice(0, 10); // Show max 10 suggestions
+            
+            if (matches.length === 0) {
+                dropdown.classList.remove('show');
+                return;
+            }
+            
+            // Build autocomplete items
+            dropdown.innerHTML = matches.map((indicator, index) => {
+                const symbol = highlightMatch(indicator.symbol, query);
+                const name = highlightMatch(indicator.name, query);
+                
+                return `
+                    <div class="autocomplete-item ${index === selectedAutocompleteIndex ? 'selected' : ''}" 
+                         data-index="${index}"
+                         onclick="selectAutocomplete('${indicator.symbol}')">
+                        <span class="autocomplete-symbol">${symbol}</span>
+                        <span class="autocomplete-name">${name}</span>
+                    </div>
+                `;
+            }).join('');
+            
+            dropdown.classList.add('show');
+        }
+        
+        // Highlight matching text
+        function highlightMatch(text, query) {
+            const regex = new RegExp(`(${query})`, 'gi');
+            return text.replace(regex, '<span class="autocomplete-highlight">$1</span>');
+        }
+        
+        // Select autocomplete item
+        function selectAutocomplete(symbol) {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.value = symbol;
+            document.getElementById('autocompleteDropdown').classList.remove('show');
+            searchIndicators();
+        }
+        
+        // Handle keyboard navigation for autocomplete
+        function handleAutocompleteKeydown(e) {
+            const dropdown = document.getElementById('autocompleteDropdown');
+            const items = dropdown.querySelectorAll('.autocomplete-item');
+            
+            if (!dropdown.classList.contains('show') || items.length === 0) {
+                return;
+            }
+            
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                selectedAutocompleteIndex = Math.min(selectedAutocompleteIndex + 1, items.length - 1);
+                updateAutocompleteSelection(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selectedAutocompleteIndex = Math.max(selectedAutocompleteIndex - 1, -1);
+                updateAutocompleteSelection(items);
+            } else if (e.key === 'Enter' && selectedAutocompleteIndex >= 0) {
+                e.preventDefault();
+                const selectedItem = items[selectedAutocompleteIndex];
+                const symbol = selectedItem.querySelector('.autocomplete-symbol').textContent;
+                selectAutocomplete(symbol);
+                selectedAutocompleteIndex = -1;
+            } else if (e.key === 'Escape') {
+                dropdown.classList.remove('show');
+                selectedAutocompleteIndex = -1;
+            }
+        }
+        
+        // Update autocomplete selection
+        function updateAutocompleteSelection(items) {
+            items.forEach((item, index) => {
+                if (index === selectedAutocompleteIndex) {
+                    item.classList.add('selected');
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+        }
     </script>
 </body>
 </html>
