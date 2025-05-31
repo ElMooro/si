@@ -674,6 +674,9 @@
                     document.getElementById('searchSuggestions').classList.remove('active');
                 }, 200);
             });
+            
+            // Load initial data - show all indicators
+            performSearch('*');
         }
         
         // Check API health
@@ -755,7 +758,10 @@
                         performSearch(query);
                     }, 300);
                 } else {
-                    clearResults();
+                    // Show all indicators when search is empty
+                    searchTimeout = setTimeout(() => {
+                        performSearch('*');
+                    }, 300);
                 }
             });
             
@@ -763,10 +769,8 @@
             searchInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
                     const query = e.target.value.trim();
-                    if (query.length > 0) {
-                        clearTimeout(searchTimeout);
-                        performSearch(query);
-                    }
+                    clearTimeout(searchTimeout);
+                    performSearch(query || '*');
                 }
             });
         }
@@ -780,7 +784,7 @@
                 // Build search URL with query parameters
                 const params = new URLSearchParams({
                     q: query,
-                    limit: 50
+                    limit: 100  // Increased limit
                 });
                 
                 // Add source filter if active
@@ -791,9 +795,21 @@
                 const response = await fetch(`${API_BASE_URL}/api/search?${params}`);
                 const data = await response.json();
                 
-                if (data.results && data.results.length > 0) {
-                    currentResults = data.results;
-                    renderResults(data.results);
+                console.log('API Response:', data); // Debug log
+                
+                // Handle different possible response structures
+                let results = [];
+                if (data.results && Array.isArray(data.results)) {
+                    results = data.results;
+                } else if (data.hits && Array.isArray(data.hits)) {
+                    results = data.hits;
+                } else if (Array.isArray(data)) {
+                    results = data;
+                }
+                
+                if (results.length > 0) {
+                    currentResults = results;
+                    renderResults(results);
                 } else {
                     showEmpty();
                 }
@@ -825,51 +841,76 @@
             const card = document.createElement('div');
             card.className = 'result-card';
             
-            // Extract data from the indicator
-            const symbol = indicator.symbol || indicator.id || 'N/A';
-            const name = indicator.name || indicator.description || 'Unknown Indicator';
-            const source = indicator.source || 'unknown';
-            const frequency = indicator.frequency || 'varies';
-            const category = indicator.category || indicator.tags?.[0] || 'other';
-            const lastValue = indicator.last_value || indicator.latest_value;
-            const lastDate = indicator.last_date || indicator.latest_date;
+            // Extract data from the indicator - handle both _source and direct properties
+            const data = indicator._source || indicator;
+            const symbol = data.symbol || data.id || data.indicator_id || 'N/A';
+            const name = data.name || data.description || data.indicator_name || 'Unknown Indicator';
+            const source = data.source || data.data_source || 'unknown';
+            const frequency = data.frequency || data.update_frequency || 'varies';
+            const category = data.category || data.tags?.[0] || data.indicator_category || 'other';
+            const lastValue = data.last_value || data.latest_value || data.value;
+            const lastDate = data.last_date || data.latest_date || data.date;
+            
+            // Generate unique ID for the card
+            const cardId = `card-${Math.random().toString(36).substr(2, 9)}`;
             
             card.innerHTML = `
                 <div class="result-header">
-                    <div class="result-symbol">${symbol}</div>
-                    <div class="result-name">${name}</div>
+                    <div class="result-symbol">${escapeHtml(symbol)}</div>
+                    <div class="result-name">${escapeHtml(name)}</div>
                 </div>
                 
                 <div class="result-meta">
-                    <span class="meta-tag source">${source.toUpperCase()}</span>
-                    <span class="meta-tag frequency">${frequency}</span>
-                    <span class="meta-tag category">${category}</span>
+                    <span class="meta-tag source">${escapeHtml(source.toUpperCase())}</span>
+                    <span class="meta-tag frequency">${escapeHtml(frequency)}</span>
+                    <span class="meta-tag category">${escapeHtml(category)}</span>
                 </div>
                 
                 <div class="data-grid">
                     <div class="data-item">
                         <div class="data-label">Latest Value</div>
-                        <div class="data-value">${formatValue(lastValue, indicator)}</div>
+                        <div class="data-value">${formatValue(lastValue, data)}</div>
                         <div class="data-date">${formatDate(lastDate)}</div>
                     </div>
                     <div class="data-item">
                         <div class="data-label">Data Points</div>
-                        <div class="data-value">${indicator.data_points || 'N/A'}</div>
+                        <div class="data-value">${data.data_points || data.count || 'N/A'}</div>
                         <div class="data-date">Historical data</div>
                     </div>
                 </div>
                 
                 <div class="action-buttons">
-                    <button class="action-btn" onclick="viewDetails('${symbol}')">
+                    <button class="action-btn" id="view-${cardId}">
                         View Details
                     </button>
-                    <button class="action-btn" onclick="downloadData('${symbol}')">
+                    <button class="action-btn" id="download-${cardId}">
                         Download Data
                     </button>
                 </div>
             `;
             
+            // Add event listeners after the card is created
+            setTimeout(() => {
+                const viewBtn = card.querySelector(`#view-${cardId}`);
+                const downloadBtn = card.querySelector(`#download-${cardId}`);
+                
+                if (viewBtn) {
+                    viewBtn.addEventListener('click', () => viewDetails(symbol, data));
+                }
+                
+                if (downloadBtn) {
+                    downloadBtn.addEventListener('click', () => downloadData(symbol, data));
+                }
+            }, 0);
+            
             return card;
+        }
+        
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text || '';
+            return div.innerHTML;
         }
         
         // Format value based on indicator type
@@ -917,34 +958,45 @@
         function filterBySource(source) {
             currentFilter = { type: 'source', value: source };
             updateFilterButtons();
-            const query = document.getElementById('searchInput').value.trim();
-            if (query) {
-                performSearch(query);
-            } else {
-                performSearch(`source:${source}`);
-            }
+            
+            // Search for all indicators from this source
+            performSearch(`*`);
         }
         
         function filterByTag(tag) {
             currentFilter = { type: 'tag', value: tag };
             updateFilterButtons();
-            performSearch(tag.replace('-', ' '));
+            
+            // Map tag to search terms
+            const tagSearchMap = {
+                'interest-rates': 'rate OR treasury OR SOFR OR "fed funds"',
+                'employment': 'employment OR unemployment OR jobless OR payroll',
+                'financial-stress': 'CISS OR stress OR VIX OR volatility',
+                'state-data': 'state OR texas OR california OR florida'
+            };
+            
+            performSearch(tagSearchMap[tag] || tag.replace('-', ' '));
         }
         
         function showCategory(category) {
             clearFilters();
-            performSearch(category);
+            
+            // Map category to search terms
+            const categorySearchMap = {
+                'rates': 'rate OR treasury OR SOFR OR "fed funds" OR yield',
+                'economic': 'GDP OR inflation OR CPI OR PCE OR economic',
+                'financial': 'financial OR stress OR CISS OR spread OR credit',
+                'state': 'state OR unemployment OR housing'
+            };
+            
+            performSearch(categorySearchMap[category] || category);
         }
         
         function clearFilters() {
             currentFilter = null;
             updateFilterButtons();
             const query = document.getElementById('searchInput').value.trim();
-            if (query) {
-                performSearch(query);
-            } else {
-                clearResults();
-            }
+            performSearch(query || '*');
         }
         
         function updateFilterButtons() {
@@ -959,14 +1011,51 @@
         }
         
         // View details (placeholder)
-        function viewDetails(symbol) {
-            alert(`Details view for ${symbol} - Feature coming soon!`);
+        function viewDetails(symbol, data) {
+            console.log('View details for:', symbol, data);
+            
+            // Create a detailed view of the indicator
+            const details = `
+                Symbol: ${symbol}
+                Name: ${data.name || data.indicator_name || 'N/A'}
+                Source: ${data.source || data.data_source || 'N/A'}
+                Category: ${data.category || data.indicator_category || 'N/A'}
+                Frequency: ${data.frequency || data.update_frequency || 'N/A'}
+                Last Value: ${formatValue(data.last_value || data.latest_value, data)}
+                Last Updated: ${formatDate(data.last_date || data.latest_date)}
+                
+                Full Data Available in API
+            `;
+            
+            alert(details);
         }
         
         // Download data (placeholder)
-        function downloadData(symbol) {
-            // In a real implementation, this would trigger a download
-            alert(`Download data for ${symbol} - Feature coming soon!`);
+        function downloadData(symbol, data) {
+            console.log('Download data for:', symbol, data);
+            
+            // Create a simple JSON download
+            const downloadContent = JSON.stringify({
+                symbol: symbol,
+                name: data.name || data.indicator_name,
+                source: data.source || data.data_source,
+                category: data.category || data.indicator_category,
+                frequency: data.frequency || data.update_frequency,
+                last_value: data.last_value || data.latest_value,
+                last_date: data.last_date || data.latest_date,
+                metadata: data
+            }, null, 2);
+            
+            // Create download link
+            const blob = new Blob([downloadContent], { type: 'application/json' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${symbol}_data.json`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
         }
         
         // UI state functions
