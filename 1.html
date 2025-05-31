@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpenBB Financial Intelligence Platform v2</title>
+    <title>OpenBB Financial Intelligence Platform</title>
    
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
    
@@ -909,112 +909,6 @@
             width: 60px;
             font-size: 12px;
         }
-
-        /* Edit Modal */
-        .edit-modal {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: #1a1a1a;
-            border: 2px solid #333;
-            border-radius: 8px;
-            padding: 20px;
-            z-index: 3000;
-            min-width: 300px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-        }
-        
-        .edit-modal-header {
-            font-size: 18px;
-            font-weight: bold;
-            color: #fff;
-            margin-bottom: 15px;
-        }
-        
-        .edit-modal-content {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        
-        .edit-input {
-            background: #252525;
-            border: 1px solid #444;
-            color: #fff;
-            padding: 10px;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-        
-        .edit-input:focus {
-            outline: none;
-            border-color: #00dd77;
-        }
-        
-        .color-options {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        
-        .color-option {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            cursor: pointer;
-            border: 3px solid transparent;
-            transition: all 0.2s;
-        }
-        
-        .color-option:hover {
-            transform: scale(1.1);
-        }
-        
-        .color-option.selected {
-            border-color: #fff;
-            box-shadow: 0 0 10px rgba(255,255,255,0.5);
-        }
-        
-        .edit-modal-actions {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-            margin-top: 20px;
-        }
-        
-        .modal-btn {
-            padding: 8px 16px;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s;
-        }
-        
-        .modal-btn.save {
-            background: #00dd77;
-            color: #000;
-        }
-        
-        .modal-btn.cancel {
-            background: #444;
-            color: #fff;
-        }
-        
-        .modal-btn:hover {
-            opacity: 0.8;
-        }
-        
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.7);
-            z-index: 2999;
-        }
     </style>
 </head>
 <body>
@@ -1058,10 +952,6 @@
                 <button class="source-toggle active" data-source="polygon" onclick="toggleDataSource('polygon')">
                     <span class="source-indicator" id="polygon-indicator"></span>
                     Polygon
-                </button>
-                <button class="source-toggle active" data-source="yahoo" onclick="toggleDataSource('yahoo')">
-                    <span class="source-indicator" id="yahoo-indicator"></span>
-                    Yahoo Finance
                 </button>
                 <button class="source-toggle active" data-source="fred" onclick="toggleDataSource('fred')">
                     <span class="source-indicator" id="fred-indicator"></span>
@@ -1215,63 +1105,16 @@
     </div>
 
     <script>
-        console.log('====================================');
-console.log('DASHBOARD VERSION: 2.0 - FIXED');
-console.log('This version includes include_changes=false fix');
-console.log('====================================');
-
-// Immediately override fetch before anything else
-(function() {
-    const originalFetch = window.fetch;
-    window.fetch = function(url, ...args) {
-        if (typeof url === 'string' && url.includes('include_changes=true')) {
-            console.warn('FIXING BAD URL:', url);
-            url = url.replace('include_changes=true', 'include_changes=false');
-        }
-        return originalFetch.call(this, url, ...args);
-    };
-})();
-        // Override fetch to ensure include_changes=false for all API calls
-        const originalFetch = window.fetch;
-        window.fetch = function(url, ...args) {
-            // Check if it's an API call to our backend
-            if (typeof url === 'string' && url.includes(API_BASE)) {
-                // Log all API calls for debugging
-                console.log('API Call:', url);
-                
-                // Force include_changes=false for universal/data endpoints
-                if (url.includes('/universal/data') && url.includes('include_changes=true')) {
-                    console.warn('INTERCEPTED AND FIXED URL with include_changes=true:', url);
-                    url = url.replace('include_changes=true', 'include_changes=false');
-                    console.log('Fixed URL:', url);
-                }
-                // Also handle cases where include_changes is not specified but should be false
-                if (url.includes('/universal/data') && !url.includes('include_changes=') && 
-                    !url.includes('polygon_direct') && !url.includes('yahoo_finance')) {
-                    const separator = url.includes('?') ? '&' : '?';
-                    url += `${separator}include_changes=false`;
-                    console.log('Added include_changes=false to URL:', url);
-                }
-            }
-            return originalFetch.call(this, url, ...args);
-        };
-        
         // Configuration matching your exact backend
         const API_BASE = 'https://ped8gafyuz.us-east-1.awsapprunner.com';
        
-        // Enhanced data source configurations for all APIs including Yahoo Finance
+        // Enhanced data source configurations for all APIs including new liquidity intelligence
         const DATA_SOURCES = {
             polygon: {
                 name: 'Polygon Financial Data',
                 provider: 'polygon_direct',
                 active: true,
                 searchSymbols: ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'SPY', 'QQQ', 'IWM', 'VTI', 'VOO', 'NVDA', 'META', 'NFLX', 'CRM', 'AMD']
-            },
-            yahoo: {
-                name: 'Yahoo Finance',
-                provider: 'yahoo_finance',
-                active: true,
-                searchSymbols: ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'SPY', 'QQQ', 'BTC-USD', 'ETH-USD', 'GC=F', 'CL=F', '^DJI', '^GSPC', '^IXIC', '^VIX']
             },
             fred: {
                 name: 'Federal Reserve Economic Data',
@@ -1366,7 +1209,7 @@ console.log('====================================');
         let chartIdCounter = 0;
         let activeChartId = null;
         let searchTimeout = null;
-        let activeSources = ['polygon', 'yahoo', 'fred', 'ny_fed', 'ecb', 'ofr', 'treasury', 'liquidity'];
+        let activeSources = ['polygon', 'fred', 'ny_fed', 'ecb', 'ofr', 'treasury', 'liquidity'];
        
         // Enhanced watchlists with comprehensive coverage including new liquidity intelligence
         const watchlists = {
@@ -1534,15 +1377,6 @@ console.log('====================================');
             '#00AEEF', '#FF4444', '#F4D03F', '#58D68D', '#FF7043',
             '#AF7AC5', '#48C9B0', '#EC7063', '#5DADE2', '#F5B041'
         ];
-        
-        // Color options for watchlist items
-        const watchlistColorOptions = {
-            none: null,
-            red: '#ff4444',
-            orange: '#ffaa00',
-            green: '#00dd77',
-            blue: '#00aaff'
-        };
        
         // Enhanced flashing logic - store flash timers
         let flashTimers = {};
@@ -1580,8 +1414,6 @@ console.log('====================================');
        
         // Initialize the dashboard
         async function init() {
-            console.log('OpenBB Dashboard v2 - Initializing with include_changes=false fix');
-            
             updateClock();
             setInterval(updateClock, 1000);
            
@@ -1604,34 +1436,37 @@ console.log('====================================');
             loadPolygonTickers();
         }
 
-        // Load Polygon tickers using the universal search endpoint
+        // Load Polygon tickers from new API endpoint
         async function loadPolygonTickers() {
             if (polygonTickersLoaded) return;
            
             try {
-                console.log('Loading Polygon tickers from API...');
-                
-                // Use the universal search endpoint with polygon provider
-                const searchQuery = 'A'; // Start with common letter to get many results
-                const response = await fetch(`${API_BASE}/api/v1/universal/search?query=${searchQuery}&provider=polygon`);
-                
+                console.log('Loading Polygon tickers from search endpoint...');
+                const response = await fetch(`${API_BASE}/api/v1/search/polygon`);
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.results && Array.isArray(data.results)) {
-                        polygonTickers = data.results.map(item => ({
-                            ticker: item.symbol || item.ticker,
-                            name: item.name || item.symbol,
-                            type: item.type || 'CS',
-                            market: item.market || 'stocks',
+                    if (Array.isArray(data) && data.length > 0) {
+                        polygonTickers = data.map(ticker => ({
+                            ticker: ticker.ticker,
+                            name: ticker.name,
+                            type: ticker.type || 'CS',
+                            market: ticker.market || 'stocks',
                             active: true
                         }));
                         polygonTickersLoaded = true;
-                        console.log(`Loaded ${polygonTickers.length} Polygon tickers`);
+                        console.log(`Loaded ${polygonTickers.length} Polygon tickers from search endpoint`);
                     }
                 } else {
-                    console.warn('Failed to load Polygon tickers:', response.status);
-                    // Try alternative search approach
-                    await loadPolygonTickersAlternative();
+                    console.warn('Failed to load Polygon tickers from search endpoint:', response.status);
+                    // Fallback to default symbols
+                    polygonTickers = DATA_SOURCES.polygon.searchSymbols.map(symbol => ({
+                        ticker: symbol,
+                        name: symbol,
+                        type: 'CS',
+                        market: 'stocks',
+                        active: true
+                    }));
+                    polygonTickersLoaded = true;
                 }
             } catch (error) {
                 console.warn('Error loading Polygon tickers:', error);
@@ -1644,42 +1479,6 @@ console.log('====================================');
                     active: true
                 }));
                 polygonTickersLoaded = true;
-            }
-        }
-        
-        // Alternative method to load Polygon tickers
-        async function loadPolygonTickersAlternative() {
-            try {
-                // Try multiple search queries to build ticker list
-                const searchQueries = ['AAPL', 'MSFT', 'GOOGL', 'SPY', 'TSLA'];
-                const allTickers = new Map();
-                
-                for (const query of searchQueries) {
-                    const response = await fetch(`${API_BASE}/api/v1/universal/search?query=${query}&provider=polygon`);
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data.results) {
-                            data.results.forEach(item => {
-                                const symbol = item.symbol || item.ticker;
-                                if (!allTickers.has(symbol)) {
-                                    allTickers.set(symbol, {
-                                        ticker: symbol,
-                                        name: item.name || symbol,
-                                        type: item.type || 'CS',
-                                        market: item.market || 'stocks',
-                                        active: true
-                                    });
-                                }
-                            });
-                        }
-                    }
-                }
-                
-                polygonTickers = Array.from(allTickers.values());
-                polygonTickersLoaded = true;
-                console.log(`Loaded ${polygonTickers.length} Polygon tickers via alternative method`);
-            } catch (error) {
-                console.warn('Alternative Polygon ticker loading failed:', error);
             }
         }
 
@@ -1719,7 +1518,7 @@ console.log('====================================');
             return descriptions[type] || 'Financial Instrument';
         }
        
-        // Enhanced API connection check for all providers including Yahoo
+        // Enhanced API connection check for all providers including liquidity intelligence
         async function checkAPIConnections() {
             let connectedCount = 0;
             const totalSources = Object.keys(DATA_SOURCES).length;
@@ -1743,22 +1542,29 @@ console.log('====================================');
                     if (source === 'liquidity') {
                         // Test liquidity intelligence endpoints
                         testUrl = `${API_BASE}/api/v1/liquidity/dashboard`;
-                    } else if (source === 'polygon') {
-                        // Test Polygon with search endpoint
-                        testUrl = `${API_BASE}/api/v1/universal/search?query=AAPL&provider=polygon`;
-                    } else if (source === 'yahoo') {
-                        // Test Yahoo Finance
-                        testUrl = `${API_BASE}/api/v1/universal/data?symbol=AAPL&provider=yahoo_finance&data_type=quote`;
                     } else {
                         const testSymbol = config.searchSymbols[0];
-                        testUrl = `${API_BASE}/api/v1/universal/data?symbol=${testSymbol}&provider=${config.provider}&include_changes=false`;
+                       
+                        if (source === 'polygon') {
+                            testUrl = `${API_BASE}/api/v1/universal/data?symbol=${testSymbol}&provider=${config.provider}&data_type=quote`;
+                        } else if (source === 'fred') {
+                            testUrl = `${API_BASE}/api/v1/universal/data?symbol=${testSymbol}&provider=fred_direct&include_changes=false`;
+                        } else if (source === 'ny_fed') {
+                            testUrl = `${API_BASE}/api/v1/universal/data?symbol=${testSymbol}&provider=ny_fed_direct&include_changes=false`;
+                        } else if (source === 'ecb') {
+                            testUrl = `${API_BASE}/api/v1/universal/data?symbol=${testSymbol}&provider=${config.provider}&include_changes=false`;
+                        } else if (source === 'ofr') {
+                            testUrl = `${API_BASE}/api/v1/universal/data?symbol=${testSymbol}&provider=${config.provider}&include_changes=false`;
+                        } else if (source === 'treasury') {
+                            testUrl = `${API_BASE}/api/v1/universal/data?symbol=${testSymbol}&provider=${config.provider}&include_changes=false`;
+                        }
                     }
                    
                     const response = await fetch(testUrl);
                    
                     if (response.ok) {
                         const data = await response.json();
-                        if (data && (data.metrics || data.data || data.symbol || data.results || data.overall_stress_score !== undefined)) {
+                        if (data && (data.metrics || data.data || data.symbol || data.overall_stress_score !== undefined)) {
                             document.getElementById(`${source}-indicator`).classList.add('connected');
                             connectedCount++;
                             console.log(`${source} connected successfully`);
@@ -1848,7 +1654,7 @@ console.log('====================================');
             }
         }
        
-        // Enhanced search across all providers including Polygon and Yahoo
+        // Enhanced search across all providers including liquidity intelligence and Polygon types
         async function performSearch(query) {
             const resultsDiv = document.getElementById('searchResults');
            
@@ -1865,64 +1671,49 @@ console.log('====================================');
                 try {
                     const allResults = [];
                    
-                    // Search Polygon using universal search endpoint
+                    // Search Polygon tickers with type filtering
                     if (activeSources.includes('polygon')) {
-                        try {
-                            const polygonResponse = await fetch(`${API_BASE}/api/v1/universal/search?query=${encodeURIComponent(query)}&provider=polygon`);
-                            if (polygonResponse.ok) {
-                                const polygonData = await polygonResponse.json();
-                                if (polygonData.results && Array.isArray(polygonData.results)) {
-                                    polygonData.results.forEach(item => {
-                                        const symbol = item.symbol || item.ticker;
-                                        const type = item.type || 'CS';
-                                        
-                                        // Apply type filter
-                                        if (activeTickerTypes.includes(type) || 
-                                            (activeTickerTypes.includes('OTHER') && !['CS', 'ETF', 'CRYPTO', 'MF', 'BOND', 'INDEX'].includes(type))) {
-                                            allResults.push({
-                                                symbol: symbol,
-                                                name: item.name || symbol,
-                                                provider: 'polygon_direct',
-                                                source: 'polygon',
-                                                type: type,
-                                                description: getTickerTypeDescription(type)
-                                            });
-                                        }
-                                    });
+                        if (!polygonTickersLoaded) await loadPolygonTickers();
+                       
+                        const filteredPolygonTickers = polygonTickers.filter(ticker => {
+                            // Check ticker type matches active filters
+                            let typeMatch = false;
+                            const tickerTypeUpper = ticker.type ? ticker.type.toUpperCase() : 'OTHER';
+                           
+                            if (activeTickerTypes.includes(tickerTypeUpper)) {
+                                typeMatch = true;
+                            } else if (activeTickerTypes.includes('OTHER')) {
+                                // If OTHER is selected, include types not in the main categories
+                                const commonTypes = ['CS', 'ETF', 'CRYPTO', 'MF', 'BOND', 'INDEX'];
+                                if (!commonTypes.includes(tickerTypeUpper)) {
+                                    typeMatch = true;
                                 }
                             }
-                        } catch (error) {
-                            console.warn('Polygon search error:', error);
-                        }
-                    }
-                    
-                    // Search Yahoo Finance
-                    if (activeSources.includes('yahoo')) {
-                        try {
-                            const yahooResponse = await fetch(`${API_BASE}/api/v1/universal/search?query=${encodeURIComponent(query)}&provider=yahoo`);
-                            if (yahooResponse.ok) {
-                                const yahooData = await yahooResponse.json();
-                                if (yahooData.results && Array.isArray(yahooData.results)) {
-                                    yahooData.results.forEach(item => {
-                                        allResults.push({
-                                            symbol: item.symbol,
-                                            name: item.name || item.shortName || item.symbol,
-                                            provider: 'yahoo_finance',
-                                            source: 'yahoo',
-                                            type: item.quoteType || 'EQUITY',
-                                            description: item.exchange || 'Yahoo Finance'
-                                        });
-                                    });
-                                }
-                            }
-                        } catch (error) {
-                            console.warn('Yahoo search error:', error);
-                        }
+                           
+                            if (!typeMatch) return false;
+                           
+                            // Check if symbol or name matches query
+                            const queryLower = query.toLowerCase();
+                            return ticker.ticker.toLowerCase().includes(queryLower) ||
+                                   (ticker.name && ticker.name.toLowerCase().includes(queryLower));
+                        });
+                       
+                        // Add filtered results (limit to 50 for performance)
+                        filteredPolygonTickers.slice(0, 50).forEach(ticker => {
+                            allResults.push({
+                                symbol: ticker.ticker,
+                                name: ticker.name || ticker.ticker,
+                                provider: 'polygon_direct',
+                                source: 'polygon',
+                                type: ticker.type,
+                                description: getTickerTypeDescription(ticker.type)
+                            });
+                        });
                     }
                    
                     // Search through each other active data source
                     for (const source of activeSources) {
-                        if (source === 'polygon' || source === 'yahoo') continue; // Already handled above
+                        if (source === 'polygon') continue; // Already handled above
                        
                         const config = DATA_SOURCES[source];
                         if (!config) continue;
@@ -1957,7 +1748,7 @@ console.log('====================================');
             }, 300);
         }
        
-        // Enhanced symbol descriptions for all providers including Yahoo
+        // Enhanced symbol descriptions for all providers including liquidity intelligence
         function getSymbolDescription(symbol, source) {
             const descriptions = {
                 polygon: {
@@ -1974,16 +1765,6 @@ console.log('====================================');
                     'NVDA': 'NVIDIA Corporation',
                     'META': 'Meta Platforms Inc.',
                     'NFLX': 'Netflix Inc.'
-                },
-                yahoo: {
-                    'BTC-USD': 'Bitcoin USD',
-                    'ETH-USD': 'Ethereum USD',
-                    'GC=F': 'Gold Futures',
-                    'CL=F': 'Crude Oil Futures',
-                    '^DJI': 'Dow Jones Industrial Average',
-                    '^GSPC': 'S&P 500',
-                    '^IXIC': 'NASDAQ Composite',
-                    '^VIX': 'CBOE Volatility Index'
                 },
                 fred: {
                     'FEDFUNDS': 'Federal Funds Rate',
@@ -2101,7 +1882,6 @@ console.log('====================================');
         function getDetailedDescription(symbol, source) {
             const details = {
                 polygon: 'Stock market data',
-                yahoo: 'Yahoo Finance data',
                 fred: 'Economic indicator',
                 ny_fed: 'Reference rate',
                 ecb: 'European financial indicator',
@@ -2189,15 +1969,13 @@ console.log('====================================');
                     price: 0,
                     changes: { '1d': 0, '1w': 0, '1m': 0, '3m': 0, '1y': 0 },
                     changeUnits: { 'daily': 0, 'yearly': 0 },
-                    hasData: false,
-                    customName: null,
-                    color: null
+                    hasData: false
                 };
                
                 renderWatchlist();
                 loadSingleWatchlistItem(symbol, provider);
                
-                const sourceLabel = provider.replace('_direct', '').replace('_intelligence', '').replace('_finance', '').toUpperCase();
+                const sourceLabel = provider.replace('_direct', '').replace('_intelligence', '').toUpperCase();
                 showTemporaryMessage(`Added ${symbol} from ${sourceLabel} to ${currentWatchlist} watchlist`, 'info');
             } else {
                 showTemporaryMessage(`${symbol} is already in ${currentWatchlist} watchlist`, 'info');
@@ -2207,47 +1985,7 @@ console.log('====================================');
             document.getElementById('searchBox').value = '';
         }
        
-        // Centralized function to ensure all API calls use include_changes=false
-        function buildDataURL(symbol, provider, options = {}) {
-            // Special handling for different providers
-            if (provider === 'liquidity_intelligence') {
-                // Handle liquidity intelligence endpoints
-                if (symbol === 'OFR_FSI') {
-                    return `${API_BASE}/api/v1/ofr/fsi`;
-                } else if (symbol === 'TREASURY_MONITOR') {
-                    return `${API_BASE}/api/v1/treasury/monitor`;
-                } else if (symbol === 'NYFED_FAILS') {
-                    return `${API_BASE}/api/v1/nyfed/fails`;
-                } else if (symbol === 'LIQUIDITY_DASHBOARD') {
-                    return `${API_BASE}/api/v1/liquidity/dashboard`;
-                }
-            } else if (provider === 'polygon_direct') {
-                const dataType = options.dataType || 'quote';
-                let url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&data_type=${dataType}`;
-                if (options.startDate && dataType === 'historical') {
-                    url += `&start_date=${options.startDate}&end_date=${options.endDate}`;
-                }
-                return url;
-            } else if (provider === 'yahoo_finance') {
-                const dataType = options.dataType || 'quote';
-                let url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&data_type=${dataType}`;
-                if (options.startDate && dataType === 'historical') {
-                    url += `&start_date=${options.startDate}&end_date=${options.endDate}`;
-                }
-                return url;
-            } else if (provider === 'fred_direct' && options.useObservations) {
-                // Use FRED series observations endpoint for historical data
-                return `${API_BASE}/api/v1/fred/series/observations?series_id=${symbol}&limit=10000&sort_order=asc&include_pandas=false`;
-            } else {
-                // For ALL other providers, ALWAYS use include_changes=false
-                let url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&include_changes=false`;
-                if (options.startDate) url += `&start_date=${options.startDate}`;
-                if (options.endDate) url += `&end_date=${options.endDate}`;
-                return url;
-            }
-        }
-        
-        // Enhanced data loading with pandas error fix
+        // Enhanced data loading for all providers including liquidity intelligence
         async function loadSingleWatchlistItem(symbol, provider, retryCount = 0) {
             const maxRetries = 2;
            
@@ -2270,14 +2008,21 @@ console.log('====================================');
                     }
                 } else if (provider === 'polygon_direct') {
                     url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&data_type=quote`;
-                } else if (provider === 'yahoo_finance') {
-                    url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&data_type=quote`;
+                } else if (provider === 'fred_direct') {
+                    url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&include_changes=true`;
+                } else if (provider === 'ny_fed_direct') {
+                    url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&include_changes=true`;
+                } else if (provider === 'ecb_direct') {
+                    url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&include_changes=true`;
+                } else if (provider === 'ofr_direct') {
+                    url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&include_changes=true`;
+                } else if (provider === 'treasury_direct') {
+                    url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&include_changes=true`;
                 } else {
-                    // FIX: Always use include_changes=false for ALL non-polygon/yahoo providers to avoid pandas processing error
-                    url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&include_changes=false`;
+                    url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}`;
                 }
                
-                                    const response = await fetch(testUrl);
+                const response = await fetch(url);
                
                 if (!response.ok) {
                     throw new Error(`API returned ${response.status}`);
@@ -2313,9 +2058,7 @@ console.log('====================================');
                     changes: { '1d': null, '1w': null, '1m': null, '3m': null, '1y': null },
                     changeUnits: { 'daily': null, 'yearly': null },
                     hasData: false,
-                    error: error.message,
-                    customName: watchlistData[symbol]?.customName || null,
-                    color: watchlistData[symbol]?.color || null
+                    error: error.message
                 };
                 renderWatchlist();
             }
@@ -2358,7 +2101,6 @@ console.log('====================================');
             }
            
             watchlistData[symbol] = {
-                ...watchlistData[symbol],
                 name: watchlistData[symbol]?.name || symbol,
                 provider: provider,
                 price: latestValue,
@@ -2397,7 +2139,6 @@ console.log('====================================');
             };
            
             watchlistData[symbol] = {
-                ...watchlistData[symbol],
                 name: watchlistData[symbol]?.name || symbol,
                 provider: provider,
                 price: latestValue,
@@ -2430,7 +2171,6 @@ console.log('====================================');
             const changeUnits = calculateUnitChanges(dataArray);
            
             watchlistData[symbol] = {
-                ...watchlistData[symbol],
                 name: watchlistData[symbol]?.name || symbol,
                 provider: provider,
                 price: latestValue,
@@ -2631,23 +2371,6 @@ console.log('====================================');
                     console.error('Error loading saved watchlists:', e);
                 }
             }
-            
-            // Load saved watchlist data (custom names and colors)
-            const savedWatchlistData = localStorage.getItem('openbbWatchlistData');
-            if (savedWatchlistData) {
-                try {
-                    const savedData = JSON.parse(savedWatchlistData);
-                    Object.keys(savedData).forEach(symbol => {
-                        watchlistData[symbol] = {
-                            ...watchlistData[symbol],
-                            customName: savedData[symbol].customName || null,
-                            color: savedData[symbol].color || null
-                        };
-                    });
-                } catch (e) {
-                    console.error('Error loading saved watchlist data:', e);
-                }
-            }
            
             watchlistSymbols = [...watchlists[currentWatchlist].symbols];
         }
@@ -2659,20 +2382,6 @@ console.log('====================================');
                 toSave[name] = { symbols: watchlists[name].symbols };
             });
             localStorage.setItem('openbbWatchlists', JSON.stringify(toSave));
-        }
-        
-        // Save watchlist data (custom names and colors)
-        function saveWatchlistData() {
-            const toSave = {};
-            Object.keys(watchlistData).forEach(symbol => {
-                if (watchlistData[symbol].customName || watchlistData[symbol].color) {
-                    toSave[symbol] = {
-                        customName: watchlistData[symbol].customName,
-                        color: watchlistData[symbol].color
-                    };
-                }
-            });
-            localStorage.setItem('openbbWatchlistData', JSON.stringify(toSave));
         }
        
         // Switch watchlist
@@ -2694,23 +2403,6 @@ console.log('====================================');
            
             tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px;"><div class="loading-pulse">Loading watchlist...</div></td></tr>';
            
-            // Load saved watchlist data first
-            const savedWatchlistData = localStorage.getItem('openbbWatchlistData');
-            if (savedWatchlistData) {
-                try {
-                    const savedData = JSON.parse(savedWatchlistData);
-                    Object.keys(savedData).forEach(symbol => {
-                        if (!watchlistData[symbol]) {
-                            watchlistData[symbol] = {};
-                        }
-                        watchlistData[symbol].customName = savedData[symbol].customName || null;
-                        watchlistData[symbol].color = savedData[symbol].color || null;
-                    });
-                } catch (e) {
-                    console.error('Error loading saved watchlist data:', e);
-                }
-            }
-           
             for (const symbolObj of watchlistSymbols) {
                 const symbol = symbolObj.symbol || symbolObj;
                 const provider = symbolObj.provider || 'fred_direct';
@@ -2723,7 +2415,7 @@ console.log('====================================');
             document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
         }
        
-        // Enhanced render watchlist with edit functionality and color tags
+        // Enhanced render watchlist with new columns and flashing logic
         function renderWatchlist() {
             const tbody = document.getElementById('watchlistBody');
            
@@ -2805,7 +2497,7 @@ console.log('====================================');
                
                 const displayName = data.customName || symbol;
                 const colorStyle = data.color ? `background-color: ${data.color};` : 'display: none;';
-                const providerLabel = data.provider?.replace('_direct', '').replace('_intelligence', '').replace('_finance', '').toUpperCase() || 'API';
+                const providerLabel = data.provider?.replace('_direct', '').replace('_intelligence', '').toUpperCase() || 'API';
                
                 return `
                     <tr ondblclick="openChartForSymbol('${symbol}', '${data.provider || 'fred_direct'}')"
@@ -2845,87 +2537,6 @@ console.log('====================================');
             updateSortIndicators();
         }
        
-        // Edit symbol function with modal
-        function editSymbol(event, symbol) {
-            event.stopPropagation();
-            
-            const data = watchlistData[symbol];
-            if (!data) return;
-            
-            // Create modal overlay
-            const overlay = document.createElement('div');
-            overlay.className = 'modal-overlay';
-            overlay.onclick = () => closeEditModal();
-            
-            // Create modal
-            const modal = document.createElement('div');
-            modal.className = 'edit-modal';
-            modal.onclick = (e) => e.stopPropagation();
-            
-            modal.innerHTML = `
-                <div class="edit-modal-header">Edit ${symbol}</div>
-                <div class="edit-modal-content">
-                    <label style="color: #aaa; font-size: 12px;">Custom Name:</label>
-                    <input type="text" class="edit-input" id="editName" value="${data.customName || ''}" placeholder="${symbol}">
-                    
-                    <label style="color: #aaa; font-size: 12px; margin-top: 10px;">Color Tag:</label>
-                    <div class="color-options">
-                        <div class="color-option ${!data.color ? 'selected' : ''}" style="background: #444;" data-color="none" onclick="selectColor(this, 'none')"></div>
-                        <div class="color-option ${data.color === '#ff4444' ? 'selected' : ''}" style="background: #ff4444;" data-color="#ff4444" onclick="selectColor(this, '#ff4444')"></div>
-                        <div class="color-option ${data.color === '#ffaa00' ? 'selected' : ''}" style="background: #ffaa00;" data-color="#ffaa00" onclick="selectColor(this, '#ffaa00')"></div>
-                        <div class="color-option ${data.color === '#00dd77' ? 'selected' : ''}" style="background: #00dd77;" data-color="#00dd77" onclick="selectColor(this, '#00dd77')"></div>
-                        <div class="color-option ${data.color === '#00aaff' ? 'selected' : ''}" style="background: #00aaff;" data-color="#00aaff" onclick="selectColor(this, '#00aaff')"></div>
-                    </div>
-                </div>
-                <div class="edit-modal-actions">
-                    <button class="modal-btn save" onclick="saveSymbolEdit('${symbol}')">Save</button>
-                    <button class="modal-btn cancel" onclick="closeEditModal()">Cancel</button>
-                </div>
-            `;
-            
-            document.body.appendChild(overlay);
-            document.body.appendChild(modal);
-            
-            // Store selected color
-            window.selectedEditColor = data.color || 'none';
-            
-            // Focus on name input
-            setTimeout(() => {
-                document.getElementById('editName').focus();
-            }, 100);
-        }
-        
-        // Select color in edit modal
-        window.selectColor = function(element, color) {
-            document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
-            element.classList.add('selected');
-            window.selectedEditColor = color === 'none' ? null : color;
-        };
-        
-        // Save symbol edit
-        window.saveSymbolEdit = function(symbol) {
-            const customName = document.getElementById('editName').value.trim();
-            const color = window.selectedEditColor;
-            
-            if (watchlistData[symbol]) {
-                watchlistData[symbol].customName = customName || null;
-                watchlistData[symbol].color = color;
-                
-                saveWatchlistData();
-                renderWatchlist();
-                showTemporaryMessage(`Updated ${symbol}`, 'info');
-            }
-            
-            closeEditModal();
-        };
-        
-        // Close edit modal
-        window.closeEditModal = function() {
-            document.querySelector('.modal-overlay')?.remove();
-            document.querySelector('.edit-modal')?.remove();
-            delete window.selectedEditColor;
-        };
-       
         // Remove from watchlist
         function removeFromWatchlist(event, symbol) {
             event.stopPropagation();
@@ -2942,7 +2553,6 @@ console.log('====================================');
                 }
                
                 saveWatchlists();
-                saveWatchlistData();
                 renderWatchlist();
                 showTemporaryMessage(`Removed ${symbol} from ${currentWatchlist} watchlist`, 'info');
             }
@@ -3148,7 +2758,7 @@ console.log('====================================');
                 let startDate = new Date();
                
                 // Set appropriate historical period based on provider
-                if (provider === 'polygon_direct' || provider === 'yahoo_finance') {
+                if (provider === 'polygon_direct') {
                     startDate.setFullYear(startDate.getFullYear() - 10); // 10 years for stocks
                 } else if (['fred_direct', 'ecb_direct', 'ny_fed_direct', 'ofr_direct'].includes(provider)) {
                     startDate.setFullYear(startDate.getFullYear() - 20); // 20 years for economic data
@@ -3158,23 +2768,22 @@ console.log('====================================');
                
                 const startDateStr = startDate.toISOString().split('T')[0];
                
-                // Use centralized URL builder
-                let url;
-                if (provider === 'polygon_direct' || provider === 'yahoo_finance') {
-                    url = buildDataURL(symbol, provider, { 
-                        dataType: 'historical', 
-                        startDate: startDateStr, 
-                        endDate: endDate 
-                    });
+                if (provider === 'liquidity_intelligence') {
+                    // Handle liquidity intelligence endpoints for charts
+                    if (symbol === 'OFR_FSI') {
+                        url = `${API_BASE}/api/v1/ofr/fsi`;
+                    } else if (symbol === 'NYFED_FAILS') {
+                        url = `${API_BASE}/api/v1/nyfed/fails`;
+                    } else {
+                        throw new Error('Chart not available for this liquidity intelligence indicator');
+                    }
+                } else if (provider === 'polygon_direct') {
+                    url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&data_type=historical&start_date=${startDateStr}&end_date=${endDate}`;
                 } else if (provider === 'fred_direct') {
-                    url = buildDataURL(symbol, provider, { useObservations: true });
-                } else if (provider === 'liquidity_intelligence') {
-                    url = buildDataURL(symbol, provider);
+                    // Use FRED series observations endpoint for maximum data
+                    url = `${API_BASE}/api/v1/fred/series/observations?series_id=${symbol}&limit=10000&sort_order=asc&include_pandas=false`;
                 } else {
-                    url = buildDataURL(symbol, provider, { 
-                        startDate: startDateStr, 
-                        endDate: endDate 
-                    });
+                    url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&include_changes=true&start_date=${startDateStr}&end_date=${endDate}`;
                 }
                
                 console.log(`Chart data URL for ${symbol}: ${url}`);
@@ -3771,8 +3380,7 @@ console.log('====================================');
        
         async function loadRiskSymbolData(symbol, provider, retryCount = 0) {
             try {
-                // Use centralized URL builder to ensure include_changes=false
-                const url = buildDataURL(symbol, provider);
+                const url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&include_changes=true`;
                 const response = await fetch(url);
                
                 if (!response.ok) {
@@ -3787,21 +3395,6 @@ console.log('====================================');
                         daily_change: data.metrics.daily_change || 0,
                         weekly_change: data.metrics.weekly_change || 0,
                         monthly_change: data.metrics.monthly_change || 0,
-                        provider: provider,
-                        timestamp: Date.now()
-                    };
-                } else if (data.data && Array.isArray(data.data)) {
-                    // Calculate changes manually if not provided
-                    const changes = calculatePercentageChanges(data.data);
-                    const changeUnits = calculateUnitChanges(data.data);
-                    const latestItem = data.data[data.data.length - 1];
-                    const latestValue = latestItem.value || latestItem.close || latestItem.price || 0;
-                    
-                    riskDashboardData[symbol] = {
-                        value: latestValue,
-                        daily_change: changes['1d'] || 0,
-                        weekly_change: changes['1w'] || 0,
-                        monthly_change: changes['1m'] || 0,
                         provider: provider,
                         timestamp: Date.now()
                     };
@@ -3990,6 +3583,12 @@ console.log('====================================');
         // ===========================================
         // END OF RISK DASHBOARD FUNCTIONS
         // ===========================================
+       
+        // Edit symbol function (placeholder)
+        function editSymbol(event, symbol) {
+            event.stopPropagation();
+            showTemporaryMessage(`Edit functionality for ${symbol} - implement as needed`, 'info');
+        }
        
         // Utility functions
         function showTemporaryMessage(text, type = 'info') {
