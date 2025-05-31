@@ -893,15 +893,16 @@
             const card = document.createElement('div');
             card.className = 'result-card';
             
-            // Extract data from the indicator - handle both _source and direct properties
-            const data = indicator._source || indicator;
-            const symbol = data.symbol || data.id || data.indicator_id || 'N/A';
-            const name = data.name || data.description || data.indicator_name || 'Unknown Indicator';
-            const source = data.source || data.data_source || 'unknown';
-            const frequency = data.frequency || data.update_frequency || 'varies';
-            const category = data.category || data.tags?.[0] || data.indicator_category || 'other';
-            const lastValue = data.last_value || data.latest_value || data.value;
-            const lastDate = data.last_date || data.latest_date || data.date;
+            // Extract data using the actual field names from your API
+            const symbol = indicator.indicator_name || indicator.symbol || 'N/A';
+            const name = indicator.description || indicator.name || 'Unknown Indicator';
+            const source = indicator.source || 'unknown';
+            const category = indicator.category || 'other';
+            const key = indicator.indicator_key || indicator.key;
+            const frequency = indicator.frequency || indicator.update_frequency || 'varies';
+            
+            // Extract tags if available
+            const tags = indicator.tags || [];
             
             // Generate unique ID for the card
             const cardId = `card-${Math.random().toString(36).substr(2, 9)}`;
@@ -914,29 +915,29 @@
                 
                 <div class="result-meta">
                     <span class="meta-tag source">${escapeHtml(source.toUpperCase())}</span>
-                    <span class="meta-tag frequency">${escapeHtml(frequency)}</span>
-                    <span class="meta-tag category">${escapeHtml(category)}</span>
+                    <span class="meta-tag category">${escapeHtml(category.replace(/_/g, ' '))}</span>
+                    ${tags.length > 0 ? tags.slice(0, 2).map(tag => 
+                        `<span class="meta-tag frequency">${escapeHtml(tag)}</span>`
+                    ).join('') : ''}
                 </div>
                 
                 <div class="data-grid">
                     <div class="data-item">
-                        <div class="data-label">Latest Value</div>
-                        <div class="data-value">${formatValue(lastValue, data)}</div>
-                        <div class="data-date">${formatDate(lastDate)}</div>
+                        <div class="data-label">Indicator Key</div>
+                        <div class="data-value" style="font-size: 14px;">${escapeHtml(key)}</div>
                     </div>
                     <div class="data-item">
-                        <div class="data-label">Data Points</div>
-                        <div class="data-value">${data.data_points || data.count || 'N/A'}</div>
-                        <div class="data-date">Historical data</div>
+                        <div class="data-label">Data Source</div>
+                        <div class="data-value">${escapeHtml(source.toUpperCase())}</div>
                     </div>
                 </div>
                 
                 <div class="action-buttons">
                     <button class="action-btn" id="view-${cardId}">
-                        View Details
+                        View Historical Data
                     </button>
-                    <button class="action-btn" id="download-${cardId}">
-                        Download Data
+                    <button class="action-btn" id="search-${cardId}">
+                        Search Similar
                     </button>
                 </div>
             `;
@@ -944,25 +945,33 @@
             // Add event listeners after the card is created
             setTimeout(() => {
                 const viewBtn = card.querySelector(`#view-${cardId}`);
-                const downloadBtn = card.querySelector(`#download-${cardId}`);
+                const searchBtn = card.querySelector(`#search-${cardId}`);
                 
                 if (viewBtn) {
-                    viewBtn.addEventListener('click', () => viewDetails(symbol, data));
+                    viewBtn.addEventListener('click', () => viewHistoricalData(key, indicator));
                 }
                 
-                if (downloadBtn) {
-                    downloadBtn.addEventListener('click', () => downloadData(symbol, data));
+                if (searchBtn) {
+                    searchBtn.addEventListener('click', () => searchSimilar(category, source));
                 }
             }, 0);
             
             return card;
         }
         
-        // Escape HTML to prevent XSS
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text || '';
-            return div.innerHTML;
+        // View historical data
+        function viewHistoricalData(key, indicator) {
+            console.log('View historical data for:', key);
+            alert(`Historical Data for ${indicator.indicator_name}\n\nKey: ${key}\nDescription: ${indicator.description}\nCategory: ${indicator.category}\nSource: ${indicator.source}\n\nFull historical data API endpoint coming soon!`);
+        }
+        
+        // Search for similar indicators
+        function searchSimilar(category, source) {
+            console.log('Search similar:', category, source);
+            // Search for indicators in the same category
+            const searchQuery = category.replace(/_/g, ' ');
+            document.getElementById('searchInput').value = searchQuery;
+            performSearch(searchQuery);
         }
         
         // Format value based on indicator type
