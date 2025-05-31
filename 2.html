@@ -16,6 +16,60 @@
             overflow-x: hidden;
         }
        
+        /* Navigation Bar */
+        nav {
+            background: #121212;
+            border-bottom: 1px solid #282828;
+            padding: 15px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-logo {
+            font-size: 22px;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 25px;
+            align-items: center;
+        }
+        
+        .nav-links a {
+            color: #ccc;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+            position: relative;
+        }
+        
+        .nav-links a:hover {
+            color: #00ff88;
+        }
+        
+        .nav-links a.active {
+            color: #00ff88;
+        }
+        
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #00ff88;
+        }
+       
         /* Header */
         .header {
             background: #121212;
@@ -24,28 +78,13 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        .logo {
-            font-size: 22px;
-            font-weight: bold;
-            background: linear-gradient(45deg, #00ff88, #00ccff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .header-controls {
-            display: flex;
-            gap: 15px;
-            align-items: center;
         }
        
         /* Main Container */
         .main-container {
             display: flex;
             flex-direction: column;
-            height: calc(100vh - 71px);
+            height: calc(100vh - 120px);
         }
        
         /* Search Section */
@@ -653,7 +692,7 @@
         .flash-red {
             animation: flashRed 2s ease-in-out infinite;
         }
-       
+        
         /* Loading States */
         .loading-bar {
             width: 100%;
@@ -662,23 +701,23 @@
             border-radius: 2px;
             overflow: hidden;
         }
-       
+        
         .loading-progress {
             height: 100%;
             background: linear-gradient(90deg, #00dd77, #00ff88);
             width: 30%;
             animation: loading-slide 1.5s infinite;
         }
-       
+        
         @keyframes loading-slide {
             0% { transform: translateX(-100%); }
             100% { transform: translateX(400%); }
         }
-       
+        
         .symbol-loading {
             opacity: 0.6;
         }
-       
+        
         .symbol-error {
             opacity: 0.7;
             background-color: #fff5f5 !important;
@@ -717,7 +756,7 @@
             15%, 85% { transform: translateX(0); opacity: 1; }
             100% { transform: translateX(120%); opacity: 0; }
         }
-       
+        
         /* Error Notifications */
         .error-notification {
             position: fixed;
@@ -732,7 +771,7 @@
             animation: slideIn 0.3s ease-out;
             z-index: 1000;
         }
-       
+        
         .error-header {
             display: flex;
             align-items: center;
@@ -740,22 +779,22 @@
             margin-bottom: 10px;
             font-weight: bold;
         }
-       
+        
         .error-icon {
             font-size: 20px;
         }
-       
+        
         .error-message {
             color: #ccc;
             margin-bottom: 15px;
             font-size: 14px;
         }
-       
+        
         .error-actions {
             display: flex;
             gap: 10px;
         }
-       
+        
         .error-actions button {
             padding: 6px 12px;
             border-radius: 4px;
@@ -764,17 +803,17 @@
             font-size: 12px;
             transition: all 0.2s;
         }
-       
+        
         .error-actions button:first-child {
             background: #00dd77;
             color: #000;
         }
-       
+        
         .error-actions button:last-child {
             background: #333;
             color: #ccc;
         }
-       
+        
         @keyframes slideIn {
             from { transform: translateX(100%); }
             to { transform: translateX(0); }
@@ -797,7 +836,7 @@
         .status-dot.connected {
             background: #00dd77;
         }
-       
+        
         /* OpenSearch Integration Status */
         .opensearch-status {
             display: flex;
@@ -808,11 +847,11 @@
             border-radius: 6px;
             font-size: 12px;
         }
-       
+        
         .opensearch-status .status-text {
             color: #888;
         }
-       
+        
         .opensearch-status.active .status-text {
             color: #00dd77;
         }
@@ -1035,20 +1074,20 @@
             min-width: 300px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.8);
         }
-       
+        
         .edit-modal-header {
             font-size: 18px;
             font-weight: bold;
             color: #fff;
             margin-bottom: 15px;
         }
-       
+        
         .edit-modal-content {
             display: flex;
             flex-direction: column;
             gap: 15px;
         }
-       
+        
         .edit-input {
             background: #252525;
             border: 1px solid #444;
@@ -1057,18 +1096,18 @@
             border-radius: 6px;
             font-size: 14px;
         }
-       
+        
         .edit-input:focus {
             outline: none;
             border-color: #00dd77;
         }
-       
+        
         .color-options {
             display: flex;
             gap: 10px;
             margin-top: 10px;
         }
-       
+        
         .color-option {
             width: 40px;
             height: 40px;
@@ -1077,23 +1116,23 @@
             border: 3px solid transparent;
             transition: all 0.2s;
         }
-       
+        
         .color-option:hover {
             transform: scale(1.1);
         }
-       
+        
         .color-option.selected {
             border-color: #fff;
             box-shadow: 0 0 10px rgba(255,255,255,0.5);
         }
-       
+        
         .edit-modal-actions {
             display: flex;
             gap: 10px;
             justify-content: flex-end;
             margin-top: 20px;
         }
-       
+        
         .modal-btn {
             padding: 8px 16px;
             border-radius: 6px;
@@ -1102,21 +1141,21 @@
             font-size: 14px;
             transition: all 0.2s;
         }
-       
+        
         .modal-btn.save {
             background: #00dd77;
             color: #000;
         }
-       
+        
         .modal-btn.cancel {
             background: #444;
             color: #fff;
         }
-       
+        
         .modal-btn:hover {
             opacity: 0.8;
         }
-       
+        
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -1126,11 +1165,52 @@
             background: rgba(0,0,0,0.7);
             z-index: 2999;
         }
+        
+        /* Quick Actions Button for Watchlist Items */
+        .quick-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .action-btn {
+            padding: 4px 8px;
+            font-size: 11px;
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        
+        .action-btn:hover {
+            background: #333;
+            color: #fff;
+            border-color: #333;
+        }
+        
+        .action-btn.error-action {
+            background: #ffeeee;
+            color: #ff4444;
+            border-color: #ff4444;
+        }
     </style>
 </head>
 <body>
+    <!-- Navigation Bar -->
+    <nav>
+        <a href="index.html" class="nav-logo">📊 OPENBB FINANCIAL INTELLIGENCE</a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="macroeconomic-platform.html">Macro Platform</a>
+            <a href="#" class="active">Real-Time Dashboard</a>
+            <a href="ai_predictions.html">AI Predictions</a>
+            <a href="exponential-search-dashboard.html">Search Engine</a>
+            <a href="scraper_dashboard.html">Data Monitor</a>
+        </div>
+    </nav>
+
     <div class="header">
-        <div class="logo">📊 OPENBB FINANCIAL INTELLIGENCE v5.0</div>
         <div class="header-controls">
             <div class="opensearch-status" id="opensearchStatus">
                 <div class="status-dot"></div>
@@ -1152,7 +1232,7 @@
         <div class="search-section">
             <div class="search-container">
                 <input type="text" class="search-box" id="searchBox"
-                       placeholder="Search 739+ financial indicators (Stocks, ETFs, Crypto, FRED, ECB, Treasury, NY Fed)..."
+                       placeholder="Search 739+ financial indicators (Stocks, ETFs, Crypto, FRED, ECB, Treasury, NY Fed, Foreign Currency Claims)..."
                        onkeyup="performSearch(this.value)"
                        autocomplete="off">
                 <span class="search-icon">🔍</span>
@@ -1318,7 +1398,7 @@
                                 1Y % <span class="sort-indicator" id="sort-1y"></span>
                             </th>
                             <th class="text-right">Yearly Change (Units)</th>
-                            <th></th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="watchlistBody">
@@ -1349,11 +1429,11 @@
                 return originalFetch.call(this, url, ...args);
             };
         })();
-       
+        
         // Configuration
         const API_BASE = 'https://ped8gafyuz.us-east-1.awsapprunner.com';
         const OPENSEARCH_API = 'https://n7gw03k076.execute-api.us-east-1.amazonaws.com/prod';
-       
+        
         // Error Recovery System
         class ErrorRecoverySystem {
             constructor() {
@@ -1361,30 +1441,30 @@
                 this.maxRetries = 3;
                 this.loadingStates = new Map();
             }
-           
+            
             async handleAPIError(error, context) {
                 const { symbol, provider, operation } = context;
                 const errorKey = `${symbol}-${provider}`;
-               
+                
                 // Store current symbol for tracking
                 this.currentSymbol = symbol;
-               
+                
                 const errorCount = (this.errorCounts.get(errorKey) || 0) + 1;
                 this.errorCounts.set(errorKey, errorCount);
-               
+                
                 const errorInfo = this.analyzeError(error);
-               
+                
                 // Don't show error message for every retry, only on final failure
                 if (errorCount === 1) {
                     this.showErrorMessage(errorInfo, context);
                 }
-               
+                
                 return this.attemptRecovery(errorInfo, context, errorCount);
             }
-           
+            
             analyzeError(error) {
                 const errorMessage = error.message || error.toString();
-               
+                
                 if (errorMessage.includes('404')) {
                     return {
                         type: 'not_found',
@@ -1423,10 +1503,10 @@
                     };
                 }
             }
-           
+            
             showErrorMessage(errorInfo, context) {
                 const { symbol, provider } = context;
-               
+                
                 const notification = document.createElement('div');
                 notification.className = 'error-notification';
                 notification.innerHTML = `
@@ -1436,39 +1516,39 @@
                     </div>
                     <div class="error-message">${errorInfo.userMessage}</div>
                     <div class="error-actions">
-                        ${errorInfo.recoverable ?
-                            `<button onclick="window.retryNow('${symbol}', '${provider}')">Retry Now</button>` :
+                        ${errorInfo.recoverable ? 
+                            `<button onclick="window.retryNow('${symbol}', '${provider}')">Retry Now</button>` : 
                             `<button onclick="window.useAlternativeSource('${symbol}')">Try Different Source</button>`
                         }
                         <button onclick="this.closest('.error-notification').remove()">Dismiss</button>
                     </div>
                 `;
-               
+                
                 document.body.appendChild(notification);
                 setTimeout(() => notification.remove(), 10000);
             }
-           
+            
             async attemptRecovery(errorInfo, context, errorCount) {
                 if (!errorInfo.recoverable || errorCount > this.maxRetries) {
                     return this.fallbackStrategy(context);
                 }
-               
+                
                 if (errorInfo.delay) {
                     await new Promise(resolve => setTimeout(resolve, errorInfo.delay));
                 }
-               
+                
                 const backoffDelay = Math.min(1000 * Math.pow(2, errorCount - 1), 10000);
                 await new Promise(resolve => setTimeout(resolve, backoffDelay));
-               
+                
                 return loadSingleWatchlistItem(context.symbol, context.provider, errorCount);
             }
-           
+            
             async fallbackStrategy(context) {
                 const { symbol, provider } = context;
-               
+                
                 // Try alternative data sources
                 const alternatives = this.getAlternativeProviders(provider);
-               
+                
                 if (alternatives.length === 0) {
                     // No more alternatives, use cached data or show final error
                     const cached = this.useCachedData(symbol);
@@ -1481,12 +1561,12 @@
                     }
                     return cached;
                 }
-               
+                
                 for (const altProvider of alternatives) {
                     try {
                         console.log(`Trying alternative provider ${altProvider} for ${symbol}`);
                         const result = await loadSingleWatchlistItem(symbol, altProvider, 0);
-                       
+                        
                         if (result !== false) {  // Check if it actually succeeded
                             showTemporaryMessage(`Found ${symbol} data from ${altProvider}`, 'info');
                             // Clear tried providers on success
@@ -1500,20 +1580,20 @@
                         continue;
                     }
                 }
-               
+                
                 // If all alternatives fail, use cached data if available
                 return this.useCachedData(symbol);
             }
-           
+            
             getAlternativeProviders(failedProvider) {
                 // Prevent infinite loops by tracking which providers have been tried
                 const symbol = this.currentSymbol;
                 if (!this.triedProviders) this.triedProviders = new Map();
                 if (!this.triedProviders.has(symbol)) this.triedProviders.set(symbol, new Set());
-               
+                
                 const tried = this.triedProviders.get(symbol);
                 tried.add(failedProvider);
-               
+                
                 const alternatives = {
                     'polygon_direct': ['yahoo_finance', 'opensearch'],
                     'yahoo_finance': ['opensearch'],  // Don't go back to polygon
@@ -1524,12 +1604,12 @@
                     'treasury_direct': ['opensearch'],
                     'opensearch': []  // No alternatives for opensearch
                 };
-               
+                
                 const possibleAlternatives = alternatives[failedProvider] || [];
                 // Filter out already tried providers
                 return possibleAlternatives.filter(p => !tried.has(p));
             }
-           
+            
             useCachedData(symbol) {
                 const cached = localStorage.getItem(`cache_${symbol}`);
                 if (cached) {
@@ -1541,24 +1621,24 @@
                 }
                 return null;
             }
-           
+            
             setLoadingState(symbol, state) {
                 this.loadingStates.set(symbol, state);
             }
-           
+            
             getLoadingState(symbol) {
                 return this.loadingStates.get(symbol) || 'pending';
             }
         }
-       
+        
         const errorRecovery = new ErrorRecoverySystem();
-       
+        
         // Global retry function
         window.retryNow = async function(symbol, provider) {
             errorRecovery.errorCounts.delete(`${symbol}-${provider}`);
             await loadSingleWatchlistItem(symbol, provider);
         };
-       
+        
         window.useAlternativeSource = function(symbol) {
             const providers = ['polygon_direct', 'yahoo_finance', 'fred_direct', 'opensearch'];
             const select = prompt(`Select alternative source for ${symbol}:\n${providers.join('\n')}`);
@@ -1567,7 +1647,7 @@
             }
         };
        
-        // Enhanced data source configurations
+        // Enhanced data source configurations with ECB foreign currency claims
         const DATA_SOURCES = {
             polygon: {
                 name: 'Polygon Financial Data',
@@ -1613,7 +1693,11 @@
                     'CISS.M.SE.Z0Z.4F.EC.SOV_CI.IDX', 'CISS.M.FR.Z0Z.4F.EC.SOV_CI.IDX', 'CISS.M.FI.Z0Z.4F.EC.SOV_CI.IDX',
                     'CISS.M.DK.Z0Z.4F.EC.SOV_CI.IDX', 'CISS.M.GB.Z0Z.4F.EC.SOV_CI.IDX', 'CISS.M.BE.Z0Z.4F.EC.SOV_CI.IDX',
                     'CLIFS.M.DE._Z.4F.EC.CLIFS_CI.IDX',
-                    'ILM.W.U2.C.A030000.U2.Z06', 'ILM.W.U2.C.L060000.U4.EUR'
+                    'ILM.W.U2.C.A030000.U2.Z06', 'ILM.W.U2.C.L060000.U4.EUR',
+                    // Add foreign currency claims indicators
+                    'BSI.M.U2.N.A.A20.A.1.U2.2300.Z01.E', 
+                    'BSI.M.U2.N.A.A20.A.1.U4.2300.Z01.E',
+                    'BSI.M.U2.N.A.A20.A.1.U6.2300.Z01.E'
                 ]
             },
             ofr: {
@@ -1714,7 +1798,8 @@
                     { symbol: 'CISS.M.SE.Z0Z.4F.EC.SOV_CI.IDX', provider: 'ecb_direct' },
                     { symbol: 'CISS.M.FR.Z0Z.4F.EC.SOV_CI.IDX', provider: 'ecb_direct' },
                     { symbol: 'CISS.M.GB.Z0Z.4F.EC.SOV_CI.IDX', provider: 'ecb_direct' },
-                    { symbol: 'CLIFS.M.DE._Z.4F.EC.CLIFS_CI.IDX', provider: 'ecb_direct' }
+                    { symbol: 'CLIFS.M.DE._Z.4F.EC.CLIFS_CI.IDX', provider: 'ecb_direct' },
+                    { symbol: 'BSI.M.U2.N.A.A20.A.1.U4.2300.Z01.E', provider: 'ecb_direct' }
                 ],
                 active: false
             },
@@ -1827,7 +1912,7 @@
             '#00AEEF', '#FF4444', '#F4D03F', '#58D68D', '#FF7043',
             '#AF7AC5', '#48C9B0', '#EC7063', '#5DADE2', '#F5B041'
         ];
-       
+        
         // Color options for watchlist items
         const watchlistColorOptions = {
             none: null,
@@ -1874,7 +1959,7 @@
         // Initialize the dashboard
         async function init() {
             console.log('OpenBB Dashboard v5.0 - Initializing with OpenSearch integration');
-           
+            
             updateClock();
             setInterval(updateClock, 1000);
            
@@ -1893,13 +1978,13 @@
             // Initialize risk dashboard
             initializeRiskDashboard();
         }
-       
+        
         // Check OpenSearch connection
         async function checkOpenSearchConnection() {
             const statusDiv = document.getElementById('opensearchStatus');
             const statusDot = statusDiv.querySelector('.status-dot');
             const statusText = statusDiv.querySelector('.status-text');
-           
+            
             try {
                 const response = await fetch(`${OPENSEARCH_API}/api/search/stats`);
                 if (response.ok) {
@@ -1918,7 +2003,7 @@
                 document.getElementById('opensearch-indicator').classList.remove('connected');
             }
         }
-       
+        
         // Load OpenSearch indicators for watchlist
         async function loadOpenSearchIndicators() {
             try {
@@ -1998,7 +2083,7 @@
             // Test each provider
             for (const [source, config] of Object.entries(DATA_SOURCES)) {
                 if (source === 'opensearch') continue; // Handled separately
-               
+                
                 try {
                     let testUrl;
                    
@@ -2049,7 +2134,7 @@
             }
         }
        
-        // Enhanced search with OpenSearch integration
+        // Enhanced search with OpenSearch integration and foreign currency support
         async function performSearch(query) {
             const resultsDiv = document.getElementById('searchResults');
            
@@ -2089,7 +2174,7 @@
                             console.warn('OpenSearch search error:', error);
                         }
                     }
-                   
+                    
                     // Search Polygon
                     if (activeSources.includes('polygon')) {
                         try {
@@ -2100,8 +2185,8 @@
                                     polygonData.results.forEach(item => {
                                         const symbol = item.symbol || item.ticker;
                                         const type = item.type || 'CS';
-                                       
-                                        if (activeTickerTypes.includes(type) ||
+                                        
+                                        if (activeTickerTypes.includes(type) || 
                                             (activeTickerTypes.includes('OTHER') && !['CS', 'ETF', 'CRYPTO', 'MF', 'BOND', 'INDEX'].includes(type))) {
                                             allResults.push({
                                                 symbol: symbol,
@@ -2119,7 +2204,7 @@
                             console.warn('Polygon search error:', error);
                         }
                     }
-                   
+                    
                     // Search Yahoo Finance
                     if (activeSources.includes('yahoo')) {
                         try {
@@ -2180,7 +2265,7 @@
             }, 300);
         }
        
-        // Enhanced symbol descriptions
+        // Enhanced symbol descriptions with foreign currency support
         function getSymbolDescription(symbol, source) {
             const descriptions = {
                 polygon: {
@@ -2264,7 +2349,10 @@
                     'CISS.M.BE.Z0Z.4F.EC.SOV_CI.IDX': 'Belgium Monthly Sovereign Stress Index',
                     'CLIFS.M.DE._Z.4F.EC.CLIFS_CI.IDX': 'Germany Country-Level Financial Stress Index',
                     'ILM.W.U2.C.A030000.U2.Z06': 'Euro Area Weekly Liquidity Measures',
-                    'ILM.W.U2.C.L060000.U4.EUR': 'Euro Area Weekly Interest Rate Measures'
+                    'ILM.W.U2.C.L060000.U4.EUR': 'Euro Area Weekly Interest Rate Measures',
+                    'BSI.M.U2.N.A.A20.A.1.U2.2300.Z01.E': 'Claims on Euro Area Residents in Foreign Currency',
+                    'BSI.M.U2.N.A.A20.A.1.U4.2300.Z01.E': 'Claims on Non-Euro Area Residents in Foreign Currency',
+                    'BSI.M.U2.N.A.A20.A.1.U6.2300.Z01.E': 'Claims on Non-Residents in Foreign Currency'
                 },
                 ofr: {
                     'NYPD-PD_AFtR_T-A': 'NY Primary Dealer After-Fed Total Amount',
@@ -2327,7 +2415,7 @@
                     <div class="search-item" style="text-align:center; color:#888; padding: 20px;">
                         No results found for "${query}"
                         <div style="margin-top: 10px; font-size: 12px;">
-                            Try: AAPL, FEDFUNDS, sofr, EUR/USD, CISS, or search OpenSearch indicators
+                            Try: AAPL, FEDFUNDS, sofr, EUR/USD, CISS, foreign currency, or search OpenSearch indicators
                         </div>
                     </div>
                 `;
@@ -2409,7 +2497,7 @@
             document.getElementById('searchBox').value = '';
         }
        
-        // Centralized function to ensure all API calls use include_changes=false
+        // Centralized function to ensure all API calls use include_changes=false and handle ECB historical data
         function buildDataURL(symbol, provider, options = {}) {
             if (provider === 'opensearch') {
                 return `${OPENSEARCH_API}/api/search?q=${encodeURIComponent(symbol)}&exact=true`;
@@ -2437,6 +2525,19 @@
                 return url;
             } else if (provider === 'fred_direct' && options.useObservations) {
                 return `${API_BASE}/api/v1/fred/series/observations?series_id=${symbol}&limit=10000&sort_order=asc&include_pandas=false`;
+            } else if (provider === 'ecb_direct') {
+                // ECB needs special handling for historical data
+                let url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&include_changes=false`;
+                if (options.startDate) {
+                    // Request 20 years of data for ECB
+                    const startDate = new Date();
+                    startDate.setFullYear(startDate.getFullYear() - 20);
+                    url += `&start_date=${startDate.toISOString().split('T')[0]}`;
+                }
+                if (options.endDate) url += `&end_date=${options.endDate}`;
+                // Add detail parameter for ECB to get full history
+                url += '&detail=full';
+                return url;
             } else {
                 let url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&include_changes=false`;
                 if (options.startDate) url += `&start_date=${options.startDate}`;
@@ -2444,11 +2545,11 @@
                 return url;
             }
         }
-       
+        
         // Enhanced data loading with granular loading states
         async function loadSingleWatchlistItem(symbol, provider, retryCount = 0) {
             const maxRetries = 2;
-           
+            
             // Set loading state
             errorRecovery.setLoadingState(symbol, 'loading');
             renderWatchlistRow(symbol);
@@ -2458,7 +2559,7 @@
                
                 const url = buildDataURL(symbol, provider);
                 console.log(`Request URL: ${url}`);
-               
+                
                 const response = await fetch(url);
                
                 if (!response.ok) {
@@ -2494,25 +2595,25 @@
                 } else {
                     throw new Error('No data available in expected format');
                 }
-               
+                
                 // Set success state
                 errorRecovery.setLoadingState(symbol, 'loaded');
-               
+                
                 // Cache successful data
                 const cacheData = {
                     ...watchlistData[symbol],
                     timestamp: Date.now()
                 };
                 localStorage.setItem(`cache_${symbol}`, JSON.stringify(cacheData));
-               
+                
                 return true; // Return true on success
                
             } catch (error) {
                 console.error(`Error loading ${symbol} from ${provider}:`, error);
-               
+                
                 // Set error state
                 errorRecovery.setLoadingState(symbol, 'error');
-               
+                
                 // Don't retry on 400 errors or if we've exceeded max retries
                 if (error.message.includes('Bad request') || retryCount >= maxRetries) {
                     // Handle error with recovery system
@@ -2521,7 +2622,7 @@
                         provider,
                         operation: 'loadWatchlistItem'
                     });
-                   
+                    
                     if (!recovered) {
                         // Show error state
                         watchlistData[symbol] = {
@@ -2537,7 +2638,7 @@
                         };
                         renderWatchlist();
                     }
-                   
+                    
                     return false; // Return false on failure
                 }
                
@@ -2547,13 +2648,13 @@
                 return loadSingleWatchlistItem(symbol, provider, retryCount + 1);
             }
         }
-       
+        
         // Process OpenSearch data
         function processOpenSearchData(symbol, data, provider) {
             if (data.indicators && data.indicators.length > 0) {
                 const indicator = data.indicators[0];
                 const latestValue = indicator.latest_value || 0;
-               
+                
                 watchlistData[symbol] = {
                     ...watchlistData[symbol],
                     name: indicator.description || indicator.name || symbol,
@@ -2575,7 +2676,7 @@
                     actualSymbol: symbol,
                     lastUpdateTime: Date.now()
                 };
-               
+                
                 checkForSignificantChanges(symbol, watchlistData[symbol].changes);
                 renderWatchlist();
             }
@@ -2821,7 +2922,7 @@
                     console.error('Error loading saved watchlists:', e);
                 }
             }
-           
+            
             const savedWatchlistData = localStorage.getItem('openbbWatchlistData');
             if (savedWatchlistData) {
                 try {
@@ -2849,7 +2950,7 @@
             });
             localStorage.setItem('openbbWatchlists', JSON.stringify(toSave));
         }
-       
+        
         // Save watchlist data
         function saveWatchlistData() {
             const toSave = {};
@@ -2897,10 +2998,10 @@
                     console.error('Error loading saved watchlist data:', e);
                 }
             }
-           
+            
             // Reset loading states
             errorRecovery.loadingStates.clear();
-           
+            
             // Initial render with all symbols in pending state
             renderWatchlist();
            
@@ -2909,34 +3010,34 @@
                 const symbolObj = watchlistSymbols[i];
                 const symbol = symbolObj.symbol || symbolObj;
                 const provider = symbolObj.provider || 'fred_direct';
-               
+                
                 setTimeout(() => {
                     loadSingleWatchlistItem(symbol, provider);
                 }, i * 100); // Stagger by 100ms
             }
         }
-       
+        
         // Render individual watchlist row based on loading state
         function renderWatchlistRow(symbol) {
             const tbody = document.getElementById('watchlistBody');
             const existingRow = tbody.querySelector(`tr[data-symbol="${symbol}"]`);
-           
+            
             if (existingRow) {
                 // Update existing row
                 const newRow = createWatchlistRow(symbol);
                 existingRow.outerHTML = newRow;
             }
         }
-       
+        
         // Create watchlist row HTML
         function createWatchlistRow(symbol) {
             const symbolObj = watchlistSymbols.find(s => (s.symbol || s) === symbol);
             if (!symbolObj) return '';
-           
+            
             const provider = symbolObj.provider || 'fred_direct';
             const loadingState = errorRecovery.getLoadingState(symbol);
             const data = watchlistData[symbol];
-           
+            
             if (loadingState === 'loading' || !data) {
                 return `
                     <tr data-symbol="${symbol}" class="symbol-loading">
@@ -2972,12 +3073,15 @@
                             ${data?.error || 'Connection error'}
                         </td>
                         <td>
-                            <button onclick="window.retryNow('${symbol}', '${provider}')" style="font-size: 10px; padding: 4px 8px; background: #f5f5f5; color: #333; border: 1px solid #ddd;">Retry</button>
+                            <div class="quick-actions">
+                                <button onclick="window.retryNow('${symbol}', '${provider}')" class="action-btn">Retry</button>
+                                <button onclick="removeFromWatchlist(event, '${symbol}')" class="action-btn error-action">Remove</button>
+                            </div>
                         </td>
                     </tr>
                 `;
             }
-           
+            
             // Normal loaded state - return empty string, let main render handle it
             return '';
         }
@@ -2987,7 +3091,7 @@
             document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
         }
        
-        // Enhanced render watchlist
+        // Enhanced render watchlist with quick actions
         function renderWatchlist() {
             const tbody = document.getElementById('watchlistBody');
            
@@ -3000,7 +3104,7 @@
                 const symbol = symbolObj.symbol || symbolObj;
                 const data = watchlistData[symbol];
                 const loadingState = errorRecovery.getLoadingState(symbol);
-               
+                
                 if (!data || loadingState === 'loading' || loadingState === 'error') {
                     return { symbol, data: null, loadingState, provider: symbolObj.provider };
                 }
@@ -3074,7 +3178,7 @@
                 if (loadingState === 'loading' || loadingState === 'error' || !data) {
                     return createWatchlistRow(symbol);
                 }
-               
+                
                 const flashClass = flashInfo.flash ?
                     (flashInfo.type === 'green' ? 'flash-green' : 'flash-red') : '';
                
@@ -3109,8 +3213,10 @@
                         <td class="change-cell ${getChangeClass(data.changes['1y'])}">${formatChange(data.changes['1y'])}</td>
                         <td class="change-cell ${getChangeClass(data.changeUnits?.yearly)}">${formatUnits(data.changeUnits?.yearly)}</td>
                         <td style="padding: 5px;">
-                            <button class="control-btn" style="padding: 4px 8px; font-size: 11px; background: #f5f5f5; color: #333; border: 1px solid #ddd;"
-                                    onclick="removeFromWatchlist(event, '${symbol}')">×</button>
+                            <div class="quick-actions">
+                                <button class="action-btn" onclick="openChartForSymbol('${symbol}', '${data.provider || 'fred_direct'}')">📊</button>
+                                <button class="action-btn" onclick="removeFromWatchlist(event, '${symbol}')">×</button>
+                            </div>
                         </td>
                     </tr>
                 `;
@@ -3124,26 +3230,26 @@
         // Edit symbol function with modal
         function editSymbol(event, symbol) {
             event.stopPropagation();
-           
+            
             const data = watchlistData[symbol];
             if (!data) return;
-           
+            
             // Create modal overlay
             const overlay = document.createElement('div');
             overlay.className = 'modal-overlay';
             overlay.onclick = () => closeEditModal();
-           
+            
             // Create modal
             const modal = document.createElement('div');
             modal.className = 'edit-modal';
             modal.onclick = (e) => e.stopPropagation();
-           
+            
             modal.innerHTML = `
                 <div class="edit-modal-header">Edit ${symbol}</div>
                 <div class="edit-modal-content">
                     <label style="color: #aaa; font-size: 12px;">Custom Name:</label>
                     <input type="text" class="edit-input" id="editName" value="${data.customName || ''}" placeholder="${symbol}">
-                   
+                    
                     <label style="color: #aaa; font-size: 12px; margin-top: 10px;">Color Tag:</label>
                     <div class="color-options">
                         <div class="color-option ${!data.color ? 'selected' : ''}" style="background: #444;" data-color="none" onclick="selectColor(this, 'none')"></div>
@@ -3158,43 +3264,43 @@
                     <button class="modal-btn cancel" onclick="closeEditModal()">Cancel</button>
                 </div>
             `;
-           
+            
             document.body.appendChild(overlay);
             document.body.appendChild(modal);
-           
+            
             // Store selected color
             window.selectedEditColor = data.color || 'none';
-           
+            
             // Focus on name input
             setTimeout(() => {
                 document.getElementById('editName').focus();
             }, 100);
         }
-       
+        
         // Select color in edit modal
         window.selectColor = function(element, color) {
             document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
             element.classList.add('selected');
             window.selectedEditColor = color === 'none' ? null : color;
         };
-       
+        
         // Save symbol edit
         window.saveSymbolEdit = function(symbol) {
             const customName = document.getElementById('editName').value.trim();
             const color = window.selectedEditColor;
-           
+            
             if (watchlistData[symbol]) {
                 watchlistData[symbol].customName = customName || null;
                 watchlistData[symbol].color = color;
-               
+                
                 saveWatchlistData();
                 renderWatchlist();
                 showTemporaryMessage(`Updated ${symbol}`, 'info');
             }
-           
+            
             closeEditModal();
         };
-       
+        
         // Close edit modal
         window.closeEditModal = function() {
             document.querySelector('.modal-overlay')?.remove();
@@ -3407,7 +3513,7 @@
             setActiveChart(chartId);
         }
 
-        // Enhanced chart data loading with OpenSearch support
+        // Enhanced chart data loading with OpenSearch support and ECB fix
         async function loadChartData(chartId, symbol, provider) {
             const chart = charts[chartId];
             if (!chart) return;
@@ -3423,7 +3529,7 @@
                     // Load from OpenSearch
                     const response = await fetch(`${OPENSEARCH_API}/api/search?q=${encodeURIComponent(symbol)}&exact=true`);
                     if (!response.ok) throw new Error('Failed to load from OpenSearch');
-                   
+                    
                     const result = await response.json();
                     if (result.indicators && result.indicators.length > 0) {
                         const indicator = result.indicators[0];
@@ -3449,19 +3555,25 @@
                    
                     const startDateStr = startDate.toISOString().split('T')[0];
                    
-                    // Use centralized URL builder
+                    // Use centralized URL builder with special handling for ECB
                     if (provider === 'polygon_direct' || provider === 'yahoo_finance') {
-                        url = buildDataURL(symbol, provider, {
-                            dataType: 'historical',
-                            startDate: startDateStr,
-                            endDate: endDate
+                        url = buildDataURL(symbol, provider, { 
+                            dataType: 'historical', 
+                            startDate: startDateStr, 
+                            endDate: endDate 
                         });
                     } else if (provider === 'fred_direct') {
                         url = buildDataURL(symbol, provider, { useObservations: true });
+                    } else if (provider === 'ecb_direct') {
+                        // Special handling for ECB to get full historical data
+                        url = buildDataURL(symbol, provider, { 
+                            startDate: startDateStr, 
+                            endDate: endDate 
+                        });
                     } else {
-                        url = buildDataURL(symbol, provider, {
-                            startDate: startDateStr,
-                            endDate: endDate
+                        url = buildDataURL(symbol, provider, { 
+                            startDate: startDateStr, 
+                            endDate: endDate 
                         });
                     }
                    
@@ -4078,7 +4190,7 @@
                     const changes = calculatePercentageChanges(data.data);
                     const latestItem = data.data[data.data.length - 1];
                     const latestValue = latestItem.value || latestItem.close || latestItem.price || 0;
-                   
+                    
                     riskDashboardData[symbol] = {
                         value: latestValue,
                         daily_change: changes['1d'] || 0,
