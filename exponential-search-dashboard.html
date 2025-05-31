@@ -841,23 +841,19 @@
                 const data = await response.json();
                 console.log('API Response:', data);
                 
-                // The API returns data in this structure based on your examples
-                if (data && data.hits && data.hits.hits) {
-                    // OpenSearch response format
-                    const results = data.hits.hits.map(hit => ({
-                        ...hit._source,
-                        _id: hit._id,
-                        _score: hit._score
-                    }));
-                    currentResults = results;
-                    renderResults(results);
-                    console.log(`Found ${results.length} results`);
-                } else if (data && Array.isArray(data)) {
-                    // Direct array response
-                    currentResults = data;
-                    renderResults(data);
+                // The API returns data in this structure based on your logs
+                if (data && data.results && Array.isArray(data.results)) {
+                    currentResults = data.results;
+                    renderResults(data.results);
+                    console.log(`Found ${data.total_results} total results, showing ${data.results.length}`);
+                    
+                    // Update result count in UI
+                    const searchDesc = document.querySelector('.search-description');
+                    if (searchDesc && data.total_results) {
+                        searchDesc.innerHTML = `Found <strong>${data.total_results}</strong> indicators matching "${query}"`;
+                    }
                 } else {
-                    console.warn('Unexpected response structure:', data);
+                    console.warn('No results found');
                     showEmpty();
                 }
                 
