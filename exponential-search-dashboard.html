@@ -2164,6 +2164,38 @@
             document.getElementById('searchBox').value = '';
         }
        
+        // Centralized function to ensure all API calls use include_changes=false
+        function buildDataURL(symbol, provider, options = {}) {
+            // Special handling for different providers
+            if (provider === 'liquidity_intelligence') {
+                // Handle liquidity intelligence endpoints
+                if (symbol === 'OFR_FSI') {
+                    return `${API_BASE}/api/v1/ofr/fsi`;
+                } else if (symbol === 'TREASURY_MONITOR') {
+                    return `${API_BASE}/api/v1/treasury/monitor`;
+                } else if (symbol === 'NYFED_FAILS') {
+                    return `${API_BASE}/api/v1/nyfed/fails`;
+                } else if (symbol === 'LIQUIDITY_DASHBOARD') {
+                    return `${API_BASE}/api/v1/liquidity/dashboard`;
+                }
+            } else if (provider === 'polygon_direct') {
+                const dataType = options.dataType || 'quote';
+                return `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&data_type=${dataType}`;
+            } else if (provider === 'yahoo_finance') {
+                const dataType = options.dataType || 'quote';
+                return `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&data_type=${dataType}`;
+            } else if (provider === 'fred_direct' && options.useObservations) {
+                // Use FRED series observations endpoint for historical data
+                return `${API_BASE}/api/v1/fred/series/observations?series_id=${symbol}&limit=10000&sort_order=asc&include_pandas=false`;
+            } else {
+                // For ALL other providers, ALWAYS use include_changes=false
+                let url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&include_changes=false`;
+                if (options.startDate) url += `&start_date=${options.startDate}`;
+                if (options.endDate) url += `&end_date=${options.endDate}`;
+                return url;
+            }
+        }
+        
         // Enhanced data loading with pandas error fix
         async function loadSingleWatchlistItem(symbol, provider, retryCount = 0) {
             const maxRetries = 2;
@@ -2194,7 +2226,7 @@
                     url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&include_changes=false`;
                 }
                
-                const response = await fetch(url);
+                                    const response = await fetch(testUrl);
                
                 if (!response.ok) {
                     throw new Error(`API returned ${response.status}`);
@@ -3075,24 +3107,23 @@
                
                 const startDateStr = startDate.toISOString().split('T')[0];
                
-                if (provider === 'liquidity_intelligence') {
-                    // Handle liquidity intelligence endpoints for charts
-                    if (symbol === 'OFR_FSI') {
-                        url = `${API_BASE}/api/v1/ofr/fsi`;
-                    } else if (symbol === 'NYFED_FAILS') {
-                        url = `${API_BASE}/api/v1/nyfed/fails`;
-                    } else {
-                        throw new Error('Chart not available for this liquidity intelligence indicator');
-                    }
-                } else if (provider === 'polygon_direct') {
-                    url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&data_type=historical&start_date=${startDateStr}&end_date=${endDate}`;
-                } else if (provider === 'yahoo_finance') {
-                    url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&data_type=historical&start_date=${startDateStr}&end_date=${endDate}`;
+                // Use centralized URL builder
+                let url;
+                if (provider === 'polygon_direct' || provider === 'yahoo_finance') {
+                    url = buildDataURL(symbol, provider, { 
+                        dataType: 'historical', 
+                        startDate: startDateStr, 
+                        endDate: endDate 
+                    });
                 } else if (provider === 'fred_direct') {
-                    // Use FRED series observations endpoint for maximum data
-                    url = `${API_BASE}/api/v1/fred/series/observations?series_id=${symbol}&limit=10000&sort_order=asc&include_pandas=false`;
+                    url = buildDataURL(symbol, provider, { useObservations: true });
+                } else if (provider === 'liquidity_intelligence') {
+                    url = buildDataURL(symbol, provider);
                 } else {
-                    url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&include_changes=false&start_date=${startDateStr}&end_date=${endDate}`;
+                    url = buildDataURL(symbol, provider, { 
+                        startDate: startDateStr, 
+                        endDate: endDate 
+                    });
                 }
                
                 console.log(`Chart data URL for ${symbol}: ${url}`);
@@ -3689,8 +3720,8 @@
        
         async function loadRiskSymbolData(symbol, provider, retryCount = 0) {
             try {
-                // Fix: Use include_changes=false to avoid pandas error
-                const url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&include_changes=false`;
+                // Use centralized URL builder to ensure include_changes=false
+                const url = buildDataURL(symbol, provider);
                 const response = await fetch(url);
                
                 if (!response.ok) {
@@ -3710,12 +3741,16 @@
                     };
                 } else if (data.data && Array.isArray(data.data)) {
                     // Calculate changes manually if not provided
-                    const processedData = processWatchlistDataArray(symbol, data.data, provider);
+                    const changes = calculatePercentageChanges(data.data);
+                    const changeUnits = calculateUnitChanges(data.data);
+                    const latestItem = data.data[data.data.length - 1];
+                    const latestValue = latestItem.value || latestItem.close || latestItem.price || 0;
+                    
                     riskDashboardData[symbol] = {
-                        value: processedData.price || 0,
-                        daily_change: processedData.changes['1d'] || 0,
-                        weekly_change: processedData.changes['1w'] || 0,
-                        monthly_change: processedData.changes['1m'] || 0,
+                        value: latestValue,
+                        daily_change: changes['1d'] || 0,
+                        weekly_change: changes['1w'] || 0,
+                        monthly_change: changes['1m'] || 0,
                         provider: provider,
                         timestamp: Date.now()
                     };
