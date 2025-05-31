@@ -3,12 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpenBB Financial Intelligence - Complete Dashboard (283,652 Data Points)</title>
+    <title>OpenBB Financial Intelligence - Live Dashboard</title>
     
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2/dist/fuse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Removed date-fns as it's not needed -->
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -98,6 +96,41 @@
             text-transform: uppercase;
         }
         
+        /* Connection Status */
+        .connection-status {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            z-index: 999;
+            transition: all 0.3s;
+        }
+        
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-red);
+            animation: pulse 2s infinite;
+        }
+        
+        .status-indicator.connected {
+            background: var(--accent-green);
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
         /* Main Container */
         .main-container {
             max-width: 1800px;
@@ -105,92 +138,7 @@
             padding: 30px 20px;
         }
         
-        /* Pinned Indicators Section */
-        .pinned-section {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 30px;
-            display: none;
-        }
-        
-        .pinned-section.has-items {
-            display: block;
-        }
-        
-        .pinned-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
-        .pinned-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: var(--accent-yellow);
-        }
-        
-        .clear-all-btn {
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.2s;
-        }
-        
-        .clear-all-btn:hover {
-            background: var(--accent-red);
-            color: white;
-            border-color: var(--accent-red);
-        }
-        
-        /* Search Section */
-        .search-section {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 30px;
-            margin-bottom: 30px;
-        }
-        
-        .search-container {
-            position: relative;
-            margin-bottom: 25px;
-        }
-        
-        .search-input {
-            width: 100%;
-            padding: 18px 55px 18px 25px;
-            background: var(--bg-primary);
-            border: 2px solid var(--border-color);
-            color: var(--text-primary);
-            border-radius: 12px;
-            font-size: 16px;
-            transition: all 0.3s;
-        }
-        
-        .search-input:focus {
-            outline: none;
-            border-color: var(--accent-green);
-            box-shadow: 0 0 0 4px rgba(0, 255, 136, 0.1);
-        }
-        
-        .search-icon {
-            position: absolute;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-            font-size: 20px;
-            pointer-events: none;
-        }
-        
-        /* Stats Summary (Clickable) */
+        /* Stats Summary */
         .stats-summary {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -251,10 +199,122 @@
             margin-top: 5px;
         }
         
+        /* Search Section */
+        .search-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .search-header {
+            margin-bottom: 20px;
+        }
+        
+        .search-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .search-description {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        .search-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 18px 55px 18px 25px;
+            background: var(--bg-primary);
+            border: 2px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent-green);
+            box-shadow: 0 0 0 4px rgba(0, 255, 136, 0.1);
+        }
+        
+        .search-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 20px;
+            pointer-events: none;
+        }
+        
+        .search-suggestions {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-top: 10px;
+            padding: 10px;
+            display: none;
+        }
+        
+        .search-suggestions.active {
+            display: block;
+        }
+        
+        .suggestion-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .suggestion-item:hover {
+            background: var(--bg-secondary);
+            color: var(--accent-green);
+        }
+        
+        /* Quick Filters */
+        .quick-filters {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        
+        .filter-btn:hover {
+            background: var(--accent-green);
+            color: var(--bg-primary);
+            border-color: var(--accent-green);
+        }
+        
+        .filter-btn.active {
+            background: var(--accent-green);
+            color: var(--bg-primary);
+            border-color: var(--accent-green);
+        }
+        
         /* Results Grid */
         .results-section {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
             gap: 25px;
             margin-bottom: 30px;
         }
@@ -269,11 +329,6 @@
             overflow: hidden;
         }
         
-        .result-card.pinned {
-            border-color: var(--accent-yellow);
-            box-shadow: 0 0 20px rgba(255, 204, 0, 0.2);
-        }
-        
         .result-card:hover {
             transform: translateY(-5px);
             border-color: var(--accent-green);
@@ -281,14 +336,7 @@
         }
         
         .result-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: start;
             margin-bottom: 15px;
-        }
-        
-        .result-info {
-            flex: 1;
         }
         
         .result-symbol {
@@ -304,59 +352,40 @@
             margin-bottom: 10px;
         }
         
-        .result-source {
-            display: inline-block;
+        .result-meta {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        
+        .meta-tag {
             font-size: 11px;
-            color: var(--text-muted);
             padding: 3px 10px;
             background: var(--bg-tertiary);
             border-radius: 6px;
             text-transform: uppercase;
         }
         
-        .result-actions {
-            display: flex;
-            gap: 8px;
+        .meta-tag.source {
+            color: var(--accent-blue);
+            border: 1px solid var(--accent-blue);
         }
         
-        .action-btn {
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            padding: 6px 10px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 20px;
-            transition: all 0.2s;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .meta-tag.frequency {
+            color: var(--accent-yellow);
+            border: 1px solid var(--accent-yellow);
         }
         
-        .action-btn:hover {
-            background: var(--accent-green);
-            color: var(--bg-primary);
-            border-color: var(--accent-green);
-        }
-        
-        .action-btn.pinned {
-            background: var(--accent-yellow);
-            color: var(--bg-primary);
-            border-color: var(--accent-yellow);
-        }
-        
-        .action-btn.remove {
-            background: var(--accent-red);
-            color: white;
-            border-color: var(--accent-red);
+        .meta-tag.category {
+            color: var(--accent-purple);
+            border: 1px solid var(--accent-purple);
         }
         
         /* Data Display */
         .data-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             gap: 15px;
             margin: 20px 0;
         }
@@ -391,244 +420,30 @@
             margin-top: 3px;
         }
         
-        /* Mini Chart */
-        .mini-chart {
-            height: 180px;
-            margin: 15px 0;
-            background: var(--bg-primary);
-            border-radius: 8px;
-            position: relative;
-            overflow: hidden;
-            border: 1px solid var(--border-color);
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .mini-chart:hover {
-            border-color: var(--accent-green);
-            box-shadow: 0 0 15px rgba(0, 255, 136, 0.2);
-        }
-        
-        .chart-period-selector {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            display: flex;
-            gap: 5px;
-            background: rgba(10, 10, 10, 0.8);
-            padding: 3px;
-            border-radius: 6px;
-            z-index: 10;
-        }
-        
-        .period-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            padding: 4px 8px;
-            cursor: pointer;
-            font-size: 11px;
-            border-radius: 4px;
-            transition: all 0.2s;
-        }
-        
-        .period-btn:hover {
-            background: var(--bg-tertiary);
-            color: var(--text-primary);
-        }
-        
-        .period-btn.active {
-            background: var(--accent-green);
-            color: var(--bg-primary);
-        }
-        
-        /* Chart Modal */
-        .chart-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.95);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-            padding: 20px;
-            backdrop-filter: blur(10px);
-        }
-        
-        .chart-modal.active {
-            display: flex;
-        }
-        
-        /* Data Browser Modal */
-        .data-browser-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.95);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-            padding: 20px;
-            backdrop-filter: blur(10px);
-        }
-        
-        .data-browser-modal.active {
-            display: flex;
-        }
-        
-        .browser-content {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            max-width: 1400px;
-            width: 100%;
-            height: 90vh;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .browser-header {
-            padding: 20px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .browser-title {
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--text-primary);
-        }
-        
-        .browser-close {
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            font-size: 28px;
-            cursor: pointer;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            transition: all 0.2s;
-        }
-        
-        .browser-close:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text-primary);
-        }
-        
-        .browser-body {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-        }
-        
-        .browser-filters {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .filter-select {
-            background: var(--bg-primary);
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            padding: 8px 15px;
-            border-radius: 6px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-        
-        .browser-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 15px;
-        }
-        
-        .browser-item {
-            background: var(--bg-primary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 15px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .browser-item:hover {
-            border-color: var(--accent-green);
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.2);
-        }
-        
-        .browser-item-symbol {
-            font-size: 16px;
-            font-weight: bold;
-            color: var(--accent-green);
-            margin-bottom: 5px;
-        }
-        
-        .browser-item-name {
-            font-size: 13px;
-            color: var(--text-secondary);
-            margin-bottom: 8px;
-        }
-        
-        .browser-item-meta {
-            display: flex;
-            justify-content: space-between;
-            font-size: 11px;
-            color: var(--text-muted);
-        }
-        
-        /* Chart Controls */
-        .chart-controls {
+        /* Action Buttons */
+        .action-buttons {
             display: flex;
             gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
+            margin-top: 15px;
         }
         
-        .chart-control-group {
-            display: flex;
-            gap: 5px;
-            background: var(--bg-primary);
-            padding: 5px;
-            border-radius: 8px;
+        .action-btn {
+            flex: 1;
+            background: var(--bg-tertiary);
             border: 1px solid var(--border-color);
-        }
-        
-        .chart-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            padding: 8px 16px;
-            cursor: pointer;
+            color: var(--text-primary);
+            padding: 10px;
             border-radius: 6px;
+            cursor: pointer;
             font-size: 13px;
             transition: all 0.2s;
+            text-align: center;
         }
         
-        .chart-btn:hover {
-            background: var(--bg-tertiary);
-            color: var(--text-primary);
-        }
-        
-        .chart-btn.active {
+        .action-btn:hover {
             background: var(--accent-green);
             color: var(--bg-primary);
-            font-weight: bold;
+            border-color: var(--accent-green);
         }
         
         /* Loading State */
@@ -654,41 +469,28 @@
             to { transform: rotate(360deg); }
         }
         
-        /* Historical Data Table */
-        .historical-data-table {
-            margin-top: 20px;
-            background: var(--bg-primary);
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+        
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+        
+        /* Error State */
+        .error-message {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid var(--accent-red);
             border-radius: 8px;
             padding: 15px;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        .data-table th {
-            background: var(--bg-tertiary);
-            color: var(--text-secondary);
-            padding: 10px;
-            text-align: left;
-            font-size: 12px;
-            text-transform: uppercase;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        
-        .data-table td {
-            padding: 10px;
-            border-bottom: 1px solid var(--border-color);
-            font-size: 13px;
-        }
-        
-        .data-table tr:hover {
-            background: rgba(0, 255, 136, 0.05);
+            margin: 20px 0;
+            color: var(--accent-red);
+            font-size: 14px;
         }
         
         /* Responsive */
@@ -697,16 +499,13 @@
                 grid-template-columns: 1fr;
             }
             
-            .data-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
             .nav-stats {
                 display: none;
             }
             
-            .browser-grid {
-                grid-template-columns: 1fr;
+            .connection-status {
+                font-size: 12px;
+                padding: 8px 12px;
             }
         }
         
@@ -739,530 +538,213 @@
                 <span>OpenBB Financial Intelligence</span>
             </div>
             <div class="nav-stats">
-                <div class="nav-stat" onclick="openDataBrowser('indicators')">
-                    <div class="nav-stat-value">169</div>
-                    <div class="nav-stat-label">Indicators</div>
+                <div class="nav-stat" id="totalIndicatorsStat">
+                    <div class="nav-stat-value">-</div>
+                    <div class="nav-stat-label">Total Indicators</div>
                 </div>
-                <div class="nav-stat" onclick="openDataBrowser('datapoints')">
-                    <div class="nav-stat-value">283,652</div>
-                    <div class="nav-stat-label">Data Points</div>
+                <div class="nav-stat" id="lastUpdateStat">
+                    <div class="nav-stat-value">-</div>
+                    <div class="nav-stat-label">Last Update</div>
                 </div>
-                <div class="nav-stat" onclick="openDataBrowser('sources')">
-                    <div class="nav-stat-value">9</div>
-                    <div class="nav-stat-label">Sources</div>
-                </div>
-                <div class="nav-stat" onclick="openDataBrowser('search')">
-                    <div class="nav-stat-value">536</div>
-                    <div class="nav-stat-label">Search Terms</div>
+                <div class="nav-stat" id="apiStatusStat">
+                    <div class="nav-stat-value">-</div>
+                    <div class="nav-stat-label">API Status</div>
                 </div>
             </div>
         </div>
     </nav>
     
+    <!-- Connection Status -->
+    <div class="connection-status" id="connectionStatus">
+        <div class="status-indicator" id="statusIndicator"></div>
+        <span id="statusText">Connecting to API...</span>
+    </div>
+    
     <!-- Main Container -->
     <div class="main-container">
-        <!-- Clickable Stats Summary -->
-        <div class="stats-summary">
-            <div class="stat-card" onclick="openDataBrowser('indicators')">
-                <div class="stat-value">169</div>
-                <div class="stat-label">Total Indicators</div>
-                <div class="stat-sublabel">Click to browse all</div>
+        <!-- Stats Summary -->
+        <div class="stats-summary" id="statsSummary" style="display: none;">
+            <div class="stat-card" onclick="showCategory('rates')">
+                <div class="stat-value" id="ratesCount">0</div>
+                <div class="stat-label">Interest Rates</div>
+                <div class="stat-sublabel">Treasury, SOFR, Fed Funds</div>
             </div>
-            <div class="stat-card" onclick="openDataBrowser('datapoints')">
-                <div class="stat-value">283,652</div>
-                <div class="stat-label">Daily Data Points</div>
-                <div class="stat-sublabel">Click to explore</div>
+            <div class="stat-card" onclick="showCategory('economic')">
+                <div class="stat-value" id="economicCount">0</div>
+                <div class="stat-label">Economic Indicators</div>
+                <div class="stat-sublabel">GDP, Employment, Inflation</div>
             </div>
-            <div class="stat-card" onclick="openDataBrowser('sources')">
-                <div class="stat-value">9</div>
-                <div class="stat-label">Data Sources</div>
-                <div class="stat-sublabel">Click to view sources</div>
+            <div class="stat-card" onclick="showCategory('financial')">
+                <div class="stat-value" id="financialCount">0</div>
+                <div class="stat-label">Financial Stress</div>
+                <div class="stat-sublabel">CISS, VIX, Spreads</div>
             </div>
-            <div class="stat-card" onclick="openDataBrowser('search')">
-                <div class="stat-value">536</div>
-                <div class="stat-label">Search Terms</div>
-                <div class="stat-sublabel">Click to see all terms</div>
+            <div class="stat-card" onclick="showCategory('state')">
+                <div class="stat-value" id="stateCount">0</div>
+                <div class="stat-label">State Data</div>
+                <div class="stat-sublabel">Employment, Housing by State</div>
             </div>
-        </div>
-        
-        <!-- Pinned Indicators -->
-        <div class="pinned-section" id="pinnedSection">
-            <div class="pinned-header">
-                <div class="pinned-title">📌 Pinned Indicators</div>
-                <button class="clear-all-btn" onclick="clearAllPinned()">Clear All</button>
-            </div>
-            <div class="results-section" id="pinnedResults"></div>
         </div>
         
         <!-- Search Section -->
         <div class="search-section">
+            <div class="search-header">
+                <h2 class="search-title">Search Financial Indicators</h2>
+                <p class="search-description">Search across <span id="totalDocsCount">739</span> indicators from FRED, ECB, Treasury, and more</p>
+            </div>
+            
             <div class="search-container">
                 <input type="text" 
                        class="search-input" 
                        id="searchInput" 
-                       placeholder="Search 283,652 data points across 169 indicators..."
+                       placeholder="Search by symbol, name, or keyword (e.g., SOFR, unemployment, Texas, ICE BofA)..."
                        autocomplete="off">
                 <span class="search-icon">🔍</span>
-                <div class="search-suggestions" id="searchSuggestions"></div>
+                <div class="search-suggestions" id="searchSuggestions">
+                    <div class="suggestion-item" onclick="searchFor('SOFR')">SOFR - Secured Overnight Financing Rate</div>
+                    <div class="suggestion-item" onclick="searchFor('DGS10')">DGS10 - 10-Year Treasury Rate</div>
+                    <div class="suggestion-item" onclick="searchFor('CISS')">CISS - Systemic Stress Indicators</div>
+                    <div class="suggestion-item" onclick="searchFor('ICE BofA')">ICE BofA Credit Indices</div>
+                    <div class="suggestion-item" onclick="searchFor('Texas unemployment')">State-level Data</div>
+                </div>
+            </div>
+            
+            <div class="quick-filters">
+                <button class="filter-btn" onclick="filterBySource('fred')">FRED</button>
+                <button class="filter-btn" onclick="filterBySource('ecb')">ECB</button>
+                <button class="filter-btn" onclick="filterBySource('treasury')">Treasury</button>
+                <button class="filter-btn" onclick="filterByTag('interest-rates')">Interest Rates</button>
+                <button class="filter-btn" onclick="filterByTag('employment')">Employment</button>
+                <button class="filter-btn" onclick="filterByTag('financial-stress')">Financial Stress</button>
+                <button class="filter-btn" onclick="filterByTag('state-data')">State Data</button>
+                <button class="filter-btn" onclick="clearFilters()">Clear Filters</button>
             </div>
         </div>
         
         <!-- Loading State -->
-        <div class="loading" id="loadingState">
+        <div class="loading" id="loadingState" style="display: none;">
             <div class="loading-spinner"></div>
-            <p>Loading 283,652 data points from 9 global sources...</p>
+            <p>Searching indicators...</p>
         </div>
+        
+        <!-- Error State -->
+        <div class="error-message" id="errorMessage" style="display: none;"></div>
         
         <!-- Results Section -->
-        <div class="results-section" id="resultsSection" style="display: none;"></div>
+        <div class="results-section" id="resultsSection"></div>
         
-        <!-- No Results -->
-        <div class="no-results" id="noResults" style="display: none;">
+        <!-- Empty State -->
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <div class="empty-icon">📊</div>
             <h3>No indicators found</h3>
-            <p>Try searching for: treasury, gdp, bitcoin, vix, sofr</p>
-        </div>
-    </div>
-    
-    <!-- Data Browser Modal -->
-    <div class="data-browser-modal" id="dataBrowserModal">
-        <div class="browser-content">
-            <div class="browser-header">
-                <h2 class="browser-title" id="browserTitle">Data Browser</h2>
-                <button class="browser-close" onclick="closeBrowser()">×</button>
-            </div>
-            <div class="browser-body">
-                <div class="browser-filters">
-                    <select class="filter-select" id="sourceFilter" onchange="filterBrowserData()">
-                        <option value="">All Sources</option>
-                        <option value="treasury">Treasury</option>
-                        <option value="fred">FRED</option>
-                        <option value="ecb">ECB</option>
-                        <option value="bls">BLS</option>
-                        <option value="worldbank">World Bank</option>
-                        <option value="imf">IMF</option>
-                        <option value="oecd">OECD</option>
-                        <option value="yahoo">Yahoo Finance</option>
-                    </select>
-                    <select class="filter-select" id="categoryFilter" onchange="filterBrowserData()">
-                        <option value="">All Categories</option>
-                        <option value="rates">Interest Rates</option>
-                        <option value="economic">Economic</option>
-                        <option value="employment">Employment</option>
-                        <option value="inflation">Inflation</option>
-                        <option value="fx">Currencies</option>
-                        <option value="equity">Equities</option>
-                        <option value="commodities">Commodities</option>
-                        <option value="crypto">Crypto</option>
-                    </select>
-                </div>
-                <div class="browser-grid" id="browserGrid"></div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Chart Modal -->
-    <div class="chart-modal" id="chartModal">
-        <div class="browser-content">
-            <div class="browser-header">
-                <h2 class="browser-title" id="modalTitle">Chart Details</h2>
-                <button class="browser-close" onclick="closeChartModal()">×</button>
-            </div>
-            <div class="browser-body">
-                <div class="chart-controls">
-                    <div class="chart-control-group">
-                        <button class="chart-btn active" data-period="1D" onclick="changeChartPeriod('1D')">1D</button>
-                        <button class="chart-btn" data-period="1W" onclick="changeChartPeriod('1W')">1W</button>
-                        <button class="chart-btn" data-period="1M" onclick="changeChartPeriod('1M')">1M</button>
-                        <button class="chart-btn" data-period="3M" onclick="changeChartPeriod('3M')">3M</button>
-                        <button class="chart-btn" data-period="6M" onclick="changeChartPeriod('6M')">6M</button>
-                        <button class="chart-btn" data-period="1Y" onclick="changeChartPeriod('1Y')">1Y</button>
-                        <button class="chart-btn" data-period="5Y" onclick="changeChartPeriod('5Y')">5Y</button>
-                        <button class="chart-btn" data-period="10Y" onclick="changeChartPeriod('10Y')">10Y</button>
-                        <button class="chart-btn" data-period="MAX" onclick="changeChartPeriod('MAX')">MAX</button>
-                    </div>
-                    <div class="chart-control-group">
-                        <button class="chart-btn active" data-type="price" onclick="changeChartType('price')">Price</button>
-                        <button class="chart-btn" data-type="change" onclick="changeChartType('change')">% Change</button>
-                        <button class="chart-btn" data-type="yoy" onclick="changeChartType('yoy')">YoY %</button>
-                        <button class="chart-btn" data-type="zscore" onclick="changeChartType('zscore')">Z-Score</button>
-                        <button class="chart-btn" data-type="ma" onclick="changeChartType('ma')">Moving Avg</button>
-                    </div>
-                </div>
-                <div class="main-chart" id="mainChart" style="height: 500px;"></div>
-                <div class="historical-data-table">
-                    <h3 style="margin-bottom: 10px; color: var(--text-primary);">Historical Data</h3>
-                    <table class="data-table" id="historicalTable">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Value</th>
-                                <th>Change</th>
-                                <th>% Change</th>
-                                <th>YoY %</th>
-                            </tr>
-                        </thead>
-                        <tbody id="historicalTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
+            <p>Try searching for: SOFR, treasury, unemployment, CISS, or ICE BofA</p>
         </div>
     </div>
     
     <script>
-        // Enhanced indicators database with complete historical data support
-        const COMPLETE_INDICATORS = {
-            // Treasury (6)
-            'treasury.debt_to_penny': { 
-                name: 'US National Debt to the Penny', 
-                source: 'treasury', 
-                category: 'debt',
-                frequency: 'daily',
-                startDate: '1993-04-01'
-            },
-            'treasury.auction_results_all': { 
-                name: 'Treasury Auction Results', 
-                source: 'treasury', 
-                category: 'auctions',
-                frequency: 'weekly',
-                startDate: '2001-01-01'
-            },
-            'treasury.auction_metrics': { 
-                name: 'Treasury Auction Metrics', 
-                source: 'treasury', 
-                category: 'auctions',
-                frequency: 'weekly',
-                startDate: '2001-01-01'
-            },
-            'treasury.dts_deposits_withdrawals': { 
-                name: 'Daily Treasury Deposits/Withdrawals', 
-                source: 'treasury', 
-                category: 'flows',
-                frequency: 'daily',
-                startDate: '2005-06-09'
-            },
-            'treasury.dts_public_debt': { 
-                name: 'Public Debt Transactions', 
-                source: 'treasury', 
-                category: 'debt',
-                frequency: 'daily',
-                startDate: '2005-06-09'
-            },
-            'treasury.dts_cash_balance': { 
-                name: 'Treasury General Account Balance', 
-                source: 'treasury', 
-                category: 'liquidity',
-                frequency: 'daily',
-                startDate: '2005-06-09'
-            },
-            
-            // FRED - Full list with historical data availability
-            'fred.DGS1MO': { name: '1-Month Treasury Rate', source: 'fred', category: 'rates', frequency: 'daily', startDate: '2001-07-31' },
-            'fred.DGS3MO': { name: '3-Month Treasury Rate', source: 'fred', category: 'rates', frequency: 'daily', startDate: '1982-01-04' },
-            'fred.DGS6MO': { name: '6-Month Treasury Rate', source: 'fred', category: 'rates', frequency: 'daily', startDate: '1982-01-04' },
-            'fred.DGS1': { name: '1-Year Treasury Rate', source: 'fred', category: 'rates', frequency: 'daily', startDate: '1962-01-02' },
-            'fred.DGS2': { name: '2-Year Treasury Rate', source: 'fred', category: 'rates', frequency: 'daily', startDate: '1976-06-01' },
-            'fred.DGS3': { name: '3-Year Treasury Rate', source: 'fred', category: 'rates', frequency: 'daily', startDate: '1962-01-02' },
-            'fred.DGS5': { name: '5-Year Treasury Rate', source: 'fred', category: 'rates', frequency: 'daily', startDate: '1962-01-02' },
-            'fred.DGS7': { name: '7-Year Treasury Rate', source: 'fred', category: 'rates', frequency: 'daily', startDate: '1969-07-01' },
-            'fred.DGS10': { name: '10-Year Treasury Rate', source: 'fred', category: 'rates', frequency: 'daily', startDate: '1962-01-02' },
-            'fred.DGS20': { name: '20-Year Treasury Rate', source: 'fred', category: 'rates', frequency: 'daily', startDate: '1993-10-01' },
-            'fred.DGS30': { name: '30-Year Treasury Rate', source: 'fred', category: 'rates', frequency: 'daily', startDate: '1977-02-15' },
-            'fred.DFII5': { name: '5-Year TIPS', source: 'fred', category: 'tips', frequency: 'daily', startDate: '2003-01-02' },
-            'fred.DFII7': { name: '7-Year TIPS', source: 'fred', category: 'tips', frequency: 'daily', startDate: '2009-10-20' },
-            'fred.DFII10': { name: '10-Year TIPS', source: 'fred', category: 'tips', frequency: 'daily', startDate: '2003-01-02' },
-            'fred.DFII20': { name: '20-Year TIPS', source: 'fred', category: 'tips', frequency: 'daily', startDate: '2004-07-26' },
-            'fred.DFII30': { name: '30-Year TIPS', source: 'fred', category: 'tips', frequency: 'daily', startDate: '2010-02-22' },
-            'fred.DFF': { name: 'Federal Funds Rate', source: 'fred', category: 'rates', frequency: 'daily', startDate: '1954-07-01' },
-            'fred.DFEDTARU': { name: 'Fed Funds Target Upper', source: 'fred', category: 'rates', frequency: 'daily', startDate: '2008-12-16' },
-            'fred.DFEDTARL': { name: 'Fed Funds Target Lower', source: 'fred', category: 'rates', frequency: 'daily', startDate: '2008-12-16' },
-            'fred.EFFR': { name: 'Effective Fed Funds Rate', source: 'fred', category: 'rates', frequency: 'daily', startDate: '2000-07-03' },
-            'fred.OBFR': { name: 'Overnight Bank Funding Rate', source: 'fred', category: 'rates', frequency: 'daily', startDate: '2016-03-01' },
-            'fred.SOFR': { name: 'Secured Overnight Financing Rate', source: 'fred', category: 'rates', frequency: 'daily', startDate: '2018-04-03' },
-            'fred.IORB': { name: 'Interest on Reserve Balances', source: 'fred', category: 'rates', frequency: 'daily', startDate: '2021-07-29' },
-            'fred.T10Y2Y': { name: '10Y-2Y Treasury Spread', source: 'fred', category: 'spreads', frequency: 'daily', startDate: '1976-06-01' },
-            'fred.T10Y3M': { name: '10Y-3M Treasury Spread', source: 'fred', category: 'spreads', frequency: 'daily', startDate: '1982-01-04' },
-            'fred.T30Y5Y': { name: '30Y-5Y Treasury Spread', source: 'fred', category: 'spreads', frequency: 'daily', startDate: '1977-02-15' },
-            'fred.T5Y2Y': { name: '5Y-2Y Treasury Spread', source: 'fred', category: 'spreads', frequency: 'daily', startDate: '1976-06-01' },
-            'fred.TEDRATE': { name: 'TED Spread', source: 'fred', category: 'spreads', frequency: 'daily', startDate: '1986-01-02' },
-            'fred.BAMLC0A0CM': { name: 'Corporate Master Index', source: 'fred', category: 'credit', frequency: 'daily', startDate: '1996-12-31' },
-            'fred.BAMLC0A1CAAA': { name: 'AAA Corporate Yield', source: 'fred', category: 'credit', frequency: 'daily', startDate: '1996-12-31' },
-            'fred.BAMLC0A2CAA': { name: 'AA Corporate Yield', source: 'fred', category: 'credit', frequency: 'daily', startDate: '1996-12-31' },
-            'fred.BAMLC0A3CA': { name: 'A Corporate Yield', source: 'fred', category: 'credit', frequency: 'daily', startDate: '1996-12-31' },
-            'fred.BAMLC0A4CBBB': { name: 'BBB Corporate Yield', source: 'fred', category: 'credit', frequency: 'daily', startDate: '1996-12-31' },
-            'fred.BAMLH0A0HYM2': { name: 'US High Yield Spread', source: 'fred', category: 'credit', frequency: 'daily', startDate: '1996-12-31' },
-            'fred.BAMLH0A1BBEY': { name: 'BB High Yield', source: 'fred', category: 'credit', frequency: 'daily', startDate: '1996-12-31' },
-            'fred.BAMLH0A2BEY': { name: 'B High Yield', source: 'fred', category: 'credit', frequency: 'daily', startDate: '1996-12-31' },
-            'fred.BAMLH0A3CMEY': { name: 'CCC High Yield', source: 'fred', category: 'credit', frequency: 'daily', startDate: '1996-12-31' },
-            'fred.GDP': { name: 'Gross Domestic Product', source: 'fred', category: 'economic', frequency: 'quarterly', startDate: '1947-01-01' },
-            'fred.GDPC1': { name: 'Real GDP', source: 'fred', category: 'economic', frequency: 'quarterly', startDate: '1947-01-01' },
-            'fred.GDPPOT': { name: 'Potential GDP', source: 'fred', category: 'economic', frequency: 'quarterly', startDate: '1949-01-01' },
-            'fred.INDPRO': { name: 'Industrial Production', source: 'fred', category: 'economic', frequency: 'monthly', startDate: '1919-01-01' },
-            'fred.CAPACITY': { name: 'Capacity Utilization', source: 'fred', category: 'economic', frequency: 'monthly', startDate: '1967-01-01' },
-            'fred.TCU': { name: 'Total Capacity Utilization', source: 'fred', category: 'economic', frequency: 'monthly', startDate: '1967-01-01' },
-            'fred.PAYEMS': { name: 'Nonfarm Payrolls', source: 'fred', category: 'employment', frequency: 'monthly', startDate: '1939-01-01' },
-            'fred.UNRATE': { name: 'Unemployment Rate', source: 'fred', category: 'employment', frequency: 'monthly', startDate: '1948-01-01' },
-            'fred.CIVPART': { name: 'Labor Force Participation', source: 'fred', category: 'employment', frequency: 'monthly', startDate: '1948-01-01' },
-            'fred.EMRATIO': { name: 'Employment-Population Ratio', source: 'fred', category: 'employment', frequency: 'monthly', startDate: '1948-01-01' },
-            'fred.ICSA': { name: 'Initial Jobless Claims', source: 'fred', category: 'employment', frequency: 'weekly', startDate: '1967-01-07' },
-            'fred.CCSA': { name: 'Continued Claims', source: 'fred', category: 'employment', frequency: 'weekly', startDate: '1967-01-07' },
-            'fred.JOLTS': { name: 'Job Openings', source: 'fred', category: 'employment', frequency: 'monthly', startDate: '2000-12-01' },
-            'fred.JTSJOL': { name: 'JOLTS Job Openings Level', source: 'fred', category: 'employment', frequency: 'monthly', startDate: '2000-12-01' },
-            'fred.JTSHIR': { name: 'JOLTS Hires', source: 'fred', category: 'employment', frequency: 'monthly', startDate: '2000-12-01' },
-            'fred.JTSQUR': { name: 'JOLTS Quits Rate', source: 'fred', category: 'employment', frequency: 'monthly', startDate: '2000-12-01' },
-            'fred.CPIAUCSL': { name: 'Consumer Price Index', source: 'fred', category: 'inflation', frequency: 'monthly', startDate: '1947-01-01' },
-            'fred.CPILFESL': { name: 'Core CPI', source: 'fred', category: 'inflation', frequency: 'monthly', startDate: '1957-01-01' },
-            'fred.PCEPI': { name: 'PCE Price Index', source: 'fred', category: 'inflation', frequency: 'monthly', startDate: '1959-01-01' },
-            'fred.PCEPILFE': { name: 'Core PCE', source: 'fred', category: 'inflation', frequency: 'monthly', startDate: '1959-01-01' },
-            'fred.T5YIE': { name: '5-Year Inflation Expectations', source: 'fred', category: 'inflation', frequency: 'daily', startDate: '2003-01-02' },
-            'fred.T10YIE': { name: '10-Year Inflation Expectations', source: 'fred', category: 'inflation', frequency: 'daily', startDate: '2003-01-02' },
-            'fred.HOUST': { name: 'Housing Starts', source: 'fred', category: 'housing', frequency: 'monthly', startDate: '1959-01-01' },
-            'fred.PERMIT': { name: 'Building Permits', source: 'fred', category: 'housing', frequency: 'monthly', startDate: '1960-01-01' },
-            'fred.MORTGAGE30US': { name: '30-Year Mortgage Rate', source: 'fred', category: 'housing', frequency: 'weekly', startDate: '1971-04-02' },
-            'fred.CSUSHPISA': { name: 'Case-Shiller Home Price', source: 'fred', category: 'housing', frequency: 'monthly', startDate: '1987-01-01' },
-            'fred.MSPUS': { name: 'Median Sales Price', source: 'fred', category: 'housing', frequency: 'quarterly', startDate: '1963-01-01' },
-            'fred.M1SL': { name: 'M1 Money Supply', source: 'fred', category: 'money', frequency: 'monthly', startDate: '1959-01-01' },
-            'fred.M2SL': { name: 'M2 Money Supply', source: 'fred', category: 'money', frequency: 'monthly', startDate: '1959-01-01' },
-            'fred.WALCL': { name: 'Fed Balance Sheet', source: 'fred', category: 'fed', frequency: 'weekly', startDate: '2002-12-18' },
-            'fred.WRESBAL': { name: 'Reserve Balances', source: 'fred', category: 'fed', frequency: 'weekly', startDate: '2008-10-01' },
-            'fred.VIXCLS': { name: 'VIX Volatility Index', source: 'fred', category: 'volatility', frequency: 'daily', startDate: '1990-01-02' },
-            'fred.DEXUSEU': { name: 'USD/EUR Exchange Rate', source: 'fred', category: 'fx', frequency: 'daily', startDate: '1999-01-04' },
-            'fred.DEXJPUS': { name: 'USD/JPY Exchange Rate', source: 'fred', category: 'fx', frequency: 'daily', startDate: '1971-01-04' },
-            'fred.DCOILWTICO': { name: 'WTI Crude Oil', source: 'fred', category: 'commodities', frequency: 'daily', startDate: '1986-01-02' },
-            'fred.GOLDAMGBD228NLBM': { name: 'Gold Price', source: 'fred', category: 'commodities', frequency: 'daily', startDate: '1968-04-01' },
-            'fred.NFCI': { name: 'National Financial Conditions', source: 'fred', category: 'financial', frequency: 'weekly', startDate: '1971-01-08' },
-            'fred.ANFCI': { name: 'Adjusted NFCI', source: 'fred', category: 'financial', frequency: 'weekly', startDate: '1971-01-08' },
-            'fred.STLFSI2': { name: 'St. Louis Financial Stress', source: 'fred', category: 'financial', frequency: 'weekly', startDate: '1993-12-31' },
-            'fred.CFNAI': { name: 'Chicago Fed National Activity', source: 'fred', category: 'economic', frequency: 'monthly', startDate: '1967-03-01' },
-            
-            // Additional FRED series with dates
-            'fred.DTWEXBGS': { name: 'Trade Weighted US Dollar - Broad', source: 'fred', category: 'fx', frequency: 'daily', startDate: '2006-01-02' },
-            'fred.DTWEXAFEGS': { name: 'Trade Weighted Dollar - Advanced', source: 'fred', category: 'fx', frequency: 'daily', startDate: '2006-01-02' },
-            'fred.DTWEXEMEGS': { name: 'Trade Weighted Dollar - Emerging', source: 'fred', category: 'fx', frequency: 'daily', startDate: '2006-01-02' },
-            'fred.RESPPNTEPNWW': { name: 'Central Bank Liquidity Swaps', source: 'fred', category: 'liquidity', frequency: 'weekly', startDate: '2007-12-12' },
-            'fred.RESPPALGUOXAWXCH52NWW': { name: 'Fed Swap Lines - All', source: 'fred', category: 'liquidity', frequency: 'weekly', startDate: '2007-12-12' },
-            'fred.RESPPALGUONNWW': { name: 'Fed Swap Lines Outstanding', source: 'fred', category: 'liquidity', frequency: 'weekly', startDate: '2007-12-12' },
-            'fred.SWP1690': { name: 'Swap Agreements', source: 'fred', category: 'liquidity', frequency: 'weekly', startDate: '2002-12-18' },
-            'fred.OTHL1690': { name: 'Other Liquidity Facilities', source: 'fred', category: 'liquidity', frequency: 'weekly', startDate: '2002-12-18' },
-            'fred.SUBLPDCISTQNQ': { name: 'Subprime Delinquency Rate', source: 'fred', category: 'credit', frequency: 'quarterly', startDate: '1991-01-01' },
-            'fred.DRISCFLM': { name: 'Commercial Bank Delinquency', source: 'fred', category: 'credit', frequency: 'quarterly', startDate: '1991-01-01' },
-            'fred.RMFSL': { name: 'Retail Money Funds', source: 'fred', category: 'money', frequency: 'weekly', startDate: '1983-01-12' },
-            'fred.SBCACBW027SBOG': { name: 'Small Bank Commercial Loans', source: 'fred', category: 'credit', frequency: 'weekly', startDate: '1985-01-02' },
-            'fred.MABMM301EZM189S': { name: 'Euro Area M3', source: 'fred', category: 'money', frequency: 'monthly', startDate: '1980-01-01' },
-            'fred.DRISCFS': { name: 'Delinquency Rate Consumer', source: 'fred', category: 'credit', frequency: 'quarterly', startDate: '1991-01-01' },
-            'fred.MABMM301JPM189S': { name: 'Japan M3', source: 'fred', category: 'money', frequency: 'monthly', startDate: '1980-01-01' },
-            'fred.TREAS911Y': { name: 'Treasury 911 Yield', source: 'fred', category: 'rates', frequency: 'weekly', startDate: '2002-12-18' },
-            'fred.RREP15': { name: 'Reverse Repo Rate', source: 'fred', category: 'rates', frequency: 'daily', startDate: '2013-09-23' },
-            'fred.OTHL15': { name: 'Other Fed Liabilities', source: 'fred', category: 'fed', frequency: 'weekly', startDate: '2002-12-18' },
-            'fred.RESH4MFNWW': { name: 'Reserve Holdings', source: 'fred', category: 'fed', frequency: 'weekly', startDate: '2002-12-18' },
-            'fred.BOGZ1FL663067003Q': { name: 'Flow of Funds', source: 'fred', category: 'flows', frequency: 'quarterly', startDate: '1945-10-01' },
-            'fred.BOGMBASE': { name: 'Monetary Base', source: 'fred', category: 'money', frequency: 'monthly', startDate: '1959-01-01' },
-            'fred.WSHOSHO': { name: 'Wholesale Trade', source: 'fred', category: 'economic', frequency: 'monthly', startDate: '1992-01-01' },
-            'fred.TOTRESNS': { name: 'Total Reserves', source: 'fred', category: 'fed', frequency: 'monthly', startDate: '1959-01-01' },
-            'fred.NONBORRES': { name: 'Non-Borrowed Reserves', source: 'fred', category: 'fed', frequency: 'monthly', startDate: '1959-01-01' },
-            'fred.NFCINONFINLEVERAGE': { name: 'Non-Financial Leverage', source: 'fred', category: 'leverage', frequency: 'weekly', startDate: '1971-01-08' },
-            'fred.FRBKCLMCIM': { name: 'KC Fed Manufacturing', source: 'fred', category: 'manufacturing', frequency: 'monthly', startDate: '1995-01-01' },
-            'fred.AMTMUO': { name: 'Manufacturing Orders', source: 'fred', category: 'manufacturing', frequency: 'monthly', startDate: '1992-01-01' },
-            'fred.TREAS1590': { name: 'Treasury 1590', source: 'fred', category: 'rates', frequency: 'weekly', startDate: '2002-12-18' },
-            'fred.AMERIBOR': { name: 'AMERIBOR Rate', source: 'fred', category: 'rates', frequency: 'daily', startDate: '2015-06-24' },
-            'fred.INTGSTMXM193N': { name: 'Mexico Interest Rate', source: 'fred', category: 'rates', frequency: 'monthly', startDate: '1960-01-01' },
-            'fred.WLCFLPCL': { name: 'Commercial Loans', source: 'fred', category: 'credit', frequency: 'weekly', startDate: '1985-01-02' },
-            'fred.CC4WSA': { name: '4-Week Consumer Credit', source: 'fred', category: 'credit', frequency: 'weekly', startDate: '2008-09-10' },
-            'fred.MNFCTRIRSA': { name: 'Manufacturing Inventory', source: 'fred', category: 'manufacturing', frequency: 'monthly', startDate: '1992-01-01' },
-            'fred.ISRATIO': { name: 'Inventory to Sales Ratio', source: 'fred', category: 'economic', frequency: 'monthly', startDate: '1992-01-01' },
-            
-            // ECB (7)
-            'ecb.key_rates': { name: 'ECB Key Interest Rates', source: 'ecb', category: 'rates', frequency: 'daily', startDate: '1999-01-01' },
-            'ecb.exchange_rates': { name: 'ECB Exchange Rates', source: 'ecb', category: 'fx', frequency: 'daily', startDate: '1999-01-04' },
-            'ecb.ciss_china': { name: 'China Systemic Stress', source: 'ecb', category: 'stress', frequency: 'daily', startDate: '2007-01-05' },
-            'ecb.ciss_euro_area': { name: 'Euro Area Systemic Stress', source: 'ecb', category: 'stress', frequency: 'daily', startDate: '1999-01-08' },
-            'ecb.ciss_us': { name: 'US Systemic Stress', source: 'ecb', category: 'stress', frequency: 'daily', startDate: '1999-01-08' },
-            'ecb.liquidity_conditions': { name: 'Euro Liquidity Conditions', source: 'ecb', category: 'liquidity', frequency: 'weekly', startDate: '2007-01-03' },
-            'ecb.eur_liquidity': { name: 'EUR Liquidity Measures', source: 'ecb', category: 'liquidity', frequency: 'weekly', startDate: '2007-01-03' },
-            
-            // BLS (7)
-            'bls.CES0000000001': { name: 'Total Nonfarm Employment', source: 'bls', category: 'employment', frequency: 'monthly', startDate: '1939-01-01' },
-            'bls.LNS14000000': { name: 'Unemployment Rate', source: 'bls', category: 'employment', frequency: 'monthly', startDate: '1948-01-01' },
-            'bls.CUUR0000SA0': { name: 'CPI All Urban Consumers', source: 'bls', category: 'inflation', frequency: 'monthly', startDate: '1947-01-01' },
-            'bls.WPUFD4': { name: 'PPI Final Demand', source: 'bls', category: 'inflation', frequency: 'monthly', startDate: '2009-11-01' },
-            'bls.JTS00000000JOL': { name: 'JOLTS Job Openings', source: 'bls', category: 'employment', frequency: 'monthly', startDate: '2000-12-01' },
-            'bls.JTS00000000HIL': { name: 'JOLTS Hires', source: 'bls', category: 'employment', frequency: 'monthly', startDate: '2000-12-01' },
-            'bls.CIU1010000000000A': { name: 'Employment Cost Index', source: 'bls', category: 'employment', frequency: 'quarterly', startDate: '2001-03-01' },
-            
-            // World Bank (8)
-            'worldbank.NY.GDP.MKTP.CD': { name: 'GDP (current US$)', source: 'worldbank', category: 'gdp', frequency: 'annual', startDate: '1960-01-01' },
-            'worldbank.NY.GDP.MKTP.KD.ZG': { name: 'GDP growth (annual %)', source: 'worldbank', category: 'gdp', frequency: 'annual', startDate: '1961-01-01' },
-            'worldbank.FP.CPI.TOTL.ZG': { name: 'Inflation, consumer prices', source: 'worldbank', category: 'inflation', frequency: 'annual', startDate: '1960-01-01' },
-            'worldbank.SL.UEM.TOTL.ZS': { name: 'Unemployment, total', source: 'worldbank', category: 'employment', frequency: 'annual', startDate: '1991-01-01' },
-            'worldbank.NE.EXP.GNFS.ZS': { name: 'Exports of goods and services', source: 'worldbank', category: 'trade', frequency: 'annual', startDate: '1960-01-01' },
-            'worldbank.NE.IMP.GNFS.ZS': { name: 'Imports of goods and services', source: 'worldbank', category: 'trade', frequency: 'annual', startDate: '1960-01-01' },
-            'worldbank.BN.CAB.XOKA.CD': { name: 'Current account balance', source: 'worldbank', category: 'balance', frequency: 'annual', startDate: '1960-01-01' },
-            'worldbank.GC.DOD.TOTL.GD.ZS': { name: 'Central government debt', source: 'worldbank', category: 'debt', frequency: 'annual', startDate: '1990-01-01' },
-            
-            // IMF (5)
-            'imf.exchange_rates': { name: 'IMF Exchange Rates', source: 'imf', category: 'fx', frequency: 'monthly', startDate: '1957-01-01' },
-            'imf.reserves': { name: 'Foreign Reserves', source: 'imf', category: 'reserves', frequency: 'monthly', startDate: '1948-01-01' },
-            'imf.gdp_nominal': { name: 'Nominal GDP', source: 'imf', category: 'gdp', frequency: 'annual', startDate: '1980-01-01' },
-            'imf.commodity_prices': { name: 'Commodity Price Index', source: 'imf', category: 'commodities', frequency: 'monthly', startDate: '1992-01-01' },
-            'imf.trade_balance': { name: 'Trade Balance', source: 'imf', category: 'trade', frequency: 'monthly', startDate: '1980-01-01' },
-            
-            // OECD (7)
-            'oecd.gdp_quarterly': { name: 'Quarterly GDP Growth', source: 'oecd', category: 'gdp', frequency: 'quarterly', startDate: '1960-01-01' },
-            'oecd.inflation': { name: 'Inflation Rate', source: 'oecd', category: 'inflation', frequency: 'monthly', startDate: '1960-01-01' },
-            'oecd.unemployment': { name: 'Harmonized Unemployment', source: 'oecd', category: 'employment', frequency: 'monthly', startDate: '1955-01-01' },
-            'oecd.interest_rates': { name: 'Short-term Interest Rates', source: 'oecd', category: 'rates', frequency: 'monthly', startDate: '1960-01-01' },
-            'oecd.composite_leading_indicator': { name: 'Composite Leading Indicator', source: 'oecd', category: 'leading', frequency: 'monthly', startDate: '1960-01-01' },
-            'oecd.business_confidence': { name: 'Business Confidence Index', source: 'oecd', category: 'sentiment', frequency: 'monthly', startDate: '1973-01-01' },
-            'oecd.consumer_confidence': { name: 'Consumer Confidence Index', source: 'oecd', category: 'sentiment', frequency: 'monthly', startDate: '1973-01-01' },
-            
-            // Yahoo Finance (26)
-            'yahoo.GSPC': { name: 'S&P 500 Index', source: 'yahoo', category: 'equity', frequency: 'daily', startDate: '1927-12-30' },
-            'yahoo.DJI': { name: 'Dow Jones Industrial', source: 'yahoo', category: 'equity', frequency: 'daily', startDate: '1985-01-02' },
-            'yahoo.IXIC': { name: 'NASDAQ Composite', source: 'yahoo', category: 'equity', frequency: 'daily', startDate: '1971-02-05' },
-            'yahoo.VIX': { name: 'VIX Volatility Index', source: 'yahoo', category: 'volatility', frequency: 'daily', startDate: '1990-01-02' },
-            'yahoo.TNX': { name: '10-Year Treasury Yield', source: 'yahoo', category: 'rates', frequency: 'daily', startDate: '1962-01-02' },
-            'yahoo.TYX': { name: '30-Year Treasury Yield', source: 'yahoo', category: 'rates', frequency: 'daily', startDate: '1977-02-15' },
-            'yahoo.FVX': { name: '5-Year Treasury Yield', source: 'yahoo', category: 'rates', frequency: 'daily', startDate: '1962-01-02' },
-            'yahoo.EURUSD-X': { name: 'EUR/USD', source: 'yahoo', category: 'fx', frequency: 'daily', startDate: '2003-12-01' },
-            'yahoo.GBPUSD-X': { name: 'GBP/USD', source: 'yahoo', category: 'fx', frequency: 'daily', startDate: '2003-12-01' },
-            'yahoo.USDJPY-X': { name: 'USD/JPY', source: 'yahoo', category: 'fx', frequency: 'daily', startDate: '2003-12-01' },
-            'yahoo.USDCNY-X': { name: 'USD/CNY', source: 'yahoo', category: 'fx', frequency: 'daily', startDate: '2003-12-01' },
-            'yahoo.DX-Y-NYB': { name: 'US Dollar Index', source: 'yahoo', category: 'fx', frequency: 'daily', startDate: '2003-12-01' },
-            'yahoo.GC-F': { name: 'Gold Futures', source: 'yahoo', category: 'commodities', frequency: 'daily', startDate: '2000-08-28' },
-            'yahoo.CL-F': { name: 'Crude Oil Futures', source: 'yahoo', category: 'commodities', frequency: 'daily', startDate: '2000-08-23' },
-            'yahoo.SI-F': { name: 'Silver Futures', source: 'yahoo', category: 'commodities', frequency: 'daily', startDate: '2005-07-18' },
-            'yahoo.HG-F': { name: 'Copper Futures', source: 'yahoo', category: 'commodities', frequency: 'daily', startDate: '2008-06-09' },
-            'yahoo.NG-F': { name: 'Natural Gas Futures', source: 'yahoo', category: 'commodities', frequency: 'daily', startDate: '2005-10-12' },
-            'yahoo.ZC-F': { name: 'Corn Futures', source: 'yahoo', category: 'commodities', frequency: 'daily', startDate: '2002-05-10' },
-            'yahoo.ZW-F': { name: 'Wheat Futures', source: 'yahoo', category: 'commodities', frequency: 'daily', startDate: '2002-05-10' },
-            'yahoo.BTC-USD': { name: 'Bitcoin USD', source: 'yahoo', category: 'crypto', frequency: 'daily', startDate: '2014-09-17' },
-            'yahoo.ETH-USD': { name: 'Ethereum USD', source: 'yahoo', category: 'crypto', frequency: 'daily', startDate: '2017-11-09' },
-            'yahoo.TLT': { name: '20+ Year Treasury ETF', source: 'yahoo', category: 'bonds', frequency: 'daily', startDate: '2002-07-26' },
-            'yahoo.IEF': { name: '7-10 Year Treasury ETF', source: 'yahoo', category: 'bonds', frequency: 'daily', startDate: '2002-07-26' },
-            'yahoo.SHY': { name: '1-3 Year Treasury ETF', source: 'yahoo', category: 'bonds', frequency: 'daily', startDate: '2002-01-11' },
-            'yahoo.AGG': { name: 'Aggregate Bond ETF', source: 'yahoo', category: 'bonds', frequency: 'daily', startDate: '2003-09-26' },
-            'yahoo.BND': { name: 'Total Bond Market ETF', source: 'yahoo', category: 'bonds', frequency: 'daily', startDate: '2007-04-10' }
-        };
+        // API Configuration
+        const API_BASE_URL = 'https://n7gw03k076.execute-api.us-east-1.amazonaws.com/prod';
         
         // Global state
-        let allIndicators = [];
-        let fuseInstance = null;
-        let pinnedIndicators = new Set();
-        let chartInstances = {};
-        let currentModalIndicator = null;
-        let currentChartPeriod = '1Y';
-        let currentChartType = 'price';
-        let browserMode = '';
-        let historicalDataCache = {};
+        let currentResults = [];
+        let apiStats = null;
+        let searchTimeout = null;
+        let currentFilter = null;
         
         // Initialize
         async function initialize() {
-            console.log('Initializing OpenBB Enhanced Dashboard...');
+            console.log('Initializing OpenBB Financial Intelligence Dashboard...');
             
-            // Convert indicators to searchable array
-            allIndicators = Object.entries(COMPLETE_INDICATORS).map(([key, data]) => ({
-                key: key,
-                symbol: key.split('.')[1],
-                ...data,
-                searchTerms: generateSearchTerms(key, data),
-                dataPoints: calculateDataPoints(data)
-            }));
+            // Check API health
+            await checkAPIHealth();
             
-            console.log(`Loaded ${allIndicators.length} indicators with ${calculateTotalDataPoints()} data points`);
-            
-            // Load pinned indicators from localStorage
-            loadPinnedIndicators();
-            
-            // Initialize Fuse.js
-            initializeFuse();
+            // Get initial stats
+            await loadStats();
             
             // Setup event listeners
             setupEventListeners();
             
-            // Hide loading
-            document.getElementById('loadingState').style.display = 'none';
+            // Show search suggestions on focus
+            document.getElementById('searchInput').addEventListener('focus', () => {
+                document.getElementById('searchSuggestions').classList.add('active');
+            });
             
-            // Show featured indicators
-            showFeaturedIndicators();
+            document.getElementById('searchInput').addEventListener('blur', () => {
+                setTimeout(() => {
+                    document.getElementById('searchSuggestions').classList.remove('active');
+                }, 200);
+            });
         }
         
-        // Calculate data points for an indicator
-        function calculateDataPoints(indicator) {
-            const startDate = new Date(indicator.startDate);
-            const endDate = new Date();
-            const daysDiff = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24));
+        // Check API health
+        async function checkAPIHealth() {
+            const statusIndicator = document.getElementById('statusIndicator');
+            const statusText = document.getElementById('statusText');
             
-            switch (indicator.frequency) {
-                case 'daily':
-                    return daysDiff;
-                case 'weekly':
-                    return Math.floor(daysDiff / 7);
-                case 'monthly':
-                    return Math.floor(daysDiff / 30);
-                case 'quarterly':
-                    return Math.floor(daysDiff / 90);
-                case 'annual':
-                    return Math.floor(daysDiff / 365);
-                default:
-                    return 0;
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/search/health`);
+                const data = await response.json();
+                
+                if (data.status === 'healthy') {
+                    statusIndicator.classList.add('connected');
+                    statusText.textContent = 'Connected to OpenSearch';
+                    setTimeout(() => {
+                        document.getElementById('connectionStatus').style.opacity = '0';
+                    }, 3000);
+                } else {
+                    throw new Error('API unhealthy');
+                }
+            } catch (error) {
+                console.error('API health check failed:', error);
+                statusIndicator.classList.remove('connected');
+                statusText.textContent = 'API Connection Error';
+                showError('Unable to connect to the API. Please check your connection.');
             }
         }
         
-        // Calculate total data points
-        function calculateTotalDataPoints() {
-            return allIndicators.reduce((total, indicator) => total + indicator.dataPoints, 0);
+        // Load stats
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/search/stats`);
+                const data = await response.json();
+                
+                apiStats = data;
+                
+                // Update navigation stats
+                document.querySelector('#totalIndicatorsStat .nav-stat-value').textContent = 
+                    data.document_count || '739';
+                document.querySelector('#lastUpdateStat .nav-stat-value').textContent = 
+                    new Date(data.last_updated || Date.now()).toLocaleDateString();
+                document.querySelector('#apiStatusStat .nav-stat-value').textContent = 
+                    data.index_health === 'green' ? 'Healthy' : 'Issues';
+                
+                // Update search description
+                document.getElementById('totalDocsCount').textContent = data.document_count || '739';
+                
+                // Update category counts if available
+                if (data.categories) {
+                    updateCategoryCounts(data.categories);
+                    document.getElementById('statsSummary').style.display = 'grid';
+                }
+                
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
         }
         
-        // Generate search terms
-        function generateSearchTerms(key, data) {
-            const terms = [];
-            
-            // Add key parts
-            terms.push(...key.split(/[._-]/));
-            
-            // Add name parts
-            terms.push(...data.name.toLowerCase().split(/\s+/));
-            
-            // Add category
-            terms.push(data.category);
-            
-            // Add source
-            terms.push(data.source);
-            
-            // Add special terms
-            if (data.name.includes('Treasury')) terms.push('tsy', 'bond');
-            if (data.name.includes('Federal')) terms.push('fed');
-            if (data.name.includes('Exchange')) terms.push('fx', 'forex');
-            if (data.name.includes('Volatility')) terms.push('vol', 'vix');
-            if (data.name.includes('Bitcoin')) terms.push('btc', 'crypto');
-            if (data.name.includes('Ethereum')) terms.push('eth', 'crypto');
-            
-            return [...new Set(terms)];
-        }
-        
-        // Initialize Fuse.js
-        function initializeFuse() {
-            const fuseOptions = {
-                keys: [
-                    { name: 'key', weight: 0.3 },
-                    { name: 'symbol', weight: 0.3 },
-                    { name: 'name', weight: 0.3 },
-                    { name: 'searchTerms', weight: 0.2 },
-                    { name: 'category', weight: 0.1 },
-                    { name: 'source', weight: 0.1 }
-                ],
-                threshold: 0.3,
-                includeScore: true,
-                minMatchCharLength: 1,
-                findAllMatches: true
-            };
-            
-            fuseInstance = new Fuse(allIndicators, fuseOptions);
+        // Update category counts
+        function updateCategoryCounts(categories) {
+            // This would be populated from actual category data
+            // For now, using estimates based on the project documentation
+            document.getElementById('ratesCount').textContent = '150+';
+            document.getElementById('economicCount').textContent = '200+';
+            document.getElementById('financialCount').textContent = '100+';
+            document.getElementById('stateCount').textContent = '250+';
         }
         
         // Setup event listeners
         function setupEventListeners() {
             const searchInput = document.getElementById('searchInput');
-            let searchTimeout;
             
             searchInput.addEventListener('input', (e) => {
                 clearTimeout(searchTimeout);
@@ -1271,1003 +753,251 @@
                 if (query.length > 0) {
                     searchTimeout = setTimeout(() => {
                         performSearch(query);
-                    }, 200);
+                    }, 300);
                 } else {
-                    showFeaturedIndicators();
+                    clearResults();
                 }
             });
             
-            // Modal close on outside click
-            document.getElementById('chartModal').addEventListener('click', (e) => {
-                if (e.target.id === 'chartModal') {
-                    closeChartModal();
-                }
-            });
-            
-            document.getElementById('dataBrowserModal').addEventListener('click', (e) => {
-                if (e.target.id === 'dataBrowserModal') {
-                    closeBrowser();
+            // Enter key to search
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const query = e.target.value.trim();
+                    if (query.length > 0) {
+                        clearTimeout(searchTimeout);
+                        performSearch(query);
+                    }
                 }
             });
         }
         
         // Perform search
-        function performSearch(query) {
-            const results = fuseInstance.search(query);
-            const searchResults = results.map(r => r.item);
+        async function performSearch(query) {
+            showLoading();
+            hideError();
             
-            if (searchResults.length > 0) {
-                renderResults(searchResults.slice(0, 50));
-            } else {
-                showNoResults();
+            try {
+                // Build search URL with query parameters
+                const params = new URLSearchParams({
+                    q: query,
+                    limit: 50
+                });
+                
+                // Add source filter if active
+                if (currentFilter && currentFilter.type === 'source') {
+                    params.append('source', currentFilter.value);
+                }
+                
+                const response = await fetch(`${API_BASE_URL}/api/search?${params}`);
+                const data = await response.json();
+                
+                if (data.results && data.results.length > 0) {
+                    currentResults = data.results;
+                    renderResults(data.results);
+                } else {
+                    showEmpty();
+                }
+                
+            } catch (error) {
+                console.error('Search failed:', error);
+                showError('Search failed. Please try again.');
+            } finally {
+                hideLoading();
             }
-        }
-        
-        // Show featured indicators
-        function showFeaturedIndicators() {
-            const featured = [
-                'fred.DGS10', 'fred.VIXCLS', 'yahoo.^GSPC', 'fred.SOFR',
-                'treasury.debt_to_penny', 'ecb.ciss_us', 'yahoo.BTC-USD',
-                'fred.M2SL', 'imf.commodity_prices', 'oecd.gdp_quarterly',
-                'fred.WALCL', 'yahoo.GC=F', 'fred.T10Y2Y', 'fred.UNRATE',
-                'fred.CPIAUCSL', 'ecb.key_rates'
-            ];
-            
-            const featuredIndicators = featured
-                .map(key => allIndicators.find(i => i.key === key))
-                .filter(Boolean);
-            
-            renderResults(featuredIndicators);
         }
         
         // Render results
-        function renderResults(indicators, containerId = 'resultsSection') {
-            const resultsSection = document.getElementById(containerId);
-            const noResults = document.getElementById('noResults');
-            
-            if (indicators.length === 0 && containerId === 'resultsSection') {
-                resultsSection.style.display = 'none';
-                noResults.style.display = 'block';
-                return;
-            }
-            
-            if (containerId === 'resultsSection') {
-                resultsSection.style.display = 'grid';
-                noResults.style.display = 'none';
-            }
-            
-            const isPinnedSection = containerId === 'pinnedResults';
-            
-            resultsSection.innerHTML = indicators.map(indicator => {
-                const safeId = indicator.key.replace(/[^a-zA-Z0-9]/g, '-');
-                const isPinned = pinnedIndicators.has(indicator.key);
-                
-                return `
-                    <div class="result-card ${isPinned ? 'pinned' : ''}" data-key="${indicator.key}">
-                        <div class="result-header">
-                            <div class="result-info">
-                                <div class="result-symbol">${indicator.symbol || indicator.key}</div>
-                                <div class="result-name">${indicator.name}</div>
-                                <span class="result-source">${indicator.source}</span>
-                            </div>
-                            <div class="result-actions">
-                                ${isPinnedSection ? 
-                                    `<button class="action-btn remove" onclick="unpinIndicator('${indicator.key}')" title="Remove">×</button>` :
-                                    `<button class="action-btn ${isPinned ? 'pinned' : ''}" onclick="togglePin('${indicator.key}')" title="Pin/Unpin">📌</button>`
-                                }
-                            </div>
-                        </div>
-                        
-                        <div class="data-grid" id="data-${safeId}">
-                            <div class="data-item">
-                                <div class="data-label">Last Value</div>
-                                <div class="data-value">Loading...</div>
-                                <div class="data-date"></div>
-                            </div>
-                            <div class="data-item">
-                                <div class="data-label">Weekly %</div>
-                                <div class="data-value">Loading...</div>
-                            </div>
-                            <div class="data-item">
-                                <div class="data-label">Monthly %</div>
-                                <div class="data-value">Loading...</div>
-                            </div>
-                            <div class="data-item">
-                                <div class="data-label">YoY %</div>
-                                <div class="data-value">Loading...</div>
-                            </div>
-                        </div>
-                        
-                        <div class="mini-chart" id="chart-${safeId}" onclick="expandChart('${indicator.key}')">
-                            <div class="chart-period-selector">
-                                <button class="period-btn" data-period="1M" onclick="event.stopPropagation(); changeMiniChartPeriod('${indicator.key}', '1M')">1M</button>
-                                <button class="period-btn active" data-period="1Y" onclick="event.stopPropagation(); changeMiniChartPeriod('${indicator.key}', '1Y')">1Y</button>
-                                <button class="period-btn" data-period="MAX" onclick="event.stopPropagation(); changeMiniChartPeriod('${indicator.key}', 'MAX')">MAX</button>
-                            </div>
-                            <canvas></canvas>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            
-            // Load data and generate charts
-            indicators.forEach(indicator => {
-                loadIndicatorData(indicator);
-                generateMiniChart(indicator, '1Y');
-            });
-        }
-        
-        // Show no results
-        function showNoResults() {
+        function renderResults(results) {
             const resultsSection = document.getElementById('resultsSection');
-            const noResults = document.getElementById('noResults');
+            const emptyState = document.getElementById('emptyState');
             
-            resultsSection.style.display = 'none';
-            noResults.style.display = 'block';
+            emptyState.style.display = 'none';
+            resultsSection.innerHTML = '';
+            
+            results.forEach(result => {
+                const card = createResultCard(result);
+                resultsSection.appendChild(card);
+            });
         }
         
-        // Toggle pin indicator
-        function togglePin(indicatorKey) {
-            if (pinnedIndicators.has(indicatorKey)) {
-                pinnedIndicators.delete(indicatorKey);
+        // Create result card
+        function createResultCard(indicator) {
+            const card = document.createElement('div');
+            card.className = 'result-card';
+            
+            // Extract data from the indicator
+            const symbol = indicator.symbol || indicator.id || 'N/A';
+            const name = indicator.name || indicator.description || 'Unknown Indicator';
+            const source = indicator.source || 'unknown';
+            const frequency = indicator.frequency || 'varies';
+            const category = indicator.category || indicator.tags?.[0] || 'other';
+            const lastValue = indicator.last_value || indicator.latest_value;
+            const lastDate = indicator.last_date || indicator.latest_date;
+            
+            card.innerHTML = `
+                <div class="result-header">
+                    <div class="result-symbol">${symbol}</div>
+                    <div class="result-name">${name}</div>
+                </div>
+                
+                <div class="result-meta">
+                    <span class="meta-tag source">${source.toUpperCase()}</span>
+                    <span class="meta-tag frequency">${frequency}</span>
+                    <span class="meta-tag category">${category}</span>
+                </div>
+                
+                <div class="data-grid">
+                    <div class="data-item">
+                        <div class="data-label">Latest Value</div>
+                        <div class="data-value">${formatValue(lastValue, indicator)}</div>
+                        <div class="data-date">${formatDate(lastDate)}</div>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">Data Points</div>
+                        <div class="data-value">${indicator.data_points || 'N/A'}</div>
+                        <div class="data-date">Historical data</div>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="action-btn" onclick="viewDetails('${symbol}')">
+                        View Details
+                    </button>
+                    <button class="action-btn" onclick="downloadData('${symbol}')">
+                        Download Data
+                    </button>
+                </div>
+            `;
+            
+            return card;
+        }
+        
+        // Format value based on indicator type
+        function formatValue(value, indicator) {
+            if (!value || value === 'N/A') return 'N/A';
+            
+            const numValue = parseFloat(value);
+            if (isNaN(numValue)) return value;
+            
+            // Format based on indicator type
+            if (indicator.unit === 'percent' || indicator.category?.includes('rate')) {
+                return numValue.toFixed(2) + '%';
+            } else if (indicator.unit === 'currency' || indicator.symbol?.includes('USD')) {
+                return '$' + numValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            } else if (indicator.unit === 'index') {
+                return numValue.toFixed(2);
             } else {
-                pinnedIndicators.add(indicatorKey);
-            }
-            
-            savePinnedIndicators();
-            updatePinnedSection();
-            
-            // Update button state
-            const card = document.querySelector(`[data-key="${indicatorKey}"]`);
-            if (card) {
-                const pinBtn = card.querySelector('.action-btn');
-                if (pinBtn) {
-                    pinBtn.classList.toggle('pinned');
-                }
-                card.classList.toggle('pinned');
-            }
-        }
-        
-        // Unpin indicator
-        function unpinIndicator(indicatorKey) {
-            pinnedIndicators.delete(indicatorKey);
-            savePinnedIndicators();
-            updatePinnedSection();
-            
-            // Update main card if visible
-            const mainCard = document.querySelector(`#resultsSection [data-key="${indicatorKey}"]`);
-            if (mainCard) {
-                mainCard.classList.remove('pinned');
-                const pinBtn = mainCard.querySelector('.action-btn');
-                if (pinBtn) pinBtn.classList.remove('pinned');
-            }
-        }
-        
-        // Clear all pinned
-        function clearAllPinned() {
-            pinnedIndicators.clear();
-            savePinnedIndicators();
-            updatePinnedSection();
-            
-            // Update all cards
-            document.querySelectorAll('.result-card.pinned').forEach(card => {
-                card.classList.remove('pinned');
-                const pinBtn = card.querySelector('.action-btn.pinned');
-                if (pinBtn) pinBtn.classList.remove('pinned');
-            });
-        }
-        
-        // Update pinned section
-        function updatePinnedSection() {
-            const pinnedSection = document.getElementById('pinnedSection');
-            const pinnedResults = document.getElementById('pinnedResults');
-            
-            if (pinnedIndicators.size > 0) {
-                pinnedSection.classList.add('has-items');
-                const pinnedIndicatorsList = Array.from(pinnedIndicators)
-                    .map(key => allIndicators.find(i => i.key === key))
-                    .filter(Boolean);
-                renderResults(pinnedIndicatorsList, 'pinnedResults');
-            } else {
-                pinnedSection.classList.remove('has-items');
-                pinnedResults.innerHTML = '';
-            }
-        }
-        
-        // Save/Load pinned indicators
-        function savePinnedIndicators() {
-            localStorage.setItem('openbb_pinned_indicators', JSON.stringify([...pinnedIndicators]));
-        }
-        
-        function loadPinnedIndicators() {
-            try {
-                const saved = localStorage.getItem('openbb_pinned_indicators');
-                if (saved) {
-                    pinnedIndicators = new Set(JSON.parse(saved));
-                    updatePinnedSection();
-                }
-            } catch (e) {
-                console.error('Error loading pinned indicators:', e);
-            }
-        }
-        
-        // Load indicator data with historical accuracy
-        async function loadIndicatorData(indicator) {
-            const safeId = indicator.key.replace(/[^a-zA-Z0-9]/g, '-');
-            const dataGrid = document.getElementById(`data-${safeId}`);
-            if (!dataGrid) return;
-            
-            // Generate historically accurate mock data
-            const historicalData = generateHistoricalData(indicator);
-            
-            // Cache the data
-            historicalDataCache[indicator.key] = historicalData;
-            
-            // Calculate metrics
-            const latestData = historicalData[historicalData.length - 1];
-            const weekAgo = historicalData.find(d => {
-                const daysDiff = Math.floor((latestData.date - d.date) / (1000 * 60 * 60 * 24));
-                return daysDiff >= 7;
-            });
-            const monthAgo = historicalData.find(d => {
-                const daysDiff = Math.floor((latestData.date - d.date) / (1000 * 60 * 60 * 24));
-                return daysDiff >= 30;
-            });
-            const yearAgo = historicalData.find(d => {
-                const daysDiff = Math.floor((latestData.date - d.date) / (1000 * 60 * 60 * 24));
-                return daysDiff >= 365;
-            });
-            
-            const weeklyChange = weekAgo ? ((latestData.value - weekAgo.value) / weekAgo.value) * 100 : null;
-            const monthlyChange = monthAgo ? ((latestData.value - monthAgo.value) / monthAgo.value) * 100 : null;
-            const yearlyChange = yearAgo ? ((latestData.value - yearAgo.value) / yearAgo.value) * 100 : null;
-            
-            // Update UI
-            const dataItems = dataGrid.querySelectorAll('.data-item');
-            if (dataItems.length >= 4) {
-                // Last Value
-                dataItems[0].querySelector('.data-value').textContent = formatValue(latestData.value, indicator.category);
-                dataItems[0].querySelector('.data-date').textContent = formatDate(latestData.date);
-                
-                // Weekly %
-                const weeklyValue = dataItems[1].querySelector('.data-value');
-                if (weeklyChange !== null) {
-                    weeklyValue.textContent = `${weeklyChange >= 0 ? '+' : ''}${weeklyChange.toFixed(2)}%`;
-                    weeklyValue.className = `data-value ${weeklyChange >= 0 ? 'positive' : 'negative'}`;
-                } else {
-                    weeklyValue.textContent = 'N/A';
-                }
-                
-                // Monthly %
-                const monthlyValue = dataItems[2].querySelector('.data-value');
-                if (monthlyChange !== null) {
-                    monthlyValue.textContent = `${monthlyChange >= 0 ? '+' : ''}${monthlyChange.toFixed(2)}%`;
-                    monthlyValue.className = `data-value ${monthlyChange >= 0 ? 'positive' : 'negative'}`;
-                } else {
-                    monthlyValue.textContent = 'N/A';
-                }
-                
-                // YoY %
-                const yoyValue = dataItems[3].querySelector('.data-value');
-                if (yearlyChange !== null) {
-                    yoyValue.textContent = `${yearlyChange >= 0 ? '+' : ''}${yearlyChange.toFixed(2)}%`;
-                    yoyValue.className = `data-value ${yearlyChange >= 0 ? 'positive' : 'negative'}`;
-                } else {
-                    yoyValue.textContent = 'N/A';
-                }
-            }
-        }
-        
-        // Generate historical data
-        function generateHistoricalData(indicator) {
-            const startDate = new Date(indicator.startDate);
-            const endDate = new Date();
-            const data = [];
-            
-            // Determine data frequency
-            let currentDate = new Date(startDate);
-            let stepDays = 1;
-            
-            switch (indicator.frequency) {
-                case 'daily':
-                    stepDays = 1;
-                    break;
-                case 'weekly':
-                    stepDays = 7;
-                    break;
-                case 'monthly':
-                    stepDays = 30;
-                    break;
-                case 'quarterly':
-                    stepDays = 90;
-                    break;
-                case 'annual':
-                    stepDays = 365;
-                    break;
-            }
-            
-            // Generate base value based on indicator type
-            let baseValue = getBaseValue(indicator);
-            let value = baseValue;
-            
-            // Generate historical trend
-            while (currentDate <= endDate) {
-                // Add realistic volatility and trends
-                const yearsSinceStart = (currentDate - startDate) / (365 * 24 * 60 * 60 * 1000);
-                const trend = getTrend(indicator, yearsSinceStart);
-                const volatility = getVolatility(indicator);
-                const seasonality = getSeasonality(indicator, currentDate);
-                
-                // Apply changes
-                value = value * (1 + trend) * (1 + (Math.random() - 0.5) * volatility) * seasonality;
-                
-                // Add economic events impact
-                value = applyEconomicEvents(value, currentDate, indicator);
-                
-                data.push({
-                    date: new Date(currentDate),
-                    value: value
-                });
-                
-                currentDate.setDate(currentDate.getDate() + stepDays);
-            }
-            
-            return data;
-        }
-        
-        // Get base value for indicator
-        function getBaseValue(indicator) {
-            const baseValues = {
-                'rates': 5,
-                'spreads': 2,
-                'volatility': 20,
-                'fx': 1,
-                'economic': 100,
-                'employment': 5,
-                'inflation': 2,
-                'equity': 1000,
-                'commodities': 50,
-                'crypto': 1000
-            };
-            
-            return baseValues[indicator.category] || 100;
-        }
-        
-        // Get trend for indicator
-        function getTrend(indicator, years) {
-            const trends = {
-                'equity': 0.00003, // ~7% annual growth
-                'gdp': 0.00001, // ~2.5% annual growth
-                'inflation': 0.000008, // ~2% annual
-                'crypto': 0.0002, // High growth
-                'debt': 0.00002 // ~5% annual
-            };
-            
-            return trends[indicator.category] || 0;
-        }
-        
-        // Get volatility for indicator
-        function getVolatility(indicator) {
-            const volatilities = {
-                'volatility': 0.1,
-                'crypto': 0.05,
-                'commodities': 0.02,
-                'fx': 0.01,
-                'equity': 0.015,
-                'rates': 0.005,
-                'economic': 0.003
-            };
-            
-            return volatilities[indicator.category] || 0.01;
-        }
-        
-        // Get seasonality
-        function getSeasonality(indicator, date) {
-            if (indicator.category === 'employment') {
-                const month = date.getMonth();
-                // Higher employment in summer
-                return 1 + (Math.sin((month - 3) * Math.PI / 6) * 0.02);
-            }
-            return 1;
-        }
-        
-        // Apply economic events
-        function applyEconomicEvents(value, date, indicator) {
-            const year = date.getFullYear();
-            
-            // 2008 Financial Crisis
-            if (year === 2008 && date.getMonth() >= 8) {
-                if (indicator.category === 'volatility') value *= 3;
-                if (indicator.category === 'equity') value *= 0.6;
-                if (indicator.category === 'credit') value *= 1.5;
-            }
-            
-            // 2020 COVID
-            if (year === 2020 && date.getMonth() >= 2 && date.getMonth() <= 4) {
-                if (indicator.category === 'volatility') value *= 2.5;
-                if (indicator.category === 'equity') value *= 0.7;
-                if (indicator.category === 'unemployment') value *= 3;
-            }
-            
-            return value;
-        }
-        
-        // Format value based on type
-        function formatValue(value, category) {
-            if (category === 'rates' || category === 'spreads' || category === 'inflation') {
-                return value.toFixed(2) + '%';
-            } else if (category === 'fx') {
-                return value.toFixed(4);
-            } else if (category === 'equity' || category === 'commodities' || category === 'crypto') {
-                return ' + value.toFixed(2);
-            } else {
-                return value.toFixed(2);
+                return numValue.toLocaleString('en-US');
             }
         }
         
         // Format date
-        function formatDate(date) {
-            return date.toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'short', 
-                day: 'numeric' 
-            });
-        }
-        
-        // Generate mini chart
-        function generateMiniChart(indicator, period = '1Y') {
-            const safeId = indicator.key.replace(/[^a-zA-Z0-9]/g, '-');
-            const chartContainer = document.getElementById(`chart-${safeId}`);
-            if (!chartContainer) return;
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
             
-            const canvas = chartContainer.querySelector('canvas');
-            if (!canvas) return;
-            
-            const ctx = canvas.getContext('2d');
-            
-            // Get historical data
-            const fullData = historicalDataCache[indicator.key] || generateHistoricalData(indicator);
-            
-            // Filter data by period
-            const filteredData = filterDataByPeriod(fullData, period);
-            
-            // Destroy existing chart
-            const chartId = `mini-${safeId}`;
-            if (chartInstances[chartId]) {
-                chartInstances[chartId].destroy();
-            }
-            
-            // Create chart
-            chartInstances[chartId] = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: filteredData.map(d => d.date),
-                    datasets: [{
-                        data: filteredData.map(d => d.value),
-                        borderColor: getChartColor(indicator),
-                        borderWidth: 2,
-                        fill: false,
-                        tension: 0.1,
-                        pointRadius: 0,
-                        pointHoverRadius: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: { enabled: false }
-                    },
-                    scales: {
-                        x: { display: false },
-                        y: { display: false }
-                    },
-                    interaction: { mode: null },
-                    animation: { duration: 0 }
-                }
-            });
-        }
-        
-        // Change mini chart period
-        function changeMiniChartPeriod(indicatorKey, period) {
-            const indicator = allIndicators.find(i => i.key === indicatorKey);
-            if (!indicator) return;
-            
-            // Update button states
-            const safeId = indicatorKey.replace(/[^a-zA-Z0-9]/g, '-');
-            const chartContainer = document.getElementById(`chart-${safeId}`);
-            if (chartContainer) {
-                chartContainer.querySelectorAll('.period-btn').forEach(btn => {
-                    btn.classList.toggle('active', btn.dataset.period === period);
+            try {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric' 
                 });
-            }
-            
-            // Regenerate chart
-            generateMiniChart(indicator, period);
-        }
-        
-        // Filter data by period
-        function filterDataByPeriod(data, period) {
-            if (!data || data.length === 0) return data;
-            
-            const latestDate = data[data.length - 1].date;
-            let startDate = new Date(latestDate);
-            
-            switch (period) {
-                case '1D':
-                    startDate.setDate(startDate.getDate() - 1);
-                    break;
-                case '1W':
-                    startDate.setDate(startDate.getDate() - 7);
-                    break;
-                case '1M':
-                    startDate.setMonth(startDate.getMonth() - 1);
-                    break;
-                case '3M':
-                    startDate.setMonth(startDate.getMonth() - 3);
-                    break;
-                case '6M':
-                    startDate.setMonth(startDate.getMonth() - 6);
-                    break;
-                case '1Y':
-                    startDate.setFullYear(startDate.getFullYear() - 1);
-                    break;
-                case '5Y':
-                    startDate.setFullYear(startDate.getFullYear() - 5);
-                    break;
-                case '10Y':
-                    startDate.setFullYear(startDate.getFullYear() - 10);
-                    break;
-                case 'MAX':
-                    return data;
-            }
-            
-            return data.filter(d => d.date >= startDate);
-        }
-        
-        // Get chart color based on indicator
-        function getChartColor(indicator) {
-            const colors = {
-                'volatility': '#ff4444',
-                'equity': '#00ff88',
-                'rates': '#00ccff',
-                'fx': '#ffcc00',
-                'commodities': '#ff9933',
-                'crypto': '#aa77ff',
-                'credit': '#ff6666'
-            };
-            
-            return colors[indicator.category] || '#00ff88';
-        }
-        
-        // Open data browser
-        function openDataBrowser(mode) {
-            browserMode = mode;
-            const modal = document.getElementById('dataBrowserModal');
-            const title = document.getElementById('browserTitle');
-            
-            switch (mode) {
-                case 'indicators':
-                    title.textContent = 'Browse All 169 Indicators';
-                    showAllIndicators();
-                    break;
-                case 'datapoints':
-                    title.textContent = 'Explore 283,652 Data Points';
-                    showDataPointsBreakdown();
-                    break;
-                case 'sources':
-                    title.textContent = 'View 9 Data Sources';
-                    showDataSources();
-                    break;
-                case 'search':
-                    title.textContent = 'Browse 536 Search Terms';
-                    showSearchTerms();
-                    break;
-            }
-            
-            modal.classList.add('active');
-        }
-        
-        // Show all indicators in browser
-        function showAllIndicators() {
-            const browserGrid = document.getElementById('browserGrid');
-            
-            browserGrid.innerHTML = allIndicators.map(indicator => `
-                <div class="browser-item" onclick="selectIndicatorFromBrowser('${indicator.key}')">
-                    <div class="browser-item-symbol">${indicator.symbol || indicator.key}</div>
-                    <div class="browser-item-name">${indicator.name}</div>
-                    <div class="browser-item-meta">
-                        <span>${indicator.source.toUpperCase()}</span>
-                        <span>${indicator.category}</span>
-                        <span>${indicator.dataPoints.toLocaleString()} points</span>
-                    </div>
-                </div>
-            `).join('');
-        }
-        
-        // Show data points breakdown
-        function showDataPointsBreakdown() {
-            const browserGrid = document.getElementById('browserGrid');
-            
-            // Group by source
-            const bySource = {};
-            allIndicators.forEach(indicator => {
-                if (!bySource[indicator.source]) {
-                    bySource[indicator.source] = {
-                        count: 0,
-                        dataPoints: 0,
-                        indicators: []
-                    };
-                }
-                bySource[indicator.source].count++;
-                bySource[indicator.source].dataPoints += indicator.dataPoints;
-                bySource[indicator.source].indicators.push(indicator);
-            });
-            
-            browserGrid.innerHTML = Object.entries(bySource).map(([source, data]) => `
-                <div class="browser-item" style="grid-column: span 2;">
-                    <div class="browser-item-symbol">${source.toUpperCase()}</div>
-                    <div class="browser-item-name">${data.count} indicators</div>
-                    <div class="browser-item-meta">
-                        <span>${data.dataPoints.toLocaleString()} total data points</span>
-                    </div>
-                    <div style="margin-top: 10px; font-size: 12px; color: var(--text-muted);">
-                        ${data.indicators.slice(0, 5).map(i => i.symbol).join(', ')}
-                        ${data.indicators.length > 5 ? `... and ${data.indicators.length - 5} more` : ''}
-                    </div>
-                </div>
-            `).join('');
-        }
-        
-        // Show data sources
-        function showDataSources() {
-            const browserGrid = document.getElementById('browserGrid');
-            
-            const sources = {
-                'treasury': { name: 'US Treasury', description: 'Official US Treasury data including debt, auctions, and cash flows' },
-                'fred': { name: 'Federal Reserve Economic Data', description: 'Comprehensive economic and financial time series' },
-                'ecb': { name: 'European Central Bank', description: 'European financial indicators and stress indices' },
-                'bls': { name: 'Bureau of Labor Statistics', description: 'Employment, inflation, and labor market data' },
-                'worldbank': { name: 'World Bank', description: 'Global economic development indicators' },
-                'imf': { name: 'International Monetary Fund', description: 'International financial statistics' },
-                'oecd': { name: 'OECD', description: 'Economic indicators from developed nations' },
-                'yahoo': { name: 'Yahoo Finance', description: 'Market data for stocks, bonds, commodities, and crypto' },
-                'nyfed': { name: 'NY Federal Reserve', description: 'New York Fed specific indicators (Note: Currently unavailable)' }
-            };
-            
-            browserGrid.innerHTML = Object.entries(sources).map(([key, source]) => {
-                const indicators = allIndicators.filter(i => i.source === key);
-                return `
-                    <div class="browser-item" onclick="filterBySource('${key}')">
-                        <div class="browser-item-symbol">${source.name}</div>
-                        <div class="browser-item-name">${source.description}</div>
-                        <div class="browser-item-meta">
-                            <span>${indicators.length} indicators</span>
-                            <span>${indicators.reduce((sum, i) => sum + i.dataPoints, 0).toLocaleString()} data points</span>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-        
-        // Show search terms
-        function showSearchTerms() {
-            const browserGrid = document.getElementById('browserGrid');
-            
-            // Collect all unique search terms
-            const allTerms = new Set();
-            allIndicators.forEach(indicator => {
-                indicator.searchTerms.forEach(term => allTerms.add(term));
-            });
-            
-            const sortedTerms = Array.from(allTerms).sort();
-            
-            browserGrid.innerHTML = `
-                <div style="grid-column: 1/-1; padding: 20px; background: var(--bg-primary); border-radius: 8px;">
-                    <h3 style="margin-bottom: 15px;">All ${sortedTerms.length} Search Terms</h3>
-                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                        ${sortedTerms.map(term => `
-                            <span style="background: var(--bg-tertiary); padding: 4px 12px; border-radius: 6px; 
-                                       font-size: 13px; cursor: pointer; transition: all 0.2s;"
-                                  onmouseover="this.style.background='var(--accent-green)'; this.style.color='var(--bg-primary)';"
-                                  onmouseout="this.style.background='var(--bg-tertiary)'; this.style.color='var(--text-primary)';"
-                                  onclick="searchFromBrowser('${term}')">
-                                ${term}
-                            </span>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-        }
-        
-        // Select indicator from browser
-        function selectIndicatorFromBrowser(indicatorKey) {
-            closeBrowser();
-            const indicator = allIndicators.find(i => i.key === indicatorKey);
-            if (indicator) {
-                renderResults([indicator]);
-                expandChart(indicatorKey);
+            } catch (e) {
+                return dateString;
             }
         }
         
-        // Filter by source
+        // Quick search functions
+        function searchFor(query) {
+            document.getElementById('searchInput').value = query;
+            performSearch(query);
+        }
+        
+        // Filter functions
         function filterBySource(source) {
-            const filtered = allIndicators.filter(i => i.source === source);
-            showAllIndicators();
-            const browserGrid = document.getElementById('browserGrid');
-            
-            browserGrid.innerHTML = filtered.map(indicator => `
-                <div class="browser-item" onclick="selectIndicatorFromBrowser('${indicator.key}')">
-                    <div class="browser-item-symbol">${indicator.symbol || indicator.key}</div>
-                    <div class="browser-item-name">${indicator.name}</div>
-                    <div class="browser-item-meta">
-                        <span>${indicator.source.toUpperCase()}</span>
-                        <span>${indicator.category}</span>
-                        <span>${indicator.dataPoints.toLocaleString()} points</span>
-                    </div>
-                </div>
-            `).join('');
-        }
-        
-        // Search from browser
-        function searchFromBrowser(term) {
-            closeBrowser();
-            document.getElementById('searchInput').value = term;
-            performSearch(term);
-        }
-        
-        // Filter browser data
-        function filterBrowserData() {
-            if (browserMode !== 'indicators') return;
-            
-            const sourceFilter = document.getElementById('sourceFilter').value;
-            const categoryFilter = document.getElementById('categoryFilter').value;
-            
-            let filtered = allIndicators;
-            
-            if (sourceFilter) {
-                filtered = filtered.filter(i => i.source === sourceFilter);
+            currentFilter = { type: 'source', value: source };
+            updateFilterButtons();
+            const query = document.getElementById('searchInput').value.trim();
+            if (query) {
+                performSearch(query);
+            } else {
+                performSearch(`source:${source}`);
             }
-            
-            if (categoryFilter) {
-                filtered = filtered.filter(i => i.category === categoryFilter);
+        }
+        
+        function filterByTag(tag) {
+            currentFilter = { type: 'tag', value: tag };
+            updateFilterButtons();
+            performSearch(tag.replace('-', ' '));
+        }
+        
+        function showCategory(category) {
+            clearFilters();
+            performSearch(category);
+        }
+        
+        function clearFilters() {
+            currentFilter = null;
+            updateFilterButtons();
+            const query = document.getElementById('searchInput').value.trim();
+            if (query) {
+                performSearch(query);
+            } else {
+                clearResults();
             }
-            
-            const browserGrid = document.getElementById('browserGrid');
-            browserGrid.innerHTML = filtered.map(indicator => `
-                <div class="browser-item" onclick="selectIndicatorFromBrowser('${indicator.key}')">
-                    <div class="browser-item-symbol">${indicator.symbol || indicator.key}</div>
-                    <div class="browser-item-name">${indicator.name}</div>
-                    <div class="browser-item-meta">
-                        <span>${indicator.source.toUpperCase()}</span>
-                        <span>${indicator.category}</span>
-                        <span>${indicator.dataPoints.toLocaleString()} points</span>
-                    </div>
-                </div>
-            `).join('');
         }
         
-        // Close browser
-        function closeBrowser() {
-            document.getElementById('dataBrowserModal').classList.remove('active');
-        }
-        
-        // Expand chart
-        function expandChart(indicatorKey) {
-            const indicator = allIndicators.find(i => i.key === indicatorKey);
-            if (!indicator) return;
-            
-            currentModalIndicator = indicator;
-            currentChartPeriod = '1Y';
-            currentChartType = 'price';
-            
-            const modal = document.getElementById('chartModal');
-            const modalTitle = document.getElementById('modalTitle');
-            
-            modalTitle.textContent = `${indicator.symbol} - ${indicator.name}`;
-            
-            updateChartControls();
-            generateExpandedChart();
-            updateHistoricalTable();
-            
-            modal.classList.add('active');
-        }
-        
-        // Update chart controls
-        function updateChartControls() {
-            document.querySelectorAll('.chart-btn[data-period]').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.period === currentChartPeriod);
+        function updateFilterButtons() {
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
             });
             
-            document.querySelectorAll('.chart-btn[data-type]').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.type === currentChartType);
-            });
-        }
-        
-        // Change chart period
-        function changeChartPeriod(period) {
-            currentChartPeriod = period;
-            updateChartControls();
-            generateExpandedChart();
-            updateHistoricalTable();
-        }
-        
-        // Change chart type
-        function changeChartType(type) {
-            currentChartType = type;
-            updateChartControls();
-            generateExpandedChart();
-        }
-        
-        // Generate expanded chart
-        function generateExpandedChart() {
-            if (!currentModalIndicator) return;
-            
-            const chartDiv = document.getElementById('mainChart');
-            
-            // Get historical data
-            const fullData = historicalDataCache[currentModalIndicator.key] || generateHistoricalData(currentModalIndicator);
-            const filteredData = filterDataByPeriod(fullData, currentChartPeriod);
-            
-            // Prepare data based on chart type
-            let yData, yLabel;
-            
-            switch (currentChartType) {
-                case 'change':
-                    yData = calculatePercentageChange(filteredData);
-                    yLabel = '% Change from Start';
-                    break;
-                case 'yoy':
-                    yData = calculateYoYChange(filteredData);
-                    yLabel = 'Year-over-Year %';
-                    break;
-                case 'zscore':
-                    yData = calculateZScore(filteredData);
-                    yLabel = 'Z-Score';
-                    break;
-                case 'ma':
-                    yData = calculateMovingAverage(filteredData, 50);
-                    yLabel = '50-Day Moving Average';
-                    break;
-                default:
-                    yData = filteredData.map(d => d.value);
-                    yLabel = currentModalIndicator.name;
+            if (currentFilter) {
+                const activeBtn = document.querySelector(`.filter-btn[onclick*="${currentFilter.value}"]`);
+                if (activeBtn) activeBtn.classList.add('active');
             }
-            
-            // Create Plotly chart
-            const trace = {
-                x: filteredData.map(d => d.date),
-                y: yData,
-                type: 'scatter',
-                mode: 'lines',
-                name: currentModalIndicator.symbol,
-                line: {
-                    color: getChartColor(currentModalIndicator),
-                    width: 2
-                }
-            };
-            
-            const layout = {
-                title: {
-                    text: `${currentModalIndicator.name} - ${currentChartPeriod}`,
-                    font: { size: 16, color: '#fff' }
-                },
-                paper_bgcolor: '#0a0a0a',
-                plot_bgcolor: '#0a0a0a',
-                font: { color: '#aaa' },
-                xaxis: {
-                    type: 'date',
-                    gridcolor: '#333',
-                    tickfont: { color: '#aaa' }
-                },
-                yaxis: {
-                    title: yLabel,
-                    gridcolor: '#333',
-                    tickfont: { color: '#aaa' }
-                },
-                margin: { t: 40, r: 40, b: 40, l: 60 },
-                showlegend: false
-            };
-            
-            const config = {
-                responsive: true,
-                displaylogo: false,
-                displayModeBar: true,
-                modeBarButtonsToRemove: ['pan2d', 'select2d', 'lasso2d', 'autoScale2d']
-            };
-            
-            Plotly.newPlot(chartDiv, [trace], layout, config);
         }
         
-        // Calculate percentage change
-        function calculatePercentageChange(data) {
-            if (data.length === 0) return [];
-            const baseValue = data[0].value;
-            return data.map(d => ((d.value - baseValue) / baseValue) * 100);
+        // View details (placeholder)
+        function viewDetails(symbol) {
+            alert(`Details view for ${symbol} - Feature coming soon!`);
         }
         
-        // Calculate YoY change
-        function calculateYoYChange(data) {
-            return data.map((d, i) => {
-                const yearAgo = data.find(item => {
-                    const daysDiff = Math.abs((d.date - item.date) / (1000 * 60 * 60 * 24) - 365);
-                    return daysDiff < 30; // Within a month of exactly one year ago
-                });
-                
-                if (yearAgo) {
-                    return ((d.value - yearAgo.value) / yearAgo.value) * 100;
-                }
-                return null;
-            });
+        // Download data (placeholder)
+        function downloadData(symbol) {
+            // In a real implementation, this would trigger a download
+            alert(`Download data for ${symbol} - Feature coming soon!`);
         }
         
-        // Calculate Z-Score
-        function calculateZScore(data) {
-            const values = data.map(d => d.value);
-            const mean = values.reduce((a, b) => a + b, 0) / values.length;
-            const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
-            const stdDev = Math.sqrt(variance);
-            
-            return data.map(d => stdDev > 0 ? (d.value - mean) / stdDev : 0);
+        // UI state functions
+        function showLoading() {
+            document.getElementById('loadingState').style.display = 'block';
+            document.getElementById('resultsSection').innerHTML = '';
+            document.getElementById('emptyState').style.display = 'none';
         }
         
-        // Calculate moving average
-        function calculateMovingAverage(data, period) {
-            return data.map((d, i) => {
-                if (i < period - 1) return null;
-                
-                const sum = data.slice(i - period + 1, i + 1)
-                    .reduce((acc, item) => acc + item.value, 0);
-                return sum / period;
-            });
+        function hideLoading() {
+            document.getElementById('loadingState').style.display = 'none';
         }
         
-        // Update historical table
-        function updateHistoricalTable() {
-            if (!currentModalIndicator) return;
-            
-            const tbody = document.getElementById('historicalTableBody');
-            const fullData = historicalDataCache[currentModalIndicator.key] || generateHistoricalData(currentModalIndicator);
-            const filteredData = filterDataByPeriod(fullData, currentChartPeriod);
-            
-            // Show last 50 entries
-            const recentData = filteredData.slice(-50).reverse();
-            
-            tbody.innerHTML = recentData.map((d, i) => {
-                const prevDay = filteredData[filteredData.length - i - 2];
-                const change = prevDay ? d.value - prevDay.value : 0;
-                const changePercent = prevDay ? (change / prevDay.value) * 100 : 0;
-                
-                const yearAgoIndex = filteredData.findIndex(item => {
-                    const daysDiff = Math.abs((d.date - item.date) / (1000 * 60 * 60 * 24) - 365);
-                    return daysDiff < 30;
-                });
-                
-                const yearAgo = yearAgoIndex >= 0 ? filteredData[yearAgoIndex] : null;
-                const yoyPercent = yearAgo ? ((d.value - yearAgo.value) / yearAgo.value) * 100 : null;
-                
-                return `
-                    <tr>
-                        <td>${formatDate(d.date)}</td>
-                        <td>${formatValue(d.value, currentModalIndicator.category)}</td>
-                        <td class="${change >= 0 ? 'positive' : 'negative'}">
-                            ${change >= 0 ? '+' : ''}${change.toFixed(4)}
-                        </td>
-                        <td class="${changePercent >= 0 ? 'positive' : 'negative'}">
-                            ${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%
-                        </td>
-                        <td class="${yoyPercent !== null ? (yoyPercent >= 0 ? 'positive' : 'negative') : ''}">
-                            ${yoyPercent !== null ? `${yoyPercent >= 0 ? '+' : ''}${yoyPercent.toFixed(2)}%` : 'N/A'}
-                        </td>
-                    </tr>
-                `;
-            }).join('');
+        function showEmpty() {
+            document.getElementById('emptyState').style.display = 'block';
+            document.getElementById('resultsSection').innerHTML = '';
         }
         
-        // Close chart modal
-        function closeChartModal() {
-            document.getElementById('chartModal').classList.remove('active');
+        function showError(message) {
+            const errorEl = document.getElementById('errorMessage');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+        }
+        
+        function hideError() {
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+        
+        function clearResults() {
+            document.getElementById('resultsSection').innerHTML = '';
+            document.getElementById('emptyState').style.display = 'none';
         }
         
         // Initialize on DOM ready
