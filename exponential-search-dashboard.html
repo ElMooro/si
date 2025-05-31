@@ -3,1155 +3,956 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpenBB Financial Intelligence - Live Dashboard</title>
-    
+    <title>Exponential Search - OpenBB Financial Intelligence</title>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        :root {
-            --bg-primary: #0a0a0a;
-            --bg-secondary: #131313;
-            --bg-tertiary: #1a1a1a;
-            --border-color: #282828;
-            --text-primary: #e0e0e0;
-            --text-secondary: #aaa;
-            --text-muted: #666;
-            --accent-green: #00ff88;
-            --accent-blue: #00ccff;
-            --accent-red: #ff4444;
-            --accent-yellow: #ffcc00;
-            --accent-purple: #aa77ff;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
+            background: #0a0a0a;
+            color: #e0e0e0;
             overflow-x: hidden;
-            line-height: 1.6;
+            min-height: 100vh;
         }
-        
-        /* Navigation */
+
+        /* Navigation Bar */
         nav {
-            background: var(--bg-secondary);
-            border-bottom: 1px solid var(--border-color);
+            background: #121212;
+            border-bottom: 1px solid #282828;
             padding: 15px 20px;
             position: sticky;
             top: 0;
             z-index: 1000;
-            backdrop-filter: blur(10px);
-            background: rgba(19, 19, 19, 0.95);
-        }
-        
-        .nav-container {
-            max-width: 1800px;
-            margin: 0 auto;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            backdrop-filter: blur(10px);
         }
-        
+
         .nav-logo {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: bold;
-            background: linear-gradient(45deg, var(--accent-green), var(--accent-blue));
+            background: linear-gradient(45deg, #00ff88, #00ccff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            animation: glow 2s ease-in-out infinite alternate;
         }
-        
-        .nav-stats {
+
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 5px rgba(0, 255, 136, 0.5)); }
+            to { filter: drop-shadow(0 0 10px rgba(0, 204, 255, 0.5)); }
+        }
+
+        .nav-links {
             display: flex;
-            gap: 20px;
+            gap: 25px;
             align-items: center;
         }
-        
-        .nav-stat {
+
+        .nav-links a {
+            color: #ccc;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: #00ff88;
+        }
+
+        .nav-links a.active {
+            color: #00ff88;
+        }
+
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #00ff88;
+        }
+
+        /* Search Header */
+        .search-header {
             text-align: center;
-            cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 8px;
+            padding: 60px 20px 40px;
+            background: linear-gradient(180deg, rgba(18, 18, 18, 0.5) 0%, rgba(10, 10, 10, 0) 100%);
+        }
+
+        .search-title {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        .search-subtitle {
+            font-size: 18px;
+            color: #888;
+            margin-bottom: 40px;
+        }
+
+        /* Search Container */
+        .search-container {
+            max-width: 800px;
+            margin: 0 auto 60px;
+            padding: 0 20px;
+        }
+
+        .search-box {
+            position: relative;
+            width: 100%;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 20px 60px 20px 25px;
+            font-size: 18px;
+            background: #181818;
+            border: 2px solid #282828;
+            border-radius: 12px;
+            color: #e0e0e0;
             transition: all 0.3s;
+            outline: none;
         }
-        
-        .nav-stat:hover {
-            background: rgba(0, 255, 136, 0.1);
-            transform: translateY(-2px);
+
+        .search-input:focus {
+            border-color: #00ff88;
+            box-shadow: 0 0 0 4px rgba(0, 255, 136, 0.1);
+            background: #1a1a1a;
         }
-        
-        .nav-stat-value {
-            font-size: 20px;
-            font-weight: bold;
-            color: var(--accent-green);
-        }
-        
-        .nav-stat-label {
-            font-size: 11px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-        }
-        
-        /* Connection Status */
-        .connection-status {
-            position: fixed;
-            top: 80px;
+
+        .search-icon {
+            position: absolute;
             right: 20px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 10px 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            transition: color 0.3s;
+        }
+
+        .search-input:focus ~ .search-icon {
+            color: #00ff88;
+        }
+
+        /* Filters */
+        .filters-container {
+            max-width: 800px;
+            margin: 0 auto 40px;
+            padding: 0 20px;
+        }
+
+        .filter-chips {
             display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 13px;
-            z-index: 999;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .filter-chip {
+            padding: 8px 16px;
+            background: #1a1a1a;
+            border: 1px solid #282828;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
             transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
         }
-        
-        .status-indicator {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--accent-red);
-            animation: pulse 2s infinite;
+
+        .filter-chip:hover {
+            border-color: #00ff88;
+            color: #00ff88;
         }
-        
-        .status-indicator.connected {
-            background: var(--accent-green);
+
+        .filter-chip.active {
+            background: rgba(0, 255, 136, 0.1);
+            border-color: #00ff88;
+            color: #00ff88;
         }
-        
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
+
+        .filter-chip .count {
+            margin-left: 5px;
+            opacity: 0.7;
+            font-size: 12px;
         }
-        
-        /* Main Container */
-        .main-container {
-            max-width: 1800px;
-            margin: 0 auto;
-            padding: 30px 20px;
-        }
-        
-        /* Stats Summary */
-        .stats-summary {
+
+        /* Stats Bar */
+        .stats-bar {
+            max-width: 1200px;
+            margin: 0 auto 40px;
+            padding: 0 20px;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px;
-            margin-bottom: 30px;
         }
-        
+
         .stat-card {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
+            background: #181818;
+            border: 1px solid #282828;
             border-radius: 12px;
             padding: 20px;
             text-align: center;
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: #00ff88;
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.1);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #00ff88;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #888;
+        }
+
+        /* Results Container */
+        .results-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px 40px;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .results-count {
+            font-size: 16px;
+            color: #888;
+        }
+
+        .sort-dropdown {
+            background: #181818;
+            border: 1px solid #282828;
+            border-radius: 8px;
+            padding: 8px 16px;
+            color: #e0e0e0;
+            cursor: pointer;
+            outline: none;
+        }
+
+        /* Result Cards */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .result-card {
+            background: #181818;
+            border: 1px solid #282828;
+            border-radius: 12px;
+            padding: 20px;
             transition: all 0.3s;
             cursor: pointer;
             position: relative;
             overflow: hidden;
         }
-        
-        .stat-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--accent-green);
-            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.1);
-        }
-        
-        .stat-card::before {
+
+        .result-card::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             height: 3px;
-            background: linear-gradient(90deg, var(--accent-green), var(--accent-blue));
-            transform: scaleX(0);
+            background: linear-gradient(90deg, #00ff88, #00ccff);
+            transform: translateX(-100%);
             transition: transform 0.3s;
         }
-        
-        .stat-card:hover::before {
-            transform: scaleX(1);
-        }
-        
-        .stat-value {
-            font-size: 32px;
-            font-weight: bold;
-            color: var(--accent-green);
-            margin-bottom: 8px;
-        }
-        
-        .stat-label {
-            font-size: 14px;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-        }
-        
-        .stat-sublabel {
-            font-size: 11px;
-            color: var(--text-muted);
-            margin-top: 5px;
-        }
-        
-        /* Search Section */
-        .search-section {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 30px;
-            margin-bottom: 30px;
-        }
-        
-        .search-header {
-            margin-bottom: 20px;
-        }
-        
-        .search-title {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-        
-        .search-description {
-            color: var(--text-secondary);
-            font-size: 14px;
-        }
-        
-        .search-container {
-            position: relative;
-            margin-bottom: 20px;
-        }
-        
-        .search-input {
-            width: 100%;
-            padding: 18px 55px 18px 25px;
-            background: var(--bg-primary);
-            border: 2px solid var(--border-color);
-            color: var(--text-primary);
-            border-radius: 12px;
-            font-size: 16px;
-            transition: all 0.3s;
-        }
-        
-        .search-input:focus {
-            outline: none;
-            border-color: var(--accent-green);
-            box-shadow: 0 0 0 4px rgba(0, 255, 136, 0.1);
-        }
-        
-        .search-icon {
-            position: absolute;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-            font-size: 20px;
-            pointer-events: none;
-        }
-        
-        .search-suggestions {
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            margin-top: 10px;
-            padding: 10px;
-            display: none;
-        }
-        
-        .search-suggestions.active {
-            display: block;
-        }
-        
-        .suggestion-item {
-            padding: 8px 12px;
-            cursor: pointer;
-            border-radius: 6px;
-            font-size: 14px;
-            transition: all 0.2s;
-        }
-        
-        .suggestion-item:hover {
-            background: var(--bg-secondary);
-            color: var(--accent-green);
-        }
-        
-        /* Quick Filters */
-        .quick-filters {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        
-        .filter-btn {
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 13px;
-            transition: all 0.2s;
-        }
-        
-        .filter-btn:hover {
-            background: var(--accent-green);
-            color: var(--bg-primary);
-            border-color: var(--accent-green);
-        }
-        
-        .filter-btn.active {
-            background: var(--accent-green);
-            color: var(--bg-primary);
-            border-color: var(--accent-green);
-        }
-        
-        /* Results Grid */
-        .results-section {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-            gap: 25px;
-            margin-bottom: 30px;
-        }
-        
-        .result-card {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 20px;
-            transition: all 0.3s;
-            position: relative;
-            overflow: hidden;
-        }
-        
+
         .result-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--accent-green);
-            box-shadow: 0 15px 40px rgba(0, 255, 136, 0.15);
+            transform: translateY(-2px);
+            border-color: #333;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
-        
-        .result-header {
-            margin-bottom: 15px;
+
+        .result-card:hover::before {
+            transform: translateX(0);
         }
-        
-        .result-symbol {
-            font-size: 20px;
-            font-weight: bold;
-            color: var(--text-primary);
-            margin-bottom: 5px;
-        }
-        
-        .result-name {
-            font-size: 14px;
-            color: var(--text-secondary);
-            margin-bottom: 10px;
-        }
-        
-        .result-meta {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 15px;
-        }
-        
-        .meta-tag {
-            font-size: 11px;
-            padding: 3px 10px;
-            background: var(--bg-tertiary);
-            border-radius: 6px;
-            text-transform: uppercase;
-        }
-        
-        .meta-tag.source {
-            color: var(--accent-blue);
-            border: 1px solid var(--accent-blue);
-        }
-        
-        .meta-tag.frequency {
-            color: var(--accent-yellow);
-            border: 1px solid var(--accent-yellow);
-        }
-        
-        .meta-tag.category {
-            color: var(--accent-purple);
-            border: 1px solid var(--accent-purple);
-        }
-        
-        /* Data Display */
-        .data-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin: 20px 0;
-        }
-        
-        .data-item {
-            text-align: center;
-            padding: 15px;
-            background: var(--bg-primary);
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-        
-        .data-label {
-            font-size: 11px;
-            color: var(--text-muted);
-            margin-bottom: 5px;
-            text-transform: uppercase;
-        }
-        
-        .data-value {
+
+        .indicator-code {
             font-size: 18px;
-            font-weight: bold;
-            color: var(--text-primary);
+            font-weight: 600;
+            color: #00ff88;
+            margin-bottom: 8px;
+            font-family: 'Monaco', 'Consolas', monospace;
         }
-        
-        .data-value.positive { color: var(--accent-green); }
-        .data-value.negative { color: var(--accent-red); }
-        
-        .data-date {
-            font-size: 10px;
-            color: var(--text-muted);
-            margin-top: 3px;
+
+        .indicator-title {
+            font-size: 16px;
+            color: #e0e0e0;
+            margin-bottom: 12px;
+            line-height: 1.4;
         }
-        
-        /* Action Buttons */
-        .action-buttons {
+
+        .indicator-meta {
             display: flex;
-            gap: 10px;
-            margin-top: 15px;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
         }
-        
-        .action-btn {
-            flex: 1;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            padding: 10px;
-            border-radius: 6px;
-            cursor: pointer;
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
             font-size: 13px;
-            transition: all 0.2s;
-            text-align: center;
+            color: #888;
         }
-        
-        .action-btn:hover {
-            background: var(--accent-green);
-            color: var(--bg-primary);
-            border-color: var(--accent-green);
+
+        .meta-icon {
+            width: 14px;
+            height: 14px;
         }
-        
+
+        .indicator-value {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #282828;
+        }
+
+        .value-label {
+            font-size: 14px;
+            color: #888;
+        }
+
+        .value-number {
+            font-size: 24px;
+            font-weight: 600;
+            color: #00ccff;
+        }
+
+        .value-change {
+            font-size: 14px;
+            margin-left: 10px;
+        }
+
+        .value-change.positive {
+            color: #00ff88;
+        }
+
+        .value-change.negative {
+            color: #ff4444;
+        }
+
         /* Loading State */
-        .loading {
+        .loading-container {
             text-align: center;
             padding: 60px 20px;
-            font-size: 18px;
-            color: var(--text-secondary);
         }
-        
+
         .loading-spinner {
-            display: inline-block;
-            width: 50px;
-            height: 50px;
-            border: 3px solid var(--border-color);
-            border-top-color: var(--accent-green);
+            width: 60px;
+            height: 60px;
+            border: 3px solid #282828;
+            border-top-color: #00ff88;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin-bottom: 20px;
+            margin: 0 auto 20px;
         }
-        
+
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-        
+
+        .loading-text {
+            font-size: 16px;
+            color: #888;
+        }
+
         /* Empty State */
         .empty-state {
             text-align: center;
-            padding: 60px 20px;
-            color: var(--text-secondary);
+            padding: 80px 20px;
         }
-        
+
         .empty-icon {
-            font-size: 64px;
-            margin-bottom: 20px;
-            opacity: 0.3;
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            color: #444;
         }
-        
-        /* Error State */
-        .error-message {
-            background: rgba(255, 68, 68, 0.1);
-            border: 1px solid var(--accent-red);
-            border-radius: 8px;
-            padding: 15px;
-            margin: 20px 0;
-            color: var(--accent-red);
-            font-size: 14px;
+
+        .empty-title {
+            font-size: 24px;
+            color: #888;
+            margin-bottom: 10px;
         }
-        
+
+        .empty-subtitle {
+            font-size: 16px;
+            color: #666;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            max-width: 800px;
+            margin: 40px auto;
+            background: #181818;
+            border: 1px solid #282828;
+            border-radius: 16px;
+            padding: 30px;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 30px;
+            height: 30px;
+            background: #282828;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .modal-close:hover {
+            background: #383838;
+            transform: rotate(90deg);
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            margin-top: 20px;
+            background: #0a0a0a;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
-            .results-section {
-                grid-template-columns: 1fr;
+            .search-title {
+                font-size: 36px;
             }
-            
-            .nav-stats {
+
+            .nav-links {
                 display: none;
             }
-            
-            .connection-status {
-                font-size: 12px;
-                padding: 8px 12px;
+
+            .results-grid {
+                grid-template-columns: 1fr;
             }
-        }
-        
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 10px;
-            height: 10px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: var(--bg-primary);
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: var(--border-color);
-            border-radius: 5px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: #444;
+
+            .stats-bar {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
     </style>
 </head>
 <body>
     <!-- Navigation -->
     <nav>
-        <div class="nav-container">
-            <div class="nav-logo">
-                <span>📊</span>
-                <span>OpenBB Financial Intelligence</span>
-            </div>
-            <div class="nav-stats">
-                <div class="nav-stat" id="totalIndicatorsStat">
-                    <div class="nav-stat-value">-</div>
-                    <div class="nav-stat-label">Total Indicators</div>
-                </div>
-                <div class="nav-stat" id="lastUpdateStat">
-                    <div class="nav-stat-value">-</div>
-                    <div class="nav-stat-label">Last Update</div>
-                </div>
-                <div class="nav-stat" id="apiStatusStat">
-                    <div class="nav-stat-value">-</div>
-                    <div class="nav-stat-label">API Status</div>
-                </div>
-            </div>
+        <div class="nav-logo">OpenBB Intelligence</div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="macroeconomic-platform.html">Dashboard</a>
+            <a href="exponential-search-dashboard.html" class="active">Search</a>
+            <a href="ai_predictions.html">AI Predictions</a>
+            <a href="openbb-realtime-dashboard.html">Real-Time</a>
+            <a href="scraper_dashboard.html">Monitor</a>
         </div>
     </nav>
-    
-    <!-- Connection Status -->
-    <div class="connection-status" id="connectionStatus">
-        <div class="status-indicator" id="statusIndicator"></div>
-        <span id="statusText">Connecting to API...</span>
+
+    <!-- Search Header -->
+    <div class="search-header">
+        <h1 class="search-title">Exponential Search Engine</h1>
+        <p class="search-subtitle">Search across 739 financial indicators with real-time data</p>
     </div>
-    
-    <!-- Main Container -->
-    <div class="main-container">
-        <!-- Stats Summary -->
-        <div class="stats-summary" id="statsSummary" style="display: none;">
-            <div class="stat-card" onclick="showCategory('rates')">
-                <div class="stat-value" id="ratesCount">0</div>
-                <div class="stat-label">Interest Rates</div>
-                <div class="stat-sublabel">Treasury, SOFR, Fed Funds</div>
+
+    <!-- Search Container -->
+    <div class="search-container">
+        <div class="search-box">
+            <input 
+                type="text" 
+                class="search-input" 
+                id="searchInput" 
+                placeholder="Search indicators by code, name, or keywords..."
+                autocomplete="off"
+            >
+            <i data-lucide="search" class="search-icon"></i>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-container">
+        <div class="filter-chips">
+            <div class="filter-chip active" data-source="all">
+                All Sources <span class="count">(739)</span>
             </div>
-            <div class="stat-card" onclick="showCategory('economic')">
-                <div class="stat-value" id="economicCount">0</div>
-                <div class="stat-label">Economic Indicators</div>
-                <div class="stat-sublabel">GDP, Employment, Inflation</div>
+            <div class="filter-chip" data-source="fred">
+                FRED <span class="count">(203)</span>
             </div>
-            <div class="stat-card" onclick="showCategory('financial')">
-                <div class="stat-value" id="financialCount">0</div>
-                <div class="stat-label">Financial Stress</div>
-                <div class="stat-sublabel">CISS, VIX, Spreads</div>
+            <div class="filter-chip" data-source="ecb">
+                ECB <span class="count">(96)</span>
             </div>
-            <div class="stat-card" onclick="showCategory('state')">
-                <div class="stat-value" id="stateCount">0</div>
-                <div class="stat-label">State Data</div>
-                <div class="stat-sublabel">Employment, Housing by State</div>
+            <div class="filter-chip" data-source="treasury">
+                Treasury <span class="count">(6)</span>
+            </div>
+            <div class="filter-chip" data-category="interest-rates">
+                Interest Rates <span class="count">(20)</span>
+            </div>
+            <div class="filter-chip" data-category="employment">
+                Employment <span class="count">(150)</span>
+            </div>
+            <div class="filter-chip" data-category="housing">
+                Housing <span class="count">(75)</span>
             </div>
         </div>
-        
-        <!-- Search Section -->
-        <div class="search-section">
-            <div class="search-header">
-                <h2 class="search-title">Search Financial Indicators</h2>
-                <p class="search-description">Search across <span id="totalDocsCount">739</span> indicators from FRED, ECB, Treasury, and more</p>
-            </div>
-            
-            <div class="search-container">
-                <input type="text" 
-                       class="search-input" 
-                       id="searchInput" 
-                       placeholder="Search by symbol, name, or keyword (e.g., SOFR, unemployment, Texas, ICE BofA)..."
-                       autocomplete="off">
-                <span class="search-icon">🔍</span>
-                <div class="search-suggestions" id="searchSuggestions">
-                    <div class="suggestion-item" onclick="searchFor('SOFR')">SOFR - Secured Overnight Financing Rate</div>
-                    <div class="suggestion-item" onclick="searchFor('DGS10')">DGS10 - 10-Year Treasury Rate</div>
-                    <div class="suggestion-item" onclick="searchFor('DTWEXBGS')">DTWEXBGS - Trade Weighted US Dollar</div>
-                    <div class="suggestion-item" onclick="searchFor('BAMLC0A0CM')">ICE BofA Corporate Index</div>
-                    <div class="suggestion-item" onclick="searchFor('TXUR')">Texas Unemployment Rate</div>
-                    <div class="suggestion-item" onclick="searchFor('CISS')">CISS - Systemic Stress Indicators</div>
-                </div>
-            </div>
-            
-            <div class="quick-filters">
-                <button class="filter-btn" onclick="filterBySource('fred')">FRED</button>
-                <button class="filter-btn" onclick="filterBySource('ecb')">ECB</button>
-                <button class="filter-btn" onclick="filterBySource('treasury')">Treasury</button>
-                <button class="filter-btn" onclick="filterByTag('interest-rates')">Interest Rates</button>
-                <button class="filter-btn" onclick="filterByTag('employment')">Employment</button>
-                <button class="filter-btn" onclick="filterByTag('financial-stress')">Financial Stress</button>
-                <button class="filter-btn" onclick="filterByTag('state-data')">State Data</button>
-                <button class="filter-btn" onclick="clearFilters()">Clear Filters</button>
-            </div>
+    </div>
+
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+        <div class="stat-card">
+            <div class="stat-value" id="totalIndicators">739</div>
+            <div class="stat-label">Total Indicators</div>
         </div>
-        
+        <div class="stat-card">
+            <div class="stat-value" id="searchResults">0</div>
+            <div class="stat-label">Search Results</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="lastUpdate">Live</div>
+            <div class="stat-label">Last Update</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="apiLatency">0ms</div>
+            <div class="stat-label">API Latency</div>
+        </div>
+    </div>
+
+    <!-- Results Container -->
+    <div class="results-container">
+        <div class="results-header">
+            <div class="results-count" id="resultsCount">Showing 0 results</div>
+            <select class="sort-dropdown" id="sortSelect">
+                <option value="relevance">Sort by Relevance</option>
+                <option value="alphabetical">Sort A-Z</option>
+                <option value="source">Sort by Source</option>
+                <option value="recent">Most Recent</option>
+            </select>
+        </div>
+
+        <div class="results-grid" id="resultsGrid">
+            <!-- Results will be populated here -->
+        </div>
+
         <!-- Loading State -->
-        <div class="loading" id="loadingState" style="display: none;">
+        <div class="loading-container" id="loadingState" style="display: none;">
             <div class="loading-spinner"></div>
-            <p>Searching indicators...</p>
+            <div class="loading-text">Searching financial indicators...</div>
         </div>
-        
-        <!-- Error State -->
-        <div class="error-message" id="errorMessage" style="display: none;"></div>
-        
-        <!-- Results Section -->
-        <div class="results-section" id="resultsSection"></div>
-        
+
         <!-- Empty State -->
-        <div class="empty-state" id="emptyState" style="display: none;">
-            <div class="empty-icon">📊</div>
-            <h3>No indicators found</h3>
-            <p>Try searching for: SOFR, treasury, unemployment, CISS, or ICE BofA</p>
+        <div class="empty-state" id="emptyState">
+            <i data-lucide="search" class="empty-icon"></i>
+            <div class="empty-title">Start searching</div>
+            <div class="empty-subtitle">Enter a keyword to search across all indicators</div>
         </div>
     </div>
-    
+
+    <!-- Modal for Indicator Details -->
+    <div class="modal" id="indicatorModal">
+        <div class="modal-content">
+            <div class="modal-close" onclick="closeModal()">
+                <i data-lucide="x" style="width: 16px; height: 16px; color: #888;"></i>
+            </div>
+            <div id="modalContent">
+                <!-- Modal content will be populated here -->
+            </div>
+        </div>
+    </div>
+
     <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
         // API Configuration
         const API_BASE_URL = 'https://n7gw03k076.execute-api.us-east-1.amazonaws.com/prod';
         
-        // Global state
-        let currentResults = [];
-        let apiStats = null;
+        // State management
+        let currentFilter = 'all';
+        let currentSort = 'relevance';
+        let searchResults = [];
         let searchTimeout = null;
-        let currentFilter = null;
-        
+
+        // DOM Elements
+        const searchInput = document.getElementById('searchInput');
+        const resultsGrid = document.getElementById('resultsGrid');
+        const loadingState = document.getElementById('loadingState');
+        const emptyState = document.getElementById('emptyState');
+        const resultsCount = document.getElementById('resultsCount');
+        const searchResultsStat = document.getElementById('searchResults');
+        const apiLatencyStat = document.getElementById('apiLatency');
+
         // Initialize
-        async function initialize() {
-            console.log('Initializing OpenBB Financial Intelligence Dashboard...');
-            
-            // Check API health
-            await checkAPIHealth();
-            
-            // Get initial stats
-            await loadStats();
-            
-            // Setup event listeners
+        document.addEventListener('DOMContentLoaded', () => {
             setupEventListeners();
-            
-            // Show search suggestions on focus
-            document.getElementById('searchInput').addEventListener('focus', () => {
-                document.getElementById('searchSuggestions').classList.add('active');
-            });
-            
-            document.getElementById('searchInput').addEventListener('blur', () => {
-                setTimeout(() => {
-                    document.getElementById('searchSuggestions').classList.remove('active');
-                }, 200);
-            });
-            
-            // Load initial data with a search that returns a few results for testing
-            console.log('Loading initial search for SOFR...');
-            performSearch('SOFR');
-        }
-        
-        // Check API health
-        async function checkAPIHealth() {
-            const statusIndicator = document.getElementById('statusIndicator');
-            const statusText = document.getElementById('statusText');
-            
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/search/health`);
-                const data = await response.json();
-                
-                if (data.status === 'healthy') {
-                    statusIndicator.classList.add('connected');
-                    statusText.textContent = 'Connected to OpenSearch';
-                    setTimeout(() => {
-                        document.getElementById('connectionStatus').style.opacity = '0';
-                    }, 3000);
-                } else {
-                    throw new Error('API unhealthy');
-                }
-            } catch (error) {
-                console.error('API health check failed:', error);
-                statusIndicator.classList.remove('connected');
-                statusText.textContent = 'API Connection Error';
-                showError('Unable to connect to the API. Please check your connection.');
-            }
-        }
-        
-        // Load stats
-        async function loadStats() {
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/search/stats`);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                console.log('Stats response:', data);
-                
-                apiStats = data;
-                
-                // Update navigation stats - handle different response formats
-                const docCount = data.document_count || data.total_documents || data.count || '739';
-                const lastUpdated = data.last_updated || data.last_update || new Date().toISOString();
-                const health = data.index_health || data.health || data.status || 'unknown';
-                
-                document.querySelector('#totalIndicatorsStat .nav-stat-value').textContent = docCount;
-                document.querySelector('#lastUpdateStat .nav-stat-value').textContent = 
-                    new Date(lastUpdated).toLocaleDateString();
-                document.querySelector('#apiStatusStat .nav-stat-value').textContent = 
-                    health === 'green' || health === 'healthy' ? 'Healthy' : 'Issues';
-                
-                // Update search description
-                document.getElementById('totalDocsCount').textContent = docCount;
-                
-                // Show stats summary
-                document.getElementById('statsSummary').style.display = 'grid';
-                
-                // Update category counts based on your documentation
-                document.getElementById('ratesCount').textContent = '150+';
-                document.getElementById('economicCount').textContent = '200+';
-                document.getElementById('financialCount').textContent = '100+';
-                document.getElementById('stateCount').textContent = '250+';
-                
-            } catch (error) {
-                console.error('Failed to load stats:', error);
-                // Use default values from your documentation
-                document.querySelector('#totalIndicatorsStat .nav-stat-value').textContent = '739';
-                document.querySelector('#lastUpdateStat .nav-stat-value').textContent = 'May 31, 2025';
-                document.querySelector('#apiStatusStat .nav-stat-value').textContent = 'Check Connection';
-            }
-        }
-        
-        // Update category counts
-        function updateCategoryCounts(categories) {
-            // This would be populated from actual category data
-            // For now, using estimates based on the project documentation
-            document.getElementById('ratesCount').textContent = '150+';
-            document.getElementById('economicCount').textContent = '200+';
-            document.getElementById('financialCount').textContent = '100+';
-            document.getElementById('stateCount').textContent = '250+';
-        }
-        
+            fetchStats();
+            updateLastUpdateTime();
+        });
+
         // Setup event listeners
         function setupEventListeners() {
-            const searchInput = document.getElementById('searchInput');
-            
+            // Search input with debouncing
             searchInput.addEventListener('input', (e) => {
                 clearTimeout(searchTimeout);
-                const query = e.target.value.trim();
-                
-                if (query.length > 0) {
-                    searchTimeout = setTimeout(() => {
-                        performSearch(query);
-                    }, 300);
-                } else {
-                    // Show all indicators when search is empty
-                    searchTimeout = setTimeout(() => {
-                        performSearch('*');
-                    }, 300);
-                }
+                searchTimeout = setTimeout(() => {
+                    performSearch(e.target.value);
+                }, 300);
             });
-            
-            // Enter key to search
-            searchInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    const query = e.target.value.trim();
-                    clearTimeout(searchTimeout);
-                    performSearch(query || '*');
-                }
+
+            // Filter chips
+            document.querySelectorAll('.filter-chip').forEach(chip => {
+                chip.addEventListener('click', () => {
+                    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+                    chip.classList.add('active');
+                    currentFilter = chip.dataset.source || chip.dataset.category || 'all';
+                    performSearch(searchInput.value);
+                });
+            });
+
+            // Sort dropdown
+            document.getElementById('sortSelect').addEventListener('change', (e) => {
+                currentSort = e.target.value;
+                sortResults();
+                renderResults();
             });
         }
-        
+
+        // Fetch stats
+        async function fetchStats() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/search/stats`);
+                const data = await response.json();
+                
+                if (data.document_count) {
+                    document.getElementById('totalIndicators').textContent = data.document_count.toLocaleString();
+                }
+            } catch (error) {
+                console.error('Error fetching stats:', error);
+            }
+        }
+
         // Perform search
         async function performSearch(query) {
-            showLoading();
-            hideError();
-            
-            try {
-                // For empty query or asterisk, search for common indicators
-                if (!query || query === '*') {
-                    query = 'rate';  // Default search term that should return results
-                }
-                
-                // Build search URL with query parameters
-                const params = new URLSearchParams({
-                    q: query,
-                    limit: 100
-                });
-                
-                // Add source filter if active
-                if (currentFilter && currentFilter.type === 'source') {
-                    params.append('source', currentFilter.value);
-                }
-                
-                const url = `${API_BASE_URL}/api/search?${params}`;
-                console.log('Fetching:', url);
-                
-                const response = await fetch(url);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                console.log('API Response:', data);
-                
-                // The API returns data in this structure based on your logs
-                if (data && data.results && Array.isArray(data.results)) {
-                    console.log('Processing results array of length:', data.results.length);
-                    currentResults = data.results;
-                    renderResults(data.results);
-                    console.log(`Found ${data.total_results} total results, showing ${data.results.length}`);
-                    
-                    // Update result count in UI
-                    const searchDesc = document.querySelector('.search-description');
-                    if (searchDesc && data.total_results) {
-                        searchDesc.innerHTML = `Found <strong>${data.total_results}</strong> indicators matching "${query}"`;
-                    }
-                } else {
-                    console.warn('No results found');
-                    showEmpty();
-                }
-                
-            } catch (error) {
-                console.error('Search failed:', error);
-                showError(`Search failed: ${error.message}`);
-            } finally {
-                hideLoading();
-            }
-        }
-        
-        // Render results
-        function renderResults(results) {
-            console.log('renderResults called with', results.length, 'results');
-            
-            const resultsSection = document.getElementById('resultsSection');
-            const emptyState = document.getElementById('emptyState');
-            
-            if (!resultsSection) {
-                console.error('Results section not found!');
+            if (!query || query.length < 2) {
+                showEmptyState();
                 return;
             }
-            
-            emptyState.style.display = 'none';
-            resultsSection.innerHTML = '';
-            
-            // Log first result to see structure
-            if (results.length > 0) {
-                console.log('First result structure:', results[0]);
-            }
-            
-            results.forEach((result, index) => {
-                // Only log first few for debugging
-                if (index < 3) {
-                    console.log(`Result ${index}:`, result);
-                }
-                try {
-                    const card = createResultCard(result);
-                    resultsSection.appendChild(card);
-                } catch (err) {
-                    console.error('Error creating card for result:', result, err);
-                }
-            });
-            
-            console.log('Finished rendering. Total cards created:', resultsSection.children.length);
-        }
-        
-        // Create result card
-        function createResultCard(indicator) {
-            const card = document.createElement('div');
-            card.className = 'result-card';
-            
-            // Extract data using the actual field names from your API
-            const symbol = indicator.indicator_name || indicator.symbol || 'N/A';
-            const name = indicator.description || indicator.name || 'Unknown Indicator';
-            const source = indicator.source || 'unknown';
-            const category = indicator.category || 'other';
-            const key = indicator.indicator_key || indicator.key;
-            const frequency = indicator.frequency || indicator.update_frequency || 'varies';
-            
-            // Extract tags if available
-            const tags = indicator.tags || [];
-            
-            // Generate unique ID for the card
-            const cardId = `card-${Math.random().toString(36).substr(2, 9)}`;
-            
-            card.innerHTML = `
-                <div class="result-header">
-                    <div class="result-symbol">${escapeHtml(symbol)}</div>
-                    <div class="result-name">${escapeHtml(name)}</div>
-                </div>
-                
-                <div class="result-meta">
-                    <span class="meta-tag source">${escapeHtml(source.toUpperCase())}</span>
-                    <span class="meta-tag category">${escapeHtml(category.replace(/_/g, ' '))}</span>
-                    ${tags.length > 0 ? tags.slice(0, 2).map(tag => 
-                        `<span class="meta-tag frequency">${escapeHtml(tag)}</span>`
-                    ).join('') : ''}
-                </div>
-                
-                <div class="data-grid">
-                    <div class="data-item">
-                        <div class="data-label">Indicator Key</div>
-                        <div class="data-value" style="font-size: 14px;">${escapeHtml(key)}</div>
-                    </div>
-                    <div class="data-item">
-                        <div class="data-label">Data Source</div>
-                        <div class="data-value">${escapeHtml(source.toUpperCase())}</div>
-                    </div>
-                </div>
-                
-                <div class="action-buttons">
-                    <button class="action-btn" id="view-${cardId}">
-                        View Historical Data
-                    </button>
-                    <button class="action-btn" id="search-${cardId}">
-                        Search Similar
-                    </button>
-                </div>
-            `;
-            
-            // Add event listeners after the card is created
-            setTimeout(() => {
-                const viewBtn = card.querySelector(`#view-${cardId}`);
-                const searchBtn = card.querySelector(`#search-${cardId}`);
-                
-                if (viewBtn) {
-                    viewBtn.addEventListener('click', () => viewHistoricalData(key, indicator));
-                }
-                
-                if (searchBtn) {
-                    searchBtn.addEventListener('click', () => searchSimilar(category, source));
-                }
-            }, 0);
-            
-            return card;
-        }
-        
-        // View historical data
-        function viewHistoricalData(key, indicator) {
-            console.log('View historical data for:', key);
-            alert(`Historical Data for ${indicator.indicator_name}\n\nKey: ${key}\nDescription: ${indicator.description}\nCategory: ${indicator.category}\nSource: ${indicator.source}\n\nFull historical data API endpoint coming soon!`);
-        }
-        
-        // Search for similar indicators
-        function searchSimilar(category, source) {
-            console.log('Search similar:', category, source);
-            // Search for indicators in the same category
-            const searchQuery = category.replace(/_/g, ' ');
-            document.getElementById('searchInput').value = searchQuery;
-            performSearch(searchQuery);
-        }
-        
-        // Format value based on indicator type
-        function formatValue(value, indicator) {
-            if (!value || value === 'N/A') return 'N/A';
-            
-            const numValue = parseFloat(value);
-            if (isNaN(numValue)) return value;
-            
-            // Format based on indicator type
-            if (indicator.unit === 'percent' || indicator.category?.includes('rate')) {
-                return numValue.toFixed(2) + '%';
-            } else if (indicator.unit === 'currency' || indicator.symbol?.includes('USD')) {
-                return '$' + numValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            } else if (indicator.unit === 'index') {
-                return numValue.toFixed(2);
-            } else {
-                return numValue.toLocaleString('en-US');
-            }
-        }
-        
-        // Format date
-        function formatDate(dateString) {
-            if (!dateString) return 'N/A';
-            
+
+            showLoading();
+            const startTime = Date.now();
+
             try {
-                const date = new Date(dateString);
-                return date.toLocaleDateString('en-US', { 
-                    year: 'numeric', 
-                    month: 'short', 
-                    day: 'numeric' 
-                });
-            } catch (e) {
-                return dateString;
-            }
-        }
-        
-        // Quick search functions
-        function searchFor(query) {
-            document.getElementById('searchInput').value = query;
-            performSearch(query);
-        }
-        
-        // Filter functions
-        function filterBySource(source) {
-            currentFilter = { type: 'source', value: source };
-            updateFilterButtons();
-            
-            // Search for all indicators from this source
-            performSearch(`*`);
-        }
-        
-        function filterByTag(tag) {
-            currentFilter = { type: 'tag', value: tag };
-            updateFilterButtons();
-            
-            // Map tag to search terms
-            const tagSearchMap = {
-                'interest-rates': 'rate OR treasury OR SOFR OR "fed funds"',
-                'employment': 'employment OR unemployment OR jobless OR payroll',
-                'financial-stress': 'CISS OR stress OR VIX OR volatility',
-                'state-data': 'state OR texas OR california OR florida'
-            };
-            
-            performSearch(tagSearchMap[tag] || tag.replace('-', ' '));
-        }
-        
-        function showCategory(category) {
-            clearFilters();
-            
-            // Map category to search terms
-            const categorySearchMap = {
-                'rates': 'rate OR treasury OR SOFR OR "fed funds" OR yield',
-                'economic': 'GDP OR inflation OR CPI OR PCE OR economic',
-                'financial': 'financial OR stress OR CISS OR spread OR credit',
-                'state': 'state OR unemployment OR housing'
-            };
-            
-            performSearch(categorySearchMap[category] || category);
-        }
-        
-        function clearFilters() {
-            currentFilter = null;
-            updateFilterButtons();
-            const query = document.getElementById('searchInput').value.trim();
-            performSearch(query || '*');
-        }
-        
-        function updateFilterButtons() {
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            if (currentFilter) {
-                const activeBtn = document.querySelector(`.filter-btn[onclick*="${currentFilter.value}"]`);
-                if (activeBtn) activeBtn.classList.add('active');
-            }
-        }
-        
-        // View details (placeholder)
-        function viewDetails(symbol, data) {
-            console.log('View details for:', symbol, data);
-            
-            // Create a detailed view of the indicator
-            const details = `
-                Symbol: ${symbol}
-                Name: ${data.name || data.indicator_name || 'N/A'}
-                Source: ${data.source || data.data_source || 'N/A'}
-                Category: ${data.category || data.indicator_category || 'N/A'}
-                Frequency: ${data.frequency || data.update_frequency || 'N/A'}
-                Last Value: ${formatValue(data.last_value || data.latest_value, data)}
-                Last Updated: ${formatDate(data.last_date || data.latest_date)}
+                // Build search URL
+                let searchUrl = `${API_BASE_URL}/api/search?q=${encodeURIComponent(query)}&limit=50`;
                 
-                Full Data Available in API
+                // Add filter if not 'all'
+                if (currentFilter !== 'all') {
+                    if (['fred', 'ecb', 'treasury'].includes(currentFilter)) {
+                        searchUrl += `&source=${currentFilter}`;
+                    } else {
+                        searchUrl += `&tags=${currentFilter}`;
+                    }
+                }
+
+                const response = await fetch(searchUrl);
+                const data = await response.json();
+
+                // Update latency
+                const latency = Date.now() - startTime;
+                apiLatencyStat.textContent = `${latency}ms`;
+
+                if (data.results && data.results.length > 0) {
+                    searchResults = data.results;
+                    searchResultsStat.textContent = searchResults.length;
+                    sortResults();
+                    renderResults();
+                } else {
+                    showNoResults();
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+                showError();
+            }
+        }
+
+        // Sort results
+        function sortResults() {
+            switch (currentSort) {
+                case 'alphabetical':
+                    searchResults.sort((a, b) => (a._source.code || '').localeCompare(b._source.code || ''));
+                    break;
+                case 'source':
+                    searchResults.sort((a, b) => (a._source.source || '').localeCompare(b._source.source || ''));
+                    break;
+                case 'recent':
+                    searchResults.sort((a, b) => new Date(b._source.last_updated || 0) - new Date(a._source.last_updated || 0));
+                    break;
+                // 'relevance' is default from API
+            }
+        }
+
+        // Render results
+        function renderResults() {
+            hideStates();
+            resultsCount.textContent = `Showing ${searchResults.length} results`;
+
+            resultsGrid.innerHTML = searchResults.map(result => {
+                const indicator = result._source;
+                return createResultCard(indicator);
+            }).join('');
+
+            // Re-initialize Lucide icons for new content
+            lucide.createIcons();
+        }
+
+        // Create result card HTML
+        function createResultCard(indicator) {
+            const value = indicator.latest_value || 'N/A';
+            const change = indicator.change_percent || 0;
+            const changeClass = change > 0 ? 'positive' : change < 0 ? 'negative' : '';
+            const changeSymbol = change > 0 ? '+' : '';
+
+            return `
+                <div class="result-card" onclick="showIndicatorDetails('${indicator.code}')">
+                    <div class="indicator-code">${indicator.code}</div>
+                    <div class="indicator-title">${indicator.title || indicator.name || 'N/A'}</div>
+                    
+                    <div class="indicator-meta">
+                        <div class="meta-item">
+                            <i data-lucide="database" class="meta-icon"></i>
+                            <span>${indicator.source || 'Unknown'}</span>
+                        </div>
+                        <div class="meta-item">
+                            <i data-lucide="tag" class="meta-icon"></i>
+                            <span>${(indicator.tags || []).slice(0, 2).join(', ') || 'No tags'}</span>
+                        </div>
+                        <div class="meta-item">
+                            <i data-lucide="bar-chart" class="meta-icon"></i>
+                            <span>${indicator.frequency || 'N/A'}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="indicator-value">
+                        <span class="value-label">Latest Value</span>
+                        <div>
+                            <span class="value-number">${formatValue(value)}</span>
+                            ${change !== 0 ? `<span class="value-change ${changeClass}">${changeSymbol}${change.toFixed(2)}%</span>` : ''}
+                        </div>
+                    </div>
+                </div>
             `;
-            
-            alert(details);
         }
-        
-        // Download data (placeholder)
-        function downloadData(symbol, data) {
-            console.log('Download data for:', symbol, data);
-            
-            // Create a simple JSON download
-            const downloadContent = JSON.stringify({
-                symbol: symbol,
-                name: data.name || data.indicator_name,
-                source: data.source || data.data_source,
-                category: data.category || data.indicator_category,
-                frequency: data.frequency || data.update_frequency,
-                last_value: data.last_value || data.latest_value,
-                last_date: data.last_date || data.latest_date,
-                metadata: data
-            }, null, 2);
-            
-            // Create download link
-            const blob = new Blob([downloadContent], { type: 'application/json' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${symbol}_data.json`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
+
+        // Format value
+        function formatValue(value) {
+            if (typeof value === 'number') {
+                if (value > 1000000) {
+                    return (value / 1000000).toFixed(2) + 'M';
+                } else if (value > 1000) {
+                    return (value / 1000).toFixed(2) + 'K';
+                }
+                return value.toFixed(2);
+            }
+            return value;
         }
-        
-        // UI state functions
+
+        // Show indicator details in modal
+        async function showIndicatorDetails(code) {
+            const modal = document.getElementById('indicatorModal');
+            const modalContent = document.getElementById('modalContent');
+            
+            // Find the indicator in search results
+            const indicator = searchResults.find(r => r._source.code === code)?._source;
+            
+            if (!indicator) return;
+
+            modalContent.innerHTML = `
+                <h2 style="color: #00ff88; margin-bottom: 20px; font-family: Monaco, monospace;">${indicator.code}</h2>
+                <h3 style="color: #e0e0e0; margin-bottom: 20px;">${indicator.title || indicator.name || 'N/A'}</h3>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+                    <div>
+                        <label style="color: #888; font-size: 14px;">Source</label>
+                        <p style="color: #e0e0e0; font-size: 16px; margin-top: 5px;">${indicator.source || 'Unknown'}</p>
+                    </div>
+                    <div>
+                        <label style="color: #888; font-size: 14px;">Frequency</label>
+                        <p style="color: #e0e0e0; font-size: 16px; margin-top: 5px;">${indicator.frequency || 'N/A'}</p>
+                    </div>
+                    <div>
+                        <label style="color: #888; font-size: 14px;">Last Updated</label>
+                        <p style="color: #e0e0e0; font-size: 16px; margin-top: 5px;">${new Date(indicator.last_updated).toLocaleDateString()}</p>
+                    </div>
+                    <div>
+                        <label style="color: #888; font-size: 14px;">Latest Value</label>
+                        <p style="color: #00ccff; font-size: 24px; margin-top: 5px; font-weight: 600;">${formatValue(indicator.latest_value)}</p>
+                    </div>
+                </div>
+                
+                ${indicator.description ? `
+                    <div style="margin-bottom: 30px;">
+                        <label style="color: #888; font-size: 14px;">Description</label>
+                        <p style="color: #ccc; margin-top: 10px; line-height: 1.6;">${indicator.description}</p>
+                    </div>
+                ` : ''}
+                
+                ${indicator.tags && indicator.tags.length > 0 ? `
+                    <div style="margin-bottom: 30px;">
+                        <label style="color: #888; font-size: 14px; display: block; margin-bottom: 10px;">Tags</label>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            ${indicator.tags.map(tag => `
+                                <span style="background: rgba(0, 255, 136, 0.1); border: 1px solid #00ff88; color: #00ff88; padding: 4px 12px; border-radius: 16px; font-size: 13px;">${tag}</span>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+                
+                <div class="chart-container" id="indicatorChart">
+                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #666;">
+                        <i data-lucide="bar-chart-2" style="width: 48px; height: 48px; margin-right: 10px;"></i>
+                        <span>Historical data visualization coming soon</span>
+                    </div>
+                </div>
+            `;
+
+            modal.style.display = 'block';
+            lucide.createIcons();
+            
+            // TODO: Fetch and display historical data chart
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('indicatorModal').style.display = 'none';
+        }
+
+        // Click outside modal to close
+        window.onclick = function(event) {
+            const modal = document.getElementById('indicatorModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // State management functions
         function showLoading() {
-            document.getElementById('loadingState').style.display = 'block';
-            document.getElementById('resultsSection').innerHTML = '';
-            document.getElementById('emptyState').style.display = 'none';
+            hideStates();
+            loadingState.style.display = 'block';
         }
-        
-        function hideLoading() {
-            document.getElementById('loadingState').style.display = 'none';
+
+        function showEmptyState() {
+            hideStates();
+            emptyState.style.display = 'block';
+            searchResultsStat.textContent = '0';
+            resultsCount.textContent = 'Showing 0 results';
         }
-        
-        function showEmpty() {
-            document.getElementById('emptyState').style.display = 'block';
-            document.getElementById('resultsSection').innerHTML = '';
+
+        function showNoResults() {
+            hideStates();
+            resultsGrid.innerHTML = `
+                <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px;">
+                    <i data-lucide="search-x" style="width: 60px; height: 60px; margin: 0 auto 20px; display: block; color: #666;"></i>
+                    <h3 style="color: #888; margin-bottom: 10px;">No results found</h3>
+                    <p style="color: #666;">Try adjusting your search or filters</p>
+                </div>
+            `;
+            lucide.createIcons();
+            searchResultsStat.textContent = '0';
+            resultsCount.textContent = 'Showing 0 results';
         }
-        
-        function showError(message) {
-            const errorEl = document.getElementById('errorMessage');
-            errorEl.textContent = message;
-            errorEl.style.display = 'block';
+
+        function showError() {
+            hideStates();
+            resultsGrid.innerHTML = `
+                <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px;">
+                    <i data-lucide="alert-circle" style="width: 60px; height: 60px; margin: 0 auto 20px; display: block; color: #ff4444;"></i>
+                    <h3 style="color: #ff4444; margin-bottom: 10px;">Search Error</h3>
+                    <p style="color: #666;">Unable to search indicators. Please try again.</p>
+                </div>
+            `;
+            lucide.createIcons();
         }
-        
-        function hideError() {
-            document.getElementById('errorMessage').style.display = 'none';
+
+        function hideStates() {
+            loadingState.style.display = 'none';
+            emptyState.style.display = 'none';
+            resultsGrid.innerHTML = '';
         }
-        
-        function clearResults() {
-            document.getElementById('resultsSection').innerHTML = '';
-            document.getElementById('emptyState').style.display = 'none';
+
+        // Update last update time
+        function updateLastUpdateTime() {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            document.getElementById('lastUpdate').textContent = `${hours}:${minutes}`;
+            
+            // Update every minute
+            setTimeout(updateLastUpdateTime, 60000);
         }
-        
-        // Initialize on DOM ready
-        document.addEventListener('DOMContentLoaded', initialize);
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Focus search with Ctrl+K or Cmd+K
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+            }
+            
+            // Close modal with Escape
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
     </script>
 </body>
 </html>
