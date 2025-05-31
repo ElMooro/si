@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpenBB Financial Intelligence Platform</title>
+    <title>OpenBB Financial Intelligence Platform v2</title>
    
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
    
@@ -1220,15 +1220,21 @@
         window.fetch = function(url, ...args) {
             // Check if it's an API call to our backend
             if (typeof url === 'string' && url.includes(API_BASE)) {
+                // Log all API calls for debugging
+                console.log('API Call:', url);
+                
                 // Force include_changes=false for universal/data endpoints
                 if (url.includes('/universal/data') && url.includes('include_changes=true')) {
-                    console.warn('Fixing URL with include_changes=true:', url);
+                    console.warn('INTERCEPTED AND FIXED URL with include_changes=true:', url);
                     url = url.replace('include_changes=true', 'include_changes=false');
+                    console.log('Fixed URL:', url);
                 }
                 // Also handle cases where include_changes is not specified but should be false
                 if (url.includes('/universal/data') && !url.includes('include_changes=') && 
                     !url.includes('polygon_direct') && !url.includes('yahoo_finance')) {
-                    url += '&include_changes=false';
+                    const separator = url.includes('?') ? '&' : '?';
+                    url += `${separator}include_changes=false`;
+                    console.log('Added include_changes=false to URL:', url);
                 }
             }
             return originalFetch.call(this, url, ...args);
@@ -1558,6 +1564,8 @@
        
         // Initialize the dashboard
         async function init() {
+            console.log('OpenBB Dashboard v2 - Initializing with include_changes=false fix');
+            
             updateClock();
             setInterval(updateClock, 1000);
            
