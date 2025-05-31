@@ -1366,11 +1366,18 @@
                 const { symbol, provider, operation } = context;
                 const errorKey = `${symbol}-${provider}`;
                 
+                // Store current symbol for tracking
+                this.currentSymbol = symbol;
+                
                 const errorCount = (this.errorCounts.get(errorKey) || 0) + 1;
                 this.errorCounts.set(errorKey, errorCount);
                 
                 const errorInfo = this.analyzeError(error);
-                this.showErrorMessage(errorInfo, context);
+                
+                // Don't show error message for every retry, only on final failure
+                if (errorCount === 1) {
+                    this.showErrorMessage(errorInfo, context);
+                }
                 
                 return this.attemptRecovery(errorInfo, context, errorCount);
             }
@@ -1458,35 +1465,69 @@
             
             async fallbackStrategy(context) {
                 const { symbol, provider } = context;
+                
+                // Try alternative data sources
                 const alternatives = this.getAlternativeProviders(provider);
+                
+                if (alternatives.length === 0) {
+                    // No more alternatives, use cached data or show final error
+                    const cached = this.useCachedData(symbol);
+                    if (!cached) {
+                        // Show final error message
+                        this.showErrorMessage({
+                            type: 'final_failure',
+                            userMessage: 'Unable to load data from any source'
+                        }, context);
+                    }
+                    return cached;
+                }
                 
                 for (const altProvider of alternatives) {
                     try {
                         console.log(`Trying alternative provider ${altProvider} for ${symbol}`);
-                        const result = await loadSingleWatchlistItem(symbol, altProvider);
-                        showTemporaryMessage(`Found ${symbol} data from ${altProvider}`, 'info');
-                        return result;
+                        const result = await loadSingleWatchlistItem(symbol, altProvider, 0);
+                        
+                        if (result !== false) {  // Check if it actually succeeded
+                            showTemporaryMessage(`Found ${symbol} data from ${altProvider}`, 'info');
+                            // Clear tried providers on success
+                            if (this.triedProviders && this.triedProviders.has(symbol)) {
+                                this.triedProviders.delete(symbol);
+                            }
+                            return result;
+                        }
                     } catch (altError) {
+                        console.warn(`Alternative provider ${altProvider} also failed for ${symbol}`);
                         continue;
                     }
                 }
                 
+                // If all alternatives fail, use cached data if available
                 return this.useCachedData(symbol);
             }
             
             getAlternativeProviders(failedProvider) {
+                // Prevent infinite loops by tracking which providers have been tried
+                const symbol = this.currentSymbol;
+                if (!this.triedProviders) this.triedProviders = new Map();
+                if (!this.triedProviders.has(symbol)) this.triedProviders.set(symbol, new Set());
+                
+                const tried = this.triedProviders.get(symbol);
+                tried.add(failedProvider);
+                
                 const alternatives = {
                     'polygon_direct': ['yahoo_finance', 'opensearch'],
-                    'yahoo_finance': ['polygon_direct', 'opensearch'],
-                    'fred_direct': ['opensearch', 'treasury_direct'],
+                    'yahoo_finance': ['opensearch'],  // Don't go back to polygon
+                    'fred_direct': ['opensearch'],
                     'ny_fed_direct': ['fred_direct', 'opensearch'],
                     'ecb_direct': ['opensearch'],
                     'ofr_direct': ['opensearch'],
-                    'treasury_direct': ['opensearch', 'fred_direct'],
-                    'opensearch': ['fred_direct', 'polygon_direct']
+                    'treasury_direct': ['opensearch'],
+                    'opensearch': []  // No alternatives for opensearch
                 };
                 
-                return alternatives[failedProvider] || ['opensearch'];
+                const possibleAlternatives = alternatives[failedProvider] || [];
+                // Filter out already tried providers
+                return possibleAlternatives.filter(p => !tried.has(p));
             }
             
             useCachedData(symbol) {
@@ -1625,7 +1666,7 @@
         let searchTimeout = null;
         let activeSources = ['polygon', 'yahoo', 'fred', 'ny_fed', 'ecb', 'ofr', 'treasury', 'opensearch'];
        
-        // Enhanced watchlists
+        // Default watchlist for testing - use AAPL instead of SPY if having issues
         const watchlists = {
             'MAIN': {
                 symbols: [
@@ -2375,6 +2416,10 @@
             } else if (provider === 'polygon_direct') {
                 const dataType = options.dataType || 'quote';
                 let url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&data_type=${dataType}`;
+                // Remove the data_type parameter for quote requests as it might be causing the 400 error
+                if (dataType === 'quote') {
+                    url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}`;
+                }
                 if (options.startDate && dataType === 'historical') {
                     url += `&start_date=${options.startDate}&end_date=${options.endDate}`;
                 }
@@ -2382,6 +2427,10 @@
             } else if (provider === 'yahoo_finance') {
                 const dataType = options.dataType || 'quote';
                 let url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&data_type=${dataType}`;
+                // Remove the data_type parameter for quote requests
+                if (dataType === 'quote') {
+                    url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}`;
+                }
                 if (options.startDate && dataType === 'historical') {
                     url += `&start_date=${options.startDate}&end_date=${options.endDate}`;
                 }
@@ -2413,6 +2462,13 @@
                 const response = await fetch(url);
                
                 if (!response.ok) {
+                    // Check if it's a 400 error (bad request)
+                    if (response.status === 400) {
+                        const errorText = await response.text();
+                        console.error(`400 Bad Request for ${symbol}: ${errorText}`);
+                        // Don't retry on 400 errors, they won't succeed
+                        throw new Error(`Bad request - ${provider} may not support this symbol`);
+                    }
                     throw new Error(`API returned ${response.status}`);
                 }
                
@@ -2425,8 +2481,18 @@
                     processWatchlistData(symbol, data, provider);
                 } else if (data.data && Array.isArray(data.data) && data.data.length > 0) {
                     processWatchlistDataArray(symbol, data.data, provider);
+                } else if (data.results && Array.isArray(data.results) && data.results.length > 0) {
+                    // Handle results format (might be from search endpoint)
+                    processWatchlistDataArray(symbol, data.results, provider);
+                } else if (data.value !== undefined || data.price !== undefined || data.close !== undefined) {
+                    // Handle single value response
+                    processWatchlistData(symbol, {
+                        metrics: {
+                            latest_value: data.value || data.price || data.close || 0
+                        }
+                    }, provider);
                 } else {
-                    throw new Error('No data available');
+                    throw new Error('No data available in expected format');
                 }
                 
                 // Set success state
@@ -2438,6 +2504,8 @@
                     timestamp: Date.now()
                 };
                 localStorage.setItem(`cache_${symbol}`, JSON.stringify(cacheData));
+                
+                return true; // Return true on success
                
             } catch (error) {
                 console.error(`Error loading ${symbol} from ${provider}:`, error);
@@ -2445,32 +2513,38 @@
                 // Set error state
                 errorRecovery.setLoadingState(symbol, 'error');
                 
-                // Handle error with recovery system
-                const recovered = await errorRecovery.handleAPIError(error, {
-                    symbol,
-                    provider,
-                    operation: 'loadWatchlistItem'
-                });
-                
-                if (!recovered && retryCount < maxRetries) {
-                    console.log(`Retrying ${symbol} after delay...`);
-                    await new Promise(resolve => setTimeout(resolve, 2000 * (retryCount + 1)));
-                    return loadSingleWatchlistItem(symbol, provider, retryCount + 1);
+                // Don't retry on 400 errors or if we've exceeded max retries
+                if (error.message.includes('Bad request') || retryCount >= maxRetries) {
+                    // Handle error with recovery system
+                    const recovered = await errorRecovery.handleAPIError(error, {
+                        symbol,
+                        provider,
+                        operation: 'loadWatchlistItem'
+                    });
+                    
+                    if (!recovered) {
+                        // Show error state
+                        watchlistData[symbol] = {
+                            name: watchlistData[symbol]?.name || symbol,
+                            provider: provider,
+                            price: 0,
+                            changes: { '1d': null, '1w': null, '1m': null, '3m': null, '1y': null },
+                            changeUnits: { 'daily': null, 'yearly': null },
+                            hasData: false,
+                            error: error.message,
+                            customName: watchlistData[symbol]?.customName || null,
+                            color: watchlistData[symbol]?.color || null
+                        };
+                        renderWatchlist();
+                    }
+                    
+                    return false; // Return false on failure
                 }
                
-                // Show error state
-                watchlistData[symbol] = {
-                    name: watchlistData[symbol]?.name || symbol,
-                    provider: provider,
-                    price: 0,
-                    changes: { '1d': null, '1w': null, '1m': null, '3m': null, '1y': null },
-                    changeUnits: { 'daily': null, 'yearly': null },
-                    hasData: false,
-                    error: error.message,
-                    customName: watchlistData[symbol]?.customName || null,
-                    color: watchlistData[symbol]?.color || null
-                };
-                renderWatchlist();
+                // Retry with delay
+                console.log(`Retrying ${symbol} after delay...`);
+                await new Promise(resolve => setTimeout(resolve, 2000 * (retryCount + 1)));
+                return loadSingleWatchlistItem(symbol, provider, retryCount + 1);
             }
         }
         
