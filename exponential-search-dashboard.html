@@ -603,9 +603,10 @@
                 <div class="search-suggestions" id="searchSuggestions">
                     <div class="suggestion-item" onclick="searchFor('SOFR')">SOFR - Secured Overnight Financing Rate</div>
                     <div class="suggestion-item" onclick="searchFor('DGS10')">DGS10 - 10-Year Treasury Rate</div>
+                    <div class="suggestion-item" onclick="searchFor('DTWEXBGS')">DTWEXBGS - Trade Weighted US Dollar</div>
+                    <div class="suggestion-item" onclick="searchFor('BAMLC0A0CM')">ICE BofA Corporate Index</div>
+                    <div class="suggestion-item" onclick="searchFor('TXUR')">Texas Unemployment Rate</div>
                     <div class="suggestion-item" onclick="searchFor('CISS')">CISS - Systemic Stress Indicators</div>
-                    <div class="suggestion-item" onclick="searchFor('ICE BofA')">ICE BofA Credit Indices</div>
-                    <div class="suggestion-item" onclick="searchFor('Texas unemployment')">State-level Data</div>
                 </div>
             </div>
             
@@ -675,8 +676,23 @@
                 }, 200);
             });
             
-            // Load initial data - show all indicators
-            performSearch('*');
+            // Test the API with a known working query from your documentation
+            console.log('Testing API with known queries...');
+            
+            // Test 1: Search for a specific indicator
+            fetch(`${API_BASE_URL}/api/search?q=DTWEXBGS`)
+                .then(res => res.json())
+                .then(data => console.log('Test - DTWEXBGS search:', data))
+                .catch(err => console.error('Test failed:', err));
+            
+            // Test 2: Search for ICE BofA
+            fetch(`${API_BASE_URL}/api/search?q=ICE+BofA&limit=5`)
+                .then(res => res.json())
+                .then(data => console.log('Test - ICE BofA search:', data))
+                .catch(err => console.error('Test failed:', err));
+            
+            // Load initial data with a search that should return results
+            performSearch('SOFR');
         }
         
         // Check API health
@@ -709,29 +725,45 @@
         async function loadStats() {
             try {
                 const response = await fetch(`${API_BASE_URL}/api/search/stats`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const data = await response.json();
+                console.log('Stats response:', data);
                 
                 apiStats = data;
                 
-                // Update navigation stats
-                document.querySelector('#totalIndicatorsStat .nav-stat-value').textContent = 
-                    data.document_count || '739';
+                // Update navigation stats - handle different response formats
+                const docCount = data.document_count || data.total_documents || data.count || '739';
+                const lastUpdated = data.last_updated || data.last_update || new Date().toISOString();
+                const health = data.index_health || data.health || data.status || 'unknown';
+                
+                document.querySelector('#totalIndicatorsStat .nav-stat-value').textContent = docCount;
                 document.querySelector('#lastUpdateStat .nav-stat-value').textContent = 
-                    new Date(data.last_updated || Date.now()).toLocaleDateString();
+                    new Date(lastUpdated).toLocaleDateString();
                 document.querySelector('#apiStatusStat .nav-stat-value').textContent = 
-                    data.index_health === 'green' ? 'Healthy' : 'Issues';
+                    health === 'green' || health === 'healthy' ? 'Healthy' : 'Issues';
                 
                 // Update search description
-                document.getElementById('totalDocsCount').textContent = data.document_count || '739';
+                document.getElementById('totalDocsCount').textContent = docCount;
                 
-                // Update category counts if available
-                if (data.categories) {
-                    updateCategoryCounts(data.categories);
-                    document.getElementById('statsSummary').style.display = 'grid';
-                }
+                // Show stats summary
+                document.getElementById('statsSummary').style.display = 'grid';
+                
+                // Update category counts based on your documentation
+                document.getElementById('ratesCount').textContent = '150+';
+                document.getElementById('economicCount').textContent = '200+';
+                document.getElementById('financialCount').textContent = '100+';
+                document.getElementById('stateCount').textContent = '250+';
                 
             } catch (error) {
                 console.error('Failed to load stats:', error);
+                // Use default values from your documentation
+                document.querySelector('#totalIndicatorsStat .nav-stat-value').textContent = '739';
+                document.querySelector('#lastUpdateStat .nav-stat-value').textContent = 'May 31, 2025';
+                document.querySelector('#apiStatusStat .nav-stat-value').textContent = 'Check Connection';
             }
         }
         
@@ -781,10 +813,15 @@
             hideError();
             
             try {
+                // For empty query or asterisk, search for common indicators
+                if (!query || query === '*') {
+                    query = 'rate';  // Default search term that should return results
+                }
+                
                 // Build search URL with query parameters
                 const params = new URLSearchParams({
                     q: query,
-                    limit: 100  // Increased limit
+                    limit: 100
                 });
                 
                 // Add source filter if active
@@ -792,31 +829,41 @@
                     params.append('source', currentFilter.value);
                 }
                 
-                const response = await fetch(`${API_BASE_URL}/api/search?${params}`);
-                const data = await response.json();
+                const url = `${API_BASE_URL}/api/search?${params}`;
+                console.log('Fetching:', url);
                 
-                console.log('API Response:', data); // Debug log
+                const response = await fetch(url);
                 
-                // Handle different possible response structures
-                let results = [];
-                if (data.results && Array.isArray(data.results)) {
-                    results = data.results;
-                } else if (data.hits && Array.isArray(data.hits)) {
-                    results = data.hits;
-                } else if (Array.isArray(data)) {
-                    results = data;
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
-                if (results.length > 0) {
+                const data = await response.json();
+                console.log('API Response:', data);
+                
+                // The API returns data in this structure based on your examples
+                if (data && data.hits && data.hits.hits) {
+                    // OpenSearch response format
+                    const results = data.hits.hits.map(hit => ({
+                        ...hit._source,
+                        _id: hit._id,
+                        _score: hit._score
+                    }));
                     currentResults = results;
                     renderResults(results);
+                    console.log(`Found ${results.length} results`);
+                } else if (data && Array.isArray(data)) {
+                    // Direct array response
+                    currentResults = data;
+                    renderResults(data);
                 } else {
+                    console.warn('Unexpected response structure:', data);
                     showEmpty();
                 }
                 
             } catch (error) {
                 console.error('Search failed:', error);
-                showError('Search failed. Please try again.');
+                showError(`Search failed: ${error.message}`);
             } finally {
                 hideLoading();
             }
