@@ -169,6 +169,63 @@
             box-shadow: 0 0 0 2px rgba(0, 255, 136, 0.2);
         }
         
+        /* Autocomplete Dropdown */
+        .autocomplete-container {
+            position: relative;
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #131313;
+            border: 1px solid #383838;
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .autocomplete-dropdown.show {
+            display: block;
+        }
+        
+        .autocomplete-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 1px solid #1a1a1a;
+        }
+        
+        .autocomplete-item:hover {
+            background: #252525;
+        }
+        
+        .autocomplete-item.selected {
+            background: #1a1a1a;
+        }
+        
+        .autocomplete-symbol {
+            font-weight: bold;
+            color: #00ff88;
+            margin-right: 10px;
+        }
+        
+        .autocomplete-name {
+            color: #888;
+            font-size: 12px;
+        }
+        
+        .autocomplete-highlight {
+            color: #00ff88;
+            font-weight: bold;
+        }
+        
         .search-btn {
             background: #00dd77;
             border: none;
@@ -484,7 +541,10 @@
         <!-- Search and Filter Section -->
         <div class="search-section">
             <div class="search-container">
-                <input type="text" class="search-input" id="searchInput" placeholder="Search indicators... (e.g., ICE BofA, unemployment, CISS)">
+                <div class="autocomplete-container">
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search indicators... (e.g., ICE BofA, unemployment, CISS)" autocomplete="off">
+                    <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>
+                </div>
                 <button class="search-btn" onclick="searchIndicators()">
                     🔍 Search
                 </button>
@@ -549,6 +609,7 @@
         let searchQuery = '';
         let activeSource = '';
         let isLoading = false;
+        let selectedAutocompleteIndex = -1;
         
         // Risk and Liquidity mappings (editable)
         let riskIndicators = {
@@ -659,13 +720,23 @@
             const weeklyChange = (Math.random() * 20 - 10).toFixed(2);
             const monthlyChange = (Math.random() * 30 - 15).toFixed(2);
             
+            // Generate initial value
+            let initialValue;
+            if (indicator.symbol.includes('RATE') || indicator.symbol.includes('DGS')) {
+                initialValue = (Math.random() * 5 + 1).toFixed(3);
+            } else if (indicator.symbol.includes('INDEX')) {
+                initialValue = (Math.random() * 200 + 100).toFixed(2);
+            } else {
+                initialValue = (Math.random() * 1000).toFixed(2);
+            }
+            
             card.innerHTML = `
                 <div class="indicator-header">
                     <div class="indicator-symbol">${indicator.symbol}</div>
                     <div class="indicator-name" title="${indicator.name}">${indicator.name}</div>
                 </div>
                 <div class="indicator-value">
-                    <span id="value_${indicator.symbol}">—</span>
+                    <span id="value_${indicator.symbol}">${initialValue}</span>
                     <span class="indicator-unit">${unit}</span>
                 </div>
                 <div class="indicator-changes">
@@ -785,29 +856,49 @@
         
         // Update risk histogram
         function updateRiskHistogram() {
+            // Create more granular risk levels
+            const riskLevels = [];
+            const riskColors = [];
+            const riskValues = [];
+            
+            // Generate 20 bars from high to low risk
+            for (let i = 0; i < 20; i++) {
+                const riskLevel = 1 - (i / 19); // 1 to 0
+                const barHeight = Math.exp(-i * 0.15) * 10; // Exponential decay
+                
+                riskLevels.push(`R${20-i}`);
+                riskValues.push(barHeight);
+                
+                // Color gradient from dark red to light red to yellow
+                const red = Math.floor(255 - (i * 5));
+                const green = Math.floor(i * 12);
+                riskColors.push(`rgb(${red}, ${green}, 0)`);
+            }
+            
             const data = [{
-                x: ['Low Risk', 'Medium Risk', 'High Risk'],
-                y: [
-                    riskIndicators.low.length,
-                    riskIndicators.medium.length,
-                    riskIndicators.high.length
-                ],
+                x: riskLevels,
+                y: riskValues,
                 type: 'bar',
                 marker: {
-                    color: ['#00dd77', '#ffaa00', '#ff4444']
-                }
+                    color: riskColors
+                },
+                hovertemplate: 'Risk Level: %{x}<br>Value: %{y:.2f}<extra></extra>'
             }];
             
             const layout = {
                 paper_bgcolor: '#0a0a0a',
                 plot_bgcolor: '#0a0a0a',
                 font: { color: '#aaa' },
-                xaxis: { gridcolor: '#22222250' },
+                xaxis: { 
+                    gridcolor: '#22222250',
+                    title: 'Risk Level (High → Low)',
+                    tickangle: -45
+                },
                 yaxis: { 
                     gridcolor: '#22222250',
-                    title: 'Number of Indicators'
+                    title: 'Risk Score'
                 },
-                margin: { t: 10, r: 20, b: 40, l: 50 }
+                margin: { t: 10, r: 20, b: 60, l: 50 }
             };
             
             Plotly.newPlot('riskHistogram', data, layout, { responsive: true });
@@ -815,29 +906,56 @@
         
         // Update liquidity histogram
         function updateLiquidityHistogram() {
+            // Create MACD-style liquidity bars
+            const liquidityLevels = [];
+            const liquidityColors = [];
+            const liquidityValues = [];
+            
+            // Generate 30 bars representing liquidity over time
+            for (let i = 0; i < 30; i++) {
+                // Simulate liquidity expansion/contraction cycles
+                const value = Math.sin((i / 30) * Math.PI * 2) * 5 + Math.random() * 2 - 1;
+                
+                liquidityLevels.push(`T-${30-i}`);
+                liquidityValues.push(value);
+                
+                // Green for expansion (positive), red for contraction (negative)
+                if (value > 0) {
+                    const intensity = Math.min(255, Math.floor(Math.abs(value) * 40 + 100));
+                    liquidityColors.push(`rgb(0, ${intensity}, 0)`);
+                } else {
+                    const intensity = Math.min(255, Math.floor(Math.abs(value) * 40 + 100));
+                    liquidityColors.push(`rgb(${intensity}, 0, 0)`);
+                }
+            }
+            
             const data = [{
-                x: ['Low Liquidity', 'Medium Liquidity', 'High Liquidity'],
-                y: [
-                    liquidityIndicators.low.length,
-                    liquidityIndicators.medium.length,
-                    liquidityIndicators.high.length
-                ],
+                x: liquidityLevels,
+                y: liquidityValues,
                 type: 'bar',
                 marker: {
-                    color: ['#ff4444', '#ffaa00', '#00dd77']
-                }
+                    color: liquidityColors
+                },
+                hovertemplate: 'Period: %{x}<br>Liquidity: %{y:.2f}<extra></extra>'
             }];
             
             const layout = {
                 paper_bgcolor: '#0a0a0a',
                 plot_bgcolor: '#0a0a0a',
                 font: { color: '#aaa' },
-                xaxis: { gridcolor: '#22222250' },
+                xaxis: { 
+                    gridcolor: '#22222250',
+                    title: 'Time Period',
+                    tickangle: -45
+                },
                 yaxis: { 
                     gridcolor: '#22222250',
-                    title: 'Number of Indicators'
+                    title: 'Liquidity Flow',
+                    zeroline: true,
+                    zerolinecolor: '#666',
+                    zerolinewidth: 2
                 },
-                margin: { t: 10, r: 20, b: 40, l: 50 }
+                margin: { t: 10, r: 20, b: 60, l: 50 }
             };
             
             Plotly.newPlot('liquidityHistogram', data, layout, { responsive: true });
