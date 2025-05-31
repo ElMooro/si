@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Dashboard</title>
+</head>
+<body>
+    <h1>Testing API Calls</h1>
+    <div id="results"></div>
+    
+    <script>
+        const API_BASE = 'https://ped8gafyuz.us-east-1.awsapprunner.com';
+        
+        // Override fetch to fix include_changes
+        const originalFetch = window.fetch;
+        window.fetch = function(url, ...args) {
+            console.log('INTERCEPTED URL:', url);
+            if (typeof url === 'string' && url.includes('include_changes=true')) {
+                url = url.replace('include_changes=true', 'include_changes=false');
+                console.log('FIXED URL:', url);
+            }
+            return originalFetch.call(this, url, ...args);
+        };
+        
+        // Test API call
+        async function testAPI() {
+            const url = `${API_BASE}/api/v1/universal/data?symbol=FEDFUNDS&provider=fred_direct&include_changes=false`;
+            console.log('Testing with URL:', url);
+            
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                document.getElementById('results').innerHTML = `
+                    <p>Success! Data received:</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                document.getElementById('results').innerHTML = `
+                    <p>Error: ${error.message}</p>
+                `;
+            }
+        }
+        
+        testAPI();
+    </script>
+</body>
+</html>
