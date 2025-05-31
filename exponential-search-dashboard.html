@@ -2189,18 +2189,8 @@
                     url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&data_type=quote`;
                 } else if (provider === 'yahoo_finance') {
                     url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&data_type=quote`;
-                } else if (provider === 'fred_direct') {
-                    // FIX: Use include_changes=false to avoid pandas processing error
-                    url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&include_changes=false`;
-                } else if (provider === 'ny_fed_direct') {
-                    url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&include_changes=false`;
-                } else if (provider === 'ecb_direct') {
-                    url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&include_changes=false`;
-                } else if (provider === 'ofr_direct') {
-                    url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&include_changes=false`;
-                } else if (provider === 'treasury_direct') {
-                    url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&include_changes=false`;
                 } else {
+                    // FIX: Always use include_changes=false for ALL non-polygon/yahoo providers to avoid pandas processing error
                     url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&include_changes=false`;
                 }
                
