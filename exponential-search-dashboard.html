@@ -1215,6 +1215,25 @@
     </div>
 
     <script>
+        // Override fetch to ensure include_changes=false for all API calls
+        const originalFetch = window.fetch;
+        window.fetch = function(url, ...args) {
+            // Check if it's an API call to our backend
+            if (typeof url === 'string' && url.includes(API_BASE)) {
+                // Force include_changes=false for universal/data endpoints
+                if (url.includes('/universal/data') && url.includes('include_changes=true')) {
+                    console.warn('Fixing URL with include_changes=true:', url);
+                    url = url.replace('include_changes=true', 'include_changes=false');
+                }
+                // Also handle cases where include_changes is not specified but should be false
+                if (url.includes('/universal/data') && !url.includes('include_changes=') && 
+                    !url.includes('polygon_direct') && !url.includes('yahoo_finance')) {
+                    url += '&include_changes=false';
+                }
+            }
+            return originalFetch.call(this, url, ...args);
+        };
+        
         // Configuration matching your exact backend
         const API_BASE = 'https://ped8gafyuz.us-east-1.awsapprunner.com';
        
@@ -2180,10 +2199,18 @@
                 }
             } else if (provider === 'polygon_direct') {
                 const dataType = options.dataType || 'quote';
-                return `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&data_type=${dataType}`;
+                let url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&data_type=${dataType}`;
+                if (options.startDate && dataType === 'historical') {
+                    url += `&start_date=${options.startDate}&end_date=${options.endDate}`;
+                }
+                return url;
             } else if (provider === 'yahoo_finance') {
                 const dataType = options.dataType || 'quote';
-                return `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&data_type=${dataType}`;
+                let url = `${API_BASE}/api/v1/universal/data?symbol=${symbol}&provider=${provider}&data_type=${dataType}`;
+                if (options.startDate && dataType === 'historical') {
+                    url += `&start_date=${options.startDate}&end_date=${options.endDate}`;
+                }
+                return url;
             } else if (provider === 'fred_direct' && options.useObservations) {
                 // Use FRED series observations endpoint for historical data
                 return `${API_BASE}/api/v1/fred/series/observations?series_id=${symbol}&limit=10000&sort_order=asc&include_pandas=false`;
