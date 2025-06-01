@@ -815,26 +815,108 @@
             
             // Create mock indicators based on your project structure
             const mockIndicators = [
-                { symbol: 'DTWEXBGS', name: 'Trade Weighted U.S. Dollar Index: Broad, Goods and Services', source: 'fred', description: 'Dollar index', tags: ['dollar', 'currency'] },
-                { symbol: 'VIX', name: 'CBOE Volatility Index', source: 'fred', description: 'Market volatility', tags: ['volatility', 'risk'] },
-                { symbol: 'DGS10', name: '10-Year Treasury Constant Maturity Rate', source: 'fred', description: 'Interest rate', tags: ['interest-rates', 'treasury'] },
-                { symbol: 'STLFSI4', name: 'St. Louis Fed Financial Stress Index', source: 'fred', description: 'Financial stress indicator', tags: ['financial-stress'] },
-                { symbol: 'M2SL', name: 'M2 Money Supply', source: 'fred', description: 'Money supply', tags: ['money-supply', 'liquidity'] },
-                { symbol: 'SOFR', name: 'Secured Overnight Financing Rate', source: 'fred', description: 'Interest rate', tags: ['interest-rates'] },
-                { symbol: 'BAMLC0A0CM', name: 'ICE BofA US Corporate Index', source: 'fred', description: 'Corporate bond index', tags: ['bonds', 'credit'] },
-                { symbol: 'DFF', name: 'Federal Funds Effective Rate', source: 'fred', description: 'Fed funds rate', tags: ['interest-rates', 'federal-reserve'] },
-                { symbol: 'BOGMBASE', name: 'Monetary Base', source: 'fred', description: 'Federal Reserve monetary base', tags: ['monetary-base', 'federal-reserve'] },
-                { symbol: 'CISS', name: 'Composite Indicator of Systemic Stress', source: 'ecb', description: 'ECB systemic stress', tags: ['financial-stress', 'europe'] }
+                { 
+                    indicator_key: 'fred.DTWEXBGS',
+                    indicator_name: 'DTWEXBGS', 
+                    description: 'Trade Weighted U.S. Dollar Index: Broad, Goods and Services', 
+                    source: 'fred', 
+                    category: 'currency',
+                    tags: ['dollar', 'currency'],
+                    data_points_count: 1000
+                },
+                { 
+                    indicator_key: 'fred.VIXCLS',
+                    indicator_name: 'VIXCLS', 
+                    description: 'CBOE Volatility Index: VIX', 
+                    source: 'fred', 
+                    category: 'volatility',
+                    tags: ['volatility', 'risk'],
+                    data_points_count: 5000
+                },
+                { 
+                    indicator_key: 'fred.DGS10',
+                    indicator_name: 'DGS10', 
+                    description: '10-Year Treasury Constant Maturity Rate', 
+                    source: 'fred', 
+                    category: 'rates',
+                    tags: ['interest-rates', 'treasury'],
+                    data_points_count: 3000
+                },
+                { 
+                    indicator_key: 'fred.STLFSI4',
+                    indicator_name: 'STLFSI4', 
+                    description: 'St. Louis Fed Financial Stress Index', 
+                    source: 'fred', 
+                    category: 'stress',
+                    tags: ['financial-stress'],
+                    data_points_count: 500
+                },
+                { 
+                    indicator_key: 'fred.M2SL',
+                    indicator_name: 'M2SL', 
+                    description: 'M2 Money Supply', 
+                    source: 'fred', 
+                    category: 'monetary',
+                    tags: ['money-supply', 'liquidity'],
+                    data_points_count: 2000
+                },
+                { 
+                    indicator_key: 'fred.SOFR',
+                    indicator_name: 'SOFR', 
+                    description: 'Secured Overnight Financing Rate', 
+                    source: 'fred', 
+                    category: 'rates',
+                    tags: ['interest-rates'],
+                    data_points_count: 800
+                },
+                { 
+                    indicator_key: 'fred.BAMLC0A0CM',
+                    indicator_name: 'BAMLC0A0CM', 
+                    description: 'ICE BofA US Corporate Index', 
+                    source: 'fred', 
+                    category: 'credit',
+                    tags: ['bonds', 'credit'],
+                    data_points_count: 1500
+                },
+                { 
+                    indicator_key: 'fred.DFF',
+                    indicator_name: 'DFF', 
+                    description: 'Federal Funds Effective Rate', 
+                    source: 'fred', 
+                    category: 'rates',
+                    tags: ['interest-rates', 'federal-reserve'],
+                    data_points_count: 4000
+                },
+                { 
+                    indicator_key: 'fred.BOGMBASE',
+                    indicator_name: 'BOGMBASE', 
+                    description: 'Monetary Base', 
+                    source: 'fred', 
+                    category: 'monetary',
+                    tags: ['monetary-base', 'federal-reserve'],
+                    data_points_count: 1200
+                },
+                { 
+                    indicator_key: 'ecb.CISS',
+                    indicator_name: 'CISS', 
+                    description: 'Composite Indicator of Systemic Stress', 
+                    source: 'ecb', 
+                    category: 'stress',
+                    tags: ['financial-stress', 'europe'],
+                    data_points_count: 600
+                }
             ];
             
             // Add more indicators to reach 40 for display
             for (let i = 1; i <= 30; i++) {
                 mockIndicators.push({
-                    symbol: `TEST${i}`,
-                    name: `Test Indicator ${i}`,
+                    indicator_key: `test.TEST${i}`,
+                    indicator_name: `TEST${i}`,
+                    description: `Test Indicator ${i}`,
                     source: i % 3 === 0 ? 'ecb' : i % 3 === 1 ? 'treasury' : 'fred',
-                    description: `Mock indicator for testing`,
-                    tags: ['test']
+                    category: 'test',
+                    tags: ['test'],
+                    data_points_count: 100
                 });
             }
             
