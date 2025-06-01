@@ -1494,7 +1494,7 @@ Data Points: ${indicator.data_points_count || 0}
         }
         
         // Show error message
-        function showError(message) {
+        function showError(message, type = 'error') {
             console.error(message);
             
             // Create toast notification
@@ -1503,21 +1503,26 @@ Data Points: ${indicator.data_points_count || 0}
                 position: fixed;
                 bottom: 20px;
                 right: 20px;
-                background: #ff4444;
+                background: ${type === 'info' ? '#0088ff' : '#ff4444'};
                 color: white;
                 padding: 15px 20px;
                 border-radius: 6px;
                 font-size: 14px;
                 z-index: 9999;
                 animation: slideIn 0.3s ease-out;
+                max-width: 300px;
             `;
             toast.textContent = message;
+            toast.setAttribute('data-toast-type', type);
             document.body.appendChild(toast);
             
-            setTimeout(() => {
-                toast.style.animation = 'slideOut 0.3s ease-out';
-                setTimeout(() => toast.remove(), 300);
-            }, 5000);
+            // Auto-remove after 5 seconds (unless it's an info message)
+            if (type !== 'info') {
+                setTimeout(() => {
+                    toast.style.animation = 'slideOut 0.3s ease-out';
+                    setTimeout(() => toast.remove(), 300);
+                }, 5000);
+            }
         }
         
         // Auto-refresh data every 30 seconds
