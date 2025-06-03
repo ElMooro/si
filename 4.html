@@ -884,18 +884,18 @@
                 const volumeRatio = [];
                 const priceVolumeStrength = [];
                 
-                const vmapériode = 20;
+                const vmaPeriod = 20;
                 
                 // Volume Moving Average
-                for (let i = 0; i < vmapériode - 1; i++) {
+                for (let i = 0; i < vmaPeriod - 1; i++) {
                     volumeMovingAvg.push(null);
                     volumeRatio.push(null);
                     priceVolumeStrength.push(null);
                 }
                 
-                for (let i = vmapériode - 1; i < volumes.length; i++) {
-                    const volumeSlice = volumes.slice(i - vmaperíodo + 1, i + 1);
-                    const avgVolume = volumeSlice.reduce((sum, vol) => sum + vol, 0) / vmapériode;
+                for (let i = vmaPeriod - 1; i < volumes.length; i++) {
+                    const volumeSlice = volumes.slice(i - vmaPeriod + 1, i + 1);
+                    const avgVolume = volumeSlice.reduce((sum, vol) => sum + vol, 0) / vmaPeriod;
                     volumeMovingAvg.push(avgVolume);
                     
                     // Volume ratio (current volume vs average)
