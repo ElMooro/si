@@ -754,24 +754,20 @@
             );
            
             // Calculate MACD signal line (9-period EMA of MACD line)
-            const validMacdValues = macdLine.filter(val => val !== null);
-            const signalLineValues = validMacdValues.length >= 9 ?
-                calculateEMA(9, validMacdValues) : validMacdValues.map(() => null);
-           
-            let signalLineIndex = 0;
+            // Create array with proper null handling for signal line calculation
+            const macdForSignal = macdLine.slice(); // Copy the array
+            const signalLineValues = calculateEMA(9, macdForSignal.map(v => v || 0));
            
             return data.map((item, index) => {
                 let slope30 = null;
                 let zscore30 = null;
                 let signal = null;
                 let currentMacd = macdLine[index];
-                let currentSignal = null;
+                let currentSignal = signalLineValues[index];
                
-                // Get MACD signal value
-                if (macdLine[index] !== null) {
-                    if (signalLineIndex < signalLineValues.length) {
-                        currentSignal = signalLineValues[signalLineIndex++];
-                    }
+                // Only use signal if MACD is valid
+                if (currentMacd === null) {
+                    currentSignal = null;
                 }
                
                 // Calculate 30-period slope and z-score
@@ -984,10 +980,41 @@
                         hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Slope: %{y:.6f}<extra></extra>`;
                         break;
                     case 'macd':
-                        yData = filteredData.map(d => d.macd || 0);
+                        yData = filteredData.map(d => d.macd || null).filter(v => v !== null);
+                        if (yData.length === 0) return; // Skip if no valid MACD data
+                        
+                        // Get dates that correspond to valid MACD values
+                        const validMacdData = filteredData.filter(d => d.macd !== null);
+                        
                         yLabel = 'MACD';
                         hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>MACD: %{y:.4f}<extra></extra>`;
-                        break;
+                        
+                        // Create main MACD trace
+                        traces.push({
+                            x: validMacdData.map(d => d.date),
+                            y: validMacdData.map(d => d.macd),
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: s.symbol,
+                            line: { color: lineColor, width: 2 },
+                            hovertemplate: hoverTemplate
+                        });
+                        
+                        // Add MACD signal line
+                        const validSignalData = validMacdData.filter(d => d.macd_signal !== null);
+                        if (validSignalData.length > 0) {
+                            traces.push({
+                                x: validSignalData.map(d => d.date),
+                                y: validSignalData.map(d => d.macd_signal),
+                                type: 'scatter',
+                                mode: 'lines',
+                                name: `${s.symbol} Signal`,
+                                line: { color: lineColor, width: 1, dash: 'dash' },
+                                hovertemplate: `<b>${s.symbol} Signal</b><br>Date: %{x}<br>Signal: %{y:.4f}<extra></extra>`
+                            });
+                        }
+                        return; // Skip the main trace creation below since we handled it above
+                        
                     case 'zscore':
                         yData = filteredData.map(d => d.zscore_30 || 0);
                         yLabel = 'Z-Score (30-period)';
@@ -1024,22 +1051,6 @@
                 }
                
                 traces.push(trace);
-               
-                // Add MACD signal line if in MACD mode
-                if (displayMode === 'macd') {
-                    const signalData = filteredData.map(d => d.macd_signal || null);
-                    if (signalData.some(v => v !== null)) {
-                        traces.push({
-                            x: filteredData.map(d => d.date),
-                            y: signalData,
-                            type: 'scatter',
-                            mode: 'lines',
-                            name: `${s.symbol} Signal`,
-                            line: { color: lineColor, width: 1, dash: 'dash' },
-                            hovertemplate: `<b>${s.symbol} Signal</b><br>Date: %{x}<br>Signal: %{y:.4f}<extra></extra>`
-                        });
-                    }
-                }
             });
            
             if (traces.length === 0) {
