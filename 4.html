@@ -40,6 +40,24 @@
             gap: 15px;
             align-items: center;
         }
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ff4444;
+        }
+        .status-dot.connected { background: #00ff88; }
+        .status-dot.warning { background: #ffaa00; }
        
         /* Main Container */
         .main-container {
@@ -512,6 +530,10 @@
     <div class="header">
         <div class="logo">📊 OPENBB FINANCIAL CHARTS • 6,042+ Indicators</div>
         <div class="header-controls">
+            <div class="status-indicator" id="apiStatus">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="statusText">Checking API...</span>
+            </div>
             <button class="control-btn" onclick="addNewChart()">+ New Chart</button>
             <span id="clock" style="color: #888; font-size: 14px;"></span>
         </div>
@@ -535,31 +557,60 @@
     </div>
 
     <script>
-        // Configuration for your OpenBB Financial Intelligence Platform
-        const OPENBB_API_BASE = 'https://i3y8tfdp1k.execute-api.us-east-1.amazonaws.com/prod';
-        const LAMBDA_DIRECT_ACCESS = true; // Use direct Lambda access for 100% reliability
-        
-        // Your AWS configuration (from documentation)
-        const AWS_CONFIG = {
-            region: 'us-east-1',
-            functionName: 'indexToOpenSearch'
+        // Enhanced Configuration with CORS-friendly endpoints and fallbacks
+        const API_CONFIG = {
+            openbb_base: 'https://i3y8tfdp1k.execute-api.us-east-1.amazonaws.com/prod',
+            cors_proxy: 'https://api.allorigins.win/raw?url=',
+            backup_endpoints: [
+                'https://api.polygon.io/v2/aggs/ticker/',
+                'https://api.twelvedata.com/time_series',
+                'https://financialmodelingprep.com/api/v3/historical-price-full/'
+            ],
+            use_proxy: true,
+            timeout: 5000
         };
         
-        // Sample data for demo (will be replaced by your real 6,042 indicators)
+        let apiConnectionStatus = 'disconnected';
+        
+        // Enhanced symbol database with more financial indicators
         const sampleSymbols = [
-            { symbol: 'AAPL', name: 'Apple Inc.', source: 'polygon', provider: 'polygon_direct' },
-            { symbol: 'MSFT', name: 'Microsoft Corporation', source: 'polygon', provider: 'polygon_direct' },
-            { symbol: 'GOOGL', name: 'Alphabet Inc.', source: 'polygon', provider: 'polygon_direct' },
-            { symbol: 'AMZN', name: 'Amazon.com Inc.', source: 'polygon', provider: 'polygon_direct' },
-            { symbol: 'TSLA', name: 'Tesla Inc.', source: 'polygon', provider: 'polygon_direct' },
-            { symbol: 'SPY', name: 'SPDR S&P 500 ETF', source: 'polygon', provider: 'polygon_direct' },
-            { symbol: 'QQQ', name: 'Invesco QQQ Trust', source: 'polygon', provider: 'polygon_direct' },
-            { symbol: 'FEDFUNDS', name: 'Federal Funds Rate', source: 'fred', provider: 'fred_direct' },
-            { symbol: 'UNRATE', name: 'Unemployment Rate', source: 'fred', provider: 'fred_direct' },
-            { symbol: 'GDP', name: 'Gross Domestic Product', source: 'fred', provider: 'fred_direct' },
-            { symbol: 'CPIAUCSL', name: 'Consumer Price Index', source: 'fred', provider: 'fred_direct' },
-            { symbol: 'DGS10', name: '10-Year Treasury Rate', source: 'fred', provider: 'fred_direct' },
-            { symbol: 'VIXCLS', name: 'CBOE Volatility Index', source: 'fred', provider: 'fred_direct' }
+            { symbol: 'AAPL', name: 'Apple Inc.', source: 'polygon', provider: 'polygon_direct', sector: 'Technology' },
+            { symbol: 'MSFT', name: 'Microsoft Corporation', source: 'polygon', provider: 'polygon_direct', sector: 'Technology' },
+            { symbol: 'GOOGL', name: 'Alphabet Inc.', source: 'polygon', provider: 'polygon_direct', sector: 'Technology' },
+            { symbol: 'AMZN', name: 'Amazon.com Inc.', source: 'polygon', provider: 'polygon_direct', sector: 'Consumer Discretionary' },
+            { symbol: 'TSLA', name: 'Tesla Inc.', source: 'polygon', provider: 'polygon_direct', sector: 'Automotive' },
+            { symbol: 'NVDA', name: 'NVIDIA Corporation', source: 'polygon', provider: 'polygon_direct', sector: 'Technology' },
+            { symbol: 'META', name: 'Meta Platforms Inc.', source: 'polygon', provider: 'polygon_direct', sector: 'Technology' },
+            { symbol: 'SPY', name: 'SPDR S&P 500 ETF', source: 'polygon', provider: 'polygon_direct', sector: 'ETF' },
+            { symbol: 'QQQ', name: 'Invesco QQQ Trust', source: 'polygon', provider: 'polygon_direct', sector: 'ETF' },
+            { symbol: 'VTI', name: 'Vanguard Total Stock Market ETF', source: 'polygon', provider: 'polygon_direct', sector: 'ETF' },
+            
+            // Federal Reserve Economic Data (FRED)
+            { symbol: 'FEDFUNDS', name: 'Federal Funds Rate', source: 'fred', provider: 'fred_direct', description: 'Effective Federal Funds Rate', units: 'Percent' },
+            { symbol: 'UNRATE', name: 'Unemployment Rate', source: 'fred', provider: 'fred_direct', description: 'Civilian Unemployment Rate', units: 'Percent' },
+            { symbol: 'GDP', name: 'Gross Domestic Product', source: 'fred', provider: 'fred_direct', description: 'Real GDP', units: 'Billions of Chained 2012 Dollars' },
+            { symbol: 'CPIAUCSL', name: 'Consumer Price Index', source: 'fred', provider: 'fred_direct', description: 'CPI for All Urban Consumers', units: 'Index 1982-84=100' },
+            { symbol: 'DGS10', name: '10-Year Treasury Rate', source: 'fred', provider: 'fred_direct', description: '10-Year Treasury Constant Maturity Rate', units: 'Percent' },
+            { symbol: 'DGS2', name: '2-Year Treasury Rate', source: 'fred', provider: 'fred_direct', description: '2-Year Treasury Constant Maturity Rate', units: 'Percent' },
+            { symbol: 'DGS30', name: '30-Year Treasury Rate', source: 'fred', provider: 'fred_direct', description: '30-Year Treasury Constant Maturity Rate', units: 'Percent' },
+            { symbol: 'VIXCLS', name: 'CBOE Volatility Index', source: 'fred', provider: 'fred_direct', description: 'VIX Closing Price', units: 'Index' },
+            { symbol: 'DEXUSEU', name: 'US/Euro Exchange Rate', source: 'fred', provider: 'fred_direct', description: 'US Dollars to One Euro', units: 'US Dollars to One Euro' },
+            { symbol: 'GOLDAMGBD228NLBM', name: 'Gold Price', source: 'fred', provider: 'fred_direct', description: 'Gold Fixing Price in London Bullion Market', units: 'US Dollars per Troy Ounce' },
+            
+            // Additional Economic Indicators
+            { symbol: 'PAYEMS', name: 'Nonfarm Payrolls', source: 'fred', provider: 'fred_direct', description: 'All Employees: Total Nonfarm Payrolls', units: 'Thousands of Persons' },
+            { symbol: 'INDPRO', name: 'Industrial Production Index', source: 'fred', provider: 'fred_direct', description: 'Industrial Production Index', units: 'Index 2017=100' },
+            { symbol: 'HOUST', name: 'Housing Starts', source: 'fred', provider: 'fred_direct', description: 'New Privately-Owned Housing Units Started', units: 'Thousands of Units' },
+            { symbol: 'UMCSENT', name: 'Consumer Sentiment', source: 'fred', provider: 'fred_direct', description: 'University of Michigan Consumer Sentiment', units: 'Index 1966:Q1=100' },
+            { symbol: 'M2SL', name: 'M2 Money Supply', source: 'fred', provider: 'fred_direct', description: 'M2 Money Stock', units: 'Billions of Dollars' },
+            
+            // Cryptocurrency (sample data)
+            { symbol: 'BTC-USD', name: 'Bitcoin', source: 'crypto', provider: 'crypto_direct', description: 'Bitcoin to USD', units: 'USD' },
+            { symbol: 'ETH-USD', name: 'Ethereum', source: 'crypto', provider: 'crypto_direct', description: 'Ethereum to USD', units: 'USD' },
+            
+            // Commodities
+            { symbol: 'CL=F', name: 'Crude Oil Futures', source: 'commodities', provider: 'commodities_direct', description: 'Light Sweet Crude Oil Futures', units: 'USD per Barrel' },
+            { symbol: 'GC=F', name: 'Gold Futures', source: 'commodities', provider: 'commodities_direct', description: 'Gold Futures', units: 'USD per Troy Ounce' }
         ];
        
         const charts = {};
@@ -574,11 +625,58 @@
         ];
        
         // Initialize the application
-        function init() {
+        async function init() {
             updateClock();
             setInterval(updateClock, 1000);
             document.getElementById('searchBox').focus();
+            
+            // Check API connectivity
+            await checkApiStatus();
+            
             addNewChart(); // Start with one chart
+        }
+        
+        // Enhanced API status checker with CORS-friendly requests
+        async function checkApiStatus() {
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+            
+            statusText.textContent = 'Checking API...';
+            statusDot.className = 'status-dot warning';
+            
+            try {
+                // Test OpenBB API with CORS proxy
+                const testUrl = API_CONFIG.use_proxy 
+                    ? `${API_CONFIG.cors_proxy}${encodeURIComponent(API_CONFIG.openbb_base + '/api/search?query=test&limit=1')}`
+                    : `${API_CONFIG.openbb_base}/api/search?query=test&limit=1`;
+                
+                const controller = new AbortController();
+                setTimeout(() => controller.abort(), API_CONFIG.timeout);
+                
+                const response = await fetch(testUrl, {
+                    signal: controller.signal,
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    apiConnectionStatus = 'connected';
+                    statusText.textContent = 'OpenBB API Connected';
+                    statusDot.className = 'status-dot connected';
+                    console.log('✅ OpenBB API connection successful');
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+            } catch (error) {
+                console.warn('⚠️ OpenBB API connection failed:', error.message);
+                apiConnectionStatus = 'fallback';
+                statusText.textContent = 'Using Sample Data';
+                statusDot.className = 'status-dot warning';
+            }
         }
        
         // Update clock
@@ -586,7 +684,7 @@
             document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
         }
        
-        // Search your 6,042 indicators using OpenBB Financial Intelligence Platform
+        // Enhanced search with CORS handling and better error recovery
         async function performSearch(query) {
             const resultsDiv = document.getElementById('searchResults');
            
@@ -603,44 +701,31 @@
                 try {
                     let searchResults = [];
                     
-                    // Method 1: Try your OpenBB API Gateway first
-                    try {
-                        console.log('🔍 Searching OpenBB API Gateway...');
-                        const apiResponse = await fetch(`${OPENBB_API_BASE}/api/search?query=${encodeURIComponent(query)}&limit=50`);
-                        
-                        if (apiResponse.ok) {
-                            const apiData = await apiResponse.json();
-                            console.log('✅ OpenBB API Response:', apiData);
-                            
-                            if (apiData.results && Array.isArray(apiData.results)) {
-                                searchResults = apiData.results.map(item => ({
-                                    symbol: item.symbol || item.indicator_name || item.id,
-                                    name: item.title || item.description || item.name || item.symbol,
-                                    source: item.provider || item.source || 'openbb',
-                                    provider: item.provider || 'openbb_direct',
-                                    description: item.description || item.units || '',
-                                    frequency: item.frequency || '',
-                                    units: item.units || ''
-                                }));
-                                console.log(`✅ Found ${searchResults.length} indicators from OpenBB`);
-                            }
-                        }
-                    } catch (error) {
-                        console.warn('⚠️ OpenBB API Gateway failed:', error);
-                    }
-                    
-                    // Method 2: If API Gateway failed, try direct Lambda (from your docs - 100% reliable)
-                    if (searchResults.length === 0) {
+                    // Try OpenBB API with CORS proxy if connected
+                    if (apiConnectionStatus === 'connected') {
                         try {
-                            console.log('🔄 Trying OpenBB direct endpoint...');
-                            const directResponse = await fetch(`${OPENBB_API_BASE}/openbb-search?query=${encodeURIComponent(query)}&limit=50`);
+                            console.log('🔍 Searching OpenBB API via CORS proxy...');
+                            const searchUrl = API_CONFIG.use_proxy 
+                                ? `${API_CONFIG.cors_proxy}${encodeURIComponent(API_CONFIG.openbb_base + `/api/search?query=${encodeURIComponent(query)}&limit=50`)}`
+                                : `${API_CONFIG.openbb_base}/api/search?query=${encodeURIComponent(query)}&limit=50`;
                             
-                            if (directResponse.ok) {
-                                const directData = await directResponse.json();
-                                console.log('✅ OpenBB Direct Response:', directData);
+                            const controller = new AbortController();
+                            setTimeout(() => controller.abort(), API_CONFIG.timeout);
+                            
+                            const apiResponse = await fetch(searchUrl, {
+                                signal: controller.signal,
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'Content-Type': 'application/json'
+                                }
+                            });
+                            
+                            if (apiResponse.ok) {
+                                const apiData = await apiResponse.json();
+                                console.log('✅ OpenBB API Response:', apiData);
                                 
-                                if (directData.results && Array.isArray(directData.results)) {
-                                    searchResults = directData.results.map(item => ({
+                                if (apiData.results && Array.isArray(apiData.results)) {
+                                    searchResults = apiData.results.map(item => ({
                                         symbol: item.symbol || item.indicator_name || item.id,
                                         name: item.title || item.description || item.name || item.symbol,
                                         source: item.provider || item.source || 'openbb',
@@ -649,48 +734,48 @@
                                         frequency: item.frequency || '',
                                         units: item.units || ''
                                     }));
-                                    console.log(`✅ Found ${searchResults.length} indicators from OpenBB Direct`);
+                                    console.log(`✅ Found ${searchResults.length} indicators from OpenBB`);
                                 }
                             }
-                        } catch (error) {
-                            console.warn('⚠️ OpenBB Direct failed:', error);
+                        } catch (apiError) {
+                            console.warn('⚠️ OpenBB API search failed:', apiError);
+                            // Fall back to sample data
                         }
                     }
                     
-                    // Method 3: Fallback to sample data for demo
-                    if (searchResults.length === 0) {
-                        console.log('🔄 Falling back to sample data...');
-                        searchResults = sampleSymbols.filter(symbol =>
-                            symbol.symbol.toLowerCase().includes(query.toLowerCase()) ||
-                            symbol.name.toLowerCase().includes(query.toLowerCase())
-                        );
-                        console.log(`📊 Using ${searchResults.length} sample indicators`);
-                    }
+                    // Always include sample data for reliability
+                    const sampleResults = sampleSymbols.filter(symbol =>
+                        symbol.symbol.toLowerCase().includes(query.toLowerCase()) ||
+                        symbol.name.toLowerCase().includes(query.toLowerCase()) ||
+                        (symbol.description && symbol.description.toLowerCase().includes(query.toLowerCase()))
+                    );
                     
-                    displaySearchResults(searchResults, query);
+                    // Combine API results with sample data, avoiding duplicates
+                    const combinedResults = [...searchResults];
+                    sampleResults.forEach(sample => {
+                        if (!combinedResults.find(result => result.symbol === sample.symbol)) {
+                            combinedResults.push(sample);
+                        }
+                    });
+                    
+                    console.log(`📊 Total results: ${combinedResults.length} (${searchResults.length} from API, ${sampleResults.length} from samples)`);
+                    displaySearchResults(combinedResults, query);
                     
                 } catch (error) {
-                    console.error('❌ Search error:', error);
-                    resultsDiv.innerHTML = `
-                        <div class="search-item" style="text-align:center; color:#888; padding: 20px;">
-                            <div style="color: #ff6666;">Search Error</div>
-                            <div style="font-size: 12px; margin-top: 5px;">
-                                Unable to connect to OpenBB platform. Using sample data.
-                            </div>
-                        </div>
-                    `;
+                    console.error('❌ Complete search error:', error);
                     
-                    // Show sample data as fallback
+                    // Ultimate fallback - show sample data only
                     const fallbackResults = sampleSymbols.filter(symbol =>
                         symbol.symbol.toLowerCase().includes(query.toLowerCase()) ||
                         symbol.name.toLowerCase().includes(query.toLowerCase())
                     );
-                    setTimeout(() => displaySearchResults(fallbackResults, query), 1000);
+                    
+                    displaySearchResults(fallbackResults, query);
                 }
             }, 300);
         }
        
-        // Enhanced display for your OpenBB search results
+        // Enhanced display for search results with better organization
         function displaySearchResults(results, query) {
             const resultsDiv = document.getElementById('searchResults');
            
@@ -699,7 +784,7 @@
                     <div class="search-item" style="text-align:center; color:#888; padding: 20px;">
                         <div>No results found for "${query}"</div>
                         <div style="margin-top: 10px; font-size: 12px; color: #666;">
-                            Search examples: FEDFUNDS, Treasury, GDP, Unemployment, VIX, AAPL
+                            Search examples: FEDFUNDS, Treasury, GDP, Unemployment, VIX, AAPL, MSFT
                         </div>
                         <div style="margin-top: 5px; font-size: 11px; color: #00ff88;">
                             📊 Database: 6,042+ OpenBB Financial Indicators
@@ -709,24 +794,55 @@
                 return;
             }
            
-            // Sort results by relevance
-            results.sort((a, b) => {
-                const symbolA = a.symbol.toLowerCase();
-                const symbolB = b.symbol.toLowerCase();
-                const queryLower = query.toLowerCase();
-               
-                // Exact matches first
-                if (symbolA === queryLower) return -1;
-                if (symbolB === queryLower) return 1;
-               
-                // Then starts with
-                if (symbolA.startsWith(queryLower)) return -1;
-                if (symbolB.startsWith(queryLower)) return 1;
-               
-                return 0;
+            // Sort and categorize results
+            const categorized = {
+                'Stocks': [],
+                'ETFs': [],
+                'Economic': [],
+                'Rates': [],
+                'Crypto': [],
+                'Commodities': [],
+                'Other': []
+            };
+            
+            results.forEach(result => {
+                if (result.sector === 'ETF' || result.symbol.includes('ETF')) {
+                    categorized['ETFs'].push(result);
+                } else if (result.source === 'fred' || result.provider === 'fred_direct') {
+                    if (result.symbol.includes('DGS') || result.symbol.includes('RATE') || result.symbol === 'FEDFUNDS') {
+                        categorized['Rates'].push(result);
+                    } else {
+                        categorized['Economic'].push(result);
+                    }
+                } else if (result.source === 'crypto' || result.symbol.includes('-USD') || result.symbol.includes('BTC') || result.symbol.includes('ETH')) {
+                    categorized['Crypto'].push(result);
+                } else if (result.source === 'commodities' || result.symbol.includes('=F') || result.symbol.includes('Gold') || result.symbol.includes('Oil')) {
+                    categorized['Commodities'].push(result);
+                } else if (result.source === 'polygon' || result.sector) {
+                    categorized['Stocks'].push(result);
+                } else {
+                    categorized['Other'].push(result);
+                }
             });
-           
-            const displayResults = results.slice(0, 100);
+            
+            // Sort each category
+            Object.keys(categorized).forEach(category => {
+                categorized[category].sort((a, b) => {
+                    const symbolA = a.symbol.toLowerCase();
+                    const symbolB = b.symbol.toLowerCase();
+                    const queryLower = query.toLowerCase();
+                   
+                    // Exact matches first
+                    if (symbolA === queryLower) return -1;
+                    if (symbolB === queryLower) return 1;
+                   
+                    // Then starts with
+                    if (symbolA.startsWith(queryLower)) return -1;
+                    if (symbolB.startsWith(queryLower)) return 1;
+                   
+                    return 0;
+                });
+            });
            
             const highlightMatch = (text) => {
                 if (!text) return '';
@@ -734,55 +850,62 @@
                 return text.replace(regex, '<span style="color: #00ff88; font-weight: bold;">$1</span>');
             };
            
-            // Enhanced result display with OpenBB metadata
+            const getProviderIcon = (provider, source) => {
+                const icons = {
+                    'fred': '🏛️ FRED',
+                    'fred_direct': '🏛️ FRED',
+                    'polygon': '📈 Polygon',
+                    'polygon_direct': '📈 Polygon',
+                    'crypto': '₿ Crypto',
+                    'crypto_direct': '₿ Crypto',
+                    'commodities': '🥇 Commodities',
+                    'commodities_direct': '🥇 Commodities',
+                    'openbb': '⚡ OpenBB',
+                    'openbb_direct': '⚡ OpenBB'
+                };
+                return icons[provider] || icons[source] || '📊 Financial';
+            };
+            
             let html = `
                 <div style="padding: 8px 20px; font-size: 11px; color: #00ff88; border-bottom: 1px solid #333; background: #1a1a1a;">
-                    📊 OpenBB Financial Intelligence • Found ${displayResults.length} of 6,042+ indicators
+                    📊 OpenBB Financial Intelligence • Found ${results.length} of 6,042+ indicators • API Status: ${apiConnectionStatus}
                 </div>
             `;
             
-            displayResults.forEach(result => {
-                const getProviderIcon = (provider) => {
-                    const icons = {
-                        'fred': '🏛️ FRED',
-                        'fred_direct': '🏛️ FRED',
-                        'polygon': '📈 Polygon',
-                        'polygon_direct': '📈 Polygon',
-                        'ecb': '🇪🇺 ECB',
-                        'ecb_direct': '🇪🇺 ECB',
-                        'ny_fed': '🏦 NY Fed',
-                        'ny_fed_direct': '🏦 NY Fed',
-                        'treasury': '💰 Treasury',
-                        'treasury_direct': '💰 Treasury',
-                        'ofr': '📊 OFR',
-                        'ofr_direct': '📊 OFR',
-                        'openbb': '⚡ OpenBB',
-                        'openbb_direct': '⚡ OpenBB'
-                    };
-                    return icons[provider] || '📊 Financial';
-                };
+            // Display results by category
+            Object.keys(categorized).forEach(category => {
+                const categoryResults = categorized[category];
+                if (categoryResults.length === 0) return;
                 
-                const providerIcon = getProviderIcon(result.provider || result.source);
-                const frequency = result.frequency ? ` • ${result.frequency}` : '';
-                const units = result.units ? ` • ${result.units}` : '';
-               
                 html += `
-                    <div class="search-item" onclick="addToChart('${result.symbol}', '${(result.name || result.symbol).replace(/'/g, "\\'")}', '${result.provider || result.source}')">
-                        <div class="search-item-left">
-                            <div class="search-item-symbol">${highlightMatch(result.symbol)}</div>
-                            <div class="search-item-name">${highlightMatch(result.name || result.symbol)}</div>
-                            ${result.description ? `<div class="search-item-description">${highlightMatch(result.description)}${frequency}${units}</div>` : ''}
-                        </div>
-                        <div class="search-item-source">${providerIcon}</div>
+                    <div style="padding: 6px 20px; font-size: 10px; color: #666; background: #1a1a1a; border-bottom: 1px solid #333; font-weight: bold;">
+                        ${category.toUpperCase()} (${categoryResults.length})
                     </div>
                 `;
+                
+                categoryResults.slice(0, 20).forEach(result => { // Limit per category
+                    const providerIcon = getProviderIcon(result.provider, result.source);
+                    const frequency = result.frequency ? ` • ${result.frequency}` : '';
+                    const units = result.units ? ` • ${result.units}` : '';
+                   
+                    html += `
+                        <div class="search-item" onclick="addToChart('${result.symbol}', '${(result.name || result.symbol).replace(/'/g, "\\'")}', '${result.provider || result.source}')">
+                            <div class="search-item-left">
+                                <div class="search-item-symbol">${highlightMatch(result.symbol)}</div>
+                                <div class="search-item-name">${highlightMatch(result.name || result.symbol)}</div>
+                                ${result.description ? `<div class="search-item-description">${highlightMatch(result.description)}${frequency}${units}</div>` : ''}
+                            </div>
+                            <div class="search-item-source">${providerIcon}</div>
+                        </div>
+                    `;
+                });
             });
            
             resultsDiv.innerHTML = html;
             resultsDiv.style.display = 'block';
         }
        
-        // Add symbol to active chart with OpenBB provider support
+        // Add symbol to active chart with enhanced provider support
         function addToChart(symbol, name, provider) {
             if (activeChartId) {
                 addSymbolToChart(activeChartId, symbol, name, provider);
@@ -858,12 +981,12 @@
                 timeframe: '1Y',
                 chartInstance: null,
                 displayMode: 'raw',
-                chartType: 'line', // line, candlestick, ohlc, area, mountain
+                chartType: 'line',
                 theme: 'dark',
                 isFullscreen: false,
-                comparisonMode: 'absolute', // absolute, percentage, indexed
+                comparisonMode: 'absolute',
                 maxSymbols: 10,
-                historicalYears: 10 // Extended historical data
+                historicalYears: 10
             };
             setActiveChart(chartId);
         }
@@ -893,99 +1016,122 @@
             }
            
             if (Object.keys(charts).length === 0) {
-                addNewChart(); // Always keep at least one chart
+                addNewChart();
             }
         }
        
-        // Add symbol to specific chart with OpenBB provider
+        // Add symbol to specific chart with enhanced provider
         function addSymbolToChart(chartId, symbol, name, provider) {
             const chart = charts[chartId];
             if (!chart) return;
            
             if (!chart.symbols.find(s => s.symbol === symbol)) {
-                chart.symbols.push({ symbol, name, provider: provider || 'openbb_direct' });
+                chart.symbols.push({ symbol, name, provider: provider || 'sample_data' });
                 loadChartData(chartId, symbol, name, provider);
             }
             setActiveChart(chartId);
         }
        
-        // Enhanced sample data generation with 10+ years of data and OHLC
+        // Enhanced sample data generation with realistic financial data patterns
         function generateSampleData(symbol, years = 10) {
             const data = [];
             const startDate = new Date();
             startDate.setFullYear(startDate.getFullYear() - years);
            
-            let baseValue = 100;
-            let baseVolume = 1000000;
-            let volatility = 0.02;
-            
-            // Symbol-specific parameters
+            // Symbol-specific enhanced parameters
             const symbolConfig = {
-                'AAPL': { baseValue: 150, baseVolume: 50000000, volatility: 0.025 },
-                'MSFT': { baseValue: 300, baseVolume: 30000000, volatility: 0.022 },
-                'GOOGL': { baseValue: 2500, baseVolume: 25000000, volatility: 0.028 },
-                'AMZN': { baseValue: 3200, baseVolume: 35000000, volatility: 0.030 },
-                'TSLA': { baseValue: 800, baseVolume: 80000000, volatility: 0.045 },
-                'SPY': { baseValue: 450, baseVolume: 70000000, volatility: 0.018 },
-                'QQQ': { baseValue: 380, baseVolume: 45000000, volatility: 0.022 },
-                'FEDFUNDS': { baseValue: 2.5, baseVolume: 0, volatility: 0.01 },
-                'UNRATE': { baseValue: 5.0, baseVolume: 0, volatility: 0.005 },
-                'DGS10': { baseValue: 3.5, baseVolume: 0, volatility: 0.008 },
-                'VIXCLS': { baseValue: 20, baseVolume: 0, volatility: 0.15 },
-                'GDP': { baseValue: 25000, baseVolume: 0, volatility: 0.003 },
-                'CPIAUCSL': { baseValue: 310, baseVolume: 0, volatility: 0.002 }
+                'AAPL': { baseValue: 150, baseVolume: 50000000, volatility: 0.025, hasEarnings: true },
+                'MSFT': { baseValue: 300, baseVolume: 30000000, volatility: 0.022, hasEarnings: true },
+                'GOOGL': { baseValue: 2500, baseVolume: 25000000, volatility: 0.028, hasEarnings: true },
+                'AMZN': { baseValue: 3200, baseVolume: 35000000, volatility: 0.030, hasEarnings: true },
+                'TSLA': { baseValue: 800, baseVolume: 80000000, volatility: 0.045, hasEarnings: true },
+                'NVDA': { baseValue: 500, baseVolume: 45000000, volatility: 0.035, hasEarnings: true },
+                'META': { baseValue: 280, baseVolume: 25000000, volatility: 0.032, hasEarnings: true },
+                'SPY': { baseValue: 450, baseVolume: 70000000, volatility: 0.018, hasEarnings: false },
+                'QQQ': { baseValue: 380, baseVolume: 45000000, volatility: 0.022, hasEarnings: false },
+                'VTI': { baseValue: 220, baseVolume: 35000000, volatility: 0.016, hasEarnings: false },
+                'FEDFUNDS': { baseValue: 2.5, baseVolume: 0, volatility: 0.01, hasEarnings: false, isRate: true, min: 0, max: 8 },
+                'UNRATE': { baseValue: 5.0, baseVolume: 0, volatility: 0.005, hasEarnings: false, isRate: true, min: 2, max: 12 },
+                'DGS10': { baseValue: 3.5, baseVolume: 0, volatility: 0.008, hasEarnings: false, isRate: true, min: 0.5, max: 8 },
+                'DGS2': { baseValue: 3.2, baseVolume: 0, volatility: 0.01, hasEarnings: false, isRate: true, min: 0.1, max: 7 },
+                'DGS30': { baseValue: 3.8, baseVolume: 0, volatility: 0.007, hasEarnings: false, isRate: true, min: 1, max: 8 },
+                'VIXCLS': { baseValue: 20, baseVolume: 0, volatility: 0.15, hasEarnings: false, min: 8, max: 85 },
+                'GDP': { baseValue: 25000, baseVolume: 0, volatility: 0.003, hasEarnings: false, min: 20000, max: 30000 },
+                'CPIAUCSL': { baseValue: 310, baseVolume: 0, volatility: 0.002, hasEarnings: false, trend: 0.0001 },
+                'BTC-USD': { baseValue: 45000, baseVolume: 1000000, volatility: 0.05, hasEarnings: false },
+                'ETH-USD': { baseValue: 3000, baseVolume: 2000000, volatility: 0.06, hasEarnings: false },
+                'CL=F': { baseValue: 75, baseVolume: 500000, volatility: 0.03, hasEarnings: false, min: 30, max: 150 },
+                'GC=F': { baseValue: 1950, baseVolume: 200000, volatility: 0.02, hasEarnings: false, min: 1500, max: 2500 }
             };
             
-            const config = symbolConfig[symbol] || { baseValue, baseVolume, volatility };
+            const config = symbolConfig[symbol] || { baseValue: 100, baseVolume: 1000000, volatility: 0.02 };
             let currentValue = config.baseValue;
+            
+            // Market events simulation
+            const marketEvents = [];
+            for (let i = 0; i < years * 4; i++) {
+                if (Math.random() < 0.3) { // 30% chance of market event per quarter
+                    marketEvents.push({
+                        day: Math.floor(Math.random() * (years * 252)),
+                        impact: (Math.random() - 0.5) * config.volatility * 5,
+                        duration: Math.floor(Math.random() * 10) + 1
+                    });
+                }
+            }
             
             for (let i = 0; i < years * 252; i++) {
                 const date = new Date(startDate);
                 date.setDate(startDate.getDate() + i);
                
-                // Enhanced market simulation with multiple components
+                // Base random walk
                 const randomWalk = (Math.random() - 0.5) * config.volatility * 2;
-                const trendComponent = Math.sin(i / 300) * 0.001; // Long-term trends
-                const cyclicalComponent = Math.sin(i / 63) * 0.005; // Quarterly cycles
-                const seasonalComponent = Math.sin((i % 252) / 252 * 2 * Math.PI) * 0.002; // Annual patterns
-                const weeklyComponent = Math.sin((i % 5) / 5 * 2 * Math.PI) * 0.001; // Weekly patterns
                 
-                // Market events and volatility clustering
-                const eventProbability = Math.random();
+                // Multiple trend components
+                const longTermTrend = config.trend || Math.sin(i / 500) * 0.001; // Long-term secular trends
+                const mediumTermTrend = Math.sin(i / 150) * 0.003; // Medium-term business cycles
+                const shortTermTrend = Math.sin(i / 50) * 0.005; // Short-term market cycles
+                const seasonalComponent = Math.sin((i % 252) / 252 * 2 * Math.PI) * 0.002; // Annual seasonality
+                
+                // Market event impacts
                 let eventComponent = 0;
-                if (eventProbability < 0.003) { // Rare large events
-                    eventComponent = (Math.random() - 0.5) * config.volatility * 8;
-                } else if (eventProbability < 0.02) { // Moderate events
-                    eventComponent = (Math.random() - 0.5) * config.volatility * 3;
+                marketEvents.forEach(event => {
+                    if (i >= event.day && i < event.day + event.duration) {
+                        eventComponent += event.impact * Math.exp(-(i - event.day) / event.duration);
+                    }
+                });
+                
+                // Earnings announcements (quarterly for stocks)
+                let earningsComponent = 0;
+                if (config.hasEarnings && i % 63 === 0 && Math.random() < 0.8) { // ~80% chance every quarter
+                    earningsComponent = (Math.random() - 0.5) * config.volatility * 3;
                 }
                 
-                const totalChange = randomWalk + trendComponent + cyclicalComponent + 
-                                  seasonalComponent + weeklyComponent + eventComponent;
+                // Weekend/holiday effects (reduced volatility)
+                const dayOfWeek = (i % 5);
+                const weekendMultiplier = dayOfWeek < 4 ? 1 : 0.5;
                 
-                // Apply change to get new close price
+                const totalChange = (randomWalk + longTermTrend + mediumTermTrend + shortTermTrend + 
+                                  seasonalComponent + eventComponent + earningsComponent) * weekendMultiplier;
+                
+                // Apply change
                 const previousClose = currentValue;
                 currentValue *= (1 + totalChange);
                
-                // Prevent unrealistic values
-                if (symbol.includes('RATE') || symbol.includes('UNRATE')) {
-                    currentValue = Math.max(0.01, Math.min(currentValue, 15));
-                } else if (symbol === 'VIXCLS') {
-                    currentValue = Math.max(8, Math.min(currentValue, 85));
-                } else if (symbol === 'GDP') {
-                    currentValue = Math.max(currentValue, config.baseValue * 0.8);
-                }
+                // Apply constraints
+                if (config.min !== undefined) currentValue = Math.max(currentValue, config.min);
+                if (config.max !== undefined) currentValue = Math.min(currentValue, config.max);
                 
                 // Generate realistic OHLC data
-                const dailyVolatility = config.volatility * (0.3 + Math.random() * 0.7);
+                const dailyVolatility = config.volatility * (0.3 + Math.random() * 0.7) * weekendMultiplier;
                 const range = currentValue * dailyVolatility;
                 
                 // Open price (slight gap from previous close)
                 const gapSize = (Math.random() - 0.5) * config.volatility * 0.5;
                 const open = previousClose * (1 + gapSize);
                 
-                // High and low prices
-                const intrarayMove1 = (Math.random() - 0.5) * range;
-                const intrarayMove2 = (Math.random() - 0.5) * range;
+                // Intraday movements
+                const intrarayMove1 = (Math.random() - 0.5) * range * 2;
+                const intrarayMove2 = (Math.random() - 0.5) * range * 2;
                 
                 const high = Math.max(open, currentValue) + Math.abs(intrarayMove1);
                 const low = Math.min(open, currentValue) - Math.abs(intrarayMove2);
@@ -998,10 +1144,11 @@
                 let volume = 0;
                 if (config.baseVolume > 0) {
                     const volumeVariation = (Math.random() - 0.5) * 0.6;
-                    const volumeTrend = Math.abs(totalChange) * 4; // Higher volume on bigger moves
-                    const volumeCluster = Math.abs(eventComponent) > 0 ? 2 : 1; // Volume clustering
-                    volume = Math.round(config.baseVolume * (1 + volumeVariation + volumeTrend) * volumeCluster);
-                    volume = Math.max(volume, config.baseVolume * 0.1); // Minimum volume
+                    const volumeTrend = Math.abs(totalChange) * 3; // Higher volume on bigger moves
+                    const volumeCluster = Math.abs(eventComponent) > 0 ? 2.5 : 1;
+                    const earningsVolume = Math.abs(earningsComponent) > 0 ? 1.8 : 1;
+                    volume = Math.round(config.baseVolume * (1 + volumeVariation + volumeTrend) * volumeCluster * earningsVolume);
+                    volume = Math.max(volume, config.baseVolume * 0.1);
                 }
                
                 data.push({
@@ -1012,7 +1159,6 @@
                     high: finalHigh,
                     low: finalLow,
                     volume: volume,
-                    // Additional data for technical analysis
                     typical_price: (finalHigh + finalLow + currentValue) / 3,
                     weighted_price: (finalHigh + finalLow + currentValue + currentValue) / 4
                 });
@@ -1021,7 +1167,7 @@
             return data;
         }
        
-        // Load chart data with comprehensive error handling and recovery
+        // Load chart data with comprehensive error handling
         async function loadChartData(chartId, symbol, name, provider) {
             const chart = charts[chartId];
             if (!chart) {
@@ -1036,11 +1182,23 @@
                 let processedData = [];
                 console.log(`🔄 Starting data load for ${symbol} with provider ${provider}`);
                 
-                // Generate sample data with error protection
+                // First try to fetch real data if API is connected
+                if (apiConnectionStatus === 'connected' && provider && provider !== 'sample_data') {
+                    try {
+                        console.log(`🌐 Attempting to fetch real data for ${symbol}...`);
+                        // This would be where you implement real API calls
+                        // For now, we'll continue with sample data
+                        console.log(`⚠️ Real data fetching not implemented yet, using sample data`);
+                    } catch (realDataError) {
+                        console.warn(`⚠️ Real data fetch failed for ${symbol}:`, realDataError);
+                    }
+                }
+                
+                // Generate enhanced sample data
                 try {
-                    console.log(`📊 Generating sample data for ${symbol}...`);
-                    const rawData = generateSampleData(symbol, chart.historicalYears || 10); // Use chart's historical years setting
-                    console.log(`✅ Generated ${rawData.length} raw data points`);
+                    console.log(`📊 Generating enhanced sample data for ${symbol}...`);
+                    const rawData = generateSampleData(symbol, chart.historicalYears || 10);
+                    console.log(`✅ Generated ${rawData.length} enhanced data points`);
                     
                     if (rawData.length === 0) {
                         throw new Error('No raw data generated');
@@ -1079,7 +1237,6 @@
                     console.log('✅ Chart changes calculated');
                 } catch (changeError) {
                     console.error('❌ Change calculation error:', changeError);
-                    // Continue without changes if calculation fails
                     console.log('⚠️ Continuing without change calculations');
                 }
                 
@@ -1090,7 +1247,6 @@
                     console.log('✅ Technical indicators calculated');
                 } catch (indicatorError) {
                     console.error('❌ Technical indicator error:', indicatorError);
-                    // Continue without indicators if calculation fails
                     console.log('⚠️ Continuing without technical indicators');
                 }
                 
@@ -1120,7 +1276,7 @@
                             </div>
                         `;
                     }
-                    return; // Don't continue if render fails
+                    return;
                 }
                 
                 // Update symbols with error protection
@@ -1131,7 +1287,7 @@
                     console.error('❌ Symbol update error:', symbolError);
                 }
                
-                const sourceLabel = provider ? provider.replace('_direct', '').toUpperCase() : 'Sample';
+                const sourceLabel = provider ? provider.replace('_direct', '').toUpperCase() : 'Enhanced Sample';
                 showTemporaryMessage(`✅ Added ${symbol} (${processedData.length} points)`, 'info');
                
             } catch (error) {
@@ -1257,7 +1413,7 @@
             });
         }
        
-        // Comprehensive technical indicators calculation including RSI, Bollinger Bands, Stochastic, Volume Analysis
+        // Comprehensive technical indicators calculation
         function calculateTechnicalIndicators(data) {
             if (!data || data.length === 0) return data;
            
@@ -1376,7 +1532,7 @@
                     
                     upperBand.push(average + (standardDev * stdDev));
                     lowerBand.push(average - (standardDev * stdDev));
-                    bandwidth.push((standardDev * stdDev * 2) / average * 100); // Bandwidth as percentage
+                    bandwidth.push((standardDev * stdDev * 2) / average * 100);
                 }
                 
                 return { sma, upperBand, lowerBand, bandwidth };
@@ -1390,7 +1546,6 @@
                 
                 const vmaPeriod = 20;
                 
-                // Volume Moving Average
                 for (let i = 0; i < vmaPeriod - 1; i++) {
                     volumeMovingAvg.push(null);
                     volumeRatio.push(null);
@@ -1402,11 +1557,9 @@
                     const avgVolume = volumeSlice.reduce((sum, vol) => sum + vol, 0) / vmaPeriod;
                     volumeMovingAvg.push(avgVolume);
                     
-                    // Volume ratio (current volume vs average)
                     const ratio = avgVolume > 0 ? volumes[i] / avgVolume : 0;
                     volumeRatio.push(ratio);
                     
-                    // Price-Volume Strength (combines price change with volume)
                     if (i > 0) {
                         const priceChange = (prices[i] - prices[i - 1]) / prices[i - 1];
                         const strength = priceChange * ratio;
@@ -1426,11 +1579,9 @@
                 const k = 2 / (period + 1);
                 const emaArray = [];
                
-                // Initialize with SMA
                 let ema = dataArray.slice(0, period).reduce((sum, val) => sum + val, 0) / period;
                 emaArray.push(...Array(period - 1).fill(null), ema);
                
-                // Calculate EMA for remaining values
                 for (let i = period; i < dataArray.length; i++) {
                     ema = (dataArray[i] - ema) * k + ema;
                     emaArray.push(ema);
@@ -1458,14 +1609,12 @@
             const volumeIndicators = calculateVolumeIndicators(values, volumes);
            
             return data.map((item, index) => {
-                // Existing calculations
                 let slope30 = null;
                 let zscore30 = null;
                 let signal = null;
                 let currentMacd = macdLine[index];
                 let currentSignal = signalLineValues[index];
                 
-                // Only use signal if MACD is valid
                 if (currentMacd === null) {
                     currentSignal = null;
                 }
@@ -1476,7 +1625,6 @@
                     const n = window.length;
                     const x = Array.from({length: n}, (_, i) => i);
                    
-                    // Linear regression for slope
                     const sumX = x.reduce((a, b) => a + b, 0);
                     const sumY = window.reduce((a, b) => a + b, 0);
                     const sumXY = x.reduce((sum, xi, i) => sum + xi * window[i], 0);
@@ -1486,7 +1634,6 @@
                         slope30 = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
                     }
                    
-                    // Z-score calculation
                     const mean = sumY / n;
                     const variance = window.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / n;
                     const stdDev = Math.sqrt(variance);
@@ -1496,7 +1643,7 @@
                     }
                 }
                 
-                // Enhanced signal generation using multiple indicators
+                // Enhanced signal generation
                 const rsi = rsiValues[index];
                 const stochK = stochastic.stochK[index];
                 const stochD = stochastic.stochD[index];
@@ -1505,32 +1652,26 @@
                 if (currentMacd !== null && currentSignal !== null && rsi !== null && stochK !== null) {
                     let signalStrength = 0;
                     
-                    // MACD signals
                     if (currentMacd > currentSignal) signalStrength += 1;
                     else signalStrength -= 1;
                     
-                    // RSI signals
-                    if (rsi < 30) signalStrength += 2; // Oversold - strong buy
-                    else if (rsi > 70) signalStrength -= 2; // Overbought - strong sell
-                    else if (rsi > 50) signalStrength += 0.5; // Bullish momentum
-                    else signalStrength -= 0.5; // Bearish momentum
+                    if (rsi < 30) signalStrength += 2;
+                    else if (rsi > 70) signalStrength -= 2;
+                    else if (rsi > 50) signalStrength += 0.5;
+                    else signalStrength -= 0.5;
                     
-                    // Stochastic signals
-                    if (stochK > stochD && stochK < 20) signalStrength += 1; // Bullish crossover in oversold
-                    else if (stochK < stochD && stochK > 80) signalStrength -= 1; // Bearish crossover in overbought
+                    if (stochK > stochD && stochK < 20) signalStrength += 1;
+                    else if (stochK < stochD && stochK > 80) signalStrength -= 1;
                     
-                    // Volume confirmation
-                    if (volumeRatio > 1.5) signalStrength *= 1.2; // High volume amplifies signal
+                    if (volumeRatio > 1.5) signalStrength *= 1.2;
                     
-                    // Generate final signal
-                    if (signalStrength >= 2) signal = 1; // Strong Buy
-                    else if (signalStrength <= -2) signal = -1; // Strong Sell  
-                    else signal = 0; // Hold
+                    if (signalStrength >= 2) signal = 1;
+                    else if (signalStrength <= -2) signal = -1;
+                    else signal = 0;
                 }
                
                 return {
                     ...item,
-                    // Original indicators
                     slope_30: slope30,
                     ema12: ema12Values[index],
                     ema26: ema26Values[index],
@@ -1538,8 +1679,6 @@
                     macd_signal: currentSignal,
                     macd_histogram: macdHistogram[index],
                     zscore_30: zscore30,
-                    
-                    // New technical indicators
                     rsi: rsiValues[index],
                     stoch_k: stochastic.stochK[index],
                     stoch_d: stochastic.stochD[index],
@@ -1550,45 +1689,39 @@
                     volume_ma: volumeIndicators.volumeMovingAvg[index],
                     volume_ratio: volumeIndicators.volumeRatio[index],
                     pv_strength: volumeIndicators.priceVolumeStrength[index],
-                    
-                    // Enhanced signal
                     signal: signal
                 };
             });
         }
        
-        // Enhanced chart display toggle with state preservation
+        // Enhanced chart display toggle with more indicators
         function toggleChartDisplay(event, chartId, displayMode) {
             event.stopPropagation();
             const chart = charts[chartId];
             if (!chart) return;
            
-            // Store previous state for recovery
             chart.previousDisplayMode = chart.displayMode;
             chart.displayMode = displayMode;
            
-            // Update button states
             const controlsDiv = event.target.parentElement;
             controlsDiv.querySelectorAll('.display-toggle').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
            
-            // Force re-render with error recovery
             try {
                 updateChartRender(chartId);
             } catch (error) {
                 console.error('Display mode change failed:', error);
-                // Restore previous state
                 chart.displayMode = chart.previousDisplayMode || 'raw';
                 showTemporaryMessage(`Failed to switch to ${displayMode} mode`, 'error');
             }
         }
+        
         function changeChartType(chartId, chartType) {
             const chart = charts[chartId];
             if (!chart) return;
             
             chart.chartType = chartType;
             
-            // Update button states
             const chartWindow = document.getElementById(chartId);
             chartWindow.querySelectorAll('.chart-type-btn').forEach(btn => btn.classList.remove('active'));
             chartWindow.querySelector(`[data-type="${chartType}"]`).classList.add('active');
@@ -1602,7 +1735,6 @@
             
             chart.comparisonMode = mode;
             
-            // Update button states
             const chartWindow = document.getElementById(chartId);
             chartWindow.querySelectorAll('[data-comparison]').forEach(btn => btn.classList.remove('active'));
             chartWindow.querySelector(`[data-comparison="${mode}"]`).classList.add('active');
@@ -1635,7 +1767,6 @@
                 document.body.style.overflow = 'auto';
             }
             
-            // Update chart size after transition
             setTimeout(() => {
                 updateChartRender(chartId);
             }, 100);
@@ -1737,7 +1868,7 @@
             return data.filter(item => new Date(item.date) >= cutoffDate);
         }
        
-        // Safe chart rendering with comprehensive error handling
+        // Enhanced chart rendering with comprehensive display modes
         function updateChartRender(chartId) {
             console.log(`🔄 Starting chart render for ${chartId}`);
             
@@ -1786,20 +1917,16 @@
                             return;
                         }
                         
-                        console.log(`📊 Symbol ${s.symbol} has ${symbolData.length} data points`);
-                        
                         const filteredData = filterDataByTimeframe(symbolData, chart.timeframe);
                         if (filteredData.length === 0) {
                             console.warn(`⚠️ No data after timeframe filter for ${s.symbol}`);
                             return;
                         }
                         
-                        console.log(`📊 After timeframe filter: ${filteredData.length} points for ${s.symbol}`);
-                        
                         const lineColor = colorPalette[index % colorPalette.length];
                         let yData, hoverTemplate;
                         
-                        // Process display mode with error handling and enhanced chart types
+                        // Enhanced display mode processing
                         try {
                             const chartType = chart.chartType || 'line';
                             const comparisonMode = chart.comparisonMode || 'absolute';
@@ -1810,7 +1937,6 @@
                                     yLabel = 'Price/Value';
                                     hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Value: %{y:.4f}<extra></extra>`;
                                     
-                                    // Apply comparison mode transformations
                                     if (comparisonMode === 'percentage' && index > 0) {
                                         const baseValue = yData[0];
                                         yData = yData.map(v => ((v - baseValue) / baseValue) * 100);
@@ -1829,7 +1955,6 @@
                                     yLabel = 'Daily % Change';
                                     hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>% Change: %{y:.3f}%<extra></extra>`;
                                     
-                                    // Add zero line for reference (only once)
                                     if (index === 0) {
                                         traces.push({
                                             x: filteredData.map(d => d.date),
@@ -1849,7 +1974,6 @@
                                     yLabel = 'Daily Unit Change';
                                     hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Unit Change: %{y:.6f}<extra></extra>`;
                                     
-                                    // Add zero line for reference (only once)
                                     if (index === 0) {
                                         traces.push({
                                             x: filteredData.map(d => d.date),
@@ -1875,7 +1999,6 @@
                                     yLabel = 'RSI (%)';
                                     hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>RSI: %{y:.1f}%<extra></extra>`;
                                     
-                                    // Add RSI reference lines (only once)
                                     if (index === 0) {
                                         [70, 50, 30].forEach((level, i) => {
                                             const colors = ['red', 'gray', 'green'];
@@ -1893,9 +2016,255 @@
                                         });
                                     }
                                     
-                                    // Update filtered data for trace
                                     filteredData = validRsiData;
                                     break;
+                                    
+                                case 'macd':
+                                    const validMacdData = filteredData.filter(d => d.macd !== null && d.macd !== undefined && !isNaN(d.macd));
+                                    if (validMacdData.length === 0) {
+                                        console.warn(`⚠️ No MACD data for ${s.symbol}`);
+                                        return;
+                                    }
+                                    
+                                    // MACD Line
+                                    traces.push({
+                                        x: validMacdData.map(d => d.date),
+                                        y: validMacdData.map(d => d.macd),
+                                        type: 'scatter',
+                                        mode: 'lines',
+                                        name: `${s.symbol} MACD`,
+                                        line: { color: lineColor, width: 2 },
+                                        hovertemplate: `<b>${s.symbol} MACD</b><br>Date: %{x}<br>MACD: %{y:.4f}<extra></extra>`
+                                    });
+                                    
+                                    // Signal Line
+                                    traces.push({
+                                        x: validMacdData.map(d => d.date),
+                                        y: validMacdData.map(d => d.macd_signal),
+                                        type: 'scatter',
+                                        mode: 'lines',
+                                        name: `${s.symbol} Signal`,
+                                        line: { color: lineColor, width: 1, dash: 'dash' },
+                                        hovertemplate: `<b>${s.symbol} Signal</b><br>Date: %{x}<br>Signal: %{y:.4f}<extra></extra>`
+                                    });
+                                    
+                                    // Histogram
+                                    traces.push({
+                                        x: validMacdData.map(d => d.date),
+                                        y: validMacdData.map(d => d.macd_histogram),
+                                        type: 'bar',
+                                        name: `${s.symbol} Histogram`,
+                                        marker: { 
+                                            color: validMacdData.map(d => d.macd_histogram > 0 ? '#00ff88' : '#ff4444'),
+                                            opacity: 0.7
+                                        },
+                                        hovertemplate: `<b>${s.symbol} Histogram</b><br>Date: %{x}<br>Histogram: %{y:.4f}<extra></extra>`
+                                    });
+                                    
+                                    yLabel = 'MACD';
+                                    return; // Skip normal trace creation for MACD
+                                    
+                                case 'bollinger':
+                                    const validBbData = filteredData.filter(d => d.bb_sma !== null && d.bb_sma !== undefined && !isNaN(d.bb_sma));
+                                    if (validBbData.length === 0) {
+                                        console.warn(`⚠️ No Bollinger Bands data for ${s.symbol}`);
+                                        return;
+                                    }
+                                    
+                                    // Upper Band
+                                    traces.push({
+                                        x: validBbData.map(d => d.date),
+                                        y: validBbData.map(d => d.bb_upper),
+                                        type: 'scatter',
+                                        mode: 'lines',
+                                        name: `${s.symbol} Upper BB`,
+                                        line: { color: lineColor, width: 1, dash: 'dot' },
+                                        showlegend: false,
+                                        hoverinfo: 'skip'
+                                    });
+                                    
+                                    // SMA (Middle Band)
+                                    traces.push({
+                                        x: validBbData.map(d => d.date),
+                                        y: validBbData.map(d => d.bb_sma),
+                                        type: 'scatter',
+                                        mode: 'lines',
+                                        name: `${s.symbol} BB SMA`,
+                                        line: { color: lineColor, width: 2 },
+                                        hovertemplate: `<b>${s.symbol} BB SMA</b><br>Date: %{x}<br>SMA: %{y:.4f}<extra></extra>`
+                                    });
+                                    
+                                    // Lower Band
+                                    traces.push({
+                                        x: validBbData.map(d => d.date),
+                                        y: validBbData.map(d => d.bb_lower),
+                                        type: 'scatter',
+                                        mode: 'lines',
+                                        name: `${s.symbol} Lower BB`,
+                                        line: { color: lineColor, width: 1, dash: 'dot' },
+                                        fill: 'tonexty',
+                                        fillcolor: `${lineColor}20`,
+                                        showlegend: false,
+                                        hoverinfo: 'skip'
+                                    });
+                                    
+                                    // Price line
+                                    traces.push({
+                                        x: validBbData.map(d => d.date),
+                                        y: validBbData.map(d => d.value),
+                                        type: 'scatter',
+                                        mode: 'lines',
+                                        name: `${s.symbol} Price`,
+                                        line: { color: '#ffffff', width: 2 },
+                                        hovertemplate: `<b>${s.symbol} Price</b><br>Date: %{x}<br>Price: %{y:.4f}<extra></extra>`
+                                    });
+                                    
+                                    yLabel = 'Price with Bollinger Bands';
+                                    return; // Skip normal trace creation
+                                    
+                                case 'stochastic':
+                                    const validStochData = filteredData.filter(d => d.stoch_k !== null && d.stoch_k !== undefined && !isNaN(d.stoch_k));
+                                    if (validStochData.length === 0) {
+                                        console.warn(`⚠️ No Stochastic data for ${s.symbol}`);
+                                        return;
+                                    }
+                                    
+                                    // %K Line
+                                    traces.push({
+                                        x: validStochData.map(d => d.date),
+                                        y: validStochData.map(d => d.stoch_k),
+                                        type: 'scatter',
+                                        mode: 'lines',
+                                        name: `${s.symbol} %K`,
+                                        line: { color: lineColor, width: 2 },
+                                        hovertemplate: `<b>${s.symbol} %K</b><br>Date: %{x}<br>%K: %{y:.1f}<extra></extra>`
+                                    });
+                                    
+                                    // %D Line
+                                    traces.push({
+                                        x: validStochData.map(d => d.date),
+                                        y: validStochData.map(d => d.stoch_d),
+                                        type: 'scatter',
+                                        mode: 'lines',
+                                        name: `${s.symbol} %D`,
+                                        line: { color: lineColor, width: 1, dash: 'dash' },
+                                        hovertemplate: `<b>${s.symbol} %D</b><br>Date: %{x}<br>%D: %{y:.1f}<extra></extra>`
+                                    });
+                                    
+                                    // Reference lines
+                                    if (index === 0) {
+                                        [80, 20].forEach((level, i) => {
+                                            traces.push({
+                                                x: validStochData.map(d => d.date),
+                                                y: validStochData.map(() => level),
+                                                type: 'scatter',
+                                                mode: 'lines',
+                                                name: level === 80 ? 'Overbought (80)' : 'Oversold (20)',
+                                                line: { color: level === 80 ? 'red' : 'green', width: 1, dash: 'dash' },
+                                                showlegend: false,
+                                                hoverinfo: 'skip'
+                                            });
+                                        });
+                                    }
+                                    
+                                    yLabel = 'Stochastic %';
+                                    return; // Skip normal trace creation
+                                    
+                                case 'volume':
+                                    if (s.symbol.includes('RATE') || s.symbol.includes('GDP') || s.symbol === 'FEDFUNDS') {
+                                        console.warn(`⚠️ Volume analysis not applicable for ${s.symbol}`);
+                                        return;
+                                    }
+                                    
+                                    const validVolumeData = filteredData.filter(d => d.volume !== null && d.volume !== undefined && d.volume > 0);
+                                    if (validVolumeData.length === 0) {
+                                        console.warn(`⚠️ No volume data for ${s.symbol}`);
+                                        return;
+                                    }
+                                    
+                                    // Volume bars
+                                    traces.push({
+                                        x: validVolumeData.map(d => d.date),
+                                        y: validVolumeData.map(d => d.volume),
+                                        type: 'bar',
+                                        name: `${s.symbol} Volume`,
+                                        marker: { 
+                                            color: validVolumeData.map(d => d.daily_pct_change > 0 ? '#00ff88' : '#ff4444'),
+                                            opacity: 0.7
+                                        },
+                                        hovertemplate: `<b>${s.symbol} Volume</b><br>Date: %{x}<br>Volume: %{y:,.0f}<extra></extra>`
+                                    });
+                                    
+                                    // Volume MA
+                                    traces.push({
+                                        x: validVolumeData.map(d => d.date),
+                                        y: validVolumeData.map(d => d.volume_ma),
+                                        type: 'scatter',
+                                        mode: 'lines',
+                                        name: `${s.symbol} Volume MA`,
+                                        line: { color: lineColor, width: 2 },
+                                        hovertemplate: `<b>${s.symbol} Volume MA</b><br>Date: %{x}<br>Volume MA: %{y:,.0f}<extra></extra>`
+                                    });
+                                    
+                                    yLabel = 'Volume';
+                                    return; // Skip normal trace creation
+                                    
+                                case 'signals':
+                                    const validSignalData = filteredData.filter(d => d.signal !== null && d.signal !== undefined);
+                                    if (validSignalData.length === 0) {
+                                        console.warn(`⚠️ No signal data for ${s.symbol}`);
+                                        return;
+                                    }
+                                    
+                                    // Price line
+                                    traces.push({
+                                        x: validSignalData.map(d => d.date),
+                                        y: validSignalData.map(d => d.value),
+                                        type: 'scatter',
+                                        mode: 'lines',
+                                        name: `${s.symbol} Price`,
+                                        line: { color: lineColor, width: 2 },
+                                        hovertemplate: `<b>${s.symbol}</b><br>Date: %{x}<br>Price: %{y:.4f}<extra></extra>`
+                                    });
+                                    
+                                    // Buy signals
+                                    const buySignals = validSignalData.filter(d => d.signal === 1);
+                                    if (buySignals.length > 0) {
+                                        traces.push({
+                                            x: buySignals.map(d => d.date),
+                                            y: buySignals.map(d => d.value),
+                                            type: 'scatter',
+                                            mode: 'markers',
+                                            name: `${s.symbol} Buy`,
+                                            marker: { 
+                                                color: '#00ff88',
+                                                size: 8,
+                                                symbol: 'triangle-up'
+                                            },
+                                            hovertemplate: `<b>${s.symbol} BUY SIGNAL</b><br>Date: %{x}<br>Price: %{y:.4f}<extra></extra>`
+                                        });
+                                    }
+                                    
+                                    // Sell signals
+                                    const sellSignals = validSignalData.filter(d => d.signal === -1);
+                                    if (sellSignals.length > 0) {
+                                        traces.push({
+                                            x: sellSignals.map(d => d.date),
+                                            y: sellSignals.map(d => d.value),
+                                            type: 'scatter',
+                                            mode: 'markers',
+                                            name: `${s.symbol} Sell`,
+                                            marker: { 
+                                                color: '#ff4444',
+                                                size: 8,
+                                                symbol: 'triangle-down'
+                                            },
+                                            hovertemplate: `<b>${s.symbol} SELL SIGNAL</b><br>Date: %{x}<br>Price: %{y:.4f}<extra></extra>`
+                                        });
+                                    }
+                                    
+                                    yLabel = 'Price with Trading Signals';
+                                    return; // Skip normal trace creation
                                     
                                 default:
                                     yData = filteredData.map(d => d.value).filter(v => v !== null && !isNaN(v) && isFinite(v));
@@ -1908,8 +2277,6 @@
                                 return;
                             }
                             
-                            console.log(`✅ Processed ${yData.length} Y data points for ${s.symbol}`);
-                            
                         } catch (modeError) {
                             console.error(`❌ Display mode error for ${s.symbol}:`, modeError);
                             return;
@@ -1921,7 +2288,6 @@
                             let trace;
                             
                             if (chartType === 'candlestick' && displayMode === 'raw') {
-                                // Candlestick chart for OHLC data
                                 trace = {
                                     x: filteredData.map(d => d.date),
                                     open: filteredData.map(d => d.open),
@@ -1934,7 +2300,6 @@
                                     decreasing: { line: { color: '#ff4444' } }
                                 };
                             } else if (chartType === 'ohlc' && displayMode === 'raw') {
-                                // OHLC bar chart
                                 trace = {
                                     x: filteredData.map(d => d.date),
                                     open: filteredData.map(d => d.open),
@@ -1947,7 +2312,6 @@
                                     decreasing: { line: { color: '#ff4444' } }
                                 };
                             } else if (chartType === 'area' || chartType === 'mountain') {
-                                // Area/Mountain chart
                                 trace = {
                                     x: filteredData.map(d => d.date),
                                     y: yData,
@@ -1957,10 +2321,9 @@
                                     hovertemplate: hoverTemplate,
                                     line: { color: lineColor, width: 2 },
                                     fill: 'tonexty',
-                                    fillcolor: `${lineColor}30` // Semi-transparent fill
+                                    fillcolor: `${lineColor}30`
                                 };
                                 
-                                // Add base line for first trace
                                 if (index === 0) {
                                     traces.push({
                                         x: filteredData.map(d => d.date),
@@ -1973,7 +2336,6 @@
                                     });
                                 }
                             } else {
-                                // Standard line chart
                                 trace = {
                                     x: filteredData.map(d => d.date),
                                     y: yData,
@@ -1985,7 +2347,6 @@
                                 };
                             }
                             
-                            // Add color coding for change modes
                             if ((displayMode === 'pct_change' || displayMode === 'unit_change') && chartType === 'line') {
                                 trace.marker = {
                                     color: yData.map(v => v > 0 ? '#00ff88' : v < 0 ? '#ff4444' : '#888888'),
@@ -2063,7 +2424,6 @@
                     displayModeBar: true
                 };
            
-                // Clear any existing content
                 if (canvasElement.querySelector('.chart-message')) {
                     canvasElement.innerHTML = '';
                 }
