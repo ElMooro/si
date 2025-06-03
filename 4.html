@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -836,8 +836,8 @@
             // Sort each category
             Object.keys(categorized).forEach(category => {
                 categorized[category].sort((a, b) => {
-                    const symbolA = a.symbol.toLowerCase();
-                    const symbolB = b.symbol.toLowerCase();
+                    const symbolA = (a.symbol || '').toLowerCase();
+                    const symbolB = (b.symbol || '').toLowerCase();
                     const queryLower = query.toLowerCase();
                    
                     // Exact matches first
@@ -852,11 +852,11 @@
                 });
             });
            
-            const highlightMatch = (text) => {
-                if (!text) return '';
-                const regex = new RegExp(`(${query.split(' ').join('|')})`, 'gi');
-                return text.replace(regex, '<span style="color: #00ff88; font-weight: bold;">$1</span>');
-            };
+        function highlightMatch(text, query) {
+            if (!text || !query) return text || '';
+            const regex = new RegExp(`(${query.split(' ').join('|')})`, 'gi');
+            return text.replace(regex, '<span style="color: #00ff88; font-weight: bold;">$1</span>');
+        }
            
             const getProviderIcon = (provider, source) => {
                 const icons = {
@@ -2025,7 +2025,7 @@
                                     }
                                     
                                     // Update filtered data for trace creation
-                                    filteredData = yoyData;
+                                    filteredData = [...yoyData];
                                     break;
                                     
                                 case 'unit_change':
@@ -2109,7 +2109,7 @@
                                     }
                                     
                                     // Update filtered data for trace creation
-                                    filteredData = momentumData;
+                                    filteredData = [...momentumData];
                                     break;
                                     
                                 case 'rsi':
@@ -2140,7 +2140,7 @@
                                         });
                                     }
                                     
-                                    filteredData = validRsiData;
+                                    filteredData = [...validRsiData];
                                     break;
                                     
                                 case 'macd':
