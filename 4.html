@@ -1955,14 +1955,14 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
                         const lineColor = colorPalette[index % colorPalette.length];
                         let yData, hoverTemplate;
                         
+                        // Declare these variables at the top of the loop to avoid scope issues
+                        let processedData = filteredData;
+                        let xDataForTrace = filteredData;
+                        
                         // Enhanced display mode processing
                         try {
                             const chartType = chart.chartType || 'line';
                             const comparisonMode = chart.comparisonMode || 'absolute';
-                            
-                            // Declare variables outside switch to avoid const conflicts
-                            let processedData = filteredData;
-                            let xDataForTrace = filteredData;
                             
                             switch (displayMode) {
                                 case 'raw':
