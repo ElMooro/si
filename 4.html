@@ -159,6 +159,7 @@
             grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
             gap: 20px;
         }
+        /* Enhanced chart styles with themes and fullscreen support */
         .chart-window {
             background: #131313;
             border: 1px solid #282828;
@@ -173,6 +174,143 @@
         .chart-window.active-chart {
             border-color: #00ff88;
             box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+        }
+        .chart-window.fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 10000;
+            border-radius: 0;
+            padding: 10px;
+            background: var(--chart-bg);
+        }
+        .chart-window.fullscreen .chart-canvas {
+            height: calc(100vh - 120px);
+        }
+        
+        /* Theme variables */
+        :root {
+            --chart-bg: #131313;
+            --chart-border: #282828;
+            --chart-text: #e0e0e0;
+            --chart-grid: #22222250;
+            --chart-axis: #888;
+        }
+        
+        [data-theme="light"] {
+            --chart-bg: #ffffff;
+            --chart-border: #e0e0e0;
+            --chart-text: #333333;
+            --chart-grid: #f0f0f0;
+            --chart-axis: #666;
+        }
+        
+        [data-theme="light"] .chart-window {
+            background: var(--chart-bg);
+            border-color: var(--chart-border);
+            color: var(--chart-text);
+        }
+        
+        [data-theme="light"] .control-btn,
+        [data-theme="light"] .display-toggle,
+        [data-theme="light"] .timeframe-btn {
+            background: #f5f5f5;
+            border-color: #ddd;
+            color: #333;
+        }
+        
+        [data-theme="light"] .display-toggle.active,
+        [data-theme="light"] .timeframe-btn.active {
+            background: #00dd77;
+            color: #fff;
+        }
+        
+        /* Chart type controls */
+        .chart-type-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .chart-type-btn {
+            background: #252525;
+            border: 1px solid #383838;
+            color: #ccc;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s;
+        }
+        
+        .chart-type-btn:hover {
+            background: #333;
+            border-color: #555;
+        }
+        
+        .chart-type-btn.active {
+            background: #0066cc;
+            color: #fff;
+            border-color: #0066cc;
+        }
+        
+        /* Theme toggle */
+        .theme-toggle {
+            background: #252525;
+            border: 1px solid #383838;
+            color: #ccc;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        
+        .theme-toggle:hover {
+            background: #333;
+            border-color: #555;
+        }
+        
+        /* Fullscreen button */
+        .fullscreen-btn {
+            background: #252525;
+            border: 1px solid #383838;
+            color: #ccc;
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            line-height: 1;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .fullscreen-btn:hover {
+            background: #333;
+            border-color: #555;
+        }
+        
+        /* Comparison controls */
+        .comparison-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .comparison-label {
+            font-size: 11px;
+            color: #888;
+            margin-right: 5px;
         }
         .chart-header {
             display: flex;
@@ -681,6 +819,20 @@
                                 <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'multi_indicator')" data-display="multi_indicator">🎛️ Multi-Indicator</button>
                                 <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'signals')" data-display="signals">🎪 Trading Signals</button>
                             </div>
+                            <div class="chart-type-controls">
+                                <span class="comparison-label">Chart Type:</span>
+                                <button class="chart-type-btn active" onclick="changeChartType('${chartId}', 'line')" data-type="line">📈 Line</button>
+                                <button class="chart-type-btn" onclick="changeChartType('${chartId}', 'candlestick')" data-type="candlestick">🕯️ Candlestick</button>
+                                <button class="chart-type-btn" onclick="changeChartType('${chartId}', 'ohlc')" data-type="ohlc">📊 OHLC</button>
+                                <button class="chart-type-btn" onclick="changeChartType('${chartId}', 'area')" data-type="area">🏔️ Area</button>
+                                <button class="chart-type-btn" onclick="changeChartType('${chartId}', 'mountain')" data-type="mountain">🗻 Mountain</button>
+                            </div>
+                            <div class="comparison-controls">
+                                <span class="comparison-label">Compare:</span>
+                                <button class="display-toggle active" onclick="changeComparisonMode('${chartId}', 'absolute')" data-comparison="absolute">Absolute</button>
+                                <button class="display-toggle" onclick="changeComparisonMode('${chartId}', 'percentage')" data-comparison="percentage">Percentage</button>
+                                <button class="display-toggle" onclick="changeComparisonMode('${chartId}', 'indexed')" data-comparison="indexed">Indexed (100)</button>
+                            </div>
                         </div>
                         <div class="chart-controls">
                             <div class="timeframe-buttons" id="${chartId}_timeframe_buttons">
@@ -689,6 +841,8 @@
                                              onclick="changeTimeframe(event, '${chartId}', '${tf}')">${tf}</button>`
                                 ).join('')}
                             </div>
+                            <button class="theme-toggle" onclick="toggleTheme('${chartId}')">🌓 Theme</button>
+                            <button class="fullscreen-btn" onclick="toggleFullscreen('${chartId}')" title="Toggle Fullscreen">⛶</button>
                             <button class="close-btn" onclick="removeChart(event, '${chartId}')">×</button>
                         </div>
                     </div>
@@ -703,7 +857,13 @@
                 data: {},
                 timeframe: '1Y',
                 chartInstance: null,
-                displayMode: 'raw'
+                displayMode: 'raw',
+                chartType: 'line', // line, candlestick, ohlc, area, mountain
+                theme: 'dark',
+                isFullscreen: false,
+                comparisonMode: 'absolute', // absolute, percentage, indexed
+                maxSymbols: 10,
+                historicalYears: 10 // Extended historical data
             };
             setActiveChart(chartId);
         }
@@ -749,104 +909,112 @@
             setActiveChart(chartId);
         }
        
-        // Enhanced sample data generation with more realistic financial patterns
-        function generateSampleData(symbol, years = 5) {
+        // Enhanced sample data generation with 10+ years of data and OHLC
+        function generateSampleData(symbol, years = 10) {
             const data = [];
             const startDate = new Date();
             startDate.setFullYear(startDate.getFullYear() - years);
            
             let baseValue = 100;
             let baseVolume = 1000000;
-            let volatility = 0.02; // Default volatility
+            let volatility = 0.02;
             
-            if (symbol === 'AAPL') {
-                baseValue = 150;
-                baseVolume = 50000000;
-                volatility = 0.025;
-            } else if (symbol === 'MSFT') {
-                baseValue = 300;
-                baseVolume = 30000000;
-                volatility = 0.022;
-            } else if (symbol === 'GOOGL') {
-                baseValue = 2500;
-                baseVolume = 25000000;
-                volatility = 0.028;
-            } else if (symbol === 'FEDFUNDS') {
-                baseValue = 2.5;
-                baseVolume = 0;
-                volatility = 0.01; // Low volatility for interest rates
-            } else if (symbol === 'UNRATE') {
-                baseValue = 5.0;
-                baseVolume = 0;
-                volatility = 0.005; // Very low volatility for unemployment
-            } else if (symbol === 'DGS10') {
-                baseValue = 3.5;
-                baseVolume = 0;
-                volatility = 0.008;
-            } else if (symbol === 'VIXCLS') {
-                baseValue = 20;
-                baseVolume = 0;
-                volatility = 0.15; // High volatility for VIX
-            } else if (symbol.includes('DTWEX')) {
-                baseValue = 95; // Dollar index around 95
-                baseVolume = 0;
-                volatility = 0.015;
-            }
-           
-            let currentValue = baseValue;
+            // Symbol-specific parameters
+            const symbolConfig = {
+                'AAPL': { baseValue: 150, baseVolume: 50000000, volatility: 0.025 },
+                'MSFT': { baseValue: 300, baseVolume: 30000000, volatility: 0.022 },
+                'GOOGL': { baseValue: 2500, baseVolume: 25000000, volatility: 0.028 },
+                'AMZN': { baseValue: 3200, baseVolume: 35000000, volatility: 0.030 },
+                'TSLA': { baseValue: 800, baseVolume: 80000000, volatility: 0.045 },
+                'SPY': { baseValue: 450, baseVolume: 70000000, volatility: 0.018 },
+                'QQQ': { baseValue: 380, baseVolume: 45000000, volatility: 0.022 },
+                'FEDFUNDS': { baseValue: 2.5, baseVolume: 0, volatility: 0.01 },
+                'UNRATE': { baseValue: 5.0, baseVolume: 0, volatility: 0.005 },
+                'DGS10': { baseValue: 3.5, baseVolume: 0, volatility: 0.008 },
+                'VIXCLS': { baseValue: 20, baseVolume: 0, volatility: 0.15 },
+                'GDP': { baseValue: 25000, baseVolume: 0, volatility: 0.003 },
+                'CPIAUCSL': { baseValue: 310, baseVolume: 0, volatility: 0.002 }
+            };
             
-            for (let i = 0; i < years * 252; i++) { // ~252 trading days per year
+            const config = symbolConfig[symbol] || { baseValue, baseVolume, volatility };
+            let currentValue = config.baseValue;
+            
+            for (let i = 0; i < years * 252; i++) {
                 const date = new Date(startDate);
                 date.setDate(startDate.getDate() + i);
                
-                // Create more realistic market movements with trends and reversals
-                const randomWalk = (Math.random() - 0.5) * volatility * 2;
-                const trendComponent = Math.sin(i / 200) * 0.001; // Longer trend cycles
-                const cyclicalComponent = Math.sin(i / 50) * 0.005; // Shorter cycles
-                const seasonalComponent = Math.sin(i / 63) * 0.002; // Quarterly effects
+                // Enhanced market simulation with multiple components
+                const randomWalk = (Math.random() - 0.5) * config.volatility * 2;
+                const trendComponent = Math.sin(i / 300) * 0.001; // Long-term trends
+                const cyclicalComponent = Math.sin(i / 63) * 0.005; // Quarterly cycles
+                const seasonalComponent = Math.sin((i % 252) / 252 * 2 * Math.PI) * 0.002; // Annual patterns
+                const weeklyComponent = Math.sin((i % 5) / 5 * 2 * Math.PI) * 0.001; // Weekly patterns
                 
-                // Add occasional large moves (market events)
+                // Market events and volatility clustering
                 const eventProbability = Math.random();
                 let eventComponent = 0;
-                if (eventProbability < 0.005) { // 0.5% chance of large move
-                    eventComponent = (Math.random() - 0.5) * volatility * 5;
+                if (eventProbability < 0.003) { // Rare large events
+                    eventComponent = (Math.random() - 0.5) * config.volatility * 8;
+                } else if (eventProbability < 0.02) { // Moderate events
+                    eventComponent = (Math.random() - 0.5) * config.volatility * 3;
                 }
                 
-                const totalChange = randomWalk + trendComponent + cyclicalComponent + seasonalComponent + eventComponent;
+                const totalChange = randomWalk + trendComponent + cyclicalComponent + 
+                                  seasonalComponent + weeklyComponent + eventComponent;
+                
+                // Apply change to get new close price
+                const previousClose = currentValue;
                 currentValue *= (1 + totalChange);
                
-                // Prevent negative values for certain instruments
-                if (symbol.includes('RATE') || symbol.includes('VIX') || symbol.includes('UNRATE')) {
-                    currentValue = Math.max(0.01, currentValue);
+                // Prevent unrealistic values
+                if (symbol.includes('RATE') || symbol.includes('UNRATE')) {
+                    currentValue = Math.max(0.01, Math.min(currentValue, 15));
+                } else if (symbol === 'VIXCLS') {
+                    currentValue = Math.max(8, Math.min(currentValue, 85));
+                } else if (symbol === 'GDP') {
+                    currentValue = Math.max(currentValue, config.baseValue * 0.8);
                 }
                 
-                // Add realistic bounds
-                if (symbol === 'UNRATE' && currentValue > 15) currentValue = 15;
-                if (symbol === 'VIXCLS' && currentValue > 80) currentValue = 80;
-                if (symbol === 'VIXCLS' && currentValue < 10) currentValue = 10;
+                // Generate realistic OHLC data
+                const dailyVolatility = config.volatility * (0.3 + Math.random() * 0.7);
+                const range = currentValue * dailyVolatility;
                 
-                // Generate volume data for stocks/ETFs
+                // Open price (slight gap from previous close)
+                const gapSize = (Math.random() - 0.5) * config.volatility * 0.5;
+                const open = previousClose * (1 + gapSize);
+                
+                // High and low prices
+                const intrarayMove1 = (Math.random() - 0.5) * range;
+                const intrarayMove2 = (Math.random() - 0.5) * range;
+                
+                const high = Math.max(open, currentValue) + Math.abs(intrarayMove1);
+                const low = Math.min(open, currentValue) - Math.abs(intrarayMove2);
+                
+                // Ensure OHLC consistency
+                const finalHigh = Math.max(high, open, currentValue);
+                const finalLow = Math.min(low, open, currentValue);
+                
+                // Generate volume data
                 let volume = 0;
-                if (baseVolume > 0) {
-                    const volumeVariation = (Math.random() - 0.5) * 0.4;
-                    const volumeTrend = Math.abs(totalChange) * 3; // Higher volume on bigger moves
-                    volume = Math.round(baseVolume * (1 + volumeVariation + volumeTrend));
+                if (config.baseVolume > 0) {
+                    const volumeVariation = (Math.random() - 0.5) * 0.6;
+                    const volumeTrend = Math.abs(totalChange) * 4; // Higher volume on bigger moves
+                    const volumeCluster = Math.abs(eventComponent) > 0 ? 2 : 1; // Volume clustering
+                    volume = Math.round(config.baseVolume * (1 + volumeVariation + volumeTrend) * volumeCluster);
+                    volume = Math.max(volume, config.baseVolume * 0.1); // Minimum volume
                 }
-               
-                // Create realistic OHLC data
-                const dailyRange = currentValue * volatility * (0.5 + Math.random());
-                const high = currentValue + dailyRange * Math.random();
-                const low = currentValue - dailyRange * Math.random();
-                const open = currentValue * (1 + (Math.random() - 0.5) * volatility * 0.5);
                
                 data.push({
                     date: date.toISOString().split('T')[0],
                     value: currentValue,
-                    volume: volume,
-                    high: Math.max(high, currentValue, open),
-                    low: Math.min(low, currentValue, open),
+                    close: currentValue,
                     open: open,
-                    close: currentValue
+                    high: finalHigh,
+                    low: finalLow,
+                    volume: volume,
+                    // Additional data for technical analysis
+                    typical_price: (finalHigh + finalLow + currentValue) / 3,
+                    weighted_price: (finalHigh + finalLow + currentValue + currentValue) / 4
                 });
             }
            
@@ -871,7 +1039,7 @@
                 // Generate sample data with error protection
                 try {
                     console.log(`📊 Generating sample data for ${symbol}...`);
-                    const rawData = generateSampleData(symbol, 3); // Use 3 years for faster processing
+                    const rawData = generateSampleData(symbol, chart.historicalYears || 10); // Use chart's historical years setting
                     console.log(`✅ Generated ${rawData.length} raw data points`);
                     
                     if (rawData.length === 0) {
@@ -884,7 +1052,11 @@
                         item.date && 
                         typeof item.value === 'number' && 
                         !isNaN(item.value) && 
-                        isFinite(item.value)
+                        isFinite(item.value) &&
+                        typeof item.close === 'number' &&
+                        typeof item.open === 'number' &&
+                        typeof item.high === 'number' &&
+                        typeof item.low === 'number'
                     );
                     
                     console.log(`✅ Validated ${validData.length} data points`);
@@ -1385,12 +1557,14 @@
             });
         }
        
-        // Chart display and interaction functions
+        // Enhanced chart display toggle with state preservation
         function toggleChartDisplay(event, chartId, displayMode) {
             event.stopPropagation();
             const chart = charts[chartId];
             if (!chart) return;
            
+            // Store previous state for recovery
+            chart.previousDisplayMode = chart.displayMode;
             chart.displayMode = displayMode;
            
             // Update button states
@@ -1398,8 +1572,85 @@
             controlsDiv.querySelectorAll('.display-toggle').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
            
+            // Force re-render with error recovery
+            try {
+                updateChartRender(chartId);
+            } catch (error) {
+                console.error('Display mode change failed:', error);
+                // Restore previous state
+                chart.displayMode = chart.previousDisplayMode || 'raw';
+                showTemporaryMessage(`Failed to switch to ${displayMode} mode`, 'error');
+            }
+        }
+        function changeChartType(chartId, chartType) {
+            const chart = charts[chartId];
+            if (!chart) return;
+            
+            chart.chartType = chartType;
+            
+            // Update button states
+            const chartWindow = document.getElementById(chartId);
+            chartWindow.querySelectorAll('.chart-type-btn').forEach(btn => btn.classList.remove('active'));
+            chartWindow.querySelector(`[data-type="${chartType}"]`).classList.add('active');
+            
             updateChartRender(chartId);
         }
+        
+        function changeComparisonMode(chartId, mode) {
+            const chart = charts[chartId];
+            if (!chart) return;
+            
+            chart.comparisonMode = mode;
+            
+            // Update button states
+            const chartWindow = document.getElementById(chartId);
+            chartWindow.querySelectorAll('[data-comparison]').forEach(btn => btn.classList.remove('active'));
+            chartWindow.querySelector(`[data-comparison="${mode}"]`).classList.add('active');
+            
+            updateChartRender(chartId);
+        }
+        
+        function toggleTheme(chartId) {
+            const chart = charts[chartId];
+            if (!chart) return;
+            
+            chart.theme = chart.theme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', chart.theme);
+            
+            updateChartRender(chartId);
+        }
+        
+        function toggleFullscreen(chartId) {
+            const chart = charts[chartId];
+            const chartWindow = document.getElementById(chartId);
+            if (!chart || !chartWindow) return;
+            
+            chart.isFullscreen = !chart.isFullscreen;
+            
+            if (chart.isFullscreen) {
+                chartWindow.classList.add('fullscreen');
+                document.body.style.overflow = 'hidden';
+            } else {
+                chartWindow.classList.remove('fullscreen');
+                document.body.style.overflow = 'auto';
+            }
+            
+            // Update chart size after transition
+            setTimeout(() => {
+                updateChartRender(chartId);
+            }, 100);
+        }
+        
+        // Handle escape key for fullscreen
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                Object.keys(charts).forEach(chartId => {
+                    if (charts[chartId].isFullscreen) {
+                        toggleFullscreen(chartId);
+                    }
+                });
+            }
+        });
        
         function changeTimeframe(event, chartId, timeframe) {
             event.stopPropagation();
@@ -1548,13 +1799,29 @@
                         const lineColor = colorPalette[index % colorPalette.length];
                         let yData, hoverTemplate;
                         
-                        // Process display mode with error handling
+                        // Process display mode with error handling and enhanced chart types
                         try {
+                            const chartType = chart.chartType || 'line';
+                            const comparisonMode = chart.comparisonMode || 'absolute';
+                            
                             switch (displayMode) {
                                 case 'raw':
                                     yData = filteredData.map(d => d.value).filter(v => v !== null && !isNaN(v) && isFinite(v));
                                     yLabel = 'Price/Value';
                                     hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Value: %{y:.4f}<extra></extra>`;
+                                    
+                                    // Apply comparison mode transformations
+                                    if (comparisonMode === 'percentage' && index > 0) {
+                                        const baseValue = yData[0];
+                                        yData = yData.map(v => ((v - baseValue) / baseValue) * 100);
+                                        yLabel = 'Percentage Change from Start (%)';
+                                        hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Change: %{y:.2f}%<extra></extra>`;
+                                    } else if (comparisonMode === 'indexed') {
+                                        const baseValue = yData[0];
+                                        yData = yData.map(v => (v / baseValue) * 100);
+                                        yLabel = 'Indexed (Base = 100)';
+                                        hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Index: %{y:.2f}<extra></extra>`;
+                                    }
                                     break;
                                     
                                 case 'pct_change':
@@ -1648,20 +1915,78 @@
                             return;
                         }
                         
-                        // Create trace with error handling
+                        // Create trace with enhanced chart types
                         try {
-                            const trace = {
-                                x: filteredData.map(d => d.date),
-                                y: yData,
-                                type: 'scatter',
-                                mode: 'lines',
-                                name: s.symbol,
-                                hovertemplate: hoverTemplate,
-                                line: { color: lineColor, width: 2 }
-                            };
+                            const chartType = chart.chartType || 'line';
+                            let trace;
+                            
+                            if (chartType === 'candlestick' && displayMode === 'raw') {
+                                // Candlestick chart for OHLC data
+                                trace = {
+                                    x: filteredData.map(d => d.date),
+                                    open: filteredData.map(d => d.open),
+                                    high: filteredData.map(d => d.high),
+                                    low: filteredData.map(d => d.low),
+                                    close: filteredData.map(d => d.close),
+                                    type: 'candlestick',
+                                    name: s.symbol,
+                                    increasing: { line: { color: '#00ff88' } },
+                                    decreasing: { line: { color: '#ff4444' } }
+                                };
+                            } else if (chartType === 'ohlc' && displayMode === 'raw') {
+                                // OHLC bar chart
+                                trace = {
+                                    x: filteredData.map(d => d.date),
+                                    open: filteredData.map(d => d.open),
+                                    high: filteredData.map(d => d.high),
+                                    low: filteredData.map(d => d.low),
+                                    close: filteredData.map(d => d.close),
+                                    type: 'ohlc',
+                                    name: s.symbol,
+                                    increasing: { line: { color: '#00ff88' } },
+                                    decreasing: { line: { color: '#ff4444' } }
+                                };
+                            } else if (chartType === 'area' || chartType === 'mountain') {
+                                // Area/Mountain chart
+                                trace = {
+                                    x: filteredData.map(d => d.date),
+                                    y: yData,
+                                    type: 'scatter',
+                                    mode: 'lines',
+                                    name: s.symbol,
+                                    hovertemplate: hoverTemplate,
+                                    line: { color: lineColor, width: 2 },
+                                    fill: 'tonexty',
+                                    fillcolor: `${lineColor}30` // Semi-transparent fill
+                                };
+                                
+                                // Add base line for first trace
+                                if (index === 0) {
+                                    traces.push({
+                                        x: filteredData.map(d => d.date),
+                                        y: filteredData.map(() => Math.min(...yData)),
+                                        type: 'scatter',
+                                        mode: 'lines',
+                                        line: { color: 'transparent' },
+                                        showlegend: false,
+                                        hoverinfo: 'skip'
+                                    });
+                                }
+                            } else {
+                                // Standard line chart
+                                trace = {
+                                    x: filteredData.map(d => d.date),
+                                    y: yData,
+                                    type: 'scatter',
+                                    mode: 'lines',
+                                    name: s.symbol,
+                                    hovertemplate: hoverTemplate,
+                                    line: { color: lineColor, width: 2 }
+                                };
+                            }
                             
                             // Add color coding for change modes
-                            if (displayMode === 'pct_change' || displayMode === 'unit_change') {
+                            if ((displayMode === 'pct_change' || displayMode === 'unit_change') && chartType === 'line') {
                                 trace.marker = {
                                     color: yData.map(v => v > 0 ? '#00ff88' : v < 0 ? '#ff4444' : '#888888'),
                                     size: 4
@@ -1670,7 +1995,7 @@
                             }
                             
                             traces.push(trace);
-                            console.log(`✅ Added trace for ${s.symbol}`);
+                            console.log(`✅ Added ${chartType} trace for ${s.symbol}`);
                             
                         } catch (traceError) {
                             console.error(`❌ Trace creation error for ${s.symbol}:`, traceError);
@@ -1691,26 +2016,26 @@
            
                 const finalLayout = {
                     title: {
-                        text: `${displayMode.replace('_', ' ').toUpperCase()} VIEW`,
-                        font: { color: '#fff', size: 14 },
+                        text: `${displayMode.replace('_', ' ').toUpperCase()} VIEW - ${chart.chartType?.toUpperCase() || 'LINE'} - ${chart.comparisonMode?.toUpperCase() || 'ABSOLUTE'}`,
+                        font: { color: chart.theme === 'light' ? '#333' : '#fff', size: 14 },
                         x: 0.5
                     },
-                    paper_bgcolor: '#0a0a0a',
-                    plot_bgcolor: '#0a0a0a',
-                    font: { color: '#aaa', size: 12 },
+                    paper_bgcolor: chart.theme === 'light' ? '#ffffff' : '#0a0a0a',
+                    plot_bgcolor: chart.theme === 'light' ? '#ffffff' : '#0a0a0a',
+                    font: { color: chart.theme === 'light' ? '#333' : '#aaa', size: 12 },
                     margin: { t: 60, r: 80, b: 60, l: 80 },
                     xaxis: {
                         type: 'date',
-                        gridcolor: '#22222250',
-                        tickfont: { color: '#888' },
+                        gridcolor: chart.theme === 'light' ? '#f0f0f0' : '#22222250',
+                        tickfont: { color: chart.theme === 'light' ? '#666' : '#888' },
                         rangeslider: { visible: false }
                     },
                     yaxis: {
-                        title: { text: yLabel, font: { color: '#aaa' } },
-                        gridcolor: '#22222250',
-                        tickfont: { color: '#888' },
+                        title: { text: yLabel, font: { color: chart.theme === 'light' ? '#666' : '#aaa' } },
+                        gridcolor: chart.theme === 'light' ? '#f0f0f0' : '#22222250',
+                        tickfont: { color: chart.theme === 'light' ? '#666' : '#888' },
                         zeroline: true,
-                        zerolinecolor: '#444',
+                        zerolinecolor: chart.theme === 'light' ? '#ccc' : '#444',
                         zerolinewidth: 1
                     },
                     hovermode: 'x unified',
@@ -1721,12 +2046,12 @@
                         y: 1.02,
                         xanchor: 'right',
                         x: 1,
-                        bgcolor: 'rgba(10,10,10,0.8)',
-                        bordercolor: '#333',
+                        bgcolor: chart.theme === 'light' ? 'rgba(255,255,255,0.9)' : 'rgba(10,10,10,0.8)',
+                        bordercolor: chart.theme === 'light' ? '#ddd' : '#333',
                         borderwidth: 1,
-                        font: { size: 11 }
+                        font: { size: 11, color: chart.theme === 'light' ? '#333' : '#fff' }
                     },
-                    height: 500,
+                    height: chart.isFullscreen ? window.innerHeight - 120 : 500,
                     autosize: true,
                     ...layout
                 };
