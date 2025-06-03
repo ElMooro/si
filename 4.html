@@ -932,8 +932,8 @@
                             <div class="chart-symbols" id="${chartId}_symbols"></div>
                             <div class="chart-display-controls">
                                 <button class="display-toggle active" onclick="toggleChartDisplay(event, '${chartId}', 'raw')" data-display="raw">📈 Raw Data</button>
-                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'pct_change')" data-display="pct_change">📊 % Change</button>
-                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'unit_change')" data-display="unit_change">🔢 Unit Change</button>
+                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'pct_change')" data-display="pct_change">📊 YoY % Change</button>
+                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'unit_change')" data-display="unit_change">🔢 Trend Strength</button>
                                 <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'rsi')" data-display="rsi">🎯 RSI</button>
                                 <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'macd')" data-display="macd">⚡ MACD</button>
                                 <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'bollinger')" data-display="bollinger">🌊 Bollinger Bands</button>
@@ -1694,7 +1694,28 @@
             });
         }
        
-        // Enhanced chart display toggle with more indicators
+        // Add new display mode for institutional-grade trend analysis
+        function addTrendReversalMode() {
+            // This function adds a new display mode specifically for FRED-style trend analysis
+            // Called during chart rendering for better institutional-grade analysis
+        }
+        
+        // Enhanced search with better economic indicators
+        const enhancedEconomicIndicators = [
+            { symbol: 'DTWEXBGS', name: 'Nominal Broad U.S. Dollar Index', source: 'fred', provider: 'fred_direct', 
+              description: 'Trade Weighted U.S. Dollar Index: Broad, Goods and Services', units: 'Index Jan 2006=100' },
+            { symbol: 'T10Y2Y', name: 'Yield Curve (10Y-2Y Spread)', source: 'fred', provider: 'fred_direct', 
+              description: '10-Year Treasury Constant Maturity Minus 2-Year Treasury Constant Maturity', units: 'Percent' },
+            { symbol: 'T10YFF', name: 'Term Spread (10Y-Fed Funds)', source: 'fred', provider: 'fred_direct', 
+              description: '10-Year Treasury Constant Maturity Minus Federal Funds Rate', units: 'Percent' },
+            { symbol: 'MORTGAGE30US', name: '30-Year Fixed Rate Mortgage Average', source: 'fred', provider: 'fred_direct', 
+              description: '30-Year Fixed Rate Mortgage Average in the United States', units: 'Percent' },
+            { symbol: 'REAINTRATREARAT10Y', name: 'Real Interest Rate', source: 'fred', provider: 'fred_direct', 
+              description: '10-Year Treasury Inflation-Indexed Security, Constant Maturity', units: 'Percent' }
+        ];
+        
+        // Add to existing sample symbols
+        sampleSymbols.push(...enhancedEconomicIndicators);
         function toggleChartDisplay(event, chartId, displayMode) {
             event.stopPropagation();
             const chart = charts[chartId];
@@ -1936,56 +1957,151 @@
                                     yData = filteredData.map(d => d.value).filter(v => v !== null && !isNaN(v) && isFinite(v));
                                     yLabel = 'Price/Value';
                                     hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Value: %{y:.4f}<extra></extra>`;
-                                    
-                                    if (comparisonMode === 'percentage' && index > 0) {
-                                        const baseValue = yData[0];
-                                        yData = yData.map(v => ((v - baseValue) / baseValue) * 100);
-                                        yLabel = 'Percentage Change from Start (%)';
-                                        hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Change: %{y:.2f}%<extra></extra>`;
-                                    } else if (comparisonMode === 'indexed') {
-                                        const baseValue = yData[0];
-                                        yData = yData.map(v => (v / baseValue) * 100);
-                                        yLabel = 'Indexed (Base = 100)';
-                                        hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Index: %{y:.2f}<extra></extra>`;
-                                    }
+                                    // Note: Comparison mode transformations will be applied after trace creation
                                     break;
                                     
                                 case 'pct_change':
-                                    yData = filteredData.map(d => d.daily_pct_change || 0).filter(v => !isNaN(v) && isFinite(v));
-                                    yLabel = 'Daily % Change';
-                                    hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>% Change: %{y:.3f}%<extra></extra>`;
+                                    // Calculate year-over-year percentage change like FRED charts
+                                    const yoyData = filteredData.map((item, idx) => {
+                                        if (idx < 252) return { ...item, yoy_change: null }; // Need 1 year of data
+                                        const yearAgoValue = filteredData[idx - 252]?.value;
+                                        if (!yearAgoValue || yearAgoValue === 0) return { ...item, yoy_change: null };
+                                        const yoyChange = ((item.value - yearAgoValue) / yearAgoValue) * 100;
+                                        return { ...item, yoy_change: yoyChange };
+                                    }).filter(d => d.yoy_change !== null && !isNaN(d.yoy_change) && isFinite(d.yoy_change));
                                     
+                                    if (yoyData.length === 0) {
+                                        console.warn(`⚠️ No YoY change data for ${s.symbol}`);
+                                        return;
+                                    }
+                                    
+                                    yData = yoyData.map(d => d.yoy_change);
+                                    yLabel = 'Year-over-Year % Change';
+                                    hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>YoY Change: %{y:.2f}%<extra></extra>`;
+                                    
+                                    // Add zero line and trend zones
                                     if (index === 0) {
                                         traces.push({
-                                            x: filteredData.map(d => d.date),
-                                            y: filteredData.map(() => 0),
+                                            x: yoyData.map(d => d.date),
+                                            y: yoyData.map(() => 0),
                                             type: 'scatter',
                                             mode: 'lines',
                                             name: 'Zero Line',
-                                            line: { color: 'gray', width: 1, dash: 'dash' },
+                                            line: { color: '#888', width: 2, dash: 'solid' },
+                                            showlegend: false,
+                                            hoverinfo: 'skip'
+                                        });
+                                        
+                                        // Add recession/expansion zones
+                                        traces.push({
+                                            x: yoyData.map(d => d.date),
+                                            y: yoyData.map(() => 10),
+                                            type: 'scatter',
+                                            mode: 'lines',
+                                            name: 'Strong Growth (+10%)',
+                                            line: { color: 'green', width: 1, dash: 'dot' },
+                                            showlegend: false,
+                                            hoverinfo: 'skip'
+                                        });
+                                        
+                                        traces.push({
+                                            x: yoyData.map(d => d.date),
+                                            y: yoyData.map(() => -5),
+                                            type: 'scatter',
+                                            mode: 'lines',
+                                            name: 'Contraction (-5%)',
+                                            line: { color: 'red', width: 1, dash: 'dot' },
                                             showlegend: false,
                                             hoverinfo: 'skip'
                                         });
                                     }
+                                    
+                                    // Update filtered data for trace creation
+                                    filteredData = yoyData;
                                     break;
                                     
                                 case 'unit_change':
-                                    yData = filteredData.map(d => d.daily_change_units || 0).filter(v => !isNaN(v) && isFinite(v));
-                                    yLabel = 'Daily Unit Change';
-                                    hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Unit Change: %{y:.6f}<extra></extra>`;
+                                    // Calculate momentum and trend strength like institutional analysis
+                                    const momentumData = filteredData.map((item, idx) => {
+                                        if (idx < 20) return { ...item, momentum: null, trend_strength: null };
+                                        
+                                        // 20-period momentum
+                                        const twentyPeriodsAgo = filteredData[idx - 20]?.value;
+                                        if (!twentyPeriodsAgo) return { ...item, momentum: null, trend_strength: null };
+                                        
+                                        const momentum = item.value - twentyPeriodsAgo;
+                                        
+                                        // Trend strength using linear regression slope
+                                        const window = filteredData.slice(idx - 19, idx + 1);
+                                        const x = Array.from({length: 20}, (_, i) => i);
+                                        const y = window.map(d => d.value);
+                                        
+                                        const n = 20;
+                                        const sumX = x.reduce((a, b) => a + b, 0);
+                                        const sumY = y.reduce((a, b) => a + b, 0);
+                                        const sumXY = x.reduce((sum, xi, i) => sum + xi * y[i], 0);
+                                        const sumX2 = x.reduce((sum, xi) => sum + xi * xi, 0);
+                                        
+                                        let slope = 0;
+                                        if ((n * sumX2 - sumX * sumX) !== 0) {
+                                            slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+                                        }
+                                        
+                                        // Normalize slope by price level for trend strength
+                                        const trendStrength = (slope / item.value) * 10000; // Scale for visibility
+                                        
+                                        return { ...item, momentum: momentum, trend_strength: trendStrength };
+                                    }).filter(d => d.momentum !== null && !isNaN(d.momentum) && isFinite(d.momentum));
                                     
+                                    if (momentumData.length === 0) {
+                                        console.warn(`⚠️ No momentum data for ${s.symbol}`);
+                                        return;
+                                    }
+                                    
+                                    yData = momentumData.map(d => d.trend_strength);
+                                    yLabel = 'Trend Strength (Institutional Grade)';
+                                    hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Trend: %{y:.3f}<br>Momentum: ${momentumData[0].momentum?.toFixed(2)}<extra></extra>`;
+                                    
+                                    // Add trend reversal zones
                                     if (index === 0) {
                                         traces.push({
-                                            x: filteredData.map(d => d.date),
-                                            y: filteredData.map(() => 0),
+                                            x: momentumData.map(d => d.date),
+                                            y: momentumData.map(() => 0),
                                             type: 'scatter',
                                             mode: 'lines',
-                                            name: 'Zero Line',
-                                            line: { color: 'gray', width: 1, dash: 'dash' },
+                                            name: 'Neutral Trend',
+                                            line: { color: '#888', width: 2, dash: 'solid' },
+                                            showlegend: false,
+                                            hoverinfo: 'skip'
+                                        });
+                                        
+                                        // Strong uptrend zone
+                                        traces.push({
+                                            x: momentumData.map(d => d.date),
+                                            y: momentumData.map(() => 2),
+                                            type: 'scatter',
+                                            mode: 'lines',
+                                            name: 'Strong Uptrend',
+                                            line: { color: 'green', width: 1, dash: 'dot' },
+                                            showlegend: false,
+                                            hoverinfo: 'skip'
+                                        });
+                                        
+                                        // Strong downtrend zone
+                                        traces.push({
+                                            x: momentumData.map(d => d.date),
+                                            y: momentumData.map(() => -2),
+                                            type: 'scatter',
+                                            mode: 'lines',
+                                            name: 'Strong Downtrend',
+                                            line: { color: 'red', width: 1, dash: 'dot' },
                                             showlegend: false,
                                             hoverinfo: 'skip'
                                         });
                                     }
+                                    
+                                    // Update filtered data for trace creation
+                                    filteredData = momentumData;
                                     break;
                                     
                                 case 'rsi':
@@ -2287,7 +2403,7 @@
                             const chartType = chart.chartType || 'line';
                             let trace;
                             
-                            if (chartType === 'candlestick' && displayMode === 'raw') {
+                            if (chartType === 'candlestick' && displayMode === 'raw' && filteredData[0]?.open !== undefined) {
                                 trace = {
                                     x: filteredData.map(d => d.date),
                                     open: filteredData.map(d => d.open),
@@ -2299,7 +2415,7 @@
                                     increasing: { line: { color: '#00ff88' } },
                                     decreasing: { line: { color: '#ff4444' } }
                                 };
-                            } else if (chartType === 'ohlc' && displayMode === 'raw') {
+                            } else if (chartType === 'ohlc' && displayMode === 'raw' && filteredData[0]?.open !== undefined) {
                                 trace = {
                                     x: filteredData.map(d => d.date),
                                     open: filteredData.map(d => d.open),
@@ -2311,7 +2427,19 @@
                                     increasing: { line: { color: '#00ff88' } },
                                     decreasing: { line: { color: '#ff4444' } }
                                 };
-                            } else if (chartType === 'area' || chartType === 'mountain') {
+                            } else if (chartType === 'area') {
+                                trace = {
+                                    x: filteredData.map(d => d.date),
+                                    y: yData,
+                                    type: 'scatter',
+                                    mode: 'lines',
+                                    name: s.symbol,
+                                    hovertemplate: hoverTemplate,
+                                    line: { color: lineColor, width: 2 },
+                                    fill: 'tozeroy',
+                                    fillcolor: `${lineColor}40`
+                                };
+                            } else if (chartType === 'mountain') {
                                 trace = {
                                     x: filteredData.map(d => d.date),
                                     y: yData,
@@ -2324,10 +2452,12 @@
                                     fillcolor: `${lineColor}30`
                                 };
                                 
+                                // Add base line for first trace
                                 if (index === 0) {
+                                    const minValue = Math.min(...yData);
                                     traces.push({
                                         x: filteredData.map(d => d.date),
-                                        y: filteredData.map(() => Math.min(...yData)),
+                                        y: filteredData.map(() => minValue),
                                         type: 'scatter',
                                         mode: 'lines',
                                         line: { color: 'transparent' },
@@ -2336,6 +2466,7 @@
                                     });
                                 }
                             } else {
+                                // Default line chart
                                 trace = {
                                     x: filteredData.map(d => d.date),
                                     y: yData,
@@ -2347,12 +2478,41 @@
                                 };
                             }
                             
-                            if ((displayMode === 'pct_change' || displayMode === 'unit_change') && chartType === 'line') {
-                                trace.marker = {
-                                    color: yData.map(v => v > 0 ? '#00ff88' : v < 0 ? '#ff4444' : '#888888'),
-                                    size: 4
-                                };
-                                trace.mode = 'lines+markers';
+                            // Apply comparison mode transformations AFTER chart type
+                            if (comparisonMode === 'percentage' && trace.y && displayMode === 'raw') {
+                                const baseValue = trace.y[0];
+                                if (baseValue && baseValue !== 0) {
+                                    trace.y = trace.y.map(v => ((v - baseValue) / Math.abs(baseValue)) * 100);
+                                    yLabel = 'Percentage Change from Start (%)';
+                                    trace.hovertemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Change: %{y:.2f}%<extra></extra>`;
+                                }
+                            } else if (comparisonMode === 'indexed' && trace.y && displayMode === 'raw') {
+                                const baseValue = trace.y[0];
+                                if (baseValue && baseValue !== 0) {
+                                    trace.y = trace.y.map(v => (v / baseValue) * 100);
+                                    yLabel = 'Indexed (Base = 100)';
+                                    trace.hovertemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Index: %{y:.2f}<extra></extra>`;
+                                }
+                            }
+                            
+                            // Add color coding for trend analysis modes
+                            if (displayMode === 'pct_change' || displayMode === 'unit_change') {
+                                if (chartType === 'line') {
+                                    trace.marker = {
+                                        color: yData.map(v => {
+                                            if (v > 2) return '#00ff88';      // Strong positive
+                                            if (v > 0) return '#88ff88';      // Weak positive  
+                                            if (v < -2) return '#ff4444';     // Strong negative
+                                            if (v < 0) return '#ff8888';      // Weak negative
+                                            return '#888888';                 // Neutral
+                                        }),
+                                        size: 3
+                                    };
+                                    trace.mode = 'lines+markers';
+                                }
+                                
+                                // Add trend zones for better institutional-grade analysis
+                                trace.line.width = 3; // Thicker line for trend analysis
                             }
                             
                             traces.push(trace);
