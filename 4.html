@@ -1960,6 +1960,10 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
                             const chartType = chart.chartType || 'line';
                             const comparisonMode = chart.comparisonMode || 'absolute';
                             
+                            // Declare variables outside switch to avoid const conflicts
+                            let processedData = filteredData;
+                            let xDataForTrace = filteredData;
+                            
                             switch (displayMode) {
                                 case 'raw':
                                     yData = filteredData.map(d => d.value).filter(v => v !== null && !isNaN(v) && isFinite(v));
@@ -1970,7 +1974,7 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
                                     
                                 case 'pct_change':
                                     // Calculate year-over-year percentage change like FRED charts
-                                    const yoyData = filteredData.map((item, idx) => {
+                                    processedData = filteredData.map((item, idx) => {
                                         if (idx < 252) return { ...item, yoy_change: null }; // Need 1 year of data
                                         const yearAgoValue = filteredData[idx - 252]?.value;
                                         if (!yearAgoValue || yearAgoValue === 0) return { ...item, yoy_change: null };
@@ -1978,20 +1982,21 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
                                         return { ...item, yoy_change: yoyChange };
                                     }).filter(d => d.yoy_change !== null && !isNaN(d.yoy_change) && isFinite(d.yoy_change));
                                     
-                                    if (yoyData.length === 0) {
+                                    if (processedData.length === 0) {
                                         console.warn(`⚠️ No YoY change data for ${s.symbol}`);
                                         return;
                                     }
                                     
-                                    yData = yoyData.map(d => d.yoy_change);
+                                    yData = processedData.map(d => d.yoy_change);
                                     yLabel = 'Year-over-Year % Change';
                                     hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>YoY Change: %{y:.2f}%<extra></extra>`;
+                                    xDataForTrace = processedData;
                                     
                                     // Add zero line and trend zones
                                     if (index === 0) {
                                         traces.push({
-                                            x: yoyData.map(d => d.date),
-                                            y: yoyData.map(() => 0),
+                                            x: processedData.map(d => d.date),
+                                            y: processedData.map(() => 0),
                                             type: 'scatter',
                                             mode: 'lines',
                                             name: 'Zero Line',
@@ -2002,8 +2007,8 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
                                         
                                         // Add recession/expansion zones
                                         traces.push({
-                                            x: yoyData.map(d => d.date),
-                                            y: yoyData.map(() => 10),
+                                            x: processedData.map(d => d.date),
+                                            y: processedData.map(() => 10),
                                             type: 'scatter',
                                             mode: 'lines',
                                             name: 'Strong Growth (+10%)',
@@ -2013,8 +2018,8 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
                                         });
                                         
                                         traces.push({
-                                            x: yoyData.map(d => d.date),
-                                            y: yoyData.map(() => -5),
+                                            x: processedData.map(d => d.date),
+                                            y: processedData.map(() => -5),
                                             type: 'scatter',
                                             mode: 'lines',
                                             name: 'Contraction (-5%)',
@@ -2023,14 +2028,11 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
                                             hoverinfo: 'skip'
                                         });
                                     }
-                                    
-                                    // Update filtered data for trace creation
-                                    filteredData = [...yoyData];
                                     break;
                                     
                                 case 'unit_change':
                                     // Calculate momentum and trend strength like institutional analysis
-                                    const momentumData = filteredData.map((item, idx) => {
+                                    processedData = filteredData.map((item, idx) => {
                                         if (idx < 20) return { ...item, momentum: null, trend_strength: null };
                                         
                                         // 20-period momentum
@@ -2061,20 +2063,21 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
                                         return { ...item, momentum: momentum, trend_strength: trendStrength };
                                     }).filter(d => d.momentum !== null && !isNaN(d.momentum) && isFinite(d.momentum));
                                     
-                                    if (momentumData.length === 0) {
+                                    if (processedData.length === 0) {
                                         console.warn(`⚠️ No momentum data for ${s.symbol}`);
                                         return;
                                     }
                                     
-                                    yData = momentumData.map(d => d.trend_strength);
+                                    yData = processedData.map(d => d.trend_strength);
                                     yLabel = 'Trend Strength (Institutional Grade)';
-                                    hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Trend: %{y:.3f}<br>Momentum: ${momentumData[0].momentum?.toFixed(2)}<extra></extra>`;
+                                    hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Trend: %{y:.3f}<br>Momentum: ${processedData[0].momentum?.toFixed(2)}<extra></extra>`;
+                                    xDataForTrace = processedData;
                                     
                                     // Add trend reversal zones
                                     if (index === 0) {
                                         traces.push({
-                                            x: momentumData.map(d => d.date),
-                                            y: momentumData.map(() => 0),
+                                            x: processedData.map(d => d.date),
+                                            y: processedData.map(() => 0),
                                             type: 'scatter',
                                             mode: 'lines',
                                             name: 'Neutral Trend',
@@ -2085,8 +2088,8 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
                                         
                                         // Strong uptrend zone
                                         traces.push({
-                                            x: momentumData.map(d => d.date),
-                                            y: momentumData.map(() => 2),
+                                            x: processedData.map(d => d.date),
+                                            y: processedData.map(() => 2),
                                             type: 'scatter',
                                             mode: 'lines',
                                             name: 'Strong Uptrend',
@@ -2097,8 +2100,8 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
                                         
                                         // Strong downtrend zone
                                         traces.push({
-                                            x: momentumData.map(d => d.date),
-                                            y: momentumData.map(() => -2),
+                                            x: processedData.map(d => d.date),
+                                            y: processedData.map(() => -2),
                                             type: 'scatter',
                                             mode: 'lines',
                                             name: 'Strong Downtrend',
@@ -2107,29 +2110,27 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
                                             hoverinfo: 'skip'
                                         });
                                     }
-                                    
-                                    // Update filtered data for trace creation
-                                    filteredData = [...momentumData];
                                     break;
                                     
                                 case 'rsi':
-                                    const validRsiData = filteredData.filter(d => d.rsi !== null && d.rsi !== undefined && !isNaN(d.rsi));
-                                    if (validRsiData.length === 0) {
+                                    processedData = filteredData.filter(d => d.rsi !== null && d.rsi !== undefined && !isNaN(d.rsi));
+                                    if (processedData.length === 0) {
                                         console.warn(`⚠️ No RSI data for ${s.symbol}`);
                                         return;
                                     }
                                     
-                                    yData = validRsiData.map(d => d.rsi);
+                                    yData = processedData.map(d => d.rsi);
                                     yLabel = 'RSI (%)';
                                     hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>RSI: %{y:.1f}%<extra></extra>`;
+                                    xDataForTrace = processedData;
                                     
                                     if (index === 0) {
                                         [70, 50, 30].forEach((level, i) => {
                                             const colors = ['red', 'gray', 'green'];
                                             const names = ['Overbought (70)', 'Midline (50)', 'Oversold (30)'];
                                             traces.push({
-                                                x: validRsiData.map(d => d.date),
-                                                y: validRsiData.map(() => level),
+                                                x: processedData.map(d => d.date),
+                                                y: processedData.map(() => level),
                                                 type: 'scatter',
                                                 mode: 'lines',
                                                 name: names[i],
@@ -2139,10 +2140,6 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
                                             });
                                         });
                                     }
-                                    
-                                    // Create new array reference
-                                    let filteredDataCopy = [...validRsiData];
-                                    filteredData = filteredDataCopy;
                                     break;
                                     
                                 case 'macd':
@@ -2477,9 +2474,9 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
                                     });
                                 }
                             } else {
-                                // Default line chart
+                                // Default line chart - use the correct data source
                                 trace = {
-                                    x: filteredData.map(d => d.date),
+                                    x: xDataForTrace.map(d => d.date),
                                     y: yData,
                                     type: 'scatter',
                                     mode: 'lines',
