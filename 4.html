@@ -2412,14 +2412,21 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
                             const comparisonMode = chart.comparisonMode || 'absolute';
                             let trace;
                             
+                            // Determine the correct data source for x-axis based on display mode
+                            let xAxisData;
+                            if (displayMode === 'pct_change' || displayMode === 'unit_change' || displayMode === 'rsi') {
+                                xAxisData = processedData;
+                            } else {
+                                xAxisData = filteredData;
+                            }
+                            
                             if (chartType === 'candlestick' && displayMode === 'raw' && filteredData[0]?.open !== undefined) {
                                 trace = {
-                                    x: xDataForTrace.map(d => d.date),
-                                    y: xDataForTrace.map(d => d.open),
-                                    open: xDataForTrace.map(d => d.open),
-                                    high: xDataForTrace.map(d => d.high),
-                                    low: xDataForTrace.map(d => d.low),
-                                    close: xDataForTrace.map(d => d.close),
+                                    x: xAxisData.map(d => d.date),
+                                    open: xAxisData.map(d => d.open),
+                                    high: xAxisData.map(d => d.high),
+                                    low: xAxisData.map(d => d.low),
+                                    close: xAxisData.map(d => d.close),
                                     type: 'candlestick',
                                     name: s.symbol,
                                     increasing: { line: { color: '#00ff88' } },
@@ -2427,11 +2434,11 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
                                 };
                             } else if (chartType === 'ohlc' && displayMode === 'raw' && filteredData[0]?.open !== undefined) {
                                 trace = {
-                                    x: xDataForTrace.map(d => d.date),
-                                    open: xDataForTrace.map(d => d.open),
-                                    high: xDataForTrace.map(d => d.high),
-                                    low: xDataForTrace.map(d => d.low),
-                                    close: xDataForTrace.map(d => d.close),
+                                    x: xAxisData.map(d => d.date),
+                                    open: xAxisData.map(d => d.open),
+                                    high: xAxisData.map(d => d.high),
+                                    low: xAxisData.map(d => d.low),
+                                    close: xAxisData.map(d => d.close),
                                     type: 'ohlc',
                                     name: s.symbol,
                                     increasing: { line: { color: '#00ff88' } },
@@ -2439,7 +2446,7 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
                                 };
                             } else if (chartType === 'area') {
                                 trace = {
-                                    x: xDataForTrace.map(d => d.date),
+                                    x: xAxisData.map(d => d.date),
                                     y: yData,
                                     type: 'scatter',
                                     mode: 'lines',
@@ -2451,7 +2458,7 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
                                 };
                             } else if (chartType === 'mountain') {
                                 trace = {
-                                    x: xDataForTrace.map(d => d.date),
+                                    x: xAxisData.map(d => d.date),
                                     y: yData,
                                     type: 'scatter',
                                     mode: 'lines',
@@ -2466,8 +2473,8 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
                                 if (index === 0) {
                                     const minValue = Math.min(...yData);
                                     traces.push({
-                                        x: xDataForTrace.map(d => d.date),
-                                        y: xDataForTrace.map(() => minValue),
+                                        x: xAxisData.map(d => d.date),
+                                        y: xAxisData.map(() => minValue),
                                         type: 'scatter',
                                         mode: 'lines',
                                         line: { color: 'transparent' },
@@ -2476,9 +2483,9 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
                                     });
                                 }
                             } else {
-                                // Default line chart - use the correct data source
+                                // Default line chart
                                 trace = {
-                                    x: xDataForTrace.map(d => d.date),
+                                    x: xAxisData.map(d => d.date),
                                     y: yData,
                                     type: 'scatter',
                                     mode: 'lines',
