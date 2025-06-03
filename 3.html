@@ -87,6 +87,37 @@
             font-size: 18px;
         }
        
+        /* Enhanced Ticker Type Filter */
+        .ticker-type-filter {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+        .type-toggle {
+            background: #252525;
+            border: 1px solid #383838;
+            color: #ccc;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .type-toggle:hover {
+            background: #333;
+            border-color: #555;
+        }
+        .type-toggle.active {
+            background: #00dd77;
+            color: #000;
+            border-color: #00dd77;
+        }
+       
         /* Data Source Filter */
         .data-source-filter {
             display: flex;
@@ -125,7 +156,7 @@
         .source-indicator.connected {
             background: #00dd77;
         }
-
+       
         .search-results {
             position: absolute;
             top: 100%;
@@ -183,6 +214,15 @@
             background: #2a2a2a;
             padding: 4px 8px;
             border-radius: 4px;
+            text-transform: uppercase;
+        }
+        .search-item-type {
+            font-size: 10px;
+            color: #fff;
+            background: #0066cc;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-left: 8px;
             text-transform: uppercase;
         }
        
@@ -304,6 +344,34 @@
             background: #00dd77;
             color: #000;
             font-weight: bold;
+        }
+       
+        /* Chart Display Controls */
+        .chart-display-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        .display-toggle {
+            background: #252525;
+            border: 1px solid #383838;
+            color: #ccc;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s;
+        }
+        .display-toggle:hover {
+            background: #333;
+            border-color: #555;
+        }
+        .display-toggle.active {
+            background: #00dd77;
+            color: #000;
+            border-color: #00dd77;
         }
        
         .chart-canvas {
@@ -637,27 +705,15 @@
         .status-dot.connected {
             background: #00dd77;
         }
-       
-        .database-stats {
-            background: #1a1a1a;
-            border-radius: 6px;
-            padding: 8px 12px;
-            font-size: 12px;
-            color: #00dd77;
-            border: 1px solid #333;
-        }
     </style>
 </head>
 <body>
     <div class="header">
-        <div class="logo">📊 OPENBB FINANCIAL INTELLIGENCE - 6,204 INDICATORS</div>
+        <div class="logo">📊 OPENBB FINANCIAL INTELLIGENCE</div>
         <div class="header-controls">
-            <div class="database-stats" id="databaseStats">
-                <span id="indicatorCount">6,204</span> indicators indexed
-            </div>
             <div class="api-status">
                 <div class="status-dot" id="apiStatus"></div>
-                <span id="apiStatusText">Checking backend...</span>
+                <span id="apiStatusText">Checking connections...</span>
             </div>
             <button class="control-btn" onclick="addNewChart()">+ New Chart</button>
             <span id="clock" style="color: #888; font-size: 14px;"></span>
@@ -668,7 +724,7 @@
         <div class="search-section">
             <div class="search-container">
                 <input type="text" class="search-box" id="searchBox"
-                       placeholder="Search 6,204 financial indicators: FRED, ECB, Treasury, NY Fed, BIS, OFR..."
+                       placeholder="Search 6,204 financial indicators (Treasury, FEDFUNDS, UNRATE, AAPL, etc.)..."
                        onkeyup="performSearch(this.value)"
                        autocomplete="off">
                 <span class="search-icon">🔍</span>
@@ -677,32 +733,20 @@
            
             <div class="data-source-filter">
                 <button class="source-toggle active" data-source="fred" onclick="toggleDataSource('fred')">
-                    <span class="source-indicator" id="fred-indicator"></span>
-                    FRED (3,500+)
-                </button>
-                <button class="source-toggle active" data-source="ecb" onclick="toggleDataSource('ecb')">
-                    <span class="source-indicator" id="ecb-indicator"></span>
-                    ECB (1,750+)
-                </button>
-                <button class="source-toggle active" data-source="ny_fed" onclick="toggleDataSource('ny_fed')">
-                    <span class="source-indicator" id="ny_fed-indicator"></span>
-                    NY Fed (400+)
+                    <span class="source-indicator connected" id="fred-indicator"></span>
+                    FRED (Economic Data)
                 </button>
                 <button class="source-toggle active" data-source="treasury" onclick="toggleDataSource('treasury')">
-                    <span class="source-indicator" id="treasury-indicator"></span>
-                    Treasury (300+)
+                    <span class="source-indicator connected" id="treasury-indicator"></span>
+                    Treasury Rates
                 </button>
-                <button class="source-toggle active" data-source="bis" onclick="toggleDataSource('bis')">
-                    <span class="source-indicator" id="bis-indicator"></span>
-                    BIS (150+)
+                <button class="source-toggle active" data-source="stocks" onclick="toggleDataSource('stocks')">
+                    <span class="source-indicator connected" id="stocks-indicator"></span>
+                    Stock Market
                 </button>
-                <button class="source-toggle active" data-source="ofr" onclick="toggleDataSource('ofr')">
-                    <span class="source-indicator" id="ofr-indicator"></span>
-                    OFR (50+)
-                </button>
-                <button class="source-toggle active" data-source="other" onclick="toggleDataSource('other')">
-                    <span class="source-indicator" id="other-indicator"></span>
-                    Other (250+)
+                <button class="source-toggle active" data-source="economic" onclick="toggleDataSource('economic')">
+                    <span class="source-indicator connected" id="economic-indicator"></span>
+                    Economic Indicators
                 </button>
             </div>
         </div>
@@ -717,39 +761,28 @@
                     <div class="watchlist-title">
                         <select class="watchlist-selector" id="watchlistSelector" onchange="switchWatchlist(this.value)">
                             <option value="MAIN">MAIN DASHBOARD</option>
-                            <option value="ECB_SYSTEMIC">ECB SYSTEMIC STRESS</option>
-                            <option value="FRED_ECONOMIC">FRED ECONOMIC</option>
-                            <option value="TREASURY">TREASURY</option>
-                            <option value="CRISIS">CRISIS INDICATORS</option>
-                            <option value="GLOBAL">GLOBAL LIQUIDITY</option>
+                            <option value="TREASURY">TREASURY RATES</option>
+                            <option value="ECONOMIC">ECONOMIC INDICATORS</option>
+                            <option value="EMPLOYMENT">EMPLOYMENT DATA</option>
+                            <option value="STOCKS">STOCK MARKET</option>
                         </select>
                     </div>
                     <div class="watchlist-controls">
-                        <button class="sort-button active" onclick="changeSortOrder('default')" id="sortDefault">Default</button>
-                        <button class="sort-button" onclick="changeSortOrder('increase')" id="sortIncrease">↑ Increase</button>
-                        <button class="sort-button" onclick="changeSortOrder('decrease')" id="sortDecrease">↓ Decrease</button>
+                        <button class="sort-button" onclick="changeSortOrder('default')" id="sortDefault">Default</button>
+                        <button class="sort-button" onclick="changeSortOrder('increase')" id="sortIncrease">↑ Largest Increase</button>
+                        <button class="sort-button" onclick="changeSortOrder('decrease')" id="sortDecrease">↓ Largest Decrease</button>
                         <button class="control-btn" onclick="showChartView()" id="chartViewBtn" style="display: none;">📊 Chart View</button>
-                        <button class="add-watchlist" onclick="document.getElementById('searchBox').focus()">+ Add Indicator</button>
+                        <button class="add-watchlist" onclick="document.getElementById('searchBox').focus()">+ Add Symbol</button>
                     </div>
                 </div>
                 <table class="watchlist-table">
                     <thead>
                         <tr>
-                            <th>Indicator</th>
-                            <th class="text-right">Latest Value</th>
-                            <th class="text-right sortable" onclick="sortByColumn('1d')" style="cursor: pointer;">
-                                Daily % <span class="sort-indicator" id="sort-1d"></span>
-                            </th>
-                            <th class="text-right sortable" onclick="sortByColumn('1w')" style="cursor: pointer;">
-                                Weekly % <span class="sort-indicator" id="sort-1w"></span>
-                            </th>
-                            <th class="text-right sortable" onclick="sortByColumn('1m')" style="cursor: pointer;">
-                                Monthly % <span class="sort-indicator" id="sort-1m"></span>
-                            </th>
-                            <th class="text-right sortable" onclick="sortByColumn('1y')" style="cursor: pointer;">
-                                Yearly % <span class="sort-indicator" id="sort-1y"></span>
-                            </th>
-                            <th class="text-right">Last Updated</th>
+                            <th>Name</th>
+                            <th class="text-right">Value</th>
+                            <th class="text-right">Source</th>
+                            <th class="text-right">Category</th>
+                            <th class="text-right">Status</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -762,208 +795,83 @@
     </div>
 
     <script>
-        // CONFIGURATION FOR YOUR OPENBB BACKEND
-        // Using direct Lambda invocation as documented since API Gateway has routing issues
-        const USE_DIRECT_LAMBDA = true;
-        const AWS_FUNCTION_NAME = 'indexToOpenSearch';
-        
-        // Lambda invocation simulation - in production you'd use AWS SDK
-        // For now, we'll create temporary files and simulate the commands from your documentation
-        async function invokeLambda(payload) {
-            try {
-                // This simulates the direct Lambda invocation from your documentation
-                // In a real implementation, you'd either:
-                // 1. Use AWS SDK for JavaScript in the browser (with proper CORS and credentials)
-                // 2. Create a simple proxy endpoint that does the Lambda invocation
-                // 3. Use AWS API Gateway with proper routing
-                
-                console.log('Lambda payload:', payload);
-                
-                // For now, return mock data that matches your backend structure
-                if (payload.path === '/api/search/stats') {
-                    return {
-                        statusCode: 200,
-                        body: JSON.stringify({
-                            document_count: 6204,
-                            last_updated: new Date().toISOString(),
-                            status: 'healthy',
-                            version: '7.0'
-                        })
-                    };
-                } else if (payload.path === '/api/search') {
-                    return mockSearchResults(payload.queryStringParameters?.query || '');
-                }
-                
-                return { statusCode: 404, body: JSON.stringify({ error: 'Not found' }) };
-            } catch (error) {
-                console.error('Lambda invocation error:', error);
-                return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
-            }
-        }
-
-        // Mock search results based on your 6,204 indicators
-        function mockSearchResults(query) {
-            const indicators = [
-                // FRED Economic Indicators
-                { name: 'FEDFUNDS', source: 'fred', description: 'Federal Funds Rate', category: 'monetary_policy' },
-                { name: 'UNRATE', source: 'fred', description: 'Unemployment Rate', category: 'employment' },
-                { name: 'GDP', source: 'fred', description: 'Gross Domestic Product', category: 'growth' },
-                { name: 'CPIAUCSL', source: 'fred', description: 'Consumer Price Index', category: 'inflation' },
-                { name: 'M2SL', source: 'fred', description: 'M2 Money Supply', category: 'monetary_policy' },
-                { name: 'PAYEMS', source: 'fred', description: 'Total Nonfarm Payrolls', category: 'employment' },
-                { name: 'INDPRO', source: 'fred', description: 'Industrial Production Index', category: 'manufacturing' },
-                { name: 'VIXCLS', source: 'fred', description: 'CBOE Volatility Index VIX', category: 'risk' },
-                
-                // ECB Systemic Stress Indicators
-                { name: 'CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX', source: 'ecb', description: 'Euro Area Daily Systemic Stress Index', category: 'systemic_stress' },
-                { name: 'CISS.D.US.Z0Z.4F.EC.SS_CI.IDX', source: 'ecb', description: 'US Daily Systemic Stress Index', category: 'systemic_stress' },
-                { name: 'CISS.D.CN.Z0Z.4F.EC.SS_CIN.IDX', source: 'ecb', description: 'China Daily Systemic Stress Index', category: 'systemic_stress' },
-                { name: 'EXR.D.USD.EUR.SP00.A', source: 'ecb', description: 'EUR/USD Exchange Rate', category: 'exchange_rates' },
-                
-                // Treasury Indicators
-                { name: 'DGS10', source: 'fred', description: '10-Year Treasury Constant Maturity Rate', category: 'treasury' },
-                { name: 'DGS2', source: 'fred', description: '2-Year Treasury Constant Maturity Rate', category: 'treasury' },
-                { name: 'DGS30', source: 'fred', description: '30-Year Treasury Constant Maturity Rate', category: 'treasury' },
-                
-                // NY Fed Rates
-                { name: 'SOFR', source: 'ny_fed', description: 'Secured Overnight Financing Rate', category: 'rates' },
-                { name: 'EFFR', source: 'ny_fed', description: 'Effective Federal Funds Rate', category: 'rates' },
-                
-                // Crisis Indicators
-                { name: 'NFCINONFINLEVERAGE', source: 'fred', description: 'National Financial Conditions Index: Nonfinancial Leverage', category: 'crisis' },
-                { name: 'T10YIE', source: 'fred', description: '10-Year Breakeven Inflation Rate', category: 'inflation' },
-                
-                // Global Liquidity
-                { name: 'BOGMBASE', source: 'fred', description: 'Monetary Base', category: 'liquidity' },
-                { name: 'TOTRESNS', source: 'fred', description: 'Total Reserves of Depository Institutions', category: 'liquidity' }
-            ];
-
-            const filtered = indicators.filter(indicator => 
-                !query || 
-                indicator.name.toLowerCase().includes(query.toLowerCase()) ||
-                indicator.description.toLowerCase().includes(query.toLowerCase())
-            );
-
-            return {
-                statusCode: 200,
-                body: JSON.stringify({
-                    results: filtered.slice(0, 20).map(indicator => ({
-                        name: indicator.name,
-                        description: indicator.description,
-                        source: indicator.source,
-                        category: indicator.category
-                    })),
-                    total_results: filtered.length
-                })
-            };
-        }
-
-        // Enhanced data source configurations matching your backend
-        const DATA_SOURCES = {
-            fred: {
-                name: 'Federal Reserve Economic Data',
-                count: 3500,
-                active: true
-            },
-            ecb: {
-                name: 'European Central Bank',
-                count: 1750,
-                active: true
-            },
-            ny_fed: {
-                name: 'New York Federal Reserve',
-                count: 400,
-                active: true
-            },
-            treasury: {
-                name: 'US Treasury',
-                count: 300,
-                active: true
-            },
-            bis: {
-                name: 'Bank for International Settlements',
-                count: 150,
-                active: true
-            },
-            ofr: {
-                name: 'Office of Financial Research',
-                count: 50,
-                active: true
-            },
-            other: {
-                name: 'Other Sources',
-                count: 250,
-                active: true
-            }
-        };
-
-        let activeSources = ['fred', 'ecb', 'ny_fed', 'treasury', 'bis', 'ofr', 'other'];
-        let searchTimeout = null;
-
-        // Watchlists matching your backend indicators
+        // Configuration using your WORKING API endpoints
+        const API_BASE = 'https://i3y8tfdp1k.execute-api.us-east-1.amazonaws.com/prod';
+       
+        // Working watchlists based on your 6,204 indicators
         const watchlists = {
             'MAIN': {
                 symbols: [
-                    { name: 'FEDFUNDS', source: 'fred' },
-                    { name: 'CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX', source: 'ecb' },
-                    { name: 'UNRATE', source: 'fred' },
-                    { name: 'DGS10', source: 'fred' },
-                    { name: 'VIXCLS', source: 'fred' },
-                    { name: 'M2SL', source: 'fred' }
+                    { symbol: 'FEDFUNDS', name: 'Federal Funds Rate' },
+                    { symbol: 'UNRATE', name: 'Unemployment Rate' },
+                    { symbol: 'DGS10', name: '10-Year Treasury' },
+                    { symbol: 'DGS2', name: '2-Year Treasury' },
+                    { symbol: 'CPIAUCSL', name: 'Consumer Price Index' },
+                    { symbol: 'GDP', name: 'Gross Domestic Product' },
+                    { symbol: 'PAYEMS', name: 'Total Nonfarm Payrolls' },
+                    { symbol: 'INDPRO', name: 'Industrial Production' }
                 ],
                 active: true
             },
-            'ECB_SYSTEMIC': {
-                symbols: [
-                    { name: 'CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX', source: 'ecb' },
-                    { name: 'CISS.D.US.Z0Z.4F.EC.SS_CI.IDX', source: 'ecb' },
-                    { name: 'CISS.D.CN.Z0Z.4F.EC.SS_CIN.IDX', source: 'ecb' }
-                ],
-                active: false
-            },
-            'FRED_ECONOMIC': {
-                symbols: [
-                    { name: 'GDP', source: 'fred' },
-                    { name: 'CPIAUCSL', source: 'fred' },
-                    { name: 'PAYEMS', source: 'fred' },
-                    { name: 'INDPRO', source: 'fred' }
-                ],
-                active: false
-            },
             'TREASURY': {
                 symbols: [
-                    { name: 'DGS2', source: 'fred' },
-                    { name: 'DGS10', source: 'fred' },
-                    { name: 'DGS30', source: 'fred' }
+                    { symbol: 'DGS1MO', name: '1-Month Treasury' },
+                    { symbol: 'DGS3MO', name: '3-Month Treasury' },
+                    { symbol: 'DGS6MO', name: '6-Month Treasury' },
+                    { symbol: 'DGS1', name: '1-Year Treasury' },
+                    { symbol: 'DGS2', name: '2-Year Treasury' },
+                    { symbol: 'DGS3', name: '3-Year Treasury' },
+                    { symbol: 'DGS5', name: '5-Year Treasury' },
+                    { symbol: 'DGS7', name: '7-Year Treasury' },
+                    { symbol: 'DGS10', name: '10-Year Treasury' },
+                    { symbol: 'DGS20', name: '20-Year Treasury' },
+                    { symbol: 'DGS30', name: '30-Year Treasury' }
                 ],
                 active: false
             },
-            'CRISIS': {
+            'ECONOMIC': {
                 symbols: [
-                    { name: 'VIXCLS', source: 'fred' },
-                    { name: 'NFCINONFINLEVERAGE', source: 'fred' },
-                    { name: 'T10YIE', source: 'fred' }
+                    { symbol: 'GDP', name: 'Gross Domestic Product' },
+                    { symbol: 'CPIAUCSL', name: 'Consumer Price Index' },
+                    { symbol: 'FEDFUNDS', name: 'Federal Funds Rate' },
+                    { symbol: 'M2SL', name: 'M2 Money Supply' },
+                    { symbol: 'INDPRO', name: 'Industrial Production' },
+                    { symbol: 'HOUST', name: 'Housing Starts' },
+                    { symbol: 'CSUSHPISA', name: 'Case-Shiller Home Price Index' }
                 ],
                 active: false
             },
-            'GLOBAL': {
+            'EMPLOYMENT': {
                 symbols: [
-                    { name: 'BOGMBASE', source: 'fred' },
-                    { name: 'TOTRESNS', source: 'fred' },
-                    { name: 'EXR.D.USD.EUR.SP00.A', source: 'ecb' }
+                    { symbol: 'UNRATE', name: 'Unemployment Rate' },
+                    { symbol: 'PAYEMS', name: 'Total Nonfarm Payrolls' },
+                    { symbol: 'CIVPART', name: 'Labor Force Participation Rate' },
+                    { symbol: 'EMRATIO', name: 'Employment-Population Ratio' },
+                    { symbol: 'UEMPMEAN', name: 'Average Duration of Unemployment' },
+                    { symbol: 'ICSA', name: 'Initial Claims' }
+                ],
+                active: false
+            },
+            'STOCKS': {
+                symbols: [
+                    { symbol: 'SP500', name: 'S&P 500 Index' },
+                    { symbol: 'DJIA', name: 'Dow Jones Industrial Average' },
+                    { symbol: 'NASDAQ100', name: 'NASDAQ 100 Index' },
+                    { symbol: 'VIXCLS', name: 'CBOE Volatility Index (VIX)' },
+                    { symbol: 'WILL5000INDFC', name: 'Wilshire 5000 Total Market Index' }
                 ],
                 active: false
             }
         };
-
+       
         let currentWatchlist = 'MAIN';
         let watchlistSymbols = [];
         let watchlistData = {};
         let sortOrder = 'default';
-        let columnSort = { column: null, direction: null };
-        let isLoadingWatchlist = false; // Add loading guard
-
-        // Chart management
+        let searchTimeout = null;
+        let activeSources = ['fred', 'treasury', 'stocks', 'economic'];
+       
+        // Chart variables
         const charts = {};
         let chartIdCounter = 0;
         let activeChartId = null;
@@ -971,264 +879,61 @@
             '#00AEEF', '#FF4444', '#F4D03F', '#58D68D', '#FF7043',
             '#AF7AC5', '#48C9B0', '#EC7063', '#5DADE2', '#F5B041'
         ];
-
+       
         // Initialize the dashboard
         async function init() {
             updateClock();
             setInterval(updateClock, 1000);
-
+           
             loadWatchlists();
-            await checkBackendConnection();
-            
-            // Only load watchlist data once during initialization
-            if (!isLoadingWatchlist) {
-                await loadWatchlistData();
-            }
-            
-            // Set up periodic refresh (every 5 minutes instead of 1 minute)
-            setInterval(() => {
-                if (!isLoadingWatchlist) {
-                    loadWatchlistData();
-                }
-            }, 300000); // 5 minutes
-
+            await checkAPIConnections();
+            loadWatchlistData();
+            setInterval(loadWatchlistData, 60000); // Refresh every minute
+           
             updateSortButtons();
             document.getElementById('searchBox').focus();
         }
 
-        // Check backend connection using your documented method
-        async function checkBackendConnection() {
+        // Check API connections using your working endpoints
+        async function checkAPIConnections() {
+            let connectedCount = 0;
+            const totalSources = 4;
+           
             try {
-                // Simulate the documented command: echo '{"httpMethod": "GET", "path": "/api/search/stats"}' > stats.json
-                const payload = {
-                    httpMethod: "GET",
-                    path: "/api/search/stats"
-                };
-
-                const response = await invokeLambda(payload);
-                
-                if (response.statusCode === 200) {
-                    const data = JSON.parse(response.body);
+                // Test your working stats endpoint
+                const statsResponse = await fetch(`${API_BASE}/api/search/stats`);
+                if (statsResponse.ok) {
+                    const data = await statsResponse.json();
+                    console.log('API Status:', data);
                     
-                    // Update database stats
-                    document.getElementById('indicatorCount').textContent = data.document_count.toLocaleString();
-                    document.getElementById('apiStatus').classList.add('connected');
-                    document.getElementById('apiStatusText').textContent = `Backend Connected - ${data.document_count} indicators`;
-                    
-                    // Mark all sources as connected
-                    Object.keys(DATA_SOURCES).forEach(source => {
-                        const indicator = document.getElementById(`${source}-indicator`);
-                        if (indicator) indicator.classList.add('connected');
-                    });
-                    
-                    showTemporaryMessage(`Connected to OpenBB Backend - ${data.document_count} indicators available`, 'info');
-                } else {
-                    throw new Error('Backend connection failed');
-                }
-            } catch (error) {
-                console.error('Backend connection failed:', error);
-                document.getElementById('apiStatusText').textContent = 'Backend Offline - Using Demo Mode';
-                showTemporaryMessage('Backend connection failed - Demo mode active', 'error');
-            }
-        }
-
-        // Enhanced search using your backend's search endpoint
-        async function performSearch(query) {
-            const resultsDiv = document.getElementById('searchResults');
-
-            if (!query || query.trim().length < 1) {
-                resultsDiv.style.display = 'none';
-                return;
-            }
-
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(async () => {
-                resultsDiv.innerHTML = '<div class="search-loading">Searching 6,204 indicators...</div>';
-                resultsDiv.style.display = 'block';
-
-                try {
-                    // Simulate the documented search command
-                    const payload = {
-                        httpMethod: "GET",
-                        path: "/api/search",
-                        queryStringParameters: {
-                            query: query,
-                            limit: "20"
-                        }
-                    };
-
-                    const response = await invokeLambda(payload);
-                    
-                    if (response.statusCode === 200) {
-                        const data = JSON.parse(response.body);
-                        displaySearchResults(data.results || [], query, data.total_results || 0);
-                    } else {
-                        throw new Error('Search failed');
+                    if (data.document_count && data.document_count > 0) {
+                        connectedCount = 4; // All sources connected through main API
+                        document.getElementById('fred-indicator').classList.add('connected');
+                        document.getElementById('treasury-indicator').classList.add('connected');
+                        document.getElementById('stocks-indicator').classList.add('connected');
+                        document.getElementById('economic-indicator').classList.add('connected');
+                        
+                        showTemporaryMessage(`Connected! ${data.document_count} indicators available`, 'info');
                     }
-                } catch (error) {
-                    console.error('Search error:', error);
-                    resultsDiv.innerHTML = `
-                        <div class="search-item" style="text-align:center; color:#888;">
-                            Search error. Please try again.
-                        </div>
-                    `;
                 }
-            }, 300);
-        }
-
-        // Display search results
-        function displaySearchResults(results, query, totalResults) {
-            const resultsDiv = document.getElementById('searchResults');
-
-            if (!results || results.length === 0) {
-                resultsDiv.innerHTML = `
-                    <div class="search-item" style="text-align:center; color:#888; padding: 20px;">
-                        No results found for "${query}"
-                        <div style="margin-top: 10px; font-size: 12px;">
-                            Try: FEDFUNDS, CISS, GDP, UNRATE, VIXCLS
-                        </div>
-                    </div>
-                `;
-                return;
-            }
-
-            const highlightMatch = (text) => {
-                if (!text) return '';
-                const regex = new RegExp(`(${query.split(' ').join('|')})`, 'gi');
-                return text.replace(regex, '<span style="color: #00ff88; font-weight: bold;">$1</span>');
-            };
-
-            let html = `<div style="padding: 10px; background: #0f0f0f; border-bottom: 1px solid #333; font-size: 12px; color: #888;">
-                Found ${totalResults} indicators matching "${query}"
-            </div>`;
-
-            results.forEach(result => {
-                html += `
-                    <div class="search-item" onclick="addToWatchlistFromSearch('${result.name}', '${result.source}', '${(result.description || result.name).replace(/'/g, "\\'")}')">
-                        <div class="search-item-left">
-                            <div class="search-item-symbol">${highlightMatch(result.name)}</div>
-                            <div class="search-item-name">${highlightMatch(result.description || result.name)}</div>
-                            ${result.category ? `<div class="search-item-description">Category: ${result.category}</div>` : ''}
-                        </div>
-                        <div class="search-item-source">${result.source.toUpperCase()}</div>
-                    </div>
-                `;
-            });
-
-            resultsDiv.innerHTML = html;
-            resultsDiv.style.display = 'block';
-        }
-
-        // Add to watchlist from search
-        function addToWatchlistFromSearch(name, source, description) {
-            const currentSymbols = watchlists[currentWatchlist].symbols;
-
-            if (!currentSymbols.find(s => s.name === name)) {
-                currentSymbols.push({ name, source });
-                watchlistSymbols = [...currentSymbols];
-                saveWatchlists();
-
-                watchlistData[name] = {
-                    name: name,
-                    description: description,
-                    source: source,
-                    value: 0,
-                    changes: { '1d': 0, '1w': 0, '1m': 0, '1y': 0 },
-                    hasData: false
-                };
-
-                renderWatchlist();
-                loadSingleWatchlistItem(name, source);
-
-                showTemporaryMessage(`Added ${name} from ${source.toUpperCase()} to ${currentWatchlist} watchlist`, 'info');
-            } else {
-                showTemporaryMessage(`${name} is already in ${currentWatchlist} watchlist`, 'info');
-            }
-
-            document.getElementById('searchResults').style.display = 'none';
-            document.getElementById('searchBox').value = '';
-        }
-
-        // Load single watchlist item data (for individual additions)
-        async function loadSingleWatchlistItem(name, source) {
-            if (!name || !source) {
-                console.error('Invalid name or source for watchlist item:', name, source);
-                return;
-            }
-
-            try {
-                console.log(`Loading ${name} from ${source}`);
-                
-                // Initialize the watchlist data entry if it doesn't exist
-                if (!watchlistData[name]) {
-                    watchlistData[name] = {
-                        name: name,
-                        description: name,
-                        source: source,
-                        value: 0,
-                        changes: { '1d': 0, '1w': 0, '1m': 0, '1y': 0 },
-                        hasData: false,
-                        loading: true
-                    };
-                    renderWatchlist(); // Show loading state
-                }
-
-                // Simulate loading individual indicator data
-                const mockData = {
-                    value: Math.random() * 100,
-                    changes: {
-                        '1d': (Math.random() - 0.5) * 10,
-                        '1w': (Math.random() - 0.5) * 20,
-                        '1m': (Math.random() - 0.5) * 30,
-                        '1y': (Math.random() - 0.5) * 100
-                    },
-                    lastUpdated: new Date().toISOString().split('T')[0]
-                };
-
-                // Update the existing data
-                watchlistData[name] = {
-                    ...watchlistData[name],
-                    value: mockData.value,
-                    changes: mockData.changes,
-                    lastUpdated: mockData.lastUpdated,
-                    hasData: true,
-                    loading: false
-                };
-
-                renderWatchlist();
             } catch (error) {
-                console.error(`Error loading ${name}:`, error);
-                
-                // Ensure we have a valid data structure even on error
-                if (!watchlistData[name]) {
-                    watchlistData[name] = {
-                        name: name,
-                        description: name,
-                        source: source,
-                        value: 0,
-                        changes: { '1d': 0, '1w': 0, '1m': 0, '1y': 0 },
-                        hasData: false,
-                        loading: false,
-                        error: error.message
-                    };
-                } else {
-                    watchlistData[name] = {
-                        ...watchlistData[name],
-                        hasData: false,
-                        loading: false,
-                        error: error.message
-                    };
-                }
-                
-                renderWatchlist();
+                console.warn('API connection failed:', error);
+                showTemporaryMessage('API connection failed', 'error');
+            }
+           
+            const statusText = `${connectedCount}/${totalSources} Sources Connected`;
+            document.getElementById('apiStatusText').textContent = statusText;
+           
+            if (connectedCount > 0) {
+                document.getElementById('apiStatus').classList.add('connected');
             }
         }
-
+       
         // Toggle data source
         function toggleDataSource(source) {
             const button = document.querySelector(`[data-source="${source}"]`);
             const isActive = button.classList.contains('active');
-
+           
             if (isActive) {
                 button.classList.remove('active');
                 activeSources = activeSources.filter(s => s !== source);
@@ -1237,7 +942,173 @@
                 activeSources.push(source);
             }
         }
-
+       
+        // Search using your working API
+        async function performSearch(query) {
+            const resultsDiv = document.getElementById('searchResults');
+           
+            if (!query || query.trim().length < 1) {
+                resultsDiv.style.display = 'none';
+                return;
+            }
+           
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(async () => {
+                resultsDiv.innerHTML = '<div class="search-loading">Searching 6,204 indicators...</div>';
+                resultsDiv.style.display = 'block';
+               
+                try {
+                    // Use your working search endpoint
+                    const response = await fetch(`${API_BASE}/api/search?query=${encodeURIComponent(query)}&limit=50`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`Search failed: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    console.log('Search results:', data);
+                    
+                    displaySearchResults(data, query);
+                   
+                } catch (error) {
+                    console.error('Search error:', error);
+                    resultsDiv.innerHTML = `
+                        <div class="search-item" style="text-align:center; color:#888;">
+                            Error searching. Please try again.
+                        </div>
+                    `;
+                }
+            }, 300);
+        }
+       
+        // Display search results from your API
+        function displaySearchResults(data, query) {
+            const resultsDiv = document.getElementById('searchResults');
+           
+            if (!data.results || data.results.length === 0) {
+                resultsDiv.innerHTML = `
+                    <div class="search-item" style="text-align:center; color:#888; padding: 20px;">
+                        No results found for "${query}"
+                        <div style="margin-top: 10px; font-size: 12px;">
+                            Try: FEDFUNDS, UNRATE, DGS10, GDP, CPIAUCSL, PAYEMS
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+           
+            const displayResults = data.results.slice(0, 50);
+           
+            let html = '';
+            displayResults.forEach(result => {
+                const highlightMatch = (text) => {
+                    if (!text) return '';
+                    const regex = new RegExp(`(${query.split(' ').join('|')})`, 'gi');
+                    return text.replace(regex, '<span style="color: #00ff88; font-weight: bold;">$1</span>');
+                };
+               
+                html += `
+                    <div class="search-item" onclick="addToWatchlistFromSearch('${result.indicator_id}', '${(result.name || result.indicator_id).replace(/'/g, "\\'")}', '${result.source}', '${result.category || 'general'}')">
+                        <div class="search-item-left">
+                            <div class="search-item-symbol">${highlightMatch(result.indicator_id)}</div>
+                            <div class="search-item-name">${highlightMatch(result.name || result.indicator_id)}</div>
+                            ${result.category ? `<div class="search-item-description">Category: ${result.category}</div>` : ''}
+                        </div>
+                        <div class="search-item-source">${result.source.toUpperCase()}</div>
+                    </div>
+                `;
+            });
+           
+            resultsDiv.innerHTML = html;
+            resultsDiv.style.display = 'block';
+        }
+       
+        // Add to watchlist from search
+        function addToWatchlistFromSearch(symbol, name, source, category) {
+            const currentSymbols = watchlists[currentWatchlist].symbols;
+           
+            if (!currentSymbols.find(s => s.symbol === symbol)) {
+                currentSymbols.push({ symbol, name, source, category });
+                watchlistSymbols = [...currentSymbols];
+                saveWatchlists();
+               
+                watchlistData[symbol] = {
+                    name: name || symbol,
+                    source: source || 'fred',
+                    category: category || 'general',
+                    value: 'Loading...',
+                    hasData: false
+                };
+               
+                renderWatchlist();
+                loadSingleWatchlistItem(symbol);
+               
+                showTemporaryMessage(`Added ${symbol} to ${currentWatchlist} watchlist`, 'info');
+            } else {
+                showTemporaryMessage(`${symbol} is already in ${currentWatchlist} watchlist`, 'info');
+            }
+           
+            document.getElementById('searchResults').style.display = 'none';
+            document.getElementById('searchBox').value = '';
+        }
+       
+        // Load data for a single watchlist item using your working API
+        async function loadSingleWatchlistItem(symbol, retryCount = 0) {
+            const maxRetries = 2;
+           
+            try {
+                console.log(`Loading ${symbol} (attempt ${retryCount + 1})`);
+               
+                // Use your working search endpoint to get current data
+                const response = await fetch(`${API_BASE}/api/search?query=${encodeURIComponent(symbol)}&limit=1`);
+               
+                if (!response.ok) {
+                    throw new Error(`API returned ${response.status}`);
+                }
+               
+                const data = await response.json();
+                console.log(`Data received for ${symbol}:`, data);
+               
+                if (data.results && data.results.length > 0) {
+                    const result = data.results[0];
+                    
+                    watchlistData[symbol] = {
+                        name: watchlistData[symbol]?.name || result.name || symbol,
+                        source: result.source || 'fred',
+                        category: result.category || 'general',
+                        value: 'Available',
+                        hasData: true,
+                        indicator_id: result.indicator_id,
+                        lastUpdateTime: Date.now()
+                    };
+                } else {
+                    throw new Error('No data available');
+                }
+               
+                renderWatchlist();
+               
+            } catch (error) {
+                console.error(`Error loading ${symbol}:`, error);
+               
+                if (retryCount < maxRetries) {
+                    console.log(`Retrying ${symbol} after delay...`);
+                    await new Promise(resolve => setTimeout(resolve, 2000 * (retryCount + 1)));
+                    return loadSingleWatchlistItem(symbol, retryCount + 1);
+                }
+               
+                // Show error state
+                watchlistData[symbol] = {
+                    name: watchlistData[symbol]?.name || symbol,
+                    source: 'unknown',
+                    category: 'error',
+                    value: 'Error',
+                    hasData: false,
+                    error: error.message
+                };
+                renderWatchlist();
+            }
+        }
+       
         // Load watchlists from storage
         function loadWatchlists() {
             const saved = localStorage.getItem('openbbWatchlists');
@@ -1253,10 +1124,10 @@
                     console.error('Error loading saved watchlists:', e);
                 }
             }
-
+           
             watchlistSymbols = [...watchlists[currentWatchlist].symbols];
         }
-
+       
         // Save watchlists to storage
         function saveWatchlists() {
             const toSave = {};
@@ -1265,350 +1136,111 @@
             });
             localStorage.setItem('openbbWatchlists', JSON.stringify(toSave));
         }
-
+       
         // Switch watchlist
         function switchWatchlist(watchlistName) {
-            // Prevent switching if currently loading
-            if (isLoadingWatchlist) {
-                console.log('Cannot switch watchlist while loading');
-                return;
-            }
-
             currentWatchlist = watchlistName;
             watchlistSymbols = [...watchlists[currentWatchlist].symbols];
-            watchlistData = {}; // Clear previous data
+            watchlistData = {};
             loadWatchlistData();
         }
-
+       
         // Load watchlist data
         async function loadWatchlistData() {
-            // Prevent multiple simultaneous loads
-            if (isLoadingWatchlist) {
-                console.log('Watchlist already loading, skipping...');
-                return;
-            }
-
-            isLoadingWatchlist = true;
             const tbody = document.getElementById('watchlistBody');
-
-            try {
-                if (!watchlistSymbols || watchlistSymbols.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: #888;">No indicators in watchlist. Use search to add indicators.</td></tr>';
-                    return;
-                }
-
-                console.log(`🔄 Loading ${watchlistSymbols.length} watchlist indicators...`);
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;"><div class="loading-pulse">Loading watchlist...</div></td></tr>';
-
-                // Initialize all watchlist data entries first to prevent "No data found" warnings
-                for (const symbolObj of watchlistSymbols) {
-                    const name = symbolObj.name || symbolObj.symbol || symbolObj;
-                    const source = symbolObj.source || 'fred';
-                    
-                    if (name && source) {
-                        // Only initialize if not already exists
-                        if (!watchlistData[name]) {
-                            watchlistData[name] = {
-                                name: name,
-                                description: name,
-                                source: source,
-                                value: 0,
-                                changes: { '1d': 0, '1w': 0, '1m': 0, '1y': 0 },
-                                hasData: false,
-                                loading: true
-                            };
-                        } else {
-                            // Mark existing items as loading for refresh
-                            watchlistData[name].loading = true;
-                            watchlistData[name].hasData = false;
-                        }
-                    }
-                }
-
-                // Render loading state
-                renderWatchlist();
-
-                // Load data for each symbol without re-rendering until all are loaded
-                const loadPromises = [];
-                for (const symbolObj of watchlistSymbols) {
-                    const name = symbolObj.name || symbolObj.symbol || symbolObj;
-                    const source = symbolObj.source || 'fred';
-                    
-                    if (name && source) {
-                        loadPromises.push(loadSingleWatchlistItemSilent(name, source));
-                    }
-                }
-
-                // Wait for all to complete, then render once
-                console.log(`⏳ Waiting for ${loadPromises.length} indicators to load...`);
-                await Promise.all(loadPromises);
-                
-                console.log(`✅ All indicators loaded, rendering watchlist...`);
-                renderWatchlist();
-
-                // Show success message
-                const loadedCount = Object.values(watchlistData).filter(d => d.hasData).length;
-                console.log(`🎉 Successfully loaded ${loadedCount}/${watchlistSymbols.length} indicators`);
-
-            } catch (error) {
-                console.error('Error loading watchlist data:', error);
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: #ff4444;">Error loading watchlist data</td></tr>';
-            } finally {
-                isLoadingWatchlist = false;
-            }
-        }
-
-        // Silent version that doesn't trigger re-render
-        async function loadSingleWatchlistItemSilent(name, source) {
-            if (!name || !source) {
-                console.error('Invalid name or source for watchlist item:', name, source);
+           
+            if (watchlistSymbols.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #888;">No symbols in watchlist. Use search to add symbols.</td></tr>';
                 return;
             }
-
-            try {
-                console.log(`Loading ${name} from ${source}`);
-                
-                // Add a small delay to simulate real API call
-                await new Promise(resolve => setTimeout(resolve, Math.random() * 1000 + 500));
-                
-                // Simulate loading individual indicator data
-                const mockData = {
-                    value: Math.random() * 100 + 10, // Ensure non-zero values
-                    changes: {
-                        '1d': (Math.random() - 0.5) * 10,
-                        '1w': (Math.random() - 0.5) * 20,
-                        '1m': (Math.random() - 0.5) * 30,
-                        '1y': (Math.random() - 0.5) * 100
-                    },
-                    lastUpdated: new Date().toISOString().split('T')[0]
-                };
-
-                // Update the existing data
-                if (watchlistData[name]) {
-                    watchlistData[name] = {
-                        ...watchlistData[name],
-                        value: mockData.value,
-                        changes: mockData.changes,
-                        lastUpdated: mockData.lastUpdated,
-                        hasData: true,
-                        loading: false
-                    };
-                    console.log(`✅ Loaded ${name}: ${mockData.value.toFixed(2)}`);
-                } else {
-                    console.warn(`No data entry found for ${name}`);
-                }
-
-            } catch (error) {
-                console.error(`Error loading ${name}:`, error);
-                
-                // Update with error state
-                if (watchlistData[name]) {
-                    watchlistData[name] = {
-                        ...watchlistData[name],
-                        hasData: false,
-                        loading: false,
-                        error: error.message
-                    };
-                }
+           
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;"><div class="loading-pulse">Loading watchlist...</div></td></tr>';
+           
+            for (const symbolObj of watchlistSymbols) {
+                const symbol = symbolObj.symbol || symbolObj;
+                await loadSingleWatchlistItem(symbol);
             }
         }
-
+       
+        // Update clock
+        function updateClock() {
+            document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
+        }
+       
         // Render watchlist
         function renderWatchlist() {
             const tbody = document.getElementById('watchlistBody');
-
-            if (!watchlistSymbols || watchlistSymbols.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: #666;">No indicators in this watchlist. Use search to add indicators.</td></tr>';
+           
+            if (watchlistSymbols.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #666;">No symbols in this watchlist. Use search to add symbols.</td></tr>';
                 return;
             }
-
+           
             let symbolsToRender = watchlistSymbols.map(symbolObj => {
-                // Handle both old and new format
-                const name = symbolObj.name || symbolObj.symbol || symbolObj;
-                const source = symbolObj.source || 'fred';
-                
-                if (!name) {
-                    console.warn('Invalid symbol object:', symbolObj);
-                    return null;
-                }
-
-                const data = watchlistData[name];
-                if (!data) {
-                    // Only warn if we're not in initial loading phase
-                    if (!symbolObj.loading) {
-                        console.warn(`No data found for ${name}`);
-                    }
-                    return null;
-                }
-
-                let maxChange = 0;
-                if (data.changes && typeof data.changes === 'object') {
-                    const changes = Object.values(data.changes).filter(v => v !== null && !isNaN(v) && v !== undefined);
-                    if (changes.length > 0) {
-                        maxChange = changes.reduce((max, change) => {
-                            return Math.abs(change) > Math.abs(max) ? change : max;
-                        }, 0);
-                    }
-                }
-
-                return {
-                    name,
-                    data,
-                    maxChange
-                };
+                const symbol = symbolObj.symbol || symbolObj;
+                const data = watchlistData[symbol];
+                if (!data) return null;
+               
+                return { symbol, data };
             }).filter(item => item !== null);
-
-            // If no items to render yet, show loading
-            if (symbolsToRender.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;"><div class="loading-pulse">Loading indicators...</div></td></tr>';
-                return;
-            }
-
-            // Sort based on current sort order
-            if (columnSort.column && columnSort.direction) {
-                symbolsToRender.sort((a, b) => {
-                    const aValue = a.data.changes ? a.data.changes[columnSort.column] : 0;
-                    const bValue = b.data.changes ? b.data.changes[columnSort.column] : 0;
-
-                    if (aValue === null || aValue === undefined) return 1;
-                    if (bValue === null || bValue === undefined) return -1;
-
-                    return columnSort.direction === 'asc' ? aValue - bValue : bValue - aValue;
-                });
-            } else if (sortOrder === 'increase') {
-                symbolsToRender.sort((a, b) => b.maxChange - a.maxChange);
-            } else if (sortOrder === 'decrease') {
-                symbolsToRender.sort((a, b) => a.maxChange - b.maxChange);
-            }
-
-            const formatValue = (value, loading = false) => {
-                if (loading) return '⏳ Loading...';
-                if (!value || value === 0) return 'No data';
-                if (Math.abs(value) >= 1000) return value.toLocaleString(undefined, {maximumFractionDigits: 0});
-                if (Math.abs(value) >= 1) return value.toFixed(2);
-                return value.toFixed(4);
-            };
-
-            const formatChange = (change, loading = false) => {
-                if (loading) return '⏳';
-                if (change === null || change === undefined || isNaN(change)) return '—';
-                const val = parseFloat(change);
-                return (val >= 0 ? '+' : '') + val.toFixed(2) + '%';
-            };
-
-            const getChangeClass = (change, loading = false) => {
-                if (loading) return 'neutral';
-                if (change === null || change === undefined || isNaN(change)) return 'neutral';
-                return parseFloat(change) >= 0 ? 'positive' : 'negative';
-            };
-
-            const html = symbolsToRender.map(({ name, data }) => {
-                // Ensure we have valid data structure
-                const displayName = data.customName || data.name || name;
+           
+            const html = symbolsToRender.map(({ symbol, data }) => {
+                const displayName = data.name || symbol;
                 const sourceLabel = (data.source || 'unknown').toUpperCase();
-                const description = data.description || data.name || name;
-                const changes = data.changes || { '1d': 0, '1w': 0, '1m': 0, '1y': 0 };
-                const value = data.value || 0;
-                const lastUpdated = data.lastUpdated || '—';
-                const isLoading = data.loading || false;
-
-                // Safe charAt access
-                const firstChar = (name && name.length > 0) ? name.charAt(0).toUpperCase() : '?';
-
+                const statusColor = data.hasData ? '#00dd77' : '#ff4444';
+                const statusText = data.hasData ? 'Active' : (data.error ? 'Error' : 'Loading');
+               
                 return `
-                    <tr ondblclick="openChartForIndicator('${name}', '${data.source || 'fred'}')"
-                        style="cursor: pointer; ${isLoading ? 'opacity: 0.6;' : ''}"
+                    <tr ondblclick="openChartForSymbol('${symbol}')"
+                        style="cursor: pointer;"
                         title="Double-click to view chart">
                         <td>
                             <div class="symbol-cell">
-                                <div class="symbol-icon">${firstChar}</div>
+                                <div class="symbol-icon">${symbol.charAt(0)}</div>
                                 <div class="symbol-info">
-                                    <div class="symbol-name">${displayName} ${isLoading ? '⏳' : ''}</div>
-                                    <div class="symbol-fullname">${description} (${sourceLabel})</div>
+                                    <div class="symbol-name">
+                                        ${displayName}
+                                        <span class="edit-icon" onclick="editSymbol(event, '${symbol}')">✏️</span>
+                                    </div>
+                                    <div class="symbol-fullname">${symbol}</div>
                                 </div>
                             </div>
                         </td>
-                        <td class="price-cell">${formatValue(value, isLoading)}</td>
-                        <td class="change-cell ${getChangeClass(changes['1d'], isLoading)}">${formatChange(changes['1d'], isLoading)}</td>
-                        <td class="change-cell ${getChangeClass(changes['1w'], isLoading)}">${formatChange(changes['1w'], isLoading)}</td>
-                        <td class="change-cell ${getChangeClass(changes['1m'], isLoading)}">${formatChange(changes['1m'], isLoading)}</td>
-                        <td class="change-cell ${getChangeClass(changes['1y'], isLoading)}">${formatChange(changes['1y'], isLoading)}</td>
-                        <td style="color: #888; font-size: 11px;">${isLoading ? '⏳' : lastUpdated}</td>
+                        <td class="price-cell">${data.value}</td>
+                        <td class="text-center">${sourceLabel}</td>
+                        <td class="text-center">${data.category || 'General'}</td>
+                        <td class="text-center" style="color: ${statusColor};">${statusText}</td>
                         <td style="padding: 5px;">
                             <button class="control-btn" style="padding: 4px 8px; font-size: 11px; background: #f5f5f5; color: #333; border: 1px solid #ddd;"
-                                    onclick="removeFromWatchlist(event, '${name}')">×</button>
+                                    onclick="removeFromWatchlist(event, '${symbol}')">×</button>
                         </td>
                     </tr>
                 `;
             }).join('');
-
-            tbody.innerHTML = html;
-            updateSortIndicators();
+           
+            tbody.innerHTML = html || '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #666;">Loading data...</td></tr>';
         }
-
+       
         // Remove from watchlist
-        function removeFromWatchlist(event, name) {
+        function removeFromWatchlist(event, symbol) {
             event.stopPropagation();
             const currentSymbols = watchlists[currentWatchlist].symbols;
-            const index = currentSymbols.findIndex(s => s.name === name);
+            const index = currentSymbols.findIndex(s => (s.symbol || s) === symbol);
             if (index > -1) {
                 currentSymbols.splice(index, 1);
                 watchlistSymbols = [...currentSymbols];
-                delete watchlistData[name];
-
+                delete watchlistData[symbol];
+               
                 saveWatchlists();
                 renderWatchlist();
-                showTemporaryMessage(`Removed ${name} from ${currentWatchlist} watchlist`, 'info');
+                showTemporaryMessage(`Removed ${symbol} from ${currentWatchlist} watchlist`, 'info');
             }
         }
-
-        // Sort by column
-        function sortByColumn(period) {
-            if (columnSort.column === period) {
-                columnSort.direction = columnSort.direction === 'desc' ? 'asc' : 'desc';
-            } else {
-                columnSort.column = period;
-                columnSort.direction = 'desc';
-            }
-
-            sortOrder = 'default';
-            updateSortButtons();
-            renderWatchlist();
-        }
-
-        // Update sort indicators
-        function updateSortIndicators() {
-            document.querySelectorAll('.sort-indicator').forEach(indicator => {
-                indicator.className = 'sort-indicator';
-            });
-
-            if (columnSort.column && columnSort.direction) {
-                const indicator = document.getElementById(`sort-${columnSort.column}`);
-                if (indicator) {
-                    indicator.className = `sort-indicator ${columnSort.direction}`;
-                }
-            }
-        }
-
-        // Change sort order
-        function changeSortOrder(order) {
-            sortOrder = order;
-            columnSort = { column: null, direction: null };
-            updateSortButtons();
-            renderWatchlist();
-        }
-
-        // Update sort buttons
-        function updateSortButtons() {
-            document.getElementById('sortDefault').classList.toggle('active', sortOrder === 'default');
-            document.getElementById('sortIncrease').classList.toggle('active', sortOrder === 'increase');
-            document.getElementById('sortDecrease').classList.toggle('active', sortOrder === 'decrease');
-        }
-
-        // Chart functions
+       
+        // Chart functions (simplified)
         function addNewChart() {
             const chartId = `chart_${chartIdCounter++}`;
-
+           
             const chartHtml = `
                 <div class="chart-window" id="${chartId}" onclick="setActiveChart('${chartId}')">
                     <div class="chart-header">
@@ -1617,12 +1249,6 @@
                             <div class="chart-symbols" id="${chartId}_symbols"></div>
                         </div>
                         <div class="chart-controls">
-                            <div class="timeframe-buttons" id="${chartId}_timeframe_buttons">
-                                ${['1D','1W','1M','3M','6M','1Y','2Y','5Y','MAX'].map(tf =>
-                                    `<button class="timeframe-btn ${tf === '1Y' ? 'active' : ''}"
-                                             onclick="changeTimeframe(event, '${chartId}', '${tf}')">${tf}</button>`
-                                ).join('')}
-                            </div>
                             <button class="close-btn" onclick="removeChart(event, '${chartId}')">×</button>
                         </div>
                     </div>
@@ -1630,27 +1256,21 @@
                         <div class="chart-message">Search for a financial indicator to add to this chart</div>
                     </div>
                 </div>`;
-
+           
             document.getElementById('chartGrid').insertAdjacentHTML('beforeend', chartHtml);
-            charts[chartId] = {
-                symbols: [],
-                data: {},
-                timeframe: '1Y',
-                chartInstance: null
-            };
+            charts[chartId] = { symbols: [], data: {} };
             setActiveChart(chartId);
-
+           
             const chartsArea = document.getElementById('chartsArea');
             const watchlistSection = document.querySelector('.watchlist-section');
             const chartViewBtn = document.getElementById('chartViewBtn');
-
+           
             chartsArea.style.display = 'block';
             watchlistSection.style.flex = '0 0 300px';
             chartViewBtn.style.display = 'block';
         }
 
         function setActiveChart(chartId) {
-            if (activeChartId === chartId) return;
             activeChartId = chartId;
             document.querySelectorAll('.chart-window').forEach(c => c.classList.remove('active-chart'));
             const chartElement = document.getElementById(chartId);
@@ -1661,229 +1281,40 @@
 
         function removeChart(event, chartIdToRemove) {
             event.stopPropagation();
-            if (charts[chartIdToRemove] && charts[chartIdToRemove].chartInstance) {
-                Plotly.purge(`${chartIdToRemove}_canvas`);
-            }
             delete charts[chartIdToRemove];
             document.getElementById(chartIdToRemove)?.remove();
-
-            if (activeChartId === chartIdToRemove) {
-                const chartKeys = Object.keys(charts);
-                activeChartId = chartKeys.length > 0 ? chartKeys[chartKeys.length - 1] : null;
-                if(activeChartId) setActiveChart(activeChartId);
-            }
-
+           
             if (Object.keys(charts).length === 0) {
                 const chartsArea = document.getElementById('chartsArea');
                 const watchlistSection = document.querySelector('.watchlist-section');
                 const chartViewBtn = document.getElementById('chartViewBtn');
-
+               
                 chartsArea.style.display = 'none';
                 watchlistSection.style.flex = '1';
                 chartViewBtn.style.display = 'none';
             }
         }
 
-        function openChartForIndicator(name, source) {
+        function openChartForSymbol(symbol) {
             const chartsArea = document.getElementById('chartsArea');
             const watchlistSection = document.querySelector('.watchlist-section');
             const chartViewBtn = document.getElementById('chartViewBtn');
-
+           
             chartsArea.style.display = 'block';
             watchlistSection.style.flex = '0 0 300px';
             chartViewBtn.style.display = 'block';
-
+           
             if (Object.keys(charts).length === 0) {
                 addNewChart();
             }
-
-            if (activeChartId) {
-                const data = watchlistData[name];
-                addToChart(activeChartId, name, source, data?.description || name);
-            }
-        }
-
-        function addToChart(chartId, name, source, description) {
-            const chart = charts[chartId];
-            if (!chart) return;
-
-            if (!chart.symbols.find(s => s.name === name)) {
-                chart.symbols.push({ name, source, description });
-                loadChartData(chartId, name, source);
-            }
-            setActiveChart(chartId);
-        }
-
-        function loadChartData(chartId, name, source) {
-            // Simulate loading chart data
-            const chart = charts[chartId];
-            if (!chart) return;
-
-            // Generate mock historical data
-            const data = [];
-            const startDate = new Date();
-            startDate.setFullYear(startDate.getFullYear() - 2);
-
-            for (let i = 0; i < 500; i++) {
-                const date = new Date(startDate);
-                date.setDate(date.getDate() + i);
-                
-                data.push({
-                    date: date.toISOString().split('T')[0],
-                    value: 50 + Math.sin(i / 50) * 20 + Math.random() * 10
-                });
-            }
-
-            chart.data[name] = data;
-            updateChartRender(chartId);
-            updateChartSymbols(chartId);
-        }
-
-        function updateChartSymbols(chartId) {
-            const chart = charts[chartId];
-            if (!chart) return;
-            const symbolsDiv = document.getElementById(`${chartId}_symbols`);
-            if (!symbolsDiv) return;
-
-            symbolsDiv.innerHTML = chart.symbols.map((s, i) => `
-                <div class="chart-symbol-tag">
-                    <span class="symbol-color-dot" style="background-color: ${colorPalette[i % colorPalette.length]};"></span>
-                    ${s.name}
-                    <span class="remove-symbol" onclick="removeSymbolFromChart(event, '${chartId}', '${s.name}')">×</span>
-                </div>`).join('');
-        }
-
-        function removeSymbolFromChart(event, chartId, nameToRemove) {
-            event.stopPropagation();
-            const chart = charts[chartId];
-            if (!chart) return;
-
-            chart.symbols = chart.symbols.filter(s => s.name !== nameToRemove);
-            delete chart.data[nameToRemove];
-
-            updateChartRender(chartId);
-            updateChartSymbols(chartId);
-
-            if (chart.symbols.length === 0) {
-                document.getElementById(`${chartId}_canvas`).innerHTML = '<div class="chart-message">Search for a financial indicator to add to this chart</div>';
-            }
-        }
-
-        function changeTimeframe(event, chartId, timeframe) {
-            event.stopPropagation();
-            const chart = charts[chartId];
-            if (!chart) return;
-            chart.timeframe = timeframe;
-
-            const buttonContainer = document.getElementById(`${chartId}_timeframe_buttons`);
-            if (buttonContainer) {
-                buttonContainer.querySelectorAll('.timeframe-btn').forEach(btn => btn.classList.remove('active'));
-                if(event.target.tagName === 'BUTTON') event.target.classList.add('active');
-            }
-            updateChartRender(chartId);
-        }
-
-        function updateChartRender(chartId) {
-            const chart = charts[chartId];
-            const canvasElement = document.getElementById(`${chartId}_canvas`);
-            if (!canvasElement || !chart) return;
-
-            if (chart.symbols.length === 0) {
-                canvasElement.innerHTML = '<div class="chart-message">Search for a financial indicator to add to this chart</div>';
-                if (chart.chartInstance) Plotly.purge(canvasElement);
-                return;
-            }
-
-            const traces = [];
-
-            chart.symbols.forEach((s, index) => {
-                const symbolData = chart.data[s.name];
-                if (!symbolData || symbolData.length === 0) return;
-
-                const lineColor = colorPalette[index % colorPalette.length];
-
-                const trace = {
-                    x: symbolData.map(d => d.date),
-                    y: symbolData.map(d => d.value),
-                    type: 'scatter',
-                    mode: 'lines',
-                    name: s.name,
-                    line: { color: lineColor, width: 2 },
-                    hovertemplate: `<b>${s.name}</b><br>Date: %{x}<br>Value: %{y:.4f}<extra></extra>`
-                };
-
-                traces.push(trace);
-            });
-
-            if (traces.length === 0) {
-                canvasElement.innerHTML = '<div class="chart-message">No data to display for selected timeframe</div>';
-                return;
-            }
-
-            const layout = {
-                title: {
-                    text: `${chart.symbols.map(s => s.name).join(', ')} - ${chart.timeframe}`,
-                    font: { color: '#fff', size: 14 },
-                    x: 0.5
-                },
-                paper_bgcolor: '#0a0a0a',
-                plot_bgcolor: '#0a0a0a',
-                font: { color: '#aaa', size: 12 },
-                margin: { t: 60, r: 80, b: 60, l: 80 },
-                xaxis: {
-                    type: 'date',
-                    gridcolor: '#22222250',
-                    tickfont: { color: '#888' },
-                    rangeslider: { visible: false }
-                },
-                yaxis: {
-                    title: { text: 'Value', font: { color: '#aaa' } },
-                    gridcolor: '#22222250',
-                    tickfont: { color: '#888' },
-                    zeroline: true,
-                    zerolinecolor: '#444',
-                    zerolinewidth: 1
-                },
-                hovermode: 'x unified',
-                showlegend: true,
-                legend: {
-                    orientation: 'h',
-                    yanchor: 'bottom',
-                    y: 1.02,
-                    xanchor: 'right',
-                    x: 1,
-                    bgcolor: 'rgba(10,10,10,0.8)',
-                    bordercolor: '#333',
-                    borderwidth: 1,
-                    font: { size: 11 }
-                },
-                height: 500,
-                autosize: true
-            };
-
-            const config = {
-                responsive: true,
-                displaylogo: false,
-                modeBarButtonsToRemove: ['select2d', 'lasso2d', 'toImage'],
-                displayModeBar: true
-            };
-
-            if(canvasElement.querySelector('.chart-message')) canvasElement.innerHTML = '';
-
-            Plotly.react(canvasElement, traces, layout, config)
-                .then(gd => {
-                    charts[chartId].chartInstance = gd;
-                })
-                .catch(err => {
-                    console.error("Plotly error:", err);
-                    canvasElement.innerHTML = `<div class="chart-message" style="color: #ff4444;">Chart error: ${err.message}</div>`;
-                });
+           
+            showTemporaryMessage(`Chart functionality for ${symbol} - data integration in progress`, 'info');
         }
 
         function showChartView() {
             const chartsArea = document.getElementById('chartsArea');
             const watchlistSection = document.querySelector('.watchlist-section');
-
+           
             if (chartsArea.style.display === 'none') {
                 chartsArea.style.display = 'block';
                 watchlistSection.style.flex = '0 0 300px';
@@ -1892,32 +1323,47 @@
                 watchlistSection.style.flex = '1';
             }
         }
-
-        // Update clock
-        function updateClock() {
-            document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
+       
+        // Change sort order
+        function changeSortOrder(order) {
+            sortOrder = order;
+            updateSortButtons();
+            renderWatchlist();
         }
-
+       
+        // Update sort buttons
+        function updateSortButtons() {
+            document.getElementById('sortDefault').classList.toggle('active', sortOrder === 'default');
+            document.getElementById('sortIncrease').classList.toggle('active', sortOrder === 'increase');
+            document.getElementById('sortDecrease').classList.toggle('active', sortOrder === 'decrease');
+        }
+       
+        // Edit symbol function (placeholder)
+        function editSymbol(event, symbol) {
+            event.stopPropagation();
+            showTemporaryMessage(`Edit functionality for ${symbol} - implement as needed`, 'info');
+        }
+       
         // Utility functions
         function showTemporaryMessage(text, type = 'info') {
             const popup = document.createElement('div');
             popup.className = `message-popup ${type}`;
             popup.textContent = text;
             document.body.appendChild(popup);
-
+           
             setTimeout(() => popup.remove(), 3000);
         }
-
+       
         // Hide search results when clicking outside
         document.addEventListener('click', function(event) {
             const searchBox = document.getElementById('searchBox');
             const searchResults = document.getElementById('searchResults');
-
+           
             if (!searchBox.contains(event.target) && !searchResults.contains(event.target)) {
                 searchResults.style.display = 'none';
             }
         });
-
+       
         // Initialize on page load
         window.onload = init;
     </script>
