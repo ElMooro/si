@@ -372,7 +372,7 @@
 </head>
 <body>
     <div class="header">
-        <div class="logo">📊 OPENBB FINANCIAL CHARTS</div>
+        <div class="logo">📊 OPENBB FINANCIAL CHARTS • 6,042+ Indicators</div>
         <div class="header-controls">
             <button class="control-btn" onclick="addNewChart()">+ New Chart</button>
             <span id="clock" style="color: #888; font-size: 14px;"></span>
@@ -749,7 +749,7 @@
             setActiveChart(chartId);
         }
        
-        // Enhanced sample data generation with volume
+        // Enhanced sample data generation with more realistic financial patterns
         function generateSampleData(symbol, years = 5) {
             const data = [];
             const startDate = new Date();
@@ -757,64 +757,95 @@
            
             let baseValue = 100;
             let baseVolume = 1000000;
+            let volatility = 0.02; // Default volatility
             
             if (symbol === 'AAPL') {
                 baseValue = 150;
                 baseVolume = 50000000;
+                volatility = 0.025;
             } else if (symbol === 'MSFT') {
                 baseValue = 300;
                 baseVolume = 30000000;
+                volatility = 0.022;
             } else if (symbol === 'GOOGL') {
                 baseValue = 2500;
                 baseVolume = 25000000;
+                volatility = 0.028;
             } else if (symbol === 'FEDFUNDS') {
                 baseValue = 2.5;
-                baseVolume = 0; // No volume for economic indicators
+                baseVolume = 0;
+                volatility = 0.01; // Low volatility for interest rates
             } else if (symbol === 'UNRATE') {
                 baseValue = 5.0;
                 baseVolume = 0;
+                volatility = 0.005; // Very low volatility for unemployment
             } else if (symbol === 'DGS10') {
                 baseValue = 3.5;
                 baseVolume = 0;
+                volatility = 0.008;
             } else if (symbol === 'VIXCLS') {
                 baseValue = 20;
                 baseVolume = 0;
+                volatility = 0.15; // High volatility for VIX
+            } else if (symbol.includes('DTWEX')) {
+                baseValue = 95; // Dollar index around 95
+                baseVolume = 0;
+                volatility = 0.015;
             }
            
             let currentValue = baseValue;
-            const volatility = symbol.includes('VIX') ? 0.15 : symbol.includes('RATE') ? 0.02 : 0.05;
-           
+            
             for (let i = 0; i < years * 252; i++) { // ~252 trading days per year
                 const date = new Date(startDate);
                 date.setDate(startDate.getDate() + i);
                
-                // Add some realistic market movements
-                const randomChange = (Math.random() - 0.5) * volatility * 2;
-                const trend = Math.sin(i / 100) * 0.001; // Slight trend
-                const marketCycle = Math.sin(i / 500) * 0.02; // Longer market cycles
+                // Create more realistic market movements with trends and reversals
+                const randomWalk = (Math.random() - 0.5) * volatility * 2;
+                const trendComponent = Math.sin(i / 200) * 0.001; // Longer trend cycles
+                const cyclicalComponent = Math.sin(i / 50) * 0.005; // Shorter cycles
+                const seasonalComponent = Math.sin(i / 63) * 0.002; // Quarterly effects
                 
-                currentValue *= (1 + randomChange + trend + marketCycle);
+                // Add occasional large moves (market events)
+                const eventProbability = Math.random();
+                let eventComponent = 0;
+                if (eventProbability < 0.005) { // 0.5% chance of large move
+                    eventComponent = (Math.random() - 0.5) * volatility * 5;
+                }
+                
+                const totalChange = randomWalk + trendComponent + cyclicalComponent + seasonalComponent + eventComponent;
+                currentValue *= (1 + totalChange);
                
                 // Prevent negative values for certain instruments
-                if (symbol.includes('RATE') || symbol.includes('VIX')) {
+                if (symbol.includes('RATE') || symbol.includes('VIX') || symbol.includes('UNRATE')) {
                     currentValue = Math.max(0.01, currentValue);
                 }
+                
+                // Add realistic bounds
+                if (symbol === 'UNRATE' && currentValue > 15) currentValue = 15;
+                if (symbol === 'VIXCLS' && currentValue > 80) currentValue = 80;
+                if (symbol === 'VIXCLS' && currentValue < 10) currentValue = 10;
                 
                 // Generate volume data for stocks/ETFs
                 let volume = 0;
                 if (baseVolume > 0) {
-                    const volumeVariation = (Math.random() - 0.5) * 0.4; // ±20% variation
-                    const volumeTrend = Math.abs(randomChange) * 2; // Higher volume on bigger moves
+                    const volumeVariation = (Math.random() - 0.5) * 0.4;
+                    const volumeTrend = Math.abs(totalChange) * 3; // Higher volume on bigger moves
                     volume = Math.round(baseVolume * (1 + volumeVariation + volumeTrend));
                 }
+               
+                // Create realistic OHLC data
+                const dailyRange = currentValue * volatility * (0.5 + Math.random());
+                const high = currentValue + dailyRange * Math.random();
+                const low = currentValue - dailyRange * Math.random();
+                const open = currentValue * (1 + (Math.random() - 0.5) * volatility * 0.5);
                
                 data.push({
                     date: date.toISOString().split('T')[0],
                     value: currentValue,
                     volume: volume,
-                    high: currentValue * (1 + Math.random() * 0.02),
-                    low: currentValue * (1 - Math.random() * 0.02),
-                    open: currentValue * (1 + (Math.random() - 0.5) * 0.01),
+                    high: Math.max(high, currentValue, open),
+                    low: Math.min(low, currentValue, open),
+                    open: open,
                     close: currentValue
                 });
             }
@@ -905,7 +936,7 @@
             }
         }
        
-        // Calculate additional changes for chart data
+        // Calculate additional changes for chart data with proper trend detection
         function calculateChartChanges(data) {
             if (!data || data.length === 0) return data;
            
@@ -926,24 +957,68 @@
                     return null;
                 };
                
-                // Calculate various period changes
+                // Calculate various period changes for trend detection
                 const prevDayValue = (index > 0) ? arr[index-1].value : null;
                 const prevWeekValue = findPreviousValue(7);
+                const prevMonthValue = findPreviousValue(30);
                 const prevYearValue = findPreviousValue(365);
                
+                // Daily changes
                 if (prevDayValue !== null && prevDayValue !== 0) {
-                    newItem.daily_pct_change = ((item.value - prevDayValue) / prevDayValue) * 100;
+                    newItem.daily_pct_change = ((item.value - prevDayValue) / Math.abs(prevDayValue)) * 100;
                     newItem.daily_change_units = item.value - prevDayValue;
+                } else {
+                    newItem.daily_pct_change = 0;
+                    newItem.daily_change_units = 0;
                 }
                
+                // Weekly changes
                 if (prevWeekValue !== null && prevWeekValue !== 0) {
-                    newItem.weekly_pct_change = ((item.value - prevWeekValue) / prevWeekValue) * 100;
+                    newItem.weekly_pct_change = ((item.value - prevWeekValue) / Math.abs(prevWeekValue)) * 100;
                     newItem.weekly_change_units = item.value - prevWeekValue;
+                } else {
+                    newItem.weekly_pct_change = 0;
+                    newItem.weekly_change_units = 0;
                 }
                
+                // Monthly changes
+                if (prevMonthValue !== null && prevMonthValue !== 0) {
+                    newItem.monthly_pct_change = ((item.value - prevMonthValue) / Math.abs(prevMonthValue)) * 100;
+                    newItem.monthly_change_units = item.value - prevMonthValue;
+                } else {
+                    newItem.monthly_pct_change = 0;
+                    newItem.monthly_change_units = 0;
+                }
+               
+                // Yearly changes
                 if (prevYearValue !== null && prevYearValue !== 0) {
-                    newItem.yearly_pct_change = ((item.value - prevYearValue) / prevYearValue) * 100;
+                    newItem.yearly_pct_change = ((item.value - prevYearValue) / Math.abs(prevYearValue)) * 100;
                     newItem.yearly_change_units = item.value - prevYearValue;
+                } else {
+                    newItem.yearly_pct_change = 0;
+                    newItem.yearly_change_units = 0;
+                }
+               
+                // Trend detection indicators
+                if (index >= 5) {
+                    // 5-period trend
+                    const recentValues = arr.slice(index - 4, index + 1).map(d => d.value);
+                    const trend = recentValues[recentValues.length - 1] - recentValues[0];
+                    newItem.short_trend = trend;
+                    
+                    // Moving average for smoothing
+                    const avgValue = recentValues.reduce((sum, val) => sum + val, 0) / recentValues.length;
+                    newItem.moving_avg_5 = avgValue;
+                }
+               
+                if (index >= 20) {
+                    // 20-period moving average for longer trend
+                    const longerValues = arr.slice(index - 19, index + 1).map(d => d.value);
+                    const avgLonger = longerValues.reduce((sum, val) => sum + val, 0) / longerValues.length;
+                    newItem.moving_avg_20 = avgLonger;
+                    
+                    // Trend strength
+                    newItem.trend_strength = ((item.value - avgLonger) / Math.abs(avgLonger)) * 100;
                 }
                
                 return newItem;
@@ -1712,14 +1787,42 @@
                         
                     case 'pct_change':
                         yData = filteredData.map(d => d.daily_pct_change || 0);
-                        yLabel = '% Change';
-                        hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>% Change: %{y:.2f}%<extra></extra>`;
+                        yLabel = 'Daily % Change';
+                        hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>% Change: %{y:.3f}%<extra></extra>`;
+                        
+                        // Add zero line for reference
+                        if (index === 0) {
+                            traces.push({
+                                x: filteredData.map(d => d.date),
+                                y: filteredData.map(() => 0),
+                                type: 'scatter',
+                                mode: 'lines',
+                                name: 'Zero Line',
+                                line: { color: 'gray', width: 1, dash: 'dash' },
+                                showlegend: false,
+                                hoverinfo: 'skip'
+                            });
+                        }
                         break;
                         
                     case 'unit_change':
                         yData = filteredData.map(d => d.daily_change_units || 0);
-                        yLabel = 'Unit Change';
-                        hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Unit Change: %{y:.4f}<extra></extra>`;
+                        yLabel = 'Daily Unit Change';
+                        hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Unit Change: %{y:.6f}<extra></extra>`;
+                        
+                        // Add zero line for reference
+                        if (index === 0) {
+                            traces.push({
+                                x: filteredData.map(d => d.date),
+                                y: filteredData.map(() => 0),
+                                type: 'scatter',
+                                mode: 'lines',
+                                name: 'Zero Line',
+                                line: { color: 'gray', width: 1, dash: 'dash' },
+                                showlegend: false,
+                                hoverinfo: 'skip'
+                            });
+                        }
                         break;
                         
                     case 'signals':
@@ -1749,6 +1852,17 @@
                         size: yData.map(v => v !== 0 ? 12 : 6),
                         symbol: yData.map(v => v === 1 ? 'triangle-up' : v === -1 ? 'triangle-down' : 'circle')
                     };
+                } else if (displayMode === 'pct_change' || displayMode === 'unit_change') {
+                    // Color-code changes: green for positive, red for negative
+                    trace.line = { 
+                        color: lineColor, 
+                        width: 2 
+                    };
+                    trace.marker = {
+                        color: yData.map(v => v > 0 ? '#00ff88' : v < 0 ? '#ff4444' : '#888888'),
+                        size: 4
+                    };
+                    trace.mode = 'lines+markers';
                 } else {
                     trace.line = { color: lineColor, width: 2 };
                 }
