@@ -2140,7 +2140,9 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
                                         });
                                     }
                                     
-                                    filteredData = [...validRsiData];
+                                    // Create new array reference
+                                    let filteredDataCopy = [...validRsiData];
+                                    filteredData = filteredDataCopy;
                                     break;
                                     
                                 case 'macd':
