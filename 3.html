@@ -961,6 +961,7 @@
         let watchlistData = {};
         let sortOrder = 'default';
         let columnSort = { column: null, direction: null };
+        let isLoadingWatchlist = false; // Add loading guard
 
         // Chart management
         const charts = {};
@@ -978,8 +979,18 @@
 
             loadWatchlists();
             await checkBackendConnection();
-            loadWatchlistData();
-            setInterval(loadWatchlistData, 60000); // Refresh every minute
+            
+            // Only load watchlist data once during initialization
+            if (!isLoadingWatchlist) {
+                await loadWatchlistData();
+            }
+            
+            // Set up periodic refresh (every 5 minutes instead of 1 minute)
+            setInterval(() => {
+                if (!isLoadingWatchlist) {
+                    loadWatchlistData();
+                }
+            }, 300000); // 5 minutes
 
             updateSortButtons();
             document.getElementById('searchBox').focus();
@@ -1257,59 +1268,84 @@
 
         // Switch watchlist
         function switchWatchlist(watchlistName) {
+            // Prevent switching if currently loading
+            if (isLoadingWatchlist) {
+                console.log('Cannot switch watchlist while loading');
+                return;
+            }
+
             currentWatchlist = watchlistName;
             watchlistSymbols = [...watchlists[currentWatchlist].symbols];
-            watchlistData = {};
+            watchlistData = {}; // Clear previous data
             loadWatchlistData();
         }
 
         // Load watchlist data
         async function loadWatchlistData() {
-            const tbody = document.getElementById('watchlistBody');
-
-            if (!watchlistSymbols || watchlistSymbols.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: #888;">No indicators in watchlist. Use search to add indicators.</td></tr>';
+            // Prevent multiple simultaneous loads
+            if (isLoadingWatchlist) {
+                console.log('Watchlist already loading, skipping...');
                 return;
             }
 
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;"><div class="loading-pulse">Loading watchlist...</div></td></tr>';
+            isLoadingWatchlist = true;
+            const tbody = document.getElementById('watchlistBody');
 
-            // Initialize all watchlist data entries first to prevent "No data found" warnings
-            for (const symbolObj of watchlistSymbols) {
-                const name = symbolObj.name || symbolObj.symbol || symbolObj;
-                const source = symbolObj.source || 'fred';
-                
-                if (name && source) {
-                    // Initialize with loading state
-                    watchlistData[name] = {
-                        name: name,
-                        description: name,
-                        source: source,
-                        value: 0,
-                        changes: { '1d': 0, '1w': 0, '1m': 0, '1y': 0 },
-                        hasData: false,
-                        loading: true
-                    };
+            try {
+                if (!watchlistSymbols || watchlistSymbols.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: #888;">No indicators in watchlist. Use search to add indicators.</td></tr>';
+                    return;
                 }
-            }
 
-            // Render loading state
-            renderWatchlist();
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;"><div class="loading-pulse">Loading watchlist...</div></td></tr>';
 
-            // Load data for each symbol without re-rendering until all are loaded
-            const loadPromises = [];
-            for (const symbolObj of watchlistSymbols) {
-                const name = symbolObj.name || symbolObj.symbol || symbolObj;
-                const source = symbolObj.source || 'fred';
-                
-                if (name && source) {
-                    loadPromises.push(loadSingleWatchlistItemSilent(name, source));
+                // Initialize all watchlist data entries first to prevent "No data found" warnings
+                for (const symbolObj of watchlistSymbols) {
+                    const name = symbolObj.name || symbolObj.symbol || symbolObj;
+                    const source = symbolObj.source || 'fred';
+                    
+                    if (name && source) {
+                        // Only initialize if not already exists
+                        if (!watchlistData[name]) {
+                            watchlistData[name] = {
+                                name: name,
+                                description: name,
+                                source: source,
+                                value: 0,
+                                changes: { '1d': 0, '1w': 0, '1m': 0, '1y': 0 },
+                                hasData: false,
+                                loading: true
+                            };
+                        } else {
+                            // Mark existing items as loading for refresh
+                            watchlistData[name].loading = true;
+                        }
+                    }
                 }
-            }
 
-            // Wait for all to complete, then render once
-            await Promise.all(loadPromises);
-            renderWatchlist();
+                // Render loading state
+                renderWatchlist();
+
+                // Load data for each symbol without re-rendering until all are loaded
+                const loadPromises = [];
+                for (const symbolObj of watchlistSymbols) {
+                    const name = symbolObj.name || symbolObj.symbol || symbolObj;
+                    const source = symbolObj.source || 'fred';
+                    
+                    if (name && source) {
+                        loadPromises.push(loadSingleWatchlistItemSilent(name, source));
+                    }
+                }
+
+                // Wait for all to complete, then render once
+                await Promise.all(loadPromises);
+                renderWatchlist();
+
+            } catch (error) {
+                console.error('Error loading watchlist data:', error);
+            } finally {
+                isLoadingWatchlist = false;
+            }
         }
 
         // Silent version that doesn't trigger re-render
