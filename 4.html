@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenBB Financial Charts</title>
+   
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+   
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+       
+        /* Header */
+        .header {
+            background: #121212;
+            padding: 15px 20px;
+            border-bottom: 1px solid #282828;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .logo {
+            font-size: 22px;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+       
+        /* Main Container */
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 71px);
+        }
+       
+        /* Search Section */
+        .search-section {
+            background: #121212;
+            padding: 20px;
+            border-bottom: 1px solid #282828;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .search-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+        }
+        .search-box {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            background: #222;
+            border: 2px solid #333;
+            color: #fff;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        .search-box:focus {
+            outline: none;
+            border-color: #00ff88;
+        }
+        .search-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #777;
+            font-size: 18px;
+        }
+       
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            margin-top: 5px;
+            max-height: 500px;
+            overflow-y: auto;
+            background: #181818;
+            border: 1px solid #333;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        .search-loading {
+            padding: 20px;
+            text-align: center;
+            color: #00ff88;
+        }
+        .search-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: background 0.15s;
+            border-bottom: 1px solid #222;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .search-item:last-child { border-bottom: none; }
+        .search-item:hover { background: #252525; }
+        .search-item-left {
+            flex: 1;
+        }
+        .search-item-symbol {
+            font-weight: bold;
+            color: #00dd77;
+            font-size: 16px;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+        }
+        .search-item-name {
+            font-size: 14px;
+            color: #ddd;
+            margin-bottom: 4px;
+        }
+        .search-item-description {
+            font-size: 12px;
+            color: #aaa;
+            line-height: 1.3;
+        }
+        .search-item-source {
+            font-size: 11px;
+            color: #888;
+            background: #2a2a2a;
+            padding: 4px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+       
+        /* Charts Area */
+        .charts-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #0f0f0f;
+        }
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 20px;
+        }
+        .chart-window {
+            background: #131313;
+            border: 1px solid #282828;
+            border-radius: 10px;
+            padding: 20px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            transition: border-color 0.3s;
+            min-height: 500px;
+        }
+        .chart-window.active-chart {
+            border-color: #00ff88;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+        }
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .chart-title-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex-grow: 1;
+        }
+        .chart-title {
+            font-size: 18px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .chart-symbols {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .chart-symbol-tag {
+            background: #252525;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid #333;
+        }
+        .symbol-color-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .remove-symbol {
+            cursor: pointer;
+            color: #ff5555;
+            font-weight: bold;
+            margin-left: 5px;
+            opacity: 0.7;
+            font-size: 14px;
+        }
+        .remove-symbol:hover { opacity: 1; }
+
+        .chart-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .timeframe-buttons {
+            display: flex;
+            gap: 2px;
+            background: #080808;
+            padding: 3px;
+            border-radius: 6px;
+            border: 1px solid #252525;
+        }
+        .timeframe-btn {
+            background: transparent;
+            border: none;
+            color: #888;
+            padding: 6px 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 12px;
+            border-radius: 4px;
+        }
+        .timeframe-btn:hover {
+            background: #2e2e2e;
+            color: #fff;
+        }
+        .timeframe-btn.active {
+            background: #00dd77;
+            color: #000;
+            font-weight: bold;
+        }
+       
+        /* Chart Display Controls */
+        .chart-display-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        .display-toggle {
+            background: #252525;
+            border: 1px solid #383838;
+            color: #ccc;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s;
+        }
+        .display-toggle:hover {
+            background: #333;
+            border-color: #555;
+        }
+        .display-toggle.active {
+            background: #00dd77;
+            color: #000;
+            border-color: #00dd77;
+        }
+       
+        .chart-canvas {
+            background: #0a0a0a;
+            border-radius: 6px;
+            height: 500px;
+            flex-grow: 1;
+            min-height: 450px;
+        }
+        .chart-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #555;
+            font-size: 16px;
+            text-align: center;
+            padding: 20px;
+        }
+       
+        .control-btn {
+            background: #252525;
+            border: 1px solid #383838;
+            color: #ccc;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        .control-btn:hover {
+            background: #333;
+            border-color: #555;
+            color: #fff;
+        }
+        .close-btn {
+            background: #dd4444;
+            border-color: #dd4444;
+            color: #fff;
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            line-height: 1;
+        }
+        .close-btn:hover { background: #ff5555; }
+       
+        /* Loading */
+        .loading-pulse { animation: pulse 1.5s infinite ease-in-out; }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+       
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0f0f0f; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #444; }
+       
+        /* Message Popup */
+        .message-popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #222;
+            border: 1px solid #333;
+            padding: 15px 20px;
+            border-radius: 6px;
+            z-index: 2000;
+            animation: slideInAndOut 3s ease-in-out forwards;
+        }
+        .message-popup.info { border-color: #00dd77; }
+        .message-popup.error { border-color: #ff4444; color: #ff6666; }
+       
+        @keyframes slideInAndOut {
+            0% { transform: translateX(120%); opacity: 0; }
+            15%, 85% { transform: translateX(0); opacity: 1; }
+            100% { transform: translateX(120%); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">📊 OPENBB FINANCIAL CHARTS</div>
+        <div class="header-controls">
+            <button class="control-btn" onclick="addNewChart()">+ New Chart</button>
+            <span id="clock" style="color: #888; font-size: 14px;"></span>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="search-section">
+            <div class="search-container">
+                <input type="text" class="search-box" id="searchBox"
+                       placeholder="Search financial instruments (AAPL, FEDFUNDS, SPY, etc.)..."
+                       onkeyup="performSearch(this.value)"
+                       autocomplete="off">
+                <span class="search-icon">🔍</span>
+                <div class="search-results" id="searchResults" style="display: none;"></div>
+            </div>
+        </div>
+
+        <div class="charts-area" id="chartsArea">
+            <div class="chart-grid" id="chartGrid"></div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE = 'https://ped8gafyuz.us-east-1.awsapprunner.com';
+       
+        // Sample data for demo purposes
+        const sampleSymbols = [
+            { symbol: 'AAPL', name: 'Apple Inc.', source: 'stocks' },
+            { symbol: 'MSFT', name: 'Microsoft Corporation', source: 'stocks' },
+            { symbol: 'GOOGL', name: 'Alphabet Inc.', source: 'stocks' },
+            { symbol: 'AMZN', name: 'Amazon.com Inc.', source: 'stocks' },
+            { symbol: 'TSLA', name: 'Tesla Inc.', source: 'stocks' },
+            { symbol: 'SPY', name: 'SPDR S&P 500 ETF', source: 'etf' },
+            { symbol: 'QQQ', name: 'Invesco QQQ Trust', source: 'etf' },
+            { symbol: 'FEDFUNDS', name: 'Federal Funds Rate', source: 'economic' },
+            { symbol: 'UNRATE', name: 'Unemployment Rate', source: 'economic' },
+            { symbol: 'GDP', name: 'Gross Domestic Product', source: 'economic' },
+            { symbol: 'CPIAUCSL', name: 'Consumer Price Index', source: 'economic' },
+            { symbol: 'DGS10', name: '10-Year Treasury Rate', source: 'economic' },
+            { symbol: 'VIXCLS', name: 'CBOE Volatility Index', source: 'economic' }
+        ];
+       
+        const charts = {};
+        let chartIdCounter = 0;
+        let activeChartId = null;
+        let searchTimeout = null;
+       
+        // Color palette for charts
+        const colorPalette = [
+            '#00AEEF', '#FF4444', '#F4D03F', '#58D68D', '#FF7043',
+            '#AF7AC5', '#48C9B0', '#EC7063', '#5DADE2', '#F5B041'
+        ];
+       
+        // Initialize the application
+        function init() {
+            updateClock();
+            setInterval(updateClock, 1000);
+            document.getElementById('searchBox').focus();
+            addNewChart(); // Start with one chart
+        }
+       
+        // Update clock
+        function updateClock() {
+            document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
+        }
+       
+        // Search functionality
+        async function performSearch(query) {
+            const resultsDiv = document.getElementById('searchResults');
+           
+            if (!query || query.trim().length < 1) {
+                resultsDiv.style.display = 'none';
+                return;
+            }
+           
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(async () => {
+                resultsDiv.innerHTML = '<div class="search-loading">Searching financial instruments...</div>';
+                resultsDiv.style.display = 'block';
+               
+                // Filter sample symbols
+                const filteredSymbols = sampleSymbols.filter(symbol =>
+                    symbol.symbol.toLowerCase().includes(query.toLowerCase()) ||
+                    symbol.name.toLowerCase().includes(query.toLowerCase())
+                );
+               
+                displaySearchResults(filteredSymbols, query);
+            }, 300);
+        }
+       
+        // Display search results
+        function displaySearchResults(results, query) {
+            const resultsDiv = document.getElementById('searchResults');
+           
+            if (!results || results.length === 0) {
+                resultsDiv.innerHTML = `
+                    <div class="search-item" style="text-align:center; color:#888; padding: 20px;">
+                        No results found for "${query}"
+                    </div>
+                `;
+                return;
+            }
+           
+            const highlightMatch = (text) => {
+                if (!text) return '';
+                const regex = new RegExp(`(${query.split(' ').join('|')})`, 'gi');
+                return text.replace(regex, '<span style="color: #00ff88; font-weight: bold;">$1</span>');
+            };
+           
+            const html = results.map(result => `
+                <div class="search-item" onclick="addToChart('${result.symbol}', '${result.name}')">
+                    <div class="search-item-left">
+                        <div class="search-item-symbol">${highlightMatch(result.symbol)}</div>
+                        <div class="search-item-name">${highlightMatch(result.name)}</div>
+                    </div>
+                    <div class="search-item-source">${result.source.toUpperCase()}</div>
+                </div>
+            `).join('');
+           
+            resultsDiv.innerHTML = html;
+            resultsDiv.style.display = 'block';
+        }
+       
+        // Add symbol to active chart
+        function addToChart(symbol, name) {
+            if (activeChartId) {
+                addSymbolToChart(activeChartId, symbol, name);
+            } else {
+                addNewChart();
+                if (activeChartId) {
+                    addSymbolToChart(activeChartId, symbol, name);
+                }
+            }
+           
+            document.getElementById('searchResults').style.display = 'none';
+            document.getElementById('searchBox').value = '';
+        }
+       
+        // Chart Management Functions
+        function addNewChart() {
+            const chartId = `chart_${chartIdCounter++}`;
+           
+            const chartHtml = `
+                <div class="chart-window" id="${chartId}" onclick="setActiveChart('${chartId}')">
+                    <div class="chart-header">
+                        <div class="chart-title-section">
+                            <div class="chart-title" id="${chartId}_title">Chart ${chartIdCounter}</div>
+                            <div class="chart-symbols" id="${chartId}_symbols"></div>
+                            <div class="chart-display-controls">
+                                <button class="display-toggle active" onclick="toggleChartDisplay(event, '${chartId}', 'raw')" data-display="raw">Raw Data</button>
+                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'pct_change')" data-display="pct_change">% Change</button>
+                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'unit_change')" data-display="unit_change">Unit Change</button>
+                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'year_pct')" data-display="year_pct">Year % Change</button>
+                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'year_units')" data-display="year_units">Year Unit Change</button>
+                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'slope')" data-display="slope">Slope (30)</button>
+                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'macd')" data-display="macd">MACD</button>
+                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'zscore')" data-display="zscore">Z-Score (30)</button>
+                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'signals')" data-display="signals">Buy/Sell Signals</button>
+                            </div>
+                        </div>
+                        <div class="chart-controls">
+                            <div class="timeframe-buttons" id="${chartId}_timeframe_buttons">
+                                ${['1D','1W','1M','3M','6M','1Y','2Y','5Y','10Y','MAX'].map(tf =>
+                                    `<button class="timeframe-btn ${tf === '1Y' ? 'active' : ''}"
+                                             onclick="changeTimeframe(event, '${chartId}', '${tf}')">${tf}</button>`
+                                ).join('')}
+                            </div>
+                            <button class="close-btn" onclick="removeChart(event, '${chartId}')">×</button>
+                        </div>
+                    </div>
+                    <div class="chart-canvas" id="${chartId}_canvas">
+                        <div class="chart-message">Search for a financial instrument to add to this chart</div>
+                    </div>
+                </div>`;
+           
+            document.getElementById('chartGrid').insertAdjacentHTML('beforeend', chartHtml);
+            charts[chartId] = {
+                symbols: [],
+                data: {},
+                timeframe: '1Y',
+                chartInstance: null,
+                displayMode: 'raw'
+            };
+            setActiveChart(chartId);
+        }
+       
+        function setActiveChart(chartId) {
+            if (activeChartId === chartId) return;
+            activeChartId = chartId;
+            document.querySelectorAll('.chart-window').forEach(c => c.classList.remove('active-chart'));
+            const chartElement = document.getElementById(chartId);
+            if (chartElement) {
+                chartElement.classList.add('active-chart');
+            }
+        }
+       
+        function removeChart(event, chartIdToRemove) {
+            event.stopPropagation();
+            if (charts[chartIdToRemove] && charts[chartIdToRemove].chartInstance) {
+                Plotly.purge(`${chartIdToRemove}_canvas`);
+            }
+            delete charts[chartIdToRemove];
+            document.getElementById(chartIdToRemove)?.remove();
+           
+            if (activeChartId === chartIdToRemove) {
+                const chartKeys = Object.keys(charts);
+                activeChartId = chartKeys.length > 0 ? chartKeys[chartKeys.length - 1] : null;
+                if(activeChartId) setActiveChart(activeChartId);
+            }
+           
+            if (Object.keys(charts).length === 0) {
+                addNewChart(); // Always keep at least one chart
+            }
+        }
+       
+        // Add symbol to specific chart
+        function addSymbolToChart(chartId, symbol, name) {
+            const chart = charts[chartId];
+            if (!chart) return;
+           
+            if (!chart.symbols.find(s => s.symbol === symbol)) {
+                chart.symbols.push({ symbol, name });
+                loadChartData(chartId, symbol, name);
+            }
+            setActiveChart(chartId);
+        }
+       
+        // Generate sample data for demonstration
+        function generateSampleData(symbol, years = 5) {
+            const data = [];
+            const startDate = new Date();
+            startDate.setFullYear(startDate.getFullYear() - years);
+           
+            let baseValue = 100;
+            if (symbol === 'AAPL') baseValue = 150;
+            else if (symbol === 'MSFT') baseValue = 300;
+            else if (symbol === 'GOOGL') baseValue = 2500;
+            else if (symbol === 'FEDFUNDS') baseValue = 2.5;
+            else if (symbol === 'UNRATE') baseValue = 5.0;
+            else if (symbol === 'DGS10') baseValue = 3.5;
+            else if (symbol === 'VIXCLS') baseValue = 20;
+           
+            let currentValue = baseValue;
+            const volatility = symbol.includes('VIX') ? 0.15 : symbol.includes('RATE') ? 0.02 : 0.05;
+           
+            for (let i = 0; i < years * 252; i++) { // ~252 trading days per year
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+               
+                // Add some realistic market movements
+                const randomChange = (Math.random() - 0.5) * volatility * 2;
+                const trend = Math.sin(i / 100) * 0.001; // Slight trend
+                currentValue *= (1 + randomChange + trend);
+               
+                // Prevent negative values for certain instruments
+                if (symbol.includes('RATE') || symbol.includes('VIX')) {
+                    currentValue = Math.max(0.01, currentValue);
+                }
+               
+                data.push({
+                    date: date.toISOString().split('T')[0],
+                    value: currentValue
+                });
+            }
+           
+            return data;
+        }
+       
+        // Load chart data (using sample data for demo)
+        async function loadChartData(chartId, symbol, name) {
+            const chart = charts[chartId];
+            if (!chart) return;
+           
+            const canvasDiv = document.getElementById(`${chartId}_canvas`);
+            if (canvasDiv) canvasDiv.innerHTML = `<div class="chart-message loading-pulse">Loading ${symbol}...</div>`;
+           
+            try {
+                // Generate sample data for demonstration
+                let processedData = generateSampleData(symbol, 5);
+               
+                // Calculate chart changes and technical indicators
+                processedData = calculateChartChanges(processedData);
+                processedData = calculateTechnicalIndicators(processedData);
+               
+                chart.data[symbol] = processedData;
+                updateChartRender(chartId);
+                updateChartSymbols(chartId);
+               
+                showTemporaryMessage(`Added ${symbol} to chart`, 'info');
+               
+            } catch (error) {
+                console.error(`Error loading chart data for ${symbol}:`, error);
+                if (canvasDiv) {
+                    canvasDiv.innerHTML = `<div class="chart-message" style="color: #ff4444;">Error loading ${symbol}<br><small>${error.message}</small></div>`;
+                }
+                chart.symbols = chart.symbols.filter(s => s.symbol !== symbol);
+                updateChartSymbols(chartId);
+            }
+        }
+       
+        // Calculate additional changes for chart data
+        function calculateChartChanges(data) {
+            if (!data || data.length === 0) return data;
+           
+            return data.map((item, index, arr) => {
+                const newItem = { ...item };
+                const currentDate = new Date(item.date);
+               
+                // Helper function to find previous value by days
+                const findPreviousValue = (daysAgo) => {
+                    const targetDate = new Date(currentDate);
+                    targetDate.setDate(currentDate.getDate() - daysAgo);
+                   
+                    for (let i = index - 1; i >= 0; i--) {
+                        if (new Date(arr[i].date) <= targetDate) {
+                            return arr[i].value;
+                        }
+                    }
+                    return null;
+                };
+               
+                // Calculate various period changes
+                const prevDayValue = (index > 0) ? arr[index-1].value : null;
+                const prevWeekValue = findPreviousValue(7);
+                const prevYearValue = findPreviousValue(365);
+               
+                if (prevDayValue !== null && prevDayValue !== 0) {
+                    newItem.daily_pct_change = ((item.value - prevDayValue) / prevDayValue) * 100;
+                    newItem.daily_change_units = item.value - prevDayValue;
+                }
+               
+                if (prevWeekValue !== null && prevWeekValue !== 0) {
+                    newItem.weekly_pct_change = ((item.value - prevWeekValue) / prevWeekValue) * 100;
+                    newItem.weekly_change_units = item.value - prevWeekValue;
+                }
+               
+                if (prevYearValue !== null && prevYearValue !== 0) {
+                    newItem.yearly_pct_change = ((item.value - prevYearValue) / prevYearValue) * 100;
+                    newItem.yearly_change_units = item.value - prevYearValue;
+                }
+               
+                return newItem;
+            });
+        }
+       
+        // Calculate technical indicators including MACD, slope, z-score, and signals
+        function calculateTechnicalIndicators(data) {
+            if (!data || data.length === 0) return data;
+           
+            const values = data.map(d => d.value);
+           
+            // Calculate EMA helper function
+            const calculateEMA = (period, dataArray) => {
+                if (dataArray.length < period) return dataArray.map(() => null);
+               
+                const k = 2 / (period + 1);
+                const emaArray = [];
+               
+                // Initialize with SMA
+                let ema = dataArray.slice(0, period).reduce((sum, val) => sum + val, 0) / period;
+                emaArray.push(...Array(period - 1).fill(null), ema);
+               
+                // Calculate EMA for remaining values
+                for (let i = period; i < dataArray.length; i++) {
+                    ema = (dataArray[i] - ema) * k + ema;
+                    emaArray.push(ema);
+                }
+               
+                return emaArray;
+            };
+           
+            // Calculate MACD components
+            const ema12Values = calculateEMA(12, values);
+            const ema26Values = calculateEMA(26, values);
+            const macdLine = ema12Values.map((e12, i) =>
+                ema26Values[i] !== null && e12 !== null ? e12 - ema26Values[i] : null
+            );
+           
+            // Calculate MACD signal line (9-period EMA of MACD line)
+            const validMacdValues = macdLine.filter(val => val !== null);
+            const signalLineValues = validMacdValues.length >= 9 ?
+                calculateEMA(9, validMacdValues) : validMacdValues.map(() => null);
+           
+            let signalLineIndex = 0;
+           
+            return data.map((item, index) => {
+                let slope30 = null;
+                let zscore30 = null;
+                let signal = null;
+                let currentMacd = macdLine[index];
+                let currentSignal = null;
+               
+                // Get MACD signal value
+                if (macdLine[index] !== null) {
+                    if (signalLineIndex < signalLineValues.length) {
+                        currentSignal = signalLineValues[signalLineIndex++];
+                    }
+                }
+               
+                // Calculate 30-period slope and z-score
+                if (index >= 29) {
+                    const window = values.slice(index - 29, index + 1);
+                    const n = window.length;
+                    const x = Array.from({length: n}, (_, i) => i);
+                   
+                    // Linear regression for slope
+                    const sumX = x.reduce((a, b) => a + b, 0);
+                    const sumY = window.reduce((a, b) => a + b, 0);
+                    const sumXY = x.reduce((sum, xi, i) => sum + xi * window[i], 0);
+                    const sumX2 = x.reduce((sum, xi) => sum + xi * xi, 0);
+                   
+                    if ((n * sumX2 - sumX * sumX) !== 0) {
+                        slope30 = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+                    }
+                   
+                    // Z-score calculation
+                    const mean = sumY / n;
+                    const variance = window.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / n;
+                    const stdDev = Math.sqrt(variance);
+                   
+                    if (stdDev > 0) {
+                        zscore30 = (item.value - mean) / stdDev;
+                    }
+                }
+               
+                // Generate buy/sell signals based on multiple indicators
+                if (currentMacd !== null && currentSignal !== null && slope30 !== null && zscore30 !== null) {
+                    // Buy signal: MACD above signal, positive slope, oversold (z-score < -1.5)
+                    if (currentMacd > currentSignal && slope30 > 0 && zscore30 < -1.5) {
+                        signal = 1; // Buy
+                    }
+                    // Sell signal: MACD below signal, negative slope, overbought (z-score > 1.5)
+                    else if (currentMacd < currentSignal && slope30 < 0 && zscore30 > 1.5) {
+                        signal = -1; // Sell
+                    }
+                    else {
+                        signal = 0; // Hold
+                    }
+                }
+               
+                return {
+                    ...item,
+                    slope_30: slope30,
+                    ema12: ema12Values[index],
+                    ema26: ema26Values[index],
+                    macd: currentMacd,
+                    macd_signal: currentSignal,
+                    zscore_30: zscore30,
+                    signal: signal
+                };
+            });
+        }
+       
+        // Chart display and interaction functions
+        function toggleChartDisplay(event, chartId, displayMode) {
+            event.stopPropagation();
+            const chart = charts[chartId];
+            if (!chart) return;
+           
+            chart.displayMode = displayMode;
+           
+            // Update button states
+            const controlsDiv = event.target.parentElement;
+            controlsDiv.querySelectorAll('.display-toggle').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+           
+            updateChartRender(chartId);
+        }
+       
+        function changeTimeframe(event, chartId, timeframe) {
+            event.stopPropagation();
+            const chart = charts[chartId];
+            if (!chart) return;
+            chart.timeframe = timeframe;
+           
+            const buttonContainer = document.getElementById(`${chartId}_timeframe_buttons`);
+            if (buttonContainer) {
+                buttonContainer.querySelectorAll('.timeframe-btn').forEach(btn => btn.classList.remove('active'));
+                if(event.target.tagName === 'BUTTON') event.target.classList.add('active');
+            }
+            updateChartRender(chartId);
+        }
+       
+        function updateChartSymbols(chartId) {
+            const chart = charts[chartId];
+            if (!chart) return;
+            const symbolsDiv = document.getElementById(`${chartId}_symbols`);
+            if (!symbolsDiv) return;
+           
+            symbolsDiv.innerHTML = chart.symbols.map((s, i) => `
+                <div class="chart-symbol-tag">
+                    <span class="symbol-color-dot" style="background-color: ${colorPalette[i % colorPalette.length]};"></span>
+                    ${s.symbol}
+                    <span class="remove-symbol" onclick="removeSymbolFromChart(event, '${chartId}', '${s.symbol}')">×</span>
+                </div>`).join('');
+        }
+       
+        function removeSymbolFromChart(event, chartId, symbolToRemove) {
+            event.stopPropagation();
+            const chart = charts[chartId];
+            if (!chart) return;
+
+            chart.symbols = chart.symbols.filter(s => s.symbol !== symbolToRemove);
+            delete chart.data[symbolToRemove];
+           
+            updateChartRender(chartId);
+            updateChartSymbols(chartId);
+           
+            if (chart.symbols.length === 0) {
+                document.getElementById(`${chartId}_canvas`).innerHTML = '<div class="chart-message">Search for a financial instrument to add to this chart</div>';
+            }
+        }
+       
+        function filterDataByTimeframe(data, timeframe) {
+            if (!data || data.length === 0) return data;
+           
+            const now = new Date();
+            let cutoffDate = new Date();
+           
+            switch(timeframe) {
+                case '1D':
+                    cutoffDate.setDate(now.getDate() - 1);
+                    break;
+                case '1W':
+                    cutoffDate.setDate(now.getDate() - 7);
+                    break;
+                case '1M':
+                    cutoffDate.setMonth(now.getMonth() - 1);
+                    break;
+                case '3M':
+                    cutoffDate.setMonth(now.getMonth() - 3);
+                    break;
+                case '6M':
+                    cutoffDate.setMonth(now.getMonth() - 6);
+                    break;
+                case '1Y':
+                    cutoffDate.setFullYear(now.getFullYear() - 1);
+                    break;
+                case '2Y':
+                    cutoffDate.setFullYear(now.getFullYear() - 2);
+                    break;
+                case '5Y':
+                    cutoffDate.setFullYear(now.getFullYear() - 5);
+                    break;
+                case '10Y':
+                    cutoffDate.setFullYear(now.getFullYear() - 10);
+                    break;
+                case 'MAX':
+                    return data;
+            }
+           
+            return data.filter(item => new Date(item.date) >= cutoffDate);
+        }
+       
+        // Enhanced chart rendering with all display modes and technical indicators
+        function updateChartRender(chartId) {
+            const chart = charts[chartId];
+            const canvasElement = document.getElementById(`${chartId}_canvas`);
+            if (!canvasElement || !chart) return;
+           
+            if (chart.symbols.length === 0) {
+                canvasElement.innerHTML = '<div class="chart-message">Search for a financial instrument to add to this chart</div>';
+                if (chart.chartInstance) Plotly.purge(canvasElement);
+                return;
+            }
+           
+            const traces = [];
+            const displayMode = chart.displayMode || 'raw';
+            let yLabel = 'Value';
+           
+            chart.symbols.forEach((s, index) => {
+                const symbolData = chart.data[s.symbol];
+                if (!symbolData || symbolData.length === 0) return;
+               
+                const filteredData = filterDataByTimeframe(symbolData, chart.timeframe);
+                if (filteredData.length === 0) return;
+               
+                const lineColor = colorPalette[index % colorPalette.length];
+               
+                let yData, hoverTemplate;
+               
+                // Determine what data to display based on mode
+                switch (displayMode) {
+                    case 'pct_change':
+                        yData = filteredData.map(d => d.daily_pct_change || 0);
+                        yLabel = '% Change';
+                        hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>% Change: %{y:.2f}%<extra></extra>`;
+                        break;
+                    case 'unit_change':
+                        yData = filteredData.map(d => d.daily_change_units || 0);
+                        yLabel = 'Unit Change';
+                        hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Unit Change: %{y:.4f}<extra></extra>`;
+                        break;
+                    case 'year_pct':
+                        yData = filteredData.map(d => d.yearly_pct_change || 0);
+                        yLabel = 'Yearly % Change';
+                        hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Yearly % Change: %{y:.2f}%<extra></extra>`;
+                        break;
+                    case 'year_units':
+                        yData = filteredData.map(d => d.yearly_change_units || 0);
+                        yLabel = 'Yearly Unit Change';
+                        hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Yearly Unit Change: %{y:.4f}<extra></extra>`;
+                        break;
+                    case 'slope':
+                        yData = filteredData.map(d => d.slope_30 || 0);
+                        yLabel = 'Slope (30-period)';
+                        hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Slope: %{y:.6f}<extra></extra>`;
+                        break;
+                    case 'macd':
+                        yData = filteredData.map(d => d.macd || 0);
+                        yLabel = 'MACD';
+                        hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>MACD: %{y:.4f}<extra></extra>`;
+                        break;
+                    case 'zscore':
+                        yData = filteredData.map(d => d.zscore_30 || 0);
+                        yLabel = 'Z-Score (30-period)';
+                        hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Z-Score: %{y:.2f}<extra></extra>`;
+                        break;
+                    case 'signals':
+                        yData = filteredData.map(d => d.signal || 0);
+                        yLabel = 'Buy/Sell Signals';
+                        hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Signal: %{y}<extra></extra>`;
+                        break;
+                    default: // 'raw'
+                        yData = filteredData.map(d => d.value);
+                        yLabel = 'Value';
+                        hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Value: %{y:.4f}<extra></extra>`;
+                }
+               
+                const trace = {
+                    x: filteredData.map(d => d.date),
+                    y: yData,
+                    type: 'scatter',
+                    mode: displayMode === 'signals' ? 'markers' : 'lines',
+                    name: s.symbol,
+                    hovertemplate: hoverTemplate
+                };
+               
+                if (displayMode === 'signals') {
+                    trace.marker = {
+                        color: yData.map(v => v === 1 ? '#00ff88' : v === -1 ? '#ff4444' : '#888888'),
+                        size: yData.map(v => v !== 0 ? 12 : 6),
+                        symbol: yData.map(v => v === 1 ? 'triangle-up' : v === -1 ? 'triangle-down' : 'circle')
+                    };
+                } else {
+                    trace.line = { color: lineColor, width: 2 };
+                }
+               
+                traces.push(trace);
+               
+                // Add MACD signal line if in MACD mode
+                if (displayMode === 'macd') {
+                    const signalData = filteredData.map(d => d.macd_signal || null);
+                    if (signalData.some(v => v !== null)) {
+                        traces.push({
+                            x: filteredData.map(d => d.date),
+                            y: signalData,
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: `${s.symbol} Signal`,
+                            line: { color: lineColor, width: 1, dash: 'dash' },
+                            hovertemplate: `<b>${s.symbol} Signal</b><br>Date: %{x}<br>Signal: %{y:.4f}<extra></extra>`
+                        });
+                    }
+                }
+            });
+           
+            if (traces.length === 0) {
+                canvasElement.innerHTML = '<div class="chart-message">No data to display for selected timeframe</div>';
+                return;
+            }
+           
+            const layout = {
+                title: {
+                    text: `${displayMode.replace('_', ' ').toUpperCase()} VIEW`,
+                    font: { color: '#fff', size: 14 },
+                    x: 0.5
+                },
+                paper_bgcolor: '#0a0a0a',
+                plot_bgcolor: '#0a0a0a',
+                font: { color: '#aaa', size: 12 },
+                margin: { t: 60, r: 80, b: 60, l: 80 },
+                xaxis: {
+                    type: 'date',
+                    gridcolor: '#22222250',
+                    tickfont: { color: '#888' },
+                    rangeslider: { visible: false }
+                },
+                yaxis: {
+                    title: { text: yLabel, font: { color: '#aaa' } },
+                    gridcolor: '#22222250',
+                    tickfont: { color: '#888' },
+                    zeroline: true,
+                    zerolinecolor: '#444',
+                    zerolinewidth: 1
+                },
+                hovermode: 'x unified',
+                showlegend: true,
+                legend: {
+                    orientation: 'h',
+                    yanchor: 'bottom',
+                    y: 1.02,
+                    xanchor: 'right',
+                    x: 1,
+                    bgcolor: 'rgba(10,10,10,0.8)',
+                    bordercolor: '#333',
+                    borderwidth: 1,
+                    font: { size: 11 }
+                },
+                height: 500,
+                autosize: true
+            };
+           
+            const config = {
+                responsive: true,
+                displaylogo: false,
+                modeBarButtonsToRemove: ['select2d', 'lasso2d', 'toImage'],
+                displayModeBar: true
+            };
+           
+            if(canvasElement.querySelector('.chart-message')) canvasElement.innerHTML = '';
+           
+            Plotly.react(canvasElement, traces, layout, config)
+                .then(gd => {
+                    charts[chartId].chartInstance = gd;
+                })
+                .catch(err => {
+                    console.error("Plotly error:", err);
+                    canvasElement.innerHTML = `<div class="chart-message" style="color: #ff4444;">Chart error: ${err.message}</div>`;
+                });
+        }
+       
+        // Utility functions
+        function showTemporaryMessage(text, type = 'info') {
+            const popup = document.createElement('div');
+            popup.className = `message-popup ${type}`;
+            popup.textContent = text;
+            document.body.appendChild(popup);
+           
+            setTimeout(() => popup.remove(), 3000);
+        }
+       
+        // Hide search results when clicking outside
+        document.addEventListener('click', function(event) {
+            const searchBox = document.getElementById('searchBox');
+            const searchResults = document.getElementById('searchResults');
+           
+            if (!searchBox.contains(event.target) && !searchResults.contains(event.target)) {
+                searchResults.style.display = 'none';
+            }
+        });
+       
+        // Initialize on page load
+        window.onload = init;
+    </script>
+</body>
+</html>
