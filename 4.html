@@ -806,19 +806,27 @@
             };
             
             results.forEach(result => {
-                if (result.sector === 'ETF' || result.symbol.includes('ETF')) {
+                // Safely check properties with fallbacks
+                const symbol = result.symbol || '';
+                const name = result.name || '';
+                const source = result.source || '';
+                const provider = result.provider || '';
+                const sector = result.sector || '';
+                const description = result.description || '';
+                
+                if (sector === 'ETF' || symbol.includes('ETF') || name.includes('ETF')) {
                     categorized['ETFs'].push(result);
-                } else if (result.source === 'fred' || result.provider === 'fred_direct') {
-                    if (result.symbol.includes('DGS') || result.symbol.includes('RATE') || result.symbol === 'FEDFUNDS') {
+                } else if (source === 'fred' || provider === 'fred_direct') {
+                    if (symbol.includes('DGS') || symbol.includes('RATE') || symbol === 'FEDFUNDS' || description.includes('Rate')) {
                         categorized['Rates'].push(result);
                     } else {
                         categorized['Economic'].push(result);
                     }
-                } else if (result.source === 'crypto' || result.symbol.includes('-USD') || result.symbol.includes('BTC') || result.symbol.includes('ETH')) {
+                } else if (source === 'crypto' || symbol.includes('-USD') || symbol.includes('BTC') || symbol.includes('ETH')) {
                     categorized['Crypto'].push(result);
-                } else if (result.source === 'commodities' || result.symbol.includes('=F') || result.symbol.includes('Gold') || result.symbol.includes('Oil')) {
+                } else if (source === 'commodities' || symbol.includes('=F') || name.includes('Gold') || name.includes('Oil')) {
                     categorized['Commodities'].push(result);
-                } else if (result.source === 'polygon' || result.sector) {
+                } else if (source === 'polygon' || sector) {
                     categorized['Stocks'].push(result);
                 } else {
                     categorized['Other'].push(result);
@@ -2401,6 +2409,7 @@
                         // Create trace with enhanced chart types
                         try {
                             const chartType = chart.chartType || 'line';
+                            const comparisonMode = chart.comparisonMode || 'absolute';
                             let trace;
                             
                             if (chartType === 'candlestick' && displayMode === 'raw' && filteredData[0]?.open !== undefined) {
