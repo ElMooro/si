@@ -1969,6 +1969,7 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
                                     yData = filteredData.map(d => d.value).filter(v => v !== null && !isNaN(v) && isFinite(v));
                                     yLabel = 'Price/Value';
                                     hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Value: %{y:.4f}<extra></extra>`;
+                                    xDataForTrace = filteredData; // Set x-axis data for raw mode
                                     // Note: Comparison mode transformations will be applied after trace creation
                                     break;
                                     
