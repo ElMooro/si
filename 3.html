@@ -1297,6 +1297,7 @@
                     return;
                 }
 
+                console.log(`🔄 Loading ${watchlistSymbols.length} watchlist indicators...`);
                 tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;"><div class="loading-pulse">Loading watchlist...</div></td></tr>';
 
                 // Initialize all watchlist data entries first to prevent "No data found" warnings
@@ -1319,6 +1320,7 @@
                         } else {
                             // Mark existing items as loading for refresh
                             watchlistData[name].loading = true;
+                            watchlistData[name].hasData = false;
                         }
                     }
                 }
@@ -1338,11 +1340,19 @@
                 }
 
                 // Wait for all to complete, then render once
+                console.log(`⏳ Waiting for ${loadPromises.length} indicators to load...`);
                 await Promise.all(loadPromises);
+                
+                console.log(`✅ All indicators loaded, rendering watchlist...`);
                 renderWatchlist();
+
+                // Show success message
+                const loadedCount = Object.values(watchlistData).filter(d => d.hasData).length;
+                console.log(`🎉 Successfully loaded ${loadedCount}/${watchlistSymbols.length} indicators`);
 
             } catch (error) {
                 console.error('Error loading watchlist data:', error);
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: #ff4444;">Error loading watchlist data</td></tr>';
             } finally {
                 isLoadingWatchlist = false;
             }
@@ -1358,9 +1368,12 @@
             try {
                 console.log(`Loading ${name} from ${source}`);
                 
+                // Add a small delay to simulate real API call
+                await new Promise(resolve => setTimeout(resolve, Math.random() * 1000 + 500));
+                
                 // Simulate loading individual indicator data
                 const mockData = {
-                    value: Math.random() * 100,
+                    value: Math.random() * 100 + 10, // Ensure non-zero values
                     changes: {
                         '1d': (Math.random() - 0.5) * 10,
                         '1w': (Math.random() - 0.5) * 20,
@@ -1371,25 +1384,32 @@
                 };
 
                 // Update the existing data
-                watchlistData[name] = {
-                    ...watchlistData[name],
-                    value: mockData.value,
-                    changes: mockData.changes,
-                    lastUpdated: mockData.lastUpdated,
-                    hasData: true,
-                    loading: false
-                };
+                if (watchlistData[name]) {
+                    watchlistData[name] = {
+                        ...watchlistData[name],
+                        value: mockData.value,
+                        changes: mockData.changes,
+                        lastUpdated: mockData.lastUpdated,
+                        hasData: true,
+                        loading: false
+                    };
+                    console.log(`✅ Loaded ${name}: ${mockData.value.toFixed(2)}`);
+                } else {
+                    console.warn(`No data entry found for ${name}`);
+                }
 
             } catch (error) {
                 console.error(`Error loading ${name}:`, error);
                 
                 // Update with error state
-                watchlistData[name] = {
-                    ...watchlistData[name],
-                    hasData: false,
-                    loading: false,
-                    error: error.message
-                };
+                if (watchlistData[name]) {
+                    watchlistData[name] = {
+                        ...watchlistData[name],
+                        hasData: false,
+                        loading: false,
+                        error: error.message
+                    };
+                }
             }
         }
 
@@ -1463,8 +1483,8 @@
 
             const formatValue = (value, loading = false) => {
                 if (loading) return '⏳ Loading...';
-                if (value === 0 || value === null || value === undefined) return 'No data';
-                if (Math.abs(value) >= 1000) return value.toFixed(0);
+                if (!value || value === 0) return 'No data';
+                if (Math.abs(value) >= 1000) return value.toLocaleString(undefined, {maximumFractionDigits: 0});
                 if (Math.abs(value) >= 1) return value.toFixed(2);
                 return value.toFixed(4);
             };
