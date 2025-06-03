@@ -2414,11 +2414,12 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
                             
                             if (chartType === 'candlestick' && displayMode === 'raw' && filteredData[0]?.open !== undefined) {
                                 trace = {
-                                    x: filteredData.map(d => d.date),
-                                    open: filteredData.map(d => d.open),
-                                    high: filteredData.map(d => d.high),
-                                    low: filteredData.map(d => d.low),
-                                    close: filteredData.map(d => d.close),
+                                    x: xDataForTrace.map(d => d.date),
+                                    y: xDataForTrace.map(d => d.open),
+                                    open: xDataForTrace.map(d => d.open),
+                                    high: xDataForTrace.map(d => d.high),
+                                    low: xDataForTrace.map(d => d.low),
+                                    close: xDataForTrace.map(d => d.close),
                                     type: 'candlestick',
                                     name: s.symbol,
                                     increasing: { line: { color: '#00ff88' } },
@@ -2426,11 +2427,11 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
                                 };
                             } else if (chartType === 'ohlc' && displayMode === 'raw' && filteredData[0]?.open !== undefined) {
                                 trace = {
-                                    x: filteredData.map(d => d.date),
-                                    open: filteredData.map(d => d.open),
-                                    high: filteredData.map(d => d.high),
-                                    low: filteredData.map(d => d.low),
-                                    close: filteredData.map(d => d.close),
+                                    x: xDataForTrace.map(d => d.date),
+                                    open: xDataForTrace.map(d => d.open),
+                                    high: xDataForTrace.map(d => d.high),
+                                    low: xDataForTrace.map(d => d.low),
+                                    close: xDataForTrace.map(d => d.close),
                                     type: 'ohlc',
                                     name: s.symbol,
                                     increasing: { line: { color: '#00ff88' } },
@@ -2438,7 +2439,7 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
                                 };
                             } else if (chartType === 'area') {
                                 trace = {
-                                    x: filteredData.map(d => d.date),
+                                    x: xDataForTrace.map(d => d.date),
                                     y: yData,
                                     type: 'scatter',
                                     mode: 'lines',
@@ -2450,7 +2451,7 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
                                 };
                             } else if (chartType === 'mountain') {
                                 trace = {
-                                    x: filteredData.map(d => d.date),
+                                    x: xDataForTrace.map(d => d.date),
                                     y: yData,
                                     type: 'scatter',
                                     mode: 'lines',
@@ -2465,8 +2466,8 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
                                 if (index === 0) {
                                     const minValue = Math.min(...yData);
                                     traces.push({
-                                        x: filteredData.map(d => d.date),
-                                        y: filteredData.map(() => minValue),
+                                        x: xDataForTrace.map(d => d.date),
+                                        y: xDataForTrace.map(() => minValue),
                                         type: 'scatter',
                                         mode: 'lines',
                                         line: { color: 'transparent' },
