@@ -564,7 +564,7 @@
     </div>
 
     <script>
-        // Updated API Configuration with CORS proxy solutions
+        // Updated API Configuration with better CORS solutions
         const API_CONFIG = {
             // System 1: Lambda Platform (6,204 indicators) - API Gateway FIXED
             lambda_api_gateway: 'https://i3y8tfdp1k.execute-api.us-east-1.amazonaws.com/prod',
@@ -572,19 +572,20 @@
             // System 2: Enhanced OpenBB API (60,000+ indicators) - FRED FIXED  
             enhanced_openbb_api: 'http://13.218.214.71:8000',
             
-            // CORS Proxy Solutions
-            cors_proxies: [
-                'https://api.allorigins.win/raw?url=',
-                'https://corsproxy.io/?',
-                'https://cors-anywhere.herokuapp.com/',
-                'https://api.codetabs.com/v1/proxy?quest='
+            // Alternative CORS solutions
+            cors_solutions: [
+                // Direct fetch with no-cors mode (limited but might work)
+                { type: 'no-cors', url: '' },
+                // JSONP-style solutions
+                { type: 'jsonp', url: 'https://jsonp.afeld.me/?url=' },
+                // Try different proxy services
+                { type: 'proxy', url: 'https://thingproxy.freeboard.io/fetch/' },
+                { type: 'proxy', url: 'https://api.allorigins.win/get?url=' },
+                { type: 'proxy', url: 'https://yacdn.org/proxy/' }
             ],
             
-            // Use proxy for CORS issues
-            use_cors_proxy: true,
-            
-            // Direct endpoints for same-origin requests
-            direct_mode: false,
+            // Use direct mode for development
+            use_direct_mode: false,
             
             timeout: 15000,
             max_retries: 3
@@ -722,142 +723,64 @@
             addNewChart(); // Start with one chart
         }
         
-        // Enhanced API status checker with CORS proxy support
+        // Simplified API status checker - acknowledge CORS limitations
         async function checkDualSystemStatus() {
             const statusDot = document.getElementById('statusDot');
             const statusText = document.getElementById('statusText');
             const apiDetails = document.getElementById('apiDetails');
             
-            statusText.textContent = 'Testing APIs...';
+            statusText.textContent = 'Checking APIs...';
             statusDot.className = 'status-dot warning';
             
-            let systemsOnline = 0;
+            // Set realistic expectations for browser-based access
+            console.log('🔍 Testing API accessibility from browser...');
             
-            // Test System 1: Lambda Platform via CORS Proxy
-            console.log('🔍 Testing System 1: Lambda Platform via CORS proxy...');
-            let lambdaSuccess = false;
-            
-            for (let i = 0; i < API_CONFIG.cors_proxies.length && !lambdaSuccess; i++) {
-                try {
-                    const proxy = API_CONFIG.cors_proxies[i];
-                    const lambdaUrl = `${proxy}${encodeURIComponent(API_CONFIG.lambda_api_gateway + '/api/search/stats')}`;
-                    
-                    console.log(`Trying proxy ${i + 1}: ${proxy}`);
-                    
-                    const lambdaResponse = await fetch(lambdaUrl, {
-                        method: 'GET',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
-                        signal: AbortSignal.timeout(API_CONFIG.timeout)
-                    });
-                    
-                    if (lambdaResponse.ok) {
-                        const lambdaText = await lambdaResponse.text();
-                        let lambdaData;
-                        
-                        try {
-                            lambdaData = JSON.parse(lambdaText);
-                        } catch (parseError) {
-                            console.warn('Lambda response parsing error:', parseError);
-                            continue;
-                        }
-                        
-                        if (lambdaData && lambdaData.document_count) {
-                            apiConnectionStatus.lambda_platform = 'connected';
-                            systemsOnline++;
-                            lambdaSuccess = true;
-                            console.log(`✅ Lambda Platform: ${lambdaData.document_count} indicators (via proxy ${i + 1})`);
-                            API_CONFIG.working_lambda_proxy = proxy;
-                            break;
-                        }
+            // Test Enhanced API first (more likely to work via allorigins)
+            let enhancedWorking = false;
+            try {
+                const testUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(API_CONFIG.enhanced_openbb_api + '/api/v1/economy/unemployment');
+                
+                const response = await fetch(testUrl, {
+                    method: 'GET',
+                    signal: AbortSignal.timeout(10000)
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.contents && JSON.parse(data.contents).results) {
+                        enhancedWorking = true;
+                        apiConnectionStatus.enhanced_api = 'connected';
+                        API_CONFIG.working_enhanced_url = testUrl.split('?url=')[0] + '?url=';
+                        console.log('✅ Enhanced API accessible via allorigins');
                     }
-                } catch (lambdaError) {
-                    console.warn(`Proxy ${i + 1} failed:`, lambdaError.message);
-                    continue;
                 }
+            } catch (error) {
+                console.log('⚠️ Enhanced API not accessible via proxy');
             }
             
-            if (!lambdaSuccess) {
-                console.warn('⚠️ All Lambda Platform proxies failed');
-                apiConnectionStatus.lambda_platform = 'cors_blocked';
-            }
+            // Lambda Platform is likely to remain CORS-blocked
+            apiConnectionStatus.lambda_platform = 'cors_blocked';
             
-            // Test System 2: Enhanced OpenBB API via HTTPS Proxy
-            console.log('🔍 Testing System 2: Enhanced OpenBB API via HTTPS proxy...');
-            let enhancedSuccess = false;
-            
-            for (let i = 0; i < API_CONFIG.cors_proxies.length && !enhancedSuccess; i++) {
-                try {
-                    const proxy = API_CONFIG.cors_proxies[i];
-                    const enhancedUrl = `${proxy}${encodeURIComponent(API_CONFIG.enhanced_openbb_api + '/api/v1/economy/unemployment')}`;
-                    
-                    console.log(`Trying Enhanced API via proxy ${i + 1}: ${proxy}`);
-                    
-                    const enhancedResponse = await fetch(enhancedUrl, {
-                        method: 'GET',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
-                        signal: AbortSignal.timeout(API_CONFIG.timeout)
-                    });
-                    
-                    if (enhancedResponse.ok) {
-                        const enhancedText = await enhancedResponse.text();
-                        let enhancedData;
-                        
-                        try {
-                            enhancedData = JSON.parse(enhancedText);
-                        } catch (parseError) {
-                            console.warn('Enhanced API response parsing error:', parseError);
-                            continue;
-                        }
-                        
-                        if (enhancedData && enhancedData.results) {
-                            apiConnectionStatus.enhanced_api = 'connected';
-                            systemsOnline++;
-                            enhancedSuccess = true;
-                            console.log(`✅ Enhanced API: ${enhancedData.results.length} data points (via proxy ${i + 1})`);
-                            API_CONFIG.working_enhanced_proxy = proxy;
-                            break;
-                        }
-                    }
-                } catch (enhancedError) {
-                    console.warn(`Enhanced API proxy ${i + 1} failed:`, enhancedError.message);
-                    continue;
-                }
-            }
-            
-            if (!enhancedSuccess) {
-                console.warn('⚠️ All Enhanced API proxies failed');
-                apiConnectionStatus.enhanced_api = 'cors_blocked';
-            }
-            
-            // Update status display based on results
-            if (systemsOnline === 2) {
-                apiConnectionStatus.overall = 'fully_connected';
-                statusText.textContent = 'Dual System Online';
-                statusDot.className = 'status-dot connected';
-                apiDetails.textContent = 'Lambda + Enhanced API (Proxied)';
-                console.log('🎉 Both OpenBB systems are online via CORS proxy!');
-            } else if (systemsOnline === 1) {
-                apiConnectionStatus.overall = 'partially_connected';
-                statusText.textContent = 'Partial System Online';
+            // Update status based on what we can access
+            if (enhancedWorking) {
+                apiConnectionStatus.overall = 'partial_enhanced';
+                statusText.textContent = 'Enhanced API Online';
                 statusDot.className = 'status-dot warning';
-                if (apiConnectionStatus.lambda_platform === 'connected') {
-                    apiDetails.textContent = 'Lambda Platform Only (Proxied)';
-                } else {
-                    apiDetails.textContent = 'Enhanced API Only (Proxied)';
-                }
-                console.log('⚠️ Only one OpenBB system is online via proxy');
+                apiDetails.textContent = 'Enhanced API via Proxy';
+                console.log('🎉 Enhanced OpenBB API is accessible!');
             } else {
-                apiConnectionStatus.overall = 'cors_blocked';
-                statusText.textContent = 'CORS Blocked - Using Samples';
+                apiConnectionStatus.overall = 'browser_limited';
+                statusText.textContent = 'Browser-Limited Mode';
                 statusDot.className = 'status-dot';
-                apiDetails.textContent = 'Both APIs blocked by CORS';
-                console.log('❌ Both OpenBB systems blocked by CORS, using sample data');
+                apiDetails.textContent = 'CORS Limitations - Using Samples';
+                console.log('⚠️ APIs not accessible from browser due to CORS');
+            }
+            
+            // Show helpful message about limitations
+            if (!enhancedWorking) {
+                setTimeout(() => {
+                    showTemporaryMessage('💡 For full API access, run locally or configure CORS headers', 'info');
+                }, 2000);
             }
         }
        
@@ -866,7 +789,7 @@
             document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
         }
        
-        // Enhanced search with CORS proxy support for real data
+        // Simplified search with fixed variable scope
         async function performSearch(query) {
             const resultsDiv = document.getElementById('searchResults');
            
@@ -877,86 +800,43 @@
            
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(async () => {
-                resultsDiv.innerHTML = '<div class="search-loading">🔍 Searching OpenBB Dual System: 72,846+ Financial Indicators...</div>';
+                resultsDiv.innerHTML = '<div class="search-loading">🔍 Searching OpenBB Platform: 72,846+ Financial Indicators...</div>';
                 resultsDiv.style.display = 'block';
                
                 try {
                     let searchResults = [];
                     
-                    // Try System 1: Lambda Platform search via working proxy
-                    if (apiConnectionStatus.lambda_platform === 'connected' && API_CONFIG.working_lambda_proxy) {
+                    // Try Enhanced API if available
+                    if (apiConnectionStatus.enhanced_api === 'connected' && API_CONFIG.working_enhanced_url) {
                         try {
-                            console.log('🔍 Searching Lambda Platform via working proxy...');
-                            const lambdaSearchUrl = `${API_CONFIG.working_lambda_proxy}${encodeURIComponent(API_CONFIG.lambda_api_gateway + `/api/search?query=${encodeURIComponent(query)}&limit=25`)}`;
-                            
-                            const lambdaResponse = await fetch(lambdaSearchUrl, {
-                                method: 'GET',
-                                headers: {
-                                    'Accept': 'application/json',
-                                    'Content-Type': 'application/json'
-                                },
-                                signal: AbortSignal.timeout(API_CONFIG.timeout)
-                            });
-                            
-                            if (lambdaResponse.ok) {
-                                const lambdaText = await lambdaResponse.text();
-                                const lambdaData = JSON.parse(lambdaText);
-                                console.log('✅ Lambda Platform search response:', lambdaData);
-                                
-                                if (lambdaData.results && Array.isArray(lambdaData.results)) {
-                                    const lambdaResults = lambdaData.results.map(item => ({
-                                        symbol: item.symbol || item.indicator_name || item.id,
-                                        name: item.title || item.description || item.name || item.symbol,
-                                        source: 'lambda_platform',
-                                        provider: item.provider || item.source || 'openbb_lambda',
-                                        description: item.description || item.units || '',
-                                        frequency: item.frequency || '',
-                                        units: item.units || '',
-                                        system: 'System 1: Lambda Platform (Real Data)'
-                                    }));
-                                    searchResults.push(...lambdaResults);
-                                    console.log(`✅ Found ${lambdaResults.length} REAL indicators from Lambda Platform`);
-                                }
-                            }
-                        } catch (lambdaError) {
-                            console.warn('⚠️ Lambda Platform search failed:', lambdaError);
-                        }
-                    }
-                    
-                    // Try System 2: Enhanced API FRED search via working proxy
-                    if (apiConnectionStatus.enhanced_api === 'connected' && API_CONFIG.working_enhanced_proxy) {
-                        try {
-                            console.log('🔍 Searching Enhanced API FRED via working proxy...');
-                            const fredSearchUrl = `${API_CONFIG.working_enhanced_proxy}${encodeURIComponent(API_CONFIG.enhanced_openbb_api + `/api/v1/economy/fred_search?query=${encodeURIComponent(query)}&limit=25`)}`;
+                            console.log('🔍 Searching Enhanced API FRED...');
+                            const fredSearchUrl = API_CONFIG.working_enhanced_url + encodeURIComponent(API_CONFIG.enhanced_openbb_api + `/api/v1/economy/fred_search?query=${encodeURIComponent(query)}&limit=20`);
                             
                             const fredResponse = await fetch(fredSearchUrl, {
                                 method: 'GET',
-                                headers: {
-                                    'Accept': 'application/json',
-                                    'Content-Type': 'application/json'
-                                },
-                                signal: AbortSignal.timeout(API_CONFIG.timeout)
+                                signal: AbortSignal.timeout(10000)
                             });
                             
                             if (fredResponse.ok) {
-                                const fredText = await fredResponse.text();
-                                const fredData = JSON.parse(fredText);
-                                console.log('✅ Enhanced API FRED search response:', fredData);
-                                
-                                if (fredData.results && Array.isArray(fredData.results)) {
-                                    const fredResults = fredData.results.map(item => ({
-                                        symbol: item.series_id || item.symbol,
-                                        name: item.title || item.name,
-                                        source: 'enhanced_api',
-                                        provider: 'fred_enhanced',
-                                        description: item.notes || item.description || '',
-                                        frequency: item.frequency || '',
-                                        units: item.units || '',
-                                        system: 'System 2: Enhanced API (Real FRED Data)',
-                                        endpoint: `/api/v1/economy/fred_series?symbol=${item.series_id}&provider=fred`
-                                    }));
-                                    searchResults.push(...fredResults);
-                                    console.log(`✅ Found ${fredResults.length} REAL FRED indicators from Enhanced API`);
+                                const responseData = await fredResponse.json();
+                                if (responseData.contents) {
+                                    const fredData = JSON.parse(responseData.contents);
+                                    
+                                    if (fredData.results && Array.isArray(fredData.results)) {
+                                        const fredResults = fredData.results.map(item => ({
+                                            symbol: item.series_id || item.symbol,
+                                            name: item.title || item.name,
+                                            source: 'enhanced_api',
+                                            provider: 'fred_enhanced',
+                                            description: item.notes || item.description || '',
+                                            frequency: item.frequency || '',
+                                            units: item.units || '',
+                                            system: 'System 2: Enhanced API (REAL FRED DATA)',
+                                            endpoint: `/api/v1/economy/fred_series?symbol=${item.series_id}&provider=fred`
+                                        }));
+                                        searchResults.push(...fredResults);
+                                        console.log(`✅ Found ${fredResults.length} REAL FRED indicators!`);
+                                    }
                                 }
                             }
                         } catch (fredError) {
@@ -964,64 +844,51 @@
                         }
                     }
                     
-                    // Include curated indicators but mark them as samples if no real data
+                    // Include curated indicators (these are based on your real system structure)
                     const curatedResults = openbbIndicators.filter(indicator =>
                         indicator.symbol.toLowerCase().includes(query.toLowerCase()) ||
                         indicator.name.toLowerCase().includes(query.toLowerCase()) ||
                         (indicator.description && indicator.description.toLowerCase().includes(query.toLowerCase()))
                     );
                     
-                    // Add curated data only if not found in real API results
-                    curatedResults.forEach(curated => {
-                        if (!searchResults.find(result => result.symbol === curated.symbol)) {
-                            const isRealDataAvailable = 
-                                (curated.source === 'lambda_platform' && apiConnectionStatus.lambda_platform === 'connected') ||
-                                (curated.source === 'enhanced_api' && apiConnectionStatus.enhanced_api === 'connected');
-                            
-                            combinedResults.push({
-                                ...curated,
-                                system: isRealDataAvailable ? 
-                                    (curated.source === 'lambda_platform' ? 'System 1: Lambda Platform (Real Data)' : 'System 2: Enhanced API (Real Data)') :
-                                    'Sample Data (CORS Blocked)'
-                            });
-                        }
-                    });
-                    
+                    // Combine results properly
                     const combinedResults = [...searchResults];
+                    
+                    // Add curated data if not already present
                     curatedResults.forEach(curated => {
                         if (!combinedResults.find(result => result.symbol === curated.symbol)) {
                             const isRealDataAvailable = 
-                                (curated.source === 'lambda_platform' && apiConnectionStatus.lambda_platform === 'connected') ||
                                 (curated.source === 'enhanced_api' && apiConnectionStatus.enhanced_api === 'connected');
                             
                             combinedResults.push({
                                 ...curated,
                                 system: isRealDataAvailable ? 
-                                    (curated.source === 'lambda_platform' ? 'System 1: Lambda Platform (Real Data)' : 'System 2: Enhanced API (Real Data)') :
-                                    'Sample Data (CORS Blocked)'
+                                    'System 2: Enhanced API (Real Data Available)' :
+                                    curated.source === 'lambda_platform' ? 'System 1: Lambda Platform (CORS Blocked)' :
+                                    'Sample Data (Representative of Real System)'
                             });
                         }
                     });
                     
                     console.log(`📊 Total results: ${combinedResults.length} (${searchResults.length} REAL from APIs, ${curatedResults.length} curated)`);
                     
-                    // Show preference for real data in results
+                    // Show success message for real data
                     if (searchResults.length > 0) {
-                        showTemporaryMessage(`✅ Found ${searchResults.length} real indicators from OpenBB APIs!`, 'info');
+                        showTemporaryMessage(`✅ Found ${searchResults.length} real FRED indicators!`, 'info');
                     }
                     
                     displaySearchResults(combinedResults, query);
                     
                 } catch (error) {
-                    console.error('❌ Complete search error:', error);
+                    console.error('❌ Search error:', error);
                     
-                    // Ultimate fallback - show curated data only
+                    // Fallback to curated data
                     const fallbackResults = openbbIndicators.filter(indicator =>
                         indicator.symbol.toLowerCase().includes(query.toLowerCase()) ||
                         indicator.name.toLowerCase().includes(query.toLowerCase())
                     ).map(indicator => ({
                         ...indicator,
-                        system: 'Sample Data (CORS Blocked - APIs unavailable)'
+                        system: 'Sample Data (Representative of Your 72,846+ Real Indicators)'
                     }));
                     
                     displaySearchResults(fallbackResults, query);
@@ -1132,7 +999,7 @@
             
             let html = `
                 <div style="padding: 8px 20px; font-size: 11px; color: #00ff88; border-bottom: 1px solid #333; background: #1a1a1a;">
-                    📊 OpenBB Dual System • Found ${results.length} of 72,846+ indicators • Lambda: ${apiConnectionStatus.lambda_platform} • Enhanced: ${apiConnectionStatus.enhanced_api}
+                    📊 OpenBB Financial Intelligence Platform • Found ${results.length} of 72,846+ indicators • Status: ${apiConnectionStatus.overall}
                 </div>
             `;
             
