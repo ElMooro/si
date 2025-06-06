@@ -1125,7 +1125,7 @@
                                 if (data.results && Array.isArray(data.results)) {
                                     const realTimeResults = data.results.map(item => ({
                                         symbol: item.symbol || item.series_id || 'UNKNOWN',
-                                        name: item.title || item.name || item.description || '',
+                                        name: item.title || item.name || item.description || item.symbol || 'Unknown',
                                         source: 'lambda_platform',
                                         provider: item.source || 'fred',
                                         description: item.notes || item.description || '',
@@ -1176,7 +1176,7 @@
                                 if (data.results && Array.isArray(data.results)) {
                                     const fredResults = data.results.map(item => ({
                                         symbol: item.series_id || item.symbol,
-                                        name: item.title || item.name,
+                                        name: item.title || item.name || item.series_id || 'Unknown',
                                         source: 'enhanced_api',
                                         provider: 'fred_enhanced',
                                         description: item.notes || item.description || '',
@@ -1335,7 +1335,7 @@
         // Add symbol to active chart using data attributes (safer approach)
         function addToChartFromElement(element) {
             const symbol = element.getAttribute('data-symbol');
-            const name = element.getAttribute('data-name');
+            const name = element.getAttribute('data-name') || symbol; // Fallback to symbol if name is missing
             const source = element.getAttribute('data-source');
             const provider = element.getAttribute('data-provider');
             
@@ -1356,14 +1356,15 @@
 
         // Keep the old function for compatibility but fix it
         function addToChart(symbol, name, source, provider) {
-            console.log(`📊 Adding to chart: symbol="${symbol}", name="${name}", source="${source}", provider="${provider}"`);
+            const safeName = name || symbol; // Fallback to symbol if name is missing
+            console.log(`📊 Adding to chart: symbol="${symbol}", name="${safeName}", source="${source}", provider="${provider}"`);
             
             if (activeChartId) {
-                addSymbolToChart(activeChartId, symbol, name, source, provider);
+                addSymbolToChart(activeChartId, symbol, safeName, source, provider);
             } else {
                 addNewChart();
                 if (activeChartId) {
-                    addSymbolToChart(activeChartId, symbol, name, source, provider);
+                    addSymbolToChart(activeChartId, symbol, safeName, source, provider);
                 }
             }
            
@@ -2042,7 +2043,9 @@
             const buttonContainer = document.getElementById(`${chartId}_timeframe_buttons`);
             if (buttonContainer) {
                 buttonContainer.querySelectorAll('.timeframe-btn').forEach(btn => btn.classList.remove('active'));
-                if(event.target.tagName === 'BUTTON') event.target.classList.add('active');
+                if(event.target && event.target.tagName === 'BUTTON') {
+                    event.target.classList.add('active');
+                }
             }
             updateChartRender(chartId);
         }
@@ -2168,7 +2171,10 @@
                                 return ((item.value - yearAgo) / yearAgo) * 100;
                             }).filter(v => v !== null);
                             
-                            if (yoyData.length === 0) return;
+                            if (yoyData.length === 0) {
+                                console.warn(`No YoY data available for ${s.symbol}`);
+                                return;
+                            }
                             yData = yoyData;
                             yLabel = 'Year-over-Year % Change';
                             hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>YoY Change: %{y:.2f}%<extra></extra>`;
@@ -2176,14 +2182,20 @@
                             
                         case 'rsi':
                             yData = filteredData.map(d => d.rsi).filter(v => v !== null);
-                            if (yData.length === 0) return;
+                            if (yData.length === 0) {
+                                console.warn(`No RSI data available for ${s.symbol}`);
+                                return;
+                            }
                             yLabel = 'RSI (%)';
                             hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>RSI: %{y:.1f}%<extra></extra>`;
                             break;
                             
                         case 'macd':
                             yData = filteredData.map(d => d.macd).filter(v => v !== null);
-                            if (yData.length === 0) return;
+                            if (yData.length === 0) {
+                                console.warn(`No MACD data available for ${s.symbol}`);
+                                return;
+                            }
                             yLabel = 'MACD';
                             hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>MACD: %{y:.4f}<extra></extra>`;
                             break;
