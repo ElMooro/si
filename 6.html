@@ -1151,7 +1151,8 @@
                     }
                     
                     // If we have Enhanced API, try FRED search
-                        if (API_CONFIG.enhanced_api.status === 'connected' && API_CONFIG.enhanced_api.working_proxy) {
+                    if (API_CONFIG.enhanced_api.status === 'connected' && API_CONFIG.enhanced_api.working_proxy && query.length >= 3) {
+                        try {
                             const fredSearchUrl = API_CONFIG.enhanced_api.working_proxy + encodeURIComponent(
                                 API_CONFIG.enhanced_api.base_url + `/api/v1/economy/fred_search?query=${encodeURIComponent(query)}&limit=30`
                             );
@@ -1196,6 +1197,10 @@
                                     console.log(`✅ Found ${fredResults.length} real FRED results from Enhanced API`);
                                 }
                             }
+                        } catch (fredError) {
+                            console.warn('⚠️ Enhanced API FRED search failed:', fredError);
+                        }
+                    }
                         } catch (fredError) {
                             console.warn('⚠️ Enhanced API FRED search failed:', fredError);
                         }
