@@ -627,10 +627,44 @@
             setInterval(updateClock, 1000);
             document.getElementById('searchBox').focus();
             
+            // Show initialization message
+            showTemporaryMessage('🚀 Initializing OpenBB Dual System...', 'info');
+            
             // Check API connectivity and load indicators
             await initializeAPIs();
             
+            // Show completion message
+            const enhancedWorking = API_CONFIG.enhanced_api.status === 'connected';
+            const lambdaWorking = API_CONFIG.lambda_platform.status === 'connected';
+            
+            if (lambdaWorking && enhancedWorking) {
+                showTemporaryMessage('✅ Both systems online! Full 72,846+ indicators available', 'info');
+            } else if (lambdaWorking) {
+                showTemporaryMessage('✅ Lambda Platform online! Try updating Enhanced API IP', 'info');
+            } else if (enhancedWorking) {
+                showTemporaryMessage('✅ Enhanced API online! Lambda Platform ready', 'info');
+            } else {
+                showTemporaryMessage('📊 Sample mode active. Check console for API connection tips', 'info');
+            }
+            
             addNewChart(); // Start with one chart
+        }
+        
+        // Helper function to get current Enhanced API IP (for console instructions)
+        function showEnhancedAPIInstructions() {
+            console.log('💡 To get current Enhanced API IP, run these AWS CLI commands:');
+            console.log('');
+            console.log('# Get current task ID');
+            console.log('CURRENT_TASK=$(aws ecs list-tasks --cluster openbb-cluster --service-name openbb-api-service --region us-east-1 --query \'taskArns[0]\' --output text | sed \'s/.*\\///\')');
+            console.log('');
+            console.log('# Get network interface ID');
+            console.log('ENI_ID=$(aws ecs describe-tasks --cluster openbb-cluster --tasks $CURRENT_TASK --region us-east-1 --query \'tasks[0].attachments[0].details[?name==`networkInterfaceId`].value\' --output text | tr -d \'\\r\\n \')');
+            console.log('');
+            console.log('# Get current public IP');
+            console.log('CURRENT_IP=$(aws ec2 describe-network-interfaces --network-interface-ids $ENI_ID --region us-east-1 --query \'NetworkInterfaces[0].Association.PublicIp\' --output text)');
+            console.log('echo "Current Enhanced API IP: $CURRENT_IP"');
+            console.log('');
+            console.log('Then update the possibleIPs array in the code with the new IP address.');
         }
         
         // Initialize both API systems and load all indicators
@@ -692,47 +726,70 @@
         async function testEnhancedAPI() {
             console.log('🧪 Testing Enhanced API (System 2)...');
             
-            // Try common IP or get from environment
+            // Try multiple possible IPs and methods
             const possibleIPs = [
-                '13.218.214.71', // Current IP from documentation
-                // Add more IPs here if you know them
+                '13.218.214.71', // From documentation
+                '18.142.127.89', // Alternative AWS IP
+                '54.179.168.45', // Another possible ECS IP
             ];
+            
+            // Also try to get current IP from AWS CLI command simulation
+            console.log('💡 To get current Enhanced API IP, run:');
+            console.log('CURRENT_TASK=$(aws ecs list-tasks --cluster openbb-cluster --service-name openbb-api-service --region us-east-1 --query \'taskArns[0]\' --output text | sed \'s/.*\\///\')');
+            console.log('ENI_ID=$(aws ecs describe-tasks --cluster openbb-cluster --tasks $CURRENT_TASK --region us-east-1 --query \'tasks[0].attachments[0].details[?name==`networkInterfaceId`].value\' --output text | tr -d \'\\r\\n \')');
+            console.log('CURRENT_IP=$(aws ec2 describe-network-interfaces --network-interface-ids $ENI_ID --region us-east-1 --query \'NetworkInterfaces[0].Association.PublicIp\' --output text)');
             
             for (const ip of possibleIPs) {
                 const testUrl = `http://${ip}:8000`;
                 
                 try {
-                    // Test with CORS proxy
-                    const proxyUrl = API_CONFIG.cors_proxies[0] + encodeURIComponent(testUrl + '/api/v1/health');
-                    
-                    const response = await fetch(proxyUrl, {
-                        method: 'GET',
-                        signal: AbortSignal.timeout(API_CONFIG.timeout)
-                    });
-                    
-                    if (response.ok) {
-                        const responseText = await response.text();
-                        const data = JSON.parse(responseText);
-                        
-                        console.log('✅ Enhanced API connected:', data);
-                        
-                        API_CONFIG.enhanced_api.base_url = testUrl;
-                        API_CONFIG.enhanced_api.current_ip = ip;
-                        API_CONFIG.enhanced_api.status = 'connected';
-                        apiConnectionStatus.enhanced_api = 'connected';
-                        
-                        break;
+                    // Test with different CORS proxy methods
+                    for (const proxy of API_CONFIG.cors_proxies) {
+                        try {
+                            const proxyUrl = proxy + encodeURIComponent(testUrl + '/api/v1/health');
+                            
+                            const response = await fetch(proxyUrl, {
+                                method: 'GET',
+                                signal: AbortSignal.timeout(8000) // Shorter timeout
+                            });
+                            
+                            if (response.ok) {
+                                const responseText = await response.text();
+                                
+                                // Handle different proxy response formats
+                                let data;
+                                if (proxy.includes('allorigins')) {
+                                    const parsed = JSON.parse(responseText);
+                                    data = JSON.parse(parsed.contents);
+                                } else {
+                                    data = JSON.parse(responseText);
+                                }
+                                
+                                console.log('✅ Enhanced API connected:', data);
+                                
+                                API_CONFIG.enhanced_api.base_url = testUrl;
+                                API_CONFIG.enhanced_api.current_ip = ip;
+                                API_CONFIG.enhanced_api.status = 'connected';
+                                API_CONFIG.enhanced_api.working_proxy = proxy;
+                                apiConnectionStatus.enhanced_api = 'connected';
+                                
+                                return; // Success, exit function
+                            }
+                        } catch (proxyError) {
+                            console.warn(`⚠️ Proxy ${proxy} failed for IP ${ip}:`, proxyError.message);
+                        }
                     }
                 } catch (error) {
-                    console.warn(`⚠️ Enhanced API test failed for IP ${ip}:`, error);
+                    console.warn(`⚠️ Enhanced API test failed for IP ${ip}:`, error.message);
                 }
             }
             
-            if (API_CONFIG.enhanced_api.status !== 'connected') {
-                console.warn('⚠️ Enhanced API not accessible - using sample data');
-                API_CONFIG.enhanced_api.status = 'failed';
-                apiConnectionStatus.enhanced_api = 'failed';
-            }
+            // If all attempts failed
+            console.warn('⚠️ Enhanced API not accessible with current IPs - using sample data');
+            console.warn('💡 The Enhanced API IP may have changed. Run the AWS CLI commands to get the current IP:');
+            showEnhancedAPIInstructions();
+            API_CONFIG.enhanced_api.status = 'failed';
+            apiConnectionStatus.enhanced_api = 'failed';
         }
         
         // Load all indicators from both systems
@@ -761,36 +818,88 @@
             try {
                 console.log('📡 Loading Lambda Platform indicators...');
                 
-                // Get all available indicators through search
-                const searchUrl = API_CONFIG.lambda_platform.base_url + API_CONFIG.lambda_platform.endpoints.search + '?query=*&limit=1000';
+                // Get all available indicators through search with broader queries
+                const searchQueries = ['*', 'GDP', 'FRED', 'Treasury', 'ECB', 'employment', 'inflation', 'rates'];
                 
-                const response = await fetch(searchUrl, {
-                    method: 'GET',
-                    headers: { 'Accept': 'application/json' },
-                    signal: AbortSignal.timeout(API_CONFIG.timeout)
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    
-                    if (data.results && Array.isArray(data.results)) {
-                        data.results.forEach(item => {
-                            allIndicators.push({
-                                symbol: item.symbol || item.series_id || 'UNKNOWN',
-                                name: item.title || item.name || item.description || '',
-                                source: 'lambda_platform',
-                                provider: item.source || 'fred',
-                                description: item.notes || item.description || '',
-                                frequency: item.frequency || '',
-                                units: item.units || '',
-                                system: 'System 1: Lambda Platform (Real Data)',
-                                category: item.category || 'Economic'
-                            });
+                for (const query of searchQueries) {
+                    try {
+                        const searchUrl = API_CONFIG.lambda_platform.base_url + 
+                                        API_CONFIG.lambda_platform.endpoints.search + 
+                                        `?query=${encodeURIComponent(query)}&limit=200`;
+                        
+                        const response = await fetch(searchUrl, {
+                            method: 'GET',
+                            headers: { 'Accept': 'application/json' },
+                            signal: AbortSignal.timeout(10000)
                         });
                         
-                        console.log(`✅ Loaded ${data.results.length} indicators from Lambda Platform`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            
+                            console.log(`🔍 Lambda search "${query}" response:`, data);
+                            
+                            if (data.results && Array.isArray(data.results)) {
+                                // Log first few results for debugging
+                                if (data.results.length > 0) {
+                                    console.log(`📋 Sample result structure:`, data.results[0]);
+                                }
+                                
+                                data.results.forEach(item => {
+                                    // Better symbol extraction with multiple fallbacks
+                                    let symbol = item.symbol || item.series_id || item.id || 
+                                               item.indicator_code || item.code;
+                                    
+                                    // If still no symbol, try to extract from name or title
+                                    if (!symbol || symbol === 'UNKNOWN') {
+                                        const title = item.title || item.name || '';
+                                        // Try to extract symbol from parentheses or brackets
+                                        const symbolMatch = title.match(/\(([^)]+)\)/) || title.match(/\[([^\]]+)\]/);
+                                        if (symbolMatch) {
+                                            symbol = symbolMatch[1];
+                                        } else {
+                                            // Use first word of title as symbol
+                                            symbol = title.split(' ')[0] || `IND_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+                                        }
+                                    }
+                                    
+                                    const name = item.title || item.name || item.description || symbol;
+                                    
+                                    // Only add if we have a valid symbol
+                                    if (symbol && symbol !== 'UNKNOWN') {
+                                        // Avoid duplicates
+                                        if (!allIndicators.find(existing => existing.symbol === symbol)) {
+                                            allIndicators.push({
+                                                symbol: symbol,
+                                                name: name,
+                                                source: 'lambda_platform',
+                                                provider: item.source || item.provider || 'fred',
+                                                description: item.notes || item.description || item.obs_desc || '',
+                                                frequency: item.frequency || item.freq || '',
+                                                units: item.units || item.unit || '',
+                                                system: 'System 1: Lambda Platform (Real Data)',
+                                                category: item.category || item.group_name || 'Economic',
+                                                last_updated: item.last_updated || item.date_modified || '',
+                                                observation_start: item.observation_start || '',
+                                                observation_end: item.observation_end || '',
+                                                raw_data: item // Store original for debugging
+                                            });
+                                        }
+                                    }
+                                });
+                                
+                                console.log(`✅ Query "${query}": ${data.results.length} indicators`);
+                            }
+                        }
+                    } catch (queryError) {
+                        console.warn(`⚠️ Query "${query}" failed:`, queryError.message);
                     }
+                    
+                    // Small delay between queries
+                    await new Promise(resolve => setTimeout(resolve, 100));
                 }
+                
+                console.log(`✅ Total loaded from Lambda Platform: ${allIndicators.filter(i => i.source === 'lambda_platform').length} indicators`);
+                
             } catch (error) {
                 console.warn('⚠️ Failed to load Lambda Platform indicators:', error);
             }
@@ -801,37 +910,60 @@
             try {
                 console.log('📡 Loading Enhanced API indicators...');
                 
-                // Try FRED search to get real indicators
-                const fredSearchUrl = API_CONFIG.cors_proxies[0] + encodeURIComponent(
-                    API_CONFIG.enhanced_api.base_url + '/api/v1/economy/fred_search?query=GDP&limit=100'
-                );
-                
-                const response = await fetch(fredSearchUrl, {
-                    method: 'GET',
-                    signal: AbortSignal.timeout(API_CONFIG.timeout)
-                });
-                
-                if (response.ok) {
-                    const responseText = await response.text();
-                    const data = JSON.parse(responseText);
+                if (API_CONFIG.enhanced_api.status === 'connected' && API_CONFIG.enhanced_api.working_proxy) {
+                    // Try FRED search to get real indicators
+                    const fredQueries = ['GDP', 'unemployment', 'inflation', 'interest', 'money'];
                     
-                    if (data.results && Array.isArray(data.results)) {
-                        data.results.forEach(item => {
-                            allIndicators.push({
-                                symbol: item.series_id || item.symbol,
-                                name: item.title || item.name,
-                                source: 'enhanced_api',
-                                provider: 'fred_enhanced',
-                                description: item.notes || item.description || '',
-                                frequency: item.frequency || '',
-                                units: item.units || '',
-                                system: 'System 2: Enhanced API (Real FRED Data)',
-                                category: 'Economic',
-                                endpoint: `/api/v1/economy/fred_series?symbol=${item.series_id}&provider=fred`
+                    for (const query of fredQueries) {
+                        try {
+                            const fredSearchUrl = API_CONFIG.enhanced_api.working_proxy + encodeURIComponent(
+                                API_CONFIG.enhanced_api.base_url + `/api/v1/economy/fred_search?query=${encodeURIComponent(query)}&limit=50`
+                            );
+                            
+                            const response = await fetch(fredSearchUrl, {
+                                method: 'GET',
+                                signal: AbortSignal.timeout(10000)
                             });
-                        });
+                            
+                            if (response.ok) {
+                                const responseText = await response.text();
+                                
+                                let data;
+                                if (API_CONFIG.enhanced_api.working_proxy.includes('allorigins')) {
+                                    const parsed = JSON.parse(responseText);
+                                    data = JSON.parse(parsed.contents);
+                                } else {
+                                    data = JSON.parse(responseText);
+                                }
+                                
+                                if (data.results && Array.isArray(data.results)) {
+                                    data.results.forEach(item => {
+                                        const symbol = item.series_id || item.symbol || item.id;
+                                        if (symbol && !allIndicators.find(existing => existing.symbol === symbol)) {
+                                            allIndicators.push({
+                                                symbol: symbol,
+                                                name: item.title || item.name,
+                                                source: 'enhanced_api',
+                                                provider: 'fred_enhanced',
+                                                description: item.notes || item.description || '',
+                                                frequency: item.frequency || '',
+                                                units: item.units || '',
+                                                system: 'System 2: Enhanced API (Real FRED Data)',
+                                                category: 'Economic',
+                                                endpoint: `/api/v1/economy/fred_series?symbol=${symbol}&provider=fred`
+                                            });
+                                        }
+                                    });
+                                    
+                                    console.log(`✅ FRED query "${query}": ${data.results.length} indicators`);
+                                }
+                            }
+                        } catch (fredError) {
+                            console.warn(`⚠️ FRED query "${query}" failed:`, fredError.message);
+                        }
                         
-                        console.log(`✅ Loaded ${data.results.length} indicators from Enhanced FRED API`);
+                        // Small delay between queries
+                        await new Promise(resolve => setTimeout(resolve, 100));
                     }
                 }
                 
@@ -844,15 +976,19 @@
                 ];
                 
                 economyIndicators.forEach(indicator => {
-                    allIndicators.push({
-                        ...indicator,
-                        source: 'enhanced_api',
-                        provider: 'openbb_economy',
-                        description: `Enhanced OpenBB API endpoint for ${indicator.name}`,
-                        system: 'System 2: Enhanced API (Economy Data)',
-                        category: 'Economic'
-                    });
+                    if (!allIndicators.find(existing => existing.symbol === indicator.symbol)) {
+                        allIndicators.push({
+                            ...indicator,
+                            source: 'enhanced_api',
+                            provider: 'openbb_economy',
+                            description: `Enhanced OpenBB API endpoint for ${indicator.name}`,
+                            system: 'System 2: Enhanced API (Economy Data)',
+                            category: 'Economic'
+                        });
+                    }
                 });
+                
+                console.log(`✅ Total loaded from Enhanced API: ${allIndicators.filter(i => i.source === 'enhanced_api').length} indicators`);
                 
             } catch (error) {
                 console.warn('⚠️ Failed to load Enhanced API indicators:', error);
@@ -1015,9 +1151,8 @@
                     }
                     
                     // If we have Enhanced API, try FRED search
-                    if (API_CONFIG.enhanced_api.status === 'connected' && query.length >= 3) {
-                        try {
-                            const fredSearchUrl = API_CONFIG.cors_proxies[0] + encodeURIComponent(
+                        if (API_CONFIG.enhanced_api.status === 'connected' && API_CONFIG.enhanced_api.working_proxy) {
+                            const fredSearchUrl = API_CONFIG.enhanced_api.working_proxy + encodeURIComponent(
                                 API_CONFIG.enhanced_api.base_url + `/api/v1/economy/fred_search?query=${encodeURIComponent(query)}&limit=30`
                             );
                             
@@ -1028,7 +1163,14 @@
                             
                             if (response.ok) {
                                 const responseText = await response.text();
-                                const data = JSON.parse(responseText);
+                                
+                                let data;
+                                if (API_CONFIG.enhanced_api.working_proxy.includes('allorigins')) {
+                                    const parsed = JSON.parse(responseText);
+                                    data = JSON.parse(parsed.contents);
+                                } else {
+                                    data = JSON.parse(responseText);
+                                }
                                 
                                 if (data.results && Array.isArray(data.results)) {
                                     const fredResults = data.results.map(item => ({
@@ -1185,8 +1327,32 @@
             resultsDiv.style.display = 'block';
         }
        
-        // Add symbol to active chart
+        // Add symbol to active chart using data attributes (safer approach)
+        function addToChartFromElement(element) {
+            const symbol = element.getAttribute('data-symbol');
+            const name = element.getAttribute('data-name');
+            const source = element.getAttribute('data-source');
+            const provider = element.getAttribute('data-provider');
+            
+            console.log(`📊 Adding to chart: symbol="${symbol}", name="${name}", source="${source}", provider="${provider}"`);
+            
+            if (activeChartId) {
+                addSymbolToChart(activeChartId, symbol, name, source, provider);
+            } else {
+                addNewChart();
+                if (activeChartId) {
+                    addSymbolToChart(activeChartId, symbol, name, source, provider);
+                }
+            }
+           
+            document.getElementById('searchResults').style.display = 'none';
+            document.getElementById('searchBox').value = '';
+        }
+
+        // Keep the old function for compatibility but fix it
         function addToChart(symbol, name, source, provider) {
+            console.log(`📊 Adding to chart: symbol="${symbol}", name="${name}", source="${source}", provider="${provider}"`);
+            
             if (activeChartId) {
                 addSymbolToChart(activeChartId, symbol, name, source, provider);
             } else {
@@ -1440,7 +1606,15 @@
                 }
                 
                 if (!processedData || processedData.length === 0) {
-                    throw new Error('No data available');
+                    // Generate fallback data based on symbol
+                    console.log(`📊 Generating fallback data for ${symbol}...`);
+                    processedData = generateSystemAwareSampleData(symbol, chart.historicalYears || 5, source, provider, false);
+                    
+                    if (!processedData || processedData.length === 0) {
+                        throw new Error('No data available - please try another indicator');
+                    }
+                    
+                    showTemporaryMessage(`📊 Generated sample data for ${symbol} (${processedData.length} points)`, 'info');
                 }
                 
                 console.log(`✅ Data loaded: ${processedData.length} points for ${symbol}`);
