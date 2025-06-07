@@ -260,14 +260,16 @@
             min-height: 600px;
             display: flex;
             justify-content: center;
-            align-items: flex-start;
+            align-items: center;
         }
         .chart-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(800px, 1fr));
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
             gap: 25px;
             width: 100%;
-            max-width: 1800px;
+            max-width: 1200px;
             margin: 0 auto;
         }
         
@@ -284,6 +286,8 @@
             min-height: 600px;
             backdrop-filter: blur(10px);
             width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
         }
         .chart-window.active-chart {
             border-color: #00ff88;
@@ -579,8 +583,8 @@
         
         /* Responsive Design */
         @media (max-width: 1200px) {
-            .chart-grid {
-                grid-template-columns: 1fr;
+            .chart-window {
+                max-width: 95%;
             }
         }
         @media (max-width: 768px) {
@@ -597,6 +601,9 @@
             }
             .data-sources {
                 justify-content: center;
+            }
+            .chart-window {
+                max-width: 100%;
             }
         }
     </style>
