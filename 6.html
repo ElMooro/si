@@ -1,4 +1,103 @@
-<!DOCTYPE html>
+case 'stochastic':
+                            processedData = filteredData.filter(d => d.stoch_k !== null && !isNaN(d.stoch_k));
+                            if (processedData.length === 0) return;
+                            
+                            // %K Line with color coding
+                            traces.push({
+                                x: processedData.map(d => d.date),
+                                y: processedData.map(d => d.stoch_k),
+                                type: 'scatter',
+                                mode: 'lines',
+                                name: `${s.symbol} %K`,
+                                line: { 
+                                    color: lineColor, 
+                                    width: 2 
+                                },
+                                hovertemplate: `<b>${s.symbol} %K</b><br>Date: %{x}<br>%K: %{y:.1f}<br>Zone: %{text}<extra></extra>`,
+                                text: processedData.map(d => {
+                                    if (d.stoch_k < 20) return 'OVERSOLD';
+                                    else if (d.stoch_k > 80) return 'OVERBOUGHT';
+                                    else return 'NEUTRAL';
+                                })
+                            });
+                            
+                            // %D Line
+                            traces.push({
+                                x: processedData.map(d => d.date),
+                                y: processedData.map(d => d.stoch_d),
+                                type: 'scatter',
+                                mode: 'lines',
+                                name: `${s.symbol} %D`,
+                                line: { color: lineColor, width: 1, dash: 'dash' },
+                                hovertemplate: `<b>${s.symbol} %D</b><br>Date: %{x}<br>%D: %{y:.1f}<extra></extra>`
+                            });
+                            
+                            // Reference lines with reversal zones
+                            if (index === 0) {
+                                // Overbought zone
+                                traces.push({
+                                    x: processedData.map(d => d.date),
+                                    y: processedData.map(() => 80),
+                                    type: 'scatter',
+                                    mode: 'lines',
+                                    name: 'Overbought (80)',
+                                    line: { color: '#ff4444', width: 1, dash: 'dash' },
+                                    showlegend: false,
+                                    hoverinfo: 'skip'
+                                });
+                                
+                                // Oversold zone
+                                traces.push({
+                                    x: processedData.map(d => d.date),
+                                    y: processedData.map(() => 20),
+                                    type: 'scatter',
+                                    mode: 'lines',
+                                    name: 'Oversold (20)',
+                                    line: { color: '#00ff88', width: 1, dash: 'dash' },
+                                    showlegend: false,
+                                    hoverinfo: 'skip'
+                                });
+                            }
+                            
+                            // Highlight reversal points
+                            const reversalPoints = processedData.filter((d, i) => {
+                                if (i === 0 || !d.stoch_reversal) return false;
+                                // K crosses D in extreme zones
+                                const prevK = processedData[i-1]?.stoch_k;
+                                const prevD = processedData[i-1]?.stoch_d;
+                                const currK = d.stoch_k;
+                                const currD = d.stoch_d;
+                                
+                                if (d.stoch_reversal === 1 && prevK && prevD && currK && currD) {
+                                    return prevK <= prevD && currK > currD; // Bullish cross in oversold
+                                } else if (d.stoch_reversal === -1 && prevK && prevD && currK && currD) {
+                                    return prevK >= prevD && currK < currD; // Bearish cross in overbought
+                                }
+                                return false;
+                            });
+                            
+                            if (reversalPoints.length > 0) {
+                                traces.push({
+                                    x: reversalPoints.map(d => d.date),
+                                    y: reversalPoints.map(d => d.stoch_k),
+                                    type: 'scatter',
+                                    mode: 'markers',
+                                    name: 'Stochastic Reversals',
+                                    marker: { 
+                                        color: reversalPoints.map(d => d.stoch_reversal > 0 ? '#00ff88' : '#ff4444'),
+                                        size: 14,
+                                        symbol: 'diamond-open',
+                                        line: { width: 2 }
+                                    },
+                                    showlegend: true,
+                                    hovertemplate: `<b>%{text} REVERSAL</b><br>Date: %{x}<br>%K: %{y:.1f}<extra></extra>`,
+                                    text: reversalPoints.map(d => d.stoch_reversal > 0 ? 'BULLISH' : 'BEARISH')
+                                });
+                            }
+                            
+                            yLabel = 'Stochastic % - Reversal Point Detection';
+                            return;
+                <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -266,11 +365,8 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            flex-wrap: wrap;
             gap: 25px;
             width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
         }
         
         /* Enhanced Chart Styles */
@@ -1549,13 +1645,13 @@
                             <div class="chart-symbols" id="${chartId}_symbols"></div>
                             <div class="chart-display-controls">
                                 <button class="display-toggle active" onclick="toggleChartDisplay(event, '${chartId}', 'raw')" data-display="raw">📈 Raw Data</button>
-                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'pct_change')" data-display="pct_change">📊 YoY % Change</button>
-                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'trend')" data-display="trend">🔢 Trend Strength</button>
-                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'rsi')" data-display="rsi">🎯 RSI</button>
-                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'macd')" data-display="macd">⚡ MACD</button>
-                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'bollinger')" data-display="bollinger">🌊 Bollinger Bands</button>
-                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'stochastic')" data-display="stochastic">🔄 Stochastic</button>
-                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'volume')" data-display="volume">📦 Volume Analysis</button>
+                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'pct_change')" data-display="pct_change">📊 YoY % Change (Reversal)</button>
+                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'trend')" data-display="trend">🔢 Trend Strength (Momentum)</button>
+                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'rsi')" data-display="rsi">🎯 RSI (Overbought/Oversold)</button>
+                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'macd')" data-display="macd">⚡ MACD (Trend Changes)</button>
+                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'bollinger')" data-display="bollinger">🌊 Bollinger Bands (Volatility)</button>
+                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'stochastic')" data-display="stochastic">🔄 Stochastic (Reversal Points)</button>
+                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'volume')" data-display="volume">📦 Volume Analysis (Confirmation)</button>
                                 <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'multi_indicator')" data-display="multi_indicator">🎛️ Multi-Indicator</button>
                                 <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'signals')" data-display="signals">🎪 Trading Signals</button>
                             </div>
@@ -1971,7 +2067,7 @@
             return data;
         }
         
-        // Calculate technical indicators
+        // Calculate technical indicators with enhanced reversal detection
         function calculateAdvancedTechnicalIndicators(data) {
             if (!data || data.length === 0) return data;
             
@@ -1999,12 +2095,14 @@
                 return emaArray;
             };
             
-            // RSI Calculation
+            // Enhanced RSI with divergence detection
             const calculateRSI = (prices, period = 14) => {
                 const rsiValues = [];
+                const rsiDivergence = [];
                 
                 for (let i = 0; i < period; i++) {
                     rsiValues.push(null);
+                    rsiDivergence.push(null);
                 }
                 
                 if (prices.length > period) {
@@ -2023,6 +2121,7 @@
                     let rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
                     let rsi = 100 - (100 / (1 + rs));
                     rsiValues.push(rsi);
+                    rsiDivergence.push(0);
                     
                     for (let i = period + 1; i < prices.length; i++) {
                         const change = prices[i] - prices[i - 1];
@@ -2035,19 +2134,41 @@
                         rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
                         rsi = 100 - (100 / (1 + rs));
                         rsiValues.push(rsi);
+                        
+                        // Detect RSI divergence (bullish/bearish)
+                        if (i >= period + 20) {
+                            const priceChange = (prices[i] - prices[i-20]) / prices[i-20];
+                            const rsiChange = rsi - rsiValues[i-20];
+                            
+                            // Bullish divergence: price down, RSI up
+                            if (priceChange < -0.05 && rsiChange > 5 && rsi < 40) {
+                                rsiDivergence.push(1); // Bullish signal
+                            }
+                            // Bearish divergence: price up, RSI down
+                            else if (priceChange > 0.05 && rsiChange < -5 && rsi > 60) {
+                                rsiDivergence.push(-1); // Bearish signal
+                            }
+                            else {
+                                rsiDivergence.push(0);
+                            }
+                        } else {
+                            rsiDivergence.push(0);
+                        }
                     }
                 }
                 
-                return rsiValues;
+                return { rsiValues, rsiDivergence };
             };
             
-            // Stochastic Oscillator
+            // Enhanced Stochastic with reversal zones
             const calculateStochastic = (highs, lows, closes, kPeriod = 14, dPeriod = 3) => {
                 const stochK = [];
                 const stochD = [];
+                const stochReversal = [];
                 
                 for (let i = 0; i < kPeriod - 1; i++) {
                     stochK.push(null);
+                    stochReversal.push(null);
                 }
                 
                 for (let i = kPeriod - 1; i < closes.length; i++) {
@@ -2059,6 +2180,15 @@
                     
                     const k = ((closes[i] - lowestLow) / (highestHigh - lowestLow)) * 100;
                     stochK.push(k);
+                    
+                    // Detect extreme reversal zones
+                    if (k < 20) {
+                        stochReversal.push(1); // Oversold - potential bullish reversal
+                    } else if (k > 80) {
+                        stochReversal.push(-1); // Overbought - potential bearish reversal
+                    } else {
+                        stochReversal.push(0);
+                    }
                 }
                 
                 for (let i = 0; i < dPeriod - 1; i++) {
@@ -2075,19 +2205,23 @@
                     }
                 }
                 
-                return { stochK, stochD };
+                return { stochK, stochD, stochReversal };
             };
             
-            // Bollinger Bands
+            // Enhanced Bollinger Bands with squeeze detection
             const calculateBollingerBands = (prices, period = 20, stdDev = 2) => {
                 const sma = [];
                 const upperBand = [];
                 const lowerBand = [];
+                const bandWidth = [];
+                const squeeze = [];
                 
                 for (let i = 0; i < period - 1; i++) {
                     sma.push(null);
                     upperBand.push(null);
                     lowerBand.push(null);
+                    bandWidth.push(null);
+                    squeeze.push(null);
                 }
                 
                 for (let i = period - 1; i < prices.length; i++) {
@@ -2098,16 +2232,43 @@
                     const variance = slice.reduce((sum, val) => sum + Math.pow(val - average, 2), 0) / period;
                     const standardDev = Math.sqrt(variance);
                     
-                    upperBand.push(average + (standardDev * stdDev));
-                    lowerBand.push(average - (standardDev * stdDev));
+                    const upper = average + (standardDev * stdDev);
+                    const lower = average - (standardDev * stdDev);
+                    
+                    upperBand.push(upper);
+                    lowerBand.push(lower);
+                    
+                    // Calculate band width and detect squeeze
+                    const width = (upper - lower) / average;
+                    bandWidth.push(width);
+                    
+                    // Detect Bollinger Band squeeze (volatility contraction)
+                    if (i >= period + 20) {
+                        const recentWidths = bandWidth.slice(i - 20, i + 1).filter(w => w !== null);
+                        const avgWidth = recentWidths.reduce((sum, w) => sum + w, 0) / recentWidths.length;
+                        const minWidth = Math.min(...recentWidths);
+                        
+                        // Squeeze detected when current width is near minimum
+                        if (width < avgWidth * 0.7 && width < minWidth * 1.1) {
+                            squeeze.push(1); // Squeeze - potential breakout coming
+                        } else {
+                            squeeze.push(0);
+                        }
+                    } else {
+                        squeeze.push(0);
+                    }
                 }
                 
-                return { sma, upperBand, lowerBand };
+                return { sma, upperBand, lowerBand, bandWidth, squeeze };
             };
             
             // Calculate all indicators
             const ema12Values = calculateEMA(12, values);
             const ema26Values = calculateEMA(26, values);
+            const ema50Values = calculateEMA(50, values);
+            const ema200Values = calculateEMA(200, values);
+            
+            // MACD with histogram reversal detection
             const macdLine = ema12Values.map((e12, i) =>
                 ema26Values[i] !== null && e12 !== null ? e12 - ema26Values[i] : null
             );
@@ -2116,71 +2277,203 @@
                 macd !== null && signalLineValues[i] !== null ? macd - signalLineValues[i] : null
             );
             
-            const rsiValues = calculateRSI(values);
+            // Detect MACD crossovers
+            const macdCrossover = [];
+            for (let i = 1; i < macdLine.length; i++) {
+                if (i < 26 || macdLine[i] === null || signalLineValues[i] === null) {
+                    macdCrossover.push(null);
+                } else {
+                    const prevMACD = macdLine[i-1];
+                    const prevSignal = signalLineValues[i-1];
+                    const currMACD = macdLine[i];
+                    const currSignal = signalLineValues[i];
+                    
+                    // Bullish crossover
+                    if (prevMACD <= prevSignal && currMACD > currSignal) {
+                        macdCrossover.push(1);
+                    }
+                    // Bearish crossover
+                    else if (prevMACD >= prevSignal && currMACD < currSignal) {
+                        macdCrossover.push(-1);
+                    }
+                    else {
+                        macdCrossover.push(0);
+                    }
+                }
+            }
+            
+            const { rsiValues, rsiDivergence } = calculateRSI(values);
             const stochastic = calculateStochastic(highs, lows, closes);
             const bollinger = calculateBollingerBands(values);
             
             return data.map((item, index) => {
-                // Year-over-year calculations
+                // Year-over-year calculations with momentum
                 let yoyChange = null;
-                if (index >= 252) { // ~1 year of trading days
+                let yoyMomentum = null;
+                if (index >= 252) {
                     const yearAgoValue = data[index - 252]?.value;
                     if (yearAgoValue && yearAgoValue !== 0) {
                         yoyChange = ((item.value - yearAgoValue) / yearAgoValue) * 100;
+                        
+                        // Calculate momentum of YoY change
+                        if (index >= 272) { // 252 + 20 days
+                            const prevYoyChange = ((data[index - 20].value - data[index - 272].value) / data[index - 272].value) * 100;
+                            yoyMomentum = yoyChange - prevYoyChange;
+                        }
                     }
                 }
                 
-                // Volume analysis
+                // Enhanced trend strength with acceleration
+                let trendStrength = null;
+                let trendAcceleration = null;
+                if (index >= 20) {
+                    const window = data.slice(index - 19, index + 1);
+                    const x = Array.from({length: 20}, (_, i) => i);
+                    const y = window.map(d => d.value);
+                    
+                    const n = 20;
+                    const sumX = x.reduce((a, b) => a + b, 0);
+                    const sumY = y.reduce((a, b) => a + b, 0);
+                    const sumXY = x.reduce((sum, xi, i) => sum + xi * y[i], 0);
+                    const sumX2 = x.reduce((sum, xi) => sum + xi * xi, 0);
+                    
+                    let slope = 0;
+                    if ((n * sumX2 - sumX * sumX) !== 0) {
+                        slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+                    }
+                    
+                    trendStrength = (slope / item.value) * 10000;
+                    
+                    // Calculate trend acceleration
+                    if (index >= 40) {
+                        const prevWindow = data.slice(index - 39, index - 19);
+                        const prevY = prevWindow.map(d => d.value);
+                        const prevSumY = prevY.reduce((a, b) => a + b, 0);
+                        const prevSumXY = x.reduce((sum, xi, i) => sum + xi * prevY[i], 0);
+                        
+                        let prevSlope = 0;
+                        if ((n * sumX2 - sumX * sumX) !== 0) {
+                            prevSlope = (n * prevSumXY - sumX * prevSumY) / (n * sumX2 - sumX * sumX);
+                        }
+                        
+                        const prevTrendStrength = (prevSlope / data[index - 20].value) * 10000;
+                        trendAcceleration = trendStrength - prevTrendStrength;
+                    }
+                }
+                
+                // Volume analysis with breakout detection
                 let volumeMA = null;
                 let volumeRatio = null;
+                let volumeBreakout = null;
                 if (index >= 20 && item.volume > 0) {
                     const volumeSlice = data.slice(index - 19, index + 1).map(d => d.volume);
                     volumeMA = volumeSlice.reduce((sum, vol) => sum + vol, 0) / 20;
                     volumeRatio = volumeMA > 0 ? item.volume / volumeMA : 0;
+                    
+                    // Detect volume breakouts (2x average with price movement)
+                    if (volumeRatio > 2 && index > 0) {
+                        const priceChange = (item.value - data[index - 1].value) / data[index - 1].value;
+                        if (Math.abs(priceChange) > 0.01) { // 1% price move with high volume
+                            volumeBreakout = priceChange > 0 ? 1 : -1;
+                        } else {
+                            volumeBreakout = 0;
+                        }
+                    } else {
+                        volumeBreakout = 0;
+                    }
                 }
                 
-                // Trading signals
+                // Enhanced trading signals combining multiple indicators
                 let signal = null;
+                let signalStrength = 0;
                 const rsi = rsiValues[index];
                 const stochK = stochastic.stochK[index];
                 const stochD = stochastic.stochD[index];
                 const macd = macdLine[index];
                 const macdSignal = signalLineValues[index];
+                const macdCross = macdCrossover[index];
+                const rsiDiv = rsiDivergence[index];
+                const stochRev = stochastic.stochReversal[index];
+                const bbSqueeze = bollinger.squeeze[index];
                 
                 if (rsi !== null && stochK !== null && macd !== null && macdSignal !== null) {
-                    let signalStrength = 0;
+                    // MACD crossover signals (weighted heavily)
+                    if (macdCross === 1) signalStrength += 3;
+                    else if (macdCross === -1) signalStrength -= 3;
                     
-                    if (macd > macdSignal) signalStrength += 1;
-                    else signalStrength -= 1;
+                    // RSI divergence signals
+                    if (rsiDiv === 1) signalStrength += 2;
+                    else if (rsiDiv === -1) signalStrength -= 2;
                     
+                    // RSI extreme levels
                     if (rsi < 30) signalStrength += 2;
                     else if (rsi > 70) signalStrength -= 2;
+                    else if (rsi < 40) signalStrength += 1;
+                    else if (rsi > 60) signalStrength -= 1;
                     
-                    if (stochK > stochD && stochK < 20) signalStrength += 1;
-                    else if (stochK < stochD && stochK > 80) signalStrength -= 1;
+                    // Stochastic signals
+                    if (stochRev === 1 && stochK > stochD) signalStrength += 2;
+                    else if (stochRev === -1 && stochK < stochD) signalStrength -= 2;
                     
-                    if (signalStrength >= 2) signal = 1;
-                    else if (signalStrength <= -2) signal = -1;
-                    else signal = 0;
+                    // Bollinger Band squeeze breakout potential
+                    if (bbSqueeze === 1) {
+                        if (item.value > bollinger.upperBand[index]) signalStrength += 2;
+                        else if (item.value < bollinger.lowerBand[index]) signalStrength -= 2;
+                    }
+                    
+                    // Volume confirmation
+                    if (volumeBreakout === 1) signalStrength += 1;
+                    else if (volumeBreakout === -1) signalStrength -= 1;
+                    
+                    // YoY momentum shifts
+                    if (yoyMomentum !== null) {
+                        if (yoyMomentum > 5) signalStrength += 1;
+                        else if (yoyMomentum < -5) signalStrength -= 1;
+                    }
+                    
+                    // Trend acceleration
+                    if (trendAcceleration !== null) {
+                        if (trendAcceleration > 0.5) signalStrength += 1;
+                        else if (trendAcceleration < -0.5) signalStrength -= 1;
+                    }
+                    
+                    // Final signal determination
+                    if (signalStrength >= 4) signal = 2; // Strong buy
+                    else if (signalStrength >= 2) signal = 1; // Buy
+                    else if (signalStrength <= -4) signal = -2; // Strong sell
+                    else if (signalStrength <= -2) signal = -1; // Sell
+                    else signal = 0; // Neutral
                 }
                 
                 return {
                     ...item,
                     yoy_change: yoyChange,
+                    yoy_momentum: yoyMomentum,
+                    trend_strength: trendStrength,
+                    trend_acceleration: trendAcceleration,
                     ema12: ema12Values[index],
                     ema26: ema26Values[index],
+                    ema50: ema50Values[index],
+                    ema200: ema200Values[index],
                     macd: macdLine[index],
                     macd_signal: signalLineValues[index],
                     macd_histogram: macdHistogram[index],
+                    macd_crossover: macdCross,
                     rsi: rsiValues[index],
+                    rsi_divergence: rsiDiv,
                     stoch_k: stochastic.stochK[index],
                     stoch_d: stochastic.stochD[index],
+                    stoch_reversal: stochRev,
                     bb_sma: bollinger.sma[index],
                     bb_upper: bollinger.upperBand[index],
                     bb_lower: bollinger.lowerBand[index],
+                    bb_width: bollinger.bandWidth[index],
+                    bb_squeeze: bbSqueeze,
                     volume_ma: volumeMA,
                     volume_ratio: volumeRatio,
-                    signal: signal
+                    volume_breakout: volumeBreakout,
+                    signal: signal,
+                    signal_strength: signalStrength
                 };
             });
         }
@@ -2226,10 +2519,14 @@
                             if (processedData.length === 0) return;
                             
                             yData = processedData.map(d => d.yoy_change);
-                            yLabel = 'Year-over-Year % Change';
-                            hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>YoY Change: %{y:.2f}%<extra></extra>`;
+                            yLabel = 'Year-over-Year % Change (Reversal Indicator)';
+                            hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>YoY Change: %{y:.2f}%<br>Momentum: %{customdata:.2f}<extra></extra>`;
+                            
+                            // Add momentum as custom data
+                            trace.customdata = processedData.map(d => d.yoy_momentum || 0);
                             
                             if (index === 0) {
+                                // Zero line
                                 traces.push({
                                     x: processedData.map(d => d.date),
                                     y: processedData.map(() => 0),
@@ -2240,6 +2537,27 @@
                                     showlegend: false,
                                     hoverinfo: 'skip'
                                 });
+                                
+                                // Highlight momentum shifts
+                                const momentumShifts = processedData.filter(d => 
+                                    d.yoy_momentum !== null && Math.abs(d.yoy_momentum) > 5
+                                );
+                                if (momentumShifts.length > 0) {
+                                    traces.push({
+                                        x: momentumShifts.map(d => d.date),
+                                        y: momentumShifts.map(d => d.yoy_change),
+                                        type: 'scatter',
+                                        mode: 'markers',
+                                        name: 'Momentum Shifts',
+                                        marker: { 
+                                            color: momentumShifts.map(d => d.yoy_momentum > 0 ? '#00ff88' : '#ff4444'),
+                                            size: 12,
+                                            symbol: 'diamond'
+                                        },
+                                        showlegend: false,
+                                        hovertemplate: `<b>MOMENTUM SHIFT</b><br>Date: %{x}<br>YoY: %{y:.2f}%<extra></extra>`
+                                    });
+                                }
                             }
                             break;
                             
@@ -2278,23 +2596,55 @@
                             if (processedData.length === 0) return;
                             
                             yData = processedData.map(d => d.rsi);
-                            yLabel = 'RSI (%)';
-                            hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>RSI: %{y:.1f}%<extra></extra>`;
+                            yLabel = 'RSI (%) - Overbought/Oversold Reversal Zones';
+                            hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>RSI: %{y:.1f}%<br>Zone: %{text}<extra></extra>`;
+                            
+                            // Add zone text
+                            trace.text = processedData.map(d => {
+                                if (d.rsi < 30) return 'OVERSOLD (Bullish Reversal Zone)';
+                                else if (d.rsi > 70) return 'OVERBOUGHT (Bearish Reversal Zone)';
+                                else if (d.rsi < 40) return 'Near Oversold';
+                                else if (d.rsi > 60) return 'Near Overbought';
+                                else return 'Neutral';
+                            });
                             
                             if (index === 0) {
+                                // Critical reversal zones
                                 [70, 50, 30].forEach((level, i) => {
-                                    const colors = ['red', 'gray', 'green'];
+                                    const colors = ['#ff4444', '#888888', '#00ff88'];
+                                    const names = ['Overbought (70)', 'Neutral (50)', 'Oversold (30)'];
                                     traces.push({
                                         x: processedData.map(d => d.date),
                                         y: processedData.map(() => level),
                                         type: 'scatter',
                                         mode: 'lines',
-                                        name: `${level}% Line`,
+                                        name: names[i],
                                         line: { color: colors[i], width: 1, dash: 'dash' },
                                         showlegend: false,
                                         hoverinfo: 'skip'
                                     });
                                 });
+                                
+                                // Highlight RSI divergences
+                                const divergences = processedData.filter(d => d.rsi_divergence !== 0);
+                                if (divergences.length > 0) {
+                                    traces.push({
+                                        x: divergences.map(d => d.date),
+                                        y: divergences.map(d => d.rsi),
+                                        type: 'scatter',
+                                        mode: 'markers',
+                                        name: 'RSI Divergence',
+                                        marker: { 
+                                            color: divergences.map(d => d.rsi_divergence > 0 ? '#00ff88' : '#ff4444'),
+                                            size: 14,
+                                            symbol: 'star',
+                                            line: { color: '#ffffff', width: 2 }
+                                        },
+                                        showlegend: true,
+                                        hovertemplate: `<b>%{text} DIVERGENCE</b><br>Date: %{x}<br>RSI: %{y:.1f}%<extra></extra>`,
+                                        text: divergences.map(d => d.rsi_divergence > 0 ? 'BULLISH' : 'BEARISH')
+                                    });
+                                }
                             }
                             break;
                             
@@ -2302,6 +2652,7 @@
                             processedData = filteredData.filter(d => d.macd !== null && !isNaN(d.macd));
                             if (processedData.length === 0) return;
                             
+                            // MACD Line
                             traces.push({
                                 x: processedData.map(d => d.date),
                                 y: processedData.map(d => d.macd),
@@ -2312,6 +2663,7 @@
                                 hovertemplate: `<b>${s.symbol} MACD</b><br>Date: %{x}<br>MACD: %{y:.4f}<extra></extra>`
                             });
                             
+                            // Signal Line
                             traces.push({
                                 x: processedData.map(d => d.date),
                                 y: processedData.map(d => d.macd_signal),
@@ -2322,25 +2674,51 @@
                                 hovertemplate: `<b>${s.symbol} Signal</b><br>Date: %{x}<br>Signal: %{y:.4f}<extra></extra>`
                             });
                             
+                            // Histogram with color coding
                             traces.push({
                                 x: processedData.map(d => d.date),
                                 y: processedData.map(d => d.macd_histogram),
                                 type: 'bar',
                                 name: `${s.symbol} Histogram`,
                                 marker: { 
-                                    color: processedData.map(d => d.macd_histogram > 0 ? '#00ff88' : '#ff4444'),
+                                    color: processedData.map(d => {
+                                        if (d.macd_histogram > 0) return '#00ff88';
+                                        else return '#ff4444';
+                                    }),
                                     opacity: 0.7
                                 },
                                 hovertemplate: `<b>${s.symbol} Histogram</b><br>Date: %{x}<br>Histogram: %{y:.4f}<extra></extra>`
                             });
                             
-                            yLabel = 'MACD';
+                            // Highlight MACD crossovers
+                            const crossovers = processedData.filter(d => d.macd_crossover !== 0 && d.macd_crossover !== null);
+                            if (crossovers.length > 0) {
+                                traces.push({
+                                    x: crossovers.map(d => d.date),
+                                    y: crossovers.map(d => d.macd),
+                                    type: 'scatter',
+                                    mode: 'markers',
+                                    name: 'MACD Crossovers',
+                                    marker: { 
+                                        color: crossovers.map(d => d.macd_crossover > 0 ? '#00ff88' : '#ff4444'),
+                                        size: 16,
+                                        symbol: 'circle-open',
+                                        line: { width: 3 }
+                                    },
+                                    showlegend: true,
+                                    hovertemplate: `<b>%{text} CROSSOVER</b><br>Date: %{x}<br>MACD: %{y:.4f}<extra></extra>`,
+                                    text: crossovers.map(d => d.macd_crossover > 0 ? 'BULLISH' : 'BEARISH')
+                                });
+                            }
+                            
+                            yLabel = 'MACD - Trend Change Detection';
                             return;
                             
                         case 'bollinger':
                             processedData = filteredData.filter(d => d.bb_sma !== null && !isNaN(d.bb_sma));
                             if (processedData.length === 0) return;
                             
+                            // Upper Band
                             traces.push({
                                 x: processedData.map(d => d.date),
                                 y: processedData.map(d => d.bb_upper),
@@ -2352,6 +2730,7 @@
                                 hoverinfo: 'skip'
                             });
                             
+                            // SMA (Middle Band)
                             traces.push({
                                 x: processedData.map(d => d.date),
                                 y: processedData.map(d => d.bb_sma),
@@ -2362,6 +2741,7 @@
                                 hovertemplate: `<b>${s.symbol} SMA</b><br>Date: %{x}<br>SMA: %{y:.4f}<extra></extra>`
                             });
                             
+                            // Lower Band
                             traces.push({
                                 x: processedData.map(d => d.date),
                                 y: processedData.map(d => d.bb_lower),
@@ -2375,6 +2755,7 @@
                                 hoverinfo: 'skip'
                             });
                             
+                            // Price line with squeeze detection
                             traces.push({
                                 x: processedData.map(d => d.date),
                                 y: processedData.map(d => d.value),
@@ -2382,10 +2763,31 @@
                                 mode: 'lines',
                                 name: `${s.symbol} Price`,
                                 line: { color: '#ffffff', width: 2 },
-                                hovertemplate: `<b>${s.symbol} Price</b><br>Date: %{x}<br>Price: %{y:.4f}<extra></extra>`
+                                hovertemplate: `<b>${s.symbol} Price</b><br>Date: %{x}<br>Price: %{y:.4f}<br>Band Width: %{customdata:.4f}<extra></extra>`,
+                                customdata: processedData.map(d => d.bb_width || 0)
                             });
                             
-                            yLabel = 'Price with Bollinger Bands';
+                            // Highlight Bollinger Band squeezes
+                            const squeezes = processedData.filter(d => d.bb_squeeze === 1);
+                            if (squeezes.length > 0) {
+                                traces.push({
+                                    x: squeezes.map(d => d.date),
+                                    y: squeezes.map(d => d.value),
+                                    type: 'scatter',
+                                    mode: 'markers',
+                                    name: 'BB Squeeze (Breakout Alert)',
+                                    marker: { 
+                                        color: '#ffaa00',
+                                        size: 10,
+                                        symbol: 'triangle-up',
+                                        line: { color: '#ffffff', width: 1 }
+                                    },
+                                    showlegend: true,
+                                    hovertemplate: `<b>BOLLINGER SQUEEZE</b><br>Date: %{x}<br>Price: %{y:.4f}<br>Potential breakout coming<extra></extra>`
+                                });
+                            }
+                            
+                            yLabel = 'Bollinger Bands - Volatility & Breakout Detection';
                             return;
                             
                         case 'stochastic':
@@ -2441,6 +2843,7 @@
                                     break;
                                 }
                                 
+                                // Volume bars with breakout coloring
                                 traces.push({
                                     x: processedData.map(d => d.date),
                                     y: processedData.map(d => d.volume),
@@ -2448,15 +2851,19 @@
                                     name: `${s.symbol} Volume`,
                                     marker: { 
                                         color: processedData.map((d, i) => {
-                                            if (i === 0) return '#888';
-                                            return processedData[i].value > processedData[i-1].value ? '#00ff88' : '#ff4444';
+                                            if (d.volume_breakout === 1) return '#00ff88'; // Bullish volume breakout
+                                            else if (d.volume_breakout === -1) return '#ff4444'; // Bearish volume breakout
+                                            else if (d.volume_ratio > 1.5) return '#ffaa00'; // High volume
+                                            else return '#888888'; // Normal volume
                                         }),
                                         opacity: 0.7
                                     },
-                                    hovertemplate: `<b>${s.symbol} Volume</b><br>Date: %{x}<br>Volume: %{y:,.0f}<extra></extra>`,
+                                    hovertemplate: `<b>${s.symbol} Volume</b><br>Date: %{x}<br>Volume: %{y:,.0f}<br>Ratio: %{customdata:.2f}x<extra></extra>`,
+                                    customdata: processedData.map(d => d.volume_ratio || 0),
                                     yaxis: 'y'
                                 });
                                 
+                                // Volume MA
                                 traces.push({
                                     x: processedData.map(d => d.date),
                                     y: processedData.map(d => d.volume_ma),
@@ -2468,6 +2875,7 @@
                                     yaxis: 'y'
                                 });
                                 
+                                // Price on secondary y-axis
                                 traces.push({
                                     x: processedData.map(d => d.date),
                                     y: processedData.map(d => d.value),
@@ -2479,7 +2887,29 @@
                                     yaxis: 'y2'
                                 });
                                 
-                                yLabel = 'Volume';
+                                // Highlight volume breakouts
+                                const volumeBreakouts = processedData.filter(d => d.volume_breakout !== 0);
+                                if (volumeBreakouts.length > 0) {
+                                    traces.push({
+                                        x: volumeBreakouts.map(d => d.date),
+                                        y: volumeBreakouts.map(d => d.value),
+                                        type: 'scatter',
+                                        mode: 'markers',
+                                        name: 'Volume Breakouts',
+                                        marker: { 
+                                            color: volumeBreakouts.map(d => d.volume_breakout > 0 ? '#00ff88' : '#ff4444'),
+                                            size: 12,
+                                            symbol: 'star',
+                                            line: { color: '#ffffff', width: 1 }
+                                        },
+                                        yaxis: 'y2',
+                                        showlegend: true,
+                                        hovertemplate: `<b>VOLUME BREAKOUT</b><br>Date: %{x}<br>Price: %{y:.2f}<br>Direction: %{text}<extra></extra>`,
+                                        text: volumeBreakouts.map(d => d.volume_breakout > 0 ? 'BULLISH' : 'BEARISH')
+                                    });
+                                }
+                                
+                                yLabel = 'Volume Analysis - Trend Confirmation';
                                 layout.yaxis2 = {
                                     title: 'Price',
                                     overlaying: 'y',
@@ -2570,6 +3000,7 @@
                                 break;
                             }
                             
+                            // Price line
                             traces.push({
                                 x: processedData.map(d => d.date),
                                 y: processedData.map(d => d.value),
@@ -2580,6 +3011,27 @@
                                 hovertemplate: `<b>${s.symbol}</b><br>Date: %{x}<br>Price: %{y:.4f}<extra></extra>`
                             });
                             
+                            // Strong buy signals
+                            const strongBuySignals = processedData.filter(d => d.signal === 2);
+                            if (strongBuySignals.length > 0) {
+                                traces.push({
+                                    x: strongBuySignals.map(d => d.date),
+                                    y: strongBuySignals.map(d => d.value),
+                                    type: 'scatter',
+                                    mode: 'markers',
+                                    name: `${s.symbol} Strong Buy`,
+                                    marker: { 
+                                        color: '#00ff88',
+                                        size: 16,
+                                        symbol: 'triangle-up',
+                                        line: { color: '#ffffff', width: 2 }
+                                    },
+                                    hovertemplate: `<b>STRONG BUY SIGNAL</b><br>Date: %{x}<br>Price: %{y:.4f}<br>Strength: %{customdata}<extra></extra>`,
+                                    customdata: strongBuySignals.map(d => d.signal_strength)
+                                });
+                            }
+                            
+                            // Buy signals
                             const buySignals = processedData.filter(d => d.signal === 1);
                             if (buySignals.length > 0) {
                                 traces.push({
@@ -2593,10 +3045,32 @@
                                         size: 10,
                                         symbol: 'triangle-up'
                                     },
-                                    hovertemplate: `<b>${s.symbol} BUY SIGNAL</b><br>Date: %{x}<br>Price: %{y:.4f}<extra></extra>`
+                                    hovertemplate: `<b>BUY SIGNAL</b><br>Date: %{x}<br>Price: %{y:.4f}<br>Strength: %{customdata}<extra></extra>`,
+                                    customdata: buySignals.map(d => d.signal_strength)
                                 });
                             }
                             
+                            // Strong sell signals
+                            const strongSellSignals = processedData.filter(d => d.signal === -2);
+                            if (strongSellSignals.length > 0) {
+                                traces.push({
+                                    x: strongSellSignals.map(d => d.date),
+                                    y: strongSellSignals.map(d => d.value),
+                                    type: 'scatter',
+                                    mode: 'markers',
+                                    name: `${s.symbol} Strong Sell`,
+                                    marker: { 
+                                        color: '#ff4444',
+                                        size: 16,
+                                        symbol: 'triangle-down',
+                                        line: { color: '#ffffff', width: 2 }
+                                    },
+                                    hovertemplate: `<b>STRONG SELL SIGNAL</b><br>Date: %{x}<br>Price: %{y:.4f}<br>Strength: %{customdata}<extra></extra>`,
+                                    customdata: strongSellSignals.map(d => d.signal_strength)
+                                });
+                            }
+                            
+                            // Sell signals
                             const sellSignals = processedData.filter(d => d.signal === -1);
                             if (sellSignals.length > 0) {
                                 traces.push({
@@ -2610,11 +3084,12 @@
                                         size: 10,
                                         symbol: 'triangle-down'
                                     },
-                                    hovertemplate: `<b>${s.symbol} SELL SIGNAL</b><br>Date: %{x}<br>Price: %{y:.4f}<extra></extra>`
+                                    hovertemplate: `<b>SELL SIGNAL</b><br>Date: %{x}<br>Price: %{y:.4f}<br>Strength: %{customdata}<extra></extra>`,
+                                    customdata: sellSignals.map(d => d.signal_strength)
                                 });
                             }
                             
-                            yLabel = 'Price with Trading Signals';
+                            yLabel = 'Trading Signals - Multi-Indicator Reversal Detection';
                             return;
                             
                         default:
