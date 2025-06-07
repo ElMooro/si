@@ -2522,9 +2522,6 @@ case 'stochastic':
                             yLabel = 'Year-over-Year % Change (Reversal Indicator)';
                             hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>YoY Change: %{y:.2f}%<br>Momentum: %{customdata:.2f}<extra></extra>`;
                             
-                            // Add momentum as custom data
-                            trace.customdata = processedData.map(d => d.yoy_momentum || 0);
-                            
                             if (index === 0) {
                                 // Zero line
                                 traces.push({
@@ -3178,6 +3175,11 @@ case 'stochastic':
                             hovertemplate: hoverTemplate,
                             line: { color: lineColor, width: 2 }
                         };
+                    }
+                    
+                    // Add customdata for pct_change mode
+                    if (displayMode === 'pct_change' && processedData.length > 0) {
+                        trace.customdata = processedData.map(d => d.yoy_momentum || 0);
                     }
                     
                     // Apply comparison mode transformations
