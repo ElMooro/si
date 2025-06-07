@@ -245,7 +245,7 @@
             display: flex;
             flex-direction: column;
             transition: all 0.3s ease;
-            min-height: 550px;
+            min-height: 600px;
             backdrop-filter: blur(10px);
         }
         .chart-window.active-chart {
@@ -393,20 +393,61 @@
             font-weight: bold;
         }
         
+        /* Chart Type Controls */
+        .chart-type-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        .chart-type-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #444;
+            color: #ccc;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s;
+        }
+        .chart-type-btn:hover {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: #00ff88;
+        }
+        .chart-type-btn.active {
+            background: linear-gradient(45deg, #0066cc, #0088ff);
+            color: #fff;
+            border-color: #0066cc;
+        }
+        
+        /* Comparison Controls */
+        .comparison-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        .comparison-label {
+            font-size: 11px;
+            color: #888;
+            margin-right: 5px;
+        }
+        
         /* Chart Canvas */
         .chart-canvas {
             background: rgba(10, 10, 26, 0.8);
             border-radius: 10px;
-            height: 520px;
+            height: 550px;
             flex-grow: 1;
-            min-height: 450px;
+            min-height: 500px;
             border: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .chart-message {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
             color: #00ff88;
             font-size: 18px;
             text-align: center;
@@ -554,7 +595,7 @@
             
             <div class="search-container">
                 <input type="text" class="search-box" id="searchBox"
-                       placeholder="🔍 Search 72,846+ Financial Indicators (FEDFUNDS, Treasury, GDP, AAPL, University of Michigan, etc.)..."
+                       placeholder="🔍 Search 72,846+ Financial Indicators (FEDFUNDS, Treasury, GDP, AAPL, University of Michigan, ICE BofA, etc.)..."
                        onkeyup="performSearch(this.value)"
                        autocomplete="off">
                 <span class="search-icon">🔍</span>
@@ -568,7 +609,7 @@
     </div>
 
     <script>
-        // VERIFIED CORS CONFIGURATION - Fixed HTTPS proxy implementation
+        // VERIFIED CORS CONFIGURATION - Enhanced for HTTPS compatibility
         const API_CONFIG = {
             // System 1: Lambda Platform (6,204 indicators + CORS VERIFIED)
             lambda_base: 'https://i3y8tfdp1k.execute-api.us-east-1.amazonaws.com/prod',
@@ -593,7 +634,7 @@
         
         let apiConnectionStatus = 'checking';
         
-        // MASSIVE ENHANCED SYMBOL DATABASE - All 72,846+ indicators represented
+        // MASSIVE ENHANCED SYMBOL DATABASE - All 72,846+ indicators with ICE BofA and updated Bitcoin
         const comprehensiveSymbols = [
             // === VERIFIED WORKING ENDPOINTS (HIGH PRIORITY) ===
             { symbol: 'UMCSENT', name: 'University of Michigan Consumer Sentiment', source: 'enhanced', provider: 'fred', 
@@ -612,6 +653,28 @@
               description: 'Senior Loan Officer Opinion Survey - VERIFIED WORKING',
               endpoint: '/economy/survey/sloos?provider=fred', priority: 1, verified: true },
             
+            // === ICE BOFA METRICS (FRED) ===
+            { symbol: 'BAMLH0A0HYM2', name: 'ICE BofA US High Yield Master II Option-Adjusted Spread', source: 'lambda', provider: 'fred_direct', 
+              description: 'ICE BofA US High Yield Master II Option-Adjusted Spread', units: 'Percent', sector: 'Credit Spreads' },
+            { symbol: 'BAMLC0A0CM', name: 'ICE BofA US Corporate Master Option-Adjusted Spread', source: 'lambda', provider: 'fred_direct', 
+              description: 'ICE BofA US Corporate Master Option-Adjusted Spread', units: 'Percent', sector: 'Credit Spreads' },
+            { symbol: 'BAMLC0A1CAAAOAS', name: 'ICE BofA US Corporate AAA Option-Adjusted Spread', source: 'lambda', provider: 'fred_direct', 
+              description: 'ICE BofA US Corporate AAA Option-Adjusted Spread', units: 'Percent', sector: 'Credit Spreads' },
+            { symbol: 'BAMLC0A2CAAOAS', name: 'ICE BofA US Corporate AA Option-Adjusted Spread', source: 'lambda', provider: 'fred_direct', 
+              description: 'ICE BofA US Corporate AA Option-Adjusted Spread', units: 'Percent', sector: 'Credit Spreads' },
+            { symbol: 'BAMLC0A3CAOAS', name: 'ICE BofA US Corporate A Option-Adjusted Spread', source: 'lambda', provider: 'fred_direct', 
+              description: 'ICE BofA US Corporate A Option-Adjusted Spread', units: 'Percent', sector: 'Credit Spreads' },
+            { symbol: 'BAMLC0A4CBBBOAS', name: 'ICE BofA US Corporate BBB Option-Adjusted Spread', source: 'lambda', provider: 'fred_direct', 
+              description: 'ICE BofA US Corporate BBB Option-Adjusted Spread', units: 'Percent', sector: 'Credit Spreads' },
+            { symbol: 'BAMLEMCBPIOAS', name: 'ICE BofA Emerging Markets Corporate Plus Index Option-Adjusted Spread', source: 'lambda', provider: 'fred_direct', 
+              description: 'ICE BofA Emerging Markets Corporate Plus Index Option-Adjusted Spread', units: 'Percent', sector: 'Credit Spreads' },
+            { symbol: 'BAMLHYH0A0HYM2TRIV', name: 'ICE BofA US High Yield Master II Total Return Index Value', source: 'lambda', provider: 'fred_direct', 
+              description: 'ICE BofA US High Yield Master II Total Return Index Value', units: 'Index', sector: 'Bond Indices' },
+            { symbol: 'BAMLCC0A0CMTRIV', name: 'ICE BofA US Corporate Master Total Return Index Value', source: 'lambda', provider: 'fred_direct', 
+              description: 'ICE BofA US Corporate Master Total Return Index Value', units: 'Index', sector: 'Bond Indices' },
+            { symbol: 'BAMLEMTCBPIOAS', name: 'ICE BofA Emerging Markets Treasury Plus Index Option-Adjusted Spread', source: 'lambda', provider: 'fred_direct', 
+              description: 'ICE BofA Emerging Markets Treasury Plus Index Option-Adjusted Spread', units: 'Percent', sector: 'Credit Spreads' },
+            
             // === US FEDERAL RESERVE (FRED) DATA ===
             { symbol: 'FEDFUNDS', name: 'Federal Funds Rate', source: 'lambda', provider: 'fred_direct', 
               description: 'Effective Federal Funds Rate', units: 'Percent', sector: 'Monetary Policy' },
@@ -625,6 +688,10 @@
               description: '2-Year Treasury Constant Maturity Rate', units: 'Percent', sector: 'Interest Rates' },
             { symbol: 'DGS30', name: '30-Year Treasury Rate', source: 'lambda', provider: 'fred_direct', 
               description: '30-Year Treasury Constant Maturity Rate', units: 'Percent', sector: 'Interest Rates' },
+            { symbol: 'DGS5', name: '5-Year Treasury Rate', source: 'lambda', provider: 'fred_direct', 
+              description: '5-Year Treasury Constant Maturity Rate', units: 'Percent', sector: 'Interest Rates' },
+            { symbol: 'DGS7', name: '7-Year Treasury Rate', source: 'lambda', provider: 'fred_direct', 
+              description: '7-Year Treasury Constant Maturity Rate', units: 'Percent', sector: 'Interest Rates' },
             { symbol: 'VIXCLS', name: 'CBOE Volatility Index', source: 'lambda', provider: 'fred_direct', 
               description: 'VIX Closing Price', units: 'Index', sector: 'Market Volatility' },
             { symbol: 'DTWEXBGS', name: 'US Dollar Index', source: 'lambda', provider: 'fred_direct', 
@@ -678,11 +745,11 @@
             { symbol: 'TLT', name: 'iShares 20+ Year Treasury Bond ETF', source: 'lambda', provider: 'polygon_direct', sector: 'ETF',
               description: 'iShares 20+ Year Treasury Bond ETF', asset_class: 'Bond ETF' },
             
-            // === CRYPTOCURRENCY ===
+            // === CRYPTOCURRENCY (UPDATED PRICING) ===
             { symbol: 'BTC-USD', name: 'Bitcoin', source: 'enhanced', provider: 'crypto_direct', 
-              description: 'Bitcoin to USD', units: 'USD', sector: 'Cryptocurrency' },
+              description: 'Bitcoin to USD (Current: ~$95,000)', units: 'USD', sector: 'Cryptocurrency' },
             { symbol: 'ETH-USD', name: 'Ethereum', source: 'enhanced', provider: 'crypto_direct', 
-              description: 'Ethereum to USD', units: 'USD', sector: 'Cryptocurrency' },
+              description: 'Ethereum to USD (Current: ~$3,600)', units: 'USD', sector: 'Cryptocurrency' },
             { symbol: 'ADA-USD', name: 'Cardano', source: 'enhanced', provider: 'crypto_direct', 
               description: 'Cardano to USD', units: 'USD', sector: 'Cryptocurrency' },
             
@@ -965,7 +1032,7 @@
                     let searchResults = [];
                     
                     // Only search Lambda if we have a working connection and avoid CORS issues
-                    if (apiConnectionStatus === 'dual_online' || apiConnectionStatus === 'partial_online') {
+                    if (apiConnectionStatus === 'dual_online' || apiConnectionStatus === 'lambda_online') {
                         try {
                             console.log('🔍 Searching Lambda Platform...');
                             
@@ -1032,7 +1099,7 @@
                     <div class="search-item" style="text-align:center; color:#888; padding: 30px;">
                         <div style="font-size: 16px; margin-bottom: 10px;">No results found for "${query}"</div>
                         <div style="margin-top: 15px; font-size: 12px; color: #666;">
-                            Try searching: "Treasury", "GDP", "Federal Funds", "University of Michigan", "Apple", "Bitcoin"
+                            Try searching: "ICE BofA", "Treasury", "GDP", "Federal Funds", "University of Michigan", "Apple", "Bitcoin"
                         </div>
                         <div style="margin-top: 10px; font-size: 11px; color: #00ff88;">
                             📊 Total Database: 72,846+ OpenBB Financial Indicators
@@ -1071,8 +1138,10 @@
             // Categorize results (moved inside function to fix reference error)
             const categories = {
                 'Verified Working': [],
+                'ICE BofA Metrics': [],
                 'Economic Indicators': [],
                 'Interest Rates': [],
+                'Credit Spreads': [],
                 'Stocks': [],
                 'ETFs': [],
                 'Commodities': [],
@@ -1085,12 +1154,16 @@
             results.forEach(result => {
                 if (result.verified) {
                     categories['Verified Working'].push(result);
+                } else if (result.symbol?.includes('BAML') || result.name?.includes('ICE BofA') || result.sector === 'Credit Spreads') {
+                    categories['ICE BofA Metrics'].push(result);
                 } else if (['lambda', 'enhanced'].includes(result.source) && 
                     (result.provider === 'fred_direct' || result.provider === 'fred' || result.sector?.includes('Economic'))) {
                     categories['Economic Indicators'].push(result);
                 } else if (result.symbol?.includes('DGS') || result.symbol?.includes('RATE') || 
-                    result.symbol === 'FEDFUNDS' || result.name?.includes('Rate')) {
+                    result.symbol === 'FEDFUNDS' || result.name?.includes('Rate') || result.sector === 'Interest Rates') {
                     categories['Interest Rates'].push(result);
+                } else if (result.sector === 'Credit Spreads') {
+                    categories['Credit Spreads'].push(result);
                 } else if (result.sector === 'Technology' || result.sector === 'Consumer Discretionary' || 
                     result.provider === 'polygon_direct') {
                     categories['Stocks'].push(result);
@@ -1150,9 +1223,9 @@
                     html += `
                         <div class="search-item" onclick="addToChart('${result.symbol}', '${(result.name || result.symbol).replace(/'/g, "\\'")}', '${result.source}', '${result.provider || ''}', '${result.endpoint || ''}')">
                             <div class="search-item-left">
-                                <div class="search-item-symbol">${highlightMatch(result.symbol)}</div>
-                                <div class="search-item-name">${highlightMatch(result.name || result.symbol)}</div>
-                                ${result.description ? `<div class="search-item-description">${highlightMatch(result.description)}${units}${sector}</div>` : ''}
+                                <div class="search-item-symbol">${highlightMatch(result.symbol, query)}</div>
+                                <div class="search-item-name">${highlightMatch(result.name || result.symbol, query)}</div>
+                                ${result.description ? `<div class="search-item-description">${highlightMatch(result.description, query)}${units}${sector}</div>` : ''}
                             </div>
                             <div class="search-item-source">${providerIcon}</div>
                         </div>
@@ -1192,9 +1265,28 @@
                             <div class="chart-display-controls">
                                 <button class="display-toggle active" onclick="toggleChartDisplay(event, '${chartId}', 'raw')" data-display="raw">📈 Raw Data</button>
                                 <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'pct_change')" data-display="pct_change">📊 YoY % Change</button>
-                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'trend')" data-display="trend">📈 Trend Analysis</button>
-                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'volatility')" data-display="volatility">⚡ Volatility</button>
-                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'comparison')" data-display="comparison">🔄 Compare</button>
+                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'trend')" data-display="trend">🔢 Trend Strength</button>
+                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'rsi')" data-display="rsi">🎯 RSI</button>
+                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'macd')" data-display="macd">⚡ MACD</button>
+                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'bollinger')" data-display="bollinger">🌊 Bollinger Bands</button>
+                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'stochastic')" data-display="stochastic">🔄 Stochastic</button>
+                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'volume')" data-display="volume">📦 Volume Analysis</button>
+                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'multi_indicator')" data-display="multi_indicator">🎛️ Multi-Indicator</button>
+                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'signals')" data-display="signals">🎪 Trading Signals</button>
+                            </div>
+                            <div class="chart-type-controls">
+                                <span class="comparison-label">Chart Type:</span>
+                                <button class="chart-type-btn active" onclick="changeChartType('${chartId}', 'line')" data-type="line">📈 Line</button>
+                                <button class="chart-type-btn" onclick="changeChartType('${chartId}', 'candlestick')" data-type="candlestick">🕯️ Candlestick</button>
+                                <button class="chart-type-btn" onclick="changeChartType('${chartId}', 'ohlc')" data-type="ohlc">📊 OHLC</button>
+                                <button class="chart-type-btn" onclick="changeChartType('${chartId}', 'area')" data-type="area">🏔️ Area</button>
+                                <button class="chart-type-btn" onclick="changeChartType('${chartId}', 'mountain')" data-type="mountain">🗻 Mountain</button>
+                            </div>
+                            <div class="comparison-controls">
+                                <span class="comparison-label">Compare:</span>
+                                <button class="display-toggle active" onclick="changeComparisonMode('${chartId}', 'absolute')" data-comparison="absolute">Absolute</button>
+                                <button class="display-toggle" onclick="changeComparisonMode('${chartId}', 'percentage')" data-comparison="percentage">Percentage</button>
+                                <button class="display-toggle" onclick="changeComparisonMode('${chartId}', 'indexed')" data-comparison="indexed">Indexed (100)</button>
                             </div>
                         </div>
                         <div class="chart-controls">
@@ -1210,7 +1302,7 @@
                     </div>
                     <div class="chart-canvas" id="${chartId}_canvas">
                         <div class="chart-message">🔍 Search for a financial instrument to add to this chart<br><br>
-                        <small>Try: "University of Michigan", "GDP", "Federal Funds", "Treasury", "Apple", "Bitcoin"</small></div>
+                        <small>Try: "ICE BofA", "University of Michigan", "GDP", "Federal Funds", "Treasury", "Apple", "Bitcoin"</small></div>
                     </div>
                 </div>`;
             
@@ -1221,7 +1313,9 @@
                 timeframe: '1Y',
                 chartInstance: null,
                 displayMode: 'raw',
+                chartType: 'line',
                 isFullscreen: false,
+                comparisonMode: 'absolute',
                 maxSymbols: 10
             };
             setActiveChart(chartId);
@@ -1268,7 +1362,7 @@
             setActiveChart(chartId);
         }
         
-        // Enhanced data loading with improved proxy support
+        // Enhanced data loading with improved proxy support and extended historical data
         async function loadChartData(chartId, symbol, name, source, provider, endpoint) {
             const chart = charts[chartId];
             if (!chart) return;
@@ -1278,7 +1372,7 @@
             
             try {
                 let data = [];
-                let dataSource = 'Sample';
+                let dataSource = 'Enhanced Sample';
                 
                 // Try to load real data from APIs with improved proxy handling
                 if (source === 'enhanced' && endpoint && apiConnectionStatus !== 'sample_mode') {
@@ -1362,9 +1456,12 @@
                 // Generate enhanced sample data if no real data obtained
                 if (data.length === 0) {
                     console.log(`📊 Generating enhanced sample data for ${symbol}`);
-                    data = generateEnhancedSampleData(symbol, 5); // 5 years of data
+                    data = generateEnhancedSampleData(symbol, 15); // Extended to 15 years of data
                     dataSource = 'Enhanced Sample';
                 }
+                
+                // Add comprehensive technical indicators
+                data = calculateAdvancedTechnicalIndicators(data);
                 
                 // Store data and update chart
                 chart.data[symbol] = data;
@@ -1406,8 +1503,8 @@
             loadChartData(chartId, symbol, name, source, provider, endpoint);
         }
         
-        // Enhanced sample data generation with realistic financial patterns
-        function generateEnhancedSampleData(symbol, years = 5) {
+        // Enhanced sample data generation with realistic patterns and extended history
+        function generateEnhancedSampleData(symbol, years = 15) {
             const data = [];
             const startDate = new Date();
             startDate.setFullYear(startDate.getFullYear() - years);
@@ -1415,7 +1512,7 @@
             const endDate = new Date();
             const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
             
-            // Symbol-specific parameters for realistic data
+            // Symbol-specific parameters for realistic data with updated Bitcoin pricing
             const symbolConfig = {
                 'AAPL': { baseValue: 150, volatility: 0.025, trend: 0.0002, hasVolume: true },
                 'MSFT': { baseValue: 300, volatility: 0.022, trend: 0.0001, hasVolume: true },
@@ -1431,16 +1528,29 @@
                 'UNRATE': { baseValue: 3.8, volatility: 0.005, trend: 0, min: 2, max: 12, hasVolume: false },
                 'DGS10': { baseValue: 4.2, volatility: 0.008, trend: 0, min: 0.5, max: 8, hasVolume: false },
                 'DGS2': { baseValue: 4.8, volatility: 0.01, trend: 0, min: 0.1, max: 7, hasVolume: false },
+                'DGS5': { baseValue: 4.3, volatility: 0.009, trend: 0, min: 0.3, max: 7.5, hasVolume: false },
+                'DGS7': { baseValue: 4.4, volatility: 0.008, trend: 0, min: 0.4, max: 7.8, hasVolume: false },
                 'DGS30': { baseValue: 4.5, volatility: 0.007, trend: 0, min: 1, max: 8, hasVolume: false },
                 'VIXCLS': { baseValue: 15, volatility: 0.15, trend: 0, min: 8, max: 85, hasVolume: false },
                 'GDP_NOMINAL': { baseValue: 27000, volatility: 0.003, trend: 0.0001, min: 20000, max: 30000, hasVolume: false },
                 'GDP_REAL': { baseValue: 25000, volatility: 0.003, trend: 0.0001, min: 20000, max: 28000, hasVolume: false },
                 'UMCSENT': { baseValue: 70, volatility: 0.02, trend: 0, min: 50, max: 110, hasVolume: false },
                 'SLOOS': { baseValue: 0, volatility: 0.1, trend: 0, min: -50, max: 50, hasVolume: false },
-                'BTC-USD': { baseValue: 45000, volatility: 0.05, trend: 0.0002, hasVolume: true },
-                'ETH-USD': { baseValue: 3000, volatility: 0.06, trend: 0.0002, hasVolume: true },
+                // Updated Bitcoin pricing to reflect 2024-2025 levels
+                'BTC-USD': { baseValue: 95000, volatility: 0.05, trend: 0.0003, hasVolume: true, min: 3000, max: 150000 },
+                'ETH-USD': { baseValue: 3600, volatility: 0.06, trend: 0.0002, hasVolume: true, min: 80, max: 8000 },
+                'ADA-USD': { baseValue: 1.20, volatility: 0.08, trend: 0.0001, hasVolume: true, min: 0.1, max: 5 },
                 'CL=F': { baseValue: 75, volatility: 0.03, trend: 0, min: 30, max: 150, hasVolume: true },
-                'GC=F': { baseValue: 1950, volatility: 0.02, trend: 0.0001, min: 1500, max: 2500, hasVolume: true }
+                'GC=F': { baseValue: 1950, volatility: 0.02, trend: 0.0001, min: 1500, max: 2500, hasVolume: true },
+                'SI=F': { baseValue: 24, volatility: 0.03, trend: 0.0001, min: 15, max: 50, hasVolume: true },
+                'NG=F': { baseValue: 3.5, volatility: 0.04, trend: 0, min: 1.5, max: 10, hasVolume: true },
+                // ICE BofA metrics
+                'BAMLH0A0HYM2': { baseValue: 4.5, volatility: 0.02, trend: 0, min: 2, max: 15, hasVolume: false },
+                'BAMLC0A0CM': { baseValue: 1.2, volatility: 0.015, trend: 0, min: 0.5, max: 5, hasVolume: false },
+                'BAMLC0A1CAAAOAS': { baseValue: 0.6, volatility: 0.01, trend: 0, min: 0.2, max: 2, hasVolume: false },
+                'BAMLC0A2CAAOAS': { baseValue: 0.8, volatility: 0.012, trend: 0, min: 0.3, max: 2.5, hasVolume: false },
+                'BAMLC0A3CAOAS': { baseValue: 1.0, volatility: 0.013, trend: 0, min: 0.4, max: 3, hasVolume: false },
+                'BAMLC0A4CBBBOAS': { baseValue: 1.5, volatility: 0.015, trend: 0, min: 0.6, max: 4, hasVolume: false }
             };
             
             const config = symbolConfig[symbol] || { baseValue: 100, volatility: 0.02, trend: 0, hasVolume: true };
@@ -1453,13 +1563,26 @@
                 // Skip weekends for financial data
                 if (date.getDay() === 0 || date.getDay() === 6) continue;
                 
-                // Enhanced market simulation
+                // Enhanced market simulation with multiple components
                 const randomWalk = (Math.random() - 0.5) * config.volatility * 2;
-                const longTermTrend = config.trend || 0;
+                const longTermTrend = config.trend || Math.sin(i / 500) * 0.001;
+                const mediumTermTrend = Math.sin(i / 150) * 0.003;
+                const shortTermTrend = Math.sin(i / 50) * 0.005;
                 const seasonalComponent = Math.sin((i % 252) / 252 * 2 * Math.PI) * 0.002;
-                const volatilityCluster = Math.random() < 0.02 ? (Math.random() - 0.5) * config.volatility * 3 : 0;
                 
-                const totalChange = randomWalk + longTermTrend + seasonalComponent + volatilityCluster;
+                // Market event impacts and recent events (including crypto rally)
+                let eventComponent = 0;
+                if (i > totalDays * 0.8 && Math.random() < 0.003) { // More recent volatility
+                    eventComponent = (Math.random() - 0.5) * config.volatility * 5;
+                    // Special case for crypto during 2024-2025 rally
+                    if (symbol.includes('BTC') || symbol.includes('ETH')) {
+                        eventComponent = Math.abs(eventComponent) * 1.5; // Positive bias for crypto
+                    }
+                }
+                
+                const totalChange = randomWalk + longTermTrend + mediumTermTrend + shortTermTrend + 
+                                  seasonalComponent + eventComponent;
+                
                 const previousClose = currentValue;
                 currentValue *= (1 + totalChange);
                 
@@ -1467,29 +1590,30 @@
                 if (config.min !== undefined) currentValue = Math.max(currentValue, config.min);
                 if (config.max !== undefined) currentValue = Math.min(currentValue, config.max);
                 
-                // Generate OHLC data
+                // Generate realistic OHLC data
                 const dailyVolatility = config.volatility * (0.3 + Math.random() * 0.7);
                 const range = currentValue * dailyVolatility;
                 
                 const gapSize = (Math.random() - 0.5) * config.volatility * 0.5;
                 const open = previousClose * (1 + gapSize);
                 
-                const intrarayMove1 = (Math.random() - 0.5) * range * 2;
-                const intrarayMove2 = (Math.random() - 0.5) * range * 2;
+                const intradayMove1 = (Math.random() - 0.5) * range * 2;
+                const intradayMove2 = (Math.random() - 0.5) * range * 2;
                 
-                const high = Math.max(open, currentValue) + Math.abs(intrarayMove1);
-                const low = Math.min(open, currentValue) - Math.abs(intrarayMove2);
+                const high = Math.max(open, currentValue) + Math.abs(intradayMove1);
+                const low = Math.min(open, currentValue) - Math.abs(intradayMove2);
                 
                 const finalHigh = Math.max(high, open, currentValue);
                 const finalLow = Math.min(low, open, currentValue);
                 
-                // Generate volume
+                // Generate volume data
                 let volume = 0;
                 if (config.hasVolume) {
                     const baseVolume = 1000000;
                     const volumeVariation = (Math.random() - 0.5) * 0.6;
                     const volumeTrend = Math.abs(totalChange) * 3;
-                    volume = Math.round(baseVolume * (1 + volumeVariation + volumeTrend));
+                    const volumeCluster = Math.abs(eventComponent) > 0 ? 2.5 : 1;
+                    volume = Math.round(baseVolume * (1 + volumeVariation + volumeTrend) * volumeCluster);
                     volume = Math.max(volume, baseVolume * 0.1);
                 }
                 
@@ -1507,7 +1631,221 @@
             return data;
         }
         
-        // Enhanced chart rendering
+        // Advanced technical indicators calculation
+        function calculateAdvancedTechnicalIndicators(data) {
+            if (!data || data.length === 0) return data;
+            
+            const values = data.map(d => d.value);
+            const highs = data.map(d => d.high || d.value);
+            const lows = data.map(d => d.low || d.value);
+            const closes = data.map(d => d.close || d.value);
+            const volumes = data.map(d => d.volume || 0);
+            
+            // Calculate EMA helper function
+            const calculateEMA = (period, dataArray) => {
+                if (dataArray.length < period) return dataArray.map(() => null);
+                
+                const k = 2 / (period + 1);
+                const emaArray = [];
+                
+                let ema = dataArray.slice(0, period).reduce((sum, val) => sum + val, 0) / period;
+                emaArray.push(...Array(period - 1).fill(null), ema);
+                
+                for (let i = period; i < dataArray.length; i++) {
+                    ema = (dataArray[i] - ema) * k + ema;
+                    emaArray.push(ema);
+                }
+                
+                return emaArray;
+            };
+            
+            // RSI Calculation
+            const calculateRSI = (prices, period = 14) => {
+                const rsiValues = [];
+                
+                for (let i = 0; i < period; i++) {
+                    rsiValues.push(null);
+                }
+                
+                if (prices.length > period) {
+                    let gains = [];
+                    let losses = [];
+                    
+                    for (let i = 1; i <= period; i++) {
+                        const change = prices[i] - prices[i - 1];
+                        gains.push(change > 0 ? change : 0);
+                        losses.push(change < 0 ? -change : 0);
+                    }
+                    
+                    let avgGain = gains.reduce((sum, gain) => sum + gain, 0) / period;
+                    let avgLoss = losses.reduce((sum, loss) => sum + loss, 0) / period;
+                    
+                    let rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
+                    let rsi = 100 - (100 / (1 + rs));
+                    rsiValues.push(rsi);
+                    
+                    for (let i = period + 1; i < prices.length; i++) {
+                        const change = prices[i] - prices[i - 1];
+                        const gain = change > 0 ? change : 0;
+                        const loss = change < 0 ? -change : 0;
+                        
+                        avgGain = (avgGain * (period - 1) + gain) / period;
+                        avgLoss = (avgLoss * (period - 1) + loss) / period;
+                        
+                        rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
+                        rsi = 100 - (100 / (1 + rs));
+                        rsiValues.push(rsi);
+                    }
+                }
+                
+                return rsiValues;
+            };
+            
+            // Stochastic Oscillator
+            const calculateStochastic = (highs, lows, closes, kPeriod = 14, dPeriod = 3) => {
+                const stochK = [];
+                const stochD = [];
+                
+                for (let i = 0; i < kPeriod - 1; i++) {
+                    stochK.push(null);
+                }
+                
+                for (let i = kPeriod - 1; i < closes.length; i++) {
+                    const periodHighs = highs.slice(i - kPeriod + 1, i + 1);
+                    const periodLows = lows.slice(i - kPeriod + 1, i + 1);
+                    
+                    const highestHigh = Math.max(...periodHighs);
+                    const lowestLow = Math.min(...periodLows);
+                    
+                    const k = ((closes[i] - lowestLow) / (highestHigh - lowestLow)) * 100;
+                    stochK.push(k);
+                }
+                
+                for (let i = 0; i < dPeriod - 1; i++) {
+                    stochD.push(null);
+                }
+                
+                for (let i = dPeriod - 1; i < stochK.length; i++) {
+                    const kValues = stochK.slice(i - dPeriod + 1, i + 1).filter(v => v !== null);
+                    if (kValues.length === dPeriod) {
+                        const d = kValues.reduce((sum, val) => sum + val, 0) / dPeriod;
+                        stochD.push(d);
+                    } else {
+                        stochD.push(null);
+                    }
+                }
+                
+                return { stochK, stochD };
+            };
+            
+            // Bollinger Bands
+            const calculateBollingerBands = (prices, period = 20, stdDev = 2) => {
+                const sma = [];
+                const upperBand = [];
+                const lowerBand = [];
+                
+                for (let i = 0; i < period - 1; i++) {
+                    sma.push(null);
+                    upperBand.push(null);
+                    lowerBand.push(null);
+                }
+                
+                for (let i = period - 1; i < prices.length; i++) {
+                    const slice = prices.slice(i - period + 1, i + 1);
+                    const average = slice.reduce((sum, val) => sum + val, 0) / period;
+                    sma.push(average);
+                    
+                    const variance = slice.reduce((sum, val) => sum + Math.pow(val - average, 2), 0) / period;
+                    const standardDev = Math.sqrt(variance);
+                    
+                    upperBand.push(average + (standardDev * stdDev));
+                    lowerBand.push(average - (standardDev * stdDev));
+                }
+                
+                return { sma, upperBand, lowerBand };
+            };
+            
+            // Calculate all indicators
+            const ema12Values = calculateEMA(12, values);
+            const ema26Values = calculateEMA(26, values);
+            const macdLine = ema12Values.map((e12, i) =>
+                ema26Values[i] !== null && e12 !== null ? e12 - ema26Values[i] : null
+            );
+            const signalLineValues = calculateEMA(9, macdLine.map(v => v || 0));
+            const macdHistogram = macdLine.map((macd, i) => 
+                macd !== null && signalLineValues[i] !== null ? macd - signalLineValues[i] : null
+            );
+            
+            const rsiValues = calculateRSI(values);
+            const stochastic = calculateStochastic(highs, lows, closes);
+            const bollinger = calculateBollingerBands(values);
+            
+            return data.map((item, index) => {
+                // Year-over-year calculations
+                let yoyChange = null;
+                if (index >= 252) { // ~1 year of trading days
+                    const yearAgoValue = data[index - 252]?.value;
+                    if (yearAgoValue && yearAgoValue !== 0) {
+                        yoyChange = ((item.value - yearAgoValue) / yearAgoValue) * 100;
+                    }
+                }
+                
+                // Volume analysis
+                let volumeMA = null;
+                let volumeRatio = null;
+                if (index >= 20 && item.volume > 0) {
+                    const volumeSlice = data.slice(index - 19, index + 1).map(d => d.volume);
+                    volumeMA = volumeSlice.reduce((sum, vol) => sum + vol, 0) / 20;
+                    volumeRatio = volumeMA > 0 ? item.volume / volumeMA : 0;
+                }
+                
+                // Trading signals
+                let signal = null;
+                const rsi = rsiValues[index];
+                const stochK = stochastic.stochK[index];
+                const stochD = stochastic.stochD[index];
+                const macd = macdLine[index];
+                const macdSignal = signalLineValues[index];
+                
+                if (rsi !== null && stochK !== null && macd !== null && macdSignal !== null) {
+                    let signalStrength = 0;
+                    
+                    if (macd > macdSignal) signalStrength += 1;
+                    else signalStrength -= 1;
+                    
+                    if (rsi < 30) signalStrength += 2;
+                    else if (rsi > 70) signalStrength -= 2;
+                    
+                    if (stochK > stochD && stochK < 20) signalStrength += 1;
+                    else if (stochK < stochD && stochK > 80) signalStrength -= 1;
+                    
+                    if (signalStrength >= 2) signal = 1;
+                    else if (signalStrength <= -2) signal = -1;
+                    else signal = 0;
+                }
+                
+                return {
+                    ...item,
+                    yoy_change: yoyChange,
+                    ema12: ema12Values[index],
+                    ema26: ema26Values[index],
+                    macd: macdLine[index],
+                    macd_signal: signalLineValues[index],
+                    macd_histogram: macdHistogram[index],
+                    rsi: rsiValues[index],
+                    stoch_k: stochastic.stochK[index],
+                    stoch_d: stochastic.stochD[index],
+                    bb_sma: bollinger.sma[index],
+                    bb_upper: bollinger.upperBand[index],
+                    bb_lower: bollinger.lowerBand[index],
+                    volume_ma: volumeMA,
+                    volume_ratio: volumeRatio,
+                    signal: signal
+                };
+            });
+        }
+        
+        // Enhanced chart rendering with all display modes and chart types
         function updateChartRender(chartId) {
             const chart = charts[chartId];
             const canvasElement = document.getElementById(`${chartId}_canvas`);
@@ -1523,6 +1861,7 @@
                 const traces = [];
                 const displayMode = chart.displayMode || 'raw';
                 let yLabel = 'Value';
+                let layout = {};
                 
                 chart.symbols.forEach((s, index) => {
                     const symbolData = chart.data[s.symbol];
@@ -1532,96 +1871,553 @@
                     if (filteredData.length === 0) return;
                     
                     const lineColor = colorPalette[index % colorPalette.length];
-                    let yData, hoverTemplate;
+                    let yData, hoverTemplate, processedData;
                     
                     switch (displayMode) {
                         case 'raw':
                             yData = filteredData.map(d => d.value);
                             yLabel = 'Price/Value';
                             hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Value: %{y:.4f}<extra></extra>`;
+                            processedData = filteredData;
                             break;
                             
                         case 'pct_change':
-                            // Year-over-year percentage change
-                            const yoyData = filteredData.map((item, idx) => {
-                                if (idx < 252) return null; // Need 1 year of data
-                                const yearAgoValue = filteredData[idx - 252]?.value;
-                                if (!yearAgoValue || yearAgoValue === 0) return null;
-                                return ((item.value - yearAgoValue) / yearAgoValue) * 100;
-                            }).filter(v => v !== null);
+                            processedData = filteredData.filter(d => d.yoy_change !== null && !isNaN(d.yoy_change));
+                            if (processedData.length === 0) return;
                             
-                            yData = yoyData;
+                            yData = processedData.map(d => d.yoy_change);
                             yLabel = 'Year-over-Year % Change';
                             hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>YoY Change: %{y:.2f}%<extra></extra>`;
+                            
+                            // Add reference lines
+                            if (index === 0) {
+                                traces.push({
+                                    x: processedData.map(d => d.date),
+                                    y: processedData.map(() => 0),
+                                    type: 'scatter',
+                                    mode: 'lines',
+                                    name: 'Zero Line',
+                                    line: { color: '#888', width: 2, dash: 'solid' },
+                                    showlegend: false,
+                                    hoverinfo: 'skip'
+                                });
+                            }
                             break;
                             
                         case 'trend':
-                            // Moving average trend
-                            const maData = [];
-                            for (let i = 19; i < filteredData.length; i++) {
-                                const slice = filteredData.slice(i - 19, i + 1);
-                                const avg = slice.reduce((sum, d) => sum + d.value, 0) / slice.length;
-                                maData.push(avg);
-                            }
-                            yData = maData;
-                            yLabel = '20-Period Moving Average';
-                            hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>MA: %{y:.4f}<extra></extra>`;
+                            // Calculate trend strength using 20-period linear regression
+                            processedData = filteredData.map((item, idx) => {
+                                if (idx < 20) return { ...item, trend_strength: null };
+                                
+                                const window = filteredData.slice(idx - 19, idx + 1);
+                                const x = Array.from({length: 20}, (_, i) => i);
+                                const y = window.map(d => d.value);
+                                
+                                const n = 20;
+                                const sumX = x.reduce((a, b) => a + b, 0);
+                                const sumY = y.reduce((a, b) => a + b, 0);
+                                const sumXY = x.reduce((sum, xi, i) => sum + xi * y[i], 0);
+                                const sumX2 = x.reduce((sum, xi) => sum + xi * xi, 0);
+                                
+                                let slope = 0;
+                                if ((n * sumX2 - sumX * sumX) !== 0) {
+                                    slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+                                }
+                                
+                                const trendStrength = (slope / item.value) * 10000;
+                                return { ...item, trend_strength: trendStrength };
+                            }).filter(d => d.trend_strength !== null && !isNaN(d.trend_strength));
+                            
+                            if (processedData.length === 0) return;
+                            
+                            yData = processedData.map(d => d.trend_strength);
+                            yLabel = 'Trend Strength';
+                            hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Trend: %{y:.3f}<extra></extra>`;
                             break;
                             
-                        case 'volatility':
-                            // Rolling volatility
-                            const volData = [];
-                            for (let i = 19; i < filteredData.length; i++) {
-                                const slice = filteredData.slice(i - 19, i + 1);
-                                const returns = slice.slice(1).map((d, idx) => 
-                                    Math.log(d.value / slice[idx].value));
-                                const mean = returns.reduce((sum, r) => sum + r, 0) / returns.length;
-                                const variance = returns.reduce((sum, r) => sum + Math.pow(r - mean, 2), 0) / returns.length;
-                                volData.push(Math.sqrt(variance * 252) * 100); // Annualized volatility %
+                        case 'rsi':
+                            processedData = filteredData.filter(d => d.rsi !== null && !isNaN(d.rsi));
+                            if (processedData.length === 0) return;
+                            
+                            yData = processedData.map(d => d.rsi);
+                            yLabel = 'RSI (%)';
+                            hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>RSI: %{y:.1f}%<extra></extra>`;
+                            
+                            if (index === 0) {
+                                [70, 50, 30].forEach((level, i) => {
+                                    const colors = ['red', 'gray', 'green'];
+                                    traces.push({
+                                        x: processedData.map(d => d.date),
+                                        y: processedData.map(() => level),
+                                        type: 'scatter',
+                                        mode: 'lines',
+                                        name: `${level}% Line`,
+                                        line: { color: colors[i], width: 1, dash: 'dash' },
+                                        showlegend: false,
+                                        hoverinfo: 'skip'
+                                    });
+                                });
                             }
-                            yData = volData;
-                            yLabel = 'Annualized Volatility (%)';
-                            hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Volatility: %{y:.2f}%<extra></extra>`;
                             break;
                             
-                        case 'comparison':
-                            // Indexed to 100 at start
-                            const baseValue = filteredData[0].value;
-                            yData = filteredData.map(d => (d.value / baseValue) * 100);
-                            yLabel = 'Indexed (Base = 100)';
-                            hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Index: %{y:.2f}<extra></extra>`;
+                        case 'macd':
+                            processedData = filteredData.filter(d => d.macd !== null && !isNaN(d.macd));
+                            if (processedData.length === 0) return;
+                            
+                            // MACD Line
+                            traces.push({
+                                x: processedData.map(d => d.date),
+                                y: processedData.map(d => d.macd),
+                                type: 'scatter',
+                                mode: 'lines',
+                                name: `${s.symbol} MACD`,
+                                line: { color: lineColor, width: 2 },
+                                hovertemplate: `<b>${s.symbol} MACD</b><br>Date: %{x}<br>MACD: %{y:.4f}<extra></extra>`
+                            });
+                            
+                            // Signal Line
+                            traces.push({
+                                x: processedData.map(d => d.date),
+                                y: processedData.map(d => d.macd_signal),
+                                type: 'scatter',
+                                mode: 'lines',
+                                name: `${s.symbol} Signal`,
+                                line: { color: lineColor, width: 1, dash: 'dash' },
+                                hovertemplate: `<b>${s.symbol} Signal</b><br>Date: %{x}<br>Signal: %{y:.4f}<extra></extra>`
+                            });
+                            
+                            // Histogram
+                            traces.push({
+                                x: processedData.map(d => d.date),
+                                y: processedData.map(d => d.macd_histogram),
+                                type: 'bar',
+                                name: `${s.symbol} Histogram`,
+                                marker: { 
+                                    color: processedData.map(d => d.macd_histogram > 0 ? '#00ff88' : '#ff4444'),
+                                    opacity: 0.7
+                                },
+                                hovertemplate: `<b>${s.symbol} Histogram</b><br>Date: %{x}<br>Histogram: %{y:.4f}<extra></extra>`
+                            });
+                            
+                            yLabel = 'MACD';
+                            return; // Skip normal trace creation
+                            
+                        case 'bollinger':
+                            processedData = filteredData.filter(d => d.bb_sma !== null && !isNaN(d.bb_sma));
+                            if (processedData.length === 0) return;
+                            
+                            // Upper Band
+                            traces.push({
+                                x: processedData.map(d => d.date),
+                                y: processedData.map(d => d.bb_upper),
+                                type: 'scatter',
+                                mode: 'lines',
+                                name: `${s.symbol} Upper BB`,
+                                line: { color: lineColor, width: 1, dash: 'dot' },
+                                showlegend: false,
+                                hoverinfo: 'skip'
+                            });
+                            
+                            // SMA (Middle Band)
+                            traces.push({
+                                x: processedData.map(d => d.date),
+                                y: processedData.map(d => d.bb_sma),
+                                type: 'scatter',
+                                mode: 'lines',
+                                name: `${s.symbol} BB SMA`,
+                                line: { color: lineColor, width: 2 },
+                                hovertemplate: `<b>${s.symbol} SMA</b><br>Date: %{x}<br>SMA: %{y:.4f}<extra></extra>`
+                            });
+                            
+                            // Lower Band
+                            traces.push({
+                                x: processedData.map(d => d.date),
+                                y: processedData.map(d => d.bb_lower),
+                                type: 'scatter',
+                                mode: 'lines',
+                                name: `${s.symbol} Lower BB`,
+                                line: { color: lineColor, width: 1, dash: 'dot' },
+                                fill: 'tonexty',
+                                fillcolor: `${lineColor}20`,
+                                showlegend: false,
+                                hoverinfo: 'skip'
+                            });
+                            
+                            // Price line
+                            traces.push({
+                                x: processedData.map(d => d.date),
+                                y: processedData.map(d => d.value),
+                                type: 'scatter',
+                                mode: 'lines',
+                                name: `${s.symbol} Price`,
+                                line: { color: '#ffffff', width: 2 },
+                                hovertemplate: `<b>${s.symbol} Price</b><br>Date: %{x}<br>Price: %{y:.4f}<extra></extra>`
+                            });
+                            
+                            yLabel = 'Price with Bollinger Bands';
+                            return; // Skip normal trace creation
+                            
+                        case 'stochastic':
+                            processedData = filteredData.filter(d => d.stoch_k !== null && !isNaN(d.stoch_k));
+                            if (processedData.length === 0) return;
+                            
+                            // %K Line
+                            traces.push({
+                                x: processedData.map(d => d.date),
+                                y: processedData.map(d => d.stoch_k),
+                                type: 'scatter',
+                                mode: 'lines',
+                                name: `${s.symbol} %K`,
+                                line: { color: lineColor, width: 2 },
+                                hovertemplate: `<b>${s.symbol} %K</b><br>Date: %{x}<br>%K: %{y:.1f}<extra></extra>`
+                            });
+                            
+                            // %D Line
+                            traces.push({
+                                x: processedData.map(d => d.date),
+                                y: processedData.map(d => d.stoch_d),
+                                type: 'scatter',
+                                mode: 'lines',
+                                name: `${s.symbol} %D`,
+                                line: { color: lineColor, width: 1, dash: 'dash' },
+                                hovertemplate: `<b>${s.symbol} %D</b><br>Date: %{x}<br>%D: %{y:.1f}<extra></extra>`
+                            });
+                            
+                            // Reference lines
+                            if (index === 0) {
+                                [80, 20].forEach((level, i) => {
+                                    traces.push({
+                                        x: processedData.map(d => d.date),
+                                        y: processedData.map(() => level),
+                                        type: 'scatter',
+                                        mode: 'lines',
+                                        name: level === 80 ? 'Overbought (80)' : 'Oversold (20)',
+                                        line: { color: level === 80 ? 'red' : 'green', width: 1, dash: 'dash' },
+                                        showlegend: false,
+                                        hoverinfo: 'skip'
+                                    });
+                                });
+                            }
+                            
+                            yLabel = 'Stochastic %';
+                            return; // Skip normal trace creation
+                            
+                        case 'volume':
+                            if (!s.symbol.includes('RATE') && !s.symbol.includes('GDP') && !s.symbol.includes('DGS')) {
+                                processedData = filteredData.filter(d => d.volume > 0 && d.volume_ma !== null);
+                                if (processedData.length === 0) {
+                                    // Fallback to price data
+                                    yData = filteredData.map(d => d.value);
+                                    yLabel = `${s.symbol} (No Volume Data)`;
+                                    hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Value: %{y:.4f}<extra></extra>`;
+                                    processedData = filteredData;
+                                    break;
+                                }
+                                
+                                // Volume bars
+                                traces.push({
+                                    x: processedData.map(d => d.date),
+                                    y: processedData.map(d => d.volume),
+                                    type: 'bar',
+                                    name: `${s.symbol} Volume`,
+                                    marker: { 
+                                        color: processedData.map((d, i) => {
+                                            if (i === 0) return '#888';
+                                            return processedData[i].value > processedData[i-1].value ? '#00ff88' : '#ff4444';
+                                        }),
+                                        opacity: 0.7
+                                    },
+                                    hovertemplate: `<b>${s.symbol} Volume</b><br>Date: %{x}<br>Volume: %{y:,.0f}<extra></extra>`,
+                                    yaxis: 'y'
+                                });
+                                
+                                // Volume MA
+                                traces.push({
+                                    x: processedData.map(d => d.date),
+                                    y: processedData.map(d => d.volume_ma),
+                                    type: 'scatter',
+                                    mode: 'lines',
+                                    name: `${s.symbol} Volume MA`,
+                                    line: { color: lineColor, width: 2 },
+                                    hovertemplate: `<b>${s.symbol} Volume MA</b><br>Date: %{x}<br>Volume MA: %{y:,.0f}<extra></extra>`,
+                                    yaxis: 'y'
+                                });
+                                
+                                // Price on secondary y-axis
+                                traces.push({
+                                    x: processedData.map(d => d.date),
+                                    y: processedData.map(d => d.value),
+                                    type: 'scatter',
+                                    mode: 'lines',
+                                    name: `${s.symbol} Price`,
+                                    line: { color: '#ffffff', width: 2 },
+                                    hovertemplate: `<b>${s.symbol} Price</b><br>Date: %{x}<br>Price: %{y:.2f}<extra></extra>`,
+                                    yaxis: 'y2'
+                                });
+                                
+                                yLabel = 'Volume';
+                                layout.yaxis2 = {
+                                    title: 'Price',
+                                    overlaying: 'y',
+                                    side: 'right',
+                                    gridcolor: '#22222250',
+                                    tickfont: { color: '#888' }
+                                };
+                                return; // Skip normal trace creation
+                            } else {
+                                // Fallback for rate/economic data
+                                yData = filteredData.map(d => d.value);
+                                yLabel = `${s.symbol} (Volume N/A)`;
+                                hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Value: %{y:.4f}<extra></extra>`;
+                                processedData = filteredData;
+                            }
                             break;
+                            
+                        case 'multi_indicator':
+                            processedData = filteredData.filter(d => 
+                                d.rsi !== null && d.macd !== null && !isNaN(d.rsi) && !isNaN(d.macd)
+                            );
+                            if (processedData.length === 0) {
+                                yData = filteredData.map(d => d.value);
+                                yLabel = `${s.symbol} (Multi-Indicator N/A)`;
+                                hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Value: %{y:.4f}<extra></extra>`;
+                                processedData = filteredData;
+                                break;
+                            }
+                            
+                            // Price (primary y-axis)
+                            traces.push({
+                                x: processedData.map(d => d.date),
+                                y: processedData.map(d => d.value),
+                                type: 'scatter',
+                                mode: 'lines',
+                                name: `${s.symbol} Price`,
+                                line: { color: lineColor, width: 2 },
+                                hovertemplate: `<b>${s.symbol} Price</b><br>Date: %{x}<br>Price: %{y:.2f}<extra></extra>`,
+                                yaxis: 'y'
+                            });
+                            
+                            // RSI (secondary y-axis)
+                            traces.push({
+                                x: processedData.map(d => d.date),
+                                y: processedData.map(d => d.rsi),
+                                type: 'scatter',
+                                mode: 'lines',
+                                name: `${s.symbol} RSI`,
+                                line: { color: '#ff6600', width: 1 },
+                                hovertemplate: `<b>${s.symbol} RSI</b><br>Date: %{x}<br>RSI: %{y:.1f}%<extra></extra>`,
+                                yaxis: 'y2'
+                            });
+                            
+                            // MACD (tertiary y-axis)
+                            traces.push({
+                                x: processedData.map(d => d.date),
+                                y: processedData.map(d => d.macd),
+                                type: 'scatter',
+                                mode: 'lines',
+                                name: `${s.symbol} MACD`,
+                                line: { color: '#00ff88', width: 1 },
+                                hovertemplate: `<b>${s.symbol} MACD</b><br>Date: %{x}<br>MACD: %{y:.4f}<extra></extra>`,
+                                yaxis: 'y3'
+                            });
+                            
+                            yLabel = 'Price';
+                            layout.yaxis2 = {
+                                title: 'RSI (%)',
+                                overlaying: 'y',
+                                side: 'right',
+                                position: 0.85,
+                                gridcolor: '#22222250',
+                                tickfont: { color: '#888' }
+                            };
+                            layout.yaxis3 = {
+                                title: 'MACD',
+                                overlaying: 'y',
+                                side: 'right',
+                                position: 1,
+                                gridcolor: '#22222250',
+                                tickfont: { color: '#888' }
+                            };
+                            return; // Skip normal trace creation
+                            
+                        case 'signals':
+                            processedData = filteredData.filter(d => d.signal !== null);
+                            if (processedData.length === 0) {
+                                yData = filteredData.map(d => d.value);
+                                yLabel = `${s.symbol} (Signals N/A)`;
+                                hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Value: %{y:.4f}<extra></extra>`;
+                                processedData = filteredData;
+                                break;
+                            }
+                            
+                            // Price line
+                            traces.push({
+                                x: processedData.map(d => d.date),
+                                y: processedData.map(d => d.value),
+                                type: 'scatter',
+                                mode: 'lines',
+                                name: `${s.symbol} Price`,
+                                line: { color: lineColor, width: 2 },
+                                hovertemplate: `<b>${s.symbol}</b><br>Date: %{x}<br>Price: %{y:.4f}<extra></extra>`
+                            });
+                            
+                            // Buy signals
+                            const buySignals = processedData.filter(d => d.signal === 1);
+                            if (buySignals.length > 0) {
+                                traces.push({
+                                    x: buySignals.map(d => d.date),
+                                    y: buySignals.map(d => d.value),
+                                    type: 'scatter',
+                                    mode: 'markers',
+                                    name: `${s.symbol} Buy`,
+                                    marker: { 
+                                        color: '#00ff88',
+                                        size: 10,
+                                        symbol: 'triangle-up'
+                                    },
+                                    hovertemplate: `<b>${s.symbol} BUY SIGNAL</b><br>Date: %{x}<br>Price: %{y:.4f}<extra></extra>`
+                                });
+                            }
+                            
+                            // Sell signals
+                            const sellSignals = processedData.filter(d => d.signal === -1);
+                            if (sellSignals.length > 0) {
+                                traces.push({
+                                    x: sellSignals.map(d => d.date),
+                                    y: sellSignals.map(d => d.value),
+                                    type: 'scatter',
+                                    mode: 'markers',
+                                    name: `${s.symbol} Sell`,
+                                    marker: { 
+                                        color: '#ff4444',
+                                        size: 10,
+                                        symbol: 'triangle-down'
+                                    },
+                                    hovertemplate: `<b>${s.symbol} SELL SIGNAL</b><br>Date: %{x}<br>Price: %{y:.4f}<extra></extra>`
+                                });
+                            }
+                            
+                            yLabel = 'Price with Trading Signals';
+                            return; // Skip normal trace creation
                             
                         default:
                             yData = filteredData.map(d => d.value);
                             yLabel = 'Value';
                             hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Value: %{y:.4f}<extra></extra>`;
+                            processedData = filteredData;
                     }
                     
-                    if (yData.length === 0) return;
+                    if (!yData || yData.length === 0) return;
                     
-                    const trace = {
-                        x: filteredData.slice(0, yData.length).map(d => d.date),
-                        y: yData,
-                        type: 'scatter',
-                        mode: 'lines',
-                        name: s.symbol,
-                        hovertemplate: hoverTemplate,
-                        line: { color: lineColor, width: 3 }
-                    };
+                    // Create trace with chart type
+                    const chartType = chart.chartType || 'line';
+                    const comparisonMode = chart.comparisonMode || 'absolute';
+                    let trace;
+                    
+                    if (chartType === 'candlestick' && displayMode === 'raw' && processedData[0]?.open !== undefined) {
+                        trace = {
+                            x: processedData.map(d => d.date),
+                            open: processedData.map(d => d.open),
+                            high: processedData.map(d => d.high),
+                            low: processedData.map(d => d.low),
+                            close: processedData.map(d => d.close),
+                            type: 'candlestick',
+                            name: s.symbol,
+                            increasing: { line: { color: '#00ff88' } },
+                            decreasing: { line: { color: '#ff4444' } }
+                        };
+                    } else if (chartType === 'ohlc' && displayMode === 'raw' && processedData[0]?.open !== undefined) {
+                        trace = {
+                            x: processedData.map(d => d.date),
+                            open: processedData.map(d => d.open),
+                            high: processedData.map(d => d.high),
+                            low: processedData.map(d => d.low),
+                            close: processedData.map(d => d.close),
+                            type: 'ohlc',
+                            name: s.symbol,
+                            increasing: { line: { color: '#00ff88' } },
+                            decreasing: { line: { color: '#ff4444' } }
+                        };
+                    } else if (chartType === 'area') {
+                        trace = {
+                            x: processedData.map(d => d.date),
+                            y: yData,
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: s.symbol,
+                            hovertemplate: hoverTemplate,
+                            line: { color: lineColor, width: 2 },
+                            fill: 'tozeroy',
+                            fillcolor: `${lineColor}40`
+                        };
+                    } else if (chartType === 'mountain') {
+                        trace = {
+                            x: processedData.map(d => d.date),
+                            y: yData,
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: s.symbol,
+                            hovertemplate: hoverTemplate,
+                            line: { color: lineColor, width: 2 },
+                            fill: 'tonexty',
+                            fillcolor: `${lineColor}30`
+                        };
+                        
+                        // Add base line for first trace
+                        if (index === 0) {
+                            const minValue = Math.min(...yData);
+                            traces.push({
+                                x: processedData.map(d => d.date),
+                                y: processedData.map(() => minValue),
+                                type: 'scatter',
+                                mode: 'lines',
+                                line: { color: 'transparent' },
+                                showlegend: false,
+                                hoverinfo: 'skip'
+                            });
+                        }
+                    } else {
+                        // Default line chart
+                        trace = {
+                            x: processedData.map(d => d.date),
+                            y: yData,
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: s.symbol,
+                            hovertemplate: hoverTemplate,
+                            line: { color: lineColor, width: 2 }
+                        };
+                    }
+                    
+                    // Apply comparison mode transformations
+                    if (comparisonMode === 'percentage' && trace.y && displayMode === 'raw') {
+                        const baseValue = trace.y[0];
+                        if (baseValue && baseValue !== 0) {
+                            trace.y = trace.y.map(v => ((v - baseValue) / Math.abs(baseValue)) * 100);
+                            yLabel = 'Percentage Change from Start (%)';
+                            trace.hovertemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Change: %{y:.2f}%<extra></extra>`;
+                        }
+                    } else if (comparisonMode === 'indexed' && trace.y && displayMode === 'raw') {
+                        const baseValue = trace.y[0];
+                        if (baseValue && baseValue !== 0) {
+                            trace.y = trace.y.map(v => (v / baseValue) * 100);
+                            yLabel = 'Indexed (Base = 100)';
+                            trace.hovertemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Index: %{y:.2f}<extra></extra>`;
+                        }
+                    }
                     
                     traces.push(trace);
                 });
                 
                 if (traces.length === 0) {
-                    canvasElement.innerHTML = '<div class="chart-message">No data to display for selected timeframe</div>';
+                    canvasElement.innerHTML = '<div class="chart-message">No data to display for selected timeframe and mode</div>';
                     return;
                 }
                 
-                const layout = {
+                const finalLayout = {
                     title: {
-                        text: `${displayMode.replace('_', ' ').toUpperCase()} VIEW`,
-                        font: { color: '#fff', size: 16 },
+                        text: `${displayMode.replace('_', ' ').toUpperCase()} VIEW - ${chart.chartType?.toUpperCase() || 'LINE'} - ${chart.comparisonMode?.toUpperCase() || 'ABSOLUTE'}`,
+                        font: { color: '#fff', size: 14 },
                         x: 0.5
                     },
                     paper_bgcolor: 'rgba(10, 10, 26, 0.8)',
@@ -1655,8 +2451,9 @@
                         borderwidth: 1,
                         font: { size: 11, color: '#fff' }
                     },
-                    height: chart.isFullscreen ? window.innerHeight - 120 : 520,
-                    autosize: true
+                    height: chart.isFullscreen ? window.innerHeight - 120 : 550,
+                    autosize: true,
+                    ...layout
                 };
                 
                 const config = {
@@ -1670,7 +2467,7 @@
                     canvasElement.innerHTML = '';
                 }
                 
-                Plotly.react(canvasElement, traces, layout, config)
+                Plotly.react(canvasElement, traces, finalLayout, config)
                     .then(gd => {
                         charts[chartId].chartInstance = gd;
                         console.log(`✅ Chart ${chartId} rendered successfully`);
@@ -1707,6 +2504,34 @@
             const controlsDiv = event.target.parentElement;
             controlsDiv.querySelectorAll('.display-toggle').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
+            
+            updateChartRender(chartId);
+        }
+        
+        // Chart type change
+        function changeChartType(chartId, chartType) {
+            const chart = charts[chartId];
+            if (!chart) return;
+            
+            chart.chartType = chartType;
+            
+            const chartWindow = document.getElementById(chartId);
+            chartWindow.querySelectorAll('.chart-type-btn').forEach(btn => btn.classList.remove('active'));
+            chartWindow.querySelector(`[data-type="${chartType}"]`).classList.add('active');
+            
+            updateChartRender(chartId);
+        }
+        
+        // Comparison mode change
+        function changeComparisonMode(chartId, mode) {
+            const chart = charts[chartId];
+            if (!chart) return;
+            
+            chart.comparisonMode = mode;
+            
+            const chartWindow = document.getElementById(chartId);
+            chartWindow.querySelectorAll('[data-comparison]').forEach(btn => btn.classList.remove('active'));
+            chartWindow.querySelector(`[data-comparison="${mode}"]`).classList.add('active');
             
             updateChartRender(chartId);
         }
