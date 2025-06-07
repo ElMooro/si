@@ -592,11 +592,17 @@
                 current_ip: null
             },
             
-            // CORS proxy solutions for Enhanced API access
+            // CORS proxy solutions for Enhanced API access (Updated 2025)
             cors_proxies: [
+                // Working proxies as of 2025
                 'https://api.allorigins.win/get?url=',
-                'https://thingproxy.freeboard.io/fetch/',
-                'https://yacdn.org/proxy/'
+                'https://everyorigin.jwvbremen.nl/api?url=',
+                'https://corsproxy.io/?url=',
+                // Backup proxies (may have rate limits)
+                'https://api.allorigins.win/raw?url=',
+                'https://cors.lol/',
+                // Legacy proxies (may be unreliable)
+                'https://thingproxy.freeboard.io/fetch/'
             ],
             
             timeout: 15000,
@@ -722,7 +728,7 @@
             }
         }
         
-        // Test Enhanced API connectivity - try to get current IP first
+        // Test Enhanced API connectivity - updated for 2025
         async function testEnhancedAPI() {
             console.log('🧪 Testing Enhanced API (System 2)...');
             
@@ -731,6 +737,8 @@
                 '13.218.214.71', // From documentation
                 '18.142.127.89', // Alternative AWS IP
                 '54.179.168.45', // Another possible ECS IP
+                '3.0.101.32',    // Another common AWS range
+                '52.77.253.135'  // Another Singapore AWS IP
             ];
             
             // Also try to get current IP from AWS CLI command simulation
@@ -743,10 +751,28 @@
                 const testUrl = `http://${ip}:8000`;
                 
                 try {
-                    // Test with different CORS proxy methods
-                    for (const proxy of API_CONFIG.cors_proxies) {
+                    // Test with different CORS proxy methods - updated for 2025
+                    for (const [index, proxy] of API_CONFIG.cors_proxies.entries()) {
                         try {
-                            const proxyUrl = proxy + encodeURIComponent(testUrl + '/api/v1/health');
+                            let proxyUrl;
+                            
+                            // Handle different proxy formats
+                            if (proxy.includes('allorigins.win/get')) {
+                                proxyUrl = proxy + encodeURIComponent(testUrl + '/api/v1/health');
+                            } else if (proxy.includes('everyorigin.jwvbremen.nl')) {
+                                proxyUrl = proxy + encodeURIComponent(testUrl + '/api/v1/health');
+                            } else if (proxy.includes('corsproxy.io')) {
+                                proxyUrl = proxy + encodeURIComponent(testUrl + '/api/v1/health');
+                            } else if (proxy.includes('cors.lol')) {
+                                // cors.lol has special format - no protocol in URL
+                                const urlWithoutProtocol = (testUrl + '/api/v1/health').replace('http://', '').replace('https://', '');
+                                proxyUrl = proxy + urlWithoutProtocol;
+                            } else {
+                                // Default format
+                                proxyUrl = proxy + encodeURIComponent(testUrl + '/api/v1/health');
+                            }
+                            
+                            console.log(`🔄 Testing proxy ${index + 1}/${API_CONFIG.cors_proxies.length}: ${proxy.split('?')[0]}... for IP ${ip}`);
                             
                             const response = await fetch(proxyUrl, {
                                 method: 'GET',
@@ -758,11 +784,20 @@
                                 
                                 // Handle different proxy response formats
                                 let data;
-                                if (proxy.includes('allorigins')) {
-                                    const parsed = JSON.parse(responseText);
-                                    data = JSON.parse(parsed.contents);
-                                } else {
-                                    data = JSON.parse(responseText);
+                                try {
+                                    if (proxy.includes('allorigins.win/get') || proxy.includes('everyorigin.jwvbremen.nl')) {
+                                        const parsed = JSON.parse(responseText);
+                                        data = JSON.parse(parsed.contents || parsed.data || responseText);
+                                    } else if (proxy.includes('corsproxy.io')) {
+                                        data = JSON.parse(responseText);
+                                    } else if (proxy.includes('cors.lol')) {
+                                        data = JSON.parse(responseText);
+                                    } else {
+                                        data = JSON.parse(responseText);
+                                    }
+                                } catch (parseError) {
+                                    console.warn(`⚠️ Parse error for proxy ${proxy}:`, parseError);
+                                    continue;
                                 }
                                 
                                 console.log('✅ Enhanced API connected:', data);
@@ -774,9 +809,11 @@
                                 apiConnectionStatus.enhanced_api = 'connected';
                                 
                                 return; // Success, exit function
+                            } else {
+                                console.warn(`⚠️ HTTP ${response.status} for proxy ${proxy} with IP ${ip}`);
                             }
                         } catch (proxyError) {
-                            console.warn(`⚠️ Proxy ${proxy} failed for IP ${ip}:`, proxyError.message);
+                            console.warn(`⚠️ Proxy ${proxy.split('?')[0]} failed for IP ${ip}:`, proxyError.message);
                         }
                     }
                 } catch (error) {
@@ -785,8 +822,12 @@
             }
             
             // If all attempts failed
-            console.warn('⚠️ Enhanced API not accessible with current IPs - using sample data');
-            console.warn('💡 The Enhanced API IP may have changed. Run the AWS CLI commands to get the current IP:');
+            console.warn('⚠️ Enhanced API not accessible with current IPs and proxies');
+            console.warn('💡 Possible solutions:');
+            console.warn('1. The Enhanced API IP may have changed. Run the AWS CLI commands to get the current IP');
+            console.warn('2. The Enhanced API service may be down');
+            console.warn('3. CORS proxies may be experiencing issues');
+            console.warn('4. Network connectivity issues');
             showEnhancedAPIInstructions();
             API_CONFIG.enhanced_api.status = 'failed';
             apiConnectionStatus.enhanced_api = 'failed';
@@ -916,9 +957,27 @@
                     
                     for (const query of fredQueries) {
                         try {
-                            const fredSearchUrl = API_CONFIG.enhanced_api.working_proxy + encodeURIComponent(
-                                API_CONFIG.enhanced_api.base_url + `/api/v1/economy/fred_search?query=${encodeURIComponent(query)}&limit=50`
-                            );
+                            let fredSearchUrl;
+                            if (API_CONFIG.enhanced_api.working_proxy.includes('allorigins.win/get')) {
+                                fredSearchUrl = API_CONFIG.enhanced_api.working_proxy + encodeURIComponent(
+                                    API_CONFIG.enhanced_api.base_url + `/api/v1/economy/fred_search?query=${encodeURIComponent(query)}&limit=50`
+                                );
+                            } else if (API_CONFIG.enhanced_api.working_proxy.includes('everyorigin.jwvbremen.nl')) {
+                                fredSearchUrl = API_CONFIG.enhanced_api.working_proxy + encodeURIComponent(
+                                    API_CONFIG.enhanced_api.base_url + `/api/v1/economy/fred_search?query=${encodeURIComponent(query)}&limit=50`
+                                );
+                            } else if (API_CONFIG.enhanced_api.working_proxy.includes('corsproxy.io')) {
+                                fredSearchUrl = API_CONFIG.enhanced_api.working_proxy + encodeURIComponent(
+                                    API_CONFIG.enhanced_api.base_url + `/api/v1/economy/fred_search?query=${encodeURIComponent(query)}&limit=50`
+                                );
+                            } else if (API_CONFIG.enhanced_api.working_proxy.includes('cors.lol')) {
+                                const urlWithoutProtocol = (API_CONFIG.enhanced_api.base_url + `/api/v1/economy/fred_search?query=${encodeURIComponent(query)}&limit=50`).replace('http://', '').replace('https://', '');
+                                fredSearchUrl = API_CONFIG.enhanced_api.working_proxy + urlWithoutProtocol;
+                            } else {
+                                fredSearchUrl = API_CONFIG.enhanced_api.working_proxy + encodeURIComponent(
+                                    API_CONFIG.enhanced_api.base_url + `/api/v1/economy/fred_search?query=${encodeURIComponent(query)}&limit=50`
+                                );
+                            }
                             
                             const response = await fetch(fredSearchUrl, {
                                 method: 'GET',
@@ -929,11 +988,17 @@
                                 const responseText = await response.text();
                                 
                                 let data;
-                                if (API_CONFIG.enhanced_api.working_proxy.includes('allorigins')) {
-                                    const parsed = JSON.parse(responseText);
-                                    data = JSON.parse(parsed.contents);
-                                } else {
-                                    data = JSON.parse(responseText);
+                                try {
+                                    if (API_CONFIG.enhanced_api.working_proxy.includes('allorigins.win/get') || 
+                                        API_CONFIG.enhanced_api.working_proxy.includes('everyorigin.jwvbremen.nl')) {
+                                        const parsed = JSON.parse(responseText);
+                                        data = JSON.parse(parsed.contents || parsed.data || responseText);
+                                    } else {
+                                        data = JSON.parse(responseText);
+                                    }
+                                } catch (parseError) {
+                                    console.warn(`⚠️ Failed to parse FRED search response for query "${query}":`, parseError);
+                                    continue;
                                 }
                                 
                                 if (data.results && Array.isArray(data.results)) {
@@ -1153,9 +1218,27 @@
                     // If we have Enhanced API, try FRED search
                     if (API_CONFIG.enhanced_api.status === 'connected' && API_CONFIG.enhanced_api.working_proxy && query.length >= 3) {
                         try {
-                            const fredSearchUrl = API_CONFIG.enhanced_api.working_proxy + encodeURIComponent(
-                                API_CONFIG.enhanced_api.base_url + `/api/v1/economy/fred_search?query=${encodeURIComponent(query)}&limit=30`
-                            );
+                            let fredSearchUrl;
+                            if (API_CONFIG.enhanced_api.working_proxy.includes('allorigins.win/get')) {
+                                fredSearchUrl = API_CONFIG.enhanced_api.working_proxy + encodeURIComponent(
+                                    API_CONFIG.enhanced_api.base_url + `/api/v1/economy/fred_search?query=${encodeURIComponent(query)}&limit=30`
+                                );
+                            } else if (API_CONFIG.enhanced_api.working_proxy.includes('everyorigin.jwvbremen.nl')) {
+                                fredSearchUrl = API_CONFIG.enhanced_api.working_proxy + encodeURIComponent(
+                                    API_CONFIG.enhanced_api.base_url + `/api/v1/economy/fred_search?query=${encodeURIComponent(query)}&limit=30`
+                                );
+                            } else if (API_CONFIG.enhanced_api.working_proxy.includes('corsproxy.io')) {
+                                fredSearchUrl = API_CONFIG.enhanced_api.working_proxy + encodeURIComponent(
+                                    API_CONFIG.enhanced_api.base_url + `/api/v1/economy/fred_search?query=${encodeURIComponent(query)}&limit=30`
+                                );
+                            } else if (API_CONFIG.enhanced_api.working_proxy.includes('cors.lol')) {
+                                const urlWithoutProtocol = (API_CONFIG.enhanced_api.base_url + `/api/v1/economy/fred_search?query=${encodeURIComponent(query)}&limit=30`).replace('http://', '').replace('https://', '');
+                                fredSearchUrl = API_CONFIG.enhanced_api.working_proxy + urlWithoutProtocol;
+                            } else {
+                                fredSearchUrl = API_CONFIG.enhanced_api.working_proxy + encodeURIComponent(
+                                    API_CONFIG.enhanced_api.base_url + `/api/v1/economy/fred_search?query=${encodeURIComponent(query)}&limit=30`
+                                );
+                            }
                             
                             const response = await fetch(fredSearchUrl, {
                                 method: 'GET',
@@ -1166,11 +1249,17 @@
                                 const responseText = await response.text();
                                 
                                 let data;
-                                if (API_CONFIG.enhanced_api.working_proxy.includes('allorigins')) {
-                                    const parsed = JSON.parse(responseText);
-                                    data = JSON.parse(parsed.contents);
-                                } else {
-                                    data = JSON.parse(responseText);
+                                try {
+                                    if (API_CONFIG.enhanced_api.working_proxy.includes('allorigins.win/get') || 
+                                        API_CONFIG.enhanced_api.working_proxy.includes('everyorigin.jwvbremen.nl')) {
+                                        const parsed = JSON.parse(responseText);
+                                        data = JSON.parse(parsed.contents || parsed.data || responseText);
+                                    } else {
+                                        data = JSON.parse(responseText);
+                                    }
+                                } catch (parseError) {
+                                    console.warn(`⚠️ Failed to parse real-time FRED search response:`, parseError);
+                                    throw parseError;
                                 }
                                 
                                 if (data.results && Array.isArray(data.results)) {
@@ -1533,9 +1622,29 @@
                         // Try specific Enhanced API endpoints for REAL data
                         if (provider === 'fred_enhanced') {
                             const fredSymbol = symbol.replace('FRED_', '');
-                            const fredUrl = API_CONFIG.cors_proxies[0] + encodeURIComponent(
-                                API_CONFIG.enhanced_api.base_url + `/api/v1/economy/fred_series?symbol=${fredSymbol}&provider=fred&limit=2000`
-                            );
+                            
+                            // Try different proxy formats for Enhanced API
+                            let fredUrl;
+                            if (API_CONFIG.enhanced_api.working_proxy.includes('allorigins.win/get')) {
+                                fredUrl = API_CONFIG.enhanced_api.working_proxy + encodeURIComponent(
+                                    API_CONFIG.enhanced_api.base_url + `/api/v1/economy/fred_series?symbol=${fredSymbol}&provider=fred&limit=2000`
+                                );
+                            } else if (API_CONFIG.enhanced_api.working_proxy.includes('everyorigin.jwvbremen.nl')) {
+                                fredUrl = API_CONFIG.enhanced_api.working_proxy + encodeURIComponent(
+                                    API_CONFIG.enhanced_api.base_url + `/api/v1/economy/fred_series?symbol=${fredSymbol}&provider=fred&limit=2000`
+                                );
+                            } else if (API_CONFIG.enhanced_api.working_proxy.includes('corsproxy.io')) {
+                                fredUrl = API_CONFIG.enhanced_api.working_proxy + encodeURIComponent(
+                                    API_CONFIG.enhanced_api.base_url + `/api/v1/economy/fred_series?symbol=${fredSymbol}&provider=fred&limit=2000`
+                                );
+                            } else if (API_CONFIG.enhanced_api.working_proxy.includes('cors.lol')) {
+                                const urlWithoutProtocol = (API_CONFIG.enhanced_api.base_url + `/api/v1/economy/fred_series?symbol=${fredSymbol}&provider=fred&limit=2000`).replace('http://', '').replace('https://', '');
+                                fredUrl = API_CONFIG.enhanced_api.working_proxy + urlWithoutProtocol;
+                            } else {
+                                fredUrl = API_CONFIG.enhanced_api.working_proxy + encodeURIComponent(
+                                    API_CONFIG.enhanced_api.base_url + `/api/v1/economy/fred_series?symbol=${fredSymbol}&provider=fred&limit=2000`
+                                );
+                            }
                             
                             const fredResponse = await fetch(fredUrl, {
                                 method: 'GET',
@@ -1544,7 +1653,21 @@
                             
                             if (fredResponse.ok) {
                                 const fredText = await fredResponse.text();
-                                const fredData = JSON.parse(fredText);
+                                let fredData;
+                                
+                                // Handle proxy response formats
+                                try {
+                                    if (API_CONFIG.enhanced_api.working_proxy.includes('allorigins.win/get') || 
+                                        API_CONFIG.enhanced_api.working_proxy.includes('everyorigin.jwvbremen.nl')) {
+                                        const parsed = JSON.parse(fredText);
+                                        fredData = JSON.parse(parsed.contents || parsed.data || fredText);
+                                    } else {
+                                        fredData = JSON.parse(fredText);
+                                    }
+                                } catch (parseError) {
+                                    console.warn('⚠️ Failed to parse FRED API response:', parseError);
+                                    throw parseError;
+                                }
                                 
                                 if (fredData.results && fredData.results.length > 0) {
                                     processedData = fredData.results.map(item => ({
@@ -1571,9 +1694,28 @@
                             else if (symbol.includes('LONG_TERM')) endpoint = '/api/v1/economy/long_term_interest_rate';
                             
                             if (endpoint) {
-                                const economyUrl = API_CONFIG.cors_proxies[0] + encodeURIComponent(
-                                    API_CONFIG.enhanced_api.base_url + endpoint
-                                );
+                                let economyUrl;
+                                if (API_CONFIG.enhanced_api.working_proxy.includes('allorigins.win/get')) {
+                                    economyUrl = API_CONFIG.enhanced_api.working_proxy + encodeURIComponent(
+                                        API_CONFIG.enhanced_api.base_url + endpoint
+                                    );
+                                } else if (API_CONFIG.enhanced_api.working_proxy.includes('everyorigin.jwvbremen.nl')) {
+                                    economyUrl = API_CONFIG.enhanced_api.working_proxy + encodeURIComponent(
+                                        API_CONFIG.enhanced_api.base_url + endpoint
+                                    );
+                                } else if (API_CONFIG.enhanced_api.working_proxy.includes('corsproxy.io')) {
+                                    economyUrl = API_CONFIG.enhanced_api.working_proxy + encodeURIComponent(
+                                        API_CONFIG.enhanced_api.base_url + endpoint
+                                    );
+                                } else if (API_CONFIG.enhanced_api.working_proxy.includes('cors.lol')) {
+                                    const urlWithoutProtocol = (API_CONFIG.enhanced_api.base_url + endpoint).replace('http://', '').replace('https://', '');
+                                    economyUrl = API_CONFIG.enhanced_api.working_proxy + urlWithoutProtocol;
+                                } else {
+                                    economyUrl = API_CONFIG.enhanced_api.working_proxy + encodeURIComponent(
+                                        API_CONFIG.enhanced_api.base_url + endpoint
+                                    );
+                                }
+                                
                                 const economyResponse = await fetch(economyUrl, {
                                     method: 'GET',
                                     signal: AbortSignal.timeout(API_CONFIG.timeout)
@@ -1581,7 +1723,21 @@
                                 
                                 if (economyResponse.ok) {
                                     const economyText = await economyResponse.text();
-                                    const economyData = JSON.parse(economyText);
+                                    let economyData;
+                                    
+                                    // Handle proxy response formats
+                                    try {
+                                        if (API_CONFIG.enhanced_api.working_proxy.includes('allorigins.win/get') || 
+                                            API_CONFIG.enhanced_api.working_proxy.includes('everyorigin.jwvbremen.nl')) {
+                                            const parsed = JSON.parse(economyText);
+                                            economyData = JSON.parse(parsed.contents || parsed.data || economyText);
+                                        } else {
+                                            economyData = JSON.parse(economyText);
+                                        }
+                                    } catch (parseError) {
+                                        console.warn('⚠️ Failed to parse Economy API response:', parseError);
+                                        throw parseError;
+                                    }
                                     
                                     if (economyData.results && economyData.results.length > 0) {
                                         processedData = economyData.results.map(item => ({
