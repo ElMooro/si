@@ -1827,13 +1827,13 @@
             const config = symbolConfig[symbol] || { baseValue: 100, volatility: 0.02, trend: 0.0001, hasVolume: true };
             let currentValue = config.baseValue;
             
-            // Major historical events for realistic market behavior
+            // Major historical events with more realistic impacts
             const historicalEvents = [
-                { year: 2000, month: 3, impact: -0.3, duration: 36 }, // Dot-com crash
-                { year: 2001, month: 9, impact: -0.15, duration: 3 },  // 9/11
-                { year: 2008, month: 9, impact: -0.4, duration: 18 },  // Financial crisis
-                { year: 2020, month: 3, impact: -0.35, duration: 3 },  // COVID crash
-                { year: 2022, month: 1, impact: -0.2, duration: 12 }   // 2022 bear market
+                { year: 2000, month: 3, impact: -0.2, duration: 24, recovery: 'gradual' }, // Dot-com crash
+                { year: 2001, month: 9, impact: -0.08, duration: 3, recovery: 'quick' },   // 9/11
+                { year: 2008, month: 9, impact: -0.25, duration: 18, recovery: 'gradual' }, // Financial crisis
+                { year: 2020, month: 3, impact: -0.15, duration: 6, recovery: 'quick' },   // COVID crash - reduced impact
+                { year: 2022, month: 1, impact: -0.12, duration: 12, recovery: 'gradual' }  // 2022 bear market
             ];
             
             for (let i = 0; i < totalDays; i++) {
@@ -1854,22 +1854,22 @@
                 // Long-term trend (stronger for growth stocks)
                 let longTermTrend = config.trend;
                 if (config.growthCycles) {
-                    longTermTrend *= (1 + Math.sin(centuryProgress * Math.PI * 2) * 0.5);
+                    longTermTrend *= (1 + Math.sin(centuryProgress * Math.PI * 2) * 0.3);
                 }
                 if (config.exponentialGrowth && i > totalDays * 0.3) {
-                    longTermTrend *= (1 + (i / totalDays) * 2);
+                    longTermTrend *= (1 + (i / totalDays) * 1.5);
                 }
                 
                 // Business cycles (4-7 year cycles)
-                const businessCycle = config.cycles ? Math.sin((i / 1500) * Math.PI * 2) * 0.02 : 0;
+                const businessCycle = config.cycles ? Math.sin((i / 1500) * Math.PI * 2) * 0.015 : 0;
                 
                 // Seasonal patterns
-                const seasonalPattern = Math.sin(yearProgress * Math.PI * 2) * 0.01;
+                const seasonalPattern = Math.sin(yearProgress * Math.PI * 2) * 0.005;
                 
                 // Super-cycles for commodities (10-30 year cycles)
-                const superCycle = config.superCycles ? Math.sin((i / 5000) * Math.PI * 2) * 0.03 : 0;
+                const superCycle = config.superCycles ? Math.sin((i / 5000) * Math.PI * 2) * 0.02 : 0;
                 
-                // Check for historical events
+                // Check for historical events with more realistic impact
                 let eventImpact = 0;
                 historicalEvents.forEach(event => {
                     const eventDate = new Date(event.year, event.month - 1, 1);
@@ -1877,41 +1877,68 @@
                     
                     if (monthsSinceEvent >= 0 && monthsSinceEvent <= event.duration) {
                         const recoveryProgress = monthsSinceEvent / event.duration;
-                        eventImpact += event.impact * (1 - recoveryProgress);
                         
-                        // Crisis spikes for credit spreads
+                        // Different recovery patterns
+                        if (event.recovery === 'quick') {
+                            // V-shaped recovery
+                            eventImpact += event.impact * Math.pow(1 - recoveryProgress, 2);
+                        } else {
+                            // U-shaped recovery
+                            eventImpact += event.impact * (1 - recoveryProgress);
+                        }
+                        
+                        // Limit maximum drawdown to prevent collapse
+                        eventImpact = Math.max(eventImpact, -0.4);
+                        
+                        // Crisis spikes for credit spreads (inverted)
                         if (config.crisisSpikes && monthsSinceEvent < 3) {
-                            eventImpact = Math.abs(event.impact) * 3;
+                            eventImpact = Math.abs(event.impact) * 2;
                         }
                     }
                 });
                 
                 // VIX spikes during uncertainty
                 let volatilitySpike = 0;
-                if (config.spikes && Math.random() < 0.005) {
-                    volatilitySpike = Math.random() * 0.5;
+                if (config.spikes && Math.random() < 0.003) {
+                    volatilitySpike = Math.random() * 0.3;
                 }
                 
-                // Combine all factors
+                // Combine all factors with dampening
                 const totalChange = randomWalk + longTermTrend + businessCycle + seasonalPattern + 
-                                  superCycle + eventImpact + volatilitySpike;
+                                  superCycle + (eventImpact * 0.7) + volatilitySpike; // Dampen event impact
                 
                 const previousClose = currentValue;
-                currentValue *= (1 + totalChange);
                 
-                // Apply realistic constraints
-                if (config.min !== undefined) currentValue = Math.max(currentValue, config.min);
-                if (config.max !== undefined) currentValue = Math.min(currentValue, config.max);
+                // Apply change with protection against extreme moves
+                const changeMultiplier = 1 + totalChange;
+                currentValue *= changeMultiplier;
+                
+                // Prevent extreme single-day moves
+                const maxDailyChange = 0.15; // Maximum 15% daily change
+                if (Math.abs(1 - changeMultiplier) > maxDailyChange) {
+                    currentValue = previousClose * (1 + (totalChange > 0 ? maxDailyChange : -maxDailyChange));
+                }
+                
+                // Apply realistic constraints with floor protection
+                if (config.min !== undefined) {
+                    currentValue = Math.max(currentValue, config.min);
+                } else {
+                    // Default floor at 10% of base value to prevent collapse
+                    currentValue = Math.max(currentValue, config.baseValue * 0.1);
+                }
+                if (config.max !== undefined) {
+                    currentValue = Math.min(currentValue, config.max);
+                }
                 
                 // Generate realistic OHLC data
                 const dailyVolatility = config.volatility * (0.3 + Math.random() * 0.7);
                 const range = currentValue * dailyVolatility;
                 
-                const gapSize = (Math.random() - 0.5) * config.volatility * 0.5;
+                const gapSize = (Math.random() - 0.5) * config.volatility * 0.3;
                 const open = previousClose * (1 + gapSize);
                 
-                const intradayMove1 = (Math.random() - 0.5) * range * 2;
-                const intradayMove2 = (Math.random() - 0.5) * range * 2;
+                const intradayMove1 = (Math.random() - 0.5) * range * 1.5;
+                const intradayMove2 = (Math.random() - 0.5) * range * 1.5;
                 
                 const high = Math.max(open, currentValue) + Math.abs(intradayMove1);
                 const low = Math.min(open, currentValue) - Math.abs(intradayMove2);
@@ -1925,7 +1952,7 @@
                     const baseVolume = 1000000 * (1 + i / totalDays * 2); // Growing volume over time
                     const volumeVariation = (Math.random() - 0.5) * 0.6;
                     const volumeTrend = Math.abs(totalChange) * 3;
-                    const eventVolume = Math.abs(eventImpact) > 0 ? 3 : 1;
+                    const eventVolume = Math.abs(eventImpact) > 0.05 ? 2.5 : 1;
                     volume = Math.round(baseVolume * (1 + volumeVariation + volumeTrend) * eventVolume);
                     volume = Math.max(volume, baseVolume * 0.1);
                 }
