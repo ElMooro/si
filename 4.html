@@ -1045,7 +1045,11 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
             const data = [];
             const startDate = new Date();
             startDate.setFullYear(startDate.getFullYear() - years);
-           
+            
+            // Extend data to current date (2025)
+            const endDate = new Date();
+            const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+            
             // Symbol-specific enhanced parameters
             const symbolConfig = {
                 'AAPL': { baseValue: 150, baseVolume: 50000000, volatility: 0.025, hasEarnings: true },
@@ -1058,14 +1062,14 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
                 'SPY': { baseValue: 450, baseVolume: 70000000, volatility: 0.018, hasEarnings: false },
                 'QQQ': { baseValue: 380, baseVolume: 45000000, volatility: 0.022, hasEarnings: false },
                 'VTI': { baseValue: 220, baseVolume: 35000000, volatility: 0.016, hasEarnings: false },
-                'FEDFUNDS': { baseValue: 2.5, baseVolume: 0, volatility: 0.01, hasEarnings: false, isRate: true, min: 0, max: 8 },
-                'UNRATE': { baseValue: 5.0, baseVolume: 0, volatility: 0.005, hasEarnings: false, isRate: true, min: 2, max: 12 },
-                'DGS10': { baseValue: 3.5, baseVolume: 0, volatility: 0.008, hasEarnings: false, isRate: true, min: 0.5, max: 8 },
-                'DGS2': { baseValue: 3.2, baseVolume: 0, volatility: 0.01, hasEarnings: false, isRate: true, min: 0.1, max: 7 },
-                'DGS30': { baseValue: 3.8, baseVolume: 0, volatility: 0.007, hasEarnings: false, isRate: true, min: 1, max: 8 },
-                'VIXCLS': { baseValue: 20, baseVolume: 0, volatility: 0.15, hasEarnings: false, min: 8, max: 85 },
-                'GDP': { baseValue: 25000, baseVolume: 0, volatility: 0.003, hasEarnings: false, min: 20000, max: 30000 },
-                'CPIAUCSL': { baseValue: 310, baseVolume: 0, volatility: 0.002, hasEarnings: false, trend: 0.0001 },
+                'FEDFUNDS': { baseValue: 5.25, baseVolume: 0, volatility: 0.01, hasEarnings: false, isRate: true, min: 0, max: 8 },
+                'UNRATE': { baseValue: 3.8, baseVolume: 0, volatility: 0.005, hasEarnings: false, isRate: true, min: 2, max: 12 },
+                'DGS10': { baseValue: 4.2, baseVolume: 0, volatility: 0.008, hasEarnings: false, isRate: true, min: 0.5, max: 8 },
+                'DGS2': { baseValue: 4.8, baseVolume: 0, volatility: 0.01, hasEarnings: false, isRate: true, min: 0.1, max: 7 },
+                'DGS30': { baseValue: 4.5, baseVolume: 0, volatility: 0.007, hasEarnings: false, isRate: true, min: 1, max: 8 },
+                'VIXCLS': { baseValue: 15, baseVolume: 0, volatility: 0.15, hasEarnings: false, min: 8, max: 85 },
+                'GDP': { baseValue: 27000, baseVolume: 0, volatility: 0.003, hasEarnings: false, min: 20000, max: 30000 },
+                'CPIAUCSL': { baseValue: 320, baseVolume: 0, volatility: 0.002, hasEarnings: false, trend: 0.0001 },
                 'BTC-USD': { baseValue: 45000, baseVolume: 1000000, volatility: 0.05, hasEarnings: false },
                 'ETH-USD': { baseValue: 3000, baseVolume: 2000000, volatility: 0.06, hasEarnings: false },
                 'CL=F': { baseValue: 75, baseVolume: 500000, volatility: 0.03, hasEarnings: false, min: 30, max: 150 },
@@ -1075,53 +1079,30 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
             const config = symbolConfig[symbol] || { baseValue: 100, baseVolume: 1000000, volatility: 0.02 };
             let currentValue = config.baseValue;
             
-            // Market events simulation
-            const marketEvents = [];
-            for (let i = 0; i < years * 4; i++) {
-                if (Math.random() < 0.3) { // 30% chance of market event per quarter
-                    marketEvents.push({
-                        day: Math.floor(Math.random() * (years * 252)),
-                        impact: (Math.random() - 0.5) * config.volatility * 5,
-                        duration: Math.floor(Math.random() * 10) + 1
-                    });
-                }
-            }
-            
-            for (let i = 0; i < years * 252; i++) {
+            // Generate data up to current date (2025)
+            for (let i = 0; i < totalDays; i++) {
                 const date = new Date(startDate);
                 date.setDate(startDate.getDate() + i);
+                
+                // Skip weekends for financial data
+                if (date.getDay() === 0 || date.getDay() === 6) continue;
                
-                // Base random walk
+                // Enhanced market simulation with multiple components
                 const randomWalk = (Math.random() - 0.5) * config.volatility * 2;
+                const longTermTrend = config.trend || Math.sin(i / 500) * 0.001;
+                const mediumTermTrend = Math.sin(i / 150) * 0.003;
+                const shortTermTrend = Math.sin(i / 50) * 0.005;
+                const seasonalComponent = Math.sin((i % 252) / 252 * 2 * Math.PI) * 0.002;
                 
-                // Multiple trend components
-                const longTermTrend = config.trend || Math.sin(i / 500) * 0.001; // Long-term secular trends
-                const mediumTermTrend = Math.sin(i / 150) * 0.003; // Medium-term business cycles
-                const shortTermTrend = Math.sin(i / 50) * 0.005; // Short-term market cycles
-                const seasonalComponent = Math.sin((i % 252) / 252 * 2 * Math.PI) * 0.002; // Annual seasonality
-                
-                // Market event impacts
+                // Market event impacts and COVID/recent events
                 let eventComponent = 0;
-                marketEvents.forEach(event => {
-                    if (i >= event.day && i < event.day + event.duration) {
-                        eventComponent += event.impact * Math.exp(-(i - event.day) / event.duration);
-                    }
-                });
-                
-                // Earnings announcements (quarterly for stocks)
-                let earningsComponent = 0;
-                if (config.hasEarnings && i % 63 === 0 && Math.random() < 0.8) { // ~80% chance every quarter
-                    earningsComponent = (Math.random() - 0.5) * config.volatility * 3;
+                if (i > totalDays * 0.7 && Math.random() < 0.002) { // Recent volatility
+                    eventComponent = (Math.random() - 0.5) * config.volatility * 4;
                 }
                 
-                // Weekend/holiday effects (reduced volatility)
-                const dayOfWeek = (i % 5);
-                const weekendMultiplier = dayOfWeek < 4 ? 1 : 0.5;
+                const totalChange = randomWalk + longTermTrend + mediumTermTrend + shortTermTrend + 
+                                  seasonalComponent + eventComponent;
                 
-                const totalChange = (randomWalk + longTermTrend + mediumTermTrend + shortTermTrend + 
-                                  seasonalComponent + eventComponent + earningsComponent) * weekendMultiplier;
-                
-                // Apply change
                 const previousClose = currentValue;
                 currentValue *= (1 + totalChange);
                
@@ -1130,21 +1111,18 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
                 if (config.max !== undefined) currentValue = Math.min(currentValue, config.max);
                 
                 // Generate realistic OHLC data
-                const dailyVolatility = config.volatility * (0.3 + Math.random() * 0.7) * weekendMultiplier;
+                const dailyVolatility = config.volatility * (0.3 + Math.random() * 0.7);
                 const range = currentValue * dailyVolatility;
                 
-                // Open price (slight gap from previous close)
                 const gapSize = (Math.random() - 0.5) * config.volatility * 0.5;
                 const open = previousClose * (1 + gapSize);
                 
-                // Intraday movements
                 const intrarayMove1 = (Math.random() - 0.5) * range * 2;
                 const intrarayMove2 = (Math.random() - 0.5) * range * 2;
                 
                 const high = Math.max(open, currentValue) + Math.abs(intrarayMove1);
                 const low = Math.min(open, currentValue) - Math.abs(intrarayMove2);
                 
-                // Ensure OHLC consistency
                 const finalHigh = Math.max(high, open, currentValue);
                 const finalLow = Math.min(low, open, currentValue);
                 
@@ -1152,10 +1130,9 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
                 let volume = 0;
                 if (config.baseVolume > 0) {
                     const volumeVariation = (Math.random() - 0.5) * 0.6;
-                    const volumeTrend = Math.abs(totalChange) * 3; // Higher volume on bigger moves
+                    const volumeTrend = Math.abs(totalChange) * 3;
                     const volumeCluster = Math.abs(eventComponent) > 0 ? 2.5 : 1;
-                    const earningsVolume = Math.abs(earningsComponent) > 0 ? 1.8 : 1;
-                    volume = Math.round(config.baseVolume * (1 + volumeVariation + volumeTrend) * volumeCluster * earningsVolume);
+                    volume = Math.round(config.baseVolume * (1 + volumeVariation + volumeTrend) * volumeCluster);
                     volume = Math.max(volume, config.baseVolume * 0.1);
                 }
                
@@ -2295,55 +2272,173 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
                                     return; // Skip normal trace creation
                                     
                                 case 'volume':
-                                    if (s.symbol.includes('RATE') || s.symbol.includes('GDP') || s.symbol === 'FEDFUNDS') {
+                                    // Check if volume analysis is applicable for this symbol
+                                    if (s.symbol.includes('RATE') || s.symbol.includes('GDP') || s.symbol === 'FEDFUNDS' || 
+                                        s.symbol.includes('DGS') || s.symbol.includes('UNRATE') || s.symbol.includes('CPI')) {
                                         console.warn(`⚠️ Volume analysis not applicable for ${s.symbol}`);
-                                        return;
+                                        // Fallback to raw data display
+                                        yData = filteredData.map(d => d.value).filter(v => v !== null && !isNaN(v) && isFinite(v));
+                                        yLabel = `${s.symbol} (Volume analysis not available)`;
+                                        hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Value: %{y:.4f}<extra></extra>`;
+                                        xAxisData = filteredData;
+                                        break;
                                     }
                                     
                                     const validVolumeData = filteredData.filter(d => d.volume !== null && d.volume !== undefined && d.volume > 0);
                                     if (validVolumeData.length === 0) {
                                         console.warn(`⚠️ No volume data for ${s.symbol}`);
-                                        return;
+                                        // Fallback to raw data display
+                                        yData = filteredData.map(d => d.value).filter(v => v !== null && !isNaN(v) && isFinite(v));
+                                        yLabel = `${s.symbol} (No volume data available)`;
+                                        hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Value: %{y:.4f}<extra></extra>`;
+                                        xAxisData = filteredData;
+                                        break;
                                     }
+                                    
+                                    processedData = validVolumeData;
+                                    xAxisData = processedData;
                                     
                                     // Volume bars
                                     traces.push({
-                                        x: validVolumeData.map(d => d.date),
-                                        y: validVolumeData.map(d => d.volume),
+                                        x: processedData.map(d => d.date),
+                                        y: processedData.map(d => d.volume),
                                         type: 'bar',
                                         name: `${s.symbol} Volume`,
                                         marker: { 
-                                            color: validVolumeData.map(d => d.daily_pct_change > 0 ? '#00ff88' : '#ff4444'),
+                                            color: processedData.map(d => d.daily_pct_change > 0 ? '#00ff88' : '#ff4444'),
                                             opacity: 0.7
                                         },
-                                        hovertemplate: `<b>${s.symbol} Volume</b><br>Date: %{x}<br>Volume: %{y:,.0f}<extra></extra>`
+                                        hovertemplate: `<b>${s.symbol} Volume</b><br>Date: %{x}<br>Volume: %{y:,.0f}<extra></extra>`,
+                                        yaxis: 'y'
                                     });
                                     
                                     // Volume MA
                                     traces.push({
-                                        x: validVolumeData.map(d => d.date),
-                                        y: validVolumeData.map(d => d.volume_ma),
+                                        x: processedData.map(d => d.date),
+                                        y: processedData.map(d => d.volume_ma),
                                         type: 'scatter',
                                         mode: 'lines',
                                         name: `${s.symbol} Volume MA`,
                                         line: { color: lineColor, width: 2 },
-                                        hovertemplate: `<b>${s.symbol} Volume MA</b><br>Date: %{x}<br>Volume MA: %{y:,.0f}<extra></extra>`
+                                        hovertemplate: `<b>${s.symbol} Volume MA</b><br>Date: %{x}<br>Volume MA: %{y:,.0f}<extra></extra>`,
+                                        yaxis: 'y'
+                                    });
+                                    
+                                    // Price on secondary y-axis
+                                    traces.push({
+                                        x: processedData.map(d => d.date),
+                                        y: processedData.map(d => d.value),
+                                        type: 'scatter',
+                                        mode: 'lines',
+                                        name: `${s.symbol} Price`,
+                                        line: { color: '#ffffff', width: 2 },
+                                        hovertemplate: `<b>${s.symbol} Price</b><br>Date: %{x}<br>Price: %{y:.2f}<extra></extra>`,
+                                        yaxis: 'y2'
                                     });
                                     
                                     yLabel = 'Volume';
+                                    layout.yaxis2 = {
+                                        title: 'Price',
+                                        overlaying: 'y',
+                                        side: 'right',
+                                        gridcolor: chart.theme === 'light' ? '#f0f0f0' : '#22222250',
+                                        tickfont: { color: chart.theme === 'light' ? '#666' : '#888' }
+                                    };
+                                    return; // Skip normal trace creation
+                                    
+                                case 'multi_indicator':
+                                    // Multi-indicator view with RSI, MACD, and price
+                                    processedData = filteredData.filter(d => 
+                                        d.rsi !== null && d.rsi !== undefined && !isNaN(d.rsi) &&
+                                        d.macd !== null && d.macd !== undefined && !isNaN(d.macd)
+                                    );
+                                    
+                                    if (processedData.length === 0) {
+                                        console.warn(`⚠️ No multi-indicator data for ${s.symbol}`);
+                                        // Fallback to raw data display
+                                        yData = filteredData.map(d => d.value).filter(v => v !== null && !isNaN(v) && isFinite(v));
+                                        yLabel = `${s.symbol} (Multi-indicator not available)`;
+                                        hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Value: %{y:.4f}<extra></extra>`;
+                                        xAxisData = filteredData;
+                                        break;
+                                    }
+                                    
+                                    xAxisData = processedData;
+                                    
+                                    // Price (primary y-axis)
+                                    traces.push({
+                                        x: processedData.map(d => d.date),
+                                        y: processedData.map(d => d.value),
+                                        type: 'scatter',
+                                        mode: 'lines',
+                                        name: `${s.symbol} Price`,
+                                        line: { color: lineColor, width: 2 },
+                                        hovertemplate: `<b>${s.symbol} Price</b><br>Date: %{x}<br>Price: %{y:.2f}<extra></extra>`,
+                                        yaxis: 'y'
+                                    });
+                                    
+                                    // RSI (secondary y-axis)
+                                    traces.push({
+                                        x: processedData.map(d => d.date),
+                                        y: processedData.map(d => d.rsi),
+                                        type: 'scatter',
+                                        mode: 'lines',
+                                        name: `${s.symbol} RSI`,
+                                        line: { color: '#ff6600', width: 1 },
+                                        hovertemplate: `<b>${s.symbol} RSI</b><br>Date: %{x}<br>RSI: %{y:.1f}%<extra></extra>`,
+                                        yaxis: 'y2'
+                                    });
+                                    
+                                    // MACD (tertiary y-axis)
+                                    traces.push({
+                                        x: processedData.map(d => d.date),
+                                        y: processedData.map(d => d.macd),
+                                        type: 'scatter',
+                                        mode: 'lines',
+                                        name: `${s.symbol} MACD`,
+                                        line: { color: '#00ff88', width: 1 },
+                                        hovertemplate: `<b>${s.symbol} MACD</b><br>Date: %{x}<br>MACD: %{y:.4f}<extra></extra>`,
+                                        yaxis: 'y3'
+                                    });
+                                    
+                                    yLabel = 'Price';
+                                    layout.yaxis2 = {
+                                        title: 'RSI (%)',
+                                        overlaying: 'y',
+                                        side: 'right',
+                                        position: 0.85,
+                                        gridcolor: chart.theme === 'light' ? '#f0f0f0' : '#22222250',
+                                        tickfont: { color: chart.theme === 'light' ? '#666' : '#888' }
+                                    };
+                                    layout.yaxis3 = {
+                                        title: 'MACD',
+                                        overlaying: 'y',
+                                        side: 'right',
+                                        position: 1,
+                                        gridcolor: chart.theme === 'light' ? '#f0f0f0' : '#22222250',
+                                        tickfont: { color: chart.theme === 'light' ? '#666' : '#888' }
+                                    };
                                     return; // Skip normal trace creation
                                     
                                 case 'signals':
                                     const validSignalData = filteredData.filter(d => d.signal !== null && d.signal !== undefined);
                                     if (validSignalData.length === 0) {
                                         console.warn(`⚠️ No signal data for ${s.symbol}`);
-                                        return;
+                                        // Fallback to raw data display
+                                        yData = filteredData.map(d => d.value).filter(v => v !== null && !isNaN(v) && isFinite(v));
+                                        yLabel = `${s.symbol} (Trading signals not available)`;
+                                        hoverTemplate = `<b>${s.symbol}</b><br>Date: %{x}<br>Value: %{y:.4f}<extra></extra>`;
+                                        xAxisData = filteredData;
+                                        break;
                                     }
+                                    
+                                    processedData = validSignalData;
+                                    xAxisData = processedData;
                                     
                                     // Price line
                                     traces.push({
-                                        x: validSignalData.map(d => d.date),
-                                        y: validSignalData.map(d => d.value),
+                                        x: processedData.map(d => d.date),
+                                        y: processedData.map(d => d.value),
                                         type: 'scatter',
                                         mode: 'lines',
                                         name: `${s.symbol} Price`,
@@ -2352,7 +2447,7 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
                                     });
                                     
                                     // Buy signals
-                                    const buySignals = validSignalData.filter(d => d.signal === 1);
+                                    const buySignals = processedData.filter(d => d.signal === 1);
                                     if (buySignals.length > 0) {
                                         traces.push({
                                             x: buySignals.map(d => d.date),
@@ -2362,7 +2457,7 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
                                             name: `${s.symbol} Buy`,
                                             marker: { 
                                                 color: '#00ff88',
-                                                size: 8,
+                                                size: 10,
                                                 symbol: 'triangle-up'
                                             },
                                             hovertemplate: `<b>${s.symbol} BUY SIGNAL</b><br>Date: %{x}<br>Price: %{y:.4f}<extra></extra>`
@@ -2370,7 +2465,7 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
                                     }
                                     
                                     // Sell signals
-                                    const sellSignals = validSignalData.filter(d => d.signal === -1);
+                                    const sellSignals = processedData.filter(d => d.signal === -1);
                                     if (sellSignals.length > 0) {
                                         traces.push({
                                             x: sellSignals.map(d => d.date),
@@ -2380,7 +2475,7 @@ const highlightMatch = (text) => highlightMatch(text, query);<!DOCTYPE html>
                                             name: `${s.symbol} Sell`,
                                             marker: { 
                                                 color: '#ff4444',
-                                                size: 8,
+                                                size: 10,
                                                 symbol: 'triangle-down'
                                             },
                                             hovertemplate: `<b>${s.symbol} SELL SIGNAL</b><br>Date: %{x}<br>Price: %{y:.4f}<extra></extra>`
