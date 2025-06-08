@@ -1070,137 +1070,82 @@
         let chartIdCounter = 0;
         let activeChartId = null;
         
-        // Enhanced watchlists
+        // Enhanced watchlists - Using Lambda API which has CORS enabled
         const watchlists = {
             'MAIN': {
                 symbols: [
-                    { symbol: 'AAPL', provider: 'polygon_direct' },
-                    { symbol: 'FEDFUNDS', provider: 'fred_direct' },
-                    { symbol: 'UNRATE', provider: 'fred_direct' },
-                    { symbol: 'sofr', provider: 'ny_fed_direct' },
-                    { symbol: 'EXR.D.USD.EUR.SP00.A', provider: 'ecb_direct' },
-                    { symbol: 'CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX', provider: 'ecb_direct' },
-                    { symbol: 'NYPD-PD_AFtR_T-A', provider: 'ofr_direct' },
-                    { symbol: 'BILLS_13W', provider: 'treasury_direct' }
+                    { symbol: 'AAPL', provider: 'lambda' },
+                    { symbol: 'FEDFUNDS', provider: 'lambda' },
+                    { symbol: 'UNRATE', provider: 'lambda' },
+                    { symbol: 'SOFR', provider: 'lambda' },
+                    { symbol: 'DGS10', provider: 'lambda' },
+                    { symbol: 'VIXCLS', provider: 'lambda' },
+                    { symbol: 'SPY', provider: 'lambda' },
+                    { symbol: 'CPIAUCSL', provider: 'lambda' }
                 ],
                 active: true
             },
             'STOCKS': {
                 symbols: [
-                    { symbol: 'AAPL', provider: 'polygon_direct' },
-                    { symbol: 'MSFT', provider: 'polygon_direct' },
-                    { symbol: 'GOOGL', provider: 'polygon_direct' },
-                    { symbol: 'AMZN', provider: 'polygon_direct' },
-                    { symbol: 'TSLA', provider: 'polygon_direct' },
-                    { symbol: 'SPY', provider: 'polygon_direct' },
-                    { symbol: 'QQQ', provider: 'polygon_direct' },
-                    { symbol: 'NVDA', provider: 'polygon_direct' },
-                    { symbol: 'META', provider: 'polygon_direct' },
-                    { symbol: 'NFLX', provider: 'polygon_direct' }
+                    { symbol: 'AAPL', provider: 'lambda' },
+                    { symbol: 'MSFT', provider: 'lambda' },
+                    { symbol: 'GOOGL', provider: 'lambda' },
+                    { symbol: 'AMZN', provider: 'lambda' },
+                    { symbol: 'TSLA', provider: 'lambda' },
+                    { symbol: 'SPY', provider: 'lambda' },
+                    { symbol: 'QQQ', provider: 'lambda' },
+                    { symbol: 'NVDA', provider: 'lambda' },
+                    { symbol: 'META', provider: 'lambda' },
+                    { symbol: 'NFLX', provider: 'lambda' }
                 ],
                 active: false
             },
-            'NY FED RATES': {
+            'RATES & TREASURY': {
                 symbols: [
-                    { symbol: 'sofr', provider: 'ny_fed_direct' },
-                    { symbol: 'effr', provider: 'ny_fed_direct' },
-                    { symbol: 'obfr', provider: 'ny_fed_direct' },
-                    { symbol: 'tgcr', provider: 'ny_fed_direct' },
-                    { symbol: 'bgcr', provider: 'ny_fed_direct' }
-                ],
-                active: false
-            },
-            'ECB SYSTEMIC STRESS': {
-                symbols: [
-                    { symbol: 'CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX', provider: 'ecb_direct' },
-                    { symbol: 'CISS.D.US.Z0Z.4F.EC.SS_CI.IDX', provider: 'ecb_direct' },
-                    { symbol: 'CISS.D.CN.Z0Z.4F.EC.SS_CIN.IDX', provider: 'ecb_direct' },
-                    { symbol: 'CISS.M.SE.Z0Z.4F.EC.SOV_CI.IDX', provider: 'ecb_direct' },
-                    { symbol: 'CISS.M.FR.Z0Z.4F.EC.SOV_CI.IDX', provider: 'ecb_direct' },
-                    { symbol: 'CISS.M.GB.Z0Z.4F.EC.SOV_CI.IDX', provider: 'ecb_direct' },
-                    { symbol: 'CLIFS.M.DE._Z.4F.EC.CLIFS_CI.IDX', provider: 'ecb_direct' }
-                ],
-                active: false
-            },
-            'DOLLAR & EXCHANGE': {
-                symbols: [
-                    { symbol: 'DTWEXBGS', provider: 'fred_direct' },
-                    { symbol: 'DTWEXAFEGS', provider: 'fred_direct' },
-                    { symbol: 'DTWEXEMEGS', provider: 'fred_direct' },
-                    { symbol: 'EXR.D.USD.EUR.SP00.A', provider: 'ecb_direct' },
-                    { symbol: 'EXR.D.GBP.EUR.SP00.A', provider: 'ecb_direct' },
-                    { symbol: 'EXR.D.JPY.EUR.SP00.A', provider: 'ecb_direct' }
-                ],
-                active: false
-            },
-            'GLOBAL LIQUIDITY': {
-                symbols: [
-                    { symbol: 'RESPPNTEPNWW', provider: 'fred_direct' },
-                    { symbol: 'RESPPALGUOXAWXCH52NWW', provider: 'fred_direct' },
-                    { symbol: 'RESPPALGUONNWW', provider: 'fred_direct' },
-                    { symbol: 'SWP1690', provider: 'fred_direct' },
-                    { symbol: 'OTHL1690', provider: 'fred_direct' },
-                    { symbol: 'RMFSL', provider: 'fred_direct' },
-                    { symbol: 'BOGMBASE', provider: 'fred_direct' },
-                    { symbol: 'WSHOSHO', provider: 'fred_direct' },
-                    { symbol: 'WRESBAL', provider: 'fred_direct' },
-                    { symbol: 'TOTRESNS', provider: 'fred_direct' },
-                    { symbol: 'NONBORRES', provider: 'fred_direct' },
-                    { symbol: 'ILM.W.U2.C.A030000.U2.Z06', provider: 'ecb_direct' }
+                    { symbol: 'FEDFUNDS', provider: 'lambda' },
+                    { symbol: 'DGS10', provider: 'lambda' },
+                    { symbol: 'DGS2', provider: 'lambda' },
+                    { symbol: 'DGS30', provider: 'lambda' },
+                    { symbol: 'SOFR', provider: 'lambda' },
+                    { symbol: 'EFFR', provider: 'lambda' },
+                    { symbol: 'DFF', provider: 'lambda' },
+                    { symbol: 'T10YIE', provider: 'lambda' }
                 ],
                 active: false
             },
             'ECONOMIC INDICATORS': {
                 symbols: [
-                    { symbol: 'GDP', provider: 'fred_direct' },
-                    { symbol: 'UNRATE', provider: 'fred_direct' },
-                    { symbol: 'CPIAUCSL', provider: 'fred_direct' },
-                    { symbol: 'PAYEMS', provider: 'fred_direct' },
-                    { symbol: 'INDPRO', provider: 'fred_direct' },
-                    { symbol: 'HOUST', provider: 'fred_direct' },
-                    { symbol: 'ISRATIO', provider: 'fred_direct' },
-                    { symbol: 'MNFCTRIRSA', provider: 'fred_direct' }
+                    { symbol: 'GDP', provider: 'lambda' },
+                    { symbol: 'UNRATE', provider: 'lambda' },
+                    { symbol: 'CPIAUCSL', provider: 'lambda' },
+                    { symbol: 'PAYEMS', provider: 'lambda' },
+                    { symbol: 'INDPRO', provider: 'lambda' },
+                    { symbol: 'HOUST', provider: 'lambda' },
+                    { symbol: 'ISRATIO', provider: 'lambda' },
+                    { symbol: 'M2SL', provider: 'lambda' }
                 ],
                 active: false
             },
-            'RATES & MONETARY': {
+            'DOLLAR & VOLATILITY': {
                 symbols: [
-                    { symbol: 'FEDFUNDS', provider: 'fred_direct' },
-                    { symbol: 'DGS10', provider: 'fred_direct' },
-                    { symbol: 'DGS2', provider: 'fred_direct' },
-                    { symbol: 'DGS30', provider: 'fred_direct' },
-                    { symbol: 'sofr', provider: 'ny_fed_direct' },
-                    { symbol: 'effr', provider: 'ny_fed_direct' },
-                    { symbol: 'M2SL', provider: 'fred_direct' }
+                    { symbol: 'DTWEXBGS', provider: 'lambda' },
+                    { symbol: 'DTWEXAFEGS', provider: 'lambda' },
+                    { symbol: 'DTWEXEMEGS', provider: 'lambda' },
+                    { symbol: 'VIXCLS', provider: 'lambda' },
+                    { symbol: 'VIX', provider: 'lambda' }
                 ],
                 active: false
             },
-            'OFR FUNDING MONITOR': {
+            'LIQUIDITY & MONEY': {
                 symbols: [
-                    { symbol: 'NYPD-PD_AFtR_T-A', provider: 'ofr_direct' },
-                    { symbol: 'NYPD-PD_AFtD_TOT-A', provider: 'ofr_direct' },
-                    { symbol: 'REPO_OV_TOT_P75', provider: 'ofr_direct' },
-                    { symbol: 'REPO_OV_TOT_P25', provider: 'ofr_direct' },
-                    { symbol: 'MMF_OV_TOT', provider: 'ofr_direct' },
-                    { symbol: 'DEALER_OV_TOT', provider: 'ofr_direct' }
+                    { symbol: 'M2SL', provider: 'lambda' },
+                    { symbol: 'BOGMBASE', provider: 'lambda' },
+                    { symbol: 'TOTRESNS', provider: 'lambda' },
+                    { symbol: 'WRESBAL', provider: 'lambda' },
+                    { symbol: 'RMFSL', provider: 'lambda' }
                 ],
                 active: false
             },
-            'TREASURY AUCTIONS': {
-                symbols: [
-                    { symbol: 'BILLS_4W', provider: 'treasury_direct' },
-                    { symbol: 'BILLS_13W', provider: 'treasury_direct' },
-                    { symbol: 'BILLS_26W', provider: 'treasury_direct' },
-                    { symbol: 'BILLS_52W', provider: 'treasury_direct' },
-                    { symbol: 'NOTES_2Y', provider: 'treasury_direct' },
-                    { symbol: 'NOTES_5Y', provider: 'treasury_direct' },
-                    { symbol: 'NOTES_10Y', provider: 'treasury_direct' },
-                    { symbol: 'BONDS_30Y', provider: 'treasury_direct' },
-                    { symbol: 'TIPS_10Y', provider: 'treasury_direct' },
-                    { symbol: 'TIPS_30Y', provider: 'treasury_direct' }
-                ],
-                active: false
-            }
         };
         
         let currentWatchlist = 'MAIN';
@@ -1248,16 +1193,18 @@
             corsNotice.className = 'cors-notice';
             corsNotice.innerHTML = `
                 <h3>🚀 OpenBB Financial Platform</h3>
-                <p><strong>✅ Lambda API is working!</strong> (6,204 indicators available)</p>
-                <p>Search for stocks, economic indicators, and more:</p>
+                <p><strong>✅ Lambda API Connected!</strong> (6,204 indicators available)</p>
+                <p>You have access to a powerful financial database with:</p>
                 <ul style="margin: 10px 0; padding-left: 20px;">
-                    <li>Try: AAPL, MSFT, TSLA, SPY</li>
-                    <li>Economic: GDP, UNRATE, FEDFUNDS</li>
-                    <li>Rates: SOFR, DGS10, VIX</li>
+                    <li>📈 Stocks: AAPL, MSFT, TSLA, SPY, QQQ, and more</li>
+                    <li>💰 Economic: GDP, UNRATE, CPI, PAYEMS</li>
+                    <li>📊 Rates: FEDFUNDS, SOFR, DGS10, VIXCLS</li>
+                    <li>🏦 Treasury: T-Bills, Notes, Bonds data</li>
+                    <li>🌍 Dollar Indices & Exchange Rates</li>
                 </ul>
-                <p style="margin-top: 15px; font-size: 11px; color: #ccc;">
-                    Enhanced API (60,000+ indicators) requires CORS configuration.
-                    <a href="https://github.com/yourusername/openbb-dashboard" style="color: #00ff88;">See documentation</a>
+                <p style="margin-top: 15px;">
+                    <strong>Search Tips:</strong> Try searching for any ticker symbol or economic indicator.
+                    The Lambda API provides comprehensive financial data with real-time search.
                 </p>
                 <button onclick="this.parentElement.remove()">Got it!</button>
             `;
@@ -1322,12 +1269,13 @@
                 });
             }
             
-            const statusText = `${connectedCount}/${totalSources} APIs Connected`;
+            
+            const statusText = `Lambda API Connected (${connectedCount} sources ready)`;
             document.getElementById('apiStatusText').textContent = statusText;
             
             if (connectedCount > 0) {
                 document.getElementById('apiStatus').classList.add('connected');
-                showTemporaryMessage(`Connected to ${connectedCount} data sources`, 'info');
+                showTemporaryMessage(`Connected to Lambda API with 6,204 financial indicators!`, 'info');
             }
         }
         
@@ -1574,25 +1522,33 @@
                         });
                     }
                     
-                    // Search through each data source - for now only show Lambda results
-                    // Other sources require CORS configuration
+                    // Search through Lambda's comprehensive database
                     if (!CORS_PROXY) {
-                        // When no CORS proxy, only search Lambda-available symbols
-                        const lambdaAvailableSymbols = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'SPY', 'QQQ',
-                            'FEDFUNDS', 'UNRATE', 'GDP', 'CPIAUCSL', 'DFF', 'M2SL', 'PAYEMS', 
-                            'DGS10', 'DGS2', 'VIXCLS', 'SOFR', 'EFFR'];
-                        
-                        lambdaAvailableSymbols.forEach(symbol => {
-                            if (symbol.toLowerCase().includes(query.toLowerCase())) {
-                                allResults.push({
-                                    symbol: symbol,
-                                    name: getSymbolDescription(symbol, 'lambda'),
-                                    provider: 'lambda',
-                                    source: 'lambda',
-                                    description: 'Available via Lambda API'
-                                });
+                        // Lambda API has extensive coverage - search for any financial symbol
+                        try {
+                            const lambdaSearchResponse = await fetch(`${LAMBDA_API}/api/search?query=${encodeURIComponent(query)}&limit=50`);
+                            if (lambdaSearchResponse.ok) {
+                                const lambdaSearchData = await lambdaSearchResponse.json();
+                                if (lambdaSearchData.results && Array.isArray(lambdaSearchData.results)) {
+                                    lambdaSearchData.results.forEach(result => {
+                                        const resultSymbol = result.symbol || result._source?.symbol;
+                                        const resultName = result.name || result._source?.name || result._source?.title || resultSymbol;
+                                        
+                                        // Add all Lambda results
+                                        allResults.push({
+                                            symbol: resultSymbol,
+                                            name: resultName,
+                                            provider: 'lambda',
+                                            source: 'lambda',
+                                            description: `Lambda Platform - ${result._source?.source || 'Financial Data'}`,
+                                            score: result._score || 1
+                                        });
+                                    });
+                                }
                             }
-                        });
+                        } catch (error) {
+                            console.warn('Lambda extended search failed:', error);
+                        }
                     } else {
                         // Original search logic when CORS proxy is available
                         for (const source of activeSources) {
@@ -1825,23 +1781,2143 @@
         function processLambdaData(symbol, data, provider) {
             const source = data._source || data;
             
+            // Extract the latest value and metadata
+            const latestValue = source.value || source.latest_value || source.last || 0;
+            const name = source.name || source.title || symbol;
+            
             watchlistData[symbol] = {
-                name: source.name || symbol,
+                name: name,
                 provider: provider,
-                price: source.value || source.latest_value || 0,
+                price: latestValue,
                 changes: {
-                    '1d': source.daily_change || 0,
-                    '1w': source.weekly_change || 0,
-                    '1m': source.monthly_change || 0,
-                    '3m': source.quarterly_change || 0,
-                    '1y': source.yearly_change || 0
+                    '1d': source.daily_change || source.change_1d || 0,
+                    '1w': source.weekly_change || source.change_1w || 0,
+                    '1m': source.monthly_change || source.change_1m || 0,
+                    '3m': source.quarterly_change || source.change_3m || 0,
+                    '1y': source.yearly_change || source.change_1y || 0
                 },
                 changeUnits: {
                     'daily': source.daily_change_units || 0,
                     'yearly': source.yearly_change_units || 0
                 },
                 hasData: true,
+                lastUpdateTime: Date.now(),
+                metadata: {
+                    source: source.source || 'lambda',
+                    last_updated: source.last_updated || new Date().toISOString(),
+                    unit: source.unit || source.units || '
+        
+        // Process watchlist data from your API response with new unit changes
+        function processWatchlistData(symbol, data, provider) {
+            const metrics = data.metrics || {};
+            const latestValue = metrics.latest_value || 0;
+            
+            // Extract percentage changes if available
+            const changes = {
+                '1d': metrics.daily_change || null,
+                '1w': metrics.weekly_change || null,
+                '1m': metrics.monthly_change || null,
+                '3m': metrics.quarterly_change || null,
+                '1y': metrics.yearly_change || null
+            };
+            
+            // Extract unit changes
+            const changeUnits = {
+                'daily': metrics.daily_change_units || null,
+                'yearly': metrics.yearly_change_units || null
+            };
+            
+            watchlistData[symbol] = {
+                name: watchlistData[symbol]?.name || symbol,
+                provider: provider,
+                price: latestValue,
+                changes: changes,
+                changeUnits: changeUnits,
+                hasData: true,
+                latestDate: data.latest_date || new Date().toISOString().split('T')[0],
+                actualSymbol: symbol,
                 lastUpdateTime: Date.now()
+            };
+            
+            // Check for significant changes and trigger flashing
+            checkForSignificantChanges(symbol, changes);
+            
+            renderWatchlist();
+        }
+        
+        // Process raw data array with unit changes
+        function processWatchlistDataArray(symbol, dataArray, provider) {
+            if (!dataArray || dataArray.length === 0) return;
+            
+            // Sort by date
+            dataArray.sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            const latestItem = dataArray[dataArray.length - 1];
+            const latestValue = latestItem.value || latestItem.close || latestItem.price || 0;
+            
+            // Calculate percentage changes and unit changes
+            const changes = calculatePercentageChanges(dataArray);
+            const changeUnits = calculateUnitChanges(dataArray);
+            
+            watchlistData[symbol] = {
+                name: watchlistData[symbol]?.name || symbol,
+                provider: provider,
+                price: latestValue,
+                changes: changes,
+                changeUnits: changeUnits,
+                hasData: true,
+                fullData: dataArray,
+                latestDate: latestItem.date,
+                actualSymbol: symbol,
+                lastUpdateTime: Date.now()
+            };
+            
+            // Check for significant changes and trigger flashing
+            checkForSignificantChanges(symbol, changes);
+            
+            renderWatchlist();
+        }
+        
+        // Calculate unit changes from data array
+        function calculateUnitChanges(data) {
+            if (!data || data.length < 2) {
+                return { 'daily': null, 'yearly': null };
+            }
+            
+            const latestItem = data[data.length - 1];
+            const latestValue = latestItem.value || latestItem.close || latestItem.price || 0;
+            const latestDate = new Date(latestItem.date);
+            
+            if (!latestValue || latestValue === 0) {
+                return { 'daily': null, 'yearly': null };
+            }
+            
+            const changeUnits = {};
+            const periods = {
+                'daily': 1,
+                'yearly': 365
+            };
+            
+            for (const [period, days] of Object.entries(periods)) {
+                const targetDate = new Date(latestDate);
+                targetDate.setDate(targetDate.getDate() - days);
+                
+                // Find closest data point
+                let closestItem = null;
+                let minDiff = Infinity;
+                
+                for (const item of data) {
+                    const itemDate = new Date(item.date);
+                    const diff = Math.abs(itemDate - targetDate);
+                    
+                    if (diff < minDiff && itemDate <= targetDate) {
+                        minDiff = diff;
+                        closestItem = item;
+                    }
+                }
+                
+                if (closestItem) {
+                    const historicalValue = closestItem.value || closestItem.close || closestItem.price || 0;
+                    if (historicalValue !== null && !isNaN(historicalValue)) {
+                        changeUnits[period] = latestValue - historicalValue;
+                    } else {
+                        changeUnits[period] = null;
+                    }
+                } else {
+                    changeUnits[period] = null;
+                }
+            }
+            
+            return changeUnits;
+        }
+        
+        // Calculate percentage changes from data array
+        function calculatePercentageChanges(data) {
+            if (!data || data.length < 2) {
+                return { '1d': null, '1w': null, '1m': null, '3m': null, '1y': null };
+            }
+            
+            const latestItem = data[data.length - 1];
+            const latestValue = latestItem.value || latestItem.close || latestItem.price || 0;
+            const latestDate = new Date(latestItem.date);
+            
+            if (!latestValue || latestValue === 0) {
+                return { '1d': null, '1w': null, '1m': null, '3m': null, '1y': null };
+            }
+            
+            const changes = {};
+            const periods = {
+                '1d': 1,
+                '1w': 7,
+                '1m': 30,
+                '3m': 90,
+                '1y': 365
+            };
+            
+            for (const [period, days] of Object.entries(periods)) {
+                const targetDate = new Date(latestDate);
+                targetDate.setDate(targetDate.getDate() - days);
+                
+                // Find closest data point
+                let closestItem = null;
+                let minDiff = Infinity;
+                
+                for (const item of data) {
+                    const itemDate = new Date(item.date);
+                    const diff = Math.abs(itemDate - targetDate);
+                    
+                    if (diff < minDiff && itemDate <= targetDate) {
+                        minDiff = diff;
+                        closestItem = item;
+                    }
+                }
+                
+                if (closestItem) {
+                    const historicalValue = closestItem.value || closestItem.close || closestItem.price || 0;
+                    if (historicalValue && historicalValue !== 0) {
+                        changes[period] = ((latestValue - historicalValue) / historicalValue * 100);
+                    } else {
+                        changes[period] = null;
+                    }
+                } else {
+                    changes[period] = null;
+                }
+            }
+            
+            return changes;
+        }
+        
+        // Enhanced flashing logic - only flash for 15%+ changes for 1 week
+        function checkForSignificantChanges(symbol, changes) {
+            const significantThreshold = 15; // 15% threshold
+            const flashDuration = 7 * 24 * 60 * 60 * 1000; // 1 week in milliseconds
+            
+            // Check daily and weekly changes
+            const dailyChange = changes['1d'];
+            const weeklyChange = changes['1w'];
+            
+            let shouldFlash = false;
+            let flashType = null;
+            
+            // Check if daily or weekly change exceeds 15%
+            if (dailyChange !== null && Math.abs(dailyChange) >= significantThreshold) {
+                shouldFlash = true;
+                flashType = dailyChange > 0 ? 'green' : 'red';
+            } else if (weeklyChange !== null && Math.abs(weeklyChange) >= significantThreshold) {
+                shouldFlash = true;
+                flashType = weeklyChange > 0 ? 'green' : 'red';
+            }
+            
+            if (shouldFlash) {
+                const currentTime = Date.now();
+                
+                // Set flash timer for this symbol
+                flashTimers[symbol] = {
+                    startTime: currentTime,
+                    endTime: currentTime + flashDuration,
+                    type: flashType
+                };
+                
+                console.log(`🚨 Significant change detected for ${symbol}: ${dailyChange?.toFixed(2)}% daily, ${weeklyChange?.toFixed(2)}% weekly`);
+                
+                // Clear flash after 1 week
+                setTimeout(() => {
+                    if (flashTimers[symbol]) {
+                        delete flashTimers[symbol];
+                        renderWatchlist(); // Re-render to remove flash
+                    }
+                }, flashDuration);
+            }
+        }
+        
+        // Check if symbol should flash
+        function shouldSymbolFlash(symbol) {
+            const flashInfo = flashTimers[symbol];
+            if (!flashInfo) return { flash: false, type: null };
+            
+            const currentTime = Date.now();
+            if (currentTime <= flashInfo.endTime) {
+                return { flash: true, type: flashInfo.type };
+            } else {
+                // Clean up expired flash timer
+                delete flashTimers[symbol];
+                return { flash: false, type: null };
+            }
+        }
+        
+        // Load watchlists from storage
+        function loadWatchlists() {
+            const saved = localStorage.getItem('openbbWatchlists');
+            if (saved) {
+                try {
+                    const savedData = JSON.parse(saved);
+                    Object.keys(savedData).forEach(name => {
+                        if (watchlists[name]) {
+                            watchlists[name].symbols = savedData[name].symbols || watchlists[name].symbols;
+                        }
+                    });
+                } catch (e) {
+                    console.error('Error loading saved watchlists:', e);
+                }
+            }
+            
+            watchlistSymbols = [...watchlists[currentWatchlist].symbols];
+        }
+        
+        // Save watchlists to storage
+        function saveWatchlists() {
+            const toSave = {};
+            Object.keys(watchlists).forEach(name => {
+                toSave[name] = { symbols: watchlists[name].symbols };
+            });
+            localStorage.setItem('openbbWatchlists', JSON.stringify(toSave));
+        }
+        
+        // Switch watchlist
+        function switchWatchlist(watchlistName) {
+            currentWatchlist = watchlistName;
+            watchlistSymbols = [...watchlists[currentWatchlist].symbols];
+            watchlistData = {};
+            loadWatchlistData();
+        }
+        
+        // Load watchlist data
+        async function loadWatchlistData() {
+            const tbody = document.getElementById('watchlistBody');
+            
+            if (watchlistSymbols.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px; color: #888;">No symbols in watchlist. Use search to add symbols.</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px;"><div class="loading-pulse">Loading watchlist...</div></td></tr>';
+            
+            // Load all symbols in parallel with batching
+            const batchSize = 5;
+            for (let i = 0; i < watchlistSymbols.length; i += batchSize) {
+                const batch = watchlistSymbols.slice(i, i + batchSize);
+                const promises = batch.map(symbolObj => {
+                    const symbol = symbolObj.symbol || symbolObj;
+                    const provider = symbolObj.provider || 'fred_direct';
+                    return loadSingleWatchlistItem(symbol, provider);
+                });
+                await Promise.allSettled(promises);
+            }
+        }
+        
+        // Update clock
+        function updateClock() {
+            document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
+        }
+        
+        // Enhanced render watchlist with new columns and flashing logic
+        function renderWatchlist() {
+            const tbody = document.getElementById('watchlistBody');
+            
+            if (watchlistSymbols.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px; color: #666;">No symbols in this watchlist. Use search to add symbols.</td></tr>';
+                return;
+            }
+            
+            let symbolsToRender = watchlistSymbols.map(symbolObj => {
+                const symbol = symbolObj.symbol || symbolObj;
+                const data = watchlistData[symbol];
+                if (!data) return null;
+                
+                let maxChange = 0;
+                if (data.changes) {
+                    const changes = Object.values(data.changes).filter(v => v !== null && !isNaN(v));
+                    if (changes.length > 0) {
+                        maxChange = changes.reduce((max, change) => {
+                            return Math.abs(change) > Math.abs(max) ? change : max;
+                        }, 0);
+                    }
+                }
+                
+                // Check if symbol should flash
+                const flashInfo = shouldSymbolFlash(symbol);
+                
+                return {
+                    symbol,
+                    data,
+                    maxChange,
+                    flashInfo
+                };
+            }).filter(item => item !== null);
+            
+            // Sort based on current sort order
+            if (columnSort.column && columnSort.direction) {
+                symbolsToRender.sort((a, b) => {
+                    const aValue = a.data.changes[columnSort.column];
+                    const bValue = b.data.changes[columnSort.column];
+                    
+                    if (aValue === null || aValue === undefined) return 1;
+                    if (bValue === null || bValue === undefined) return -1;
+                    
+                    return columnSort.direction === 'asc' ? aValue - bValue : bValue - aValue;
+                });
+            } else if (sortOrder === 'increase') {
+                symbolsToRender.sort((a, b) => b.maxChange - a.maxChange);
+            } else if (sortOrder === 'decrease') {
+                symbolsToRender.sort((a, b) => a.maxChange - b.maxChange);
+            }
+            
+            const formatPrice = (price) => {
+                if (price === 0) return 'Loading...';
+                if (price >= 1000) return price.toFixed(0);
+                if (price >= 1) return price.toFixed(2);
+                return price.toFixed(4);
+            };
+            
+            const formatChange = (change) => {
+                if (change === null || change === undefined || isNaN(change)) return '—';
+                const val = parseFloat(change);
+                return (val >= 0 ? '+' : '') + val.toFixed(2) + '%';
+            };
+            
+            const formatUnits = (change) => {
+                if (change === null || change === undefined || isNaN(change)) return '—';
+                const val = parseFloat(change);
+                return (val >= 0 ? '+' : '') + val.toFixed(4);
+            };
+            
+            const getChangeClass = (change) => {
+                if (change === null || change === undefined || isNaN(change)) return 'neutral';
+                return parseFloat(change) >= 0 ? 'positive' : 'negative';
+            };
+            
+            const html = symbolsToRender.map(({ symbol, data, flashInfo }) => {
+                const flashClass = flashInfo.flash ?
+                    (flashInfo.type === 'green' ? 'flash-green' : 'flash-red') : '';
+                
+                const displayName = data.customName || symbol;
+                const colorStyle = data.color ? `background-color: ${data.color};` : 'display: none;';
+                const providerLabel = data.provider?.replace('_direct', '').replace('_intelligence', '').replace('_live', '').toUpperCase() || 'API';
+                
+                return `
+                    <tr ondblclick="openChartForSymbol('${symbol}', '${data.provider || 'fred_direct'}')"
+                        class="${flashClass}"
+                        style="cursor: pointer;"
+                        title="Double-click to view chart">
+                        <td>
+                            <div class="symbol-cell">
+                                <div class="color-tag" style="${colorStyle}" onclick="editSymbol(event, '${symbol}')"></div>
+                                <div class="symbol-icon">${symbol.charAt(0)}</div>
+                                <div class="symbol-info">
+                                    <div class="symbol-name">
+                                        ${displayName}
+                                        <span class="edit-icon" onclick="editSymbol(event, '${symbol}')">✏️</span>
+                                    </div>
+                                    <div class="symbol-fullname">${data.name} (${providerLabel})</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="price-cell">${formatPrice(data.price)}</td>
+                        <td class="change-cell ${getChangeClass(data.changeUnits?.daily)}">${formatUnits(data.changeUnits?.daily)}</td>
+                        <td class="change-cell ${getChangeClass(data.changes['1d'])}">${formatChange(data.changes['1d'])}</td>
+                        <td class="change-cell ${getChangeClass(data.changes['1w'])}">${formatChange(data.changes['1w'])}</td>
+                        <td class="change-cell ${getChangeClass(data.changes['1m'])}">${formatChange(data.changes['1m'])}</td>
+                        <td class="change-cell ${getChangeClass(data.changes['1y'])}">${formatChange(data.changes['1y'])}</td>
+                        <td class="change-cell ${getChangeClass(data.changeUnits?.yearly)}">${formatUnits(data.changeUnits?.yearly)}</td>
+                        <td style="padding: 5px;">
+                            <button class="control-btn" style="padding: 4px 8px; font-size: 11px; background: #f5f5f5; color: #333; border: 1px solid #ddd;"
+                                    onclick="removeFromWatchlist(event, '${symbol}')">×</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            
+            tbody.innerHTML = html || '<tr><td colspan="9" style="text-align: center; padding: 20px; color: #666;">Loading data...</td></tr>';
+            
+            updateSortIndicators();
+        }
+        
+        // Remove from watchlist
+        function removeFromWatchlist(event, symbol) {
+            event.stopPropagation();
+            const currentSymbols = watchlists[currentWatchlist].symbols;
+            const index = currentSymbols.findIndex(s => (s.symbol || s) === symbol);
+            if (index > -1) {
+                currentSymbols.splice(index, 1);
+                watchlistSymbols = [...currentSymbols];
+                delete watchlistData[symbol];
+                
+                // Clear flash timer if exists
+                if (flashTimers[symbol]) {
+                    delete flashTimers[symbol];
+                }
+                
+                saveWatchlists();
+                renderWatchlist();
+                showTemporaryMessage(`Removed ${symbol} from ${currentWatchlist} watchlist`, 'info');
+            }
+        }
+        
+        // Sort by column
+        function sortByColumn(period) {
+            if (columnSort.column === period) {
+                columnSort.direction = columnSort.direction === 'desc' ? 'asc' : 'desc';
+            } else {
+                columnSort.column = period;
+                columnSort.direction = 'desc';
+            }
+            
+            sortOrder = 'default';
+            updateSortButtons();
+            renderWatchlist();
+        }
+        
+        // Update sort indicators
+        function updateSortIndicators() {
+            document.querySelectorAll('.sort-indicator').forEach(indicator => {
+                indicator.className = 'sort-indicator';
+            });
+            
+            if (columnSort.column && columnSort.direction) {
+                const indicator = document.getElementById(`sort-${columnSort.column}`);
+                if (indicator) {
+                    indicator.className = `sort-indicator ${columnSort.direction}`;
+                }
+            }
+        }
+        
+        // Change sort order
+        function changeSortOrder(order) {
+            sortOrder = order;
+            columnSort = { column: null, direction: null };
+            updateSortButtons();
+            renderWatchlist();
+        }
+        
+        // Update sort buttons
+        function updateSortButtons() {
+            document.getElementById('sortDefault').classList.toggle('active', sortOrder === 'default');
+            document.getElementById('sortIncrease').classList.toggle('active', sortOrder === 'increase');
+            document.getElementById('sortDecrease').classList.toggle('active', sortOrder === 'decrease');
+        }
+
+        // Chart functions
+        function addNewChart() {
+            const chartId = `chart_${chartIdCounter++}`;
+            
+            const chartHtml = `
+                <div class="chart-window" id="${chartId}" onclick="setActiveChart('${chartId}')">
+                    <div class="chart-header">
+                        <div class="chart-title-section">
+                            <div class="chart-title" id="${chartId}_title">Chart ${chartIdCounter}</div>
+                            <div class="chart-symbols" id="${chartId}_symbols"></div>
+                        </div>
+                        <div class="chart-controls">
+                            <div class="timeframe-buttons" id="${chartId}_timeframe_buttons">
+                                ${['1D','1W','1M','3M','6M','1Y','2Y','5Y','10Y','MAX'].map(tf =>
+                                    `<button class="timeframe-btn ${tf === '1Y' ? 'active' : ''}"
+                                             onclick="changeTimeframe(event, '${chartId}', '${tf}')">${tf}</button>`
+                                ).join('')}
+                            </div>
+                            <button class="close-btn" onclick="removeChart(event, '${chartId}')">×</button>
+                        </div>
+                    </div>
+                    <div class="chart-canvas" id="${chartId}_canvas">
+                        <div class="chart-message">Search for a financial indicator to add to this chart</div>
+                    </div>
+                </div>`;
+            
+            document.getElementById('chartGrid').insertAdjacentHTML('beforeend', chartHtml);
+            charts[chartId] = {
+                symbols: [],
+                data: {},
+                timeframe: '1Y',
+                chartInstance: null
+            };
+            setActiveChart(chartId);
+            
+            const chartsArea = document.getElementById('chartsArea');
+            const watchlistSection = document.querySelector('.watchlist-section');
+            const chartViewBtn = document.getElementById('chartViewBtn');
+            
+            chartsArea.style.display = 'block';
+            watchlistSection.style.flex = '0 0 300px';
+            chartViewBtn.style.display = 'block';
+        }
+
+        function setActiveChart(chartId) {
+            if (activeChartId === chartId) return;
+            activeChartId = chartId;
+            document.querySelectorAll('.chart-window').forEach(c => c.classList.remove('active-chart'));
+            const chartElement = document.getElementById(chartId);
+            if (chartElement) {
+                chartElement.classList.add('active-chart');
+            }
+        }
+
+        function removeChart(event, chartIdToRemove) {
+            event.stopPropagation();
+            if (charts[chartIdToRemove] && charts[chartIdToRemove].chartInstance) {
+                Plotly.purge(`${chartIdToRemove}_canvas`);
+            }
+            delete charts[chartIdToRemove];
+            document.getElementById(chartIdToRemove)?.remove();
+            
+            if (activeChartId === chartIdToRemove) {
+                const chartKeys = Object.keys(charts);
+                activeChartId = chartKeys.length > 0 ? chartKeys[chartKeys.length - 1] : null;
+                if(activeChartId) setActiveChart(activeChartId);
+            }
+            
+            if (Object.keys(charts).length === 0) {
+                const chartsArea = document.getElementById('chartsArea');
+                const watchlistSection = document.querySelector('.watchlist-section');
+                const chartViewBtn = document.getElementById('chartViewBtn');
+                
+                chartsArea.style.display = 'none';
+                watchlistSection.style.flex = '1';
+                chartViewBtn.style.display = 'none';
+            }
+        }
+
+        function openChartForSymbol(symbol, provider) {
+            const chartsArea = document.getElementById('chartsArea');
+            const watchlistSection = document.querySelector('.watchlist-section');
+            const chartViewBtn = document.getElementById('chartViewBtn');
+            
+            chartsArea.style.display = 'block';
+            watchlistSection.style.flex = '0 0 300px';
+            chartViewBtn.style.display = 'block';
+            
+            if (Object.keys(charts).length === 0) {
+                addNewChart();
+            }
+            
+            if (activeChartId) {
+                const data = watchlistData[symbol];
+                addToChart(activeChartId, symbol, provider, data?.name || symbol);
+            }
+        }
+
+        function addToChart(chartId, symbol, provider, name) {
+            const chart = charts[chartId];
+            if (!chart) return;
+            
+            if (!chart.symbols.find(s => s.symbol === symbol)) {
+                chart.symbols.push({ symbol, provider, name });
+                loadChartData(chartId, symbol, provider);
+            }
+            setActiveChart(chartId);
+        }
+
+        // Enhanced chart data loading
+        async function loadChartData(chartId, symbol, provider) {
+            const chart = charts[chartId];
+            if (!chart) return;
+            
+            const canvasDiv = document.getElementById(`${chartId}_canvas`);
+            if (canvasDiv) canvasDiv.innerHTML = `<div class="chart-message loading-pulse">Loading ${symbol} from ${provider}...</div>`;
+            
+            try {
+                let url;
+                const timeframe = chart.timeframe || '1Y';
+                
+                // For Lambda provider, get historical data from search
+                if (provider === 'lambda') {
+                    // Lambda API returns limited historical data in search results
+                    // For charts, we'll use the search endpoint and extract any available time series
+                    url = `${LAMBDA_API}/api/search?query=${symbol}&limit=1`;
+                } else if (provider === 'polygon_direct') {
+                    // Enhanced data loading for extended historical periods
+                    const endDate = new Date().toISOString().split('T')[0];
+                    let startDate = new Date();
+                    startDate.setFullYear(startDate.getFullYear() - 10); // 10 years for stocks
+                    const startDateStr = startDate.toISOString().split('T')[0];
+                    url = `${ENHANCED_API}/universal/data?symbol=${symbol}&provider=${provider}&data_type=historical&start_date=${startDateStr}&end_date=${endDate}`;
+                } else {
+                    // Other providers via Enhanced API
+                    const endDate = new Date().toISOString().split('T')[0];
+                    let startDate = new Date();
+                    
+                    if (['fred_direct', 'ecb_direct', 'ny_fed_direct', 'ofr_direct'].includes(provider)) {
+                        startDate.setFullYear(startDate.getFullYear() - 20); // 20 years for economic data
+                    } else {
+                        startDate.setFullYear(startDate.getFullYear() - 5); // 5 years default
+                    }
+                    
+                    const startDateStr = startDate.toISOString().split('T')[0];
+                    url = `${ENHANCED_API}/universal/data?symbol=${symbol}&provider=${provider}&include_changes=true&start_date=${startDateStr}&end_date=${endDate}`;
+                }
+                
+                console.log(`Chart data URL for ${symbol}: ${url}`);
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to load data: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                console.log(`Chart data received for ${symbol}:`, result);
+                
+                let processedData = [];
+                
+                if (provider === 'lambda' && result.results && result.results.length > 0) {
+                    // Lambda API - extract current value for simple chart
+                    const lambdaData = result.results[0]._source || result.results[0];
+                    const currentValue = lambdaData.value || lambdaData.latest_value || lambdaData.last || 0;
+                    const currentDate = new Date().toISOString().split('T')[0];
+                    
+                    // Create a simple data point for current value
+                    processedData = [{
+                        date: currentDate,
+                        value: currentValue
+                    }];
+                    
+                    // If we have historical values in the Lambda data, use them
+                    if (lambdaData.time_series || lambdaData.historical) {
+                        const historicalData = lambdaData.time_series || lambdaData.historical;
+                        if (Array.isArray(historicalData)) {
+                            processedData = historicalData.map(item => ({
+                                date: item.date || item.time,
+                                value: item.value || item.close || item.price
+                            })).filter(item => item.value !== null && !isNaN(item.value));
+                        }
+                    }
+                    
+                    // Add metadata to chart
+                    chart.metadata = {
+                        symbol: symbol,
+                        name: lambdaData.name || lambdaData.title || symbol,
+                        source: lambdaData.source || 'Lambda Platform',
+                        unit: lambdaData.unit || lambdaData.units || '
+                
+                if (processedData.length === 0) {
+                    throw new Error('No valid data points found');
+                }
+                
+                console.log(`Processed ${processedData.length} data points for ${symbol}`);
+                
+                chart.data[symbol] = processedData;
+                updateChartRender(chartId);
+                updateChartSymbols(chartId);
+                
+            } catch (error) {
+                console.error(`Error loading chart data for ${symbol}:`, error);
+                if (canvasDiv) {
+                    canvasDiv.innerHTML = `<div class="chart-message" style="color: #ff4444;">Error loading ${symbol}<br><small>${error.message}</small></div>`;
+                }
+                chart.symbols = chart.symbols.filter(s => s.symbol !== symbol);
+                updateChartSymbols(chartId);
+            }
+        }
+        
+        function updateChartSymbols(chartId) {
+            const chart = charts[chartId];
+            if (!chart) return;
+            const symbolsDiv = document.getElementById(`${chartId}_symbols`);
+            if (!symbolsDiv) return;
+            
+            symbolsDiv.innerHTML = chart.symbols.map((s, i) => `
+                <div class="chart-symbol-tag">
+                    <span class="symbol-color-dot" style="background-color: ${colorPalette[i % colorPalette.length]};"></span>
+                    ${s.symbol}
+                    <span class="remove-symbol" onclick="removeSymbolFromChart(event, '${chartId}', '${s.symbol}')">×</span>
+                </div>`).join('');
+        }
+
+        function removeSymbolFromChart(event, chartId, symbolToRemove) {
+            event.stopPropagation();
+            const chart = charts[chartId];
+            if (!chart) return;
+
+            chart.symbols = chart.symbols.filter(s => s.symbol !== symbolToRemove);
+            delete chart.data[symbolToRemove];
+            
+            updateChartRender(chartId);
+            updateChartSymbols(chartId);
+            
+            if (chart.symbols.length === 0) {
+                document.getElementById(`${chartId}_canvas`).innerHTML = '<div class="chart-message">Search for a financial indicator to add to this chart</div>';
+            }
+        }
+
+        function changeTimeframe(event, chartId, timeframe) {
+            event.stopPropagation();
+            const chart = charts[chartId];
+            if (!chart) return;
+            chart.timeframe = timeframe;
+            
+            const buttonContainer = document.getElementById(`${chartId}_timeframe_buttons`);
+            if (buttonContainer) {
+                buttonContainer.querySelectorAll('.timeframe-btn').forEach(btn => btn.classList.remove('active'));
+                if(event.target.tagName === 'BUTTON') event.target.classList.add('active');
+            }
+            updateChartRender(chartId);
+        }
+
+        function filterDataByTimeframe(data, timeframe) {
+            if (!data || data.length === 0) return data;
+            
+            const now = new Date();
+            let cutoffDate = new Date();
+            
+            switch(timeframe) {
+                case '1D':
+                    cutoffDate.setDate(now.getDate() - 1);
+                    break;
+                case '1W':
+                    cutoffDate.setDate(now.getDate() - 7);
+                    break;
+                case '1M':
+                    cutoffDate.setMonth(now.getMonth() - 1);
+                    break;
+                case '3M':
+                    cutoffDate.setMonth(now.getMonth() - 3);
+                    break;
+                case '6M':
+                    cutoffDate.setMonth(now.getMonth() - 6);
+                    break;
+                case '1Y':
+                    cutoffDate.setFullYear(now.getFullYear() - 1);
+                    break;
+                case '2Y':
+                    cutoffDate.setFullYear(now.getFullYear() - 2);
+                    break;
+                case '5Y':
+                    cutoffDate.setFullYear(now.getFullYear() - 5);
+                    break;
+                case '10Y':
+                    cutoffDate.setFullYear(now.getFullYear() - 10);
+                    break;
+                case 'MAX':
+                    return data;
+            }
+            
+            return data.filter(item => new Date(item.date) >= cutoffDate);
+        }
+
+        // Enhanced chart rendering
+        function updateChartRender(chartId) {
+            const chart = charts[chartId];
+            const canvasElement = document.getElementById(`${chartId}_canvas`);
+            if (!canvasElement || !chart) return;
+            
+            if (chart.symbols.length === 0) {
+                canvasElement.innerHTML = '<div class="chart-message">Search for a financial indicator to add to this chart</div>';
+                if (chart.chartInstance) Plotly.purge(canvasElement);
+                return;
+            }
+            
+            const traces = [];
+            
+            chart.symbols.forEach((s, index) => {
+                const symbolData = chart.data[s.symbol];
+                if (!symbolData || symbolData.length === 0) return;
+                
+                const filteredData = filterDataByTimeframe(symbolData, chart.timeframe);
+                if (filteredData.length === 0) return;
+                
+                const lineColor = colorPalette[index % colorPalette.length];
+                
+                const trace = {
+                    x: filteredData.map(d => d.date),
+                    y: filteredData.map(d => d.value),
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: s.symbol,
+                    line: { color: lineColor, width: 2 },
+                    hovertemplate: `<b>${s.symbol}</b><br>Date: %{x}<br>Value: %{y:.4f}<extra></extra>`
+                };
+                
+                traces.push(trace);
+            });
+            
+            if (traces.length === 0) {
+                canvasElement.innerHTML = '<div class="chart-message">No data to display for selected timeframe</div>';
+                return;
+            }
+            
+            const layout = {
+                title: {
+                    text: '',
+                    font: { color: '#fff', size: 14 }
+                },
+                paper_bgcolor: '#0a0a0a',
+                plot_bgcolor: '#0a0a0a',
+                font: { color: '#aaa', size: 12 },
+                margin: { t: 40, r: 80, b: 60, l: 80 },
+                xaxis: {
+                    type: 'date',
+                    gridcolor: '#22222250',
+                    tickfont: { color: '#888' },
+                    rangeslider: { visible: false }
+                },
+                yaxis: {
+                    gridcolor: '#22222250',
+                    tickfont: { color: '#888' },
+                    zeroline: true,
+                    zerolinecolor: '#444',
+                    zerolinewidth: 1
+                },
+                hovermode: 'x unified',
+                showlegend: true,
+                legend: {
+                    orientation: 'h',
+                    yanchor: 'bottom',
+                    y: 1.02,
+                    xanchor: 'right',
+                    x: 1,
+                    bgcolor: 'rgba(10,10,10,0.8)',
+                    bordercolor: '#333',
+                    borderwidth: 1,
+                    font: { size: 11 }
+                },
+                height: 500,
+                autosize: true
+            };
+            
+            const config = {
+                responsive: true,
+                displaylogo: false,
+                modeBarButtonsToRemove: ['select2d', 'lasso2d', 'toImage'],
+                displayModeBar: true
+            };
+            
+            if(canvasElement.querySelector('.chart-message')) canvasElement.innerHTML = '';
+            
+            Plotly.react(canvasElement, traces, layout, config)
+                .then(gd => {
+                    charts[chartId].chartInstance = gd;
+                })
+                .catch(err => {
+                    console.error("Plotly error:", err);
+                    canvasElement.innerHTML = `<div class="chart-message" style="color: #ff4444;">Chart error: ${err.message}</div>`;
+                });
+        }
+
+        function showChartView() {
+            const chartsArea = document.getElementById('chartsArea');
+            const watchlistSection = document.querySelector('.watchlist-section');
+            
+            if (chartsArea.style.display === 'none') {
+                chartsArea.style.display = 'block';
+                watchlistSection.style.flex = '0 0 300px';
+            } else {
+                chartsArea.style.display = 'none';
+                watchlistSection.style.flex = '1';
+            }
+        }
+        
+        // Edit symbol function (placeholder)
+        function editSymbol(event, symbol) {
+            event.stopPropagation();
+            showTemporaryMessage(`Edit functionality for ${symbol} - implement as needed`, 'info');
+        }
+        
+        // Utility functions
+        function showTemporaryMessage(text, type = 'info') {
+            const popup = document.createElement('div');
+            popup.className = `message-popup ${type}`;
+            popup.textContent = text;
+            document.body.appendChild(popup);
+            
+            setTimeout(() => popup.remove(), 3000);
+        }
+        
+        // Hide search results when clicking outside
+        document.addEventListener('click', function(event) {
+            const searchBox = document.getElementById('searchBox');
+            const searchResults = document.getElementById('searchResults');
+            
+            if (!searchBox.contains(event.target) && !searchResults.contains(event.target)) {
+                searchResults.style.display = 'none';
+            }
+        });
+        
+        // Initialize on page load
+        window.onload = init;
+    </script>
+</body>
+</html>
+                }
+            };
+            
+            checkForSignificantChanges(symbol, watchlistData[symbol].changes);
+            renderWatchlist();
+        }
+        
+        // Process watchlist data from your API response with new unit changes
+        function processWatchlistData(symbol, data, provider) {
+            const metrics = data.metrics || {};
+            const latestValue = metrics.latest_value || 0;
+            
+            // Extract percentage changes if available
+            const changes = {
+                '1d': metrics.daily_change || null,
+                '1w': metrics.weekly_change || null,
+                '1m': metrics.monthly_change || null,
+                '3m': metrics.quarterly_change || null,
+                '1y': metrics.yearly_change || null
+            };
+            
+            // Extract unit changes
+            const changeUnits = {
+                'daily': metrics.daily_change_units || null,
+                'yearly': metrics.yearly_change_units || null
+            };
+            
+            watchlistData[symbol] = {
+                name: watchlistData[symbol]?.name || symbol,
+                provider: provider,
+                price: latestValue,
+                changes: changes,
+                changeUnits: changeUnits,
+                hasData: true,
+                latestDate: data.latest_date || new Date().toISOString().split('T')[0],
+                actualSymbol: symbol,
+                lastUpdateTime: Date.now()
+            };
+            
+            // Check for significant changes and trigger flashing
+            checkForSignificantChanges(symbol, changes);
+            
+            renderWatchlist();
+        }
+        
+        // Process raw data array with unit changes
+        function processWatchlistDataArray(symbol, dataArray, provider) {
+            if (!dataArray || dataArray.length === 0) return;
+            
+            // Sort by date
+            dataArray.sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            const latestItem = dataArray[dataArray.length - 1];
+            const latestValue = latestItem.value || latestItem.close || latestItem.price || 0;
+            
+            // Calculate percentage changes and unit changes
+            const changes = calculatePercentageChanges(dataArray);
+            const changeUnits = calculateUnitChanges(dataArray);
+            
+            watchlistData[symbol] = {
+                name: watchlistData[symbol]?.name || symbol,
+                provider: provider,
+                price: latestValue,
+                changes: changes,
+                changeUnits: changeUnits,
+                hasData: true,
+                fullData: dataArray,
+                latestDate: latestItem.date,
+                actualSymbol: symbol,
+                lastUpdateTime: Date.now()
+            };
+            
+            // Check for significant changes and trigger flashing
+            checkForSignificantChanges(symbol, changes);
+            
+            renderWatchlist();
+        }
+        
+        // Calculate unit changes from data array
+        function calculateUnitChanges(data) {
+            if (!data || data.length < 2) {
+                return { 'daily': null, 'yearly': null };
+            }
+            
+            const latestItem = data[data.length - 1];
+            const latestValue = latestItem.value || latestItem.close || latestItem.price || 0;
+            const latestDate = new Date(latestItem.date);
+            
+            if (!latestValue || latestValue === 0) {
+                return { 'daily': null, 'yearly': null };
+            }
+            
+            const changeUnits = {};
+            const periods = {
+                'daily': 1,
+                'yearly': 365
+            };
+            
+            for (const [period, days] of Object.entries(periods)) {
+                const targetDate = new Date(latestDate);
+                targetDate.setDate(targetDate.getDate() - days);
+                
+                // Find closest data point
+                let closestItem = null;
+                let minDiff = Infinity;
+                
+                for (const item of data) {
+                    const itemDate = new Date(item.date);
+                    const diff = Math.abs(itemDate - targetDate);
+                    
+                    if (diff < minDiff && itemDate <= targetDate) {
+                        minDiff = diff;
+                        closestItem = item;
+                    }
+                }
+                
+                if (closestItem) {
+                    const historicalValue = closestItem.value || closestItem.close || closestItem.price || 0;
+                    if (historicalValue !== null && !isNaN(historicalValue)) {
+                        changeUnits[period] = latestValue - historicalValue;
+                    } else {
+                        changeUnits[period] = null;
+                    }
+                } else {
+                    changeUnits[period] = null;
+                }
+            }
+            
+            return changeUnits;
+        }
+        
+        // Calculate percentage changes from data array
+        function calculatePercentageChanges(data) {
+            if (!data || data.length < 2) {
+                return { '1d': null, '1w': null, '1m': null, '3m': null, '1y': null };
+            }
+            
+            const latestItem = data[data.length - 1];
+            const latestValue = latestItem.value || latestItem.close || latestItem.price || 0;
+            const latestDate = new Date(latestItem.date);
+            
+            if (!latestValue || latestValue === 0) {
+                return { '1d': null, '1w': null, '1m': null, '3m': null, '1y': null };
+            }
+            
+            const changes = {};
+            const periods = {
+                '1d': 1,
+                '1w': 7,
+                '1m': 30,
+                '3m': 90,
+                '1y': 365
+            };
+            
+            for (const [period, days] of Object.entries(periods)) {
+                const targetDate = new Date(latestDate);
+                targetDate.setDate(targetDate.getDate() - days);
+                
+                // Find closest data point
+                let closestItem = null;
+                let minDiff = Infinity;
+                
+                for (const item of data) {
+                    const itemDate = new Date(item.date);
+                    const diff = Math.abs(itemDate - targetDate);
+                    
+                    if (diff < minDiff && itemDate <= targetDate) {
+                        minDiff = diff;
+                        closestItem = item;
+                    }
+                }
+                
+                if (closestItem) {
+                    const historicalValue = closestItem.value || closestItem.close || closestItem.price || 0;
+                    if (historicalValue && historicalValue !== 0) {
+                        changes[period] = ((latestValue - historicalValue) / historicalValue * 100);
+                    } else {
+                        changes[period] = null;
+                    }
+                } else {
+                    changes[period] = null;
+                }
+            }
+            
+            return changes;
+        }
+        
+        // Enhanced flashing logic - only flash for 15%+ changes for 1 week
+        function checkForSignificantChanges(symbol, changes) {
+            const significantThreshold = 15; // 15% threshold
+            const flashDuration = 7 * 24 * 60 * 60 * 1000; // 1 week in milliseconds
+            
+            // Check daily and weekly changes
+            const dailyChange = changes['1d'];
+            const weeklyChange = changes['1w'];
+            
+            let shouldFlash = false;
+            let flashType = null;
+            
+            // Check if daily or weekly change exceeds 15%
+            if (dailyChange !== null && Math.abs(dailyChange) >= significantThreshold) {
+                shouldFlash = true;
+                flashType = dailyChange > 0 ? 'green' : 'red';
+            } else if (weeklyChange !== null && Math.abs(weeklyChange) >= significantThreshold) {
+                shouldFlash = true;
+                flashType = weeklyChange > 0 ? 'green' : 'red';
+            }
+            
+            if (shouldFlash) {
+                const currentTime = Date.now();
+                
+                // Set flash timer for this symbol
+                flashTimers[symbol] = {
+                    startTime: currentTime,
+                    endTime: currentTime + flashDuration,
+                    type: flashType
+                };
+                
+                console.log(`🚨 Significant change detected for ${symbol}: ${dailyChange?.toFixed(2)}% daily, ${weeklyChange?.toFixed(2)}% weekly`);
+                
+                // Clear flash after 1 week
+                setTimeout(() => {
+                    if (flashTimers[symbol]) {
+                        delete flashTimers[symbol];
+                        renderWatchlist(); // Re-render to remove flash
+                    }
+                }, flashDuration);
+            }
+        }
+        
+        // Check if symbol should flash
+        function shouldSymbolFlash(symbol) {
+            const flashInfo = flashTimers[symbol];
+            if (!flashInfo) return { flash: false, type: null };
+            
+            const currentTime = Date.now();
+            if (currentTime <= flashInfo.endTime) {
+                return { flash: true, type: flashInfo.type };
+            } else {
+                // Clean up expired flash timer
+                delete flashTimers[symbol];
+                return { flash: false, type: null };
+            }
+        }
+        
+        // Load watchlists from storage
+        function loadWatchlists() {
+            const saved = localStorage.getItem('openbbWatchlists');
+            if (saved) {
+                try {
+                    const savedData = JSON.parse(saved);
+                    Object.keys(savedData).forEach(name => {
+                        if (watchlists[name]) {
+                            watchlists[name].symbols = savedData[name].symbols || watchlists[name].symbols;
+                        }
+                    });
+                } catch (e) {
+                    console.error('Error loading saved watchlists:', e);
+                }
+            }
+            
+            watchlistSymbols = [...watchlists[currentWatchlist].symbols];
+        }
+        
+        // Save watchlists to storage
+        function saveWatchlists() {
+            const toSave = {};
+            Object.keys(watchlists).forEach(name => {
+                toSave[name] = { symbols: watchlists[name].symbols };
+            });
+            localStorage.setItem('openbbWatchlists', JSON.stringify(toSave));
+        }
+        
+        // Switch watchlist
+        function switchWatchlist(watchlistName) {
+            currentWatchlist = watchlistName;
+            watchlistSymbols = [...watchlists[currentWatchlist].symbols];
+            watchlistData = {};
+            loadWatchlistData();
+        }
+        
+        // Load watchlist data
+        async function loadWatchlistData() {
+            const tbody = document.getElementById('watchlistBody');
+            
+            if (watchlistSymbols.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px; color: #888;">No symbols in watchlist. Use search to add symbols.</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px;"><div class="loading-pulse">Loading watchlist...</div></td></tr>';
+            
+            // Load all symbols in parallel with batching
+            const batchSize = 5;
+            for (let i = 0; i < watchlistSymbols.length; i += batchSize) {
+                const batch = watchlistSymbols.slice(i, i + batchSize);
+                const promises = batch.map(symbolObj => {
+                    const symbol = symbolObj.symbol || symbolObj;
+                    const provider = symbolObj.provider || 'fred_direct';
+                    return loadSingleWatchlistItem(symbol, provider);
+                });
+                await Promise.allSettled(promises);
+            }
+        }
+        
+        // Update clock
+        function updateClock() {
+            document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
+        }
+        
+        // Enhanced render watchlist with new columns and flashing logic
+        function renderWatchlist() {
+            const tbody = document.getElementById('watchlistBody');
+            
+            if (watchlistSymbols.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px; color: #666;">No symbols in this watchlist. Use search to add symbols.</td></tr>';
+                return;
+            }
+            
+            let symbolsToRender = watchlistSymbols.map(symbolObj => {
+                const symbol = symbolObj.symbol || symbolObj;
+                const data = watchlistData[symbol];
+                if (!data) return null;
+                
+                let maxChange = 0;
+                if (data.changes) {
+                    const changes = Object.values(data.changes).filter(v => v !== null && !isNaN(v));
+                    if (changes.length > 0) {
+                        maxChange = changes.reduce((max, change) => {
+                            return Math.abs(change) > Math.abs(max) ? change : max;
+                        }, 0);
+                    }
+                }
+                
+                // Check if symbol should flash
+                const flashInfo = shouldSymbolFlash(symbol);
+                
+                return {
+                    symbol,
+                    data,
+                    maxChange,
+                    flashInfo
+                };
+            }).filter(item => item !== null);
+            
+            // Sort based on current sort order
+            if (columnSort.column && columnSort.direction) {
+                symbolsToRender.sort((a, b) => {
+                    const aValue = a.data.changes[columnSort.column];
+                    const bValue = b.data.changes[columnSort.column];
+                    
+                    if (aValue === null || aValue === undefined) return 1;
+                    if (bValue === null || bValue === undefined) return -1;
+                    
+                    return columnSort.direction === 'asc' ? aValue - bValue : bValue - aValue;
+                });
+            } else if (sortOrder === 'increase') {
+                symbolsToRender.sort((a, b) => b.maxChange - a.maxChange);
+            } else if (sortOrder === 'decrease') {
+                symbolsToRender.sort((a, b) => a.maxChange - b.maxChange);
+            }
+            
+            const formatPrice = (price) => {
+                if (price === 0) return 'Loading...';
+                if (price >= 1000) return price.toFixed(0);
+                if (price >= 1) return price.toFixed(2);
+                return price.toFixed(4);
+            };
+            
+            const formatChange = (change) => {
+                if (change === null || change === undefined || isNaN(change)) return '—';
+                const val = parseFloat(change);
+                return (val >= 0 ? '+' : '') + val.toFixed(2) + '%';
+            };
+            
+            const formatUnits = (change) => {
+                if (change === null || change === undefined || isNaN(change)) return '—';
+                const val = parseFloat(change);
+                return (val >= 0 ? '+' : '') + val.toFixed(4);
+            };
+            
+            const getChangeClass = (change) => {
+                if (change === null || change === undefined || isNaN(change)) return 'neutral';
+                return parseFloat(change) >= 0 ? 'positive' : 'negative';
+            };
+            
+            const html = symbolsToRender.map(({ symbol, data, flashInfo }) => {
+                const flashClass = flashInfo.flash ?
+                    (flashInfo.type === 'green' ? 'flash-green' : 'flash-red') : '';
+                
+                const displayName = data.customName || symbol;
+                const colorStyle = data.color ? `background-color: ${data.color};` : 'display: none;';
+                const providerLabel = data.provider?.replace('_direct', '').replace('_intelligence', '').replace('_live', '').toUpperCase() || 'API';
+                
+                return `
+                    <tr ondblclick="openChartForSymbol('${symbol}', '${data.provider || 'fred_direct'}')"
+                        class="${flashClass}"
+                        style="cursor: pointer;"
+                        title="Double-click to view chart">
+                        <td>
+                            <div class="symbol-cell">
+                                <div class="color-tag" style="${colorStyle}" onclick="editSymbol(event, '${symbol}')"></div>
+                                <div class="symbol-icon">${symbol.charAt(0)}</div>
+                                <div class="symbol-info">
+                                    <div class="symbol-name">
+                                        ${displayName}
+                                        <span class="edit-icon" onclick="editSymbol(event, '${symbol}')">✏️</span>
+                                    </div>
+                                    <div class="symbol-fullname">${data.name} (${providerLabel})</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="price-cell">${formatPrice(data.price)}</td>
+                        <td class="change-cell ${getChangeClass(data.changeUnits?.daily)}">${formatUnits(data.changeUnits?.daily)}</td>
+                        <td class="change-cell ${getChangeClass(data.changes['1d'])}">${formatChange(data.changes['1d'])}</td>
+                        <td class="change-cell ${getChangeClass(data.changes['1w'])}">${formatChange(data.changes['1w'])}</td>
+                        <td class="change-cell ${getChangeClass(data.changes['1m'])}">${formatChange(data.changes['1m'])}</td>
+                        <td class="change-cell ${getChangeClass(data.changes['1y'])}">${formatChange(data.changes['1y'])}</td>
+                        <td class="change-cell ${getChangeClass(data.changeUnits?.yearly)}">${formatUnits(data.changeUnits?.yearly)}</td>
+                        <td style="padding: 5px;">
+                            <button class="control-btn" style="padding: 4px 8px; font-size: 11px; background: #f5f5f5; color: #333; border: 1px solid #ddd;"
+                                    onclick="removeFromWatchlist(event, '${symbol}')">×</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            
+            tbody.innerHTML = html || '<tr><td colspan="9" style="text-align: center; padding: 20px; color: #666;">Loading data...</td></tr>';
+            
+            updateSortIndicators();
+        }
+        
+        // Remove from watchlist
+        function removeFromWatchlist(event, symbol) {
+            event.stopPropagation();
+            const currentSymbols = watchlists[currentWatchlist].symbols;
+            const index = currentSymbols.findIndex(s => (s.symbol || s) === symbol);
+            if (index > -1) {
+                currentSymbols.splice(index, 1);
+                watchlistSymbols = [...currentSymbols];
+                delete watchlistData[symbol];
+                
+                // Clear flash timer if exists
+                if (flashTimers[symbol]) {
+                    delete flashTimers[symbol];
+                }
+                
+                saveWatchlists();
+                renderWatchlist();
+                showTemporaryMessage(`Removed ${symbol} from ${currentWatchlist} watchlist`, 'info');
+            }
+        }
+        
+        // Sort by column
+        function sortByColumn(period) {
+            if (columnSort.column === period) {
+                columnSort.direction = columnSort.direction === 'desc' ? 'asc' : 'desc';
+            } else {
+                columnSort.column = period;
+                columnSort.direction = 'desc';
+            }
+            
+            sortOrder = 'default';
+            updateSortButtons();
+            renderWatchlist();
+        }
+        
+        // Update sort indicators
+        function updateSortIndicators() {
+            document.querySelectorAll('.sort-indicator').forEach(indicator => {
+                indicator.className = 'sort-indicator';
+            });
+            
+            if (columnSort.column && columnSort.direction) {
+                const indicator = document.getElementById(`sort-${columnSort.column}`);
+                if (indicator) {
+                    indicator.className = `sort-indicator ${columnSort.direction}`;
+                }
+            }
+        }
+        
+        // Change sort order
+        function changeSortOrder(order) {
+            sortOrder = order;
+            columnSort = { column: null, direction: null };
+            updateSortButtons();
+            renderWatchlist();
+        }
+        
+        // Update sort buttons
+        function updateSortButtons() {
+            document.getElementById('sortDefault').classList.toggle('active', sortOrder === 'default');
+            document.getElementById('sortIncrease').classList.toggle('active', sortOrder === 'increase');
+            document.getElementById('sortDecrease').classList.toggle('active', sortOrder === 'decrease');
+        }
+
+        // Chart functions
+        function addNewChart() {
+            const chartId = `chart_${chartIdCounter++}`;
+            
+            const chartHtml = `
+                <div class="chart-window" id="${chartId}" onclick="setActiveChart('${chartId}')">
+                    <div class="chart-header">
+                        <div class="chart-title-section">
+                            <div class="chart-title" id="${chartId}_title">Chart ${chartIdCounter}</div>
+                            <div class="chart-symbols" id="${chartId}_symbols"></div>
+                        </div>
+                        <div class="chart-controls">
+                            <div class="timeframe-buttons" id="${chartId}_timeframe_buttons">
+                                ${['1D','1W','1M','3M','6M','1Y','2Y','5Y','10Y','MAX'].map(tf =>
+                                    `<button class="timeframe-btn ${tf === '1Y' ? 'active' : ''}"
+                                             onclick="changeTimeframe(event, '${chartId}', '${tf}')">${tf}</button>`
+                                ).join('')}
+                            </div>
+                            <button class="close-btn" onclick="removeChart(event, '${chartId}')">×</button>
+                        </div>
+                    </div>
+                    <div class="chart-canvas" id="${chartId}_canvas">
+                        <div class="chart-message">Search for a financial indicator to add to this chart</div>
+                    </div>
+                </div>`;
+            
+            document.getElementById('chartGrid').insertAdjacentHTML('beforeend', chartHtml);
+            charts[chartId] = {
+                symbols: [],
+                data: {},
+                timeframe: '1Y',
+                chartInstance: null
+            };
+            setActiveChart(chartId);
+            
+            const chartsArea = document.getElementById('chartsArea');
+            const watchlistSection = document.querySelector('.watchlist-section');
+            const chartViewBtn = document.getElementById('chartViewBtn');
+            
+            chartsArea.style.display = 'block';
+            watchlistSection.style.flex = '0 0 300px';
+            chartViewBtn.style.display = 'block';
+        }
+
+        function setActiveChart(chartId) {
+            if (activeChartId === chartId) return;
+            activeChartId = chartId;
+            document.querySelectorAll('.chart-window').forEach(c => c.classList.remove('active-chart'));
+            const chartElement = document.getElementById(chartId);
+            if (chartElement) {
+                chartElement.classList.add('active-chart');
+            }
+        }
+
+        function removeChart(event, chartIdToRemove) {
+            event.stopPropagation();
+            if (charts[chartIdToRemove] && charts[chartIdToRemove].chartInstance) {
+                Plotly.purge(`${chartIdToRemove}_canvas`);
+            }
+            delete charts[chartIdToRemove];
+            document.getElementById(chartIdToRemove)?.remove();
+            
+            if (activeChartId === chartIdToRemove) {
+                const chartKeys = Object.keys(charts);
+                activeChartId = chartKeys.length > 0 ? chartKeys[chartKeys.length - 1] : null;
+                if(activeChartId) setActiveChart(activeChartId);
+            }
+            
+            if (Object.keys(charts).length === 0) {
+                const chartsArea = document.getElementById('chartsArea');
+                const watchlistSection = document.querySelector('.watchlist-section');
+                const chartViewBtn = document.getElementById('chartViewBtn');
+                
+                chartsArea.style.display = 'none';
+                watchlistSection.style.flex = '1';
+                chartViewBtn.style.display = 'none';
+            }
+        }
+
+        function openChartForSymbol(symbol, provider) {
+            const chartsArea = document.getElementById('chartsArea');
+            const watchlistSection = document.querySelector('.watchlist-section');
+            const chartViewBtn = document.getElementById('chartViewBtn');
+            
+            chartsArea.style.display = 'block';
+            watchlistSection.style.flex = '0 0 300px';
+            chartViewBtn.style.display = 'block';
+            
+            if (Object.keys(charts).length === 0) {
+                addNewChart();
+            }
+            
+            if (activeChartId) {
+                const data = watchlistData[symbol];
+                addToChart(activeChartId, symbol, provider, data?.name || symbol);
+            }
+        }
+
+        function addToChart(chartId, symbol, provider, name) {
+            const chart = charts[chartId];
+            if (!chart) return;
+            
+            if (!chart.symbols.find(s => s.symbol === symbol)) {
+                chart.symbols.push({ symbol, provider, name });
+                loadChartData(chartId, symbol, provider);
+            }
+            setActiveChart(chartId);
+        }
+
+        // Enhanced chart data loading
+        async function loadChartData(chartId, symbol, provider) {
+            const chart = charts[chartId];
+            if (!chart) return;
+            
+            const canvasDiv = document.getElementById(`${chartId}_canvas`);
+            if (canvasDiv) canvasDiv.innerHTML = `<div class="chart-message loading-pulse">Loading ${symbol} from ${provider}...</div>`;
+            
+            try {
+                let url;
+                
+                // Enhanced data loading for extended historical periods
+                const endDate = new Date().toISOString().split('T')[0];
+                let startDate = new Date();
+                
+                // Set appropriate historical period based on provider
+                if (provider === 'polygon_direct') {
+                    startDate.setFullYear(startDate.getFullYear() - 10); // 10 years for stocks
+                } else if (['fred_direct', 'ecb_direct', 'ny_fed_direct', 'ofr_direct'].includes(provider)) {
+                    startDate.setFullYear(startDate.getFullYear() - 20); // 20 years for economic data
+                } else {
+                    startDate.setFullYear(startDate.getFullYear() - 5); // 5 years default
+                }
+                
+                const startDateStr = startDate.toISOString().split('T')[0];
+                
+                if (provider === 'polygon_direct') {
+                    url = `${ENHANCED_API}/universal/data?symbol=${symbol}&provider=${provider}&data_type=historical&start_date=${startDateStr}&end_date=${endDate}`;
+                } else if (provider === 'lambda') {
+                    url = `${LAMBDA_API}/api/search?query=${symbol}&limit=1`;
+                } else {
+                    url = `${ENHANCED_API}/universal/data?symbol=${symbol}&provider=${provider}&include_changes=true&start_date=${startDateStr}&end_date=${endDate}`;
+                }
+                
+                console.log(`Chart data URL for ${symbol}: ${url}`);
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to load data: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                console.log(`Chart data received for ${symbol}:`, result);
+                
+                let processedData = [];
+                
+                if (result.data && Array.isArray(result.data)) {
+                    processedData = result.data
+                        .map(item => {
+                            let value = item.value || item.close || item.price || item.rate || null;
+                            if (typeof value === 'string') {
+                                value = parseFloat(value);
+                            }
+                            
+                            return {
+                                date: item.date || item.time || item.period,
+                                value: value
+                            };
+                        })
+                        .filter(item => item.value !== null && !isNaN(item.value) && item.date)
+                        .sort((a, b) => new Date(a.date) - new Date(b.date));
+                }
+                
+                if (processedData.length === 0) {
+                    throw new Error('No valid data points found');
+                }
+                
+                console.log(`Processed ${processedData.length} data points for ${symbol}`);
+                
+                chart.data[symbol] = processedData;
+                updateChartRender(chartId);
+                updateChartSymbols(chartId);
+                
+            } catch (error) {
+                console.error(`Error loading chart data for ${symbol}:`, error);
+                if (canvasDiv) {
+                    canvasDiv.innerHTML = `<div class="chart-message" style="color: #ff4444;">Error loading ${symbol}<br><small>${error.message}</small></div>`;
+                }
+                chart.symbols = chart.symbols.filter(s => s.symbol !== symbol);
+                updateChartSymbols(chartId);
+            }
+        }
+        
+        function updateChartSymbols(chartId) {
+            const chart = charts[chartId];
+            if (!chart) return;
+            const symbolsDiv = document.getElementById(`${chartId}_symbols`);
+            if (!symbolsDiv) return;
+            
+            symbolsDiv.innerHTML = chart.symbols.map((s, i) => `
+                <div class="chart-symbol-tag">
+                    <span class="symbol-color-dot" style="background-color: ${colorPalette[i % colorPalette.length]};"></span>
+                    ${s.symbol}
+                    <span class="remove-symbol" onclick="removeSymbolFromChart(event, '${chartId}', '${s.symbol}')">×</span>
+                </div>`).join('');
+        }
+
+        function removeSymbolFromChart(event, chartId, symbolToRemove) {
+            event.stopPropagation();
+            const chart = charts[chartId];
+            if (!chart) return;
+
+            chart.symbols = chart.symbols.filter(s => s.symbol !== symbolToRemove);
+            delete chart.data[symbolToRemove];
+            
+            updateChartRender(chartId);
+            updateChartSymbols(chartId);
+            
+            if (chart.symbols.length === 0) {
+                document.getElementById(`${chartId}_canvas`).innerHTML = '<div class="chart-message">Search for a financial indicator to add to this chart</div>';
+            }
+        }
+
+        function changeTimeframe(event, chartId, timeframe) {
+            event.stopPropagation();
+            const chart = charts[chartId];
+            if (!chart) return;
+            chart.timeframe = timeframe;
+            
+            const buttonContainer = document.getElementById(`${chartId}_timeframe_buttons`);
+            if (buttonContainer) {
+                buttonContainer.querySelectorAll('.timeframe-btn').forEach(btn => btn.classList.remove('active'));
+                if(event.target.tagName === 'BUTTON') event.target.classList.add('active');
+            }
+            updateChartRender(chartId);
+        }
+
+        function filterDataByTimeframe(data, timeframe) {
+            if (!data || data.length === 0) return data;
+            
+            const now = new Date();
+            let cutoffDate = new Date();
+            
+            switch(timeframe) {
+                case '1D':
+                    cutoffDate.setDate(now.getDate() - 1);
+                    break;
+                case '1W':
+                    cutoffDate.setDate(now.getDate() - 7);
+                    break;
+                case '1M':
+                    cutoffDate.setMonth(now.getMonth() - 1);
+                    break;
+                case '3M':
+                    cutoffDate.setMonth(now.getMonth() - 3);
+                    break;
+                case '6M':
+                    cutoffDate.setMonth(now.getMonth() - 6);
+                    break;
+                case '1Y':
+                    cutoffDate.setFullYear(now.getFullYear() - 1);
+                    break;
+                case '2Y':
+                    cutoffDate.setFullYear(now.getFullYear() - 2);
+                    break;
+                case '5Y':
+                    cutoffDate.setFullYear(now.getFullYear() - 5);
+                    break;
+                case '10Y':
+                    cutoffDate.setFullYear(now.getFullYear() - 10);
+                    break;
+                case 'MAX':
+                    return data;
+            }
+            
+            return data.filter(item => new Date(item.date) >= cutoffDate);
+        }
+
+        // Enhanced chart rendering
+        function updateChartRender(chartId) {
+            const chart = charts[chartId];
+            const canvasElement = document.getElementById(`${chartId}_canvas`);
+            if (!canvasElement || !chart) return;
+            
+            if (chart.symbols.length === 0) {
+                canvasElement.innerHTML = '<div class="chart-message">Search for a financial indicator to add to this chart</div>';
+                if (chart.chartInstance) Plotly.purge(canvasElement);
+                return;
+            }
+            
+            const traces = [];
+            
+            chart.symbols.forEach((s, index) => {
+                const symbolData = chart.data[s.symbol];
+                if (!symbolData || symbolData.length === 0) return;
+                
+                const filteredData = filterDataByTimeframe(symbolData, chart.timeframe);
+                if (filteredData.length === 0) return;
+                
+                const lineColor = colorPalette[index % colorPalette.length];
+                
+                const trace = {
+                    x: filteredData.map(d => d.date),
+                    y: filteredData.map(d => d.value),
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: s.symbol,
+                    line: { color: lineColor, width: 2 },
+                    hovertemplate: `<b>${s.symbol}</b><br>Date: %{x}<br>Value: %{y:.4f}<extra></extra>`
+                };
+                
+                traces.push(trace);
+            });
+            
+            if (traces.length === 0) {
+                canvasElement.innerHTML = '<div class="chart-message">No data to display for selected timeframe</div>';
+                return;
+            }
+            
+            const layout = {
+                title: {
+                    text: '',
+                    font: { color: '#fff', size: 14 }
+                },
+                paper_bgcolor: '#0a0a0a',
+                plot_bgcolor: '#0a0a0a',
+                font: { color: '#aaa', size: 12 },
+                margin: { t: 40, r: 80, b: 60, l: 80 },
+                xaxis: {
+                    type: 'date',
+                    gridcolor: '#22222250',
+                    tickfont: { color: '#888' },
+                    rangeslider: { visible: false }
+                },
+                yaxis: {
+                    gridcolor: '#22222250',
+                    tickfont: { color: '#888' },
+                    zeroline: true,
+                    zerolinecolor: '#444',
+                    zerolinewidth: 1
+                },
+                hovermode: 'x unified',
+                showlegend: true,
+                legend: {
+                    orientation: 'h',
+                    yanchor: 'bottom',
+                    y: 1.02,
+                    xanchor: 'right',
+                    x: 1,
+                    bgcolor: 'rgba(10,10,10,0.8)',
+                    bordercolor: '#333',
+                    borderwidth: 1,
+                    font: { size: 11 }
+                },
+                height: 500,
+                autosize: true
+            };
+            
+            const config = {
+                responsive: true,
+                displaylogo: false,
+                modeBarButtonsToRemove: ['select2d', 'lasso2d', 'toImage'],
+                displayModeBar: true
+            };
+            
+            if(canvasElement.querySelector('.chart-message')) canvasElement.innerHTML = '';
+            
+            Plotly.react(canvasElement, traces, layout, config)
+                .then(gd => {
+                    charts[chartId].chartInstance = gd;
+                })
+                .catch(err => {
+                    console.error("Plotly error:", err);
+                    canvasElement.innerHTML = `<div class="chart-message" style="color: #ff4444;">Chart error: ${err.message}</div>`;
+                });
+        }
+
+        function showChartView() {
+            const chartsArea = document.getElementById('chartsArea');
+            const watchlistSection = document.querySelector('.watchlist-section');
+            
+            if (chartsArea.style.display === 'none') {
+                chartsArea.style.display = 'block';
+                watchlistSection.style.flex = '0 0 300px';
+            } else {
+                chartsArea.style.display = 'none';
+                watchlistSection.style.flex = '1';
+            }
+        }
+        
+        // Edit symbol function (placeholder)
+        function editSymbol(event, symbol) {
+            event.stopPropagation();
+            showTemporaryMessage(`Edit functionality for ${symbol} - implement as needed`, 'info');
+        }
+        
+        // Utility functions
+        function showTemporaryMessage(text, type = 'info') {
+            const popup = document.createElement('div');
+            popup.className = `message-popup ${type}`;
+            popup.textContent = text;
+            document.body.appendChild(popup);
+            
+            setTimeout(() => popup.remove(), 3000);
+        }
+        
+        // Hide search results when clicking outside
+        document.addEventListener('click', function(event) {
+            const searchBox = document.getElementById('searchBox');
+            const searchResults = document.getElementById('searchResults');
+            
+            if (!searchBox.contains(event.target) && !searchResults.contains(event.target)) {
+                searchResults.style.display = 'none';
+            }
+        });
+        
+        // Initialize on page load
+        window.onload = init;
+    </script>
+</body>
+</html>
+                    };
+                    
+                } else if (result.data && Array.isArray(result.data)) {
+                    processedData = result.data
+                        .map(item => {
+                            let value = item.value || item.close || item.price || item.rate || null;
+                            if (typeof value === 'string') {
+                                value = parseFloat(value);
+                            }
+                            
+                            return {
+                                date: item.date || item.time || item.period,
+                                value: value
+                            };
+                        })
+                        .filter(item => item.value !== null && !isNaN(item.value) && item.date)
+                        .sort((a, b) => new Date(a.date) - new Date(b.date));
+                }
+                
+                if (processedData.length === 0) {
+                    throw new Error('No valid data points found');
+                }
+                
+                console.log(`Processed ${processedData.length} data points for ${symbol}`);
+                
+                chart.data[symbol] = processedData;
+                updateChartRender(chartId);
+                updateChartSymbols(chartId);
+                
+            } catch (error) {
+                console.error(`Error loading chart data for ${symbol}:`, error);
+                if (canvasDiv) {
+                    canvasDiv.innerHTML = `<div class="chart-message" style="color: #ff4444;">Error loading ${symbol}<br><small>${error.message}</small></div>`;
+                }
+                chart.symbols = chart.symbols.filter(s => s.symbol !== symbol);
+                updateChartSymbols(chartId);
+            }
+        }
+        
+        function updateChartSymbols(chartId) {
+            const chart = charts[chartId];
+            if (!chart) return;
+            const symbolsDiv = document.getElementById(`${chartId}_symbols`);
+            if (!symbolsDiv) return;
+            
+            symbolsDiv.innerHTML = chart.symbols.map((s, i) => `
+                <div class="chart-symbol-tag">
+                    <span class="symbol-color-dot" style="background-color: ${colorPalette[i % colorPalette.length]};"></span>
+                    ${s.symbol}
+                    <span class="remove-symbol" onclick="removeSymbolFromChart(event, '${chartId}', '${s.symbol}')">×</span>
+                </div>`).join('');
+        }
+
+        function removeSymbolFromChart(event, chartId, symbolToRemove) {
+            event.stopPropagation();
+            const chart = charts[chartId];
+            if (!chart) return;
+
+            chart.symbols = chart.symbols.filter(s => s.symbol !== symbolToRemove);
+            delete chart.data[symbolToRemove];
+            
+            updateChartRender(chartId);
+            updateChartSymbols(chartId);
+            
+            if (chart.symbols.length === 0) {
+                document.getElementById(`${chartId}_canvas`).innerHTML = '<div class="chart-message">Search for a financial indicator to add to this chart</div>';
+            }
+        }
+
+        function changeTimeframe(event, chartId, timeframe) {
+            event.stopPropagation();
+            const chart = charts[chartId];
+            if (!chart) return;
+            chart.timeframe = timeframe;
+            
+            const buttonContainer = document.getElementById(`${chartId}_timeframe_buttons`);
+            if (buttonContainer) {
+                buttonContainer.querySelectorAll('.timeframe-btn').forEach(btn => btn.classList.remove('active'));
+                if(event.target.tagName === 'BUTTON') event.target.classList.add('active');
+            }
+            updateChartRender(chartId);
+        }
+
+        function filterDataByTimeframe(data, timeframe) {
+            if (!data || data.length === 0) return data;
+            
+            const now = new Date();
+            let cutoffDate = new Date();
+            
+            switch(timeframe) {
+                case '1D':
+                    cutoffDate.setDate(now.getDate() - 1);
+                    break;
+                case '1W':
+                    cutoffDate.setDate(now.getDate() - 7);
+                    break;
+                case '1M':
+                    cutoffDate.setMonth(now.getMonth() - 1);
+                    break;
+                case '3M':
+                    cutoffDate.setMonth(now.getMonth() - 3);
+                    break;
+                case '6M':
+                    cutoffDate.setMonth(now.getMonth() - 6);
+                    break;
+                case '1Y':
+                    cutoffDate.setFullYear(now.getFullYear() - 1);
+                    break;
+                case '2Y':
+                    cutoffDate.setFullYear(now.getFullYear() - 2);
+                    break;
+                case '5Y':
+                    cutoffDate.setFullYear(now.getFullYear() - 5);
+                    break;
+                case '10Y':
+                    cutoffDate.setFullYear(now.getFullYear() - 10);
+                    break;
+                case 'MAX':
+                    return data;
+            }
+            
+            return data.filter(item => new Date(item.date) >= cutoffDate);
+        }
+
+        // Enhanced chart rendering
+        function updateChartRender(chartId) {
+            const chart = charts[chartId];
+            const canvasElement = document.getElementById(`${chartId}_canvas`);
+            if (!canvasElement || !chart) return;
+            
+            if (chart.symbols.length === 0) {
+                canvasElement.innerHTML = '<div class="chart-message">Search for a financial indicator to add to this chart</div>';
+                if (chart.chartInstance) Plotly.purge(canvasElement);
+                return;
+            }
+            
+            const traces = [];
+            
+            chart.symbols.forEach((s, index) => {
+                const symbolData = chart.data[s.symbol];
+                if (!symbolData || symbolData.length === 0) return;
+                
+                const filteredData = filterDataByTimeframe(symbolData, chart.timeframe);
+                if (filteredData.length === 0) return;
+                
+                const lineColor = colorPalette[index % colorPalette.length];
+                
+                const trace = {
+                    x: filteredData.map(d => d.date),
+                    y: filteredData.map(d => d.value),
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: s.symbol,
+                    line: { color: lineColor, width: 2 },
+                    hovertemplate: `<b>${s.symbol}</b><br>Date: %{x}<br>Value: %{y:.4f}<extra></extra>`
+                };
+                
+                traces.push(trace);
+            });
+            
+            if (traces.length === 0) {
+                canvasElement.innerHTML = '<div class="chart-message">No data to display for selected timeframe</div>';
+                return;
+            }
+            
+            const layout = {
+                title: {
+                    text: '',
+                    font: { color: '#fff', size: 14 }
+                },
+                paper_bgcolor: '#0a0a0a',
+                plot_bgcolor: '#0a0a0a',
+                font: { color: '#aaa', size: 12 },
+                margin: { t: 40, r: 80, b: 60, l: 80 },
+                xaxis: {
+                    type: 'date',
+                    gridcolor: '#22222250',
+                    tickfont: { color: '#888' },
+                    rangeslider: { visible: false }
+                },
+                yaxis: {
+                    gridcolor: '#22222250',
+                    tickfont: { color: '#888' },
+                    zeroline: true,
+                    zerolinecolor: '#444',
+                    zerolinewidth: 1
+                },
+                hovermode: 'x unified',
+                showlegend: true,
+                legend: {
+                    orientation: 'h',
+                    yanchor: 'bottom',
+                    y: 1.02,
+                    xanchor: 'right',
+                    x: 1,
+                    bgcolor: 'rgba(10,10,10,0.8)',
+                    bordercolor: '#333',
+                    borderwidth: 1,
+                    font: { size: 11 }
+                },
+                height: 500,
+                autosize: true
+            };
+            
+            const config = {
+                responsive: true,
+                displaylogo: false,
+                modeBarButtonsToRemove: ['select2d', 'lasso2d', 'toImage'],
+                displayModeBar: true
+            };
+            
+            if(canvasElement.querySelector('.chart-message')) canvasElement.innerHTML = '';
+            
+            Plotly.react(canvasElement, traces, layout, config)
+                .then(gd => {
+                    charts[chartId].chartInstance = gd;
+                })
+                .catch(err => {
+                    console.error("Plotly error:", err);
+                    canvasElement.innerHTML = `<div class="chart-message" style="color: #ff4444;">Chart error: ${err.message}</div>`;
+                });
+        }
+
+        function showChartView() {
+            const chartsArea = document.getElementById('chartsArea');
+            const watchlistSection = document.querySelector('.watchlist-section');
+            
+            if (chartsArea.style.display === 'none') {
+                chartsArea.style.display = 'block';
+                watchlistSection.style.flex = '0 0 300px';
+            } else {
+                chartsArea.style.display = 'none';
+                watchlistSection.style.flex = '1';
+            }
+        }
+        
+        // Edit symbol function (placeholder)
+        function editSymbol(event, symbol) {
+            event.stopPropagation();
+            showTemporaryMessage(`Edit functionality for ${symbol} - implement as needed`, 'info');
+        }
+        
+        // Utility functions
+        function showTemporaryMessage(text, type = 'info') {
+            const popup = document.createElement('div');
+            popup.className = `message-popup ${type}`;
+            popup.textContent = text;
+            document.body.appendChild(popup);
+            
+            setTimeout(() => popup.remove(), 3000);
+        }
+        
+        // Hide search results when clicking outside
+        document.addEventListener('click', function(event) {
+            const searchBox = document.getElementById('searchBox');
+            const searchResults = document.getElementById('searchResults');
+            
+            if (!searchBox.contains(event.target) && !searchResults.contains(event.target)) {
+                searchResults.style.display = 'none';
+            }
+        });
+        
+        // Initialize on page load
+        window.onload = init;
+    </script>
+</body>
+</html>
+                }
             };
             
             checkForSignificantChanges(symbol, watchlistData[symbol].changes);
