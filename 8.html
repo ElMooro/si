@@ -780,6 +780,40 @@
             background: linear-gradient(45deg, #00dd77, #00ff88);
             color: #000;
         }
+        
+        /* CORS Notice */
+        .cors-notice {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: #333;
+            color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #ff9900;
+            max-width: 400px;
+            font-size: 13px;
+            z-index: 9999;
+        }
+        
+        .cors-notice h3 {
+            margin-bottom: 10px;
+            color: #ff9900;
+        }
+        
+        .cors-notice button {
+            background: #ff9900;
+            color: #000;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        .cors-notice button:hover {
+            background: #ffaa00;
+        }
     </style>
 </head>
 <body>
@@ -923,12 +957,23 @@
         </div>
     </div>
     <script>
-        // Configuration based on your documentation
+        // Configuration for public access
         const LAMBDA_API = 'https://i3y8tfdp1k.execute-api.us-east-1.amazonaws.com/prod';
-        const ENHANCED_API_IP = '52.72.62.43';
-        const ENHANCED_API = `http://${ENHANCED_API_IP}:8000/api/v1`;
         
-        // Enhanced data source configurations from your documentation
+        // CORS proxy configuration
+        // For production, you should set up your own CORS proxy or configure the Enhanced API server to allow CORS
+        // Option 1: Use a free CORS proxy (limited requests, for demo only)
+        const CORS_PROXY = 'https://corsproxy.io/?';
+        // Option 2: Use cors-anywhere (requires demo access)
+        // const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/';
+        // Option 3: No proxy if you configure CORS on the Enhanced API server
+        // const CORS_PROXY = '';
+        
+        const ENHANCED_API_IP = '52.72.62.43';
+        const ENHANCED_API_BASE = `http://${ENHANCED_API_IP}:8000/api/v1`;
+        const ENHANCED_API = CORS_PROXY ? `${CORS_PROXY}${ENHANCED_API_BASE}` : ENHANCED_API_BASE;
+        
+        // Enhanced data source configurations
         const DATA_SOURCES = {
             lambda: {
                 name: 'Lambda Platform',
@@ -1005,7 +1050,7 @@
             }
         };
 
-        // Ticker type configuration for Polygon
+        // Ticker type configuration
         const TICKER_TYPES = {
             CS: { name: 'Common Stock', active: true },
             ETF: { name: 'Exchange Traded Fund', active: true },
@@ -1024,7 +1069,7 @@
         let chartIdCounter = 0;
         let activeChartId = null;
         
-        // Enhanced watchlists from your documentation
+        // Enhanced watchlists
         const watchlists = {
             'MAIN': {
                 symbols: [
@@ -1180,15 +1225,40 @@
             loadWatchlists();
             await checkAPIConnections();
             
+            // Show CORS status if needed
+            showCORSStatus();
+            
             loadWatchlistData();
             setInterval(loadWatchlistData, 60000);
             
-            // Load liquidity dashboard
-            setInterval(loadLiquidityDashboard, 300000); // Every 5 minutes
-            loadLiquidityDashboard();
+            // Load liquidity dashboard if CORS proxy is available
+            if (CORS_PROXY) {
+                setInterval(loadLiquidityDashboard, 300000);
+                loadLiquidityDashboard();
+            }
             
             updateSortButtons();
             document.getElementById('searchBox').focus();
+        }
+
+        // Show CORS status
+        function showCORSStatus() {
+            if (!CORS_PROXY) {
+                const corsNotice = document.createElement('div');
+                corsNotice.className = 'cors-notice';
+                corsNotice.innerHTML = `
+                    <h3>⚠️ Enhanced API Setup Required</h3>
+                    <p><strong>Lambda API is working!</strong> (6,204 indicators available)</p>
+                    <p>To enable all 72,846+ indicators from the Enhanced API:</p>
+                    <ol style="margin: 10px 0; padding-left: 20px;">
+                        <li>Configure CORS on the Enhanced API server at ${ENHANCED_API_IP}</li>
+                        <li>Or set up a CORS proxy in the configuration</li>
+                        <li>Or host this dashboard on the same domain as the API</li>
+                    </ol>
+                    <button onclick="this.parentElement.remove()">Dismiss</button>
+                `;
+                document.body.appendChild(corsNotice);
+            }
         }
 
         // Check API connections
@@ -1196,7 +1266,7 @@
             let connectedCount = 0;
             const totalSources = Object.keys(DATA_SOURCES).length;
             
-            // Test Lambda Platform
+            // Test Lambda Platform (this should work as it has CORS enabled)
             try {
                 const lambdaResponse = await fetch(`${LAMBDA_API}/api/search/stats`);
                 if (lambdaResponse.ok) {
@@ -1209,23 +1279,37 @@
                 console.warn('Lambda Platform check failed:', error);
             }
             
-            // Test Enhanced API with verified endpoint
-            try {
-                const enhancedResponse = await fetch(`${ENHANCED_API}/economy/survey/university_of_michigan?provider=fred`);
-                if (enhancedResponse.ok) {
-                    document.getElementById('enhanced-indicator').classList.add('connected');
-                    connectedCount++;
-                    console.log('Enhanced API connected');
+            // Test Enhanced API
+            if (CORS_PROXY) {
+                try {
+                    const testUrl = `${ENHANCED_API}/economy/survey/university_of_michigan?provider=fred`;
+                    const enhancedResponse = await fetch(testUrl, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    if (enhancedResponse.ok) {
+                        document.getElementById('enhanced-indicator').classList.add('connected');
+                        connectedCount++;
+                        console.log('Enhanced API connected via CORS proxy');
+                    }
+                } catch (error) {
+                    console.warn('Enhanced API check failed:', error);
+                    console.warn('Make sure the CORS proxy is working or configure CORS on the API server');
                 }
-            } catch (error) {
-                console.warn('Enhanced API check failed:', error);
+            } else {
+                console.warn('Enhanced API check skipped - no CORS proxy configured');
             }
             
             // Update status indicators for other sources
-            ['polygon', 'fred', 'ny_fed', 'ecb', 'ofr', 'treasury'].forEach(source => {
-                document.getElementById(`${source}-indicator`).classList.add('connected');
-                connectedCount++;
-            });
+            if (CORS_PROXY) {
+                ['polygon', 'fred', 'ny_fed', 'ecb', 'ofr', 'treasury'].forEach(source => {
+                    document.getElementById(`${source}-indicator`).classList.add('connected');
+                    connectedCount++;
+                });
+            }
             
             const statusText = `${connectedCount}/${totalSources} APIs Connected`;
             document.getElementById('apiStatusText').textContent = statusText;
@@ -1236,8 +1320,112 @@
             }
         }
         
+        // Enhanced data loading with CORS handling
+        async function loadSingleWatchlistItem(symbol, provider, retryCount = 0) {
+            const maxRetries = 3;
+            
+            try {
+                console.log(`Loading ${symbol} from ${provider} (attempt ${retryCount + 1})`);
+                
+                let url;
+                let options = {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                };
+                
+                // Build URL based on provider type
+                if (provider === 'lambda') {
+                    url = `${LAMBDA_API}/api/search?query=${symbol}&limit=1`;
+                } else if (provider === 'polygon_direct') {
+                    url = `${ENHANCED_API}/universal/data?symbol=${symbol}&provider=${provider}&data_type=quote`;
+                } else if (['fred_direct', 'ny_fed_direct', 'ecb_direct', 'ofr_direct', 'treasury_direct'].includes(provider)) {
+                    url = `${ENHANCED_API}/universal/data?symbol=${symbol}&provider=${provider}&include_changes=true`;
+                } else {
+                    url = `${ENHANCED_API}/universal/data?symbol=${symbol}&provider=${provider}`;
+                }
+                
+                console.log(`Fetching from: ${url}`);
+                const response = await fetch(url, options);
+                
+                if (!response.ok) {
+                    throw new Error(`API returned ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log(`Data received for ${symbol}:`, data);
+                
+                if (provider === 'lambda' && data.results && data.results.length > 0) {
+                    processLambdaData(symbol, data.results[0], provider);
+                } else if (data.metrics && data.metrics.latest_value !== undefined) {
+                    processWatchlistData(symbol, data, provider);
+                } else if (data.data && Array.isArray(data.data) && data.data.length > 0) {
+                    processWatchlistDataArray(symbol, data.data, provider);
+                } else if (data.value !== undefined || data.price !== undefined) {
+                    processWatchlistData(symbol, {
+                        metrics: {
+                            latest_value: data.value || data.price || 0,
+                            daily_change: data.daily_change || null,
+                            weekly_change: data.weekly_change || null,
+                            monthly_change: data.monthly_change || null,
+                            yearly_change: data.yearly_change || null
+                        }
+                    }, provider);
+                } else {
+                    throw new Error('No data available');
+                }
+                
+            } catch (error) {
+                console.error(`Error loading ${symbol} from ${provider}:`, error);
+                
+                // Check if it's a CORS error
+                if (error.message.includes('Failed to fetch') && provider !== 'lambda') {
+                    console.warn(`Possible CORS error for ${symbol}. Falling back to Lambda if available.`);
+                    
+                    // Try Lambda as fallback
+                    if (provider !== 'lambda') {
+                        try {
+                            const lambdaUrl = `${LAMBDA_API}/api/search?query=${symbol}&limit=1`;
+                            const lambdaResponse = await fetch(lambdaUrl);
+                            if (lambdaResponse.ok) {
+                                const lambdaData = await lambdaResponse.json();
+                                if (lambdaData.results && lambdaData.results.length > 0) {
+                                    processLambdaData(symbol, lambdaData.results[0], 'lambda');
+                                    return;
+                                }
+                            }
+                        } catch (lambdaError) {
+                            console.error(`Lambda fallback also failed for ${symbol}`);
+                        }
+                    }
+                }
+                
+                if (retryCount < maxRetries) {
+                    console.log(`Retrying ${symbol} after delay...`);
+                    await new Promise(resolve => setTimeout(resolve, 2000 * (retryCount + 1)));
+                    return loadSingleWatchlistItem(symbol, provider, retryCount + 1);
+                }
+                
+                // Show error state
+                watchlistData[symbol] = {
+                    name: watchlistData[symbol]?.name || symbol,
+                    provider: provider,
+                    price: 0,
+                    changes: { '1d': null, '1w': null, '1m': null, '3m': null, '1y': null },
+                    changeUnits: { 'daily': null, 'yearly': null },
+                    hasData: false,
+                    error: CORS_PROXY ? error.message : 'CORS Error - Configure proxy or server'
+                };
+                renderWatchlist();
+            }
+        }
+        
         // Load liquidity dashboard
         async function loadLiquidityDashboard() {
+            if (!CORS_PROXY) return;
+            
             try {
                 const response = await fetch(`${ENHANCED_API}/liquidity/dashboard`);
                 if (response.ok) {
@@ -1351,7 +1539,7 @@
                     }
                     
                     // Search Enhanced API endpoints
-                    if (activeSources.includes('enhanced')) {
+                    if (activeSources.includes('enhanced') && CORS_PROXY) {
                         const endpoints = [
                             { path: '/economy/survey/university_of_michigan', name: 'University of Michigan Survey', tags: ['inflation', 'expectations', 'consumer'] },
                             { path: '/economy/gdp/nominal', name: 'GDP Nominal', tags: ['gdp', 'growth', 'economy'] },
@@ -1580,94 +1768,6 @@
             
             document.getElementById('searchResults').style.display = 'none';
             document.getElementById('searchBox').value = '';
-        }
-        
-        // Enhanced data loading for all providers
-        async function loadSingleWatchlistItem(symbol, provider, retryCount = 0) {
-            const maxRetries = 3;
-            
-            try {
-                console.log(`Loading ${symbol} from ${provider} (attempt ${retryCount + 1})`);
-                
-                let url;
-                
-                // Build URL based on provider type
-                if (provider === 'polygon_direct') {
-                    url = `${ENHANCED_API}/universal/data?symbol=${symbol}&provider=${provider}&data_type=quote`;
-                } else if (provider === 'fred_direct') {
-                    url = `${ENHANCED_API}/universal/data?symbol=${symbol}&provider=${provider}&include_changes=true`;
-                } else if (provider === 'ny_fed_direct') {
-                    url = `${ENHANCED_API}/universal/data?symbol=${symbol}&provider=${provider}&include_changes=true`;
-                } else if (provider === 'ecb_direct') {
-                    url = `${ENHANCED_API}/universal/data?symbol=${symbol}&provider=${provider}&include_changes=true`;
-                } else if (provider === 'ofr_direct') {
-                    url = `${ENHANCED_API}/universal/data?symbol=${symbol}&provider=${provider}&include_changes=true`;
-                } else if (provider === 'treasury_direct') {
-                    url = `${ENHANCED_API}/universal/data?symbol=${symbol}&provider=${provider}&include_changes=true`;
-                } else if (provider === 'lambda') {
-                    url = `${LAMBDA_API}/api/search?query=${symbol}&limit=1`;
-                } else {
-                    url = `${ENHANCED_API}/universal/data?symbol=${symbol}&provider=${provider}`;
-                }
-                
-                const response = await fetch(url, {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    mode: 'cors'
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`API returned ${response.status}`);
-                }
-                
-                const data = await response.json();
-                console.log(`Data received for ${symbol}:`, data);
-                
-                if (provider === 'lambda' && data.results && data.results.length > 0) {
-                    processLambdaData(symbol, data.results[0], provider);
-                } else if (data.metrics && data.metrics.latest_value !== undefined) {
-                    processWatchlistData(symbol, data, provider);
-                } else if (data.data && Array.isArray(data.data) && data.data.length > 0) {
-                    processWatchlistDataArray(symbol, data.data, provider);
-                } else if (data.value !== undefined || data.price !== undefined) {
-                    // Handle simple value response
-                    processWatchlistData(symbol, {
-                        metrics: {
-                            latest_value: data.value || data.price || 0,
-                            daily_change: data.daily_change || null,
-                            weekly_change: data.weekly_change || null,
-                            monthly_change: data.monthly_change || null,
-                            yearly_change: data.yearly_change || null
-                        }
-                    }, provider);
-                } else {
-                    throw new Error('No data available');
-                }
-                
-            } catch (error) {
-                console.error(`Error loading ${symbol} from ${provider}:`, error);
-                
-                if (retryCount < maxRetries) {
-                    console.log(`Retrying ${symbol} after delay...`);
-                    await new Promise(resolve => setTimeout(resolve, 2000 * (retryCount + 1)));
-                    return loadSingleWatchlistItem(symbol, provider, retryCount + 1);
-                }
-                
-                // Show error state
-                watchlistData[symbol] = {
-                    name: watchlistData[symbol]?.name || symbol,
-                    provider: provider,
-                    price: 0,
-                    changes: { '1d': null, '1w': null, '1m': null, '3m': null, '1y': null },
-                    changeUnits: { 'daily': null, 'yearly': null },
-                    hasData: false,
-                    error: error.message
-                };
-                renderWatchlist();
-            }
         }
         
         // Process Lambda data
