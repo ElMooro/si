@@ -960,14 +960,15 @@
         // Configuration for public access
         const LAMBDA_API = 'https://i3y8tfdp1k.execute-api.us-east-1.amazonaws.com/prod';
         
-        // CORS proxy configuration
-        // For production, you should set up your own CORS proxy or configure the Enhanced API server to allow CORS
-        // Option 1: Use a free CORS proxy (limited requests, for demo only)
-        const CORS_PROXY = 'https://corsproxy.io/?';
-        // Option 2: Use cors-anywhere (requires demo access)
-        // const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/';
-        // Option 3: No proxy if you configure CORS on the Enhanced API server
-        // const CORS_PROXY = '';
+        // CORS proxy configuration - DISABLED by default
+        // The Enhanced API requires CORS to be enabled on the server side
+        // Until then, only Lambda API will work (6,204 indicators)
+        const CORS_PROXY = ''; // Set to empty to disable CORS proxy
+        
+        // To enable Enhanced API (60,000+ indicators), you need to:
+        // 1. Configure CORS on the Enhanced API server at 52.72.62.43
+        // 2. OR set up your own CORS proxy and update CORS_PROXY variable
+        // 3. OR host this dashboard on the same domain as the API
         
         const ENHANCED_API_IP = '52.72.62.43';
         const ENHANCED_API_BASE = `http://${ENHANCED_API_IP}:8000/api/v1`;
@@ -1243,22 +1244,24 @@
 
         // Show CORS status
         function showCORSStatus() {
-            if (!CORS_PROXY) {
-                const corsNotice = document.createElement('div');
-                corsNotice.className = 'cors-notice';
-                corsNotice.innerHTML = `
-                    <h3>⚠️ Enhanced API Setup Required</h3>
-                    <p><strong>Lambda API is working!</strong> (6,204 indicators available)</p>
-                    <p>To enable all 72,846+ indicators from the Enhanced API:</p>
-                    <ol style="margin: 10px 0; padding-left: 20px;">
-                        <li>Configure CORS on the Enhanced API server at ${ENHANCED_API_IP}</li>
-                        <li>Or set up a CORS proxy in the configuration</li>
-                        <li>Or host this dashboard on the same domain as the API</li>
-                    </ol>
-                    <button onclick="this.parentElement.remove()">Dismiss</button>
-                `;
-                document.body.appendChild(corsNotice);
-            }
+            const corsNotice = document.createElement('div');
+            corsNotice.className = 'cors-notice';
+            corsNotice.innerHTML = `
+                <h3>🚀 OpenBB Financial Platform</h3>
+                <p><strong>✅ Lambda API is working!</strong> (6,204 indicators available)</p>
+                <p>Search for stocks, economic indicators, and more:</p>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li>Try: AAPL, MSFT, TSLA, SPY</li>
+                    <li>Economic: GDP, UNRATE, FEDFUNDS</li>
+                    <li>Rates: SOFR, DGS10, VIX</li>
+                </ul>
+                <p style="margin-top: 15px; font-size: 11px; color: #ccc;">
+                    Enhanced API (60,000+ indicators) requires CORS configuration.
+                    <a href="https://github.com/yourusername/openbb-dashboard" style="color: #00ff88;">See documentation</a>
+                </p>
+                <button onclick="this.parentElement.remove()">Got it!</button>
+            `;
+            document.body.appendChild(corsNotice);
         }
 
         // Check API connections
@@ -1281,6 +1284,7 @@
             
             // Test Enhanced API
             if (CORS_PROXY) {
+                // Only test if CORS proxy is configured
                 try {
                     const testUrl = `${ENHANCED_API}/economy/survey/university_of_michigan?provider=fred`;
                     const enhancedResponse = await fetch(testUrl, {
@@ -1300,14 +1304,21 @@
                     console.warn('Make sure the CORS proxy is working or configure CORS on the API server');
                 }
             } else {
-                console.warn('Enhanced API check skipped - no CORS proxy configured');
+                console.info('Enhanced API disabled - Lambda API working with 6,204 indicators');
+                console.info('To enable 60,000+ indicators, configure CORS on the Enhanced API server');
             }
             
             // Update status indicators for other sources
+            // Only mark as connected if CORS proxy is available
             if (CORS_PROXY) {
                 ['polygon', 'fred', 'ny_fed', 'ecb', 'ofr', 'treasury'].forEach(source => {
                     document.getElementById(`${source}-indicator`).classList.add('connected');
                     connectedCount++;
+                });
+            } else {
+                // These require CORS configuration
+                ['enhanced', 'polygon', 'fred', 'ny_fed', 'ecb', 'ofr', 'treasury'].forEach(source => {
+                    console.info(`${source} API requires CORS configuration`);
                 });
             }
             
@@ -1382,23 +1393,22 @@
                 
                 // Check if it's a CORS error
                 if (error.message.includes('Failed to fetch') && provider !== 'lambda') {
-                    console.warn(`Possible CORS error for ${symbol}. Falling back to Lambda if available.`);
+                    console.warn(`CORS error for ${symbol}. Using Lambda API fallback.`);
                     
-                    // Try Lambda as fallback
-                    if (provider !== 'lambda') {
-                        try {
-                            const lambdaUrl = `${LAMBDA_API}/api/search?query=${symbol}&limit=1`;
-                            const lambdaResponse = await fetch(lambdaUrl);
-                            if (lambdaResponse.ok) {
-                                const lambdaData = await lambdaResponse.json();
-                                if (lambdaData.results && lambdaData.results.length > 0) {
-                                    processLambdaData(symbol, lambdaData.results[0], 'lambda');
-                                    return;
-                                }
+                    // Always try Lambda as fallback for CORS errors
+                    try {
+                        const lambdaUrl = `${LAMBDA_API}/api/search?query=${symbol}&limit=1`;
+                        const lambdaResponse = await fetch(lambdaUrl);
+                        if (lambdaResponse.ok) {
+                            const lambdaData = await lambdaResponse.json();
+                            if (lambdaData.results && lambdaData.results.length > 0) {
+                                processLambdaData(symbol, lambdaData.results[0], 'lambda');
+                                showTemporaryMessage(`Loaded ${symbol} from Lambda API`, 'info');
+                                return;
                             }
-                        } catch (lambdaError) {
-                            console.error(`Lambda fallback also failed for ${symbol}`);
                         }
+                    } catch (lambdaError) {
+                        console.error(`Lambda fallback also failed for ${symbol}`);
                     }
                 }
                 
@@ -1416,7 +1426,7 @@
                     changes: { '1d': null, '1w': null, '1m': null, '3m': null, '1y': null },
                     changeUnits: { 'daily': null, 'yearly': null },
                     hasData: false,
-                    error: CORS_PROXY ? error.message : 'CORS Error - Configure proxy or server'
+                    error: 'Data unavailable - Lambda API search pending'
                 };
                 renderWatchlist();
             }
@@ -1564,28 +1574,48 @@
                         });
                     }
                     
-                    // Search through each data source
-                    for (const source of activeSources) {
-                        if (['lambda', 'enhanced'].includes(source)) continue;
+                    // Search through each data source - for now only show Lambda results
+                    // Other sources require CORS configuration
+                    if (!CORS_PROXY) {
+                        // When no CORS proxy, only search Lambda-available symbols
+                        const lambdaAvailableSymbols = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'SPY', 'QQQ',
+                            'FEDFUNDS', 'UNRATE', 'GDP', 'CPIAUCSL', 'DFF', 'M2SL', 'PAYEMS', 
+                            'DGS10', 'DGS2', 'VIXCLS', 'SOFR', 'EFFR'];
                         
-                        const config = DATA_SOURCES[source];
-                        if (!config || !config.searchSymbols) continue;
-                        
-                        // Filter symbols that match the query
-                        const matchingSymbols = config.searchSymbols.filter(symbol =>
-                            symbol.toLowerCase().includes(query.toLowerCase()) ||
-                            getSymbolDescription(symbol, source).toLowerCase().includes(query.toLowerCase())
-                        );
-                        
-                        matchingSymbols.forEach(symbol => {
-                            allResults.push({
-                                symbol: symbol,
-                                name: getSymbolDescription(symbol, source),
-                                provider: config.provider,
-                                source: source,
-                                description: getDetailedDescription(symbol, source)
-                            });
+                        lambdaAvailableSymbols.forEach(symbol => {
+                            if (symbol.toLowerCase().includes(query.toLowerCase())) {
+                                allResults.push({
+                                    symbol: symbol,
+                                    name: getSymbolDescription(symbol, 'lambda'),
+                                    provider: 'lambda',
+                                    source: 'lambda',
+                                    description: 'Available via Lambda API'
+                                });
+                            }
                         });
+                    } else {
+                        // Original search logic when CORS proxy is available
+                        for (const source of activeSources) {
+                            if (['lambda', 'enhanced'].includes(source)) continue;
+                            
+                            const config = DATA_SOURCES[source];
+                            if (!config || !config.searchSymbols) continue;
+                            
+                            const matchingSymbols = config.searchSymbols.filter(symbol =>
+                                symbol.toLowerCase().includes(query.toLowerCase()) ||
+                                getSymbolDescription(symbol, source).toLowerCase().includes(query.toLowerCase())
+                            );
+                            
+                            matchingSymbols.forEach(symbol => {
+                                allResults.push({
+                                    symbol: symbol,
+                                    name: getSymbolDescription(symbol, source),
+                                    provider: config.provider,
+                                    source: source,
+                                    description: getDetailedDescription(symbol, source)
+                                });
+                            });
+                        }
                     }
                     
                     displaySearchResults(allResults.slice(0, 100), query);
@@ -1604,6 +1634,27 @@
         // Enhanced symbol descriptions
         function getSymbolDescription(symbol, source) {
             const descriptions = {
+                lambda: {
+                    'AAPL': 'Apple Inc.',
+                    'MSFT': 'Microsoft Corporation',
+                    'GOOGL': 'Alphabet Inc.',
+                    'AMZN': 'Amazon.com Inc.',
+                    'TSLA': 'Tesla Inc.',
+                    'SPY': 'SPDR S&P 500 ETF',
+                    'QQQ': 'Invesco QQQ Trust',
+                    'FEDFUNDS': 'Federal Funds Rate',
+                    'UNRATE': 'Unemployment Rate',
+                    'GDP': 'Gross Domestic Product',
+                    'CPIAUCSL': 'Consumer Price Index',
+                    'DFF': 'Daily Federal Funds Rate',
+                    'M2SL': 'M2 Money Supply',
+                    'PAYEMS': 'Total Nonfarm Payrolls',
+                    'DGS10': '10-Year Treasury Rate',
+                    'DGS2': '2-Year Treasury Rate',
+                    'VIXCLS': 'CBOE Volatility Index: VIX',
+                    'SOFR': 'Secured Overnight Financing Rate',
+                    'EFFR': 'Effective Federal Funds Rate'
+                },
                 polygon: {
                     'AAPL': 'Apple Inc.',
                     'MSFT': 'Microsoft Corporation',
