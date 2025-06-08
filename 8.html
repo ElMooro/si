@@ -960,10 +960,14 @@
         // Configuration for public access - BOTH APIS NOW WORKING WITH CORS!
         const LAMBDA_API = 'https://i3y8tfdp1k.execute-api.us-east-1.amazonaws.com/prod';
         
-        // Enhanced API now has CORS enabled!
+        // Enhanced API - Check if we need HTTPS or if there's a proxy
         const ENHANCED_API_IP = '52.72.62.43';
         const ENHANCED_API_BASE = `http://${ENHANCED_API_IP}:8000/api/v1`;
-        const ENHANCED_API = ENHANCED_API_BASE; // Direct access now working!
+        const ENHANCED_API = ENHANCED_API_BASE;
+        
+        // CORS proxy fallback if needed
+        const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/';
+        const USE_CORS_PROXY = false; // Set to true if CORS issues persist
         
         // Enhanced data source configurations
         const DATA_SOURCES = {
@@ -1236,19 +1240,19 @@
             const corsNotice = document.createElement('div');
             corsNotice.className = 'cors-notice';
             corsNotice.innerHTML = `
-                <h3>🚀 OpenBB Financial Platform - FULLY OPERATIONAL!</h3>
-                <p><strong>✅ ALL APIs Connected!</strong> (72,846+ indicators available)</p>
-                <p>You now have access to:</p>
+                <h3>🚀 OpenBB Financial Platform</h3>
+                <p><strong>✅ Lambda API Connected!</strong> (6,204 indicators available)</p>
+                <p>⚠️ Enhanced API requires CORS configuration for browser access.</p>
+                <p>Available features:</p>
                 <ul style="margin: 10px 0; padding-left: 20px;">
-                    <li>✅ Lambda API: 6,204 indicators</li>
-                    <li>✅ Enhanced API: 60,000+ indicators (CORS enabled!)</li>
-                    <li>✅ Real-time data from 10+ sources</li>
-                    <li>✅ University of Michigan Survey</li>
-                    <li>✅ GDP, Economic, and Market Data</li>
-                    <li>✅ NY Fed Rates, ECB Stress, Treasury</li>
+                    <li>✅ Search across 6,204 financial indicators</li>
+                    <li>✅ Real-time data from Lambda Platform</li>
+                    <li>✅ Economic indicators (GDP, FEDFUNDS, etc.)</li>
+                    <li>✅ Market data and indices</li>
+                    <li>✅ Charts and watchlists</li>
                 </ul>
-                <p style="margin-top: 15px; color: #00ff88; font-weight: bold;">
-                    🎉 Your Bloomberg Terminal competitor is fully operational!
+                <p style="margin-top: 15px; font-size: 11px;">
+                    To enable Enhanced API (60k+ indicators), configure CORS on your server or use a proxy.
                 </p>
                 <button onclick="this.parentElement.remove()">Got it!</button>
             `;
@@ -1273,37 +1277,60 @@
                 console.warn('Lambda Platform check failed:', error);
             }
             
-            // Test Enhanced API - NOW WITH CORS ENABLED!
+            // Test Enhanced API - Check if accessible
             try {
+                // First try a simple ping to see if the server is reachable
                 const testUrl = `${ENHANCED_API}/economy/survey/university_of_michigan?provider=fred`;
+                
+                // Add timeout to prevent hanging
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
+                
                 const enhancedResponse = await fetch(testUrl, {
                     method: 'GET',
                     headers: {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json'
-                    }
-                });
+                    },
+                    signal: controller.signal
+                }).finally(() => clearTimeout(timeoutId));
+                
                 if (enhancedResponse.ok) {
                     document.getElementById('enhanced-indicator').classList.add('connected');
                     connectedCount++;
-                    console.log('Enhanced API connected with CORS enabled!');
+                    console.log('Enhanced API connected!');
+                } else {
+                    console.warn('Enhanced API returned status:', enhancedResponse.status);
+                    document.getElementById('enhanced-indicator').classList.remove('connected');
                 }
             } catch (error) {
-                console.warn('Enhanced API check failed:', error);
+                console.warn('Enhanced API not accessible - likely CORS or network issue:', error.message);
+                document.getElementById('enhanced-indicator').classList.remove('connected');
+                
+                // Show user-friendly message
+                showTemporaryMessage('Enhanced API (60k+ indicators) currently unavailable - using Lambda API fallback', 'info');
             }
             
-            // Update status indicators for other sources - ALL WORKING NOW!
+            // For now, mark other sources as "available" since they would work through Enhanced API
             ['polygon', 'fred', 'ny_fed', 'ecb', 'ofr', 'treasury'].forEach(source => {
-                document.getElementById(`${source}-indicator`).classList.add('connected');
-                connectedCount++;
+                // Only mark as connected if Enhanced API is working
+                if (document.getElementById('enhanced-indicator').classList.contains('connected')) {
+                    document.getElementById(`${source}-indicator`).classList.add('connected');
+                    connectedCount++;
+                }
             });
             
-            const statusText = `All ${connectedCount} APIs Connected!`;
+            const statusText = connectedCount > 1 ? `${connectedCount} APIs Connected` : 'Lambda API Connected (6,204 indicators)';
             document.getElementById('apiStatusText').textContent = statusText;
             
             if (connectedCount > 0) {
                 document.getElementById('apiStatus').classList.add('connected');
-                showTemporaryMessage(`🎉 Connected to all ${connectedCount} data sources - 72,846+ indicators available!`, 'info');
+                
+                if (connectedCount === 1) {
+                    showTemporaryMessage('Connected to Lambda API - 6,204 indicators available. Enhanced API requires CORS configuration.', 'info');
+                } else {
+                    showTemporaryMessage(`🎉 Connected to ${connectedCount} data sources!`, 'info');
+                }
             }
         }
         
@@ -1334,40 +1361,68 @@
                     url = `${ENHANCED_API}/universal/data?symbol=${symbol}&provider=${provider}`;
                 }
                 
-                console.log(`Fetching from: ${url}`);
-                const response = await fetch(url, options);
-                
-                if (!response.ok) {
-                    throw new Error(`API returned ${response.status}: ${response.statusText}`);
-                }
-                
-                const data = await response.json();
-                console.log(`Data received for ${symbol}:`, data);
-                
-                if (provider === 'lambda' && data.results && data.results.length > 0) {
-                    processLambdaData(symbol, data.results[0], provider);
-                } else if (data.metrics && data.metrics.latest_value !== undefined) {
-                    processWatchlistData(symbol, data, provider);
-                } else if (data.data && Array.isArray(data.data) && data.data.length > 0) {
-                    processWatchlistDataArray(symbol, data.data, provider);
-                } else if (data.value !== undefined || data.price !== undefined) {
-                    processWatchlistData(symbol, {
-                        metrics: {
-                            latest_value: data.value || data.price || 0,
-                            daily_change: data.daily_change || null,
-                            weekly_change: data.weekly_change || null,
-                            monthly_change: data.monthly_change || null,
-                            yearly_change: data.yearly_change || null
-                        }
-                    }, provider);
+                // If Enhanced API call, add timeout and handle CORS
+                if (url.includes(ENHANCED_API)) {
+                    // Skip Enhanced API calls if we know it's not accessible
+                    if (!document.getElementById('enhanced-indicator').classList.contains('connected')) {
+                        console.log(`Enhanced API not available, trying Lambda fallback for ${symbol}`);
+                        throw new Error('Enhanced API not accessible');
+                    }
+                    
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 5000);
+                    options.signal = controller.signal;
+                    
+                    console.log(`Fetching from: ${url}`);
+                    const response = await fetch(url, options).finally(() => clearTimeout(timeoutId));
+                    
+                    if (!response.ok) {
+                        throw new Error(`API returned ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const data = await response.json();
+                    console.log(`Data received for ${symbol}:`, data);
+                    
+                    if (data.metrics && data.metrics.latest_value !== undefined) {
+                        processWatchlistData(symbol, data, provider);
+                    } else if (data.data && Array.isArray(data.data) && data.data.length > 0) {
+                        processWatchlistDataArray(symbol, data.data, provider);
+                    } else if (data.value !== undefined || data.price !== undefined) {
+                        processWatchlistData(symbol, {
+                            metrics: {
+                                latest_value: data.value || data.price || 0,
+                                daily_change: data.daily_change || null,
+                                weekly_change: data.weekly_change || null,
+                                monthly_change: data.monthly_change || null,
+                                yearly_change: data.yearly_change || null
+                            }
+                        }, provider);
+                    } else {
+                        throw new Error('No data available');
+                    }
                 } else {
-                    throw new Error('No data available');
+                    // Lambda API call
+                    console.log(`Fetching from: ${url}`);
+                    const response = await fetch(url, options);
+                    
+                    if (!response.ok) {
+                        throw new Error(`API returned ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const data = await response.json();
+                    console.log(`Data received for ${symbol}:`, data);
+                    
+                    if (provider === 'lambda' && data.results && data.results.length > 0) {
+                        processLambdaData(symbol, data.results[0], provider);
+                    } else {
+                        throw new Error('No data available');
+                    }
                 }
                 
             } catch (error) {
                 console.error(`Error loading ${symbol} from ${provider}:`, error);
                 
-                // If enhanced API fails, try Lambda as fallback
+                // Always try Lambda as fallback for non-Lambda providers
                 if (provider !== 'lambda') {
                     console.warn(`Trying Lambda API fallback for ${symbol}`);
                     
@@ -1378,7 +1433,6 @@
                             const lambdaData = await lambdaResponse.json();
                             if (lambdaData.results && lambdaData.results.length > 0) {
                                 processLambdaData(symbol, lambdaData.results[0], 'lambda');
-                                showTemporaryMessage(`Loaded ${symbol} from Lambda API`, 'info');
                                 return;
                             }
                         }
@@ -1387,7 +1441,8 @@
                     }
                 }
                 
-                if (retryCount < maxRetries) {
+                // Only retry for Lambda API
+                if (provider === 'lambda' && retryCount < maxRetries) {
                     console.log(`Retrying ${symbol} after delay...`);
                     await new Promise(resolve => setTimeout(resolve, 2000 * (retryCount + 1)));
                     return loadSingleWatchlistItem(symbol, provider, retryCount + 1);
@@ -1410,13 +1465,27 @@
         // Load liquidity dashboard
         async function loadLiquidityDashboard() {
             try {
-                const response = await fetch(`${ENHANCED_API}/liquidity/dashboard`);
+                // Only try if Enhanced API is connected
+                if (!document.getElementById('enhanced-indicator').classList.contains('connected')) {
+                    console.log('Skipping liquidity dashboard - Enhanced API not available');
+                    return;
+                }
+                
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
+                
+                const response = await fetch(`${ENHANCED_API}/liquidity/dashboard`, {
+                    signal: controller.signal
+                }).finally(() => clearTimeout(timeoutId));
+                
                 if (response.ok) {
                     const data = await response.json();
                     updateLiquidityAlert(data);
                 }
             } catch (error) {
                 console.warn('Liquidity dashboard failed:', error);
+                // Hide liquidity alert if API is not available
+                document.getElementById('liquidityAlert').style.display = 'none';
             }
         }
         
