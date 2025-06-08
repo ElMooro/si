@@ -1218,6 +1218,9 @@
             updateClock();
             setInterval(updateClock, 1000);
             
+            // Check if we need to migrate watchlists to Lambda provider
+            migrateWatchlistsToLambda();
+            
             loadWatchlists();
             await checkAPIConnections();
             
@@ -1233,6 +1236,38 @@
             
             updateSortButtons();
             document.getElementById('searchBox').focus();
+        }
+        
+        // Migrate existing watchlists to use Lambda provider
+        function migrateWatchlistsToLambda() {
+            const saved = localStorage.getItem('openbbWatchlists');
+            if (saved) {
+                try {
+                    const savedData = JSON.parse(saved);
+                    let needsMigration = false;
+                    
+                    // Check if any symbols are using non-lambda providers
+                    Object.keys(savedData).forEach(watchlistName => {
+                        if (savedData[watchlistName].symbols) {
+                            savedData[watchlistName].symbols.forEach((symbolObj, index) => {
+                                if (symbolObj.provider && symbolObj.provider !== 'lambda') {
+                                    // Migrate to lambda provider
+                                    savedData[watchlistName].symbols[index].provider = 'lambda';
+                                    needsMigration = true;
+                                }
+                            });
+                        }
+                    });
+                    
+                    if (needsMigration) {
+                        localStorage.setItem('openbbWatchlists', JSON.stringify(savedData));
+                        console.log('Migrated watchlists to use Lambda provider');
+                        showTemporaryMessage('Watchlists updated to use Lambda API for better reliability', 'info');
+                    }
+                } catch (e) {
+                    console.error('Error migrating watchlists:', e);
+                }
+            }
         }
 
         // Show CORS status
@@ -1254,9 +1289,32 @@
                 <p style="margin-top: 15px; font-size: 11px;">
                     To enable Enhanced API (60k+ indicators), configure CORS on your server or use a proxy.
                 </p>
+                <button onclick="resetToLambdaOnly()" style="background: #ff8800; margin-right: 10px;">Reset All Data to Lambda</button>
                 <button onclick="this.parentElement.remove()">Got it!</button>
             `;
             document.body.appendChild(corsNotice);
+        }
+        
+        // Reset everything to use Lambda API only
+        function resetToLambdaOnly() {
+            // Clear all stored data
+            localStorage.removeItem('openbbWatchlists');
+            
+            // Reset all watchlists to Lambda provider
+            Object.keys(watchlists).forEach(watchlistName => {
+                watchlists[watchlistName].symbols.forEach((symbolObj, index) => {
+                    watchlists[watchlistName].symbols[index].provider = 'lambda';
+                });
+            });
+            
+            // Save the reset watchlists
+            saveWatchlists();
+            
+            // Reload the page to start fresh
+            showTemporaryMessage('Resetting all data to use Lambda API...', 'info');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
         }
 
         // Check API connections
