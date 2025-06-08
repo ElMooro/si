@@ -1218,24 +1218,80 @@
             updateClock();
             setInterval(updateClock, 1000);
             
+            // Check if running from file:// protocol
+            if (window.location.protocol === 'file:') {
+                showFileProtocolWarning();
+            }
+            
             // Check if we need to migrate watchlists to Lambda provider
             migrateWatchlistsToLambda();
             
             loadWatchlists();
             await checkAPIConnections();
             
-            // Show CORS status if needed
-            showCORSStatus();
+            // Only show CORS status if APIs are connected
+            if (document.getElementById('apiStatus').classList.contains('connected')) {
+                showCORSStatus();
+            }
             
-            loadWatchlistData();
-            setInterval(loadWatchlistData, 60000);
+            // Only load watchlist data if we have API connection
+            if (document.getElementById('lambda-indicator').classList.contains('connected') || 
+                document.getElementById('enhanced-indicator').classList.contains('connected')) {
+                loadWatchlistData();
+                setInterval(loadWatchlistData, 60000);
+            }
             
-            // Load liquidity dashboard - now working with CORS!
+            // Load liquidity dashboard if available
             setInterval(loadLiquidityDashboard, 300000);
             loadLiquidityDashboard();
             
             updateSortButtons();
             document.getElementById('searchBox').focus();
+        }
+        
+        // Show warning when running from file:// protocol
+        function showFileProtocolWarning() {
+            const warningDiv = document.createElement('div');
+            warningDiv.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: #333;
+                color: #fff;
+                padding: 30px;
+                border-radius: 10px;
+                border: 3px solid #ff8800;
+                z-index: 10000;
+                max-width: 500px;
+                text-align: center;
+            `;
+            warningDiv.innerHTML = `
+                <h2 style="color: #ff8800; margin-bottom: 20px;">⚠️ Local File Access Detected</h2>
+                <p style="margin-bottom: 20px;">You're running this application directly from your computer (file:// protocol). 
+                   This will prevent API connections due to browser security restrictions.</p>
+                <p style="margin-bottom: 20px;"><strong>To use this application, please run it from a web server:</strong></p>
+                <div style="background: #222; padding: 15px; border-radius: 5px; margin-bottom: 20px; text-align: left;">
+                    <p style="margin: 5px 0;"><strong>Option 1 - Python:</strong></p>
+                    <code style="color: #00ff88;">python -m http.server 8000</code>
+                    <p style="margin: 10px 0 5px 0;"><strong>Option 2 - Node.js:</strong></p>
+                    <code style="color: #00ff88;">npx http-server -p 8000</code>
+                    <p style="margin: 10px 0 5px 0;"><strong>Option 3 - VS Code:</strong></p>
+                    <code style="color: #00ff88;">Install "Live Server" extension</code>
+                </div>
+                <p>Then open: <strong>http://localhost:8000/8.html</strong></p>
+                <button onclick="this.parentElement.remove()" style="
+                    background: #ff8800;
+                    border: none;
+                    color: #000;
+                    padding: 10px 20px;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    font-weight: bold;
+                    margin-top: 10px;
+                ">I Understand - Continue Anyway</button>
+            `;
+            document.body.appendChild(warningDiv);
         }
         
         // Migrate existing watchlists to use Lambda provider
@@ -1322,17 +1378,62 @@
             let connectedCount = 0;
             const totalSources = Object.keys(DATA_SOURCES).length;
             
-            // Test Lambda Platform (this should work as it has CORS enabled)
+            // Test Lambda Platform (check if CORS is working)
             try {
-                const lambdaResponse = await fetch(`${LAMBDA_API}/api/search/stats`);
+                const testUrl = `${LAMBDA_API}/api/search/stats`;
+                console.log('Testing Lambda API at:', testUrl);
+                
+                const lambdaResponse = await fetch(testUrl, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
                 if (lambdaResponse.ok) {
                     const data = await lambdaResponse.json();
-                    console.log('Lambda Platform:', data);
+                    console.log('Lambda Platform connected:', data);
                     document.getElementById('lambda-indicator').classList.add('connected');
                     connectedCount++;
+                } else {
+                    console.error('Lambda API returned:', lambdaResponse.status, lambdaResponse.statusText);
+                    throw new Error(`Lambda API error: ${lambdaResponse.status}`);
                 }
             } catch (error) {
-                console.warn('Lambda Platform check failed:', error);
+                console.error('Lambda Platform check failed:', error);
+                
+                // Show detailed error message
+                if (error.message.includes('Failed to fetch')) {
+                    showTemporaryMessage('⚠️ Cannot connect to Lambda API. Check if you\'re running this from a web server or if CORS is blocking the request.', 'error');
+                    
+                    // Add help notice
+                    const helpNotice = document.createElement('div');
+                    helpNotice.className = 'cors-notice';
+                    helpNotice.style.background = '#ff4444';
+                    helpNotice.style.borderColor = '#ff0000';
+                    helpNotice.innerHTML = `
+                        <h3>❌ Connection Error</h3>
+                        <p>Cannot connect to OpenBB APIs. This usually happens when:</p>
+                        <ul style="margin: 10px 0; padding-left: 20px;">
+                            <li>Running the HTML file directly from disk (file:// protocol)</li>
+                            <li>Browser security blocking requests</li>
+                            <li>APIs are temporarily down</li>
+                        </ul>
+                        <p><strong>Solutions:</strong></p>
+                        <ul style="margin: 10px 0; padding-left: 20px;">
+                            <li>1. Run from a web server (e.g., Python: <code>python -m http.server 8000</code>)</li>
+                            <li>2. Use a browser with --disable-web-security flag (development only)</li>
+                            <li>3. Install a CORS browser extension</li>
+                            <li>4. Deploy to a web hosting service</li>
+                        </ul>
+                        <button onclick="this.parentElement.remove()">Close</button>
+                    `;
+                    document.body.appendChild(helpNotice);
+                } else {
+                    showTemporaryMessage(`Lambda API error: ${error.message}`, 'error');
+                }
             }
             
             // Test Enhanced API - Check if accessible
@@ -1346,6 +1447,7 @@
                 
                 const enhancedResponse = await fetch(testUrl, {
                     method: 'GET',
+                    mode: 'cors',
                     headers: {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json'
@@ -1362,33 +1464,31 @@
                     document.getElementById('enhanced-indicator').classList.remove('connected');
                 }
             } catch (error) {
-                console.warn('Enhanced API not accessible - likely CORS or network issue:', error.message);
+                console.warn('Enhanced API not accessible:', error.message);
                 document.getElementById('enhanced-indicator').classList.remove('connected');
-                
-                // Show user-friendly message
-                showTemporaryMessage('Enhanced API (60k+ indicators) currently unavailable - using Lambda API fallback', 'info');
             }
             
-            // For now, mark other sources as "available" since they would work through Enhanced API
-            ['polygon', 'fred', 'ny_fed', 'ecb', 'ofr', 'treasury'].forEach(source => {
-                // Only mark as connected if Enhanced API is working
-                if (document.getElementById('enhanced-indicator').classList.contains('connected')) {
-                    document.getElementById(`${source}-indicator`).classList.add('connected');
-                    connectedCount++;
-                }
-            });
-            
-            const statusText = connectedCount > 1 ? `${connectedCount} APIs Connected` : 'Lambda API Connected (6,204 indicators)';
-            document.getElementById('apiStatusText').textContent = statusText;
-            
-            if (connectedCount > 0) {
-                document.getElementById('apiStatus').classList.add('connected');
+            // For now, mark other sources based on API availability
+            if (connectedCount === 0) {
+                // No APIs connected - show offline mode
+                ['polygon', 'fred', 'ny_fed', 'ecb', 'ofr', 'treasury'].forEach(source => {
+                    document.getElementById(`${source}-indicator`).classList.remove('connected');
+                });
                 
-                if (connectedCount === 1) {
-                    showTemporaryMessage('Connected to Lambda API - 6,204 indicators available. Enhanced API requires CORS configuration.', 'info');
-                } else {
-                    showTemporaryMessage(`🎉 Connected to ${connectedCount} data sources!`, 'info');
-                }
+                document.getElementById('apiStatusText').textContent = 'Offline - Check connection';
+                document.getElementById('apiStatus').classList.remove('connected');
+            } else {
+                // At least one API connected
+                ['polygon', 'fred', 'ny_fed', 'ecb', 'ofr', 'treasury'].forEach(source => {
+                    if (document.getElementById('enhanced-indicator').classList.contains('connected')) {
+                        document.getElementById(`${source}-indicator`).classList.add('connected');
+                        connectedCount++;
+                    }
+                });
+                
+                const statusText = connectedCount > 1 ? `${connectedCount} APIs Connected` : 'Lambda API Connected (6,204 indicators)';
+                document.getElementById('apiStatusText').textContent = statusText;
+                document.getElementById('apiStatus').classList.add('connected');
             }
         }
         
