@@ -1491,7 +1491,7 @@
         
         // Enhanced data loading with CORS handling
         async function loadSingleWatchlistItem(symbol, provider, retryCount = 0) {
-            const maxRetries = 3;
+            const maxRetries = 2; // Reduced retries to avoid spam
             
             // Validate symbol
             if (!symbol || symbol === 'undefined' || symbol === undefined) {
@@ -1505,10 +1505,12 @@
                 let url;
                 let options = {
                     method: 'GET',
+                    mode: 'cors', // Explicitly set CORS mode
                     headers: {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json'
-                    }
+                    },
+                    credentials: 'omit' // Don't send cookies
                 };
                 
                 // Build URL based on provider type
@@ -1567,57 +1569,84 @@
                     
                     // Add timeout for Lambda API
                     const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+                    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
                     options.signal = controller.signal;
                     
-                    const response = await fetch(url, options).finally(() => clearTimeout(timeoutId));
-                    
-                    if (!response.ok) {
-                        throw new Error(`API returned ${response.status}: ${response.statusText}`);
-                    }
-                    
-                    const data = await response.json();
-                    console.log(`Data received for ${symbol}:`, data);
-                    
-                    if (provider === 'lambda' && data.results && data.results.length > 0) {
-                        processLambdaData(symbol, data.results[0], provider);
-                    } else {
-                        throw new Error('No data available in Lambda');
+                    try {
+                        const response = await fetch(url, options);
+                        clearTimeout(timeoutId);
+                        
+                        if (!response.ok) {
+                            throw new Error(`API returned ${response.status}: ${response.statusText}`);
+                        }
+                        
+                        const data = await response.json();
+                        console.log(`Data received for ${symbol}:`, data);
+                        
+                        if (data.results && data.results.length > 0) {
+                            processLambdaData(symbol, data.results[0], provider);
+                            return; // Success!
+                        } else if (data.total_hits === 0) {
+                            // No results found for this symbol
+                            console.warn(`No results found for ${symbol}`);
+                            watchlistData[symbol] = {
+                                name: symbol,
+                                provider: provider,
+                                price: 0,
+                                changes: { '1d': null, '1w': null, '1m': null, '3m': null, '1y': null },
+                                changeUnits: { 'daily': null, 'yearly': null },
+                                hasData: false,
+                                error: 'Symbol not found'
+                            };
+                            renderWatchlist();
+                            return;
+                        } else {
+                            throw new Error('No data available in Lambda response');
+                        }
+                    } catch (fetchError) {
+                        clearTimeout(timeoutId);
+                        
+                        // Check if it's an abort error
+                        if (fetchError.name === 'AbortError') {
+                            throw new Error('Request timeout - API took too long to respond');
+                        }
+                        throw fetchError;
                     }
                 }
                 
             } catch (error) {
                 console.error(`Error loading ${symbol} from ${provider}:`, error);
                 
-                // Always try Lambda as fallback for non-Lambda providers
-                if (provider !== 'lambda' && retryCount === 0) {
-                    console.warn(`Trying Lambda API fallback for ${symbol}`);
-                    
-                    try {
-                        const lambdaUrl = `${LAMBDA_API}/api/search?query=${encodeURIComponent(symbol)}&limit=1`;
-                        const lambdaResponse = await fetch(lambdaUrl, {
-                            method: 'GET',
-                            headers: {
-                                'Accept': 'application/json',
-                                'Content-Type': 'application/json'
+                // Check if it's a network error
+                if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                    // Network error - could be CORS or connectivity
+                    if (retryCount === 0) {
+                        console.warn('Network error detected, checking if CORS is blocking the request...');
+                        
+                        // Try a simple test to see if API is reachable
+                        try {
+                            const testResponse = await fetch(`${LAMBDA_API}/api/search/stats`, {
+                                method: 'GET',
+                                mode: 'cors',
+                                headers: {
+                                    'Accept': 'application/json'
+                                }
+                            });
+                            
+                            if (!testResponse.ok) {
+                                console.error('API is not responding correctly');
                             }
-                        });
-                        if (lambdaResponse.ok) {
-                            const lambdaData = await lambdaResponse.json();
-                            if (lambdaData.results && lambdaData.results.length > 0) {
-                                processLambdaData(symbol, lambdaData.results[0], 'lambda');
-                                return;
-                            }
+                        } catch (testError) {
+                            console.error('Cannot reach API - possible CORS issue or API is down');
                         }
-                    } catch (lambdaError) {
-                        console.error(`Lambda fallback also failed for ${symbol}`);
                     }
                 }
                 
-                // Only retry for Lambda API
+                // Only retry for Lambda API with exponential backoff
                 if (provider === 'lambda' && retryCount < maxRetries) {
-                    console.log(`Retrying ${symbol} after delay...`);
-                    await new Promise(resolve => setTimeout(resolve, 2000 * (retryCount + 1)));
+                    const delay = Math.min(1000 * Math.pow(2, retryCount), 5000); // Max 5 seconds
+                    console.log(`Retrying ${symbol} after ${delay}ms delay...`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
                     return loadSingleWatchlistItem(symbol, provider, retryCount + 1);
                 }
                 
@@ -1629,7 +1658,7 @@
                     changes: { '1d': null, '1w': null, '1m': null, '3m': null, '1y': null },
                     changeUnits: { 'daily': null, 'yearly': null },
                     hasData: false,
-                    error: 'Data temporarily unavailable'
+                    error: error.message.includes('Failed to fetch') ? 'Connection error' : 'Data unavailable'
                 };
                 renderWatchlist();
             }
@@ -2359,22 +2388,37 @@
                 saveWatchlists();
             }
             
-            // Load all symbols in parallel with batching
-            const batchSize = 5;
-            for (let i = 0; i < validSymbols.length; i += batchSize) {
-                const batch = validSymbols.slice(i, i + batchSize);
-                const promises = batch.map(symbolObj => {
-                    const symbol = symbolObj.symbol || symbolObj;
-                    const provider = symbolObj.provider || 'lambda'; // Default to lambda instead of fred_direct
-                    return loadSingleWatchlistItem(symbol, provider);
-                });
-                await Promise.allSettled(promises);
+            // Check if Lambda API is actually connected
+            if (!document.getElementById('lambda-indicator').classList.contains('connected')) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px; color: #ff6666;">API connection failed. Please check your internet connection and refresh the page.</td></tr>';
+                return;
+            }
+            
+            // Load symbols sequentially with delay to avoid overwhelming the API
+            let loadedCount = 0;
+            for (const symbolObj of validSymbols) {
+                const symbol = symbolObj.symbol || symbolObj;
+                const provider = symbolObj.provider || 'lambda';
                 
-                // Add a small delay between batches to avoid overwhelming the API
-                if (i + batchSize < validSymbols.length) {
-                    await new Promise(resolve => setTimeout(resolve, 500));
+                try {
+                    await loadSingleWatchlistItem(symbol, provider);
+                    loadedCount++;
+                    
+                    // Update progress
+                    if (loadedCount % 3 === 0) {
+                        const progress = Math.round((loadedCount / validSymbols.length) * 100);
+                        tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 20px;"><div class="loading-pulse">Loading watchlist... ${progress}%</div></td></tr>`;
+                    }
+                    
+                    // Add delay between requests to avoid rate limiting
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                } catch (error) {
+                    console.error(`Failed to load ${symbol}:`, error);
                 }
             }
+            
+            // Final render
+            renderWatchlist();
         }
         
         // Update clock
