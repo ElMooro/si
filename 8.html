@@ -956,18 +956,15 @@
             </div>
         </div>
     </div>
+    
     <script>
         // Configuration for public access - BOTH APIS NOW WORKING WITH CORS!
         const LAMBDA_API = 'https://i3y8tfdp1k.execute-api.us-east-1.amazonaws.com/prod';
         
-        // Enhanced API - Check if we need HTTPS or if there's a proxy
+        // Enhanced API - Using the verified working IP
         const ENHANCED_API_IP = '52.72.62.43';
         const ENHANCED_API_BASE = `http://${ENHANCED_API_IP}:8000/api/v1`;
         const ENHANCED_API = ENHANCED_API_BASE;
-        
-        // CORS proxy fallback if needed
-        const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/';
-        const USE_CORS_PROXY = false; // Set to true if CORS issues persist
         
         // Enhanced data source configurations
         const DATA_SOURCES = {
@@ -1279,7 +1276,7 @@
                     <p style="margin: 10px 0 5px 0;"><strong>Option 3 - VS Code:</strong></p>
                     <code style="color: #00ff88;">Install "Live Server" extension</code>
                 </div>
-                <p>Then open: <strong>http://localhost:8000/8.html</strong></p>
+                <p>Then open: <strong>http://localhost:8000/</strong></p>
                 <button onclick="this.parentElement.remove()" style="
                     background: #ff8800;
                     border: none;
@@ -1565,9 +1562,15 @@
                         throw new Error('No data available');
                     }
                 } else {
-                    // Lambda API call
+                    // Lambda API call - with better error handling
                     console.log(`Fetching from: ${url}`);
-                    const response = await fetch(url, options);
+                    
+                    // Add timeout for Lambda API
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+                    options.signal = controller.signal;
+                    
+                    const response = await fetch(url, options).finally(() => clearTimeout(timeoutId));
                     
                     if (!response.ok) {
                         throw new Error(`API returned ${response.status}: ${response.statusText}`);
@@ -1587,12 +1590,18 @@
                 console.error(`Error loading ${symbol} from ${provider}:`, error);
                 
                 // Always try Lambda as fallback for non-Lambda providers
-                if (provider !== 'lambda') {
+                if (provider !== 'lambda' && retryCount === 0) {
                     console.warn(`Trying Lambda API fallback for ${symbol}`);
                     
                     try {
                         const lambdaUrl = `${LAMBDA_API}/api/search?query=${encodeURIComponent(symbol)}&limit=1`;
-                        const lambdaResponse = await fetch(lambdaUrl);
+                        const lambdaResponse = await fetch(lambdaUrl, {
+                            method: 'GET',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            }
+                        });
                         if (lambdaResponse.ok) {
                             const lambdaData = await lambdaResponse.json();
                             if (lambdaData.results && lambdaData.results.length > 0) {
@@ -1731,9 +1740,15 @@
                     const allResults = [];
                     
                     // Search Lambda Platform
-                    if (activeSources.includes('lambda')) {
+                    if (activeSources.includes('lambda') && document.getElementById('lambda-indicator').classList.contains('connected')) {
                         try {
-                            const lambdaResponse = await fetch(`${LAMBDA_API}/api/search?query=${encodeURIComponent(query)}&limit=20`);
+                            const lambdaResponse = await fetch(`${LAMBDA_API}/api/search?query=${encodeURIComponent(query)}&limit=20`, {
+                                method: 'GET',
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'Content-Type': 'application/json'
+                                }
+                            });
                             if (lambdaResponse.ok) {
                                 const lambdaData = await lambdaResponse.json();
                                 if (lambdaData.results && Array.isArray(lambdaData.results)) {
@@ -1755,7 +1770,7 @@
                     }
                     
                     // Search Enhanced API endpoints - NOW WORKING!
-                    if (activeSources.includes('enhanced')) {
+                    if (activeSources.includes('enhanced') && document.getElementById('enhanced-indicator').classList.contains('connected')) {
                         const endpoints = [
                             { path: '/economy/survey/university_of_michigan', name: 'University of Michigan Survey', tags: ['inflation', 'expectations', 'consumer'] },
                             { path: '/economy/gdp/nominal', name: 'GDP Nominal', tags: ['gdp', 'growth', 'economy'] },
@@ -2354,6 +2369,11 @@
                     return loadSingleWatchlistItem(symbol, provider);
                 });
                 await Promise.allSettled(promises);
+                
+                // Add a small delay between batches to avoid overwhelming the API
+                if (i + batchSize < validSymbols.length) {
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
             }
         }
         
