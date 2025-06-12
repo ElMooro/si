@@ -1063,39 +1063,37 @@
         const watchlists = {
             'MAIN': {
                 symbols: [
-                    { symbol: 'AAPL', provider: 'lambda' },
-                    { symbol: 'FEDFUNDS', provider: 'lambda' },
-                    { symbol: 'UNRATE', provider: 'lambda' },
-                    { symbol: 'sofr', provider: 'lambda' },
-                    { symbol: 'EXR.D.USD.EUR.SP00.A', provider: 'lambda' },
-                    { symbol: 'CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX', provider: 'lambda' },
-                    { symbol: 'NYPD-PD_AFtR_T-A', provider: 'lambda' },
-                    { symbol: 'BILLS_13W', provider: 'lambda' }
+                    { symbol: 'AAPL', provider: 'enhanced' },
+                    { symbol: 'FEDFUNDS', provider: 'enhanced' },
+                    { symbol: 'UNRATE', provider: 'enhanced' },
+                    { symbol: 'SOFR', provider: 'enhanced' },
+                    { symbol: 'DGS10', provider: 'enhanced' },
+                    { symbol: 'VIXCLS', provider: 'enhanced' },
+                    { symbol: 'SPY', provider: 'enhanced' },
+                    { symbol: 'QQQ', provider: 'enhanced' }
                 ],
                 active: true
             },
             'STOCKS': {
                 symbols: [
-                    { symbol: 'AAPL', provider: 'lambda' },
-                    { symbol: 'MSFT', provider: 'lambda' },
-                    { symbol: 'GOOGL', provider: 'lambda' },
-                    { symbol: 'AMZN', provider: 'lambda' },
-                    { symbol: 'TSLA', provider: 'lambda' },
-                    { symbol: 'SPY', provider: 'lambda' },
-                    { symbol: 'QQQ', provider: 'lambda' },
-                    { symbol: 'NVDA', provider: 'lambda' },
-                    { symbol: 'META', provider: 'lambda' },
-                    { symbol: 'NFLX', provider: 'lambda' }
+                    { symbol: 'AAPL', provider: 'enhanced' },
+                    { symbol: 'MSFT', provider: 'enhanced' },
+                    { symbol: 'GOOGL', provider: 'enhanced' },
+                    { symbol: 'AMZN', provider: 'enhanced' },
+                    { symbol: 'TSLA', provider: 'enhanced' },
+                    { symbol: 'SPY', provider: 'enhanced' },
+                    { symbol: 'QQQ', provider: 'enhanced' },
+                    { symbol: 'NVDA', provider: 'enhanced' },
+                    { symbol: 'META', provider: 'enhanced' },
+                    { symbol: 'NFLX', provider: 'enhanced' }
                 ],
                 active: false
             },
             'NY FED RATES': {
                 symbols: [
-                    { symbol: 'sofr', provider: 'lambda' },
-                    { symbol: 'effr', provider: 'lambda' },
-                    { symbol: 'obfr', provider: 'lambda' },
-                    { symbol: 'tgcr', provider: 'lambda' },
-                    { symbol: 'bgcr', provider: 'lambda' }
+                    { symbol: 'SOFR', provider: 'enhanced' },
+                    { symbol: 'EFFR', provider: 'enhanced' },
+                    { symbol: 'OBFR', provider: 'enhanced' }
                 ],
                 active: false
             },
@@ -1113,54 +1111,43 @@
             },
             'DOLLAR & EXCHANGE': {
                 symbols: [
-                    { symbol: 'DTWEXBGS', provider: 'lambda' },
-                    { symbol: 'DTWEXAFEGS', provider: 'lambda' },
-                    { symbol: 'DTWEXEMEGS', provider: 'lambda' },
-                    { symbol: 'EXR.D.USD.EUR.SP00.A', provider: 'lambda' },
-                    { symbol: 'EXR.D.GBP.EUR.SP00.A', provider: 'lambda' },
-                    { symbol: 'EXR.D.JPY.EUR.SP00.A', provider: 'lambda' }
+                    { symbol: 'DTWEXBGS', provider: 'enhanced' },
+                    { symbol: 'DTWEXAFEGS', provider: 'enhanced' },
+                    { symbol: 'DTWEXEMEGS', provider: 'enhanced' }
                 ],
                 active: false
             },
             'GLOBAL LIQUIDITY': {
                 symbols: [
-                    { symbol: 'RESPPNTEPNWW', provider: 'lambda' },
-                    { symbol: 'RESPPALGUOXAWXCH52NWW', provider: 'lambda' },
-                    { symbol: 'RESPPALGUONNWW', provider: 'lambda' },
-                    { symbol: 'SWP1690', provider: 'lambda' },
-                    { symbol: 'OTHL1690', provider: 'lambda' },
-                    { symbol: 'RMFSL', provider: 'lambda' },
-                    { symbol: 'BOGMBASE', provider: 'lambda' },
-                    { symbol: 'WSHOSHO', provider: 'lambda' },
-                    { symbol: 'WRESBAL', provider: 'lambda' },
-                    { symbol: 'TOTRESNS', provider: 'lambda' },
-                    { symbol: 'NONBORRES', provider: 'lambda' },
-                    { symbol: 'ILM.W.U2.C.A030000.U2.Z06', provider: 'lambda' }
+                    { symbol: 'RESPPNTEPNWW', provider: 'enhanced' },
+                    { symbol: 'M2SL', provider: 'enhanced' },
+                    { symbol: 'BOGMBASE', provider: 'enhanced' },
+                    { symbol: 'TOTRESNS', provider: 'enhanced' }
                 ],
                 active: false
             },
             'ECONOMIC INDICATORS': {
                 symbols: [
-                    { symbol: 'GDP', provider: 'lambda' },
-                    { symbol: 'UNRATE', provider: 'lambda' },
-                    { symbol: 'CPIAUCSL', provider: 'lambda' },
-                    { symbol: 'PAYEMS', provider: 'lambda' },
-                    { symbol: 'INDPRO', provider: 'lambda' },
-                    { symbol: 'HOUST', provider: 'lambda' },
-                    { symbol: 'ISRATIO', provider: 'lambda' },
-                    { symbol: 'MNFCTRIRSA', provider: 'lambda' }
+                    { symbol: 'GDP', provider: 'enhanced' },
+                    { symbol: 'UNRATE', provider: 'enhanced' },
+                    { symbol: 'CPIAUCSL', provider: 'enhanced' },
+                    { symbol: 'PAYEMS', provider: 'enhanced' },
+                    { symbol: 'INDPRO', provider: 'enhanced' },
+                    { symbol: 'HOUST', provider: 'enhanced' },
+                    { symbol: 'ISRATIO', provider: 'enhanced' },
+                    { symbol: 'MNFCTRIRSA', provider: 'enhanced' }
                 ],
                 active: false
             },
             'RATES & MONETARY': {
                 symbols: [
-                    { symbol: 'FEDFUNDS', provider: 'lambda' },
-                    { symbol: 'DGS10', provider: 'lambda' },
-                    { symbol: 'DGS2', provider: 'lambda' },
-                    { symbol: 'DGS30', provider: 'lambda' },
-                    { symbol: 'sofr', provider: 'lambda' },
-                    { symbol: 'effr', provider: 'lambda' },
-                    { symbol: 'M2SL', provider: 'lambda' }
+                    { symbol: 'FEDFUNDS', provider: 'enhanced' },
+                    { symbol: 'DGS10', provider: 'enhanced' },
+                    { symbol: 'DGS2', provider: 'enhanced' },
+                    { symbol: 'DGS30', provider: 'enhanced' },
+                    { symbol: 'SOFR', provider: 'enhanced' },
+                    { symbol: 'EFFR', provider: 'enhanced' },
+                    { symbol: 'M2SL', provider: 'enhanced' }
                 ],
                 active: false
             },
@@ -1255,7 +1242,7 @@
                     <li id="enhanced-status">⏳ Enhanced API: Checking...</li>
                 </ul>
                 <p style="margin-top: 15px; font-size: 11px;">
-                    <strong>Note:</strong> Due to CORS restrictions, the platform will use high-quality demo data with realistic market movements.
+                    <strong>✨ CORS Fixed!</strong> Real-time data is now loading from your APIs.
                 </p>
                 <button onclick="this.parentElement.remove()">Got it!</button>
             `;
@@ -1283,16 +1270,40 @@
                     const data = await lambdaResponse.json();
                     console.log('Lambda Platform connected:', data);
                     document.getElementById('lambda-indicator').classList.add('connected');
+                    lambdaStatsWorking = true;
                     connectedCount++;
                     
                     // Update info panel
                     const lambdaStatus = document.getElementById('lambda-status');
                     if (lambdaStatus) {
-                        lambdaStatus.innerHTML = `⚠️ Lambda Platform: ${data.document_count} indicators (Stats working, Search has CORS issues)`;
+                        lambdaStatus.innerHTML = `✅ Lambda Platform: ${data.document_count} indicators (Stats working)`;
                     }
-                    
-                    // Important note about Lambda search CORS issue
-                    console.warn('Note: Lambda search endpoint has CORS issues - will use demo data');
+                }
+                
+                // Test Lambda search endpoint
+                const searchUrl = `${LAMBDA_API}/api/search?query=treasury&limit=1`;
+                const searchResponse = await fetch(searchUrl, {
+                    method: 'GET',
+                    mode: 'cors',
+                    credentials: 'omit',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (searchResponse.ok) {
+                    const searchData = await searchResponse.json();
+                    if (searchData.results && searchData.results.length > 0) {
+                        lambdaSearchWorking = true;
+                        console.log('Lambda search is working with CORS fixed!');
+                        
+                        // Update info panel to show search is working
+                        const lambdaStatus = document.getElementById('lambda-status');
+                        if (lambdaStatus) {
+                            lambdaStatus.innerHTML = `✅ Lambda Platform: ${data.document_count} indicators (Search & Stats working with CORS!)`;
+                        }
+                    }
                 }
             } catch (error) {
                 console.error('Lambda Platform check failed:', error);
@@ -1351,7 +1362,7 @@
                 document.getElementById('enhanced-indicator').classList.remove('connected');
                 const enhancedStatus = document.getElementById('enhanced-status');
                 if (enhancedStatus) {
-                    enhancedStatus.innerHTML = '❌ Enhanced API: Offline (Using demo data)';
+                    enhancedStatus.innerHTML = '❌ Enhanced API: Offline';
                 }
             }
             
@@ -1365,12 +1376,12 @@
                 
                 const statusText = enhancedConnected ? 
                     'Enhanced API Connected - Real data available' : 
-                    'Demo Mode - Lambda search has CORS issues';
+                    'Lambda Platform connected';
                 document.getElementById('apiStatusText').textContent = statusText;
                 document.getElementById('apiStatus').classList.add('connected');
             } else {
-                document.getElementById('apiStatusText').textContent = 'Demo Mode - Using simulated data';
-                document.getElementById('apiStatus').classList.add('connected'); // Show as connected for demo mode
+                document.getElementById('apiStatusText').textContent = 'APIs offline - Check connection';
+                document.getElementById('apiStatus').classList.remove('connected');
             }
         }
         
@@ -1383,14 +1394,13 @@
                 
                 // Check which APIs are actually working
                 const enhancedWorking = document.getElementById('enhanced-indicator').classList.contains('connected');
-                const lambdaStatsWorking = document.getElementById('lambda-indicator').classList.contains('connected');
+                const lambdaWorking = document.getElementById('lambda-indicator').classList.contains('connected');
                 
-                // For now, since Lambda search has CORS issues, prioritize demo mode
                 // Change this to false when Lambda search CORS is fixed
-                const FORCE_DEMO_MODE = true;
+                const FORCE_DEMO_MODE = false;
                 
-                if (FORCE_DEMO_MODE || (!enhancedWorking && !lambdaStatsWorking)) {
-                    throw new Error('Using demo data mode');
+                if (!enhancedWorking && !lambdaWorking) {
+                    throw new Error('No APIs available');
                 }
                 
                 let url;
@@ -1406,43 +1416,24 @@
                 };
                 
                 // Try Enhanced API first if it's working
-                if (enhancedWorking) {
-                    // Map symbols to appropriate Enhanced API endpoints
-                    const enhancedEndpoints = {
-                        // Economic indicators that work with FRED provider
-                        'FEDFUNDS': '/economy/fred/series?symbol=FEDFUNDS&provider=fred',
-                        'UNRATE': '/economy/fred/series?symbol=UNRATE&provider=fred',
-                        'GDP': '/economy/fred/series?symbol=GDP&provider=fred',
-                        'CPIAUCSL': '/economy/fred/series?symbol=CPIAUCSL&provider=fred',
-                        'DFF': '/economy/fred/series?symbol=DFF&provider=fred',
-                        'M2SL': '/economy/fred/series?symbol=M2SL&provider=fred',
-                        'PAYEMS': '/economy/fred/series?symbol=PAYEMS&provider=fred',
-                        'DGS10': '/economy/fred/series?symbol=DGS10&provider=fred',
-                        'DGS2': '/economy/fred/series?symbol=DGS2&provider=fred',
-                        'DTWEXBGS': '/economy/fred/series?symbol=DTWEXBGS&provider=fred',
-                        'DTWEXAFEGS': '/economy/fred/series?symbol=DTWEXAFEGS&provider=fred',
-                        'DTWEXEMEGS': '/economy/fred/series?symbol=DTWEXEMEGS&provider=fred',
-                        
-                        // Special endpoints
-                        'UofM': '/economy/survey/university_of_michigan?provider=fred',
-                        'SLOOS': '/economy/survey/sloos?provider=fred',
-                        'GDP_NOMINAL': '/economy/gdp/nominal?provider=econdb&country=united_states',
-                        'GDP_REAL': '/economy/gdp/real?provider=oecd&country=usa'
-                    };
-                    
-                    if (enhancedEndpoints[symbol]) {
-                        url = `${ENHANCED_API}${enhancedEndpoints[symbol]}`;
-                    } else if (provider === 'fred') {
-                        // Generic FRED series endpoint
+                if (enhancedWorking && (provider === 'enhanced' || provider === 'fred')) {
+                    // For FRED data through Enhanced API
+                    if (['FEDFUNDS', 'UNRATE', 'GDP', 'CPIAUCSL', 'DFF', 'M2SL', 'PAYEMS', 'DGS10', 'DGS2', 
+                         'DTWEXBGS', 'DTWEXAFEGS', 'DTWEXEMEGS', 'SOFR', 'EFFR', 'OBFR', 'VIXCLS',
+                         'HOUST', 'INDPRO', 'ISRATIO', 'MNFCTRIRSA', 'RESPPNTEPNWW', 'BOGMBASE', 'TOTRESNS'].includes(symbol)) {
                         url = `${ENHANCED_API}/economy/fred/series?symbol=${encodeURIComponent(symbol)}&provider=fred`;
+                    } 
+                    // For stock data through yfinance
+                    else if (['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'SPY', 'QQQ', 'NVDA', 'META', 'NFLX'].includes(symbol)) {
+                        url = `${ENHANCED_API}/equity/quote?symbol=${encodeURIComponent(symbol)}&provider=yfinance`;
                     }
                 }
                 
-                // Only try Lambda if Enhanced API doesn't have the endpoint
-                if (!url && lambdaStatsWorking && !FORCE_DEMO_MODE) {
-                    // Lambda search with exact match - note the CORS issue
+                // Try Lambda if Enhanced API doesn't have the endpoint
+                if (!url && lambdaWorking && (provider === 'lambda' || !enhancedWorking)) {
+                    // Lambda search with exact match
                     url = `${LAMBDA_API}/api/search?query="${encodeURIComponent(symbol)}"&limit=1`;
-                    console.warn('Note: Lambda search endpoint may have CORS issues');
+                    console.log('Using Lambda search API with CORS fixed');
                 }
                 
                 if (!url) {
@@ -1470,7 +1461,7 @@
                     
                     // Process based on response structure
                     if (data.results && Array.isArray(data.results) && data.results.length > 0) {
-                        // Enhanced API format
+                        // Enhanced API format for FRED data
                         processEnhancedData(symbol, data.results, provider);
                     } else if (data.data && Array.isArray(data.data)) {
                         // Alternative Enhanced API format
@@ -1478,8 +1469,11 @@
                     } else if (data.total_hits && data.results && data.results.length > 0) {
                         // Lambda search format
                         processLambdaData(symbol, data.results[0], provider);
+                    } else if (data.symbol && data.price) {
+                        // Stock quote format
+                        processStockQuoteData(symbol, data, provider);
                     } else {
-                        console.warn(`No data found for ${symbol}, using demo data`);
+                        console.warn(`No data found for ${symbol}`);
                         throw new Error('No data in response');
                     }
                 } catch (fetchError) {
@@ -1492,132 +1486,42 @@
                 
             } catch (error) {
                 console.warn(`Failed to load ${symbol} from API:`, error.message);
-                // Use high-quality demo data
-                const demoData = getDemoDataForSymbol(symbol);
-                watchlistData[symbol] = demoData;
+                // Set loading state
+                watchlistData[symbol] = {
+                    name: symbol,
+                    provider: provider,
+                    price: 0,
+                    changes: { '1d': 0, '1w': 0, '1m': 0, '1y': 0 },
+                    changeUnits: { 'daily': 0, 'yearly': 0 },
+                    hasData: false,
+                    loading: true
+                };
                 renderWatchlist();
             }
         }
         
-        // Test if Lambda search is working
-        let lambdaSearchTestResult = null;
-        async function testLambdaSearch() {
-            // Cache the test result
-            if (lambdaSearchTestResult !== null) {
-                return lambdaSearchTestResult;
-            }
-            
-            try {
-                const testUrl = `${LAMBDA_API}/api/search?query=AAPL&limit=1`;
-                const response = await fetch(testUrl, {
-                    method: 'GET',
-                    mode: 'cors',
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
-                
-                lambdaSearchTestResult = response.ok;
-                return lambdaSearchTestResult;
-            } catch (error) {
-                lambdaSearchTestResult = false;
-                return false;
-            }
-        }
-        
-        // Get realistic demo data for symbols
-        function getDemoDataForSymbol(symbol) {
-            const demoDatabase = {
-                // Stocks
-                'AAPL': { name: 'Apple Inc.', price: 195.89, baseVolatility: 2.5 },
-                'MSFT': { name: 'Microsoft Corporation', price: 415.26, baseVolatility: 2.2 },
-                'GOOGL': { name: 'Alphabet Inc.', price: 142.57, baseVolatility: 2.8 },
-                'AMZN': { name: 'Amazon.com Inc.', price: 178.35, baseVolatility: 3.1 },
-                'TSLA': { name: 'Tesla Inc.', price: 251.12, baseVolatility: 4.5 },
-                'SPY': { name: 'SPDR S&P 500 ETF', price: 452.16, baseVolatility: 1.8 },
-                'QQQ': { name: 'Invesco QQQ Trust', price: 393.24, baseVolatility: 2.1 },
-                'NVDA': { name: 'NVIDIA Corporation', price: 495.22, baseVolatility: 3.8 },
-                'META': { name: 'Meta Platforms Inc.', price: 334.21, baseVolatility: 3.2 },
-                'NFLX': { name: 'Netflix Inc.', price: 445.73, baseVolatility: 3.5 },
-                
-                // Economic Indicators
-                'FEDFUNDS': { name: 'Federal Funds Rate', price: 5.33, baseVolatility: 0.1 },
-                'UNRATE': { name: 'Unemployment Rate', price: 4.0, baseVolatility: 0.3 },
-                'GDP': { name: 'Gross Domestic Product', price: 27946.8, baseVolatility: 0.8 },
-                'CPIAUCSL': { name: 'Consumer Price Index', price: 310.326, baseVolatility: 0.4 },
-                'DFF': { name: 'Daily Federal Funds Rate', price: 5.33, baseVolatility: 0.05 },
-                'M2SL': { name: 'M2 Money Supply', price: 20867.4, baseVolatility: 0.6 },
-                'PAYEMS': { name: 'Total Nonfarm Payrolls', price: 157234, baseVolatility: 0.2 },
-                'DGS10': { name: '10-Year Treasury Rate', price: 4.426, baseVolatility: 0.15 },
-                'DGS2': { name: '2-Year Treasury Rate', price: 4.852, baseVolatility: 0.12 },
-                'VIXCLS': { name: 'CBOE Volatility Index', price: 13.20, baseVolatility: 5.0 },
-                
-                // NY Fed Rates
-                'sofr': { name: 'Secured Overnight Financing Rate', price: 5.31, baseVolatility: 0.02 },
-                'effr': { name: 'Effective Federal Funds Rate', price: 5.33, baseVolatility: 0.01 },
-                'obfr': { name: 'Overnight Bank Funding Rate', price: 5.32, baseVolatility: 0.02 },
-                'tgcr': { name: 'Tri-party General Collateral Rate', price: 5.30, baseVolatility: 0.03 },
-                'bgcr': { name: 'Broad General Collateral Rate', price: 5.29, baseVolatility: 0.03 },
-                
-                // Dollar & Exchange
-                'DTWEXBGS': { name: 'Trade Weighted U.S. Dollar Index: Broad', price: 122.41, baseVolatility: 0.5 },
-                'DTWEXAFEGS': { name: 'Trade Weighted U.S. Dollar Index: Advanced', price: 95.21, baseVolatility: 0.4 },
-                'DTWEXEMEGS': { name: 'Trade Weighted U.S. Dollar Index: Emerging', price: 134.88, baseVolatility: 0.7 },
-                'EXR.D.USD.EUR.SP00.A': { name: 'EUR/USD Exchange Rate', price: 1.0823, baseVolatility: 0.6 },
-                'EXR.D.GBP.EUR.SP00.A': { name: 'EUR/GBP Exchange Rate', price: 0.8456, baseVolatility: 0.5 },
-                'EXR.D.JPY.EUR.SP00.A': { name: 'EUR/JPY Exchange Rate', price: 161.45, baseVolatility: 0.8 },
-                
-                // ECB Stress Indicators
-                'CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX': { name: 'Euro Area Daily Systemic Stress', price: 0.0821, baseVolatility: 8.0 },
-                'CISS.D.US.Z0Z.4F.EC.SS_CI.IDX': { name: 'US Daily Systemic Stress', price: 0.0756, baseVolatility: 9.0 },
-                'CISS.D.CN.Z0Z.4F.EC.SS_CIN.IDX': { name: 'China Daily Systemic Stress', price: 0.1234, baseVolatility: 12.0 },
-                
-                // OFR Data
-                'NYPD-PD_AFtR_T-A': { name: 'NY Primary Dealer After-Fed Total', price: 245.67, baseVolatility: 15.0 },
-                'NYPD-PD_AFtD_TOT-A': { name: 'NY Primary Dealer After-Fed Daily', price: 189.34, baseVolatility: 18.0 },
-                
-                // Treasury
-                'BILLS_4W': { name: '4-Week Treasury Bills', price: 5.28, baseVolatility: 0.08 },
-                'BILLS_13W': { name: '13-Week Treasury Bills', price: 5.26, baseVolatility: 0.09 },
-                'BILLS_26W': { name: '26-Week Treasury Bills', price: 5.15, baseVolatility: 0.10 },
-                'BILLS_52W': { name: '52-Week Treasury Bills', price: 4.93, baseVolatility: 0.12 }
-            };
-            
-            // Get base data or create generic
-            const baseData = demoDatabase[symbol] || {
-                name: symbol,
-                price: 100 + Math.random() * 900,
-                baseVolatility: 2.0
-            };
-            
-            // Generate realistic changes based on volatility
-            const volatility = baseData.baseVolatility;
-            const daily = (Math.random() - 0.5) * volatility;
-            const weekly = daily + (Math.random() - 0.5) * volatility * 1.5;
-            const monthly = weekly + (Math.random() - 0.5) * volatility * 2;
-            const yearly = monthly + (Math.random() - 0.5) * volatility * 5;
-            
-            // Calculate unit changes
-            const dailyUnits = baseData.price * (daily / 100);
-            const yearlyUnits = baseData.price * (yearly / 100);
-            
-            return {
-                name: baseData.name,
-                provider: 'demo',
-                price: baseData.price,
+        // Process stock quote data
+        function processStockQuoteData(symbol, data, provider) {
+            watchlistData[symbol] = {
+                name: data.name || symbol,
+                provider: provider,
+                price: data.price || data.last_price || 0,
                 changes: {
-                    '1d': daily,
-                    '1w': weekly,
-                    '1m': monthly,
-                    '1y': yearly
+                    '1d': data.change_percent || data.percent_change || 0,
+                    '1w': data.week_change_percent || 0,
+                    '1m': data.month_change_percent || 0,
+                    '1y': data.year_change_percent || 0
                 },
                 changeUnits: {
-                    'daily': dailyUnits,
-                    'yearly': yearlyUnits
+                    'daily': data.change || 0,
+                    'yearly': data.year_change || 0
                 },
                 hasData: true,
                 lastUpdateTime: Date.now()
             };
+            
+            checkForSignificantChanges(symbol, watchlistData[symbol].changes);
+            renderWatchlist();
         }
         
         // Process Lambda data
@@ -2148,10 +2052,10 @@
                     const allResults = [];
                     
                     // Search Lambda Platform - Try the real API first
-                    if (activeSources.includes('lambda') && document.getElementById('lambda-indicator').classList.contains('connected')) {
+                    if (activeSources.includes('lambda') && (lambdaSearchWorking || document.getElementById('lambda-indicator').classList.contains('connected'))) {
                         try {
                             const lambdaUrl = `${LAMBDA_API}/api/search?query=${encodeURIComponent(query)}&limit=30`;
-                            console.log('Searching Lambda:', lambdaUrl);
+                            console.log('Searching Lambda with CORS fixed:', lambdaUrl);
                             
                             const lambdaResponse = await fetch(lambdaUrl, {
                                 method: 'GET',
@@ -2651,32 +2555,8 @@
             } catch (error) {
                 console.error(`Error loading chart data for ${symbol}:`, error);
                 
-                // Use demo data for chart
-                const demoData = getDemoDataForSymbol(symbol);
-                const currentDate = new Date();
-                const chartData = [];
-                
-                // Generate 365 days of historical data
-                for (let i = 365; i >= 0; i--) {
-                    const date = new Date(currentDate);
-                    date.setDate(date.getDate() - i);
-                    
-                    // Random walk from base price
-                    const randomWalk = (Math.random() - 0.5) * demoData.price * 0.02;
-                    const value = demoData.price + randomWalk;
-                    
-                    chartData.push({
-                        date: date.toISOString().split('T')[0],
-                        value: value
-                    });
-                }
-                
-                chart.data[symbol] = chartData;
-                updateChartRender(chartId);
-                updateChartSymbols(chartId);
-                
                 if (canvasDiv) {
-                    showTemporaryMessage(`Using demo data for ${symbol} chart`, 'info');
+                    canvasDiv.innerHTML = `<div class="chart-message" style="color: #ff4444;">Failed to load data for ${symbol}</div>`;
                 }
             }
         }
