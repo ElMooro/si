@@ -97,7 +97,7 @@
         .main-container {
             display: flex;
             flex-direction: column;
-            height: calc(100vh - 71px);
+            height: calc(100vh - 120px);
         }
         
         /* Search Section */
@@ -139,35 +139,15 @@
             font-size: 18px;
         }
         
-        /* Enhanced Ticker Type Filter */
-        .ticker-type-filter {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-bottom: 10px;
+        /* Search Status Indicator */
+        .search-status {
+            font-size: 12px;
+            color: #888;
+            text-align: center;
+            margin-top: 5px;
         }
-        .type-toggle {
-            background: #252525;
-            border: 1px solid #383838;
-            color: #ccc;
-            padding: 4px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 11px;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .type-toggle:hover {
-            background: #333;
-            border-color: #555;
-        }
-        .type-toggle.active {
-            background: #00dd77;
-            color: #000;
-            border-color: #00dd77;
+        .search-status.active {
+            color: #00ff88;
         }
         
         /* Data Source Filter */
@@ -266,15 +246,6 @@
             background: #2a2a2a;
             padding: 4px 8px;
             border-radius: 4px;
-            text-transform: uppercase;
-        }
-        .search-item-type {
-            font-size: 10px;
-            color: #fff;
-            background: #0066cc;
-            padding: 2px 6px;
-            border-radius: 3px;
-            margin-left: 8px;
             text-transform: uppercase;
         }
         
@@ -396,34 +367,6 @@
             background: #00dd77;
             color: #000;
             font-weight: bold;
-        }
-        
-        /* Chart Display Controls */
-        .chart-display-controls {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            flex-wrap: wrap;
-            margin-top: 8px;
-        }
-        .display-toggle {
-            background: #252525;
-            border: 1px solid #383838;
-            color: #ccc;
-            padding: 4px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 11px;
-            transition: all 0.2s;
-        }
-        .display-toggle:hover {
-            background: #333;
-            border-color: #555;
-        }
-        .display-toggle.active {
-            background: #00dd77;
-            color: #000;
-            border-color: #00dd77;
         }
         
         .chart-canvas {
@@ -554,7 +497,7 @@
         }
         .add-watchlist:hover { background: #00ff88; }
         
-        /* CoinMarketCap Style Table */
+        /* Table Styles */
         .watchlist-table {
             width: 100%;
             border-collapse: collapse;
@@ -573,26 +516,6 @@
             position: sticky;
             top: 57px;
             z-index: 5;
-        }
-        
-        .watchlist-table th.sortable:hover {
-            background: #e8e8e8;
-        }
-        
-        .sort-indicator {
-            font-size: 10px;
-            margin-left: 4px;
-            color: #999;
-        }
-        
-        .sort-indicator.asc::after {
-            content: "▲";
-            color: #00dd77;
-        }
-        
-        .sort-indicator.desc::after {
-            content: "▼";
-            color: #ff4444;
         }
         
         .watchlist-table tbody tr {
@@ -652,26 +575,6 @@
             font-size: 11px;
         }
         
-        .edit-icon {
-            cursor: pointer;
-            opacity: 0;
-            transition: opacity 0.2s;
-            font-size: 12px;
-            color: #666;
-        }
-        
-        .symbol-cell:hover .edit-icon {
-            opacity: 1;
-        }
-        
-        .color-tag {
-            width: 8px;
-            height: 24px;
-            border-radius: 2px;
-            margin-right: 4px;
-            cursor: pointer;
-        }
-        
         .price-cell {
             font-weight: bold;
             color: #000;
@@ -686,25 +589,6 @@
         .positive { color: #00dd77; }
         .negative { color: #ff4444; }
         .neutral { color: #666; }
-        
-        /* Enhanced flashing animations for significant changes (15%+) */
-        @keyframes flashGreen {
-            0%, 100% { background-color: #fff; }
-            50% { background-color: #00ff8830; }
-        }
-        
-        @keyframes flashRed {
-            0%, 100% { background-color: #fff; }
-            50% { background-color: #ff444430; }
-        }
-        
-        .flash-green {
-            animation: flashGreen 2s ease-in-out infinite;
-        }
-        
-        .flash-red {
-            animation: flashRed 2s ease-in-out infinite;
-        }
         
         /* Loading */
         .loading-pulse { animation: pulse 1.5s infinite ease-in-out; }
@@ -758,28 +642,6 @@
             background: #00dd77;
         }
         
-        /* Liquidity Dashboard Alert */
-        .liquidity-alert {
-            background: linear-gradient(45deg, #ff4444, #ff6666);
-            color: #fff;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: bold;
-            animation: pulse 2s infinite;
-            cursor: pointer;
-        }
-        
-        .liquidity-alert.moderate {
-            background: linear-gradient(45deg, #ffaa00, #ffcc00);
-            color: #000;
-        }
-        
-        .liquidity-alert.low {
-            background: linear-gradient(45deg, #00dd77, #00ff88);
-            color: #000;
-        }
-        
         /* Info Panel */
         .info-panel {
             position: fixed;
@@ -820,8 +682,8 @@
         <div class="nav-logo">📊 OPENBB</div>
         <div class="nav-links">
             <a href="#" class="active">Platform</a>
-            <a href="#" onclick="showAPIInfo()">Lambda Search</a>
-            <a href="#" onclick="showEnhancedInfo()">Enhanced API</a>
+            <a href="#" onclick="showAPIInfo()">Lambda Search (6,204)</a>
+            <a href="#" onclick="showEnhancedInfo()">Enhanced API (60,000+)</a>
             <a href="#" onclick="showDocumentation()">Documentation</a>
         </div>
     </nav>
@@ -829,9 +691,6 @@
     <div class="header">
         <div class="logo">📊 OPENBB FINANCIAL INTELLIGENCE - 72,846+ INDICATORS</div>
         <div class="header-controls">
-            <div class="liquidity-alert" id="liquidityAlert" onclick="showLiquidityDashboard()" style="display: none;">
-                <span id="liquidityAlertText">Checking Liquidity...</span>
-            </div>
             <div class="api-status">
                 <div class="status-dot" id="apiStatus"></div>
                 <span id="apiStatusText">Checking connections...</span>
@@ -845,22 +704,13 @@
         <div class="search-section">
             <div class="search-container">
                 <input type="text" class="search-box" id="searchBox"
-                       placeholder="Search 72,846+ financial instruments (Stocks, ETFs, Crypto, Economic Data, Treasury, ECB Stress)..."
+                       placeholder="Search 72,846+ financial instruments (Try: Treasury, GDP, AAPL, SOFR, ECB Stress, University Michigan)..."
                        onkeyup="performSearch(this.value)"
                        autocomplete="off">
                 <span class="search-icon">🔍</span>
                 <div class="search-results" id="searchResults" style="display: none;"></div>
             </div>
-            
-            <div class="ticker-type-filter">
-                <button class="type-toggle active" data-type="CS" onclick="toggleTickerType('CS')">📈 Stocks</button>
-                <button class="type-toggle active" data-type="ETF" onclick="toggleTickerType('ETF')">🎯 ETFs</button>
-                <button class="type-toggle active" data-type="CRYPTO" onclick="toggleTickerType('CRYPTO')">₿ Crypto</button>
-                <button class="type-toggle active" data-type="MF" onclick="toggleTickerType('MF')">🏛️ Mutual Funds</button>
-                <button class="type-toggle active" data-type="BOND" onclick="toggleTickerType('BOND')">🏦 Bonds</button>
-                <button class="type-toggle active" data-type="INDEX" onclick="toggleTickerType('INDEX')">📊 Indices</button>
-                <button class="type-toggle active" data-type="OTHER" onclick="toggleTickerType('OTHER')">🔧 Other</button>
-            </div>
+            <div class="search-status" id="searchStatus">Lambda Search: Ready | Enhanced API: Ready</div>
             
             <div class="data-source-filter">
                 <button class="source-toggle active" data-source="lambda" onclick="toggleDataSource('lambda')">
@@ -870,30 +720,6 @@
                 <button class="source-toggle active" data-source="enhanced" onclick="toggleDataSource('enhanced')">
                     <span class="source-indicator" id="enhanced-indicator"></span>
                     Enhanced API (60,000+)
-                </button>
-                <button class="source-toggle active" data-source="polygon" onclick="toggleDataSource('polygon')">
-                    <span class="source-indicator" id="polygon-indicator"></span>
-                    Polygon
-                </button>
-                <button class="source-toggle active" data-source="fred" onclick="toggleDataSource('fred')">
-                    <span class="source-indicator" id="fred-indicator"></span>
-                    FRED
-                </button>
-                <button class="source-toggle active" data-source="ny_fed" onclick="toggleDataSource('ny_fed')">
-                    <span class="source-indicator" id="ny_fed-indicator"></span>
-                    NY Fed
-                </button>
-                <button class="source-toggle active" data-source="ecb" onclick="toggleDataSource('ecb')">
-                    <span class="source-indicator" id="ecb-indicator"></span>
-                    ECB
-                </button>
-                <button class="source-toggle active" data-source="ofr" onclick="toggleDataSource('ofr')">
-                    <span class="source-indicator" id="ofr-indicator"></span>
-                    OFR
-                </button>
-                <button class="source-toggle active" data-source="treasury" onclick="toggleDataSource('treasury')">
-                    <span class="source-indicator" id="treasury-indicator"></span>
-                    Treasury
                 </button>
             </div>
         </div>
@@ -909,20 +735,13 @@
                         <select class="watchlist-selector" id="watchlistSelector" onchange="switchWatchlist(this.value)">
                             <option value="MAIN">MAIN</option>
                             <option value="STOCKS">STOCKS</option>
-                            <option value="NY FED RATES">NY FED RATES</option>
-                            <option value="ECB SYSTEMIC STRESS">ECB SYSTEMIC STRESS</option>
-                            <option value="DOLLAR & EXCHANGE">DOLLAR & EXCHANGE</option>
-                            <option value="GLOBAL LIQUIDITY">GLOBAL LIQUIDITY</option>
-                            <option value="ECONOMIC INDICATORS">ECONOMIC INDICATORS</option>
-                            <option value="RATES & MONETARY">RATES & MONETARY</option>
-                            <option value="OFR FUNDING MONITOR">OFR FUNDING MONITOR</option>
-                            <option value="TREASURY AUCTIONS">TREASURY AUCTIONS</option>
+                            <option value="ECONOMIC">ECONOMIC INDICATORS</option>
                         </select>
                     </div>
                     <div class="watchlist-controls">
-                        <button class="sort-button" onclick="changeSortOrder('default')" id="sortDefault">Default</button>
-                        <button class="sort-button" onclick="changeSortOrder('increase')" id="sortIncrease">↑ Largest Increase</button>
-                        <button class="sort-button" onclick="changeSortOrder('decrease')" id="sortDecrease">↓ Largest Decrease</button>
+                        <button class="sort-button active" id="sortDefault" onclick="changeSortOrder('default')">Default</button>
+                        <button class="sort-button" id="sortIncrease" onclick="changeSortOrder('increase')">↑ Increase</button>
+                        <button class="sort-button" id="sortDecrease" onclick="changeSortOrder('decrease')">↓ Decrease</button>
                         <button class="control-btn" onclick="showChartView()" id="chartViewBtn" style="display: none;">📊 Chart View</button>
                         <button class="add-watchlist" onclick="document.getElementById('searchBox').focus()">+ Add Symbol</button>
                     </div>
@@ -932,20 +751,11 @@
                         <tr>
                             <th>Name</th>
                             <th class="text-right">Price / Value</th>
-                            <th class="text-right">Daily Change (Units)</th>
-                            <th class="text-right sortable" onclick="sortByColumn('1d')" style="cursor: pointer;">
-                                1D % <span class="sort-indicator" id="sort-1d"></span>
-                            </th>
-                            <th class="text-right sortable" onclick="sortByColumn('1w')" style="cursor: pointer;">
-                                1W % <span class="sort-indicator" id="sort-1w"></span>
-                            </th>
-                            <th class="text-right sortable" onclick="sortByColumn('1m')" style="cursor: pointer;">
-                                1M % <span class="sort-indicator" id="sort-1m"></span>
-                            </th>
-                            <th class="text-right sortable" onclick="sortByColumn('1y')" style="cursor: pointer;">
-                                1Y % <span class="sort-indicator" id="sort-1y"></span>
-                            </th>
-                            <th class="text-right">Yearly Change (Units)</th>
+                            <th class="text-right">Daily Change</th>
+                            <th class="text-right">1D %</th>
+                            <th class="text-right">1W %</th>
+                            <th class="text-right">1M %</th>
+                            <th class="text-right">1Y %</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -957,225 +767,47 @@
     </div>
     
     <script>
-        // Configuration for production access
-        let LAMBDA_API = 'https://i3y8tfdp1k.execute-api.us-east-1.amazonaws.com/prod';
-        let ENHANCED_API_IP = '52.72.62.43';
-        let ENHANCED_API_BASE = `http://${ENHANCED_API_IP}:8000/api/v1`;
-        let ENHANCED_API = ENHANCED_API_BASE;
+        // Configuration
+        const LAMBDA_API = 'https://i3y8tfdp1k.execute-api.us-east-1.amazonaws.com/prod';
+        const ENHANCED_API_IP = '52.72.62.43';
+        const ENHANCED_API = `http://${ENHANCED_API_IP}:8000/api/v1`;
         
-        // Enhanced data source configurations
-        const DATA_SOURCES = {
-            lambda: {
-                name: 'Lambda Platform',
-                endpoint: LAMBDA_API,
-                count: 6204,
-                active: true
-            },
-            enhanced: {
-                name: 'Enhanced OpenBB API',
-                endpoint: ENHANCED_API,
-                count: 60000,
-                active: true
-            },
-            polygon: {
-                name: 'Polygon Financial Data',
-                provider: 'polygon_direct',
-                active: true,
-                searchSymbols: ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'SPY', 'QQQ', 'IWM', 'VTI', 'VOO', 'NVDA', 'META', 'NFLX', 'CRM', 'AMD']
-            },
-            fred: {
-                name: 'Federal Reserve Economic Data',
-                provider: 'fred',
-                active: true,
-                searchSymbols: [
-                    'FEDFUNDS', 'UNRATE', 'GDP', 'CPIAUCSL', 'DFF', 'M2SL', 'PAYEMS', 'HOUST', 'INDPRO',
-                    'DTWEXBGS', 'DTWEXAFEGS', 'DTWEXEMEGS', 'DGS10', 'DGS2', 'DGS30', 'DGS5', 'DGS1',
-                    'RESPPNTEPNWW', 'RESPPALGUOXAWXCH52NWW', 'RESPPALGUONNWW', 'SWP1690', 'OTHL1690',
-                    'SUBLPDCISTQNQ', 'DRISCFLM', 'RMFSL', 'SBCACBW027SBOG', 'MABMM301EZM189S',
-                    'DRISCFS', 'MABMM301JPM189S', 'TREAS911Y', 'RREP15', 'OTHL15', 'RESH4MFNWW',
-                    'BOGZ1FL663067003Q', 'BOGMBASE', 'WSHOSHO', 'WRESBAL', 'TOTRESNS', 'NONBORRES',
-                    'NFCINONFINLEVERAGE', 'FRBKCLMCIM', 'AMTMUO', 'TREAS1590', 'T10YIE', 'AMERIBOR',
-                    'INTGSTMXM193N', 'WLCFLPCL', 'CC4WSA', 'VIXCLS', 'ISRATIO', 'MNFCTRIRSA', 'SOFR', 'EFFR', 'OBFR',
-                    'BAMLC0A1CAAA', 'BAMLC4A0C710YEY', 'BAMLEMCBPIOAS', 'BAMLCC0A0CMTRIV', 'BAMLEMHBHYCRPIOAS',
-                    'BAMLHE00EHYITRIV', 'BAMLC1A0C13YEY', 'BAMLEMHBHYCRPIEY', 'BAMLC2A0C35YEY', 'BAMLC8A0C15PYEY'
-                ]
-            },
-            ny_fed: {
-                name: 'New York Federal Reserve',
-                provider: 'ny_fed',
-                active: true,
-                searchSymbols: ['sofr', 'effr', 'obfr', 'tgcr', 'bgcr']
-            },
-            ecb: {
-                name: 'European Central Bank',
-                provider: 'ecb',
-                active: true,
-                searchSymbols: [
-                    'EXR.D.USD.EUR.SP00.A', 'EXR.D.GBP.EUR.SP00.A', 'EXR.D.JPY.EUR.SP00.A',
-                    'CISS.D.CN.Z0Z.4F.EC.SS_CIN.IDX', 'CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX', 'CISS.D.US.Z0Z.4F.EC.SS_CI.IDX',
-                    'CISS.M.SE.Z0Z.4F.EC.SOV_CI.IDX', 'CISS.M.FR.Z0Z.4F.EC.SOV_CI.IDX', 'CISS.M.FI.Z0Z.4F.EC.SOV_CI.IDX',
-                    'CISS.M.DK.Z0Z.4F.EC.SOV_CI.IDX', 'CISS.M.GB.Z0Z.4F.EC.SOV_CI.IDX', 'CISS.M.BE.Z0Z.4F.EC.SOV_CI.IDX',
-                    'CLIFS.M.DE._Z.4F.EC.CLIFS_CI.IDX', 'ILM.W.U2.C.A030000.U2.Z06', 'ILM.W.U2.C.L060000.U4.EUR',
-                    'BSI.W.U2.N.A.A20.A.1.U2.2240.Z01.E', 'BSI.W.U2.N.A.A30.A.1.U2.2240.Z01.E'
-                ]
-            },
-            ofr: {
-                name: 'Office of Financial Research',
-                provider: 'ofr',
-                active: true,
-                searchSymbols: [
-                    'NYPD-PD_AFtR_T-A', 'NYPD-PD_AFtD_TOT-A', 'REPO_OV_TOT_P75', 'REPO_OV_TOT_P25',
-                    'MMF_OV_TOT', 'DEALER_OV_TOT', 'BANK_OV_TOT', 'TGCR_VOL', 'SOFR_VOL'
-                ]
-            },
-            treasury: {
-                name: 'US Treasury Direct',
-                provider: 'treasury',
-                active: true,
-                searchSymbols: [
-                    'BILLS_4W', 'BILLS_8W', 'BILLS_13W', 'BILLS_17W', 'BILLS_26W', 'BILLS_52W',
-                    'NOTES_2Y', 'NOTES_3Y', 'NOTES_5Y', 'NOTES_7Y', 'NOTES_10Y',
-                    'BONDS_20Y', 'BONDS_30Y', 'TIPS_5Y', 'TIPS_10Y', 'TIPS_20Y', 'TIPS_30Y'
-                ]
-            }
-        };
-
-        // Ticker type configuration
-        const TICKER_TYPES = {
-            CS: { name: 'Common Stock', active: true },
-            ETF: { name: 'Exchange Traded Fund', active: true },
-            CRYPTO: { name: 'Cryptocurrency', active: true },
-            MF: { name: 'Mutual Fund', active: true },
-            BOND: { name: 'Bond', active: true },
-            INDEX: { name: 'Index', active: true },
-            OTHER: { name: 'Other (ADR, REIT, etc.)', active: true }
-        };
-        
-        let activeTickerTypes = Object.keys(TICKER_TYPES);
-        let activeSources = ['lambda', 'enhanced', 'polygon', 'fred', 'ny_fed', 'ecb', 'ofr', 'treasury'];
+        // Global state
+        let lambdaWorking = false;
+        let enhancedWorking = false;
+        let activeSources = ['lambda', 'enhanced'];
         let searchTimeout = null;
         
+        // Charts
         const charts = {};
         let chartIdCounter = 0;
         let activeChartId = null;
         
-        // Enhanced watchlists - Using enhanced provider where available
+        // Watchlists
         const watchlists = {
             'MAIN': {
                 symbols: [
                     { symbol: 'AAPL', provider: 'enhanced' },
-                    { symbol: 'FEDFUNDS', provider: 'enhanced' },
-                    { symbol: 'UNRATE', provider: 'enhanced' },
-                    { symbol: 'SOFR', provider: 'enhanced' },
-                    { symbol: 'DGS10', provider: 'enhanced' },
-                    { symbol: 'VIXCLS', provider: 'enhanced' },
                     { symbol: 'SPY', provider: 'enhanced' },
-                    { symbol: 'QQQ', provider: 'enhanced' }
-                ],
-                active: true
+                    { symbol: 'DGS10', provider: 'enhanced' },
+                    { symbol: 'SOFR', provider: 'enhanced' }
+                ]
             },
             'STOCKS': {
                 symbols: [
                     { symbol: 'AAPL', provider: 'enhanced' },
                     { symbol: 'MSFT', provider: 'enhanced' },
                     { symbol: 'GOOGL', provider: 'enhanced' },
-                    { symbol: 'AMZN', provider: 'enhanced' },
-                    { symbol: 'TSLA', provider: 'enhanced' },
-                    { symbol: 'SPY', provider: 'enhanced' },
-                    { symbol: 'QQQ', provider: 'enhanced' },
-                    { symbol: 'NVDA', provider: 'enhanced' },
-                    { symbol: 'META', provider: 'enhanced' },
-                    { symbol: 'NFLX', provider: 'enhanced' }
-                ],
-                active: false
+                    { symbol: 'AMZN', provider: 'enhanced' }
+                ]
             },
-            'NY FED RATES': {
-                symbols: [
-                    { symbol: 'SOFR', provider: 'enhanced' },
-                    { symbol: 'EFFR', provider: 'enhanced' },
-                    { symbol: 'OBFR', provider: 'enhanced' }
-                ],
-                active: false
-            },
-            'ECB SYSTEMIC STRESS': {
-                symbols: [
-                    { symbol: 'CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX', provider: 'lambda' },
-                    { symbol: 'CISS.D.US.Z0Z.4F.EC.SS_CI.IDX', provider: 'lambda' },
-                    { symbol: 'CISS.D.CN.Z0Z.4F.EC.SS_CIN.IDX', provider: 'lambda' },
-                    { symbol: 'CISS.M.SE.Z0Z.4F.EC.SOV_CI.IDX', provider: 'lambda' },
-                    { symbol: 'CISS.M.FR.Z0Z.4F.EC.SOV_CI.IDX', provider: 'lambda' },
-                    { symbol: 'CISS.M.GB.Z0Z.4F.EC.SOV_CI.IDX', provider: 'lambda' },
-                    { symbol: 'CLIFS.M.DE._Z.4F.EC.CLIFS_CI.IDX', provider: 'lambda' }
-                ],
-                active: false
-            },
-            'DOLLAR & EXCHANGE': {
-                symbols: [
-                    { symbol: 'DTWEXBGS', provider: 'enhanced' },
-                    { symbol: 'DTWEXAFEGS', provider: 'enhanced' },
-                    { symbol: 'DTWEXEMEGS', provider: 'enhanced' }
-                ],
-                active: false
-            },
-            'GLOBAL LIQUIDITY': {
-                symbols: [
-                    { symbol: 'RESPPNTEPNWW', provider: 'enhanced' },
-                    { symbol: 'M2SL', provider: 'enhanced' },
-                    { symbol: 'BOGMBASE', provider: 'enhanced' },
-                    { symbol: 'TOTRESNS', provider: 'enhanced' }
-                ],
-                active: false
-            },
-            'ECONOMIC INDICATORS': {
+            'ECONOMIC': {
                 symbols: [
                     { symbol: 'GDP', provider: 'enhanced' },
                     { symbol: 'UNRATE', provider: 'enhanced' },
                     { symbol: 'CPIAUCSL', provider: 'enhanced' },
-                    { symbol: 'PAYEMS', provider: 'enhanced' },
-                    { symbol: 'INDPRO', provider: 'enhanced' },
-                    { symbol: 'HOUST', provider: 'enhanced' },
-                    { symbol: 'ISRATIO', provider: 'enhanced' },
-                    { symbol: 'MNFCTRIRSA', provider: 'enhanced' }
-                ],
-                active: false
-            },
-            'RATES & MONETARY': {
-                symbols: [
-                    { symbol: 'FEDFUNDS', provider: 'enhanced' },
-                    { symbol: 'DGS10', provider: 'enhanced' },
-                    { symbol: 'DGS2', provider: 'enhanced' },
-                    { symbol: 'DGS30', provider: 'enhanced' },
-                    { symbol: 'SOFR', provider: 'enhanced' },
-                    { symbol: 'EFFR', provider: 'enhanced' },
-                    { symbol: 'M2SL', provider: 'enhanced' }
-                ],
-                active: false
-            },
-            'OFR FUNDING MONITOR': {
-                symbols: [
-                    { symbol: 'NYPD-PD_AFtR_T-A', provider: 'lambda' },
-                    { symbol: 'NYPD-PD_AFtD_TOT-A', provider: 'lambda' },
-                    { symbol: 'REPO_OV_TOT_P75', provider: 'lambda' },
-                    { symbol: 'REPO_OV_TOT_P25', provider: 'lambda' },
-                    { symbol: 'MMF_OV_TOT', provider: 'lambda' },
-                    { symbol: 'DEALER_OV_TOT', provider: 'lambda' }
-                ],
-                active: false
-            },
-            'TREASURY AUCTIONS': {
-                symbols: [
-                    { symbol: 'BILLS_4W', provider: 'lambda' },
-                    { symbol: 'BILLS_13W', provider: 'lambda' },
-                    { symbol: 'BILLS_26W', provider: 'lambda' },
-                    { symbol: 'BILLS_52W', provider: 'lambda' },
-                    { symbol: 'NOTES_2Y', provider: 'lambda' },
-                    { symbol: 'NOTES_5Y', provider: 'lambda' },
-                    { symbol: 'NOTES_10Y', provider: 'lambda' },
-                    { symbol: 'BONDS_30Y', provider: 'lambda' },
-                    { symbol: 'TIPS_10Y', provider: 'lambda' },
-                    { symbol: 'TIPS_30Y', provider: 'lambda' }
-                ],
-                active: false
+                    { symbol: 'DGS10', provider: 'enhanced' }
+                ]
             }
         };
         
@@ -1183,50 +815,19 @@
         let watchlistSymbols = [];
         let watchlistData = {};
         let sortOrder = 'default';
-        let columnSort = { column: null, direction: null };
         
-        // Color palette for charts
-        const colorPalette = [
-            '#00AEEF', '#FF4444', '#F4D03F', '#58D68D', '#FF7043',
-            '#AF7AC5', '#48C9B0', '#EC7063', '#5DADE2', '#F5B041'
-        ];
-        
-        // Enhanced flashing logic
-        let flashTimers = {};
-
-        // Initialize the dashboard
+        // Initialize
         async function init() {
             updateClock();
             setInterval(updateClock, 1000);
             
-            // Set refresh timer variables
-            let lastRefreshTime = Date.now();
-            const REFRESH_INTERVAL = 60000; // 60 seconds
-            
             loadWatchlists();
             await checkAPIConnections();
-            
-            // Show info panel on first load
             showInfoPanel();
-            
-            // Load watchlist data
             loadWatchlistData();
             
-            // Set up intelligent refresh that prevents too frequent updates
-            setInterval(() => {
-                const now = Date.now();
-                if (now - lastRefreshTime >= REFRESH_INTERVAL) {
-                    loadWatchlistData();
-                    lastRefreshTime = now;
-                }
-            }, REFRESH_INTERVAL);
-            
-            // Load liquidity dashboard if available
-            setInterval(loadLiquidityDashboard, 300000);
-            loadLiquidityDashboard();
-            
-            updateSortButtons();
-            document.getElementById('searchBox').focus();
+            // Refresh data every 60 seconds
+            setInterval(loadWatchlistData, 60000);
         }
         
         // Show info panel
@@ -1236,14 +837,10 @@
             infoPanel.innerHTML = `
                 <h3>🚀 OpenBB Financial Platform Ready!</h3>
                 <p><strong>✅ 72,846+ indicators available</strong></p>
-                <p>Connected APIs:</p>
                 <ul style="margin: 10px 0; padding-left: 20px;">
                     <li id="lambda-status">⏳ Lambda Platform: Checking...</li>
                     <li id="enhanced-status">⏳ Enhanced API: Checking...</li>
                 </ul>
-                <p style="margin-top: 15px; font-size: 11px;">
-                    <strong>Note:</strong> If APIs are unavailable, demo data will be shown temporarily.
-                </p>
                 <button onclick="this.parentElement.remove()">Got it!</button>
             `;
             document.body.appendChild(infoPanel);
@@ -1251,853 +848,47 @@
 
         // Check API connections
         async function checkAPIConnections() {
-            let connectedCount = 0;
-            
-            // Test Lambda Platform stats endpoint
+            // Test Lambda Platform
             try {
-                const testUrl = `${LAMBDA_API}/api/search/stats`;
-                const lambdaResponse = await fetch(testUrl, {
-                    method: 'GET',
-                    mode: 'cors',
-                    credentials: 'omit',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (lambdaResponse.ok) {
-                    const data = await lambdaResponse.json();
-                    console.log('Lambda Platform connected:', data);
-                    document.getElementById('lambda-indicator').classList.add('connected');
-                    lambdaStatsWorking = true;
-                    connectedCount++;
-                    
-                    // Update info panel
-                    const lambdaStatus = document.getElementById('lambda-status');
-                    if (lambdaStatus) {
-                        lambdaStatus.innerHTML = `✅ Lambda Platform: ${data.document_count} indicators (Stats working)`;
-                    }
-                }
-                
-                // Test Lambda search endpoint
-                try {
-                    const searchUrl = `${LAMBDA_API}/api/search?query=treasury&limit=1`;
-                    const searchResponse = await fetch(searchUrl, {
-                        method: 'GET',
-                        mode: 'cors',
-                        credentials: 'omit',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        }
-                    });
-
-                    if (searchResponse.ok) {
-                        const searchData = await searchResponse.json();
-                        if (searchData.results && searchData.results.length > 0) {
-                            lambdaSearchWorking = true;
-                            console.log('Lambda search is working with CORS fixed!');
-                            
-                            // Update info panel to show search is working
-                            const lambdaStatus = document.getElementById('lambda-status');
-                            if (lambdaStatus && data) {
-                                lambdaStatus.innerHTML = `✅ Lambda Platform: ${data.document_count} indicators (Search & Stats working with CORS!)`;
-                            }
-                        }
-                    }
-                } catch (searchError) {
-                    console.warn('Lambda search endpoint test failed:', searchError);
-                    // Lambda search might have CORS issues, but stats is working
-                    if (lambdaStatsWorking) {
-                        const lambdaStatus = document.getElementById('lambda-status');
-                        if (lambdaStatus) {
-                            lambdaStatus.innerHTML = `⚠️ Lambda Platform: ${data.document_count} indicators (Stats working, Search has CORS issues)`;
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error('Lambda Platform check failed:', error);
-                document.getElementById('lambda-indicator').classList.remove('connected');
-                const lambdaStatus = document.getElementById('lambda-status');
-                if (lambdaStatus) {
-                    lambdaStatus.innerHTML = '❌ Lambda Platform: Offline';
-                }
-            }
-            
-            // Test Enhanced API - check with current IP
-            const enhancedIPs = ['52.72.62.43', '54.236.52.97', '3.93.164.68']; // Multiple IPs to try
-            let enhancedConnected = false;
-            
-            for (const ip of enhancedIPs) {
-                if (enhancedConnected) break;
-                
-                try {
-                    const testUrl = `http://${ip}:8000/api/v1/economy/survey/university_of_michigan?provider=fred`;
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 3000);
-                    
-                    const enhancedResponse = await fetch(testUrl, {
-                        method: 'GET',
-                        mode: 'cors',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
-                        signal: controller.signal
-                    }).finally(() => clearTimeout(timeoutId));
-                    
-                    if (enhancedResponse.ok) {
-                        // Update the global IP to the working one
-                        ENHANCED_API_IP = ip;
-                        ENHANCED_API_BASE = `http://${ip}:8000/api/v1`;
-                        ENHANCED_API = ENHANCED_API_BASE;
-                        
-                        document.getElementById('enhanced-indicator').classList.add('connected');
-                        connectedCount++;
-                        enhancedConnected = true;
-                        console.log(`Enhanced API connected at IP: ${ip}`);
-                        
-                        // Update info panel
-                        const enhancedStatus = document.getElementById('enhanced-status');
-                        if (enhancedStatus) {
-                            enhancedStatus.innerHTML = `✅ Enhanced API: 60,000+ indicators (IP: ${ip})`;
-                        }
-                    }
-                } catch (error) {
-                    console.warn(`Enhanced API not accessible at ${ip}:`, error.message);
-                }
-            }
-            
-            if (!enhancedConnected) {
-                document.getElementById('enhanced-indicator').classList.remove('connected');
-                const enhancedStatus = document.getElementById('enhanced-status');
-                if (enhancedStatus) {
-                    enhancedStatus.innerHTML = '❌ Enhanced API: Offline';
-                }
-            }
-            
-            // Update overall status
-            if (lambdaStatsWorking || enhancedConnected) {
-                const statusText = lambdaStatsWorking && !lambdaSearchWorking ? 
-                    'Lambda Stats working (Search has CORS issues) - Using demo data' : 
-                    enhancedConnected ? 'Enhanced API Connected' : 'Demo Mode';
-                document.getElementById('apiStatusText').textContent = statusText;
-                document.getElementById('apiStatus').classList.add('connected');
-            } else {
-                document.getElementById('apiStatusText').textContent = 'Demo Mode - APIs unavailable';
-                document.getElementById('apiStatus').classList.add('connected'); // Still show as "connected" for demo
-            }
-        }
-        
-        // Load single watchlist item with real data
-        async function loadSingleWatchlistItem(symbol, provider) {
-            if (!symbol || symbol === 'undefined') return;
-            
-            try {
-                console.log(`Loading ${symbol} from ${provider}`);
-                
-                // Check which APIs are actually working
-                const enhancedWorking = document.getElementById('enhanced-indicator').classList.contains('connected');
-                const lambdaWorking = lambdaSearchWorking || document.getElementById('lambda-indicator').classList.contains('connected');
-                
-                // Don't throw error if at least Lambda stats is working
-                if (!enhancedWorking && !lambdaWorking && !lambdaStatsWorking) {
-                    throw new Error('No APIs available');
-                }
-                
-                let url;
-                let options = {
-                    method: 'GET',
-                    mode: 'cors',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json',
-                        'Origin': window.location.origin
-                    },
-                    credentials: 'omit'
-                };
-                
-                // Try Enhanced API first if it's working
-                if (enhancedWorking && (provider === 'enhanced' || provider === 'fred')) {
-                    // For FRED data through Enhanced API
-                    if (['FEDFUNDS', 'UNRATE', 'GDP', 'CPIAUCSL', 'DFF', 'M2SL', 'PAYEMS', 'DGS10', 'DGS2', 
-                         'DTWEXBGS', 'DTWEXAFEGS', 'DTWEXEMEGS', 'SOFR', 'EFFR', 'OBFR', 'VIXCLS',
-                         'HOUST', 'INDPRO', 'ISRATIO', 'MNFCTRIRSA', 'RESPPNTEPNWW', 'BOGMBASE', 'TOTRESNS'].includes(symbol)) {
-                        url = `${ENHANCED_API}/economy/fred/series?symbol=${encodeURIComponent(symbol)}&provider=fred`;
-                    } 
-                    // For stock data through yfinance
-                    else if (['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'SPY', 'QQQ', 'NVDA', 'META', 'NFLX'].includes(symbol)) {
-                        url = `${ENHANCED_API}/equity/quote?symbol=${encodeURIComponent(symbol)}&provider=yfinance`;
-                    }
-                }
-                
-                // Try Lambda if Enhanced API doesn't have the endpoint
-                if (!url && (lambdaSearchWorking || lambdaStatsWorking) && (provider === 'lambda' || !enhancedWorking)) {
-                    // Lambda search with exact match
-                    url = `${LAMBDA_API}/api/search?query="${encodeURIComponent(symbol)}"&limit=1`;
-                    console.log('Attempting Lambda search API');
-                }
-                
-                if (!url) {
-                    throw new Error('No appropriate API endpoint found');
-                }
-                
-                console.log(`Fetching from: ${url}`);
-                
-                // Add timeout and better error handling
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 10000);
-                options.signal = controller.signal;
-                
-                try {
-                    const response = await fetch(url, options);
-                    clearTimeout(timeoutId);
-                    
-                    if (!response.ok) {
-                        console.warn(`API returned ${response.status} for ${symbol}`);
-                        throw new Error(`API returned ${response.status}`);
-                    }
-                    
+                const response = await fetch(`${LAMBDA_API}/api/search/stats`);
+                if (response.ok) {
                     const data = await response.json();
-                    console.log(`Data received for ${symbol}:`, data);
-                    
-                    // Process based on response structure
-                    if (data.results && Array.isArray(data.results) && data.results.length > 0) {
-                        // Enhanced API format for FRED data
-                        processEnhancedData(symbol, data.results, provider);
-                    } else if (data.data && Array.isArray(data.data)) {
-                        // Alternative Enhanced API format
-                        processEnhancedData(symbol, data.data, provider);
-                    } else if (data.total_hits && data.results && data.results.length > 0) {
-                        // Lambda search format
-                        processLambdaData(symbol, data.results[0], provider);
-                    } else if (data.symbol && data.price) {
-                        // Stock quote format
-                        processStockQuoteData(symbol, data, provider);
-                    } else {
-                        console.warn(`No data found for ${symbol}`);
-                        throw new Error('No data in response');
-                    }
-                } catch (fetchError) {
-                    // Handle specific CORS error
-                    if (fetchError.name === 'TypeError' && fetchError.message.includes('Failed to fetch')) {
-                        console.error(`CORS error loading ${symbol} - API may not have proper CORS headers`);
-                    }
-                    throw fetchError;
+                    lambdaWorking = true;
+                    document.getElementById('lambda-indicator').classList.add('connected');
+                    const status = document.getElementById('lambda-status');
+                    if (status) status.innerHTML = `✅ Lambda Platform: ${data.document_count} indicators`;
                 }
-                
             } catch (error) {
-                console.warn(`Failed to load ${symbol} from API:`, error.message);
-                // Use demo data when APIs are unavailable
-                const demoData = generateDemoData(symbol);
-                watchlistData[symbol] = demoData;
-                renderWatchlist();
+                console.error('Lambda check failed:', error);
             }
-        }
-        
-        // Generate demo data for symbols
-        function generateDemoData(symbol) {
-            const symbolDatabase = {
-                // Stocks
-                'AAPL': { name: 'Apple Inc.', basePrice: 195.89, volatility: 2.5 },
-                'MSFT': { name: 'Microsoft Corporation', basePrice: 415.26, volatility: 2.2 },
-                'GOOGL': { name: 'Alphabet Inc.', basePrice: 142.57, volatility: 2.8 },
-                'AMZN': { name: 'Amazon.com Inc.', basePrice: 178.35, volatility: 3.1 },
-                'TSLA': { name: 'Tesla Inc.', basePrice: 251.12, volatility: 4.5 },
-                'SPY': { name: 'SPDR S&P 500 ETF', basePrice: 452.16, volatility: 1.8 },
-                'QQQ': { name: 'Invesco QQQ Trust', basePrice: 393.24, volatility: 2.1 },
-                'NVDA': { name: 'NVIDIA Corporation', basePrice: 495.22, volatility: 3.8 },
-                'META': { name: 'Meta Platforms Inc.', basePrice: 334.21, volatility: 3.2 },
-                'NFLX': { name: 'Netflix Inc.', basePrice: 445.73, volatility: 3.5 },
-                
-                // Economic Indicators
-                'FEDFUNDS': { name: 'Federal Funds Rate', basePrice: 5.33, volatility: 0.1 },
-                'UNRATE': { name: 'Unemployment Rate', basePrice: 4.0, volatility: 0.3 },
-                'GDP': { name: 'Gross Domestic Product', basePrice: 27946.8, volatility: 0.8 },
-                'CPIAUCSL': { name: 'Consumer Price Index', basePrice: 310.326, volatility: 0.4 },
-                'DFF': { name: 'Daily Federal Funds Rate', basePrice: 5.33, volatility: 0.05 },
-                'M2SL': { name: 'M2 Money Supply', basePrice: 20867.4, volatility: 0.6 },
-                'PAYEMS': { name: 'Total Nonfarm Payrolls', basePrice: 157234, volatility: 0.2 },
-                'DGS10': { name: '10-Year Treasury Rate', basePrice: 4.426, volatility: 0.15 },
-                'DGS2': { name: '2-Year Treasury Rate', basePrice: 4.852, volatility: 0.12 },
-                'VIXCLS': { name: 'CBOE Volatility Index', basePrice: 13.20, volatility: 5.0 },
-                'SOFR': { name: 'Secured Overnight Financing Rate', basePrice: 5.31, volatility: 0.02 },
-                'EFFR': { name: 'Effective Federal Funds Rate', basePrice: 5.33, volatility: 0.01 },
-                'OBFR': { name: 'Overnight Bank Funding Rate', basePrice: 5.32, volatility: 0.02 },
-                
-                // Default for unknown symbols
-                'DEFAULT': { name: symbol, basePrice: 100, volatility: 2.0 }
-            };
             
-            const config = symbolDatabase[symbol] || symbolDatabase['DEFAULT'];
-            
-            // Generate realistic changes
-            const volatility = config.volatility;
-            const dailyChange = (Math.random() - 0.5) * volatility;
-            const weeklyChange = dailyChange + (Math.random() - 0.5) * volatility * 1.5;
-            const monthlyChange = weeklyChange + (Math.random() - 0.5) * volatility * 2;
-            const yearlyChange = monthlyChange + (Math.random() - 0.5) * volatility * 5;
-            
-            const price = config.basePrice;
-            const dailyUnits = price * (dailyChange / 100);
-            const yearlyUnits = price * (yearlyChange / 100);
-            
-            return {
-                name: config.name,
-                provider: 'demo',
-                price: price,
-                changes: {
-                    '1d': dailyChange,
-                    '1w': weeklyChange,
-                    '1m': monthlyChange,
-                    '1y': yearlyChange
-                },
-                changeUnits: {
-                    'daily': dailyUnits,
-                    'yearly': yearlyUnits
-                },
-                hasData: true,
-                lastUpdateTime: Date.now(),
-                isDemo: true
-            };
-        }
-        
-        // Process stock quote data
-        function processStockQuoteData(symbol, data, provider) {
-            watchlistData[symbol] = {
-                name: data.name || symbol,
-                provider: provider,
-                price: data.price || data.last_price || 0,
-                changes: {
-                    '1d': data.change_percent || data.percent_change || 0,
-                    '1w': data.week_change_percent || 0,
-                    '1m': data.month_change_percent || 0,
-                    '1y': data.year_change_percent || 0
-                },
-                changeUnits: {
-                    'daily': data.change || 0,
-                    'yearly': data.year_change || 0
-                },
-                hasData: true,
-                lastUpdateTime: Date.now()
-            };
-            
-            checkForSignificantChanges(symbol, watchlistData[symbol].changes);
-            renderWatchlist();
-        }
-        
-        // Process Lambda data
-        function processLambdaData(symbol, data, provider) {
-            const source = data._source || data;
-            
-            const latestValue = source.value || source.latest_value || source.last || 0;
-            const name = source.name || source.title || symbol;
-            
-            watchlistData[symbol] = {
-                name: name,
-                provider: provider,
-                price: latestValue,
-                changes: {
-                    '1d': source.daily_change || source.change_1d || 0,
-                    '1w': source.weekly_change || source.change_1w || 0,
-                    '1m': source.monthly_change || source.change_1m || 0,
-                    '1y': source.yearly_change || source.change_1y || 0
-                },
-                changeUnits: {
-                    'daily': source.daily_change_units || 0,
-                    'yearly': source.yearly_change_units || 0
-                },
-                hasData: true,
-                lastUpdateTime: Date.now(),
-                metadata: {
-                    source: source.source || 'lambda',
-                    last_updated: source.last_updated || new Date().toISOString(),
-                    unit: source.unit || source.units || ''
+            // Test Enhanced API
+            try {
+                const response = await fetch(`${ENHANCED_API}/economy/survey/university_of_michigan?provider=fred`);
+                if (response.ok) {
+                    enhancedWorking = true;
+                    document.getElementById('enhanced-indicator').classList.add('connected');
+                    const status = document.getElementById('enhanced-status');
+                    if (status) status.innerHTML = `✅ Enhanced API: 60,000+ indicators`;
                 }
-            };
+            } catch (error) {
+                console.error('Enhanced API check failed:', error);
+            }
             
-            checkForSignificantChanges(symbol, watchlistData[symbol].changes);
-            renderWatchlist();
+            // Update status
+            document.getElementById('apiStatus').classList.add('connected');
+            document.getElementById('apiStatusText').textContent = `Connected: ${(lambdaWorking ? 1 : 0) + (enhancedWorking ? 1 : 0)} APIs`;
+            updateSearchStatus();
         }
         
-        // Process Enhanced API data
-        function processEnhancedData(symbol, dataArray, provider) {
-            if (!dataArray || dataArray.length === 0) {
-                console.warn(`No data array for ${symbol}`);
-                return;
-            }
-            
-            // Handle different data structures from Enhanced API
-            let processedData = [];
-            
-            // Check if it's FRED time series data
-            if (dataArray[0].date && (dataArray[0].value !== undefined || dataArray[0].data !== undefined)) {
-                processedData = dataArray.map(item => ({
-                    date: item.date,
-                    value: item.value || item.data || 0
-                }));
-            } else if (dataArray[0].inflation_expectation !== undefined) {
-                // University of Michigan survey data
-                processedData = dataArray.map(item => ({
-                    date: item.date,
-                    value: item.inflation_expectation || item.consumer_sentiment || 0
-                }));
-            } else if (dataArray[0].gdp !== undefined || dataArray[0].value !== undefined) {
-                // GDP data
-                processedData = dataArray.map(item => ({
-                    date: item.date || item.period,
-                    value: item.gdp || item.value || 0
-                }));
-            }
-            
-            if (processedData.length === 0) {
-                console.warn(`Could not process data for ${symbol}`);
-                return;
-            }
-            
-            // Sort by date
-            processedData.sort((a, b) => new Date(a.date) - new Date(b.date));
-            
-            const latestItem = processedData[processedData.length - 1];
-            const latestValue = latestItem.value;
-            
-            // Calculate changes
-            const changes = calculatePercentageChanges(processedData);
-            const changeUnits = calculateUnitChanges(processedData);
-            
-            // Get proper name for the symbol
-            const symbolNames = {
-                'FEDFUNDS': 'Federal Funds Rate',
-                'UNRATE': 'Unemployment Rate',
-                'GDP': 'Gross Domestic Product',
-                'CPIAUCSL': 'Consumer Price Index',
-                'DGS10': '10-Year Treasury Rate',
-                'DGS2': '2-Year Treasury Rate',
-                'DTWEXBGS': 'Trade Weighted U.S. Dollar Index',
-                'UofM': 'University of Michigan Survey',
-                'SLOOS': 'Senior Loan Officer Survey',
-                'GDP_NOMINAL': 'GDP Nominal (US)',
-                'GDP_REAL': 'GDP Real (US)'
-            };
-            
-            watchlistData[symbol] = {
-                name: symbolNames[symbol] || symbol,
-                provider: provider,
-                price: latestValue,
-                changes: changes,
-                changeUnits: changeUnits,
-                hasData: true,
-                fullData: processedData,
-                latestDate: latestItem.date,
-                actualSymbol: symbol,
-                lastUpdateTime: Date.now()
-            };
-            
-            checkForSignificantChanges(symbol, changes);
-            renderWatchlist();
+        // Update search status
+        function updateSearchStatus() {
+            const statusEl = document.getElementById('searchStatus');
+            statusEl.textContent = `Lambda: ${lambdaWorking ? 'Ready' : 'Offline'} | Enhanced: ${enhancedWorking ? 'Ready' : 'Offline'}`;
+            statusEl.className = (lambdaWorking || enhancedWorking) ? 'search-status active' : 'search-status';
         }
         
-        // Calculate unit changes
-        function calculateUnitChanges(data) {
-            if (!data || data.length < 2) {
-                return { 'daily': null, 'yearly': null };
-            }
-            
-            const latestItem = data[data.length - 1];
-            const latestValue = latestItem.value || latestItem.close || latestItem.price || 0;
-            const latestDate = new Date(latestItem.date);
-            
-            const changeUnits = {};
-            const periods = {
-                'daily': 1,
-                'yearly': 365
-            };
-            
-            for (const [period, days] of Object.entries(periods)) {
-                const targetDate = new Date(latestDate);
-                targetDate.setDate(targetDate.getDate() - days);
-                
-                let closestItem = null;
-                let minDiff = Infinity;
-                
-                for (const item of data) {
-                    const itemDate = new Date(item.date);
-                    const diff = Math.abs(itemDate - targetDate);
-                    
-                    if (diff < minDiff && itemDate <= targetDate) {
-                        minDiff = diff;
-                        closestItem = item;
-                    }
-                }
-                
-                if (closestItem) {
-                    const historicalValue = closestItem.value || closestItem.close || closestItem.price || 0;
-                    changeUnits[period] = latestValue - historicalValue;
-                } else {
-                    changeUnits[period] = null;
-                }
-            }
-            
-            return changeUnits;
-        }
-        
-        // Calculate percentage changes
-        function calculatePercentageChanges(data) {
-            if (!data || data.length < 2) {
-                return { '1d': null, '1w': null, '1m': null, '1y': null };
-            }
-            
-            const latestItem = data[data.length - 1];
-            const latestValue = latestItem.value || latestItem.close || latestItem.price || 0;
-            const latestDate = new Date(latestItem.date);
-            
-            if (!latestValue || latestValue === 0) {
-                return { '1d': null, '1w': null, '1m': null, '1y': null };
-            }
-            
-            const changes = {};
-            const periods = {
-                '1d': 1,
-                '1w': 7,
-                '1m': 30,
-                '1y': 365
-            };
-            
-            for (const [period, days] of Object.entries(periods)) {
-                const targetDate = new Date(latestDate);
-                targetDate.setDate(targetDate.getDate() - days);
-                
-                let closestItem = null;
-                let minDiff = Infinity;
-                
-                for (const item of data) {
-                    const itemDate = new Date(item.date);
-                    const diff = Math.abs(itemDate - targetDate);
-                    
-                    if (diff < minDiff && itemDate <= targetDate) {
-                        minDiff = diff;
-                        closestItem = item;
-                    }
-                }
-                
-                if (closestItem) {
-                    const historicalValue = closestItem.value || closestItem.close || closestItem.price || 0;
-                    if (historicalValue && historicalValue !== 0) {
-                        changes[period] = ((latestValue - historicalValue) / historicalValue * 100);
-                    } else {
-                        changes[period] = null;
-                    }
-                } else {
-                    changes[period] = null;
-                }
-            }
-            
-            return changes;
-        }
-        
-        // Check for significant changes
-        function checkForSignificantChanges(symbol, changes) {
-            const significantThreshold = 15;
-            const flashDuration = 7 * 24 * 60 * 60 * 1000;
-            
-            const dailyChange = changes['1d'];
-            const weeklyChange = changes['1w'];
-            
-            let shouldFlash = false;
-            let flashType = null;
-            
-            if (dailyChange !== null && Math.abs(dailyChange) >= significantThreshold) {
-                shouldFlash = true;
-                flashType = dailyChange > 0 ? 'green' : 'red';
-            } else if (weeklyChange !== null && Math.abs(weeklyChange) >= significantThreshold) {
-                shouldFlash = true;
-                flashType = weeklyChange > 0 ? 'green' : 'red';
-            }
-            
-            if (shouldFlash) {
-                const currentTime = Date.now();
-                
-                flashTimers[symbol] = {
-                    startTime: currentTime,
-                    endTime: currentTime + flashDuration,
-                    type: flashType
-                };
-                
-                setTimeout(() => {
-                    if (flashTimers[symbol]) {
-                        delete flashTimers[symbol];
-                        renderWatchlist();
-                    }
-                }, flashDuration);
-            }
-        }
-        
-        // Check if symbol should flash
-        function shouldSymbolFlash(symbol) {
-            const flashInfo = flashTimers[symbol];
-            if (!flashInfo) return { flash: false, type: null };
-            
-            const currentTime = Date.now();
-            if (currentTime <= flashInfo.endTime) {
-                return { flash: true, type: flashInfo.type };
-            } else {
-                delete flashTimers[symbol];
-                return { flash: false, type: null };
-            }
-        }
-        
-        // Load watchlists from storage
-        function loadWatchlists() {
-            const saved = localStorage.getItem('openbbWatchlists');
-            if (saved) {
-                try {
-                    const savedData = JSON.parse(saved);
-                    Object.keys(savedData).forEach(name => {
-                        if (watchlists[name]) {
-                            watchlists[name].symbols = savedData[name].symbols || watchlists[name].symbols;
-                        }
-                    });
-                } catch (e) {
-                    console.error('Error loading saved watchlists:', e);
-                }
-            }
-            
-            watchlistSymbols = [...watchlists[currentWatchlist].symbols];
-        }
-        
-        // Save watchlists to storage
-        function saveWatchlists() {
-            const toSave = {};
-            Object.keys(watchlists).forEach(name => {
-                toSave[name] = { symbols: watchlists[name].symbols };
-            });
-            localStorage.setItem('openbbWatchlists', JSON.stringify(toSave));
-        }
-        
-        // Switch watchlist
-        function switchWatchlist(watchlistName) {
-            currentWatchlist = watchlistName;
-            watchlistSymbols = [...watchlists[currentWatchlist].symbols];
-            watchlistData = {};
-            loadWatchlistData();
-        }
-        
-        // Load watchlist data
-        async function loadWatchlistData() {
-            const tbody = document.getElementById('watchlistBody');
-            
-            if (watchlistSymbols.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px; color: #888;">No symbols in watchlist. Use search to add symbols.</td></tr>';
-                return;
-            }
-            
-            tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px;"><div class="loading-pulse">Loading real-time data...</div></td></tr>';
-            
-            // Load symbols sequentially
-            for (const symbolObj of watchlistSymbols) {
-                const symbol = symbolObj.symbol || symbolObj;
-                const provider = symbolObj.provider || 'lambda';
-                
-                if (!symbol || symbol === 'undefined') continue;
-                
-                await loadSingleWatchlistItem(symbol, provider);
-                await new Promise(resolve => setTimeout(resolve, 200));
-            }
-            
-            renderWatchlist();
-        }
-        
-        // Update clock
-        function updateClock() {
-            document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
-        }
-        
-        // Render watchlist
-        function renderWatchlist() {
-            const tbody = document.getElementById('watchlistBody');
-            
-            if (watchlistSymbols.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px; color: #666;">No symbols in this watchlist. Use search to add symbols.</td></tr>';
-                return;
-            }
-            
-            let symbolsToRender = watchlistSymbols.map(symbolObj => {
-                const symbol = symbolObj.symbol || symbolObj;
-                const data = watchlistData[symbol];
-                if (!data) return null;
-                
-                let maxChange = 0;
-                if (data.changes) {
-                    const changes = Object.values(data.changes).filter(v => v !== null && !isNaN(v));
-                    if (changes.length > 0) {
-                        maxChange = changes.reduce((max, change) => {
-                            return Math.abs(change) > Math.abs(max) ? change : max;
-                        }, 0);
-                    }
-                }
-                
-                const flashInfo = shouldSymbolFlash(symbol);
-                
-                return {
-                    symbol,
-                    data,
-                    maxChange,
-                    flashInfo
-                };
-            }).filter(item => item !== null);
-            
-            // Sort based on current sort order
-            if (columnSort.column && columnSort.direction) {
-                symbolsToRender.sort((a, b) => {
-                    const aValue = a.data.changes[columnSort.column];
-                    const bValue = b.data.changes[columnSort.column];
-                    
-                    if (aValue === null || aValue === undefined) return 1;
-                    if (bValue === null || bValue === undefined) return -1;
-                    
-                    return columnSort.direction === 'asc' ? aValue - bValue : bValue - aValue;
-                });
-            } else if (sortOrder === 'increase') {
-                symbolsToRender.sort((a, b) => b.maxChange - a.maxChange);
-            } else if (sortOrder === 'decrease') {
-                symbolsToRender.sort((a, b) => a.maxChange - b.maxChange);
-            }
-            
-            const formatPrice = (price) => {
-                if (price === 0) return 'Loading...';
-                if (price >= 1000) return price.toFixed(0);
-                if (price >= 1) return price.toFixed(2);
-                return price.toFixed(4);
-            };
-            
-            const formatChange = (change) => {
-                if (change === null || change === undefined || isNaN(change)) return '—';
-                const val = parseFloat(change);
-                return (val >= 0 ? '+' : '') + val.toFixed(2) + '%';
-            };
-            
-            const formatUnits = (change) => {
-                if (change === null || change === undefined || isNaN(change)) return '—';
-                const val = parseFloat(change);
-                return (val >= 0 ? '+' : '') + val.toFixed(4);
-            };
-            
-            const getChangeClass = (change) => {
-                if (change === null || change === undefined || isNaN(change)) return 'neutral';
-                return parseFloat(change) >= 0 ? 'positive' : 'negative';
-            };
-            
-            const html = symbolsToRender.map(({ symbol, data, flashInfo }) => {
-                const flashClass = flashInfo.flash ?
-                    (flashInfo.type === 'green' ? 'flash-green' : 'flash-red') : '';
-                
-                const displayName = data.customName || symbol;
-                const colorStyle = data.color ? `background-color: ${data.color};` : 'display: none;';
-                const providerLabel = data.provider?.replace('_direct', '').replace('_intelligence', '').replace('_live', '').toUpperCase() || 'API';
-                
-                return `
-                    <tr ondblclick="openChartForSymbol('${symbol}', '${data.provider || 'lambda'}')"
-                        class="${flashClass}"
-                        style="cursor: pointer;"
-                        title="Double-click to view chart">
-                        <td>
-                            <div class="symbol-cell">
-                                <div class="color-tag" style="${colorStyle}" onclick="editSymbol(event, '${symbol}')"></div>
-                                <div class="symbol-icon">${symbol.charAt(0)}</div>
-                                <div class="symbol-info">
-                                    <div class="symbol-name">
-                                        ${displayName}
-                                        <span class="edit-icon" onclick="editSymbol(event, '${symbol}')">✏️</span>
-                                    </div>
-                                    <div class="symbol-fullname">${data.name} (${providerLabel})</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="price-cell">${formatPrice(data.price)}</td>
-                        <td class="change-cell ${getChangeClass(data.changeUnits?.daily)}">${formatUnits(data.changeUnits?.daily)}</td>
-                        <td class="change-cell ${getChangeClass(data.changes['1d'])}">${formatChange(data.changes['1d'])}</td>
-                        <td class="change-cell ${getChangeClass(data.changes['1w'])}">${formatChange(data.changes['1w'])}</td>
-                        <td class="change-cell ${getChangeClass(data.changes['1m'])}">${formatChange(data.changes['1m'])}</td>
-                        <td class="change-cell ${getChangeClass(data.changes['1y'])}">${formatChange(data.changes['1y'])}</td>
-                        <td class="change-cell ${getChangeClass(data.changeUnits?.yearly)}">${formatUnits(data.changeUnits?.yearly)}</td>
-                        <td style="padding: 5px;">
-                            <button class="control-btn" style="padding: 4px 8px; font-size: 11px; background: #f5f5f5; color: #333; border: 1px solid #ddd;"
-                                    onclick="removeFromWatchlist(event, '${symbol}')">×</button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-            
-            tbody.innerHTML = html || '<tr><td colspan="9" style="text-align: center; padding: 20px; color: #666;">Loading data...</td></tr>';
-            
-            updateSortIndicators();
-        }
-        
-        // Remove from watchlist
-        function removeFromWatchlist(event, symbol) {
-            event.stopPropagation();
-            const currentSymbols = watchlists[currentWatchlist].symbols;
-            const index = currentSymbols.findIndex(s => (s.symbol || s) === symbol);
-            if (index > -1) {
-                currentSymbols.splice(index, 1);
-                watchlistSymbols = [...currentSymbols];
-                delete watchlistData[symbol];
-                
-                if (flashTimers[symbol]) {
-                    delete flashTimers[symbol];
-                }
-                
-                saveWatchlists();
-                renderWatchlist();
-                showTemporaryMessage(`Removed ${symbol} from ${currentWatchlist} watchlist`, 'info');
-            }
-        }
-        
-        // Sort by column
-        function sortByColumn(period) {
-            if (columnSort.column === period) {
-                columnSort.direction = columnSort.direction === 'desc' ? 'asc' : 'desc';
-            } else {
-                columnSort.column = period;
-                columnSort.direction = 'desc';
-            }
-            
-            sortOrder = 'default';
-            updateSortButtons();
-            renderWatchlist();
-        }
-        
-        // Update sort indicators
-        function updateSortIndicators() {
-            document.querySelectorAll('.sort-indicator').forEach(indicator => {
-                indicator.className = 'sort-indicator';
-            });
-            
-            if (columnSort.column && columnSort.direction) {
-                const indicator = document.getElementById(`sort-${columnSort.column}`);
-                if (indicator) {
-                    indicator.className = `sort-indicator ${columnSort.direction}`;
-                }
-            }
-        }
-        
-        // Change sort order
-        function changeSortOrder(order) {
-            sortOrder = order;
-            columnSort = { column: null, direction: null };
-            updateSortButtons();
-            renderWatchlist();
-        }
-        
-        // Update sort buttons
-        function updateSortButtons() {
-            document.getElementById('sortDefault').classList.toggle('active', sortOrder === 'default');
-            document.getElementById('sortIncrease').classList.toggle('active', sortOrder === 'increase');
-            document.getElementById('sortDecrease').classList.toggle('active', sortOrder === 'decrease');
-        }
-
-        // Enhanced search across all providers
+        // Search functionality
         async function performSearch(query) {
             const resultsDiv = document.getElementById('searchResults');
             
@@ -2108,230 +899,55 @@
             
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(async () => {
-                resultsDiv.innerHTML = '<div class="search-loading">Searching across 72,846+ indicators...</div>';
+                resultsDiv.innerHTML = '<div class="search-loading">Searching...</div>';
                 resultsDiv.style.display = 'block';
                 
-                try {
-                    const allResults = [];
-                    
-                    // Search Lambda Platform - Try the real API first
-                    if (activeSources.includes('lambda') && (lambdaSearchWorking || document.getElementById('lambda-indicator').classList.contains('connected'))) {
-                        try {
-                            const lambdaUrl = `${LAMBDA_API}/api/search?query=${encodeURIComponent(query)}&limit=30`;
-                            console.log('Searching Lambda with CORS fixed:', lambdaUrl);
-                            
-                            const lambdaResponse = await fetch(lambdaUrl, {
-                                method: 'GET',
-                                mode: 'cors',
-                                headers: {
-                                    'Accept': 'application/json',
-                                    'Content-Type': 'application/json'
-                                }
-                            });
-                            
-                            if (lambdaResponse.ok) {
-                                const lambdaData = await lambdaResponse.json();
-                                console.log('Lambda search results:', lambdaData.total_hits);
-                                
-                                if (lambdaData.results && Array.isArray(lambdaData.results)) {
-                                    lambdaData.results.forEach(result => {
-                                        const source = result._source || result;
-                                        allResults.push({
-                                            symbol: source.symbol || result.symbol,
-                                            name: source.name || source.title || result.name || result.symbol,
-                                            provider: source.provider || 'lambda',
-                                            source: 'lambda',
-                                            description: source.description || source.source || 'Lambda Platform',
-                                            score: result._score || 1
-                                        });
+                const results = [];
+                
+                // Search Lambda
+                if (lambdaWorking && activeSources.includes('lambda')) {
+                    try {
+                        const response = await fetch(`${LAMBDA_API}/api/search?query=${encodeURIComponent(query)}&limit=20`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.results) {
+                                data.results.forEach(r => {
+                                    const source = r._source || r;
+                                    results.push({
+                                        symbol: source.symbol || source.series_id,
+                                        name: source.name || source.title || source.symbol,
+                                        provider: 'lambda',
+                                        source: 'lambda'
                                     });
-                                }
-                            }
-                        } catch (error) {
-                            console.warn('Lambda search failed:', error);
-                        }
-                    }
-                    
-                    // Add Enhanced API special endpoints
-                    if (activeSources.includes('enhanced') && document.getElementById('enhanced-indicator').classList.contains('connected')) {
-                        const enhancedSpecialEndpoints = [
-                            { symbol: 'UofM', name: 'University of Michigan Survey', description: 'Inflation expectations and consumer sentiment' },
-                            { symbol: 'SLOOS', name: 'Senior Loan Officer Survey', description: 'Bank lending standards and demand' },
-                            { symbol: 'GDP_NOMINAL', name: 'US GDP Nominal', description: 'Nominal GDP with EconDB provider' },
-                            { symbol: 'GDP_REAL', name: 'US GDP Real', description: 'Real GDP with OECD provider' }
-                        ];
-                        
-                        enhancedSpecialEndpoints.forEach(endpoint => {
-                            const queryLower = query.toLowerCase();
-                            if (endpoint.name.toLowerCase().includes(queryLower) || 
-                                endpoint.symbol.toLowerCase().includes(queryLower) ||
-                                endpoint.description.toLowerCase().includes(queryLower)) {
-                                allResults.push({
-                                    symbol: endpoint.symbol,
-                                    name: endpoint.name,
-                                    provider: 'enhanced',
-                                    source: 'enhanced',
-                                    description: endpoint.description
                                 });
                             }
-                        });
+                        }
+                    } catch (error) {
+                        console.error('Lambda search error:', error);
                     }
+                }
+                
+                // Add Enhanced API special endpoints
+                if (enhancedWorking && activeSources.includes('enhanced')) {
+                    const specialEndpoints = [
+                        { symbol: 'UofM', name: 'University of Michigan Survey' },
+                        { symbol: 'GDP_NOMINAL', name: 'US GDP Nominal' }
+                    ];
                     
-                    // Search through local data sources
-                    for (const source of activeSources) {
-                        if (['lambda', 'enhanced'].includes(source)) continue;
-                        
-                        const config = DATA_SOURCES[source];
-                        if (!config || !config.searchSymbols) continue;
-                        
-                        const matchingSymbols = config.searchSymbols.filter(symbol =>
-                            symbol.toLowerCase().includes(query.toLowerCase()) ||
-                            getSymbolDescription(symbol, source).toLowerCase().includes(query.toLowerCase())
-                        );
-                        
-                        matchingSymbols.forEach(symbol => {
-                            allResults.push({
-                                symbol: symbol,
-                                name: getSymbolDescription(symbol, source),
-                                provider: config.provider || source,
-                                source: source,
-                                description: getDetailedDescription(symbol, source)
+                    specialEndpoints.forEach(endpoint => {
+                        if (endpoint.name.toLowerCase().includes(query.toLowerCase())) {
+                            results.push({
+                                symbol: endpoint.symbol,
+                                name: endpoint.name,
+                                provider: 'enhanced',
+                                source: 'enhanced'
                             });
-                        });
-                    }
-                    
-                    // Remove duplicates and display
-                    const uniqueResults = Array.from(new Map(allResults.map(item => [item.symbol, item])).values());
-                    displaySearchResults(uniqueResults.slice(0, 100), query);
-                    
-                } catch (error) {
-                    console.error('Search error:', error);
-                    resultsDiv.innerHTML = `
-                        <div class="search-item" style="text-align:center; color:#888;">
-                            Error searching. Please try again.
-                        </div>
-                    `;
+                        }
+                    });
                 }
+                
+                displaySearchResults(results, query);
             }, 300);
-        }
-        
-        // Enhanced symbol descriptions
-        function getSymbolDescription(symbol, source) {
-            const descriptions = {
-                lambda: {
-                    'AAPL': 'Apple Inc.',
-                    'MSFT': 'Microsoft Corporation',
-                    'GOOGL': 'Alphabet Inc.',
-                    'AMZN': 'Amazon.com Inc.',
-                    'TSLA': 'Tesla Inc.',
-                    'SPY': 'SPDR S&P 500 ETF',
-                    'QQQ': 'Invesco QQQ Trust',
-                    'FEDFUNDS': 'Federal Funds Rate',
-                    'UNRATE': 'Unemployment Rate',
-                    'GDP': 'Gross Domestic Product',
-                    'CPIAUCSL': 'Consumer Price Index',
-                    'DFF': 'Daily Federal Funds Rate',
-                    'M2SL': 'M2 Money Supply',
-                    'PAYEMS': 'Total Nonfarm Payrolls',
-                    'DGS10': '10-Year Treasury Rate',
-                    'DGS2': '2-Year Treasury Rate',
-                    'VIXCLS': 'CBOE Volatility Index: VIX',
-                    'SOFR': 'Secured Overnight Financing Rate',
-                    'EFFR': 'Effective Federal Funds Rate'
-                },
-                polygon: {
-                    'AAPL': 'Apple Inc.',
-                    'MSFT': 'Microsoft Corporation',
-                    'GOOGL': 'Alphabet Inc.',
-                    'AMZN': 'Amazon.com Inc.',
-                    'TSLA': 'Tesla Inc.',
-                    'SPY': 'SPDR S&P 500 ETF',
-                    'QQQ': 'Invesco QQQ Trust',
-                    'IWM': 'iShares Russell 2000 ETF',
-                    'VTI': 'Vanguard Total Stock Market ETF',
-                    'VOO': 'Vanguard S&P 500 ETF',
-                    'NVDA': 'NVIDIA Corporation',
-                    'META': 'Meta Platforms Inc.',
-                    'NFLX': 'Netflix Inc.'
-                },
-                fred: {
-                    'FEDFUNDS': 'Federal Funds Rate',
-                    'UNRATE': 'Unemployment Rate',
-                    'GDP': 'Gross Domestic Product',
-                    'CPIAUCSL': 'Consumer Price Index',
-                    'DFF': 'Daily Federal Funds Rate',
-                    'M2SL': 'M2 Money Supply',
-                    'PAYEMS': 'Total Nonfarm Payrolls',
-                    'HOUST': 'Housing Starts',
-                    'INDPRO': 'Industrial Production Index',
-                    'DTWEXBGS': 'Trade Weighted U.S. Dollar Index: Broad',
-                    'DTWEXAFEGS': 'Trade Weighted U.S. Dollar Index: Advanced Foreign Economies',
-                    'DTWEXEMEGS': 'Trade Weighted U.S. Dollar Index: Emerging Market Economies',
-                    'DGS10': '10-Year Treasury Rate',
-                    'DGS2': '2-Year Treasury Rate',
-                    'T10YIE': '10-Year Breakeven Inflation Rate',
-                    'VIXCLS': 'CBOE Volatility Index: VIX'
-                },
-                ny_fed: {
-                    'sofr': 'Secured Overnight Financing Rate',
-                    'effr': 'Effective Federal Funds Rate',
-                    'obfr': 'Overnight Bank Funding Rate',
-                    'tgcr': 'Tri-party General Collateral Rate',
-                    'bgcr': 'Broad General Collateral Rate'
-                },
-                ecb: {
-                    'EXR.D.USD.EUR.SP00.A': 'EUR/USD Exchange Rate',
-                    'EXR.D.GBP.EUR.SP00.A': 'EUR/GBP Exchange Rate',
-                    'EXR.D.JPY.EUR.SP00.A': 'EUR/JPY Exchange Rate',
-                    'CISS.D.CN.Z0Z.4F.EC.SS_CIN.IDX': 'China Daily Systemic Stress Index',
-                    'CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX': 'Euro Area Daily Systemic Stress Index',
-                    'CISS.D.US.Z0Z.4F.EC.SS_CI.IDX': 'US Daily Systemic Stress Index',
-                    'CISS.M.SE.Z0Z.4F.EC.SOV_CI.IDX': 'Sweden Monthly Sovereign Stress Index',
-                    'CISS.M.FR.Z0Z.4F.EC.SOV_CI.IDX': 'France Monthly Sovereign Stress Index',
-                    'CISS.M.GB.Z0Z.4F.EC.SOV_CI.IDX': 'UK Monthly Sovereign Stress Index',
-                    'CLIFS.M.DE._Z.4F.EC.CLIFS_CI.IDX': 'Germany Country-Level Financial Stress Index'
-                },
-                ofr: {
-                    'NYPD-PD_AFtR_T-A': 'NY Primary Dealer After-Fed Total Amount',
-                    'NYPD-PD_AFtD_TOT-A': 'NY Primary Dealer After-Fed Total Daily Amount',
-                    'REPO_OV_TOT_P75': 'Repo Market Overall Total 75th Percentile',
-                    'REPO_OV_TOT_P25': 'Repo Market Overall Total 25th Percentile',
-                    'MMF_OV_TOT': 'Money Market Fund Overall Total',
-                    'DEALER_OV_TOT': 'Dealer Overall Total',
-                    'BANK_OV_TOT': 'Bank Overall Total'
-                },
-                treasury: {
-                    'BILLS_4W': '4-Week Treasury Bills',
-                    'BILLS_8W': '8-Week Treasury Bills',
-                    'BILLS_13W': '13-Week Treasury Bills',
-                    'BILLS_17W': '17-Week Treasury Bills',
-                    'BILLS_26W': '26-Week Treasury Bills',
-                    'BILLS_52W': '52-Week Treasury Bills',
-                    'NOTES_2Y': '2-Year Treasury Notes',
-                    'NOTES_3Y': '3-Year Treasury Notes',
-                    'NOTES_5Y': '5-Year Treasury Notes',
-                    'NOTES_7Y': '7-Year Treasury Notes',
-                    'NOTES_10Y': '10-Year Treasury Notes',
-                    'BONDS_20Y': '20-Year Treasury Bonds',
-                    'BONDS_30Y': '30-Year Treasury Bonds'
-                }
-            };
-            
-            return descriptions[source]?.[symbol] || symbol;
-        }
-        
-        // Enhanced detailed descriptions
-        function getDetailedDescription(symbol, source) {
-            const details = {
-                polygon: 'Stock market data',
-                fred: 'Federal Reserve Economic Data',
-                ny_fed: 'New York Fed reference rate',
-                ecb: 'European Central Bank indicator',
-                ofr: 'Office of Financial Research data',
-                treasury: 'US Treasury auction data'
-            };
-            
-            return details[source] || '';
         }
         
         // Display search results
@@ -2339,505 +955,322 @@
             const resultsDiv = document.getElementById('searchResults');
             
             if (!results || results.length === 0) {
-                resultsDiv.innerHTML = `
-                    <div class="search-item" style="text-align:center; color:#888; padding: 20px;">
-                        No results found for "${query}"
-                        <div style="margin-top: 10px; font-size: 12px;">
-                            Try: AAPL, FEDFUNDS, sofr, EUR/USD, CISS, Treasury, VIX, GDP
-                        </div>
-                    </div>
-                `;
+                resultsDiv.innerHTML = '<div class="search-item" style="text-align:center; color:#888;">No results found</div>';
                 return;
             }
-            
-            const highlightMatch = (text) => {
-                if (!text) return '';
-                const regex = new RegExp(`(${query.split(' ').join('|')})`, 'gi');
-                return text.replace(regex, '<span style="color: #00ff88; font-weight: bold;">$1</span>');
-            };
             
             let html = '';
             results.forEach(result => {
                 html += `
-                    <div class="search-item" onclick="addToWatchlistFromSearch('${result.symbol}', '${result.provider}', '${(result.name || result.symbol).replace(/'/g, "\\'")}')">
+                    <div class="search-item" onclick="addToWatchlist('${result.symbol}', '${result.provider}', '${result.name}')">
                         <div class="search-item-left">
-                            <div class="search-item-symbol">${highlightMatch(result.symbol)}</div>
-                            <div class="search-item-name">${highlightMatch(result.name || result.symbol)}</div>
-                            ${result.description ? `<div class="search-item-description">${result.description}</div>` : ''}
+                            <div class="search-item-symbol">${result.symbol}</div>
+                            <div class="search-item-name">${result.name}</div>
                         </div>
-                        <div class="search-item-source">${result.source.toUpperCase()}</div>
+                        <div class="search-item-source">${result.source}</div>
                     </div>
                 `;
             });
             
             resultsDiv.innerHTML = html;
-            resultsDiv.style.display = 'block';
         }
         
-        // Add to watchlist from search
-        function addToWatchlistFromSearch(symbol, provider, name) {
+        // Add to watchlist
+        function addToWatchlist(symbol, provider, name) {
             const currentSymbols = watchlists[currentWatchlist].symbols;
             
-            // Check if symbol already exists
-            const existingSymbol = currentSymbols.find(s => (s.symbol || s) === symbol);
-            if (!existingSymbol) {
+            if (!currentSymbols.find(s => s.symbol === symbol)) {
                 currentSymbols.push({ symbol, provider });
                 watchlistSymbols = [...currentSymbols];
                 saveWatchlists();
-                
-                watchlistData[symbol] = {
-                    name: name || symbol,
-                    provider: provider,
-                    price: 0,
-                    changes: { '1d': 0, '1w': 0, '1m': 0, '1y': 0 },
-                    changeUnits: { 'daily': 0, 'yearly': 0 },
-                    hasData: false
-                };
-                
-                renderWatchlist();
                 loadSingleWatchlistItem(symbol, provider);
-                
-                const sourceLabel = provider.replace('_direct', '').replace('_intelligence', '').replace('_live', '').toUpperCase();
-                showTemporaryMessage(`Added ${symbol} from ${sourceLabel} to ${currentWatchlist} watchlist`, 'info');
-            } else {
-                showTemporaryMessage(`${symbol} is already in ${currentWatchlist} watchlist`, 'info');
+                showMessage(`Added ${symbol} to ${currentWatchlist}`, 'info');
             }
             
             document.getElementById('searchResults').style.display = 'none';
             document.getElementById('searchBox').value = '';
         }
-
+        
+        // Load watchlist data
+        async function loadWatchlistData() {
+            watchlistSymbols = [...watchlists[currentWatchlist].symbols];
+            
+            for (const item of watchlistSymbols) {
+                await loadSingleWatchlistItem(item.symbol, item.provider);
+            }
+            
+            renderWatchlist();
+        }
+        
+        // Load single item
+        async function loadSingleWatchlistItem(symbol, provider) {
+            try {
+                let url;
+                
+                if (provider === 'enhanced' && enhancedWorking) {
+                    if (symbol === 'UofM') {
+                        url = `${ENHANCED_API}/economy/survey/university_of_michigan?provider=fred`;
+                    } else if (['AAPL', 'MSFT', 'GOOGL', 'AMZN'].includes(symbol)) {
+                        url = `${ENHANCED_API}/equity/quote?symbol=${symbol}&provider=yfinance`;
+                    } else {
+                        url = `${ENHANCED_API}/economy/fred/series?symbol=${symbol}&provider=fred&limit=100`;
+                    }
+                } else if (provider === 'lambda' && lambdaWorking) {
+                    url = `${LAMBDA_API}/api/search?query=${symbol}&limit=1`;
+                }
+                
+                if (!url) return;
+                
+                const response = await fetch(url);
+                if (!response.ok) return;
+                
+                const data = await response.json();
+                processDataResponse(symbol, data, provider);
+                
+            } catch (error) {
+                console.error(`Error loading ${symbol}:`, error);
+                // Use demo data
+                watchlistData[symbol] = generateDemoData(symbol);
+            }
+        }
+        
+        // Process data response
+        function processDataResponse(symbol, data, provider) {
+            if (provider === 'enhanced') {
+                if (data.results && Array.isArray(data.results)) {
+                    const latest = data.results[data.results.length - 1];
+                    watchlistData[symbol] = {
+                        name: symbol,
+                        provider: provider,
+                        price: latest.value || latest.inflation_expectation || 0,
+                        changes: calculateChanges(data.results),
+                        hasData: true
+                    };
+                } else if (data.price !== undefined) {
+                    watchlistData[symbol] = {
+                        name: data.name || symbol,
+                        provider: provider,
+                        price: data.price,
+                        changes: { '1d': 0, '1w': 0, '1m': 0, '1y': 0 },
+                        hasData: true
+                    };
+                }
+            } else if (provider === 'lambda' && data.results && data.results.length > 0) {
+                const source = data.results[0]._source || data.results[0];
+                watchlistData[symbol] = {
+                    name: source.name || source.title || symbol,
+                    provider: provider,
+                    price: source.value || source.latest_value || 0,
+                    changes: { '1d': 0, '1w': 0, '1m': 0, '1y': 0 },
+                    hasData: true
+                };
+            }
+            
+            renderWatchlist();
+        }
+        
+        // Calculate changes
+        function calculateChanges(data) {
+            if (!data || data.length < 2) {
+                return { '1d': 0, '1w': 0, '1m': 0, '1y': 0 };
+            }
+            
+            const latest = data[data.length - 1];
+            const latestValue = latest.value || latest.inflation_expectation || 0;
+            
+            // Simple calculation - would need proper date filtering in production
+            const changes = { '1d': 0, '1w': 0, '1m': 0, '1y': 0 };
+            
+            if (data.length > 1) {
+                const previous = data[data.length - 2];
+                const previousValue = previous.value || previous.inflation_expectation || 0;
+                if (previousValue !== 0) {
+                    changes['1d'] = ((latestValue - previousValue) / previousValue) * 100;
+                }
+            }
+            
+            return changes;
+        }
+        
+        // Generate demo data
+        function generateDemoData(symbol) {
+            const baseData = {
+                'AAPL': { name: 'Apple Inc.', price: 195.89 },
+                'SPY': { name: 'SPDR S&P 500', price: 452.16 },
+                'DGS10': { name: '10-Year Treasury', price: 4.426 },
+                'SOFR': { name: 'SOFR Rate', price: 5.31 }
+            };
+            
+            const data = baseData[symbol] || { name: symbol, price: 100 };
+            
+            return {
+                ...data,
+                provider: 'demo',
+                changes: {
+                    '1d': (Math.random() - 0.5) * 5,
+                    '1w': (Math.random() - 0.5) * 10,
+                    '1m': (Math.random() - 0.5) * 15,
+                    '1y': (Math.random() - 0.5) * 30
+                },
+                hasData: true
+            };
+        }
+        
+        // Render watchlist
+        function renderWatchlist() {
+            const tbody = document.getElementById('watchlistBody');
+            
+            let symbolsToRender = watchlistSymbols.map(item => {
+                const data = watchlistData[item.symbol];
+                if (!data) return null;
+                
+                return {
+                    symbol: item.symbol,
+                    data: data,
+                    maxChange: Math.max(...Object.values(data.changes).map(Math.abs))
+                };
+            }).filter(item => item !== null);
+            
+            // Sort
+            if (sortOrder === 'increase') {
+                symbolsToRender.sort((a, b) => b.data.changes['1d'] - a.data.changes['1d']);
+            } else if (sortOrder === 'decrease') {
+                symbolsToRender.sort((a, b) => a.data.changes['1d'] - b.data.changes['1d']);
+            }
+            
+            const formatPrice = (price) => {
+                if (price >= 1000) return price.toFixed(0);
+                if (price >= 1) return price.toFixed(2);
+                return price.toFixed(4);
+            };
+            
+            const formatChange = (change) => {
+                const val = parseFloat(change);
+                return (val >= 0 ? '+' : '') + val.toFixed(2) + '%';
+            };
+            
+            const getChangeClass = (change) => {
+                return parseFloat(change) >= 0 ? 'positive' : 'negative';
+            };
+            
+            const html = symbolsToRender.map(({ symbol, data }) => `
+                <tr ondblclick="openChartForSymbol('${symbol}', '${data.provider}')">
+                    <td>
+                        <div class="symbol-cell">
+                            <div class="symbol-icon">${symbol.charAt(0)}</div>
+                            <div class="symbol-info">
+                                <div class="symbol-name">${symbol}</div>
+                                <div class="symbol-fullname">${data.name}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="price-cell">${formatPrice(data.price)}</td>
+                    <td class="change-cell ${getChangeClass(data.changes['1d'])}">${formatChange(data.changes['1d'])}</td>
+                    <td class="change-cell ${getChangeClass(data.changes['1d'])}">${formatChange(data.changes['1d'])}</td>
+                    <td class="change-cell ${getChangeClass(data.changes['1w'])}">${formatChange(data.changes['1w'])}</td>
+                    <td class="change-cell ${getChangeClass(data.changes['1m'])}">${formatChange(data.changes['1m'])}</td>
+                    <td class="change-cell ${getChangeClass(data.changes['1y'])}">${formatChange(data.changes['1y'])}</td>
+                    <td>
+                        <button class="control-btn" style="padding: 4px 8px; font-size: 11px;"
+                                onclick="removeFromWatchlist(event, '${symbol}')">×</button>
+                    </td>
+                </tr>
+            `).join('');
+            
+            tbody.innerHTML = html || '<tr><td colspan="8" style="text-align: center; padding: 20px;">No data</td></tr>';
+        }
+        
         // Chart functions
         function addNewChart() {
             const chartId = `chart_${chartIdCounter++}`;
             
             const chartHtml = `
-                <div class="chart-window" id="${chartId}" onclick="setActiveChart('${chartId}')">
+                <div class="chart-window" id="${chartId}">
                     <div class="chart-header">
                         <div class="chart-title-section">
-                            <div class="chart-title" id="${chartId}_title">Chart ${chartIdCounter}</div>
+                            <div class="chart-title">Chart ${chartIdCounter}</div>
                             <div class="chart-symbols" id="${chartId}_symbols"></div>
                         </div>
                         <div class="chart-controls">
-                            <div class="timeframe-buttons" id="${chartId}_timeframe_buttons">
-                                ${['1D','1W','1M','3M','6M','1Y','2Y','5Y','10Y','MAX'].map(tf =>
-                                    `<button class="timeframe-btn ${tf === '1Y' ? 'active' : ''}"
-                                             onclick="changeTimeframe(event, '${chartId}', '${tf}')">${tf}</button>`
-                                ).join('')}
-                            </div>
-                            <button class="close-btn" onclick="removeChart(event, '${chartId}')">×</button>
+                            <button class="close-btn" onclick="removeChart('${chartId}')">×</button>
                         </div>
                     </div>
                     <div class="chart-canvas" id="${chartId}_canvas">
-                        <div class="chart-message">Search for a financial indicator to add to this chart</div>
+                        <div class="chart-message">Add symbols to chart</div>
                     </div>
                 </div>`;
             
             document.getElementById('chartGrid').insertAdjacentHTML('beforeend', chartHtml);
-            charts[chartId] = {
-                symbols: [],
-                data: {},
-                timeframe: '1Y',
-                chartInstance: null
-            };
-            setActiveChart(chartId);
+            charts[chartId] = { symbols: [], data: {} };
             
-            const chartsArea = document.getElementById('chartsArea');
-            const watchlistSection = document.querySelector('.watchlist-section');
-            const chartViewBtn = document.getElementById('chartViewBtn');
-            
-            chartsArea.style.display = 'block';
-            watchlistSection.style.flex = '0 0 300px';
-            chartViewBtn.style.display = 'block';
+            document.getElementById('chartsArea').style.display = 'block';
+            document.getElementById('chartViewBtn').style.display = 'block';
         }
-
-        function setActiveChart(chartId) {
-            if (activeChartId === chartId) return;
-            activeChartId = chartId;
-            document.querySelectorAll('.chart-window').forEach(c => c.classList.remove('active-chart'));
-            const chartElement = document.getElementById(chartId);
-            if (chartElement) {
-                chartElement.classList.add('active-chart');
-            }
-        }
-
-        function removeChart(event, chartIdToRemove) {
-            event.stopPropagation();
-            if (charts[chartIdToRemove] && charts[chartIdToRemove].chartInstance) {
-                Plotly.purge(`${chartIdToRemove}_canvas`);
-            }
-            delete charts[chartIdToRemove];
-            document.getElementById(chartIdToRemove)?.remove();
-            
-            if (activeChartId === chartIdToRemove) {
-                const chartKeys = Object.keys(charts);
-                activeChartId = chartKeys.length > 0 ? chartKeys[chartKeys.length - 1] : null;
-                if(activeChartId) setActiveChart(activeChartId);
-            }
+        
+        function removeChart(chartId) {
+            delete charts[chartId];
+            document.getElementById(chartId).remove();
             
             if (Object.keys(charts).length === 0) {
-                const chartsArea = document.getElementById('chartsArea');
-                const watchlistSection = document.querySelector('.watchlist-section');
-                const chartViewBtn = document.getElementById('chartViewBtn');
-                
-                chartsArea.style.display = 'none';
-                watchlistSection.style.flex = '1';
-                chartViewBtn.style.display = 'none';
+                document.getElementById('chartsArea').style.display = 'none';
+                document.getElementById('chartViewBtn').style.display = 'none';
             }
         }
-
+        
         function openChartForSymbol(symbol, provider) {
-            const chartsArea = document.getElementById('chartsArea');
-            const watchlistSection = document.querySelector('.watchlist-section');
-            const chartViewBtn = document.getElementById('chartViewBtn');
-            
-            chartsArea.style.display = 'block';
-            watchlistSection.style.flex = '0 0 300px';
-            chartViewBtn.style.display = 'block';
-            
             if (Object.keys(charts).length === 0) {
                 addNewChart();
             }
             
-            if (activeChartId) {
-                const data = watchlistData[symbol];
-                addToChart(activeChartId, symbol, provider, data?.name || symbol);
-            }
-        }
-
-        function addToChart(chartId, symbol, provider, name) {
+            const chartId = Object.keys(charts)[0];
             const chart = charts[chartId];
-            if (!chart) return;
             
             if (!chart.symbols.find(s => s.symbol === symbol)) {
-                chart.symbols.push({ symbol, provider, name });
+                chart.symbols.push({ symbol, provider });
                 loadChartData(chartId, symbol, provider);
             }
-            setActiveChart(chartId);
         }
-
-        // Enhanced chart data loading
+        
         async function loadChartData(chartId, symbol, provider) {
+            // Simplified chart loading - would need full implementation
             const chart = charts[chartId];
-            if (!chart) return;
+            chart.data[symbol] = [];
             
-            const canvasDiv = document.getElementById(`${chartId}_canvas`);
-            if (canvasDiv) canvasDiv.innerHTML = `<div class="chart-message loading-pulse">Loading ${symbol} from ${provider}...</div>`;
-            
-            try {
-                let url;
-                
-                // Use the same endpoint mapping as watchlist
-                if (document.getElementById('enhanced-indicator').classList.contains('connected')) {
-                    const enhancedEndpoints = {
-                        'FEDFUNDS': '/economy/fred/series?symbol=FEDFUNDS&provider=fred&limit=1000',
-                        'UNRATE': '/economy/fred/series?symbol=UNRATE&provider=fred&limit=1000',
-                        'GDP': '/economy/fred/series?symbol=GDP&provider=fred&limit=1000',
-                        'DGS10': '/economy/fred/series?symbol=DGS10&provider=fred&limit=1000',
-                        'DGS2': '/economy/fred/series?symbol=DGS2&provider=fred&limit=1000',
-                        'UofM': '/economy/survey/university_of_michigan?provider=fred',
-                        'SLOOS': '/economy/survey/sloos?provider=fred',
-                        'GDP_NOMINAL': '/economy/gdp/nominal?provider=econdb&country=united_states',
-                        'GDP_REAL': '/economy/gdp/real?provider=oecd&country=usa'
-                    };
-                    
-                    if (enhancedEndpoints[symbol]) {
-                        url = `${ENHANCED_API}${enhancedEndpoints[symbol]}`;
-                    } else if (provider === 'fred' || provider === 'enhanced') {
-                        url = `${ENHANCED_API}/economy/fred/series?symbol=${encodeURIComponent(symbol)}&provider=fred&limit=1000`;
-                    }
-                }
-                
-                if (!url && provider === 'lambda') {
-                    url = `${LAMBDA_API}/api/search?query="${encodeURIComponent(symbol)}"&limit=1`;
-                }
-                
-                if (!url) {
-                    throw new Error('No API endpoint available');
-                }
-                
-                console.log(`Chart data URL for ${symbol}: ${url}`);
-                
-                const response = await fetch(url, {
-                    method: 'GET',
-                    mode: 'cors',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`Failed to load data: ${response.status}`);
-                }
-                
-                const result = await response.json();
-                console.log(`Chart data received for ${symbol}:`, result);
-                
-                let processedData = [];
-                
-                // Process Enhanced API data
-                if (result.results && Array.isArray(result.results)) {
-                    processedData = result.results
-                        .map(item => {
-                            let value = item.value || item.data || item.inflation_expectation || 
-                                       item.consumer_sentiment || item.gdp || 0;
-                            
-                            return {
-                                date: item.date || item.period,
-                                value: parseFloat(value)
-                            };
-                        })
-                        .filter(item => item.value !== null && !isNaN(item.value) && item.date)
-                        .sort((a, b) => new Date(a.date) - new Date(b.date));
-                } else if (result.data && Array.isArray(result.data)) {
-                    processedData = result.data
-                        .map(item => ({
-                            date: item.date,
-                            value: parseFloat(item.value || item.data || 0)
-                        }))
-                        .filter(item => !isNaN(item.value));
-                } else if (result.total_hits && result.results && result.results.length > 0) {
-                    // Lambda format - limited data
-                    const lambdaData = result.results[0]._source || result.results[0];
-                    const currentValue = lambdaData.value || lambdaData.latest_value || 0;
-                    processedData = [{
-                        date: new Date().toISOString().split('T')[0],
-                        value: currentValue
-                    }];
-                }
-                
-                if (processedData.length === 0) {
-                    throw new Error('No valid data points found');
-                }
-                
-                console.log(`Processed ${processedData.length} data points for ${symbol}`);
-                
-                chart.data[symbol] = processedData;
-                updateChartRender(chartId);
-                updateChartSymbols(chartId);
-                
-            } catch (error) {
-                console.error(`Error loading chart data for ${symbol}:`, error);
-                
-                if (canvasDiv) {
-                    canvasDiv.innerHTML = `<div class="chart-message" style="color: #ff4444;">Failed to load data for ${symbol}</div>`;
-                }
-            }
-        }
-        
-        function updateChartSymbols(chartId) {
-            const chart = charts[chartId];
-            if (!chart) return;
+            // Update display
             const symbolsDiv = document.getElementById(`${chartId}_symbols`);
-            if (!symbolsDiv) return;
+            symbolsDiv.innerHTML = chart.symbols.map(s => `
+                <div class="chart-symbol-tag">${s.symbol}</div>
+            `).join('');
             
-            symbolsDiv.innerHTML = chart.symbols.map((s, i) => `
-                <div class="chart-symbol-tag">
-                    <span class="symbol-color-dot" style="background-color: ${colorPalette[i % colorPalette.length]};"></span>
-                    ${s.symbol}
-                    <span class="remove-symbol" onclick="removeSymbolFromChart(event, '${chartId}', '${s.symbol}')">×</span>
-                </div>`).join('');
+            document.getElementById(`${chartId}_canvas`).innerHTML = 
+                '<div class="chart-message">Chart visualization would go here</div>';
         }
-
-        function removeSymbolFromChart(event, chartId, symbolToRemove) {
+        
+        // Utility functions
+        function switchWatchlist(name) {
+            currentWatchlist = name;
+            loadWatchlistData();
+        }
+        
+        function changeSortOrder(order) {
+            sortOrder = order;
+            document.querySelectorAll('.sort-button').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`sort${order.charAt(0).toUpperCase() + order.slice(1)}`).classList.add('active');
+            renderWatchlist();
+        }
+        
+        function removeFromWatchlist(event, symbol) {
             event.stopPropagation();
-            const chart = charts[chartId];
-            if (!chart) return;
-
-            chart.symbols = chart.symbols.filter(s => s.symbol !== symbolToRemove);
-            delete chart.data[symbolToRemove];
-            
-            updateChartRender(chartId);
-            updateChartSymbols(chartId);
-            
-            if (chart.symbols.length === 0) {
-                document.getElementById(`${chartId}_canvas`).innerHTML = '<div class="chart-message">Search for a financial indicator to add to this chart</div>';
-            }
-        }
-
-        function changeTimeframe(event, chartId, timeframe) {
-            event.stopPropagation();
-            const chart = charts[chartId];
-            if (!chart) return;
-            chart.timeframe = timeframe;
-            
-            const buttonContainer = document.getElementById(`${chartId}_timeframe_buttons`);
-            if (buttonContainer) {
-                buttonContainer.querySelectorAll('.timeframe-btn').forEach(btn => btn.classList.remove('active'));
-                if(event.target.tagName === 'BUTTON') event.target.classList.add('active');
-            }
-            updateChartRender(chartId);
-        }
-
-        function filterDataByTimeframe(data, timeframe) {
-            if (!data || data.length === 0) return data;
-            
-            const now = new Date();
-            let cutoffDate = new Date();
-            
-            switch(timeframe) {
-                case '1D':
-                    cutoffDate.setDate(now.getDate() - 1);
-                    break;
-                case '1W':
-                    cutoffDate.setDate(now.getDate() - 7);
-                    break;
-                case '1M':
-                    cutoffDate.setMonth(now.getMonth() - 1);
-                    break;
-                case '3M':
-                    cutoffDate.setMonth(now.getMonth() - 3);
-                    break;
-                case '6M':
-                    cutoffDate.setMonth(now.getMonth() - 6);
-                    break;
-                case '1Y':
-                    cutoffDate.setFullYear(now.getFullYear() - 1);
-                    break;
-                case '2Y':
-                    cutoffDate.setFullYear(now.getFullYear() - 2);
-                    break;
-                case '5Y':
-                    cutoffDate.setFullYear(now.getFullYear() - 5);
-                    break;
-                case '10Y':
-                    cutoffDate.setFullYear(now.getFullYear() - 10);
-                    break;
-                case 'MAX':
-                    return data;
-            }
-            
-            return data.filter(item => new Date(item.date) >= cutoffDate);
-        }
-
-        // Enhanced chart rendering
-        function updateChartRender(chartId) {
-            const chart = charts[chartId];
-            const canvasElement = document.getElementById(`${chartId}_canvas`);
-            if (!canvasElement || !chart) return;
-            
-            if (chart.symbols.length === 0) {
-                canvasElement.innerHTML = '<div class="chart-message">Search for a financial indicator to add to this chart</div>';
-                if (chart.chartInstance) Plotly.purge(canvasElement);
-                return;
-            }
-            
-            const traces = [];
-            
-            chart.symbols.forEach((s, index) => {
-                const symbolData = chart.data[s.symbol];
-                if (!symbolData || symbolData.length === 0) return;
-                
-                const filteredData = filterDataByTimeframe(symbolData, chart.timeframe);
-                if (filteredData.length === 0) return;
-                
-                const lineColor = colorPalette[index % colorPalette.length];
-                
-                const trace = {
-                    x: filteredData.map(d => d.date),
-                    y: filteredData.map(d => d.value),
-                    type: 'scatter',
-                    mode: 'lines',
-                    name: s.symbol,
-                    line: { color: lineColor, width: 2 },
-                    hovertemplate: `<b>${s.symbol}</b><br>Date: %{x}<br>Value: %{y:.4f}<extra></extra>`
-                };
-                
-                traces.push(trace);
-            });
-            
-            if (traces.length === 0) {
-                canvasElement.innerHTML = '<div class="chart-message">No data to display for selected timeframe</div>';
-                return;
-            }
-            
-            const layout = {
-                title: {
-                    text: '',
-                    font: { color: '#fff', size: 14 }
-                },
-                paper_bgcolor: '#0a0a0a',
-                plot_bgcolor: '#0a0a0a',
-                font: { color: '#aaa', size: 12 },
-                margin: { t: 40, r: 80, b: 60, l: 80 },
-                xaxis: {
-                    type: 'date',
-                    gridcolor: '#22222250',
-                    tickfont: { color: '#888' },
-                    rangeslider: { visible: false }
-                },
-                yaxis: {
-                    gridcolor: '#22222250',
-                    tickfont: { color: '#888' },
-                    zeroline: true,
-                    zerolinecolor: '#444',
-                    zerolinewidth: 1
-                },
-                hovermode: 'x unified',
-                showlegend: true,
-                legend: {
-                    orientation: 'h',
-                    yanchor: 'bottom',
-                    y: 1.02,
-                    xanchor: 'right',
-                    x: 1,
-                    bgcolor: 'rgba(10,10,10,0.8)',
-                    bordercolor: '#333',
-                    borderwidth: 1,
-                    font: { size: 11 }
-                },
-                height: 500,
-                autosize: true
-            };
-            
-            const config = {
-                responsive: true,
-                displaylogo: false,
-                modeBarButtonsToRemove: ['select2d', 'lasso2d', 'toImage'],
-                displayModeBar: true
-            };
-            
-            if(canvasElement.querySelector('.chart-message')) canvasElement.innerHTML = '';
-            
-            Plotly.react(canvasElement, traces, layout, config)
-                .then(gd => {
-                    charts[chartId].chartInstance = gd;
-                })
-                .catch(err => {
-                    console.error("Plotly error:", err);
-                    canvasElement.innerHTML = `<div class="chart-message" style="color: #ff4444;">Chart error: ${err.message}</div>`;
-                });
-        }
-
-        function showChartView() {
-            const chartsArea = document.getElementById('chartsArea');
-            const watchlistSection = document.querySelector('.watchlist-section');
-            
-            if (chartsArea.style.display === 'none') {
-                chartsArea.style.display = 'block';
-                watchlistSection.style.flex = '0 0 300px';
-            } else {
-                chartsArea.style.display = 'none';
-                watchlistSection.style.flex = '1';
+            const currentSymbols = watchlists[currentWatchlist].symbols;
+            const index = currentSymbols.findIndex(s => s.symbol === symbol);
+            if (index > -1) {
+                currentSymbols.splice(index, 1);
+                delete watchlistData[symbol];
+                saveWatchlists();
+                renderWatchlist();
             }
         }
         
-        // Toggle ticker type filter
-        function toggleTickerType(type) {
-            const button = document.querySelector(`.ticker-type-filter [data-type="${type}"]`);
-            const isActive = button.classList.contains('active');
-            
-            if (isActive) {
-                button.classList.remove('active');
-                activeTickerTypes = activeTickerTypes.filter(t => t !== type);
-            } else {
-                button.classList.add('active');
-                activeTickerTypes.push(type);
-            }
-        }
-
-        // Toggle data source
         function toggleDataSource(source) {
             const button = document.querySelector(`[data-source="${source}"]`);
             const isActive = button.classList.contains('active');
@@ -2851,91 +1284,49 @@
             }
         }
         
-        // Load liquidity dashboard
-        async function loadLiquidityDashboard() {
-            try {
-                if (!document.getElementById('enhanced-indicator').classList.contains('connected')) {
-                    console.log('Skipping liquidity dashboard - Enhanced API not available');
-                    return;
+        function showChartView() {
+            const chartsArea = document.getElementById('chartsArea');
+            chartsArea.style.display = chartsArea.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        function saveWatchlists() {
+            localStorage.setItem('openbbWatchlists', JSON.stringify(watchlists));
+        }
+        
+        function loadWatchlists() {
+            const saved = localStorage.getItem('openbbWatchlists');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    Object.assign(watchlists, data);
+                } catch (e) {
+                    console.error('Error loading watchlists:', e);
                 }
-                
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 5000);
-                
-                const response = await fetch(`${ENHANCED_API}/liquidity/dashboard`, {
-                    signal: controller.signal
-                }).finally(() => clearTimeout(timeoutId));
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    updateLiquidityAlert(data);
-                }
-            } catch (error) {
-                console.warn('Liquidity dashboard failed:', error);
-                document.getElementById('liquidityAlert').style.display = 'none';
             }
         }
         
-        // Update liquidity alert
-        function updateLiquidityAlert(data) {
-            const alertElement = document.getElementById('liquidityAlert');
-            const alertText = document.getElementById('liquidityAlertText');
-            
-            if (!data || data.overall_stress_score === undefined) {
-                alertElement.style.display = 'none';
-                return;
-            }
-            
-            const stressScore = data.overall_stress_score;
-            const stressLevel = data.stress_level;
-            
-            alertElement.style.display = 'block';
-            alertText.textContent = `Liquidity: ${stressLevel} (${(stressScore * 100).toFixed(1)}%)`;
-            
-            alertElement.className = 'liquidity-alert';
-            if (stressLevel === 'EXTREME' || stressLevel === 'HIGH') {
-                alertElement.classList.add('high');
-            } else if (stressLevel === 'MODERATE') {
-                alertElement.classList.add('moderate');
-            } else {
-                alertElement.classList.add('low');
-            }
+        function updateClock() {
+            document.getElementById('clock').textContent = new Date().toLocaleTimeString();
         }
         
-        // Show liquidity dashboard
-        function showLiquidityDashboard() {
-            showTemporaryMessage('Loading comprehensive liquidity dashboard...', 'info');
-        }
-        
-        // Edit symbol function
-        function editSymbol(event, symbol) {
-            event.stopPropagation();
-            showTemporaryMessage(`Edit functionality for ${symbol} - implement as needed`, 'info');
-        }
-        
-        // Show API info
-        function showAPIInfo() {
-            showTemporaryMessage('Lambda Search API: 6,204 indicators from global financial sources', 'info');
-        }
-        
-        // Show Enhanced API info
-        function showEnhancedInfo() {
-            showTemporaryMessage('Enhanced API: 60,000+ indicators with real-time updates', 'info');
-        }
-        
-        // Show documentation
-        function showDocumentation() {
-            window.open('https://docs.openbb.co', '_blank');
-        }
-        
-        // Utility functions
-        function showTemporaryMessage(text, type = 'info') {
+        function showMessage(text, type = 'info') {
             const popup = document.createElement('div');
             popup.className = `message-popup ${type}`;
             popup.textContent = text;
             document.body.appendChild(popup);
-            
             setTimeout(() => popup.remove(), 3000);
+        }
+        
+        function showAPIInfo() {
+            showMessage('Lambda Search API: 6,204 indicators with CORS enabled', 'info');
+        }
+        
+        function showEnhancedInfo() {
+            showMessage('Enhanced API: 60,000+ indicators with real-time updates', 'info');
+        }
+        
+        function showDocumentation() {
+            window.open('https://docs.openbb.co', '_blank');
         }
         
         // Hide search results when clicking outside
@@ -2948,7 +1339,7 @@
             }
         });
         
-        // Initialize on page load
+        // Initialize
         window.onload = init;
     </script>
 </body>
