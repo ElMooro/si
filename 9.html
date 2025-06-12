@@ -1059,7 +1059,7 @@
         let chartIdCounter = 0;
         let activeChartId = null;
         
-        // Enhanced watchlists
+        // Enhanced watchlists - Using enhanced provider where available
         const watchlists = {
             'MAIN': {
                 symbols: [
@@ -1242,7 +1242,7 @@
                     <li id="enhanced-status">⏳ Enhanced API: Checking...</li>
                 </ul>
                 <p style="margin-top: 15px; font-size: 11px;">
-                    <strong>✨ CORS Fixed!</strong> Real-time data is now loading from your APIs.
+                    <strong>Note:</strong> If APIs are unavailable, demo data will be shown temporarily.
                 </p>
                 <button onclick="this.parentElement.remove()">Got it!</button>
             `;
@@ -1281,27 +1281,38 @@
                 }
                 
                 // Test Lambda search endpoint
-                const searchUrl = `${LAMBDA_API}/api/search?query=treasury&limit=1`;
-                const searchResponse = await fetch(searchUrl, {
-                    method: 'GET',
-                    mode: 'cors',
-                    credentials: 'omit',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    }
-                });
+                try {
+                    const searchUrl = `${LAMBDA_API}/api/search?query=treasury&limit=1`;
+                    const searchResponse = await fetch(searchUrl, {
+                        method: 'GET',
+                        mode: 'cors',
+                        credentials: 'omit',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        }
+                    });
 
-                if (searchResponse.ok) {
-                    const searchData = await searchResponse.json();
-                    if (searchData.results && searchData.results.length > 0) {
-                        lambdaSearchWorking = true;
-                        console.log('Lambda search is working with CORS fixed!');
-                        
-                        // Update info panel to show search is working
+                    if (searchResponse.ok) {
+                        const searchData = await searchResponse.json();
+                        if (searchData.results && searchData.results.length > 0) {
+                            lambdaSearchWorking = true;
+                            console.log('Lambda search is working with CORS fixed!');
+                            
+                            // Update info panel to show search is working
+                            const lambdaStatus = document.getElementById('lambda-status');
+                            if (lambdaStatus && data) {
+                                lambdaStatus.innerHTML = `✅ Lambda Platform: ${data.document_count} indicators (Search & Stats working with CORS!)`;
+                            }
+                        }
+                    }
+                } catch (searchError) {
+                    console.warn('Lambda search endpoint test failed:', searchError);
+                    // Lambda search might have CORS issues, but stats is working
+                    if (lambdaStatsWorking) {
                         const lambdaStatus = document.getElementById('lambda-status');
                         if (lambdaStatus) {
-                            lambdaStatus.innerHTML = `✅ Lambda Platform: ${data.document_count} indicators (Search & Stats working with CORS!)`;
+                            lambdaStatus.innerHTML = `⚠️ Lambda Platform: ${data.document_count} indicators (Stats working, Search has CORS issues)`;
                         }
                     }
                 }
@@ -1366,22 +1377,16 @@
                 }
             }
             
-            // Update other indicators based on API availability
-            if (connectedCount > 0) {
-                ['polygon', 'fred', 'ny_fed', 'ecb', 'ofr', 'treasury'].forEach(source => {
-                    if (document.getElementById('enhanced-indicator').classList.contains('connected')) {
-                        document.getElementById(`${source}-indicator`).classList.add('connected');
-                    }
-                });
-                
-                const statusText = enhancedConnected ? 
-                    'Enhanced API Connected - Real data available' : 
-                    'Lambda Platform connected';
+            // Update overall status
+            if (lambdaStatsWorking || enhancedConnected) {
+                const statusText = lambdaStatsWorking && !lambdaSearchWorking ? 
+                    'Lambda Stats working (Search has CORS issues) - Using demo data' : 
+                    enhancedConnected ? 'Enhanced API Connected' : 'Demo Mode';
                 document.getElementById('apiStatusText').textContent = statusText;
                 document.getElementById('apiStatus').classList.add('connected');
             } else {
-                document.getElementById('apiStatusText').textContent = 'APIs offline - Check connection';
-                document.getElementById('apiStatus').classList.remove('connected');
+                document.getElementById('apiStatusText').textContent = 'Demo Mode - APIs unavailable';
+                document.getElementById('apiStatus').classList.add('connected'); // Still show as "connected" for demo
             }
         }
         
@@ -1394,12 +1399,10 @@
                 
                 // Check which APIs are actually working
                 const enhancedWorking = document.getElementById('enhanced-indicator').classList.contains('connected');
-                const lambdaWorking = document.getElementById('lambda-indicator').classList.contains('connected');
+                const lambdaWorking = lambdaSearchWorking || document.getElementById('lambda-indicator').classList.contains('connected');
                 
-                // Change this to false when Lambda search CORS is fixed
-                const FORCE_DEMO_MODE = false;
-                
-                if (!enhancedWorking && !lambdaWorking) {
+                // Don't throw error if at least Lambda stats is working
+                if (!enhancedWorking && !lambdaWorking && !lambdaStatsWorking) {
                     throw new Error('No APIs available');
                 }
                 
@@ -1430,10 +1433,10 @@
                 }
                 
                 // Try Lambda if Enhanced API doesn't have the endpoint
-                if (!url && lambdaWorking && (provider === 'lambda' || !enhancedWorking)) {
+                if (!url && (lambdaSearchWorking || lambdaStatsWorking) && (provider === 'lambda' || !enhancedWorking)) {
                     // Lambda search with exact match
                     url = `${LAMBDA_API}/api/search?query="${encodeURIComponent(symbol)}"&limit=1`;
-                    console.log('Using Lambda search API with CORS fixed');
+                    console.log('Attempting Lambda search API');
                 }
                 
                 if (!url) {
@@ -1486,18 +1489,78 @@
                 
             } catch (error) {
                 console.warn(`Failed to load ${symbol} from API:`, error.message);
-                // Set loading state
-                watchlistData[symbol] = {
-                    name: symbol,
-                    provider: provider,
-                    price: 0,
-                    changes: { '1d': 0, '1w': 0, '1m': 0, '1y': 0 },
-                    changeUnits: { 'daily': 0, 'yearly': 0 },
-                    hasData: false,
-                    loading: true
-                };
+                // Use demo data when APIs are unavailable
+                const demoData = generateDemoData(symbol);
+                watchlistData[symbol] = demoData;
                 renderWatchlist();
             }
+        }
+        
+        // Generate demo data for symbols
+        function generateDemoData(symbol) {
+            const symbolDatabase = {
+                // Stocks
+                'AAPL': { name: 'Apple Inc.', basePrice: 195.89, volatility: 2.5 },
+                'MSFT': { name: 'Microsoft Corporation', basePrice: 415.26, volatility: 2.2 },
+                'GOOGL': { name: 'Alphabet Inc.', basePrice: 142.57, volatility: 2.8 },
+                'AMZN': { name: 'Amazon.com Inc.', basePrice: 178.35, volatility: 3.1 },
+                'TSLA': { name: 'Tesla Inc.', basePrice: 251.12, volatility: 4.5 },
+                'SPY': { name: 'SPDR S&P 500 ETF', basePrice: 452.16, volatility: 1.8 },
+                'QQQ': { name: 'Invesco QQQ Trust', basePrice: 393.24, volatility: 2.1 },
+                'NVDA': { name: 'NVIDIA Corporation', basePrice: 495.22, volatility: 3.8 },
+                'META': { name: 'Meta Platforms Inc.', basePrice: 334.21, volatility: 3.2 },
+                'NFLX': { name: 'Netflix Inc.', basePrice: 445.73, volatility: 3.5 },
+                
+                // Economic Indicators
+                'FEDFUNDS': { name: 'Federal Funds Rate', basePrice: 5.33, volatility: 0.1 },
+                'UNRATE': { name: 'Unemployment Rate', basePrice: 4.0, volatility: 0.3 },
+                'GDP': { name: 'Gross Domestic Product', basePrice: 27946.8, volatility: 0.8 },
+                'CPIAUCSL': { name: 'Consumer Price Index', basePrice: 310.326, volatility: 0.4 },
+                'DFF': { name: 'Daily Federal Funds Rate', basePrice: 5.33, volatility: 0.05 },
+                'M2SL': { name: 'M2 Money Supply', basePrice: 20867.4, volatility: 0.6 },
+                'PAYEMS': { name: 'Total Nonfarm Payrolls', basePrice: 157234, volatility: 0.2 },
+                'DGS10': { name: '10-Year Treasury Rate', basePrice: 4.426, volatility: 0.15 },
+                'DGS2': { name: '2-Year Treasury Rate', basePrice: 4.852, volatility: 0.12 },
+                'VIXCLS': { name: 'CBOE Volatility Index', basePrice: 13.20, volatility: 5.0 },
+                'SOFR': { name: 'Secured Overnight Financing Rate', basePrice: 5.31, volatility: 0.02 },
+                'EFFR': { name: 'Effective Federal Funds Rate', basePrice: 5.33, volatility: 0.01 },
+                'OBFR': { name: 'Overnight Bank Funding Rate', basePrice: 5.32, volatility: 0.02 },
+                
+                // Default for unknown symbols
+                'DEFAULT': { name: symbol, basePrice: 100, volatility: 2.0 }
+            };
+            
+            const config = symbolDatabase[symbol] || symbolDatabase['DEFAULT'];
+            
+            // Generate realistic changes
+            const volatility = config.volatility;
+            const dailyChange = (Math.random() - 0.5) * volatility;
+            const weeklyChange = dailyChange + (Math.random() - 0.5) * volatility * 1.5;
+            const monthlyChange = weeklyChange + (Math.random() - 0.5) * volatility * 2;
+            const yearlyChange = monthlyChange + (Math.random() - 0.5) * volatility * 5;
+            
+            const price = config.basePrice;
+            const dailyUnits = price * (dailyChange / 100);
+            const yearlyUnits = price * (yearlyChange / 100);
+            
+            return {
+                name: config.name,
+                provider: 'demo',
+                price: price,
+                changes: {
+                    '1d': dailyChange,
+                    '1w': weeklyChange,
+                    '1m': monthlyChange,
+                    '1y': yearlyChange
+                },
+                changeUnits: {
+                    'daily': dailyUnits,
+                    'yearly': yearlyUnits
+                },
+                hasData: true,
+                lastUpdateTime: Date.now(),
+                isDemo: true
+            };
         }
         
         // Process stock quote data
@@ -2315,7 +2378,9 @@
         function addToWatchlistFromSearch(symbol, provider, name) {
             const currentSymbols = watchlists[currentWatchlist].symbols;
             
-            if (!currentSymbols.find(s => s.symbol === symbol)) {
+            // Check if symbol already exists
+            const existingSymbol = currentSymbols.find(s => (s.symbol || s) === symbol);
+            if (!existingSymbol) {
                 currentSymbols.push({ symbol, provider });
                 watchlistSymbols = [...currentSymbols];
                 saveWatchlists();
