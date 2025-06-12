@@ -958,10 +958,10 @@
     
     <script>
         // Configuration for production access
-        const LAMBDA_API = 'https://i3y8tfdp1k.execute-api.us-east-1.amazonaws.com/prod';
-        const ENHANCED_API_IP = '52.72.62.43';
-        const ENHANCED_API_BASE = `http://${ENHANCED_API_IP}:8000/api/v1`;
-        const ENHANCED_API = ENHANCED_API_BASE;
+        let LAMBDA_API = 'https://i3y8tfdp1k.execute-api.us-east-1.amazonaws.com/prod';
+        let ENHANCED_API_IP = '52.72.62.43';
+        let ENHANCED_API_BASE = `http://${ENHANCED_API_IP}:8000/api/v1`;
+        let ENHANCED_API = ENHANCED_API_BASE;
         
         // Enhanced data source configurations
         const DATA_SOURCES = {
@@ -1288,11 +1288,11 @@
                     // Update info panel
                     const lambdaStatus = document.getElementById('lambda-status');
                     if (lambdaStatus) {
-                        lambdaStatus.innerHTML = `✅ Lambda Platform: ${data.document_count} indicators (Stats API only)`;
+                        lambdaStatus.innerHTML = `⚠️ Lambda Platform: ${data.document_count} indicators (Stats working, Search has CORS issues)`;
                     }
                     
-                    // Note: The search endpoint might have different CORS settings
-                    // We'll test it separately when actually loading data
+                    // Important note about Lambda search CORS issue
+                    console.warn('Note: Lambda search endpoint has CORS issues - will use demo data');
                 }
             } catch (error) {
                 console.error('Lambda Platform check failed:', error);
@@ -1303,35 +1303,51 @@
                 }
             }
             
-            // Test Enhanced API
-            try {
-                const testUrl = `${ENHANCED_API}/economy/survey/university_of_michigan?provider=fred`;
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 5000);
+            // Test Enhanced API - check with current IP
+            const enhancedIPs = ['52.72.62.43', '54.236.52.97', '3.93.164.68']; // Multiple IPs to try
+            let enhancedConnected = false;
+            
+            for (const ip of enhancedIPs) {
+                if (enhancedConnected) break;
                 
-                const enhancedResponse = await fetch(testUrl, {
-                    method: 'GET',
-                    mode: 'cors',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    signal: controller.signal
-                }).finally(() => clearTimeout(timeoutId));
-                
-                if (enhancedResponse.ok) {
-                    document.getElementById('enhanced-indicator').classList.add('connected');
-                    connectedCount++;
-                    console.log('Enhanced API connected!');
+                try {
+                    const testUrl = `http://${ip}:8000/api/v1/economy/survey/university_of_michigan?provider=fred`;
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 3000);
                     
-                    // Update info panel
-                    const enhancedStatus = document.getElementById('enhanced-status');
-                    if (enhancedStatus) {
-                        enhancedStatus.innerHTML = '✅ Enhanced API: 60,000+ indicators';
+                    const enhancedResponse = await fetch(testUrl, {
+                        method: 'GET',
+                        mode: 'cors',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        signal: controller.signal
+                    }).finally(() => clearTimeout(timeoutId));
+                    
+                    if (enhancedResponse.ok) {
+                        // Update the global IP to the working one
+                        ENHANCED_API_IP = ip;
+                        ENHANCED_API_BASE = `http://${ip}:8000/api/v1`;
+                        ENHANCED_API = ENHANCED_API_BASE;
+                        
+                        document.getElementById('enhanced-indicator').classList.add('connected');
+                        connectedCount++;
+                        enhancedConnected = true;
+                        console.log(`Enhanced API connected at IP: ${ip}`);
+                        
+                        // Update info panel
+                        const enhancedStatus = document.getElementById('enhanced-status');
+                        if (enhancedStatus) {
+                            enhancedStatus.innerHTML = `✅ Enhanced API: 60,000+ indicators (IP: ${ip})`;
+                        }
                     }
+                } catch (error) {
+                    console.warn(`Enhanced API not accessible at ${ip}:`, error.message);
                 }
-            } catch (error) {
-                console.warn('Enhanced API not accessible:', error.message);
+            }
+            
+            if (!enhancedConnected) {
                 document.getElementById('enhanced-indicator').classList.remove('connected');
                 const enhancedStatus = document.getElementById('enhanced-status');
                 if (enhancedStatus) {
@@ -1347,7 +1363,9 @@
                     }
                 });
                 
-                const statusText = connectedCount > 1 ? `${connectedCount} APIs Connected` : 'Lambda Stats API Connected (Using demo data for symbols)';
+                const statusText = enhancedConnected ? 
+                    'Enhanced API Connected - Real data available' : 
+                    'Demo Mode - Lambda search has CORS issues';
                 document.getElementById('apiStatusText').textContent = statusText;
                 document.getElementById('apiStatus').classList.add('connected');
             } else {
@@ -1363,10 +1381,15 @@
             try {
                 console.log(`Loading ${symbol} from ${provider}`);
                 
-                // HARD WAY - Use real APIs since CORS is verified working
-                const USE_REAL_API = true; // CORS is verified working!
+                // Check which APIs are actually working
+                const enhancedWorking = document.getElementById('enhanced-indicator').classList.contains('connected');
+                const lambdaStatsWorking = document.getElementById('lambda-indicator').classList.contains('connected');
                 
-                if (!USE_REAL_API) {
+                // For now, since Lambda search has CORS issues, prioritize demo mode
+                // Change this to false when Lambda search CORS is fixed
+                const FORCE_DEMO_MODE = true;
+                
+                if (FORCE_DEMO_MODE || (!enhancedWorking && !lambdaStatsWorking)) {
                     throw new Error('Using demo data mode');
                 }
                 
@@ -1376,13 +1399,14 @@
                     mode: 'cors',
                     headers: {
                         'Accept': 'application/json',
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Origin': window.location.origin
                     },
                     credentials: 'omit'
                 };
                 
-                // Enhanced API is more reliable for data, try it first
-                if (document.getElementById('enhanced-indicator').classList.contains('connected')) {
+                // Try Enhanced API first if it's working
+                if (enhancedWorking) {
                     // Map symbols to appropriate Enhanced API endpoints
                     const enhancedEndpoints = {
                         // Economic indicators that work with FRED provider
@@ -1414,10 +1438,11 @@
                     }
                 }
                 
-                // Fall back to Lambda search if Enhanced API doesn't have the endpoint
-                if (!url && provider === 'lambda') {
-                    // Try Lambda search with exact match
+                // Only try Lambda if Enhanced API doesn't have the endpoint
+                if (!url && lambdaStatsWorking && !FORCE_DEMO_MODE) {
+                    // Lambda search with exact match - note the CORS issue
                     url = `${LAMBDA_API}/api/search?query="${encodeURIComponent(symbol)}"&limit=1`;
+                    console.warn('Note: Lambda search endpoint may have CORS issues');
                 }
                 
                 if (!url) {
@@ -1426,40 +1451,48 @@
                 
                 console.log(`Fetching from: ${url}`);
                 
-                // Add timeout
+                // Add timeout and better error handling
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 10000);
                 options.signal = controller.signal;
                 
-                const response = await fetch(url, options);
-                clearTimeout(timeoutId);
-                
-                if (!response.ok) {
-                    console.warn(`API returned ${response.status} for ${symbol}`);
-                    throw new Error(`API returned ${response.status}`);
-                }
-                
-                const data = await response.json();
-                console.log(`Data received for ${symbol}:`, data);
-                
-                // Process based on response structure
-                if (data.results && Array.isArray(data.results) && data.results.length > 0) {
-                    // Enhanced API format
-                    processEnhancedData(symbol, data.results, provider);
-                } else if (data.data && Array.isArray(data.data)) {
-                    // Alternative Enhanced API format
-                    processEnhancedData(symbol, data.data, provider);
-                } else if (data.total_hits && data.results && data.results.length > 0) {
-                    // Lambda search format
-                    processLambdaData(symbol, data.results[0], provider);
-                } else {
-                    console.warn(`No data found for ${symbol}, using demo data`);
-                    throw new Error('No data in response');
+                try {
+                    const response = await fetch(url, options);
+                    clearTimeout(timeoutId);
+                    
+                    if (!response.ok) {
+                        console.warn(`API returned ${response.status} for ${symbol}`);
+                        throw new Error(`API returned ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    console.log(`Data received for ${symbol}:`, data);
+                    
+                    // Process based on response structure
+                    if (data.results && Array.isArray(data.results) && data.results.length > 0) {
+                        // Enhanced API format
+                        processEnhancedData(symbol, data.results, provider);
+                    } else if (data.data && Array.isArray(data.data)) {
+                        // Alternative Enhanced API format
+                        processEnhancedData(symbol, data.data, provider);
+                    } else if (data.total_hits && data.results && data.results.length > 0) {
+                        // Lambda search format
+                        processLambdaData(symbol, data.results[0], provider);
+                    } else {
+                        console.warn(`No data found for ${symbol}, using demo data`);
+                        throw new Error('No data in response');
+                    }
+                } catch (fetchError) {
+                    // Handle specific CORS error
+                    if (fetchError.name === 'TypeError' && fetchError.message.includes('Failed to fetch')) {
+                        console.error(`CORS error loading ${symbol} - API may not have proper CORS headers`);
+                    }
+                    throw fetchError;
                 }
                 
             } catch (error) {
                 console.warn(`Failed to load ${symbol} from API:`, error.message);
-                // Fall back to high-quality demo data
+                // Use high-quality demo data
                 const demoData = getDemoDataForSymbol(symbol);
                 watchlistData[symbol] = demoData;
                 renderWatchlist();
