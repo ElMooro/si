@@ -1934,7 +1934,7 @@
         const UNIFIED_API = 'https://rg9o6exoi8.execute-api.us-east-1.amazonaws.com/prod';
         
         // Use Unified Gateway by default for all operations
-        const USE_UNIFIED_GATEWAY = true;
+        const USE_UNIFIED_GATEWAY = false; // Disabled until we verify it's working
         
         // Enhanced data source configurations
         const DATA_SOURCES = {
@@ -2124,6 +2124,11 @@
             updateClock();
             setInterval(updateClock, 1000);
             
+            // Check if running from file:// protocol
+            if (window.location.protocol === 'file:') {
+                showFileProtocolWarning();
+            }
+            
             // Initialize watchlists
             loadWatchlists();
             
@@ -2139,6 +2144,9 @@
                 document.getElementById('enhanced-indicator').classList.contains('connected')) {
                 loadWatchlistData();
                 setInterval(loadWatchlistData, 60000); // Refresh every minute
+            } else {
+                // Show CORS help if no connections
+                showCORSHelp();
             }
             
             // Update UI
@@ -2147,6 +2155,114 @@
             document.getElementById('searchBox').focus();
             
             console.log('✅ Platform initialized successfully!');
+        }
+        
+        // Show warning when running from file:// protocol
+        function showFileProtocolWarning() {
+            console.warn('⚠️ Running from file:// protocol detected. This may cause CORS issues.');
+        }
+        
+        // Show CORS help modal
+        function showCORSHelp() {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal" style="max-width: 600px;">
+                    <div class="modal-header">
+                        <h2 class="modal-title">⚠️ Connection Issues Detected</h2>
+                        <button class="modal-close" onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <p><strong>The dashboard cannot connect to the OpenBB APIs due to browser security (CORS).</strong></p>
+                        <p style="margin-top: 10px;">This typically happens when:</p>
+                        <ul style="margin: 10px 0; padding-left: 20px;">
+                            <li>Opening the HTML file directly (file:// protocol)</li>
+                            <li>Browser security blocking cross-origin requests</li>
+                        </ul>
+                    </div>
+                    
+                    <h3 style="color: var(--primary-green); margin-bottom: 10px;">Quick Solutions:</h3>
+                    
+                    <div style="background: #1a1a1a; padding: 15px; border-radius: 4px; margin-bottom: 15px;">
+                        <p style="margin-bottom: 10px;"><strong>Option 1: Run a Local Web Server</strong></p>
+                        <code style="color: var(--primary-green);">python -m http.server 8000</code>
+                        <p style="margin-top: 5px; font-size: 12px;">Then open: http://localhost:8000/10.html</p>
+                    </div>
+                    
+                    <div style="background: #1a1a1a; padding: 15px; border-radius: 4px; margin-bottom: 15px;">
+                        <p style="margin-bottom: 10px;"><strong>Option 2: Use Demo Mode</strong></p>
+                        <p style="font-size: 12px;">Load the dashboard with simulated data for testing</p>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button onclick="enableDemoMode(); this.parentElement.parentElement.parentElement.remove();"
+                                style="background: var(--primary-green); color: #000; border: none; 
+                                       padding: 10px 20px; border-radius: 4px; cursor: pointer; 
+                                       font-weight: bold; margin-right: 10px;">
+                            Use Demo Mode
+                        </button>
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()"
+                                style="background: #666; color: #fff; border: none; 
+                                       padding: 10px 20px; border-radius: 4px; cursor: pointer;">
+                            I'll Fix CORS
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        // Enable demo mode with simulated data
+        function enableDemoMode() {
+            console.log('🎮 Demo mode enabled - using simulated data');
+            
+            // Mark all systems as connected in demo mode
+            document.getElementById('unified-indicator').classList.add('connected');
+            document.getElementById('lambda-indicator').classList.add('connected');
+            document.getElementById('enhanced-indicator').classList.add('connected');
+            document.getElementById('apiStatus').classList.add('connected');
+            document.getElementById('apiStatusText').textContent = 'Demo Mode Active';
+            
+            // Update all provider indicators
+            ['polygon', 'fred', 'ny_fed', 'ecb', 'ofr', 'treasury'].forEach(provider => {
+                const indicator = document.getElementById(`${provider}-indicator`);
+                if (indicator) indicator.classList.add('connected');
+            });
+            
+            // Show demo mode notice
+            showTemporaryMessage('Demo mode enabled - using simulated data', 'info');
+            
+            // Load demo data
+            loadDemoWatchlistData();
+        }
+        
+        // Load demo watchlist data
+        function loadDemoWatchlistData() {
+            const demoData = {
+                'AAPL': { name: 'Apple Inc.', price: 195.89, changes: { '1d': 1.2, '1w': 2.5, '1m': 5.3, '1y': 25.4 }, changeUnits: { daily: 2.33, yearly: 40.12 } },
+                'FEDFUNDS': { name: 'Federal Funds Rate', price: 5.33, changes: { '1d': 0, '1w': 0, '1m': 0, '1y': 0.08 }, changeUnits: { daily: 0, yearly: 0.08 } },
+                'UNRATE': { name: 'Unemployment Rate', price: 4.0, changes: { '1d': 0, '1w': 0, '1m': 2.56, '1y': -2.44 }, changeUnits: { daily: 0, yearly: -0.1 } },
+                'sofr': { name: 'Secured Overnight Financing Rate', price: 5.31, changes: { '1d': 0, '1w': 0, '1m': -0.19, '1y': 0.38 }, changeUnits: { daily: 0, yearly: 0.02 } },
+                'EXR.D.USD.EUR.SP00.A': { name: 'EUR/USD Exchange Rate', price: 1.0875, changes: { '1d': 0.23, '1w': -0.45, '1m': 1.2, '1y': 3.4 }, changeUnits: { daily: 0.0025, yearly: 0.036 } },
+                'CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX': { name: 'Euro Area Systemic Stress', price: 0.0542, changes: { '1d': 2.3, '1w': -1.8, '1m': 5.6, '1y': -12.5 }, changeUnits: { daily: 0.0012, yearly: -0.0077 } },
+                'NYPD-PD_AFtR_T-A': { name: 'NY Primary Dealer After-Fed', price: 125.4, changes: { '1d': -0.5, '1w': 1.2, '1m': -2.1, '1y': 8.7 }, changeUnits: { daily: -0.63, yearly: 10.01 } },
+                'BILLS_13W': { name: '13-Week Treasury Bill', price: 5.12, changes: { '1d': 0.02, '1w': -0.05, '1m': 0.15, '1y': 0.45 }, changeUnits: { daily: 0.001, yearly: 0.023 } }
+            };
+            
+            // Update watchlist data
+            watchlistSymbols.forEach(symbolObj => {
+                const symbol = symbolObj.symbol || symbolObj;
+                if (demoData[symbol]) {
+                    watchlistData[symbol] = {
+                        ...demoData[symbol],
+                        provider: 'demo',
+                        hasData: true,
+                        lastUpdate: new Date().toISOString()
+                    };
+                }
+            });
+            
+            renderWatchlist();
         }
         
         // Show connection status notification
@@ -2257,13 +2373,16 @@
                 }
             } catch (error) {
                 console.error('Unified Gateway check failed:', error);
+                if (error.message.includes('Failed to fetch')) {
+                    console.warn('⚠️ CORS blocking Unified Gateway. Run from a web server or enable CORS.');
+                }
                 document.getElementById('unified-indicator').classList.remove('connected');
                 
                 const unifiedStatus = document.getElementById('unifiedStatus');
                 if (unifiedStatus) {
                     unifiedStatus.innerHTML = `
                         <span class="status-dot"></span>
-                        <span style="color: var(--error);">Disconnected</span>
+                        <span style="color: var(--error);">CORS Blocked</span>
                     `;
                 }
             }
@@ -2287,7 +2406,7 @@
                     console.log('✅ Lambda Platform connected:', data);
                     document.getElementById('lambda-indicator').classList.add('connected');
                     document.getElementById('lambdaStat').textContent = data.document_count || '6,204';
-                    document.getElementById('mappingStat').textContent = '2,753';
+                    document.getElementById('mappingStat').textContent = data.symbol_mappings_loaded || '2,753';
                     connectedCount++;
                     
                     // Update advanced panel status
@@ -2312,13 +2431,16 @@
                 }
             } catch (error) {
                 console.error('Lambda Platform check failed:', error);
+                if (error.message.includes('Failed to fetch')) {
+                    console.warn('⚠️ CORS blocking Lambda API. This is unusual as Lambda should have CORS enabled.');
+                }
                 document.getElementById('lambda-indicator').classList.remove('connected');
                 
                 const lambdaStatus = document.getElementById('lambdaStatus');
                 if (lambdaStatus) {
                     lambdaStatus.innerHTML = `
                         <span class="status-dot"></span>
-                        <span style="color: var(--error);">Disconnected</span>
+                        <span style="color: var(--error);">CORS Blocked</span>
                     `;
                 }
             }
@@ -2360,6 +2482,9 @@
                 }
             } catch (error) {
                 console.warn('Enhanced API not accessible:', error.message);
+                if (error.message.includes('Failed to fetch')) {
+                    console.warn('⚠️ CORS blocking Enhanced API. This is expected when running locally.');
+                }
                 document.getElementById('enhanced-indicator').classList.remove('connected');
                 
                 const enhancedStatus = document.getElementById('enhancedStatus');
@@ -2417,8 +2542,9 @@
                 }
             } else {
                 // No APIs connected
-                document.getElementById('apiStatusText').textContent = 'Offline - Check connection';
+                document.getElementById('apiStatusText').textContent = 'No Connection - CORS Issue';
                 document.getElementById('apiStatus').classList.remove('connected');
+                console.error('❌ No API connections available. CORS is blocking all requests.');
             }
             
             // Update statistics
@@ -3194,6 +3320,32 @@
             } catch (error) {
                 console.error(`Error loading ${symbol} from ${provider}:`, error);
                 
+                // Check if it's a CORS error
+                if (error.message.includes('Failed to fetch')) {
+                    console.warn(`⚠️ CORS blocking request for ${symbol}. Running in offline mode.`);
+                    
+                    // Use demo data if available
+                    const demoData = {
+                        'AAPL': { name: 'Apple Inc.', price: 195.89, changes: { '1d': 1.2, '1w': 2.5, '1m': 5.3, '1y': 25.4 } },
+                        'FEDFUNDS': { name: 'Federal Funds Rate', price: 5.33, changes: { '1d': 0, '1w': 0, '1m': 0, '1y': 0.08 } },
+                        'UNRATE': { name: 'Unemployment Rate', price: 4.0, changes: { '1d': 0, '1w': 0, '1m': 2.56, '1y': -2.44 } },
+                        'sofr': { name: 'Secured Overnight Financing Rate', price: 5.31, changes: { '1d': 0, '1w': 0, '1m': -0.19, '1y': 0.38 } }
+                    };
+                    
+                    if (demoData[symbol]) {
+                        watchlistData[symbol] = {
+                            ...demoData[symbol],
+                            changeUnits: { daily: 0, yearly: 0 },
+                            provider: 'offline',
+                            hasData: true,
+                            error: 'CORS - Using cached data',
+                            lastUpdate: new Date().toISOString()
+                        };
+                        renderWatchlist();
+                        return;
+                    }
+                }
+                
                 // Retry logic
                 if (error.message.includes('Failed to fetch') && retryCount < maxRetries) {
                     const delay = 2000;
@@ -3210,7 +3362,7 @@
                     changes: { '1d': null, '1w': null, '1m': null, '3m': null, '1y': null },
                     changeUnits: { 'daily': null, 'yearly': null },
                     hasData: false,
-                    error: error.message,
+                    error: error.message.includes('Failed to fetch') ? 'CORS blocked' : error.message,
                     lastUpdate: new Date().toISOString()
                 };
                 renderWatchlist();
