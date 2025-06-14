@@ -2095,6 +2095,7 @@
             console.log('Initializing OpenBB Financial Intelligence Platform...');
             console.log('Enhanced API IP:', ENHANCED_API_IP);
             console.log('Enhanced API URL:', ENHANCED_API);
+            console.log('Current origin:', window.location.origin);
             
             updateClock();
             setInterval(updateClock, 1000);
@@ -2111,8 +2112,11 @@
             await checkAPIConnections();
             
             // Show CORS status if needed
-            if (document.getElementById('apiStatus').classList.contains('connected')) {
-                showCORSStatus();
+            if (!document.getElementById('apiStatus').classList.contains('connected')) {
+                // If no connection and on a web domain, it's likely CORS
+                if (window.location.protocol.startsWith('http')) {
+                    showCORSStatus();
+                }
             }
             
             // Load initial data
@@ -2120,6 +2124,14 @@
                 document.getElementById('enhanced-indicator').classList.contains('connected')) {
                 loadWatchlistData();
                 setInterval(loadWatchlistData, 60000); // Refresh every minute
+            } else {
+                // Automatically enable demo mode if no API connection
+                setTimeout(() => {
+                    if (!document.getElementById('apiStatus').classList.contains('connected') && !isDemoMode) {
+                        console.log('No API connection detected, enabling demo mode...');
+                        enableDemoMode();
+                    }
+                }, 2000);
             }
             
             // Update UI
@@ -2177,33 +2189,62 @@
         function showCORSStatus() {
             const corsNotice = document.createElement('div');
             corsNotice.className = 'cors-notice';
-            corsNotice.innerHTML = `
-                <h3>🚀 OpenBB Financial Platform Connected</h3>
-                <p><strong>✅ Lambda API Connected!</strong> (6,204 indicators available)</p>
-                <p>⚠️ Enhanced API (${ENHANCED_API_IP}) may require CORS configuration.</p>
-                <p><strong>Available features:</strong></p>
-                <ul>
-                    <li>✅ Search across 6,204 financial indicators</li>
-                    <li>✅ Real-time data from Lambda Platform</li>
-                    <li>✅ Economic indicators (GDP, FEDFUNDS, etc.)</li>
-                    <li>✅ Market data and indices</li>
-                    <li>✅ Advanced charts and watchlists</li>
-                    <li>✅ NY Fed rates, ECB stress indicators</li>
-                </ul>
-                <p style="margin-top: 15px; font-size: 11px;">
-                    Enhanced API with 60,000+ indicators available when CORS is enabled.
-                </p>
-                <button onclick="testEnhancedAPI()">Test Enhanced API</button>
-                <button onclick="enableDemoMode()">Use Demo Mode</button>
-                <button onclick="this.parentElement.remove()">Got it!</button>
-            `;
+            
+            // Check if Lambda is actually connected
+            const lambdaConnected = document.getElementById('lambda-indicator').classList.contains('connected');
+            const enhancedConnected = document.getElementById('enhanced-indicator').classList.contains('connected');
+            
+            if (!lambdaConnected && !enhancedConnected) {
+                corsNotice.innerHTML = `
+                    <h3>⚠️ CORS Policy Blocking API Access</h3>
+                    <p><strong>Both APIs are blocked by CORS policy.</strong></p>
+                    <p>You're accessing this from: <strong>${window.location.origin}</strong></p>
+                    <p style="margin-top: 10px;"><strong>Solutions:</strong></p>
+                    <ul>
+                        <li>Use Demo Mode for testing (recommended)</li>
+                        <li>Run locally with a web server</li>
+                        <li>Use a CORS proxy service</li>
+                        <li>Deploy to a domain with CORS enabled</li>
+                    </ul>
+                    <p style="margin-top: 15px; font-size: 11px;">
+                        The APIs are configured to block requests from unauthorized domains for security.
+                    </p>
+                    <button onclick="enableDemoMode(); this.parentElement.remove();" style="background: var(--primary-green); color: #000; font-weight: bold;">Enable Demo Mode</button>
+                    <button onclick="showCORSHelp()">More Info</button>
+                    <button onclick="this.parentElement.remove()">Close</button>
+                `;
+            } else {
+                corsNotice.innerHTML = `
+                    <h3>🚀 OpenBB Financial Platform Connected</h3>
+                    <p><strong>✅ Lambda API Connected!</strong> (6,204 indicators available)</p>
+                    <p>⚠️ Enhanced API (${ENHANCED_API_IP}) may require CORS configuration.</p>
+                    <p><strong>Available features:</strong></p>
+                    <ul>
+                        <li>✅ Search across 6,204 financial indicators</li>
+                        <li>✅ Real-time data from Lambda Platform</li>
+                        <li>✅ Economic indicators (GDP, FEDFUNDS, etc.)</li>
+                        <li>✅ Market data and indices</li>
+                        <li>✅ Advanced charts and watchlists</li>
+                        <li>✅ NY Fed rates, ECB stress indicators</li>
+                    </ul>
+                    <p style="margin-top: 15px; font-size: 11px;">
+                        Enhanced API with 60,000+ indicators available when CORS is enabled.
+                    </p>
+                    <button onclick="testEnhancedAPI()">Test Enhanced API</button>
+                    <button onclick="enableDemoMode()">Use Demo Mode</button>
+                    <button onclick="this.parentElement.remove()">Got it!</button>
+                `;
+            }
+            
             document.body.appendChild(corsNotice);
             
-            // Auto-hide after 10 seconds
-            setTimeout(() => {
-                corsNotice.style.opacity = '0';
-                setTimeout(() => corsNotice.remove(), 500);
-            }, 10000);
+            // Auto-hide after 15 seconds if connected, don't auto-hide if not connected
+            if (lambdaConnected || enhancedConnected) {
+                setTimeout(() => {
+                    corsNotice.style.opacity = '0';
+                    setTimeout(() => corsNotice.remove(), 500);
+                }, 15000);
+            }
         }
         
         // Test Enhanced API connection
@@ -2311,12 +2352,17 @@
                 console.error('Lambda Platform check failed:', error);
                 document.getElementById('lambda-indicator').classList.remove('connected');
                 
+                // Check if it's a CORS error
+                if (error.message.includes('Failed to fetch') || error.message.includes('CORS')) {
+                    console.log('CORS error detected for Lambda API');
+                }
+                
                 // Update advanced panel status
                 const lambdaStatus = document.getElementById('lambdaStatus');
                 if (lambdaStatus) {
                     lambdaStatus.innerHTML = `
                         <span class="status-dot"></span>
-                        <span style="color: var(--error);">Disconnected</span>
+                        <span style="color: var(--error);">CORS Blocked</span>
                     `;
                 }
             }
@@ -2396,52 +2442,64 @@
                     document.getElementById('apiStatus').classList.add('partial');
                 }
             } else {
-                // No APIs connected
-                document.getElementById('apiStatusText').textContent = 'Offline - Check connection';
+                // No APIs connected - likely CORS issue
+                document.getElementById('apiStatusText').textContent = 'Offline - CORS Policy Active';
                 document.getElementById('apiStatus').classList.remove('connected');
                 
-                // Show connection help after a delay
-                setTimeout(() => {
-                    if (!document.getElementById('apiStatus').classList.contains('connected')) {
-                        showConnectionHelp();
-                    }
-                }, 3000);
+                // If we're on GitHub Pages or similar, show CORS help immediately
+                if (window.location.hostname.includes('github.io') || 
+                    window.location.protocol === 'https:' || 
+                    window.location.protocol === 'http:') {
+                    setTimeout(() => {
+                        if (!document.getElementById('apiStatus').classList.contains('connected')) {
+                            showCORSHelp();
+                        }
+                    }, 1000);
+                }
             }
             
             // Update statistics
             updateSearchStats();
         }
         
-        // Show connection help
-        function showConnectionHelp() {
+        // Show CORS help specifically
+        function showCORSHelp() {
             const helpModal = document.createElement('div');
             helpModal.className = 'modal-overlay';
             helpModal.innerHTML = `
                 <div class="modal">
                     <div class="modal-header">
-                        <h2 class="modal-title">❌ Connection Issues Detected</h2>
+                        <h2 class="modal-title">🛡️ CORS Policy Information</h2>
                         <button class="modal-close" onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
                     </div>
                     <div style="margin-bottom: 20px;">
-                        <p>Cannot connect to OpenBB APIs. This typically happens when:</p>
-                        <ul style="margin: 15px 0; padding-left: 20px;">
-                            <li>Running the HTML file directly from disk (file:// protocol)</li>
-                            <li>Browser security (CORS) blocking requests</li>
-                            <li>Network connectivity issues</li>
-                            <li>APIs temporarily unavailable</li>
-                        </ul>
+                        <p><strong>What's happening?</strong></p>
+                        <p style="margin: 10px 0;">The Lambda API is blocking requests from <code style="background: #333; padding: 2px 5px; border-radius: 3px;">${window.location.origin}</code> due to CORS (Cross-Origin Resource Sharing) policy.</p>
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <p><strong>Why?</strong></p>
+                        <p style="margin: 10px 0;">This is a security feature that prevents unauthorized domains from accessing the API. The API server needs to explicitly allow your domain.</p>
                     </div>
                     <div style="margin-bottom: 20px;">
                         <p><strong>Solutions:</strong></p>
                         <ol style="margin: 15px 0; padding-left: 20px;">
-                            <li>Run from a web server:
+                            <li><strong>Use Demo Mode (Recommended)</strong>
+                                <p style="margin: 5px 0 10px 0; font-size: 12px;">Works immediately with simulated data</p>
+                            </li>
+                            <li><strong>Run Locally</strong>
                                 <div style="background: #222; padding: 10px; margin: 10px 0; border-radius: 4px;">
-                                    <code style="color: var(--primary-green);">python -m http.server 8000</code>
+                                    <code style="color: var(--primary-green);">git clone https://github.com/elmooro/elmooro.github.io.git</code><br>
+                                    <code style="color: var(--primary-green);">cd elmooro.github.io</code><br>
+                                    <code style="color: var(--primary-green);">python -m http.server 8000</code><br>
+                                    <span style="font-size: 11px; color: #888;">Then open http://localhost:8000/11.html</span>
                                 </div>
                             </li>
-                            <li>Use a CORS-enabled browser or extension</li>
-                            <li>Deploy to a web hosting service</li>
-                            <li>Check your internet connection</li>
+                            <li><strong>Use a CORS Proxy</strong>
+                                <p style="margin: 5px 0 10px 0; font-size: 12px;">Services like cors-anywhere can proxy requests</p>
+                            </li>
+                            <li><strong>Contact API Provider</strong>
+                                <p style="margin: 5px 0 10px 0; font-size: 12px;">Request to add ${window.location.origin} to allowed origins</p>
+                            </li>
                         </ol>
                     </div>
                     <div style="text-align: center;">
@@ -2449,12 +2507,12 @@
                                 style="background: var(--primary-green); color: #000; border: none; 
                                        padding: 10px 20px; border-radius: 5px; cursor: pointer; 
                                        font-weight: bold; margin-right: 10px;">
-                            Use Demo Mode
+                            Enable Demo Mode
                         </button>
-                        <button onclick="window.location.reload()" 
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()" 
                                 style="background: #666; color: #fff; border: none; 
                                        padding: 10px 20px; border-radius: 5px; cursor: pointer;">
-                            Retry Connection
+                            Close
                         </button>
                     </div>
                 </div>
@@ -3956,6 +4014,7 @@
         window.enableDemoMode = enableDemoMode;
         window.showTemporaryMessage = showTemporaryMessage;
         window.testSearch = testSearch;
+        window.showCORSHelp = showCORSHelp;
     </script>
 </body>
 </html>
