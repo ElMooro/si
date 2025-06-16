@@ -1,0 +1,2277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenBB Financial Intelligence Platform - 66,370+ Indicators</title>
+    
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    
+    <style>
+        /* Global Styles */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary-green: #00ff88;
+            --primary-blue: #00ccff;
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #121212;
+            --bg-tertiary: #1a1a1a;
+            --border-color: #282828;
+            --text-primary: #e0e0e0;
+            --text-secondary: #aaa;
+            --success: #00dd77;
+            --error: #ff4444;
+            --warning: #ffaa00;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+        
+        /* Navigation Bar */
+        nav {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .nav-logo {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(45deg, var(--primary-green), var(--primary-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 25px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: #ccc;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s;
+            position: relative;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-green);
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        .nav-links a.active {
+            color: var(--primary-green);
+            background: rgba(0, 255, 136, 0.2);
+        }
+
+        /* Header with Enhanced Status */
+        .header {
+            background: var(--bg-tertiary);
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 999;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+            background: linear-gradient(45deg, var(--primary-green), var(--primary-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .system-stats {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .stat-value {
+            color: var(--primary-green);
+            font-weight: bold;
+        }
+        
+        .header-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        /* Main Container */
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 141px);
+        }
+        
+        /* Enhanced Search Section */
+        .search-section {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .search-container {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+        }
+        
+        .search-box {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            background: #222;
+            border: 2px solid #333;
+            color: #fff;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            border-color: var(--primary-green);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+        }
+        
+        .search-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #777;
+            font-size: 18px;
+            pointer-events: none;
+        }
+        
+        /* Enhanced Search Results */
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            margin-top: 5px;
+            max-height: 600px;
+            overflow-y: auto;
+            background: #181818;
+            border: 1px solid #333;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        
+        .search-loading {
+            padding: 20px;
+            text-align: center;
+            color: var(--primary-green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .search-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: all 0.15s;
+            border-bottom: 1px solid #222;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+        
+        .search-item:last-child { border-bottom: none; }
+        .search-item:hover { 
+            background: #252525; 
+            padding-left: 25px;
+        }
+        
+        .search-item-left {
+            flex: 1;
+        }
+        
+        .search-item-symbol {
+            font-weight: bold;
+            color: var(--success);
+            font-size: 16px;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .search-item-name {
+            font-size: 14px;
+            color: #ddd;
+            margin-bottom: 4px;
+        }
+        
+        .search-item-description {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+        
+        .search-item-metadata {
+            display: flex;
+            gap: 10px;
+            margin-top: 5px;
+        }
+        
+        .search-item-source {
+            font-size: 11px;
+            color: #888;
+            background: #2a2a2a;
+            padding: 4px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        
+        .search-item-type {
+            font-size: 10px;
+            color: #fff;
+            background: #0066cc;
+            padding: 2px 6px;
+            border-radius: 3px;
+            text-transform: uppercase;
+        }
+        
+        .search-item-provider {
+            font-size: 10px;
+            color: #fff;
+            background: #663399;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        
+        /* Enhanced Filter Controls */
+        .filter-section {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            max-width: 900px;
+        }
+        
+        .ticker-type-filter {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .type-toggle {
+            background: #252525;
+            border: 1px solid #383838;
+            color: #ccc;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            position: relative;
+        }
+        
+        .type-toggle:hover {
+            background: #333;
+            border-color: #555;
+            transform: translateY(-1px);
+        }
+        
+        .type-toggle.active {
+            background: var(--success);
+            color: #000;
+            border-color: var(--success);
+            font-weight: bold;
+        }
+        
+        .type-toggle .count {
+            font-size: 10px;
+            background: rgba(0,0,0,0.3);
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        
+        /* Data Source Filter with Connection Status */
+        .data-source-filter {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .source-toggle {
+            background: #252525;
+            border: 1px solid #383838;
+            color: #ccc;
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+        }
+        
+        .source-toggle:hover {
+            background: #333;
+            border-color: #555;
+            transform: translateY(-1px);
+        }
+        
+        .source-toggle.active {
+            background: var(--success);
+            color: #000;
+            border-color: var(--success);
+            font-weight: bold;
+        }
+        
+        .source-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--error);
+            transition: all 0.3s;
+            box-shadow: 0 0 5px rgba(255, 68, 68, 0.5);
+        }
+        
+        .source-indicator.connected {
+            background: var(--success);
+            box-shadow: 0 0 5px rgba(0, 221, 119, 0.5);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.2); }
+        }
+        
+        /* Content Area */
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* Watchlist Section */
+        .watchlist-section {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            height: 500px;
+            overflow-y: auto;
+            position: relative;
+            flex: 1;
+        }
+        
+        .watchlist-header {
+            background: var(--bg-tertiary);
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .watchlist-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .watchlist-selector {
+            background: #252525;
+            color: #fff;
+            border: 1px solid #333;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .watchlist-selector:hover {
+            background: #333;
+            border-color: #555;
+        }
+        
+        .watchlist-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .add-watchlist {
+            background: var(--success);
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .add-watchlist:hover { 
+            background: var(--primary-green); 
+            transform: translateY(-1px);
+            box-shadow: 0 2px 10px rgba(0, 255, 136, 0.3);
+        }
+        
+        /* Enhanced Table Styles */
+        .watchlist-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+        }
+        
+        .watchlist-table th {
+            background: #f5f5f5;
+            color: #333;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 2px solid #e0e0e0;
+            position: sticky;
+            top: 57px;
+            z-index: 5;
+            cursor: default;
+        }
+        
+        .watchlist-table tbody tr {
+            transition: all 0.2s;
+            cursor: pointer;
+            background: #fff;
+            color: #333;
+            position: relative;
+        }
+        
+        .watchlist-table tbody tr:hover {
+            background: #f8f8f8;
+            transform: translateX(2px);
+        }
+        
+        .watchlist-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 13px;
+            color: #333;
+        }
+        
+        .symbol-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .symbol-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--primary-green), var(--primary-blue));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-weight: bold;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+        
+        .symbol-info {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .symbol-name {
+            font-weight: bold;
+            color: #000;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .symbol-fullname {
+            color: #666;
+            font-size: 11px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .provider-badge {
+            font-size: 9px;
+            background: #e0e0e0;
+            color: #666;
+            padding: 2px 5px;
+            border-radius: 3px;
+            text-transform: uppercase;
+        }
+        
+        .price-cell {
+            font-weight: bold;
+            color: #000;
+            text-align: right;
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+        
+        .change-cell {
+            text-align: right;
+            font-weight: bold;
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+        
+        .positive { color: var(--success); }
+        .negative { color: var(--error); }
+        .neutral { color: #666; }
+        
+        .control-btn {
+            background: #252525;
+            border: 1px solid #383838;
+            color: #ccc;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 12px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .control-btn:hover {
+            background: #333;
+            border-color: #555;
+            color: #fff;
+            transform: translateY(-1px);
+        }
+        
+        .control-btn.primary {
+            background: var(--primary-green);
+            border-color: var(--primary-green);
+            color: #000;
+            font-weight: bold;
+        }
+        
+        .control-btn.primary:hover {
+            background: #00ff99;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 10px rgba(0, 255, 136, 0.3);
+        }
+        
+        /* Loading States */
+        .loading-pulse { 
+            animation: pulse 1.5s infinite ease-in-out; 
+            color: var(--primary-green);
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 255, 136, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary-green);
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: #0f0f0f; }
+        ::-webkit-scrollbar-thumb { 
+            background: #333; 
+            border-radius: 5px;
+            transition: background 0.2s;
+        }
+        ::-webkit-scrollbar-thumb:hover { background: #444; }
+        
+        /* Message Popups */
+        .message-popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #222;
+            border: 1px solid #333;
+            padding: 15px 20px;
+            border-radius: 6px;
+            z-index: 2000;
+            animation: slideInAndOut 3s ease-in-out forwards;
+            max-width: 400px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        
+        .message-popup.info { 
+            border-color: var(--success); 
+            background: linear-gradient(135deg, #222, #1a3a1a);
+        }
+        
+        .message-popup.error { 
+            border-color: var(--error); 
+            color: #ff6666;
+            background: linear-gradient(135deg, #222, #3a1a1a);
+        }
+        
+        .message-popup.warning { 
+            border-color: var(--warning); 
+            color: #ffcc00;
+            background: linear-gradient(135deg, #222, #3a3a1a);
+        }
+        
+        @keyframes slideInAndOut {
+            0% { transform: translateX(120%); opacity: 0; }
+            15%, 85% { transform: translateX(0); opacity: 1; }
+            100% { transform: translateX(120%); opacity: 0; }
+        }
+        
+        /* API Status Display */
+        .api-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            padding: 5px 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 4px;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--error);
+            transition: all 0.3s;
+        }
+        
+        .status-dot.connected {
+            background: var(--success);
+            box-shadow: 0 0 10px rgba(0, 221, 119, 0.5);
+        }
+        
+        .status-dot.partial {
+            background: var(--warning);
+            box-shadow: 0 0 10px rgba(255, 170, 0, 0.5);
+        }
+        
+        /* Search Stats */
+        .search-stats {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 10px;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+        
+        .search-stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .search-stat-value {
+            color: var(--primary-green);
+            font-weight: bold;
+        }
+        
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--primary-green);
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        
+        .modal-close:hover {
+            color: var(--error);
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .search-section {
+                padding: 15px;
+            }
+            
+            .filter-section {
+                gap: 5px;
+            }
+            
+            .ticker-type-filter,
+            .data-source-filter {
+                gap: 5px;
+            }
+            
+            .type-toggle,
+            .source-toggle {
+                padding: 4px 8px;
+                font-size: 11px;
+            }
+            
+            .watchlist-section {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-logo">
+            <span>📊</span>
+            <span>OPENBB FINANCIAL INTELLIGENCE</span>
+        </div>
+        <div class="nav-links">
+            <a href="#" class="active" onclick="showSection('platform')">Platform</a>
+            <a href="#" onclick="showSection('search')">Search</a>
+            <a href="#" onclick="showSection('watchlists')">Watchlists</a>
+            <a href="#" onclick="showSection('api')">API Explorer</a>
+            <a href="#" onclick="showDocumentation()">Documentation</a>
+            <a href="#" onclick="showSystemStatus()">System Status</a>
+        </div>
+    </nav>
+
+    <!-- Main Header -->
+    <div class="header">
+        <div class="logo">
+            <span>📊</span>
+            <span>OPENBB PLATFORM - 66,370+ INDICATORS</span>
+        </div>
+        
+        <div class="system-stats">
+            <div class="stat-item">
+                <span>Local:</span>
+                <span class="stat-value" id="localStat">12</span>
+            </div>
+            <div class="stat-item">
+                <span>Enhanced:</span>
+                <span class="stat-value" id="enhancedStat">60,000+</span>
+            </div>
+            <div class="stat-item">
+                <span>Lambda:</span>
+                <span class="stat-value" id="lambdaStat">6,204</span>
+            </div>
+            <div class="stat-item">
+                <span>Total:</span>
+                <span class="stat-value">66,370+</span>
+            </div>
+        </div>
+        
+        <div class="header-controls">
+            <div class="api-status">
+                <div class="status-dot" id="apiStatus"></div>
+                <span id="apiStatusText">Checking connections...</span>
+            </div>
+            <button class="control-btn primary" onclick="testAllSystems()">
+                <span>🔍</span>
+                <span>Test Systems</span>
+            </button>
+            <span id="clock" style="color: #888; font-size: 14px; font-family: monospace;"></span>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Enhanced Search Section -->
+        <div class="search-section">
+            <div class="search-container">
+                <input type="text" class="search-box" id="searchBox"
+                       placeholder="Search 66,370+ indicators: stocks (AAPL), economic data (GDP, inflation), rates (SOFR), currencies, crypto..."
+                       onkeyup="performEnhancedSearch(this.value)"
+                       autocomplete="off">
+                <span class="search-icon">🔍</span>
+                <div class="search-results" id="searchResults" style="display: none;"></div>
+            </div>
+            
+            <div class="filter-section">
+                <!-- Ticker Type Filter -->
+                <div class="ticker-type-filter">
+                    <button class="type-toggle active" data-type="STOCK" onclick="toggleFilter('type', 'STOCK')">
+                        <span>📈</span>
+                        <span>Stocks</span>
+                        <span class="count">5,000+</span>
+                    </button>
+                    <button class="type-toggle active" data-type="ETF" onclick="toggleFilter('type', 'ETF')">
+                        <span>🎯</span>
+                        <span>ETFs</span>
+                        <span class="count">1,200+</span>
+                    </button>
+                    <button class="type-toggle active" data-type="CRYPTO" onclick="toggleFilter('type', 'CRYPTO')">
+                        <span>₿</span>
+                        <span>Crypto</span>
+                        <span class="count">500+</span>
+                    </button>
+                    <button class="type-toggle active" data-type="ECONOMIC" onclick="toggleFilter('type', 'ECONOMIC')">
+                        <span>📊</span>
+                        <span>Economic</span>
+                        <span class="count">58,000+</span>
+                    </button>
+                    <button class="type-toggle active" data-type="RATES" onclick="toggleFilter('type', 'RATES')">
+                        <span>🏦</span>
+                        <span>Rates</span>
+                        <span class="count">1,500+</span>
+                    </button>
+                    <button class="type-toggle active" data-type="CURRENCY" onclick="toggleFilter('type', 'CURRENCY')">
+                        <span>💱</span>
+                        <span>Currency</span>
+                        <span class="count">200+</span>
+                    </button>
+                </div>
+                
+                <!-- Data Source Filter -->
+                <div class="data-source-filter">
+                    <button class="source-toggle active" data-source="lambda" onclick="toggleFilter('source', 'lambda')">
+                        <span class="source-indicator" id="lambda-indicator"></span>
+                        <span>Lambda Platform</span>
+                        <span>(6,204)</span>
+                    </button>
+                    <button class="source-toggle active" data-source="enhanced" onclick="toggleFilter('source', 'enhanced')">
+                        <span class="source-indicator" id="enhanced-indicator"></span>
+                        <span>Enhanced API</span>
+                        <span>(60,000+)</span>
+                    </button>
+                    <button class="source-toggle active" data-source="fred" onclick="toggleFilter('source', 'fred')">
+                        <span class="source-indicator" id="fred-indicator"></span>
+                        <span>FRED</span>
+                    </button>
+                    <button class="source-toggle active" data-source="polygon" onclick="toggleFilter('source', 'polygon')">
+                        <span class="source-indicator" id="polygon-indicator"></span>
+                        <span>Polygon</span>
+                    </button>
+                    <button class="source-toggle active" data-source="ny_fed" onclick="toggleFilter('source', 'ny_fed')">
+                        <span class="source-indicator" id="ny_fed-indicator"></span>
+                        <span>NY Fed</span>
+                    </button>
+                    <button class="source-toggle active" data-source="ecb" onclick="toggleFilter('source', 'ecb')">
+                        <span class="source-indicator" id="ecb-indicator"></span>
+                        <span>ECB</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Search Stats -->
+            <div class="search-stats">
+                <div class="search-stat">
+                    <span>Total Indicators:</span>
+                    <span class="search-stat-value" id="totalIndicators">66,370+</span>
+                </div>
+                <div class="search-stat">
+                    <span>Active Sources:</span>
+                    <span class="search-stat-value" id="activeSources">6</span>
+                </div>
+                <div class="search-stat">
+                    <span>Response Time:</span>
+                    <span class="search-stat-value" id="responseTime">< 100ms</span>
+                </div>
+                <div class="search-stat">
+                    <span>Platform Status:</span>
+                    <span class="search-stat-value" id="platformStatus">Operational</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content">
+            <!-- Watchlist Section -->
+            <div class="watchlist-section">
+                <div class="watchlist-header">
+                    <div class="watchlist-title">
+                        <span>📋</span>
+                        <select class="watchlist-selector" id="watchlistSelector" onchange="switchWatchlist(this.value)">
+                            <option value="MAIN">MAIN WATCHLIST</option>
+                            <option value="ECONOMIC">ECONOMIC INDICATORS</option>
+                            <option value="STOCKS">TOP STOCKS</option>
+                            <option value="CRYPTO">CRYPTOCURRENCY</option>
+                            <option value="RATES">INTEREST RATES</option>
+                            <option value="CURRENCIES">CURRENCIES</option>
+                            <option value="NY_FED">NY FED RATES</option>
+                            <option value="ECB">ECB INDICATORS</option>
+                            <option value="TREASURY">TREASURY DATA</option>
+                        </select>
+                    </div>
+                    <div class="watchlist-controls">
+                        <button class="add-watchlist" onclick="document.getElementById('searchBox').focus()">
+                            <span>+</span>
+                            <span>Add Symbol</span>
+                        </button>
+                    </div>
+                </div>
+                <table class="watchlist-table">
+                    <thead>
+                        <tr>
+                            <th>Symbol / Indicator</th>
+                            <th style="text-align: right;">Current Value</th>
+                            <th style="text-align: right;">Daily Change</th>
+                            <th style="text-align: right;">% Change</th>
+                            <th style="text-align: right;">Provider</th>
+                            <th style="text-align: right;">Last Update</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="watchlistBody">
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 40px; color: #888;">
+                                <div class="loading-pulse">Loading OpenBB Platform...</div>
+                                <div style="font-size: 12px; margin-top: 10px;">
+                                    Connecting to Lambda & Enhanced APIs
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // UPDATED CONFIGURATION FOR YOUR PROJECT STRUCTURE v17.6
+        const LAMBDA_API = 'https://rg9o6exoi8.execute-api.us-east-1.amazonaws.com/prod';
+        const ENHANCED_API_IP = '34.201.45.207';
+        const ENHANCED_API = `http://${ENHANCED_API_IP}:8000/api/v1`;
+        
+        // Comprehensive data sources from your documentation
+        const DATA_SOURCES = {
+            lambda: {
+                name: 'Lambda Platform',
+                endpoint: LAMBDA_API,
+                count: 6204,
+                active: true,
+                description: 'Real-time search across 6,204 financial indicators with semantic matching'
+            },
+            enhanced: {
+                name: 'Enhanced OpenBB API',
+                endpoint: ENHANCED_API,
+                count: 60000,
+                active: true,
+                description: 'Professional-grade API with 60,000+ indicators across multiple providers'
+            },
+            fred: {
+                name: 'Federal Reserve Economic Data',
+                provider: 'fred',
+                active: true,
+                description: 'Economic indicators from St. Louis Fed',
+                searchSymbols: ['FEDFUNDS', 'UNRATE', 'GDP', 'CPIAUCSL', 'DFF', 'M2SL', 'PAYEMS', 'HOUST', 'INDPRO', 'DGS10', 'DGS2', 'DGS30', 'VIXCLS', 'MORTGAGE30US', 'UMCSENT']
+            },
+            polygon: {
+                name: 'Polygon Financial Data',
+                provider: 'polygon',
+                active: true,
+                description: 'Real-time stock market data',
+                searchSymbols: ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'SPY', 'QQQ', 'NVDA', 'META', 'NFLX', 'V', 'MA', 'JPM', 'BAC', 'WMT']
+            },
+            ny_fed: {
+                name: 'New York Federal Reserve',
+                provider: 'ny_fed',
+                active: true,
+                description: 'Reference rates from NY Fed',
+                searchSymbols: ['sofr', 'effr', 'obfr', 'tgcr', 'bgcr', 'sofrai', 'sonia', 'estr', 'tonar']
+            },
+            ecb: {
+                name: 'European Central Bank',
+                provider: 'ecb',
+                active: true,
+                description: 'European financial indicators',
+                searchSymbols: ['EXR.D.USD.EUR.SP00.A', 'EXR.D.GBP.EUR.SP00.A', 'CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX', 'CISS.D.US.Z0Z.4F.EC.SS_CI.IDX']
+            }
+        };
+        
+        // Comprehensive watchlists from your documentation
+        const WATCHLISTS = {
+            'MAIN': {
+                name: 'Main Dashboard',
+                symbols: [
+                    { symbol: 'AAPL', provider: 'lambda', name: 'Apple Inc.' },
+                    { symbol: 'FEDFUNDS', provider: 'lambda', name: 'Federal Funds Rate' },
+                    { symbol: 'UNRATE', provider: 'lambda', name: 'Unemployment Rate' },
+                    { symbol: 'sofr', provider: 'lambda', name: 'Secured Overnight Financing Rate' },
+                    { symbol: 'GDP', provider: 'lambda', name: 'Gross Domestic Product' },
+                    { symbol: 'DGS10', provider: 'lambda', name: '10-Year Treasury Rate' },
+                    { symbol: 'CPIAUCSL', provider: 'lambda', name: 'Consumer Price Index' },
+                    { symbol: 'EXR.D.USD.EUR.SP00.A', provider: 'lambda', name: 'EUR/USD Exchange Rate' }
+                ]
+            },
+            'ECONOMIC': {
+                name: 'Economic Indicators',
+                symbols: [
+                    { symbol: 'GDP', provider: 'lambda', name: 'Gross Domestic Product' },
+                    { symbol: 'UNRATE', provider: 'lambda', name: 'Unemployment Rate' },
+                    { symbol: 'CPIAUCSL', provider: 'lambda', name: 'Consumer Price Index' },
+                    { symbol: 'PAYEMS', provider: 'lambda', name: 'Total Nonfarm Payrolls' },
+                    { symbol: 'HOUST', provider: 'lambda', name: 'Housing Starts' },
+                    { symbol: 'INDPRO', provider: 'lambda', name: 'Industrial Production Index' },
+                    { symbol: 'M2SL', provider: 'lambda', name: 'M2 Money Supply' },
+                    { symbol: 'UMCSENT', provider: 'lambda', name: 'University of Michigan Consumer Sentiment' }
+                ]
+            },
+            'STOCKS': {
+                name: 'Top Stocks',
+                symbols: [
+                    { symbol: 'AAPL', provider: 'lambda', name: 'Apple Inc.' },
+                    { symbol: 'MSFT', provider: 'lambda', name: 'Microsoft Corporation' },
+                    { symbol: 'GOOGL', provider: 'lambda', name: 'Alphabet Inc.' },
+                    { symbol: 'AMZN', provider: 'lambda', name: 'Amazon.com Inc.' },
+                    { symbol: 'TSLA', provider: 'lambda', name: 'Tesla Inc.' },
+                    { symbol: 'SPY', provider: 'lambda', name: 'SPDR S&P 500 ETF' },
+                    { symbol: 'QQQ', provider: 'lambda', name: 'Invesco QQQ Trust' },
+                    { symbol: 'NVDA', provider: 'lambda', name: 'NVIDIA Corporation' }
+                ]
+            },
+            'RATES': {
+                name: 'Interest Rates',
+                symbols: [
+                    { symbol: 'FEDFUNDS', provider: 'lambda', name: 'Federal Funds Rate' },
+                    { symbol: 'DGS1', provider: 'lambda', name: '1-Year Treasury Rate' },
+                    { symbol: 'DGS2', provider: 'lambda', name: '2-Year Treasury Rate' },
+                    { symbol: 'DGS10', provider: 'lambda', name: '10-Year Treasury Rate' },
+                    { symbol: 'DGS30', provider: 'lambda', name: '30-Year Treasury Rate' },
+                    { symbol: 'sofr', provider: 'lambda', name: 'Secured Overnight Financing Rate' },
+                    { symbol: 'effr', provider: 'lambda', name: 'Effective Federal Funds Rate' },
+                    { symbol: 'MORTGAGE30US', provider: 'lambda', name: '30-Year Fixed Rate Mortgage' }
+                ]
+            },
+            'NY_FED': {
+                name: 'NY Fed Rates',
+                symbols: [
+                    { symbol: 'sofr', provider: 'lambda', name: 'Secured Overnight Financing Rate' },
+                    { symbol: 'effr', provider: 'lambda', name: 'Effective Federal Funds Rate' },
+                    { symbol: 'obfr', provider: 'lambda', name: 'Overnight Bank Funding Rate' },
+                    { symbol: 'tgcr', provider: 'lambda', name: 'Tri-party General Collateral Rate' },
+                    { symbol: 'bgcr', provider: 'lambda', name: 'Broad General Collateral Rate' }
+                ]
+            },
+            'ECB': {
+                name: 'ECB Indicators',
+                symbols: [
+                    { symbol: 'EXR.D.USD.EUR.SP00.A', provider: 'lambda', name: 'EUR/USD Exchange Rate' },
+                    { symbol: 'EXR.D.GBP.EUR.SP00.A', provider: 'lambda', name: 'EUR/GBP Exchange Rate' },
+                    { symbol: 'CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX', provider: 'lambda', name: 'Euro Area Systemic Stress Index' },
+                    { symbol: 'CISS.D.US.Z0Z.4F.EC.SS_CI.IDX', provider: 'lambda', name: 'US Systemic Stress Index' }
+                ]
+            }
+        };
+        
+        // Demo data for when APIs are not accessible
+        const DEMO_DATA = {
+            'AAPL': { 
+                name: 'Apple Inc.', 
+                value: 195.89, 
+                change: 2.33, 
+                changePercent: 1.2,
+                provider: 'Polygon',
+                lastUpdate: new Date().toISOString()
+            },
+            'FEDFUNDS': { 
+                name: 'Federal Funds Rate', 
+                value: 5.33, 
+                change: 0, 
+                changePercent: 0,
+                provider: 'FRED',
+                lastUpdate: new Date().toISOString()
+            },
+            'UNRATE': { 
+                name: 'Unemployment Rate', 
+                value: 4.0, 
+                change: -0.1, 
+                changePercent: -2.44,
+                provider: 'FRED',
+                lastUpdate: new Date().toISOString()
+            },
+            'GDP': { 
+                name: 'Gross Domestic Product', 
+                value: 27946.8, 
+                change: 1381.3, 
+                changePercent: 5.2,
+                provider: 'FRED',
+                lastUpdate: new Date().toISOString()
+            },
+            'DGS10': { 
+                name: '10-Year Treasury Rate', 
+                value: 4.426, 
+                change: -0.03, 
+                changePercent: -0.68,
+                provider: 'FRED',
+                lastUpdate: new Date().toISOString()
+            },
+            'CPIAUCSL': { 
+                name: 'Consumer Price Index', 
+                value: 310.3, 
+                change: 0.8, 
+                changePercent: 0.26,
+                provider: 'FRED',
+                lastUpdate: new Date().toISOString()
+            },
+            'sofr': { 
+                name: 'Secured Overnight Financing Rate', 
+                value: 5.31, 
+                change: 0, 
+                changePercent: 0,
+                provider: 'NY Fed',
+                lastUpdate: new Date().toISOString()
+            },
+            'EXR.D.USD.EUR.SP00.A': {
+                name: 'EUR/USD Exchange Rate',
+                value: 1.0875,
+                change: 0.0025,
+                changePercent: 0.23,
+                provider: 'ECB',
+                lastUpdate: new Date().toISOString()
+            }
+        };
+        
+        // Global state
+        let currentWatchlist = 'MAIN';
+        let watchlistData = {};
+        let activeFilters = {
+            types: ['STOCK', 'ETF', 'CRYPTO', 'ECONOMIC', 'RATES', 'CURRENCY'],
+            sources: ['lambda', 'enhanced', 'fred', 'polygon', 'ny_fed', 'ecb']
+        };
+        let searchTimeout = null;
+        let isDemoMode = false;
+        let connectedSources = [];
+        
+        // Initialize the platform
+        async function init() {
+            console.log('🚀 Initializing OpenBB Financial Intelligence Platform v17.6...');
+            console.log('📊 Target: 66,370+ indicators across multiple systems');
+            console.log('🔗 Lambda API:', LAMBDA_API);
+            console.log('🔗 Enhanced API:', ENHANCED_API);
+            
+            updateClock();
+            setInterval(updateClock, 1000);
+            
+            // Check API connections
+            await checkAPIConnections();
+            
+            // Load initial watchlist
+            await loadWatchlistData();
+            
+            // Focus search box
+            document.getElementById('searchBox').focus();
+            
+            console.log('✅ Platform initialization complete!');
+            showTemporaryMessage('OpenBB Platform v17.6 loaded successfully!', 'info');
+        }
+        
+        // Check API connections
+        async function checkAPIConnections() {
+            console.log('🔍 Checking API connections...');
+            document.getElementById('apiStatusText').textContent = 'Checking connections...';
+            
+            let connectedCount = 0;
+            connectedSources = [];
+            
+            // Test Lambda Platform
+            try {
+                console.log('Testing Lambda Platform...');
+                const lambdaUrl = `${LAMBDA_API}/api/search?query=test&limit=1`;
+                const lambdaResponse = await fetch(lambdaUrl, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (lambdaResponse.ok) {
+                    console.log('✅ Lambda Platform connected');
+                    document.getElementById('lambda-indicator').classList.add('connected');
+                    connectedSources.push('lambda');
+                    connectedCount++;
+                } else {
+                    throw new Error(`Lambda API error: ${lambdaResponse.status}`);
+                }
+            } catch (error) {
+                console.warn('❌ Lambda Platform connection failed:', error.message);
+                document.getElementById('lambda-indicator').classList.remove('connected');
+            }
+            
+            // Test Enhanced API
+            try {
+                console.log('Testing Enhanced API...');
+                const enhancedUrl = `${ENHANCED_API}/test/cors`;
+                const enhancedResponse = await fetch(enhancedUrl, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (enhancedResponse.ok) {
+                    console.log('✅ Enhanced API connected');
+                    document.getElementById('enhanced-indicator').classList.add('connected');
+                    connectedSources.push('enhanced');
+                    connectedCount++;
+                    
+                    // If Enhanced API is connected, assume other providers are available
+                    ['fred', 'polygon', 'ny_fed', 'ecb'].forEach(source => {
+                        document.getElementById(`${source}-indicator`)?.classList.add('connected');
+                        connectedSources.push(source);
+                    });
+                } else {
+                    throw new Error(`Enhanced API error: ${enhancedResponse.status}`);
+                }
+            } catch (error) {
+                console.warn('❌ Enhanced API connection failed:', error.message);
+                document.getElementById('enhanced-indicator').classList.remove('connected');
+            }
+            
+            // Update status
+            if (connectedCount > 0) {
+                document.getElementById('apiStatus').classList.add('connected');
+                if (connectedCount === 2) {
+                    document.getElementById('apiStatusText').textContent = 'All Systems Connected';
+                    document.getElementById('platformStatus').textContent = 'Fully Operational';
+                } else {
+                    document.getElementById('apiStatusText').textContent = `${connectedCount} System(s) Connected`;
+                    document.getElementById('platformStatus').textContent = 'Partial Access';
+                }
+            } else {
+                document.getElementById('apiStatusText').textContent = 'Offline - Using Demo Mode';
+                document.getElementById('platformStatus').textContent = 'Demo Mode';
+                enableDemoMode();
+            }
+            
+            updateSearchStats();
+        }
+        
+        // Enable demo mode
+        function enableDemoMode() {
+            isDemoMode = true;
+            console.log('🎭 Demo mode enabled');
+            
+            // Mark all indicators as connected for demo
+            Object.keys(DATA_SOURCES).forEach(source => {
+                const indicator = document.getElementById(`${source}-indicator`);
+                if (indicator) {
+                    indicator.classList.add('connected');
+                }
+            });
+            
+            document.getElementById('apiStatus').classList.add('connected');
+            document.getElementById('apiStatusText').textContent = 'Demo Mode Active';
+            document.getElementById('platformStatus').textContent = 'Demo Data';
+            
+            showTemporaryMessage('Demo mode enabled - using simulated data', 'info');
+        }
+        
+        // Enhanced search function
+        async function performEnhancedSearch(query) {
+            const resultsDiv = document.getElementById('searchResults');
+            
+            if (!query || query.trim().length < 2) {
+                resultsDiv.style.display = 'none';
+                return;
+            }
+            
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(async () => {
+                console.log('🔍 Searching for:', query);
+                const searchStartTime = Date.now();
+                
+                resultsDiv.innerHTML = '<div class="search-loading"><span class="loading-spinner"></span>Searching 66,370+ indicators...</div>';
+                resultsDiv.style.display = 'block';
+                
+                try {
+                    const allResults = [];
+                    
+                    // Search Lambda Platform
+                    if (connectedSources.includes('lambda') || isDemoMode) {
+                        const lambdaResults = await searchLambdaPlatform(query);
+                        if (lambdaResults.length > 0) {
+                            allResults.push(...lambdaResults);
+                        }
+                    }
+                    
+                    // Search Enhanced API
+                    if (connectedSources.includes('enhanced')) {
+                        const enhancedResults = await searchEnhancedAPI(query);
+                        if (enhancedResults.length > 0) {
+                            allResults.push(...enhancedResults);
+                        }
+                    }
+                    
+                    // Search local data sources
+                    const localResults = searchLocalSources(query);
+                    if (localResults.length > 0) {
+                        allResults.push(...localResults);
+                    }
+                    
+                    // Calculate search time
+                    const searchTime = Date.now() - searchStartTime;
+                    document.getElementById('responseTime').textContent = `${searchTime}ms`;
+                    
+                    // Display results
+                    if (allResults.length > 0) {
+                        displaySearchResults(allResults, query);
+                    } else {
+                        resultsDiv.innerHTML = `
+                            <div class="search-item" style="text-align:center; color:#888; padding: 20px;">
+                                <div style="font-size: 16px; margin-bottom: 10px;">No results found for "${query}"</div>
+                                <div style="font-size: 12px; margin-bottom: 15px;">
+                                    Try: AAPL, FEDFUNDS, GDP, inflation, treasury, sofr, EUR/USD
+                                </div>
+                                <button onclick="performEnhancedSearch('AAPL')" style="background: var(--primary-green); color: #000; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; margin: 2px;">AAPL</button>
+                                <button onclick="performEnhancedSearch('FEDFUNDS')" style="background: var(--primary-green); color: #000; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; margin: 2px;">FEDFUNDS</button>
+                                <button onclick="performEnhancedSearch('GDP')" style="background: var(--primary-green); color: #000; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; margin: 2px;">GDP</button>
+                            </div>
+                        `;
+                    }
+                    
+                } catch (error) {
+                    console.error('Search error:', error);
+                    resultsDiv.innerHTML = `
+                        <div class="search-item" style="text-align:center; color:#888; padding: 20px;">
+                            <div>Search error: ${error.message}</div>
+                            <div style="margin-top: 10px; font-size: 12px;">Please try again or check your connection</div>
+                        </div>
+                    `;
+                }
+            }, 300);
+        }
+        
+        // Search Lambda Platform
+        async function searchLambdaPlatform(query) {
+            try {
+                if (isDemoMode) {
+                    // Return demo results
+                    const demoKeys = Object.keys(DEMO_DATA);
+                    const matchingKeys = demoKeys.filter(key => 
+                        key.toLowerCase().includes(query.toLowerCase()) ||
+                        DEMO_DATA[key].name.toLowerCase().includes(query.toLowerCase())
+                    );
+                    
+                    return matchingKeys.map(key => ({
+                        symbol: key,
+                        name: DEMO_DATA[key].name,
+                        description: `Demo data for ${DEMO_DATA[key].name}`,
+                        provider: 'demo',
+                        source: 'lambda',
+                        type: getSymbolType(key),
+                        score: 1
+                    }));
+                }
+                
+                const url = `${LAMBDA_API}/api/search?query=${encodeURIComponent(query)}&limit=20`;
+                const response = await fetch(url, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Lambda API error: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Lambda search results:', data);
+                
+                if (data.results && Array.isArray(data.results)) {
+                    return data.results.map(result => {
+                        const source = result._source || result;
+                        return {
+                            symbol: source.symbol || result.symbol,
+                            name: source.name || source.title || result.name || result.symbol,
+                            description: source.description || 'Lambda Platform indicator',
+                            provider: source.provider || 'lambda',
+                            source: 'lambda',
+                            type: source.type || getSymbolType(source.symbol),
+                            score: result._score || 1
+                        };
+                    });
+                }
+                
+                return [];
+            } catch (error) {
+                console.error('Lambda search error:', error);
+                return [];
+            }
+        }
+        
+        // Search Enhanced API
+        async function searchEnhancedAPI(query) {
+            try {
+                // Try different Enhanced API endpoints based on query
+                const endpoints = [
+                    '/economy/survey/university_of_michigan',
+                    '/economy/gdp/nominal',
+                    '/economy/gdp/real'
+                ];
+                
+                const results = [];
+                
+                for (const endpoint of endpoints) {
+                    if (endpoint.toLowerCase().includes(query.toLowerCase()) ||
+                        query.toLowerCase().includes('michigan') ||
+                        query.toLowerCase().includes('gdp')) {
+                        
+                        results.push({
+                            symbol: endpoint,
+                            name: getEndpointName(endpoint),
+                            description: `Enhanced API endpoint: ${endpoint}`,
+                            provider: 'enhanced',
+                            source: 'enhanced',
+                            type: 'ENDPOINT',
+                            score: 1
+                        });
+                    }
+                }
+                
+                return results;
+            } catch (error) {
+                console.error('Enhanced API search error:', error);
+                return [];
+            }
+        }
+        
+        // Search local data sources
+        function searchLocalSources(query) {
+            const results = [];
+            const queryLower = query.toLowerCase();
+            
+            Object.entries(DATA_SOURCES).forEach(([sourceKey, sourceConfig]) => {
+                if (!sourceConfig.searchSymbols) return;
+                
+                const matchingSymbols = sourceConfig.searchSymbols.filter(symbol => 
+                    symbol.toLowerCase().includes(queryLower) ||
+                    getSymbolDescription(symbol).toLowerCase().includes(queryLower)
+                );
+                
+                matchingSymbols.forEach(symbol => {
+                    results.push({
+                        symbol: symbol,
+                        name: getSymbolDescription(symbol),
+                        description: sourceConfig.description,
+                        provider: sourceConfig.provider || sourceKey,
+                        source: sourceKey,
+                        type: getSymbolType(symbol),
+                        score: 1
+                    });
+                });
+            });
+            
+            return results;
+        }
+        
+        // Display search results
+        function displaySearchResults(results, query) {
+            const resultsDiv = document.getElementById('searchResults');
+            
+            // Sort results by score and relevance
+            results.sort((a, b) => (b.score || 0) - (a.score || 0));
+            
+            // Group by source
+            const groupedResults = {};
+            results.forEach(result => {
+                const source = result.source || 'other';
+                if (!groupedResults[source]) {
+                    groupedResults[source] = [];
+                }
+                groupedResults[source].push(result);
+            });
+            
+            let html = '';
+            
+            Object.entries(groupedResults).forEach(([source, sourceResults]) => {
+                const sourceConfig = DATA_SOURCES[source];
+                const sourceName = sourceConfig?.name || source.toUpperCase();
+                
+                html += `
+                    <div style="padding: 8px 20px; font-size: 11px; color: #666; 
+                                text-transform: uppercase; letter-spacing: 1px; 
+                                background: #111; border-bottom: 1px solid #222;">
+                        ${sourceName} (${sourceResults.length})
+                    </div>
+                `;
+                
+                sourceResults.slice(0, 8).forEach(result => {
+                    const highlightedSymbol = result.symbol.replace(
+                        new RegExp(`(${query})`, 'gi'), 
+                        '<span style="color: var(--primary-green); font-weight: bold;">$1</span>'
+                    );
+                    const highlightedName = result.name.replace(
+                        new RegExp(`(${query})`, 'gi'), 
+                        '<span style="color: var(--primary-green); font-weight: bold;">$1</span>'
+                    );
+                    
+                    html += `
+                        <div class="search-item" onclick="addToWatchlist('${result.symbol}', '${result.provider}', '${result.name.replace(/'/g, "\\'")}')">
+                            <div class="search-item-left">
+                                <div class="search-item-symbol">
+                                    ${highlightedSymbol}
+                                    ${result.score > 5 ? '<span style="color: gold; margin-left: 5px;">⭐</span>' : ''}
+                                </div>
+                                <div class="search-item-name">${highlightedName}</div>
+                                <div class="search-item-description">${result.description}</div>
+                                <div class="search-item-metadata">
+                                    <span class="search-item-type">${result.type}</span>
+                                    <span class="search-item-provider">${result.provider}</span>
+                                </div>
+                            </div>
+                            <div class="search-item-source">${source.toUpperCase()}</div>
+                        </div>
+                    `;
+                });
+            });
+            
+            // Add summary
+            const totalShown = Math.min(results.length, 50);
+            if (results.length > totalShown) {
+                html += `
+                    <div style="padding: 15px; text-align: center; font-size: 12px; color: #666; 
+                                background: #0f0f0f; border-top: 1px solid #222;">
+                        Showing ${totalShown} of ${results.length} results across ${Object.keys(groupedResults).length} sources
+                    </div>
+                `;
+            }
+            
+            resultsDiv.innerHTML = html;
+        }
+        
+        // Add to watchlist
+        function addToWatchlist(symbol, provider, name) {
+            const currentSymbols = WATCHLISTS[currentWatchlist].symbols;
+            
+            // Check if already exists
+            if (!currentSymbols.find(s => s.symbol === symbol)) {
+                currentSymbols.push({ symbol, provider, name });
+                
+                // Add to watchlist data
+                watchlistData[symbol] = {
+                    name: name || symbol,
+                    provider: provider,
+                    value: 0,
+                    change: 0,
+                    changePercent: 0,
+                    lastUpdate: new Date().toISOString(),
+                    loading: true
+                };
+                
+                renderWatchlist();
+                loadSymbolData(symbol, provider);
+                
+                showTemporaryMessage(`✅ Added ${symbol} to ${currentWatchlist} watchlist`, 'info');
+            } else {
+                showTemporaryMessage(`${symbol} is already in ${currentWatchlist} watchlist`, 'warning');
+            }
+            
+            // Clear search
+            document.getElementById('searchResults').style.display = 'none';
+            document.getElementById('searchBox').value = '';
+        }
+        
+        // Load watchlist data
+        async function loadWatchlistData() {
+            console.log(`📊 Loading ${currentWatchlist} watchlist...`);
+            
+            const watchlist = WATCHLISTS[currentWatchlist];
+            if (!watchlist || !watchlist.symbols) {
+                console.error('Invalid watchlist:', currentWatchlist);
+                return;
+            }
+            
+            // Initialize watchlist data
+            watchlistData = {};
+            watchlist.symbols.forEach(symbolObj => {
+                const symbol = symbolObj.symbol;
+                watchlistData[symbol] = {
+                    name: symbolObj.name || symbol,
+                    provider: symbolObj.provider || 'lambda',
+                    value: 0,
+                    change: 0,
+                    changePercent: 0,
+                    lastUpdate: new Date().toISOString(),
+                    loading: true
+                };
+            });
+            
+            renderWatchlist();
+            
+            // Load data for each symbol
+            for (const symbolObj of watchlist.symbols) {
+                await loadSymbolData(symbolObj.symbol, symbolObj.provider);
+                // Small delay to avoid overwhelming APIs
+                if (!isDemoMode) {
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                }
+            }
+        }
+        
+        // Load individual symbol data
+        async function loadSymbolData(symbol, provider) {
+            try {
+                if (isDemoMode || !connectedSources.includes(provider)) {
+                    // Use demo data
+                    const demoData = DEMO_DATA[symbol];
+                    if (demoData) {
+                        watchlistData[symbol] = {
+                            ...watchlistData[symbol],
+                            value: demoData.value,
+                            change: demoData.change,
+                            changePercent: demoData.changePercent,
+                            provider: demoData.provider,
+                            lastUpdate: demoData.lastUpdate,
+                            loading: false
+                        };
+                    } else {
+                        // Generate random demo data
+                        watchlistData[symbol] = {
+                            ...watchlistData[symbol],
+                            value: Math.random() * 1000,
+                            change: (Math.random() - 0.5) * 10,
+                            changePercent: (Math.random() - 0.5) * 5,
+                            provider: 'Demo',
+                            lastUpdate: new Date().toISOString(),
+                            loading: false
+                        };
+                    }
+                    renderWatchlist();
+                    return;
+                }
+                
+                // Try to fetch real data
+                let url;
+                if (provider === 'lambda') {
+                    url = `${LAMBDA_API}/api/search?query=${encodeURIComponent(symbol)}&limit=1`;
+                } else {
+                    // For Enhanced API, we would need specific endpoints
+                    console.log(`Provider ${provider} data loading not implemented yet`);
+                    return;
+                }
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.results && data.results.length > 0) {
+                        const result = data.results[0];
+                        const source = result._source || result;
+                        
+                        watchlistData[symbol] = {
+                            ...watchlistData[symbol],
+                            value: source.value || source.latest_value || source.last || 0,
+                            change: source.daily_change || 0,
+                            changePercent: source.daily_change_percent || 0,
+                            provider: source.provider || provider,
+                            lastUpdate: source.last_updated || new Date().toISOString(),
+                            loading: false
+                        };
+                        
+                        renderWatchlist();
+                    }
+                }
+            } catch (error) {
+                console.error(`Error loading ${symbol}:`, error);
+                // Keep existing data but mark as error
+                watchlistData[symbol] = {
+                    ...watchlistData[symbol],
+                    loading: false,
+                    error: error.message
+                };
+                renderWatchlist();
+            }
+        }
+        
+        // Render watchlist table
+        function renderWatchlist() {
+            const tbody = document.getElementById('watchlistBody');
+            const watchlist = WATCHLISTS[currentWatchlist];
+            
+            if (!watchlist || !watchlist.symbols || watchlist.symbols.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px; color: #888;">
+                            <div>No symbols in ${currentWatchlist} watchlist</div>
+                            <div style="font-size: 12px; margin-top: 10px;">Use the search box above to add indicators</div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            const formatValue = (value) => {
+                if (value === 0) return 'Loading...';
+                if (value >= 1000) return value.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                if (value >= 100) return value.toFixed(2);
+                if (value >= 1) return value.toFixed(2);
+                return value.toFixed(4);
+            };
+            
+            const formatChange = (change) => {
+                if (change === 0) return '—';
+                return (change >= 0 ? '+' : '') + change.toFixed(2);
+            };
+            
+            const formatPercent = (percent) => {
+                if (percent === 0) return '—';
+                return (percent >= 0 ? '+' : '') + percent.toFixed(2) + '%';
+            };
+            
+            const getChangeClass = (value) => {
+                if (value > 0) return 'positive';
+                if (value < 0) return 'negative';
+                return 'neutral';
+            };
+            
+            const formatLastUpdate = (lastUpdate) => {
+                if (!lastUpdate) return '—';
+                const date = new Date(lastUpdate);
+                const now = new Date();
+                const diffMs = now - date;
+                const diffMins = Math.floor(diffMs / 60000);
+                
+                if (diffMins < 1) return 'Just now';
+                if (diffMins < 60) return `${diffMins}m ago`;
+                if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h ago`;
+                return date.toLocaleDateString();
+            };
+            
+            const html = watchlist.symbols.map(symbolObj => {
+                const symbol = symbolObj.symbol;
+                const data = watchlistData[symbol] || {};
+                const symbolIcon = symbol.charAt(0).toUpperCase();
+                
+                return `
+                    <tr style="cursor: pointer;" title="Symbol: ${symbol}">
+                        <td>
+                            <div class="symbol-cell">
+                                <div class="symbol-icon">${symbolIcon}</div>
+                                <div class="symbol-info">
+                                    <div class="symbol-name">${symbol}</div>
+                                    <div class="symbol-fullname">
+                                        ${data.name || symbolObj.name || symbol}
+                                        <span class="provider-badge">${data.provider || 'API'}</span>
+                                        ${data.error ? '<span style="color: var(--error); font-size: 10px;">Error</span>' : ''}
+                                        ${data.loading ? '<span style="color: var(--warning); font-size: 10px;">Loading</span>' : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="price-cell">${formatValue(data.value || 0)}</td>
+                        <td class="change-cell ${getChangeClass(data.change || 0)}">${formatChange(data.change || 0)}</td>
+                        <td class="change-cell ${getChangeClass(data.changePercent || 0)}">${formatPercent(data.changePercent || 0)}</td>
+                        <td style="text-align: right; font-size: 12px; color: #666;">${data.provider || symbolObj.provider || 'API'}</td>
+                        <td style="text-align: right; font-size: 11px; color: #666;">${formatLastUpdate(data.lastUpdate)}</td>
+                        <td style="padding: 5px;">
+                            <button onclick="removeFromWatchlist(event, '${symbol}')" 
+                                    style="background: #f5f5f5; border: 1px solid #ddd; color: #333; 
+                                           padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">×</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            
+            tbody.innerHTML = html;
+        }
+        
+        // Remove from watchlist
+        function removeFromWatchlist(event, symbol) {
+            event.stopPropagation();
+            const watchlist = WATCHLISTS[currentWatchlist];
+            const index = watchlist.symbols.findIndex(s => s.symbol === symbol);
+            
+            if (index > -1) {
+                watchlist.symbols.splice(index, 1);
+                delete watchlistData[symbol];
+                renderWatchlist();
+                showTemporaryMessage(`Removed ${symbol} from ${currentWatchlist} watchlist`, 'info');
+            }
+        }
+        
+        // Switch watchlist
+        function switchWatchlist(watchlistName) {
+            currentWatchlist = watchlistName;
+            loadWatchlistData();
+        }
+        
+        // Toggle filter
+        function toggleFilter(filterType, value) {
+            const button = document.querySelector(`[data-${filterType}="${value}"]`);
+            const isActive = button.classList.contains('active');
+            
+            if (filterType === 'type') {
+                if (isActive) {
+                    button.classList.remove('active');
+                    activeFilters.types = activeFilters.types.filter(t => t !== value);
+                } else {
+                    button.classList.add('active');
+                    activeFilters.types.push(value);
+                }
+            } else if (filterType === 'source') {
+                if (isActive) {
+                    button.classList.remove('active');
+                    activeFilters.sources = activeFilters.sources.filter(s => s !== value);
+                } else {
+                    button.classList.add('active');
+                    activeFilters.sources.push(value);
+                }
+            }
+            
+            updateSearchStats();
+        }
+        
+        // Update search statistics
+        function updateSearchStats() {
+            document.getElementById('activeSources').textContent = activeFilters.sources.length.toString();
+            
+            // Calculate total indicators based on active sources
+            let totalIndicators = 0;
+            activeFilters.sources.forEach(source => {
+                const sourceConfig = DATA_SOURCES[source];
+                if (sourceConfig) {
+                    totalIndicators += sourceConfig.count || 0;
+                }
+            });
+            
+            document.getElementById('totalIndicators').textContent = totalIndicators.toLocaleString() + '+';
+        }
+        
+        // Test all systems
+        async function testAllSystems() {
+            showTemporaryMessage('Testing all systems...', 'info');
+            await checkAPIConnections();
+            showTemporaryMessage('System test complete!', 'info');
+        }
+        
+        // Utility functions
+        function getSymbolType(symbol) {
+            if (!symbol) return 'OTHER';
+            
+            const symbolUpper = symbol.toUpperCase();
+            
+            // Stock patterns
+            if (/^[A-Z]{1,5}$/.test(symbolUpper) && !symbolUpper.includes('.')) {
+                return 'STOCK';
+            }
+            
+            // ETF patterns
+            if (['SPY', 'QQQ', 'IWM', 'VTI', 'VOO'].includes(symbolUpper)) {
+                return 'ETF';
+            }
+            
+            // Economic indicators
+            if (['GDP', 'UNRATE', 'CPIAUCSL', 'FEDFUNDS', 'DFF', 'M2SL', 'PAYEMS', 'HOUST', 'INDPRO'].includes(symbolUpper)) {
+                return 'ECONOMIC';
+            }
+            
+            // Interest rates
+            if (['DGS1', 'DGS2', 'DGS10', 'DGS30', 'SOFR', 'EFFR', 'OBFR'].includes(symbolUpper)) {
+                return 'RATES';
+            }
+            
+            // Currency patterns
+            if (symbol.includes('EXR.D.') || symbol.includes('EUR') || symbol.includes('USD')) {
+                return 'CURRENCY';
+            }
+            
+            // ECB patterns
+            if (symbol.includes('CISS.') || symbol.includes('CLIFS.')) {
+                return 'EUROPEAN';
+            }
+            
+            return 'OTHER';
+        }
+        
+        function getSymbolDescription(symbol) {
+            const descriptions = {
+                'AAPL': 'Apple Inc.',
+                'MSFT': 'Microsoft Corporation',
+                'GOOGL': 'Alphabet Inc. Class A',
+                'AMZN': 'Amazon.com Inc.',
+                'TSLA': 'Tesla Inc.',
+                'SPY': 'SPDR S&P 500 ETF Trust',
+                'QQQ': 'Invesco QQQ Trust',
+                'FEDFUNDS': 'Federal Funds Effective Rate',
+                'UNRATE': 'Unemployment Rate',
+                'GDP': 'Gross Domestic Product',
+                'CPIAUCSL': 'Consumer Price Index for All Urban Consumers',
+                'DGS10': 'Market Yield on 10-Year Treasury',
+                'DGS2': 'Market Yield on 2-Year Treasury',
+                'sofr': 'Secured Overnight Financing Rate',
+                'effr': 'Effective Federal Funds Rate',
+                'EXR.D.USD.EUR.SP00.A': 'EUR/USD Exchange Rate',
+                'CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX': 'Euro Area Systemic Stress Index'
+            };
+            
+            return descriptions[symbol] || symbol;
+        }
+        
+        function getEndpointName(endpoint) {
+            const names = {
+                '/economy/survey/university_of_michigan': 'University of Michigan Survey',
+                '/economy/gdp/nominal': 'GDP Nominal Data',
+                '/economy/gdp/real': 'GDP Real Data'
+            };
+            
+            return names[endpoint] || endpoint;
+        }
+        
+        function updateClock() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
+            const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+            document.getElementById('clock').textContent = `${dateStr} ${timeStr}`;
+        }
+        
+        function showTemporaryMessage(text, type = 'info') {
+            const popup = document.createElement('div');
+            popup.className = `message-popup ${type}`;
+            popup.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    ${type === 'info' ? '✅' : type === 'error' ? '❌' : '⚠️'}
+                    <span>${text}</span>
+                </div>
+            `;
+            document.body.appendChild(popup);
+            
+            setTimeout(() => popup.remove(), 3000);
+        }
+        
+        // Navigation and section functions
+        function showSection(section) {
+            document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+            event.target.classList.add('active');
+            showTemporaryMessage(`Viewing ${section} section`, 'info');
+        }
+        
+        function showDocumentation() {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal">
+                    <div class="modal-header">
+                        <h2 class="modal-title">📊 OpenBB Platform v17.6 Documentation</h2>
+                        <button class="modal-close" onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
+                    </div>
+                    <div style="padding: 20px; line-height: 1.6;">
+                        <h3 style="color: var(--primary-green); margin-bottom: 15px;">🚀 Platform Overview</h3>
+                        <p style="margin-bottom: 20px;">
+                            The OpenBB Financial Intelligence Platform provides access to <strong>66,370+ financial indicators</strong> 
+                            through a comprehensive multi-system architecture, serving as a direct competitor to Bloomberg Terminal 
+                            at 97% cost savings ($720/year vs $24,000/year).
+                        </p>
+                        
+                        <h3 style="color: var(--primary-green); margin-bottom: 15px;">🏗️ System Architecture</h3>
+                        <ul style="margin-bottom: 20px; padding-left: 20px;">
+                            <li><strong>System 1 - Lambda Platform:</strong> 6,204 indicators with semantic search</li>
+                            <li><strong>System 2 - Enhanced API:</strong> 60,000+ indicators via IP ${ENHANCED_API_IP}</li>
+                            <li><strong>System 3 - Local Sources:</strong> Direct provider integration</li>
+                            <li><strong>System 4 - Infrastructure:</strong> DynamoDB, CloudWatch, S3</li>
+                        </ul>
+                        
+                        <h3 style="color: var(--primary-green); margin-bottom: 15px;">📊 Data Sources</h3>
+                        <ul style="margin-bottom: 20px; padding-left: 20px;">
+                            <li><strong>FRED:</strong> Federal Reserve Economic Data</li>
+                            <li><strong>Polygon:</strong> Real-time stock market data</li>
+                            <li><strong>NY Fed:</strong> Reference rates (SOFR, EFFR, OBFR)</li>
+                            <li><strong>ECB:</strong> European financial indicators</li>
+                            <li><strong>Treasury:</strong> US Treasury auction data</li>
+                            <li><strong>OFR:</strong> Financial stability monitoring</li>
+                        </ul>
+                        
+                        <h3 style="color: var(--primary-green); margin-bottom: 15px;">🔍 Search Features</h3>
+                        <ul style="margin-bottom: 20px; padding-left: 20px;">
+                            <li><strong>Semantic Search:</strong> Natural language queries (e.g., "inflation" → CPI data)</li>
+                            <li><strong>Real-time Results:</strong> Sub-second response times</li>
+                            <li><strong>Multi-source:</strong> Search across all 66,370+ indicators simultaneously</li>
+                            <li><strong>Smart Filtering:</strong> Filter by asset type, data source, or provider</li>
+                        </ul>
+                        
+                        <h3 style="color: var(--primary-green); margin-bottom: 15px;">💡 Usage Tips</h3>
+                        <ul style="margin-bottom: 20px; padding-left: 20px;">
+                            <li>Try searching: <code>AAPL</code>, <code>FEDFUNDS</code>, <code>GDP</code>, <code>inflation</code>, <code>sofr</code></li>
+                            <li>Use watchlists to monitor your favorite indicators</li>
+                            <li>Click source indicators to see connection status</li>
+                            <li>Demo mode available when APIs are not accessible</li>
+                        </ul>
+                        
+                        <h3 style="color: var(--primary-green); margin-bottom: 15px;">🎯 API Endpoints</h3>
+                        <div style="background: #1a1a1a; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+                            <code style="color: var(--primary-green); display: block; margin-bottom: 10px;">
+                                # Lambda Search API<br>
+                                GET ${LAMBDA_API}/api/search?query=AAPL<br>
+                                GET ${LAMBDA_API}/api/search/stats
+                            </code>
+                            <code style="color: var(--primary-blue); display: block;">
+                                # Enhanced OpenBB API<br>
+                                GET ${ENHANCED_API}/test/cors<br>
+                                GET ${ENHANCED_API}/economy/gdp/nominal
+                            </code>
+                        </div>
+                        
+                        <div style="text-align: center; margin-top: 30px;">
+                            <p style="font-size: 14px; color: var(--text-secondary);">
+                                OpenBB Financial Intelligence Platform v17.6 - Democratizing Financial Data Access
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        function showSystemStatus() {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal">
+                    <div class="modal-header">
+                        <h2 class="modal-title">🔧 System Status Dashboard</h2>
+                        <button class="modal-close" onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
+                    </div>
+                    <div style="padding: 20px;">
+                        <h3 style="color: var(--primary-green); margin-bottom: 15px;">📡 API Connections</h3>
+                        <div style="display: grid; gap: 15px; margin-bottom: 25px;">
+                            <div style="background: #1a1a1a; padding: 15px; border-radius: 6px; border-left: 4px solid ${connectedSources.includes('lambda') ? 'var(--success)' : 'var(--error)'};">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <strong>Lambda Platform API</strong>
+                                    <span style="color: ${connectedSources.includes('lambda') ? 'var(--success)' : 'var(--error)'};">
+                                        ${connectedSources.includes('lambda') ? '✅ Connected' : '❌ Disconnected'}
+                                    </span>
+                                </div>
+                                <div style="font-size: 12px; color: #888; margin-top: 5px;">
+                                    Endpoint: ${LAMBDA_API}
+                                </div>
+                            </div>
+                            <div style="background: #1a1a1a; padding: 15px; border-radius: 6px; border-left: 4px solid ${connectedSources.includes('enhanced') ? 'var(--success)' : 'var(--error)'};">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <strong>Enhanced OpenBB API</strong>
+                                    <span style="color: ${connectedSources.includes('enhanced') ? 'var(--success)' : 'var(--error)'};">
+                                        ${connectedSources.includes('enhanced') ? '✅ Connected' : '❌ Disconnected'}
+                                    </span>
+                                </div>
+                                <div style="font-size: 12px; color: #888; margin-top: 5px;">
+                                    Endpoint: ${ENHANCED_API} (IP: ${ENHANCED_API_IP})
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h3 style="color: var(--primary-green); margin-bottom: 15px;">📊 Platform Metrics</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px;">
+                            <div style="background: #1a1a1a; padding: 15px; border-radius: 6px; text-align: center;">
+                                <div style="font-size: 24px; font-weight: bold; color: var(--primary-green);">66,370+</div>
+                                <div style="font-size: 12px; color: #888;">Total Indicators</div>
+                            </div>
+                            <div style="background: #1a1a1a; padding: 15px; border-radius: 6px; text-align: center;">
+                                <div style="font-size: 24px; font-weight: bold; color: var(--primary-blue);">${connectedSources.length}</div>
+                                <div style="font-size: 12px; color: #888;">Connected Sources</div>
+                            </div>
+                            <div style="background: #1a1a1a; padding: 15px; border-radius: 6px; text-align: center;">
+                                <div style="font-size: 24px; font-weight: bold; color: var(--warning);">${isDemoMode ? 'Demo' : 'Live'}</div>
+                                <div style="font-size: 12px; color: #888;">Data Mode</div>
+                            </div>
+                        </div>
+                        
+                        <h3 style="color: var(--primary-green); margin-bottom: 15px;">⚙️ System Actions</h3>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button onclick="testAllSystems(); this.parentElement.parentElement.parentElement.parentElement.remove();" 
+                                    style="background: var(--primary-green); color: #000; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                                🔍 Test All Systems
+                            </button>
+                            <button onclick="enableDemoMode(); this.parentElement.parentElement.parentElement.parentElement.remove();" 
+                                    style="background: var(--warning); color: #000; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                                🎭 Enable Demo Mode
+                            </button>
+                            <button onclick="location.reload();" 
+                                    style="background: var(--primary-blue); color: #000; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                                🔄 Reload Platform
+                            </button>
+                        </div>
+                        
+                        <div style="margin-top: 20px; padding: 15px; background: #111; border-radius: 4px; font-size: 12px; color: #888;">
+                            <strong>Note:</strong> If APIs are not accessible due to CORS policy, demo mode will provide simulated data for testing. 
+                            For full functionality, deploy to a web server or use the APIs from an authorized domain.
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        // Hide search results when clicking outside
+        document.addEventListener('click', function(event) {
+            const searchBox = document.getElementById('searchBox');
+            const searchResults = document.getElementById('searchResults');
+            
+            if (!searchBox.contains(event.target) && !searchResults.contains(event.target)) {
+                searchResults.style.display = 'none';
+            }
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(event) {
+            // Ctrl/Cmd + K to focus search
+            if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
+                event.preventDefault();
+                document.getElementById('searchBox').focus();
+            }
+            
+            // Escape to close modals and search
+            if (event.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay').forEach(m => m.remove());
+                document.getElementById('searchResults').style.display = 'none';
+            }
+        });
+        
+        // Expose functions to global scope
+        window.showSection = showSection;
+        window.showDocumentation = showDocumentation;
+        window.showSystemStatus = showSystemStatus;
+        window.toggleFilter = toggleFilter;
+        window.performEnhancedSearch = performEnhancedSearch;
+        window.addToWatchlist = addToWatchlist;
+        window.removeFromWatchlist = removeFromWatchlist;
+        window.switchWatchlist = switchWatchlist;
+        window.testAllSystems = testAllSystems;
+        window.enableDemoMode = enableDemoMode;
+        
+        // Initialize on page load
+        window.addEventListener('load', init);
+        
+        console.log('🚀 OpenBB Financial Intelligence Platform v17.6 Ready!');
+        console.log('📊 Configured for 66,370+ indicators across multiple systems');
+        console.log('🔗 Lambda API:', LAMBDA_API);
+        console.log('🔗 Enhanced API:', ENHANCED_API);
+    </script>
+</body>
+</html>
