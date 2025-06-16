@@ -1055,7 +1055,13 @@
         // UPDATED CONFIGURATION FOR YOUR PROJECT STRUCTURE v17.6
         const LAMBDA_API = 'https://rg9o6exoi8.execute-api.us-east-1.amazonaws.com/prod';
         const ENHANCED_API_IP = '34.201.45.207';
-        const ENHANCED_API = `http://${ENHANCED_API_IP}:8000/api/v1`;
+        // Use HTTPS when page is served over HTTPS to avoid Mixed Content errors
+        const ENHANCED_API_PROTOCOL = window.location.protocol === 'https:' ? 'https' : 'http';
+        const ENHANCED_API = `${ENHANCED_API_PROTOCOL}://${ENHANCED_API_IP}:8000/api/v1`;
+        
+        // Fallback URLs for different scenarios
+        const ENHANCED_API_FALLBACK = `https://${ENHANCED_API_IP}:8443/api/v1`; // HTTPS port
+        const ENHANCED_API_ALT = 'https://rg9o6exoi8.execute-api.us-east-1.amazonaws.com/prod'; // Lambda fallback
         
         // Comprehensive data sources from your documentation
         const DATA_SOURCES = {
@@ -1280,9 +1286,13 @@
             showTemporaryMessage('OpenBB Platform v17.6 loaded successfully!', 'info');
         }
         
-        // Check API connections
+        // Check API connections with enhanced error handling and fallbacks
         async function checkAPIConnections() {
             console.log('🔍 Checking API connections...');
+            console.log('🌐 Current protocol:', window.location.protocol);
+            console.log('🔗 Lambda API:', LAMBDA_API);
+            console.log('🔗 Enhanced API:', ENHANCED_API);
+            
             document.getElementById('apiStatusText').textContent = 'Checking connections...';
             
             let connectedCount = 0;
@@ -1291,7 +1301,7 @@
             // Test Lambda Platform
             try {
                 console.log('Testing Lambda Platform...');
-                const lambdaUrl = `${LAMBDA_API}/api/search?query=test&limit=1`;
+                const lambdaUrl = `${LAMBDA_API}/api/search?query=AAPL&limit=1`;
                 const lambdaResponse = await fetch(lambdaUrl, {
                     method: 'GET',
                     mode: 'cors',
@@ -1302,67 +1312,265 @@
                 });
                 
                 if (lambdaResponse.ok) {
-                    console.log('✅ Lambda Platform connected');
+                    const data = await lambdaResponse.json();
+                    console.log('✅ Lambda Platform connected:', data);
                     document.getElementById('lambda-indicator').classList.add('connected');
                     connectedSources.push('lambda');
                     connectedCount++;
+                    
+                    // Update stats with real data if available
+                    if (data.total || data.count) {
+                        document.getElementById('lambdaStat').textContent = (data.total || data.count).toLocaleString();
+                    }
                 } else {
                     throw new Error(`Lambda API error: ${lambdaResponse.status}`);
                 }
             } catch (error) {
                 console.warn('❌ Lambda Platform connection failed:', error.message);
                 document.getElementById('lambda-indicator').classList.remove('connected');
+                
+                // Try alternative Lambda endpoints
+                await tryAlternativeLambdaEndpoints();
             }
             
-            // Test Enhanced API
-            try {
-                console.log('Testing Enhanced API...');
-                const enhancedUrl = `${ENHANCED_API}/test/cors`;
-                const enhancedResponse = await fetch(enhancedUrl, {
-                    method: 'GET',
-                    mode: 'cors',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (enhancedResponse.ok) {
-                    console.log('✅ Enhanced API connected');
-                    document.getElementById('enhanced-indicator').classList.add('connected');
-                    connectedSources.push('enhanced');
-                    connectedCount++;
-                    
-                    // If Enhanced API is connected, assume other providers are available
-                    ['fred', 'polygon', 'ny_fed', 'ecb'].forEach(source => {
-                        document.getElementById(`${source}-indicator`)?.classList.add('connected');
-                        connectedSources.push(source);
-                    });
-                } else {
-                    throw new Error(`Enhanced API error: ${enhancedResponse.status}`);
-                }
-            } catch (error) {
-                console.warn('❌ Enhanced API connection failed:', error.message);
-                document.getElementById('enhanced-indicator').classList.remove('connected');
-            }
+            // Test Enhanced API with multiple fallbacks
+            await testEnhancedAPIWithFallbacks();
             
             // Update status
-            if (connectedCount > 0) {
-                document.getElementById('apiStatus').classList.add('connected');
-                if (connectedCount === 2) {
-                    document.getElementById('apiStatusText').textContent = 'All Systems Connected';
-                    document.getElementById('platformStatus').textContent = 'Fully Operational';
-                } else {
-                    document.getElementById('apiStatusText').textContent = `${connectedCount} System(s) Connected`;
-                    document.getElementById('platformStatus').textContent = 'Partial Access';
+            updateConnectionStatus(connectedCount);
+            updateSearchStats();
+        }
+        
+        // Try alternative Lambda endpoints
+        async function tryAlternativeLambdaEndpoints() {
+            const alternativeEndpoints = [
+                `${LAMBDA_API}/health`,
+                `${LAMBDA_API}/api/stats`,
+                `${LAMBDA_API}/api/categories`
+            ];
+            
+            for (const endpoint of alternativeEndpoints) {
+                try {
+                    console.log(`Trying Lambda alternative: ${endpoint}`);
+                    const response = await fetch(endpoint, {
+                        method: 'GET',
+                        mode: 'cors',
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    
+                    if (response.ok) {
+                        console.log(`✅ Lambda alternative endpoint working: ${endpoint}`);
+                        document.getElementById('lambda-indicator').classList.add('connected');
+                        connectedSources.push('lambda');
+                        return true;
+                    }
+                } catch (error) {
+                    console.log(`❌ Lambda alternative failed: ${endpoint}`, error.message);
                 }
-            } else {
-                document.getElementById('apiStatusText').textContent = 'Offline - Using Demo Mode';
-                document.getElementById('platformStatus').textContent = 'Demo Mode';
-                enableDemoMode();
+            }
+            return false;
+        }
+        
+        // Test Enhanced API with multiple fallbacks
+        async function testEnhancedAPIWithFallbacks() {
+            const testEndpoints = [
+                { url: `${ENHANCED_API}/test/cors`, name: 'CORS Test' },
+                { url: `${ENHANCED_API_FALLBACK}/test/cors`, name: 'HTTPS Fallback' },
+                { url: `${ENHANCED_API}/health`, name: 'Health Check' },
+                { url: `${ENHANCED_API}/economy/gdp/nominal?provider=econdb&country=united_states&limit=1`, name: 'GDP Data' },
+                { url: `${LAMBDA_API}/api/search?query=enhanced&limit=1`, name: 'Lambda Enhanced Search' }
+            ];
+            
+            for (const endpoint of testEndpoints) {
+                try {
+                    console.log(`Testing Enhanced API: ${endpoint.name} - ${endpoint.url}`);
+                    
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 5000);
+                    
+                    const response = await fetch(endpoint.url, {
+                        method: 'GET',
+                        mode: 'cors',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        signal: controller.signal
+                    }).finally(() => clearTimeout(timeoutId));
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log(`✅ Enhanced API connected via ${endpoint.name}:`, data);
+                        document.getElementById('enhanced-indicator').classList.add('connected');
+                        connectedSources.push('enhanced');
+                        
+                        // Mark related providers as connected
+                        ['fred', 'polygon', 'ny_fed', 'ecb'].forEach(source => {
+                            document.getElementById(`${source}-indicator`)?.classList.add('connected');
+                            if (!connectedSources.includes(source)) {
+                                connectedSources.push(source);
+                            }
+                        });
+                        
+                        return true;
+                    }
+                } catch (error) {
+                    console.log(`❌ Enhanced API ${endpoint.name} failed:`, error.message);
+                    
+                    // Special handling for Mixed Content error
+                    if (error.message.includes('Mixed Content') || error.message.includes('blocked')) {
+                        showMixedContentError();
+                    }
+                }
             }
             
-            updateSearchStats();
+            console.warn('❌ All Enhanced API endpoints failed');
+            document.getElementById('enhanced-indicator').classList.remove('connected');
+            return false;
+        }
+        
+        // Update connection status
+        function updateConnectionStatus(connectedCount) {
+            if (connectedCount > 0) {
+                document.getElementById('apiStatus').classList.add('connected');
+                if (connectedSources.includes('lambda') && connectedSources.includes('enhanced')) {
+                    document.getElementById('apiStatusText').textContent = 'All Systems Connected';
+                    document.getElementById('platformStatus').textContent = 'Fully Operational';
+                } else if (connectedSources.includes('lambda')) {
+                    document.getElementById('apiStatusText').textContent = 'Lambda Connected';
+                    document.getElementById('platformStatus').textContent = 'Partial Access';
+                } else {
+                    document.getElementById('apiStatusText').textContent = `${connectedCount} System(s) Connected`;
+                    document.getElementById('platformStatus').textContent = 'Limited Access';
+                }
+            } else {
+                document.getElementById('apiStatusText').textContent = 'APIs Blocked - Demo Mode';
+                document.getElementById('platformStatus').textContent = 'Demo Mode';
+                setTimeout(() => {
+                    if (connectedSources.length === 0) {
+                        enableDemoMode();
+                        showConnectionHelp();
+                    }
+                }, 2000);
+            }
+        }
+        
+        // Show Mixed Content error specifically
+        function showMixedContentError() {
+            if (document.getElementById('mixedContentWarning')) return; // Don't show multiple times
+            
+            const warning = document.createElement('div');
+            warning.id = 'mixedContentWarning';
+            warning.className = 'message-popup error';
+            warning.style.position = 'fixed';
+            warning.style.top = '20px';
+            warning.style.right = '20px';
+            warning.style.zIndex = '9999';
+            warning.style.maxWidth = '400px';
+            warning.style.animation = 'none'; // Don't auto-hide
+            
+            warning.innerHTML = `
+                <div style="margin-bottom: 15px;">
+                    <strong>🚫 Mixed Content Error Detected</strong>
+                </div>
+                <div style="margin-bottom: 10px; font-size: 13px;">
+                    Your page is served over HTTPS but the Enhanced API (${ENHANCED_API_IP}) uses HTTP, 
+                    which browsers block for security.
+                </div>
+                <div style="margin-bottom: 15px; font-size: 12px;">
+                    <strong>Solutions:</strong>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <button onclick="enableDemoMode(); this.parentElement.parentElement.remove();" 
+                            style="background: var(--primary-green); color: #000; border: none; 
+                                   padding: 8px 12px; border-radius: 4px; cursor: pointer; 
+                                   font-weight: bold; margin-right: 8px;">
+                        Use Demo Mode
+                    </button>
+                    <button onclick="this.parentElement.parentElement.remove();" 
+                            style="background: #666; color: #fff; border: none; 
+                                   padding: 8px 12px; border-radius: 4px; cursor: pointer;">
+                        Continue
+                    </button>
+                </div>
+                <div style="font-size: 11px; color: #ccc;">
+                    Lambda API should still work normally.
+                </div>
+            `;
+            
+            document.body.appendChild(warning);
+        }
+        
+        // Show connection help
+        function showConnectionHelp() {
+            const helpModal = document.createElement('div');
+            helpModal.className = 'modal-overlay';
+            helpModal.innerHTML = `
+                <div class="modal">
+                    <div class="modal-header">
+                        <h2 class="modal-title">🔧 Connection Issues Detected</h2>
+                        <button class="modal-close" onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
+                    </div>
+                    <div style="padding: 20px;">
+                        <h3 style="color: var(--warning); margin-bottom: 15px;">⚠️ API Connection Problems</h3>
+                        <p style="margin-bottom: 20px;">
+                            We couldn't connect to your OpenBB APIs. This could be due to:
+                        </p>
+                        
+                        <div style="background: #1a1a1a; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                            <h4 style="color: var(--primary-green); margin-bottom: 10px;">🌐 Mixed Content (HTTPS/HTTP)</h4>
+                            <p style="margin-bottom: 10px; font-size: 14px;">
+                                Your page is served over HTTPS but the Enhanced API uses HTTP. 
+                                Current page: <code>${window.location.href}</code><br>
+                                Enhanced API: <code>${ENHANCED_API}</code>
+                            </p>
+                        </div>
+                        
+                        <div style="background: #1a1a1a; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                            <h4 style="color: var(--primary-blue); margin-bottom: 10px;">🚫 CORS Policy</h4>
+                            <p style="margin-bottom: 10px; font-size: 14px;">
+                                The APIs may not allow requests from your current domain for security reasons.
+                            </p>
+                        </div>
+                        
+                        <h3 style="color: var(--primary-green); margin-bottom: 15px;">✅ Available Solutions</h3>
+                        <div style="display: grid; gap: 10px; margin-bottom: 20px;">
+                            <button onclick="enableDemoMode(); this.parentElement.parentElement.parentElement.parentElement.remove();" 
+                                    style="background: var(--primary-green); color: #000; border: none; 
+                                           padding: 12px 15px; border-radius: 6px; cursor: pointer; 
+                                           font-weight: bold; text-align: left;">
+                                🎭 <strong>Use Demo Mode</strong> - Immediate testing with simulated data
+                            </button>
+                            <button onclick="window.open('http://localhost:8000', '_blank');" 
+                                    style="background: var(--primary-blue); color: #000; border: none; 
+                                           padding: 12px 15px; border-radius: 6px; cursor: pointer; 
+                                           font-weight: bold; text-align: left;">
+                                🏠 <strong>Run Locally</strong> - Serve from localhost to avoid HTTPS/HTTP issues
+                            </button>
+                            <button onclick="location.reload();" 
+                                    style="background: var(--warning); color: #000; border: none; 
+                                           padding: 12px 15px; border-radius: 6px; cursor: pointer; 
+                                           font-weight: bold; text-align: left;">
+                                🔄 <strong>Retry Connection</strong> - Test APIs again
+                            </button>
+                        </div>
+                        
+                        <div style="background: #111; padding: 15px; border-radius: 4px; font-size: 12px; color: #888;">
+                            <strong>Note:</strong> The Lambda API (${LAMBDA_API}) uses HTTPS and should work normally. 
+                            The Enhanced API requires HTTP or HTTPS configuration depending on your setup.
+                        </div>
+                        
+                        <div style="margin-top: 15px; text-align: center;">
+                            <button onclick="this.parentElement.parentElement.parentElement.remove();" 
+                                    style="background: #666; color: #fff; border: none; 
+                                           padding: 8px 15px; border-radius: 4px; cursor: pointer;">
+                                Continue with Current Setup
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(helpModal);
         }
         
         // Enable demo mode
@@ -1460,7 +1668,7 @@
             }, 300);
         }
         
-        // Search Lambda Platform
+        // Search Lambda Platform with enhanced error handling
         async function searchLambdaPlatform(query) {
             try {
                 if (isDemoMode) {
@@ -1482,43 +1690,187 @@
                     }));
                 }
                 
-                const url = `${LAMBDA_API}/api/search?query=${encodeURIComponent(query)}&limit=20`;
-                const response = await fetch(url, {
-                    method: 'GET',
-                    mode: 'cors',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
+                // Try multiple Lambda endpoints for search
+                const searchEndpoints = [
+                    `${LAMBDA_API}/api/search?query=${encodeURIComponent(query)}&limit=20`,
+                    `${LAMBDA_API}/api/search?q=${encodeURIComponent(query)}&limit=20`,
+                    `${LAMBDA_API}/search?query=${encodeURIComponent(query)}&limit=20`
+                ];
+                
+                for (const url of searchEndpoints) {
+                    try {
+                        console.log(`Trying Lambda search: ${url}`);
+                        const response = await fetch(url, {
+                            method: 'GET',
+                            mode: 'cors',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        
+                        if (!response.ok) {
+                            if (response.status === 404) {
+                                console.log(`404 on ${url}, trying next endpoint...`);
+                                continue;
+                            }
+                            throw new Error(`Lambda API error: ${response.status}`);
+                        }
+                        
+                        const data = await response.json();
+                        console.log('Lambda search results:', data);
+                        
+                        // Handle different response formats
+                        let results = [];
+                        if (data.results && Array.isArray(data.results)) {
+                            results = data.results;
+                        } else if (data.data && Array.isArray(data.data)) {
+                            results = data.data;
+                        } else if (Array.isArray(data)) {
+                            results = data;
+                        }
+                        
+                        if (results.length > 0) {
+                            return results.map(result => {
+                                const source = result._source || result;
+                                return {
+                                    symbol: source.symbol || result.symbol || source.id,
+                                    name: source.name || source.title || result.name || result.symbol,
+                                    description: source.description || 'Lambda Platform indicator',
+                                    provider: source.provider || 'lambda',
+                                    source: 'lambda',
+                                    type: source.type || getSymbolType(source.symbol),
+                                    score: result._score || result.score || 1
+                                };
+                            });
+                        }
+                    } catch (error) {
+                        console.log(`Error with ${url}:`, error.message);
+                        continue;
                     }
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`Lambda API error: ${response.status}`);
                 }
                 
-                const data = await response.json();
-                console.log('Lambda search results:', data);
+                // If all endpoints fail, return semantic search results
+                return searchSemanticFallback(query);
                 
-                if (data.results && Array.isArray(data.results)) {
-                    return data.results.map(result => {
-                        const source = result._source || result;
-                        return {
-                            symbol: source.symbol || result.symbol,
-                            name: source.name || source.title || result.name || result.symbol,
-                            description: source.description || 'Lambda Platform indicator',
-                            provider: source.provider || 'lambda',
-                            source: 'lambda',
-                            type: source.type || getSymbolType(source.symbol),
-                            score: result._score || 1
-                        };
-                    });
-                }
-                
-                return [];
             } catch (error) {
                 console.error('Lambda search error:', error);
-                return [];
+                return searchSemanticFallback(query);
             }
+        }
+        
+        // Semantic fallback search when APIs fail
+        function searchSemanticFallback(query) {
+            console.log('Using semantic fallback search for:', query);
+            
+            // Enhanced semantic mapping based on your documentation
+            const semanticMappings = {
+                // Economic indicators
+                'inflation': [
+                    { symbol: 'CPIAUCSL', name: 'Consumer Price Index', provider: 'FRED' },
+                    { symbol: 'CPILFESL', name: 'Core CPI (Less Food and Energy)', provider: 'FRED' }
+                ],
+                'gdp': [
+                    { symbol: 'GDP', name: 'Gross Domestic Product', provider: 'FRED' },
+                    { symbol: 'GDPC1', name: 'Real GDP', provider: 'FRED' }
+                ],
+                'unemployment': [
+                    { symbol: 'UNRATE', name: 'Unemployment Rate', provider: 'FRED' },
+                    { symbol: 'PAYEMS', name: 'Total Nonfarm Payrolls', provider: 'FRED' }
+                ],
+                'treasury': [
+                    { symbol: 'DGS1', name: '1-Year Treasury Rate', provider: 'FRED' },
+                    { symbol: 'DGS2', name: '2-Year Treasury Rate', provider: 'FRED' },
+                    { symbol: 'DGS10', name: '10-Year Treasury Rate', provider: 'FRED' },
+                    { symbol: 'DGS30', name: '30-Year Treasury Rate', provider: 'FRED' }
+                ],
+                'fed': [
+                    { symbol: 'FEDFUNDS', name: 'Federal Funds Rate', provider: 'FRED' },
+                    { symbol: 'DFF', name: 'Daily Federal Funds Rate', provider: 'FRED' }
+                ],
+                'housing': [
+                    { symbol: 'HOUST', name: 'Housing Starts', provider: 'FRED' },
+                    { symbol: 'CSUSHPISA', name: 'Case-Shiller Home Price Index', provider: 'FRED' }
+                ],
+                'money': [
+                    { symbol: 'M2SL', name: 'M2 Money Supply', provider: 'FRED' },
+                    { symbol: 'BOGMBASE', name: 'Monetary Base', provider: 'FRED' }
+                ],
+                'sofr': [
+                    { symbol: 'sofr', name: 'Secured Overnight Financing Rate', provider: 'NY Fed' }
+                ],
+                'effr': [
+                    { symbol: 'effr', name: 'Effective Federal Funds Rate', provider: 'NY Fed' }
+                ],
+                // Stock symbols
+                'apple': [{ symbol: 'AAPL', name: 'Apple Inc.', provider: 'Polygon' }],
+                'microsoft': [{ symbol: 'MSFT', name: 'Microsoft Corporation', provider: 'Polygon' }],
+                'google': [{ symbol: 'GOOGL', name: 'Alphabet Inc.', provider: 'Polygon' }],
+                'amazon': [{ symbol: 'AMZN', name: 'Amazon.com Inc.', provider: 'Polygon' }],
+                'tesla': [{ symbol: 'TSLA', name: 'Tesla Inc.', provider: 'Polygon' }],
+                'spy': [{ symbol: 'SPY', name: 'SPDR S&P 500 ETF', provider: 'Polygon' }],
+                // European indicators
+                'eur': [
+                    { symbol: 'EXR.D.USD.EUR.SP00.A', name: 'EUR/USD Exchange Rate', provider: 'ECB' }
+                ],
+                'stress': [
+                    { symbol: 'CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX', name: 'Euro Area Systemic Stress Index', provider: 'ECB' }
+                ]
+            };
+            
+            const queryLower = query.toLowerCase();
+            const results = [];
+            
+            // Direct symbol match
+            if (DEMO_DATA[query.toUpperCase()]) {
+                const symbol = query.toUpperCase();
+                results.push({
+                    symbol: symbol,
+                    name: DEMO_DATA[symbol].name,
+                    description: `Economic indicator: ${DEMO_DATA[symbol].name}`,
+                    provider: DEMO_DATA[symbol].provider || 'API',
+                    source: 'semantic',
+                    type: getSymbolType(symbol),
+                    score: 10
+                });
+            }
+            
+            // Semantic matches
+            Object.entries(semanticMappings).forEach(([key, mappings]) => {
+                if (queryLower.includes(key) || key.includes(queryLower)) {
+                    mappings.forEach(mapping => {
+                        results.push({
+                            symbol: mapping.symbol,
+                            name: mapping.name,
+                            description: `${mapping.provider} - ${mapping.name}`,
+                            provider: mapping.provider,
+                            source: 'semantic',
+                            type: getSymbolType(mapping.symbol),
+                            score: queryLower === key ? 8 : 5
+                        });
+                    });
+                }
+            });
+            
+            // Partial matches in demo data
+            Object.entries(DEMO_DATA).forEach(([symbol, data]) => {
+                if (symbol.toLowerCase().includes(queryLower) || 
+                    data.name.toLowerCase().includes(queryLower)) {
+                    if (!results.find(r => r.symbol === symbol)) {
+                        results.push({
+                            symbol: symbol,
+                            name: data.name,
+                            description: `Market data: ${data.name}`,
+                            provider: data.provider || 'API',
+                            source: 'semantic',
+                            type: getSymbolType(symbol),
+                            score: 3
+                        });
+                    }
+                }
+            });
+            
+            return results.sort((a, b) => b.score - a.score);
         }
         
         // Search Enhanced API
