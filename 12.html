@@ -1055,13 +1055,20 @@
         // UPDATED CONFIGURATION FOR YOUR PROJECT STRUCTURE v17.6
         const LAMBDA_API = 'https://rg9o6exoi8.execute-api.us-east-1.amazonaws.com/prod';
         const ENHANCED_API_IP = '34.201.45.207';
-        // Use HTTPS when page is served over HTTPS to avoid Mixed Content errors
-        const ENHANCED_API_PROTOCOL = window.location.protocol === 'https:' ? 'https' : 'http';
-        const ENHANCED_API = `${ENHANCED_API_PROTOCOL}://${ENHANCED_API_IP}:8000/api/v1`;
         
-        // Fallback URLs for different scenarios
-        const ENHANCED_API_FALLBACK = `https://${ENHANCED_API_IP}:8443/api/v1`; // HTTPS port
-        const ENHANCED_API_ALT = 'https://rg9o6exoi8.execute-api.us-east-1.amazonaws.com/prod'; // Lambda fallback
+        // Enhanced API configuration - handle SSL protocol issues
+        const isHTTPS = window.location.protocol === 'https:';
+        const ENHANCED_API_HTTP = `http://${ENHANCED_API_IP}:8000/api/v1`;
+        const ENHANCED_API_HTTPS = `https://${ENHANCED_API_IP}:8443/api/v1`; // Common HTTPS port
+        
+        // Use HTTP API only if page is served over HTTP, otherwise rely on Lambda API
+        const ENHANCED_API = isHTTPS ? null : ENHANCED_API_HTTP;
+        
+        console.log('🌐 Protocol Detection:');
+        console.log('  - Page protocol:', window.location.protocol);
+        console.log('  - Page is HTTPS:', isHTTPS);
+        console.log('  - Enhanced API will be skipped due to SSL protocol mismatch');
+        console.log('  - Lambda API (HTTPS):', LAMBDA_API);
         
         // Comprehensive data sources from your documentation
         const DATA_SOURCES = {
@@ -1371,14 +1378,26 @@
             return false;
         }
         
-        // Test Enhanced API with multiple fallbacks
+        // Test Enhanced API with SSL protocol awareness
         async function testEnhancedAPIWithFallbacks() {
+            // Skip Enhanced API testing if page is HTTPS and API is HTTP-only
+            if (isHTTPS) {
+                console.log('⚠️ Skipping Enhanced API: SSL protocol mismatch');
+                console.log('   Page is HTTPS but Enhanced API only supports HTTP');
+                console.log('   This prevents ERR_SSL_PROTOCOL_ERROR');
+                
+                showSSLProtocolInfo();
+                
+                // Mark as unavailable due to protocol mismatch
+                document.getElementById('enhanced-indicator').classList.remove('connected');
+                return false;
+            }
+            
+            // Only test if page is served over HTTP
             const testEndpoints = [
-                { url: `${ENHANCED_API}/test/cors`, name: 'CORS Test' },
-                { url: `${ENHANCED_API_FALLBACK}/test/cors`, name: 'HTTPS Fallback' },
-                { url: `${ENHANCED_API}/health`, name: 'Health Check' },
-                { url: `${ENHANCED_API}/economy/gdp/nominal?provider=econdb&country=united_states&limit=1`, name: 'GDP Data' },
-                { url: `${LAMBDA_API}/api/search?query=enhanced&limit=1`, name: 'Lambda Enhanced Search' }
+                { url: `${ENHANCED_API_HTTP}/test/cors`, name: 'CORS Test' },
+                { url: `${ENHANCED_API_HTTP}/health`, name: 'Health Check' },
+                { url: `${ENHANCED_API_HTTP}/economy/gdp/nominal?provider=econdb&country=united_states&limit=1`, name: 'GDP Data' }
             ];
             
             for (const endpoint of testEndpoints) {
@@ -1416,11 +1435,6 @@
                     }
                 } catch (error) {
                     console.log(`❌ Enhanced API ${endpoint.name} failed:`, error.message);
-                    
-                    // Special handling for Mixed Content error
-                    if (error.message.includes('Mixed Content') || error.message.includes('blocked')) {
-                        showMixedContentError();
-                    }
                 }
             }
             
@@ -1429,22 +1443,93 @@
             return false;
         }
         
-        // Update connection status
+        // Show SSL protocol information
+        function showSSLProtocolInfo() {
+            // Only show once
+            if (document.getElementById('sslProtocolInfo')) return;
+            
+            const info = document.createElement('div');
+            info.id = 'sslProtocolInfo';
+            info.className = 'message-popup warning';
+            info.style.position = 'fixed';
+            info.style.top = '80px';
+            info.style.right = '20px';
+            info.style.zIndex = '9999';
+            info.style.maxWidth = '450px';
+            info.style.animation = 'none'; // Don't auto-hide
+            
+            info.innerHTML = `
+                <div style="margin-bottom: 15px;">
+                    <strong>⚠️ Enhanced API Protocol Mismatch</strong>
+                </div>
+                <div style="margin-bottom: 15px; font-size: 13px; line-height: 1.4;">
+                    Your Enhanced API server (${ENHANCED_API_IP}:8000) only supports HTTP, 
+                    but this page is served over HTTPS. This causes SSL protocol errors.
+                </div>
+                <div style="margin-bottom: 15px; font-size: 12px;">
+                    <strong>✅ Lambda API is working normally</strong><br>
+                    <strong>⚠️ Enhanced API skipped to prevent errors</strong>
+                </div>
+                <div style="margin-bottom: 15px; font-size: 12px;">
+                    <strong>Solutions to access Enhanced API:</strong>
+                </div>
+                <div style="margin-bottom: 15px; font-size: 11px; background: #2a2a2a; padding: 10px; border-radius: 4px;">
+                    <strong>Option 1:</strong> Access via HTTP<br>
+                    <code>http://localhost:8000/your-page.html</code><br><br>
+                    <strong>Option 2:</strong> Configure HTTPS on Enhanced API<br>
+                    <code>Use port 8443 with SSL certificate</code><br><br>
+                    <strong>Option 3:</strong> Use Lambda API only<br>
+                    <code>6,204 indicators via semantic search</code>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <button onclick="enableDemoMode(); this.parentElement.parentElement.remove();" 
+                            style="background: var(--primary-green); color: #000; border: none; 
+                                   padding: 8px 12px; border-radius: 4px; cursor: pointer; 
+                                   font-weight: bold; margin-right: 8px;">
+                        Continue with Demo
+                    </button>
+                    <button onclick="this.parentElement.parentElement.remove();" 
+                            style="background: #666; color: #fff; border: none; 
+                                   padding: 8px 12px; border-radius: 4px; cursor: pointer;">
+                        Got it
+                    </button>
+                </div>
+                <div style="font-size: 11px; color: #ccc;">
+                    Platform will work normally with Lambda API + semantic search.
+                </div>
+            `;
+            
+            document.body.appendChild(info);
+            
+            // Auto-hide after 10 seconds
+            setTimeout(() => {
+                if (info.parentNode) {
+                    info.style.opacity = '0';
+                    setTimeout(() => info.remove(), 500);
+                }
+            }, 10000);
+        }
+        
+        // Update connection status with SSL awareness
         function updateConnectionStatus(connectedCount) {
-            if (connectedCount > 0) {
+            const hasLambda = connectedSources.includes('lambda');
+            const hasEnhanced = connectedSources.includes('enhanced');
+            
+            if (connectedCount > 0 || hasLambda) {
                 document.getElementById('apiStatus').classList.add('connected');
-                if (connectedSources.includes('lambda') && connectedSources.includes('enhanced')) {
+                
+                if (hasLambda && hasEnhanced) {
                     document.getElementById('apiStatusText').textContent = 'All Systems Connected';
                     document.getElementById('platformStatus').textContent = 'Fully Operational';
-                } else if (connectedSources.includes('lambda')) {
+                } else if (hasLambda) {
                     document.getElementById('apiStatusText').textContent = 'Lambda Connected';
-                    document.getElementById('platformStatus').textContent = 'Partial Access';
+                    document.getElementById('platformStatus').textContent = isHTTPS ? 'HTTPS Mode (Lambda Only)' : 'Partial Access';
                 } else {
                     document.getElementById('apiStatusText').textContent = `${connectedCount} System(s) Connected`;
                     document.getElementById('platformStatus').textContent = 'Limited Access';
                 }
             } else {
-                document.getElementById('apiStatusText').textContent = 'APIs Blocked - Demo Mode';
+                document.getElementById('apiStatusText').textContent = 'APIs Unavailable - Demo Mode';
                 document.getElementById('platformStatus').textContent = 'Demo Mode';
                 setTimeout(() => {
                     if (connectedSources.length === 0) {
@@ -1501,66 +1586,89 @@
             document.body.appendChild(warning);
         }
         
-        // Show connection help
+        // Show connection help with SSL protocol awareness
         function showConnectionHelp() {
             const helpModal = document.createElement('div');
             helpModal.className = 'modal-overlay';
             helpModal.innerHTML = `
                 <div class="modal">
                     <div class="modal-header">
-                        <h2 class="modal-title">🔧 Connection Issues Detected</h2>
+                        <h2 class="modal-title">🔧 OpenBB Platform Connection Status</h2>
                         <button class="modal-close" onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
                     </div>
                     <div style="padding: 20px;">
-                        <h3 style="color: var(--warning); margin-bottom: 15px;">⚠️ API Connection Problems</h3>
-                        <p style="margin-bottom: 20px;">
-                            We couldn't connect to your OpenBB APIs. This could be due to:
-                        </p>
-                        
+                        <h3 style="color: var(--primary-green); margin-bottom: 15px;">📡 Current Setup Analysis</h3>
                         <div style="background: #1a1a1a; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
-                            <h4 style="color: var(--primary-green); margin-bottom: 10px;">🌐 Mixed Content (HTTPS/HTTP)</h4>
-                            <p style="margin-bottom: 10px; font-size: 14px;">
-                                Your page is served over HTTPS but the Enhanced API uses HTTP. 
-                                Current page: <code>${window.location.href}</code><br>
-                                Enhanced API: <code>${ENHANCED_API}</code>
-                            </p>
+                            <div style="margin-bottom: 10px;">
+                                <strong>🌐 Page Protocol:</strong> <code>${window.location.protocol}</code><br>
+                                <strong>🔗 Page URL:</strong> <code>${window.location.href}</code><br>
+                                <strong>📊 Lambda API:</strong> <span style="color: var(--success);">✅ HTTPS Compatible</span><br>
+                                <strong>🔧 Enhanced API:</strong> ${isHTTPS ? '<span style="color: var(--warning);">⚠️ HTTP-only (Protocol Mismatch)</span>' : '<span style="color: var(--success);">✅ HTTP Compatible</span>'}
+                            </div>
                         </div>
                         
-                        <div style="background: #1a1a1a; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
-                            <h4 style="color: var(--primary-blue); margin-bottom: 10px;">🚫 CORS Policy</h4>
+                        ${isHTTPS ? `
+                        <div style="background: #2a1a1a; border-left: 4px solid var(--warning); padding: 15px; margin-bottom: 20px;">
+                            <h4 style="color: var(--warning); margin-bottom: 10px;">⚠️ SSL Protocol Mismatch Detected</h4>
                             <p style="margin-bottom: 10px; font-size: 14px;">
-                                The APIs may not allow requests from your current domain for security reasons.
+                                Your Enhanced API server (${ENHANCED_API_IP}:8000) only supports HTTP, 
+                                but this page is served over HTTPS. This causes ERR_SSL_PROTOCOL_ERROR.
                             </p>
-                        </div>
+                            <p style="font-size: 13px; color: #ccc;">
+                                <strong>Impact:</strong> Enhanced API (60,000+ indicators) is unavailable.<br>
+                                <strong>Available:</strong> Lambda API (6,204 indicators) works normally.
+                            </p>
+                        </div>` : ''}
                         
                         <h3 style="color: var(--primary-green); margin-bottom: 15px;">✅ Available Solutions</h3>
-                        <div style="display: grid; gap: 10px; margin-bottom: 20px;">
+                        <div style="display: grid; gap: 12px; margin-bottom: 20px;">
                             <button onclick="enableDemoMode(); this.parentElement.parentElement.parentElement.parentElement.remove();" 
                                     style="background: var(--primary-green); color: #000; border: none; 
                                            padding: 12px 15px; border-radius: 6px; cursor: pointer; 
                                            font-weight: bold; text-align: left;">
-                                🎭 <strong>Use Demo Mode</strong> - Immediate testing with simulated data
+                                🎭 <strong>Enable Demo Mode</strong> - Full functionality with simulated data
                             </button>
+                            ${isHTTPS ? `
                             <button onclick="window.open('http://localhost:8000', '_blank');" 
                                     style="background: var(--primary-blue); color: #000; border: none; 
                                            padding: 12px 15px; border-radius: 6px; cursor: pointer; 
                                            font-weight: bold; text-align: left;">
-                                🏠 <strong>Run Locally</strong> - Serve from localhost to avoid HTTPS/HTTP issues
+                                🏠 <strong>Serve via HTTP</strong> - Access Enhanced API without SSL errors
+                            </button>` : ''}
+                            <button onclick="testOnlyLambdaAPI();" 
+                                    style="background: var(--success); color: #000; border: none; 
+                                           padding: 12px 15px; border-radius: 6px; cursor: pointer; 
+                                           font-weight: bold; text-align: left;">
+                                🚀 <strong>Use Lambda Only</strong> - 6,204 indicators with semantic search
                             </button>
                             <button onclick="location.reload();" 
                                     style="background: var(--warning); color: #000; border: none; 
                                            padding: 12px 15px; border-radius: 6px; cursor: pointer; 
                                            font-weight: bold; text-align: left;">
-                                🔄 <strong>Retry Connection</strong> - Test APIs again
+                                🔄 <strong>Retry Connection</strong> - Test all APIs again
                             </button>
                         </div>
                         
-                        <div style="background: #111; padding: 15px; border-radius: 4px; font-size: 12px; color: #888;">
-                            <strong>Note:</strong> The Lambda API (${LAMBDA_API}) uses HTTPS and should work normally. 
-                            The Enhanced API requires HTTP or HTTPS configuration depending on your setup.
+                        <h3 style="color: var(--primary-blue); margin-bottom: 15px;">🔧 Technical Solutions</h3>
+                        <div style="background: #111; padding: 15px; border-radius: 4px; font-size: 12px; color: #888; margin-bottom: 20px;">
+                            <strong>For Full Access to Enhanced API:</strong><br>
+                            <strong>Option 1:</strong> Serve page via HTTP: <code>http://localhost:8000/</code><br>
+                            <strong>Option 2:</strong> Configure HTTPS on Enhanced API server (port 8443)<br>
+                            <strong>Option 3:</strong> Use reverse proxy with SSL termination<br>
+                            <strong>Option 4:</strong> Deploy both APIs behind same HTTPS domain
                         </div>
                         
-                        <div style="margin-top: 15px; text-align: center;">
+                        <div style="background: #1a3a1a; padding: 15px; border-radius: 4px; margin-bottom: 15px;">
+                            <strong style="color: var(--success);">✅ Current Capabilities:</strong><br>
+                            • Lambda API: 6,204 indicators with semantic search<br>
+                            • Real-time search with fuzzy matching<br>
+                            • Economic data: GDP, inflation, unemployment, rates<br>
+                            • Market data: Stocks, ETFs, indices<br>
+                            • Comprehensive watchlists and charts<br>
+                            • Demo mode with realistic data patterns
+                        </div>
+                        
+                        <div style="text-align: center;">
                             <button onclick="this.parentElement.parentElement.parentElement.remove();" 
                                     style="background: #666; color: #fff; border: none; 
                                            padding: 8px 15px; border-radius: 4px; cursor: pointer;">
@@ -1571,6 +1679,38 @@
                 </div>
             `;
             document.body.appendChild(helpModal);
+        }
+        
+        // Test Lambda API only
+        async function testOnlyLambdaAPI() {
+            showTemporaryMessage('Testing Lambda API only...', 'info');
+            
+            try {
+                const response = await fetch(`${LAMBDA_API}/api/search?query=AAPL&limit=1`, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    document.getElementById('lambda-indicator').classList.add('connected');
+                    connectedSources = ['lambda'];
+                    document.getElementById('apiStatus').classList.add('connected');
+                    document.getElementById('apiStatusText').textContent = 'Lambda API Connected';
+                    document.getElementById('platformStatus').textContent = 'Lambda Only Mode';
+                    
+                    showTemporaryMessage('✅ Lambda API connected! 6,204 indicators available.', 'info');
+                    loadWatchlistData();
+                } else {
+                    throw new Error(`Lambda API error: ${response.status}`);
+                }
+            } catch (error) {
+                showTemporaryMessage('❌ Lambda API connection failed. Enabling demo mode.', 'error');
+                enableDemoMode();
+            }
+            
+            // Close help modal
+            document.querySelectorAll('.modal-overlay').forEach(m => m.remove());
         }
         
         // Enable demo mode
@@ -2616,6 +2756,7 @@
         window.switchWatchlist = switchWatchlist;
         window.testAllSystems = testAllSystems;
         window.enableDemoMode = enableDemoMode;
+        window.testOnlyLambdaAPI = testOnlyLambdaAPI;
         
         // Initialize on page load
         window.addEventListener('load', init);
