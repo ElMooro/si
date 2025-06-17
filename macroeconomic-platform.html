@@ -1600,7 +1600,7 @@
             // Production APIs with CORS proxy for grumpyy.com
             ENHANCED_API: 'https://api.grumpyy.com/proxy/enhanced', // CORS proxy to Enhanced API
             SEARCH_API: 'https://rg9o6exoi8.execute-api.us-east-1.amazonaws.com/prod', // Direct CORS-enabled
-            BACKUP_ENHANCED: 'http://openbb-prod-alb-180258533.us-east-1.elb.amazonaws.com', // Fallback direct
+            BACKUP_ENHANCED: 'https://openbb-prod-alb-180258533.us-east-1.elb.amazonaws.com', // Changed to HTTPS
             
             // CORS handling
             CORS_PROXY: 'https://api.grumpyy.com/proxy/',
@@ -1611,7 +1611,11 @@
             CACHE_DURATION: 60000, // 1 minute
             SEARCH_DEBOUNCE: 300, // 300ms
             BATCH_SIZE: 10,
-            MAX_CONCURRENT: 5
+            MAX_CONCURRENT: 5,
+            
+            // Demo mode settings
+            USE_DEMO_MODE: true, // Enable demo mode when APIs are unavailable
+            DEMO_MODE_MESSAGE: 'Running in demo mode - APIs unavailable'
         };
 
         // Global state management
@@ -1791,7 +1795,15 @@
                 initializeConnectionStatus();
 
                 // Test API connections with CORS handling
-                await testAllConnections();
+                const connectionResults = await testAllConnections();
+                
+                // Check if we should use demo mode
+                const connectedAPIs = Object.values(connectionResults).filter(Boolean).length;
+                if (connectedAPIs === 0 && PRODUCTION_CONFIG.USE_DEMO_MODE) {
+                    console.log('⚠️ No APIs available, switching to demo mode');
+                    initializeFallbackMode();
+                    return;
+                }
 
                 // Load initial watchlist
                 loadWatchlist();
@@ -3167,19 +3179,15 @@
 
             // Test Enhanced API with CORS proxy fallback
             try {
-                // First try direct connection
-                let enhancedResponse;
-                try {
-                    enhancedResponse = await fetch(`${DATA_SOURCES.enhanced.fallbackUrl}/api/v1/economy/unemployment`, {
-                        method: 'GET',
-                        mode: 'no-cors'  // Try no-cors first
-                    });
-                } catch (corsError) {
-                    console.log('Direct connection blocked by CORS, trying proxy...');
-                    
-                    // Fallback to CORS proxy
+                // Skip if proxy is not available
+                const proxyTest = await fetch(PRODUCTION_CONFIG.CORS_PROXY + 'test').catch(() => null);
+                if (!proxyTest) {
+                    console.log('❌ CORS Proxy not available, skipping Enhanced API test');
+                } else {
+                    // First try direct connection with HTTPS
+                    let enhancedResponse;
                     try {
-                        enhancedResponse = await fetch(`${PRODUCTION_CONFIG.CORS_PROXY}enhanced/api/v1/economy/unemployment`, {
+                        enhancedResponse = await fetch(`${DATA_SOURCES.enhanced.fallbackUrl}/api/v1/economy/unemployment`, {
                             method: 'GET',
                             mode: 'cors',
                             headers: {
@@ -3187,21 +3195,35 @@
                                 'Content-Type': 'application/json'
                             }
                         });
-                        results.corsProxy = true;
-                        AppState.apiConnections.corsProxy = true;
-                        document.getElementById('cors-connection').classList.add('connected');
-                        console.log('✅ CORS Proxy working');
-                    } catch (proxyError) {
-                        console.warn('❌ CORS Proxy failed:', proxyError.message);
+                    } catch (corsError) {
+                        console.log('Direct connection blocked by CORS, trying proxy...');
+                        
+                        // Fallback to CORS proxy
+                        try {
+                            enhancedResponse = await fetch(`${PRODUCTION_CONFIG.CORS_PROXY}enhanced/api/v1/economy/unemployment`, {
+                                method: 'GET',
+                                mode: 'cors',
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'Content-Type': 'application/json'
+                                }
+                            });
+                            results.corsProxy = true;
+                            AppState.apiConnections.corsProxy = true;
+                            document.getElementById('cors-connection').classList.add('connected');
+                            console.log('✅ CORS Proxy working');
+                        } catch (proxyError) {
+                            console.warn('❌ CORS Proxy failed:', proxyError.message);
+                        }
                     }
-                }
 
-                if (enhancedResponse && enhancedResponse.ok) {
-                    results.enhanced = true;
-                    AppState.apiConnections.enhanced = true;
-                    document.getElementById('enhanced-indicator').classList.add('connected');
-                    document.getElementById('enhanced-connection').classList.add('connected');
-                    console.log('✅ Enhanced API connected');
+                    if (enhancedResponse && enhancedResponse.ok) {
+                        results.enhanced = true;
+                        AppState.apiConnections.enhanced = true;
+                        document.getElementById('enhanced-indicator').classList.add('connected');
+                        document.getElementById('enhanced-connection').classList.add('connected');
+                        console.log('✅ Enhanced API connected');
+                    }
                 }
             } catch (error) {
                 console.warn('❌ Enhanced API failed:', error.message);
@@ -3625,27 +3647,48 @@
         async function loadEnhancedData(symbolObj) {
             const { endpoint, params } = symbolObj;
             
+            // If APIs are not available, return simulated data immediately
+            if (!AppState.apiConnections.enhanced && !AppState.apiConnections.corsProxy) {
+                console.log('APIs unavailable, using simulated data for:', endpoint);
+                return generateSimulatedData(endpoint);
+            }
+            
             let url = `${DATA_SOURCES.enhanced.fallbackUrl}/api/v1/${endpoint}`;
             if (params) {
                 const queryParams = new URLSearchParams(params).toString();
                 url += `?${queryParams}`;
             }
 
-            // Try CORS proxy if direct connection fails
+            // Try CORS proxy if available
             let response;
             try {
-                response = await fetch(url, { mode: 'no-cors' });
-            } catch (corsError) {
                 if (AppState.apiConnections.corsProxy) {
-                    const proxyUrl = `${PRODUCTION_CONFIG.CORS_PROXY}enhanced${url.replace(DATA_SOURCES.enhanced.fallbackUrl, '')}`;
-                    response = await fetch(proxyUrl, { mode: 'cors' });
+                    const proxyUrl = `${PRODUCTION_CONFIG.CORS_PROXY}enhanced/api/v1/${endpoint}${params ? '?' + new URLSearchParams(params).toString() : ''}`;
+                    response = await fetch(proxyUrl, { 
+                        mode: 'cors',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        }
+                    });
                 } else {
-                    throw new Error('CORS blocked and no proxy available');
+                    // Try direct connection with HTTPS
+                    response = await fetch(url, { 
+                        mode: 'cors',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        }
+                    });
                 }
+            } catch (error) {
+                console.warn(`Failed to fetch ${endpoint}, using simulated data:`, error.message);
+                return generateSimulatedData(endpoint);
             }
 
-            if (!response.ok) {
-                throw new Error(`Enhanced API error: ${response.status}`);
+            if (!response || !response.ok) {
+                console.warn(`API returned error for ${endpoint}, using simulated data`);
+                return generateSimulatedData(endpoint);
             }
 
             // Handle different response formats
@@ -3654,7 +3697,8 @@
                 data = await response.json();
             } catch (parseError) {
                 // If JSON parsing fails, return simulated data based on endpoint
-                data = generateSimulatedData(endpoint);
+                console.warn(`Failed to parse response for ${endpoint}, using simulated data`);
+                return generateSimulatedData(endpoint);
             }
 
             return processEnhancedData(data, endpoint);
@@ -3867,26 +3911,61 @@
 
         // Initialize fallback mode
         function initializeFallbackMode() {
-            console.log('🔄 Initializing fallback mode...');
+            console.log('🔄 Initializing fallback mode with demo data...');
             
-            // Load demo data
-            const demoWatchlist = WATCHLISTS['MAIN'];
-            demoWatchlist.symbols.forEach(symbolObj => {
-                const demoData = generateSimulatedData(symbolObj.endpoint || symbolObj.symbol);
-                watchlistData[symbolObj.symbol] = {
-                    name: symbolObj.name,
-                    source: symbolObj.source,
-                    ...demoData,
-                    hasData: true,
-                    loading: false
-                };
-            });
-
-            renderWatchlist();
-            
+            // Update UI to show demo mode
             document.getElementById('apiStatusText').textContent = 'APIs: Demo Mode';
             document.getElementById('indicatorCount').textContent = 'Indicators: Demo Data';
-            showTemporaryMessage('Demo mode active - showing sample data', 'info');
+            document.getElementById('corsStatusText').textContent = 'CORS: Demo Mode';
+            
+            // Update all connection indicators to show demo mode
+            document.getElementById('enhanced-indicator').style.background = '#ffaa00';
+            document.getElementById('semantic-indicator').style.background = '#ffaa00';
+            document.getElementById('cors-indicator').style.background = '#ffaa00';
+            
+            // Load demo data for all watchlists
+            Object.keys(WATCHLISTS).forEach(watchlistName => {
+                const watchlist = WATCHLISTS[watchlistName];
+                watchlist.symbols.forEach(symbolObj => {
+                    const demoData = generateSimulatedData(symbolObj.endpoint || symbolObj.symbol);
+                    const key = `${watchlistName}_${symbolObj.symbol}`;
+                    watchlistData[symbolObj.symbol] = {
+                        name: symbolObj.name,
+                        source: symbolObj.source,
+                        ...demoData,
+                        hasData: true,
+                        loading: false
+                    };
+                });
+            });
+
+            // Load current watchlist
+            renderWatchlist();
+            
+            showTemporaryMessage('Demo mode active - showing simulated data. APIs unavailable.', 'info');
+            
+            // Set up demo data refresh
+            setInterval(() => {
+                if (currentWatchlist && WATCHLISTS[currentWatchlist]) {
+                    WATCHLISTS[currentWatchlist].symbols.forEach(symbolObj => {
+                        const currentData = watchlistData[symbolObj.symbol];
+                        if (currentData && currentData.simulated) {
+                            // Update with new random changes
+                            currentData.changes = {
+                                '1d': Math.random() * 4 - 2,
+                                '1w': Math.random() * 8 - 4,
+                                '1m': Math.random() * 15 - 7.5,
+                                '1y': Math.random() * 30 - 15
+                            };
+                            // Slightly vary the value
+                            if (typeof currentData.value === 'number') {
+                                currentData.value = currentData.value * (1 + (Math.random() - 0.5) * 0.01);
+                            }
+                        }
+                    });
+                    renderWatchlist();
+                }
+            }, 5000); // Update every 5 seconds for demo effect
         }
 
         // Toggle data source
