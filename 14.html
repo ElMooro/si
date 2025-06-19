@@ -2595,75 +2595,91 @@
                     const fredUrl = `https://api.stlouisfed.org/fred/series/observations?series_id=${symbol}&api_key=${API_KEYS.FRED}&file_type=json&limit=5000&sort_order=asc`;
                     
                     try {
-                        // Try with CORS proxy for HTTPS pages
-                        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(fredUrl)}`;
-                        console.log(`🔄 Fetching from FRED via proxy for ${symbol}...`);
+                        // Try multiple CORS proxies
+                        const proxies = [
+                            url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+                            url => `https://cors-anywhere.herokuapp.com/${url}`,
+                            url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
+                        ];
                         
-                        const response = await fetch(proxyUrl);
-                        if (response.ok) {
-                            const fredData = await response.json();
-                            if (fredData.observations && fredData.observations.length > 0) {
-                                chartData = fredData.observations
-                                    .filter(obs => obs.value !== '.')
-                                    .map(obs => ({
-                                        date: obs.date,
-                                        value: parseFloat(obs.value),
-                                        close: parseFloat(obs.value),
-                                        open: parseFloat(obs.value),
-                                        high: parseFloat(obs.value),
-                                        low: parseFloat(obs.value),
-                                        volume: 0
-                                    }));
-                                dataSource = 'FRED API (Live)';
-                                console.log(`✅ Got ${chartData.length} LIVE data points from FRED`);
+                        let proxySuccess = false;
+                        for (const proxyFn of proxies) {
+                            if (proxySuccess) break;
+                            
+                            try {
+                                const proxyUrl = proxyFn(fredUrl);
+                                console.log(`🔄 Trying CORS proxy: ${proxyUrl.split('?')[0]}...`);
+                                
+                                const response = await fetch(proxyUrl, {
+                                    headers: {
+                                        'Accept': 'application/json'
+                                    }
+                                });
+                                
+                                if (response.ok) {
+                                    const text = await response.text();
+                                    let fredData;
+                                    
+                                    try {
+                                        fredData = JSON.parse(text);
+                                    } catch (e) {
+                                        // Some proxies wrap the response
+                                        const match = text.match(/\{[\s\S]*\}/);
+                                        if (match) {
+                                            fredData = JSON.parse(match[0]);
+                                        }
+                                    }
+                                    
+                                    if (fredData && fredData.observations && fredData.observations.length > 0) {
+                                        chartData = fredData.observations
+                                            .filter(obs => obs.value !== '.')
+                                            .map(obs => ({
+                                                date: obs.date,
+                                                value: parseFloat(obs.value),
+                                                close: parseFloat(obs.value),
+                                                open: parseFloat(obs.value),
+                                                high: parseFloat(obs.value),
+                                                low: parseFloat(obs.value),
+                                                volume: 0
+                                            }));
+                                        dataSource = 'FRED API (Live)';
+                                        proxySuccess = true;
+                                        console.log(`✅ Got ${chartData.length} LIVE data points from FRED`);
+                                    }
+                                }
+                            } catch (proxyError) {
+                                console.warn(`⚠️ Proxy failed:`, proxyError.message);
+                            }
+                        }
+                        
+                        // If all proxies fail, try direct fetch (might work on some networks)
+                        if (!proxySuccess) {
+                            try {
+                                const response = await fetch(fredUrl);
+                                if (response.ok) {
+                                    const fredData = await response.json();
+                                    if (fredData.observations && fredData.observations.length > 0) {
+                                        chartData = fredData.observations
+                                            .filter(obs => obs.value !== '.')
+                                            .map(obs => ({
+                                                date: obs.date,
+                                                value: parseFloat(obs.value),
+                                                close: parseFloat(obs.value),
+                                                open: parseFloat(obs.value),
+                                                high: parseFloat(obs.value),
+                                                low: parseFloat(obs.value),
+                                                volume: 0
+                                            }));
+                                        dataSource = 'FRED API (Direct)';
+                                        console.log(`✅ Got ${chartData.length} LIVE data points from FRED (direct)`);
+                                    }
+                                }
+                            } catch (directError) {
+                                console.warn('⚠️ Direct FRED access failed:', directError);
                             }
                         }
                     } catch (fredError) {
-                        console.warn('⚠️ FRED API failed:', fredError);
-                    }
-                }
-                
-                // Try BEA API for GDP-related data
-                if (!chartData && (symbol.includes('GDP') || symbol.includes('INCOME'))) {
-                    try {
-                        const beaUrl = `https://apps.bea.gov/api/data?UserID=${API_KEYS.BEA}&method=GetData&datasetname=NIPA&TableName=T10101&Frequency=A&Year=ALL&ResultFormat=JSON`;
-                        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(beaUrl)}`;
-                        
-                        const response = await fetch(proxyUrl);
-                        if (response.ok) {
-                            const beaData = await response.json();
-                            console.log('BEA data received:', beaData);
-                            // Process BEA data format if available
-                        }
-                    } catch (beaError) {
-                        console.warn('⚠️ BEA API failed:', beaError);
-                    }
-                }
-                
-                // Try BLS API for employment data
-                if (!chartData && (symbol.includes('EMPLOYMENT') || symbol.includes('LABOR'))) {
-                    try {
-                        const blsUrl = `https://api.bls.gov/publicAPI/v2/timeseries/data/`;
-                        const blsBody = {
-                            seriesid: [symbol],
-                            startyear: "2020",
-                            endyear: "2024",
-                            registrationkey: API_KEYS.BLS
-                        };
-                        
-                        const response = await fetch(blsUrl, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(blsBody)
-                        });
-                        
-                        if (response.ok) {
-                            const blsData = await response.json();
-                            console.log('BLS data received:', blsData);
-                            // Process BLS data format if available
-                        }
-                    } catch (blsError) {
-                        console.warn('⚠️ BLS API failed:', blsError);
+                        console.warn('⚠️ All FRED API attempts failed:', fredError);
                     }
                 }
                 
