@@ -1430,35 +1430,75 @@
                 }
                
                 try {
-                    // For demo/browser environments, always return high-quality sample data
-                    const data = this._generateRealisticData(symbol, limit);
-                   
-                    const standardizedData = {
+                    // Try to get real data from System 1
+                    const searchResult = await this.search(symbol, { limit: 1 });
+                    
+                    if (searchResult.results.length > 0) {
+                        // Found the symbol, now try to get its data
+                        // Since we don't have direct data endpoints, we'll use the search result
+                        const result = searchResult.results[0];
+                        
+                        // For System 1, we can try to get more details
+                        const detailsUrl = `${this.endpoints.system1}/api/data/${symbol}`;
+                        try {
+                            const response = await fetch(detailsUrl);
+                            if (response.ok) {
+                                const data = await response.json();
+                                
+                                const standardizedData = {
+                                    symbol,
+                                    name: result.name || symbol,
+                                    source: 'system1',
+                                    frequency: this._getDataFrequency(symbol),
+                                    units: this._getDataUnits(symbol),
+                                    data: data.values || [],
+                                    metadata: {
+                                        total_points: data.values ? data.values.length : 0,
+                                        start_date: data.start_date || null,
+                                        end_date: data.end_date || null,
+                                        last_updated: new Date().toISOString(),
+                                        is_real_data: true
+                                    }
+                                };
+                                
+                                if (this.config.cache) {
+                                    this.cache.set(cacheKey, standardizedData);
+                                }
+                                
+                                return standardizedData;
+                            }
+                        } catch (error) {
+                            console.log(`Direct data fetch failed for ${symbol}, using search data`);
+                        }
+                    }
+                    
+                    // No real data available
+                    return {
                         symbol,
-                        name: await this._getIndicatorName(symbol),
-                        source: 'enhanced_sample',
-                        frequency: this._getDataFrequency(symbol),
-                        units: this._getDataUnits(symbol),
-                        data: data,
+                        name: symbol,
+                        source: 'none',
+                        frequency: 'unknown',
+                        units: 'unknown',
+                        data: [],
                         metadata: {
-                            total_points: data.length,
-                            start_date: data[0]?.date || null,
-                            end_date: data[data.length - 1]?.date || null,
+                            total_points: 0,
                             last_updated: new Date().toISOString(),
-                            is_sample: true,
-                            note: 'High-quality sample data for demonstration'
+                            is_real_data: false,
+                            error: 'No real data available'
                         }
                     };
                    
-                    if (this.config.cache) {
-                        this.cache.set(cacheKey, standardizedData);
-                    }
-                   
-                    return standardizedData;
-                   
                 } catch (error) {
                     console.error(`getData failed for ${symbol}:`, error);
-                    return { symbol, error: error.message, data: [] };
+                    return { 
+                        symbol, 
+                        error: error.message, 
+                        data: [],
+                        metadata: {
+                            is_real_data: false,
+                            error: error.message
+                        }
+                    };
                 }
             }
 
@@ -1956,90 +1996,6 @@
                
                 return 'Value';
             }
-           
-            _generateRealisticData(symbol, points = 100) {
-                // Generate realistic sample data based on indicator type
-                const data = [];
-                const endDate = new Date();
-                const frequency = this._getDataFrequency(symbol);
-               
-                // Determine date intervals
-                let intervalDays = 1;
-                if (frequency === 'monthly') intervalDays = 30;
-                else if (frequency === 'quarterly') intervalDays = 90;
-                else if (frequency === 'annual') intervalDays = 365;
-               
-                // Set realistic base values and volatility
-                const config = this._getIndicatorConfig(symbol);
-                let currentValue = config.baseValue;
-               
-                for (let i = points - 1; i >= 0; i--) {
-                    const date = new Date(endDate);
-                    date.setDate(date.getDate() - (i * intervalDays));
-                   
-                    // Skip weekends for daily data
-                    if (frequency === 'daily' && (date.getDay() === 0 || date.getDay() === 6)) {
-                        continue;
-                    }
-                   
-                    // Generate realistic price movement
-                    const randomWalk = (Math.random() - 0.5) * config.volatility * 2;
-                    const trend = Math.sin(i / 50) * config.trendFactor;
-                    currentValue *= (1 + randomWalk + trend);
-                   
-                    // Apply bounds if specified
-                    if (config.min !== undefined) currentValue = Math.max(currentValue, config.min);
-                    if (config.max !== undefined) currentValue = Math.min(currentValue, config.max);
-                   
-                    // Add some mean reversion
-                    const meanReversion = (config.baseValue - currentValue) * 0.01;
-                    currentValue += meanReversion;
-                   
-                    data.push({
-                        date: date.toISOString().split('T')[0],
-                        value: parseFloat(currentValue.toFixed(4)),
-                        symbol: symbol
-                    });
-                }
-               
-                return data;
-            }
-           
-            _getIndicatorConfig(symbol) {
-                // Realistic configurations for different indicator types
-                const configs = {
-                    // Interest rates
-                    'FEDFUNDS': { baseValue: 5.25, volatility: 0.01, trendFactor: 0.001, min: 0, max: 20 },
-                    'DGS10': { baseValue: 4.2, volatility: 0.008, trendFactor: 0.001, min: 0.5, max: 15 },
-                    'DGS2': { baseValue: 4.8, volatility: 0.01, trendFactor: 0.001, min: 0.1, max: 15 },
-                   
-                    // Economic indicators
-                    'UNRATE': { baseValue: 3.8, volatility: 0.005, trendFactor: 0.0005, min: 2, max: 15 },
-                    'GDP': { baseValue: 27000, volatility: 0.003, trendFactor: 0.0002, min: 15000 },
-                    'CPIAUCSL': { baseValue: 310, volatility: 0.002, trendFactor: 0.0003, min: 100 },
-                   
-                    // Money supply
-                    'M1SL': { baseValue: 20000, volatility: 0.003, trendFactor: 0.0002, min: 10000 },
-                    'M2SL': { baseValue: 21000, volatility: 0.002, trendFactor: 0.0002, min: 10000 },
-                   
-                    // Markets
-                    'DXY': { baseValue: 105, volatility: 0.005, trendFactor: 0.001, min: 70, max: 130 },
-                    'VIX': { baseValue: 18, volatility: 0.15, trendFactor: 0.01, min: 9, max: 80 }
-                };
-               
-                // Check if we have a specific config
-                if (configs[symbol]) return configs[symbol];
-               
-                // Check prefixes
-                for (const [prefix, config] of Object.entries(configs)) {
-                    if (symbol.startsWith(prefix.substring(0, 3))) {
-                        return config;
-                    }
-                }
-               
-                // Default config
-                return { baseValue: 100, volatility: 0.02, trendFactor: 0.001 };
-            }
 
             // ============================================================================
             // CONVENIENCE METHODS
@@ -2054,11 +2010,38 @@
                
                 const results = await Promise.all(
                     symbols.map(async symbol => {
-                        const data = await this.getData(symbol, { limit: 1 });
+                        // Try to get data from search first
+                        const searchResult = await this.search(symbol, { limit: 1 });
+                        
+                        if (searchResult.results.length > 0) {
+                            const result = searchResult.results[0];
+                            
+                            // Extract value data if available
+                            let value = null;
+                            if (result.value !== undefined) value = result.value;
+                            else if (result.last !== undefined) value = result.last;
+                            else if (result.latest_value !== undefined) value = result.latest_value;
+                            
+                            return {
+                                symbol,
+                                name: result.name || symbol,
+                                value: value,
+                                change: result.change || result.daily_change || null,
+                                changePercent: result.change_percent || result.daily_change_percent || null,
+                                provider: result.source || result.provider || 'unknown',
+                                hasData: value !== null
+                            };
+                        }
+                        
                         return {
                             symbol,
-                            latest: data.data[data.data.length - 1],
-                            metadata: data.metadata
+                            name: symbol,
+                            value: null,
+                            change: null,
+                            changePercent: null,
+                            provider: 'none',
+                            hasData: false,
+                            error: 'No data available'
                         };
                     })
                 );
@@ -2422,33 +2405,60 @@
         // Load individual symbol data using SDK
         async function loadSymbolData(symbol, provider) {
             try {
-                // Get latest data using SDK
-                const data = await sdk.getData(symbol, { limit: 2 });
+                // First try to get data from search results
+                const searchResult = await sdk.search(symbol, { limit: 1 });
                 
-                if (data && data.data && data.data.length > 0) {
-                    const latest = data.data[data.data.length - 1];
-                    const previous = data.data.length > 1 ? data.data[data.data.length - 2] : null;
+                if (searchResult.results.length > 0) {
+                    const result = searchResult.results[0];
                     
-                    const value = latest.value;
-                    const change = previous ? value - previous.value : 0;
-                    const changePercent = previous && previous.value !== 0 
-                        ? ((value - previous.value) / previous.value) * 100 
-                        : 0;
+                    // Extract value from search result if available
+                    let value = 0;
+                    let change = 0;
+                    let changePercent = 0;
+                    
+                    // Check if result has value data
+                    if (result.value !== undefined) {
+                        value = result.value;
+                    } else if (result.last !== undefined) {
+                        value = result.last;
+                    } else if (result.latest_value !== undefined) {
+                        value = result.latest_value;
+                    }
+                    
+                    // Check for change data
+                    if (result.change !== undefined) {
+                        change = result.change;
+                    } else if (result.daily_change !== undefined) {
+                        change = result.daily_change;
+                    }
+                    
+                    if (result.change_percent !== undefined) {
+                        changePercent = result.change_percent;
+                    } else if (result.daily_change_percent !== undefined) {
+                        changePercent = result.daily_change_percent;
+                    } else if (change !== 0 && value !== 0) {
+                        changePercent = (change / (value - change)) * 100;
+                    }
                     
                     watchlistData[symbol] = {
                         ...watchlistData[symbol],
-                        value: value,
-                        change: change,
-                        changePercent: changePercent,
-                        provider: data.source || provider,
-                        lastUpdate: data.metadata.last_updated,
-                        loading: false
+                        value: value || 0,
+                        change: change || 0,
+                        changePercent: changePercent || 0,
+                        provider: result.source || result.provider || provider,
+                        lastUpdate: new Date().toISOString(),
+                        loading: false,
+                        noData: value === 0
                     };
                 } else {
-                    // No data available
+                    // No data found
                     watchlistData[symbol] = {
                         ...watchlistData[symbol],
+                        value: 0,
+                        change: 0,
+                        changePercent: 0,
                         loading: false,
+                        noData: true,
                         error: 'No data available'
                     };
                 }
@@ -2459,7 +2469,11 @@
                 console.error(`Error loading ${symbol}:`, error);
                 watchlistData[symbol] = {
                     ...watchlistData[symbol],
+                    value: 0,
+                    change: 0,
+                    changePercent: 0,
                     loading: false,
+                    noData: true,
                     error: error.message
                 };
                 renderWatchlist();
@@ -2483,8 +2497,9 @@
                 return;
             }
             
-            const formatValue = (value) => {
-                if (value === 0) return 'Loading...';
+            const formatValue = (value, data) => {
+                if (data.loading) return 'Loading...';
+                if (data.noData || value === 0) return 'No data';
                 if (value >= 1000) return value.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
                 if (value >= 100) return value.toFixed(2);
                 if (value >= 1) return value.toFixed(2);
@@ -2541,7 +2556,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="price-cell">${formatValue(data.value || 0)}</td>
+                        <td class="price-cell">${formatValue(data.value || 0, data)}</td>
                         <td class="change-cell ${getChangeClass(data.change || 0)}">${formatChange(data.change || 0)}</td>
                         <td class="change-cell ${getChangeClass(data.changePercent || 0)}">${formatPercent(data.changePercent || 0)}</td>
                         <td style="text-align: right; font-size: 12px; color: #666;">${data.provider || symbolObj.provider || 'API'}</td>
