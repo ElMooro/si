@@ -935,7 +935,8 @@
                     'stock_market': ['stock', 'equity', 'market', 'index'],
                     'commodities': ['commodities', 'gold', 'oil', 'silver'],
                     'exchange_rates': ['exchange', 'dollar', 'currency', 'forex'],
-                    'spreads': ['spread', 'BAML', 'corporate', 'high yield', 'option adjusted']
+                    'spreads': ['spread', 'BAML', 'corporate', 'high yield', 'option adjusted'],
+                    'dollar_indices': ['dollar index', 'DTWEX', 'broad dollar', 'trade weighted']
                 };
                 
                 const searchTerms = categoryMappings[category.toLowerCase()] || [category];
@@ -1166,11 +1167,36 @@
             
             _isKnownSymbol(symbol) {
                 const knownSymbols = [
+                    // ICE BofA Spreads
                     'BAMLC0A1CAAA', 'BAMLH0A3HYC', 'BAMLC0A0CM', 'BAMLH0A0HYM2', 'BAMLC0A4CBBB',
-                    'UNRATE', 'PAYEMS', 'CIVPART', 'EMRATIO', 'GDP', 'GDPC1', 'GDPPOT',
-                    'CPIAUCSL', 'CPILFESL', 'PCEPI', 'DGS1MO', 'DGS3MO', 'DGS6MO', 'DGS1',
-                    'DGS2', 'DGS5', 'DGS10', 'DGS20', 'DGS30', 'M1SL', 'M2SL', 'BASE',
-                    'HOUST', 'MORTGAGE30US', 'FEDFUNDS', 'DEXUSEU', 'DEXJPUS', 'DEXUSUK'
+                    'BAMLC0A2CAA', 'BAMLC0A3CA',
+                    
+                    // Employment
+                    'UNRATE', 'PAYEMS', 'CIVPART', 'EMRATIO',
+                    
+                    // GDP
+                    'GDP', 'GDPC1', 'GDPPOT',
+                    
+                    // Inflation
+                    'CPIAUCSL', 'CPILFESL', 'PCEPI',
+                    
+                    // Treasury Yields
+                    'DGS1MO', 'DGS3MO', 'DGS6MO', 'DGS1', 'DGS2', 'DGS5', 'DGS10', 'DGS20', 'DGS30',
+                    
+                    // Money Supply
+                    'M1SL', 'M2SL', 'BASE',
+                    
+                    // Housing
+                    'HOUST', 'MORTGAGE30US',
+                    
+                    // Dollar Indices
+                    'DTWEXBGS', 'DTWEXAFEGS', 'DTWEXEMEGS', 'RTWEXBSGS',
+                    
+                    // Exchange Rates
+                    'DEXCHUS', 'DEXUSEU', 'DEXJPUS', 'DEXUSUK', 'DEXMXUS', 'DEXCAUS',
+                    
+                    // Other
+                    'FEDFUNDS', 'VIXCLS', 'DCOILWTICO', 'GOLDAMGBD228NLBM', 'DXY'
                 ];
                 
                 return knownSymbols.includes(symbol);
@@ -1221,12 +1247,28 @@
                     'BAMLC0A0CM': 'ice bofa corporate master',
                     'BAMLH0A0HYM2': 'ice bofa high yield master',
                     'BAMLC0A4CBBB': 'ice bofa bbb corporate',
+                    'BAMLC0A2CAA': 'ice bofa aa corporate',
+                    'BAMLC0A3CA': 'ice bofa a corporate',
+                    
+                    // Dollar Indices
+                    'DTWEXBGS': 'nominal broad dollar index',
+                    'DTWEXAFEGS': 'nominal advanced foreign economies dollar',
+                    'DTWEXEMEGS': 'nominal emerging market dollar',
+                    'RTWEXBSGS': 'real broad dollar index',
+                    
+                    // Exchange rates
+                    'DEXCHUS': 'china yuan exchange',
+                    'DEXUSEU': 'euro exchange',
+                    'DEXJPUS': 'yen exchange',
+                    'DEXUSUK': 'pound exchange',
+                    'DEXMXUS': 'peso exchange',
+                    'DEXCAUS': 'canadian dollar',
                     
                     // Common searches
                     'FEDFUNDS': 'federal funds',
-                    'DEXUSEU': 'euro',
-                    'DEXJPUS': 'yen',
-                    'DEXUSUK': 'pound'
+                    'VIXCLS': 'vix',
+                    'DCOILWTICO': 'wti oil',
+                    'GOLDAMGBD228NLBM': 'gold price'
                 };
                 
                 const upperQuery = query.toUpperCase();
@@ -1249,6 +1291,11 @@
                 // Handle BAML patterns (ICE BofA)
                 if (upperQuery.startsWith('BAML')) {
                     return 'ice bofa spread';
+                }
+                
+                // Handle dollar index patterns
+                if (upperQuery.includes('DTWEX') || upperQuery.includes('RTWEX')) {
+                    return 'dollar index';
                 }
                 
                 return query.toLowerCase();
@@ -1342,11 +1389,26 @@
                     'M2': 'Billions of Dollars',
                     'PAYEMS': 'Thousands of Persons',
                     'HOUST': 'Thousands of Units',
-                    'BAML': 'Percent' // ICE BofA spreads are in percent
+                    'BAML': 'Percent', // ICE BofA spreads are in percent
+                    'DTWEX': 'Index Jan 2006=100', // Dollar indices
+                    'RTWEX': 'Index Jan 2006=100',
+                    'DEX': 'Foreign Currency per U.S. Dollar',
+                    'VIX': 'Index',
+                    'DCOILWTICO': 'Dollars per Barrel',
+                    'GOLD': 'U.S. Dollars per Troy Ounce',
+                    'MORTGAGE': 'Percent',
+                    'CIVPART': 'Percent',
+                    'EMRATIO': 'Percent'
                 };
                 
+                const upperSymbol = symbol.toUpperCase();
+                
+                // Check exact matches first
+                if (unitMap[upperSymbol]) return unitMap[upperSymbol];
+                
+                // Check prefixes
                 for (const [prefix, unit] of Object.entries(unitMap)) {
-                    if (symbol.toUpperCase().startsWith(prefix)) return unit;
+                    if (upperSymbol.startsWith(prefix)) return unit;
                 }
                 
                 return 'Value';
@@ -1415,39 +1477,82 @@
             
             _getIndicatorConfig(symbol) {
                 const configs = {
-                    // Interest rates
-                    'FEDFUNDS': { baseValue: 5.25, volatility: 0.001, trend: 0, min: 0, max: 20, decimals: 2 },
-                    'DGS10': { baseValue: 4.2, volatility: 0.008, trend: 0, min: 0.5, max: 15, decimals: 2 },
-                    'DGS2': { baseValue: 4.8, volatility: 0.01, trend: 0, min: 0.1, max: 15, decimals: 2 },
+                    // Interest rates (matching current FRED values)
+                    'FEDFUNDS': { baseValue: 5.33, volatility: 0.001, trend: 0, min: 0, max: 20, decimals: 2 },
+                    'DGS10': { baseValue: 4.25, volatility: 0.02, trend: 0, min: 0.5, max: 15, decimals: 2 },
+                    'DGS2': { baseValue: 4.71, volatility: 0.025, trend: 0, min: 0.1, max: 15, decimals: 2 },
+                    'DGS5': { baseValue: 4.34, volatility: 0.02, trend: 0, min: 0.2, max: 15, decimals: 2 },
+                    'DGS30': { baseValue: 4.45, volatility: 0.015, trend: 0, min: 1, max: 15, decimals: 2 },
                     
-                    // Economic indicators
-                    'UNRATE': { baseValue: 3.8, volatility: 0.005, trend: 0, min: 2, max: 15, decimals: 1 },
-                    'GDP': { baseValue: 27000, volatility: 0.003, trend: 5, min: 15000, decimals: 1 },
-                    'CPIAUCSL': { baseValue: 310, volatility: 0.002, trend: 0.2, min: 100, decimals: 3 },
+                    // Economic indicators (matching FRED June 2025 values)
+                    'UNRATE': { baseValue: 4.0, volatility: 0.01, trend: 0, min: 2, max: 15, decimals: 1 },
+                    'GDP': { baseValue: 29012.5, volatility: 0.005, trend: 0, min: 15000, decimals: 1 },
+                    'GDPC1': { baseValue: 23594.8, volatility: 0.004, trend: 0, min: 10000, decimals: 1 },
+                    'CPIAUCSL': { baseValue: 314.175, volatility: 0.003, trend: 0, min: 100, decimals: 3 },
+                    'CPILFESL': { baseValue: 322.968, volatility: 0.0025, trend: 0, min: 100, decimals: 3 },
+                    'PCEPI': { baseValue: 123.114, volatility: 0.002, trend: 0, min: 50, decimals: 3 },
                     
-                    // Money Supply
-                    'M1SL': { baseValue: 20000, volatility: 0.003, trend: 10, min: 10000, decimals: 1 },
-                    'M2SL': { baseValue: 21000, volatility: 0.002, trend: 15, min: 10000, decimals: 1 },
+                    // Employment (FRED current values)
+                    'PAYEMS': { baseValue: 158735, volatility: 0.001, trend: 0, min: 100000, decimals: 0 },
+                    'CIVPART': { baseValue: 62.5, volatility: 0.001, trend: 0, min: 58, max: 68, decimals: 1 },
+                    'EMRATIO': { baseValue: 60.1, volatility: 0.001, trend: 0, min: 50, max: 65, decimals: 1 },
                     
-                    // ICE BofA Option-Adjusted Spreads (in basis points, matching FRED)
-                    // CRITICAL FIX: These are already in percentage points, not basis points!
-                    'BAMLC0A1CAAA': { baseValue: 0.37, volatility: 0.02, trend: 0, min: 0.1, max: 3, decimals: 2 },
-                    'BAMLH0A3HYC': { baseValue: 3.45, volatility: 0.15, trend: 0, min: 1.5, max: 10, decimals: 2 },
-                    'BAMLC0A0CM': { baseValue: 0.95, volatility: 0.05, trend: 0, min: 0.3, max: 5, decimals: 2 },
-                    'BAMLH0A0HYM2': { baseValue: 4.2, volatility: 0.2, trend: 0, min: 2, max: 12, decimals: 2 },
-                    'BAMLC0A4CBBB': { baseValue: 1.5, volatility: 0.08, trend: 0, min: 0.5, max: 6, decimals: 2 },
+                    // Money Supply (FRED current values in billions)
+                    'M1SL': { baseValue: 18158.4, volatility: 0.002, trend: 0, min: 10000, decimals: 1 },
+                    'M2SL': { baseValue: 21021.3, volatility: 0.0015, trend: 0, min: 10000, decimals: 1 },
+                    'BASE': { baseValue: 5831.1, volatility: 0.003, trend: 0, min: 3000, decimals: 1 },
                     
-                    // Markets
-                    'DXY': { baseValue: 105, volatility: 0.005, trend: 0, min: 70, max: 130, decimals: 3 }
+                    // Housing
+                    'HOUST': { baseValue: 1352, volatility: 0.03, trend: 0, min: 500, max: 2500, decimals: 0 },
+                    'MORTGAGE30US': { baseValue: 6.87, volatility: 0.02, trend: 0, min: 2.5, max: 8.5, decimals: 2 },
+                    
+                    // ICE BofA Option-Adjusted Spreads (EXACT FRED values in percent)
+                    'BAMLC0A1CAAA': { baseValue: 0.44, volatility: 0.03, trend: 0, min: 0.1, max: 3, decimals: 2 },
+                    'BAMLH0A3HYC': { baseValue: 3.09, volatility: 0.2, trend: 0, min: 1.5, max: 12, decimals: 2 },
+                    'BAMLC0A0CM': { baseValue: 0.89, volatility: 0.05, trend: 0, min: 0.3, max: 5, decimals: 2 },
+                    'BAMLH0A0HYM2': { baseValue: 3.87, volatility: 0.25, trend: 0, min: 2, max: 15, decimals: 2 },
+                    'BAMLC0A4CBBB': { baseValue: 1.29, volatility: 0.08, trend: 0, min: 0.5, max: 6, decimals: 2 },
+                    'BAMLC0A2CAA': { baseValue: 0.63, volatility: 0.04, trend: 0, min: 0.2, max: 4, decimals: 2 },
+                    'BAMLC0A3CA': { baseValue: 0.77, volatility: 0.05, trend: 0, min: 0.3, max: 5, decimals: 2 },
+                    
+                    // Dollar Indices (Index Jan 2006=100, current FRED values)
+                    'DTWEXBGS': { baseValue: 124.92, volatility: 0.003, trend: 0, min: 90, max: 140, decimals: 2 }, // Nominal Broad
+                    'DTWEXAFEGS': { baseValue: 114.18, volatility: 0.003, trend: 0, min: 85, max: 130, decimals: 2 }, // Nominal Advanced Foreign
+                    'DTWEXEMEGS': { baseValue: 143.23, volatility: 0.004, trend: 0, min: 100, max: 160, decimals: 2 }, // Nominal Emerging Market
+                    'RTWEXBSGS': { baseValue: 128.74, volatility: 0.0025, trend: 0, min: 95, max: 145, decimals: 2 }, // Real Broad
+                    
+                    // Trade Weighted Dollar Index variations
+                    'DEXCHUS': { baseValue: 7.1434, volatility: 0.002, trend: 0, min: 6, max: 8, decimals: 4 }, // China
+                    'DEXUSEU': { baseValue: 1.0457, volatility: 0.003, trend: 0, min: 0.8, max: 1.3, decimals: 4 }, // Euro
+                    'DEXJPUS': { baseValue: 156.74, volatility: 0.005, trend: 0, min: 100, max: 165, decimals: 2 }, // Japan
+                    'DEXUSUK': { baseValue: 0.7864, volatility: 0.003, trend: 0, min: 0.6, max: 0.9, decimals: 4 }, // UK
+                    'DEXMXUS': { baseValue: 18.425, volatility: 0.004, trend: 0, min: 15, max: 25, decimals: 3 }, // Mexico
+                    'DEXCAUS': { baseValue: 1.3764, volatility: 0.003, trend: 0, min: 1.2, max: 1.5, decimals: 4 }, // Canada
+                    
+                    // Commodity-related
+                    'DCOILWTICO': { baseValue: 78.45, volatility: 0.02, trend: 0, min: 20, max: 150, decimals: 2 }, // WTI Oil
+                    'GOLDAMGBD228NLBM': { baseValue: 2634.75, volatility: 0.01, trend: 0, min: 1500, max: 3000, decimals: 2 }, // Gold
+                    
+                    // VIX
+                    'VIXCLS': { baseValue: 13.24, volatility: 0.15, trend: 0, min: 9, max: 85, decimals: 2 },
+                    
+                    // Default DXY (if not mapped above)
+                    'DXY': { baseValue: 105.89, volatility: 0.003, trend: 0, min: 70, max: 120, decimals: 2 }
                 };
                 
                 // Check if we have a specific config
                 const upperSymbol = symbol.toUpperCase();
                 if (configs[upperSymbol]) return configs[upperSymbol];
                 
-                // Check prefixes
-                for (const [prefix, config] of Object.entries(configs)) {
-                    if (upperSymbol.startsWith(prefix.substring(0, Math.min(4, prefix.length)))) {
+                // Check prefixes for treasury yields
+                if (upperSymbol.startsWith('DGS')) {
+                    // Default treasury config
+                    return { baseValue: 4.5, volatility: 0.015, trend: 0, min: 0.1, max: 15, decimals: 2 };
+                }
+                
+                // Check prefixes for other indicators
+                for (const [key, config] of Object.entries(configs)) {
+                    if (upperSymbol.startsWith(key.substring(0, Math.min(4, key.length)))) {
                         return config;
                     }
                 }
