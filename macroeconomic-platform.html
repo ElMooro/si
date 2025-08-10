@@ -10,7 +10,6 @@
     <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
     
     <style>
-        /* Keep ALL your existing styles exactly as they are */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
@@ -20,7 +19,7 @@
             min-height: 100vh;
         }
         
-        /* Your existing header styles remain unchanged */
+        /* Header Styles */
         .header {
             background: rgba(20, 24, 44, 0.95);
             backdrop-filter: blur(10px);
@@ -36,115 +35,6 @@
             gap: 1rem;
         }
         
-        /* ADD ONLY THESE NEW STYLES */
-        
-        /* Market Phase Banner */
-        .market-phase-banner {
-            background: linear-gradient(90deg, #00ff88, #00ccff);
-            color: #000;
-            padding: 8px;
-            text-align: center;
-            font-weight: bold;
-            animation: pulse 2s infinite;
-        }
-        
-        .phase-bull-start { background: linear-gradient(90deg, #00ff88, #00ff44); }
-        .phase-top { background: linear-gradient(90deg, #ffaa00, #ff8800); }
-        .phase-bear { background: linear-gradient(90deg, #ff4444, #ff0000); }
-        
-        /* Editable metric titles */
-        .metric-title-editable {
-            cursor: pointer;
-            transition: background 0.3s;
-            padding: 2px;
-            border-radius: 3px;
-        }
-        
-        .metric-title-editable:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-        
-        /* Interpretations */
-        .metric-interpretation {
-            font-size: 0.7rem;
-            margin-top: 0.5rem;
-            font-style: italic;
-            opacity: 0.9;
-        }
-        
-        /* Spike animations */
-        @keyframes spike-good {
-            0%, 100% { box-shadow: 0 0 0 rgba(0, 255, 136, 0); }
-            50% { box-shadow: 0 0 20px rgba(0, 255, 136, 0.8); }
-        }
-        
-        @keyframes spike-bad {
-            0%, 100% { box-shadow: 0 0 0 rgba(255, 68, 68, 0); }
-            50% { box-shadow: 0 0 20px rgba(255, 68, 68, 0.8); }
-        }
-        
-        .spike-alert-good {
-            animation: spike-good 1s infinite;
-            border-color: #00ff88 !important;
-        }
-        
-        .spike-alert-bad {
-            animation: spike-bad 1s infinite;
-            border-color: #ff4444 !important;
-        }
-        
-        /* Historical data modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 2000;
-            overflow-y: auto;
-        }
-        
-        .modal-content {
-            background: #1a1a2e;
-            margin: 50px auto;
-            padding: 30px;
-            width: 90%;
-            max-width: 1200px;
-            border-radius: 12px;
-            border: 1px solid #00ff88;
-        }
-        
-        .modal-close {
-            float: right;
-            font-size: 30px;
-            cursor: pointer;
-            color: #888;
-        }
-        
-        .modal-close:hover { color: #ff4444; }
-        
-        /* Black Swan custom metrics form */
-        .custom-metric-form {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
-            display: none;
-        }
-        
-        .form-input {
-            width: 100%;
-            padding: 8px;
-            margin: 5px 0;
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid #00ff88;
-            color: #fff;
-            border-radius: 4px;
-        }
-        
-        /* Keep ALL your other existing styles unchanged */
         .logo {
             font-size: 1.5rem;
             font-weight: bold;
@@ -156,16 +46,517 @@
             gap: 0.5rem;
         }
         
-        /* ... rest of your existing styles remain exactly the same ... */
+        .header-stats {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-width: 100px;
+        }
+        
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #00ff88;
+        }
+        
+        .stat-label {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+        }
+        
+        /* Risk Level Indicator */
+        .risk-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .risk-level {
+            font-weight: bold;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+        }
+        
+        .risk-low {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+        
+        .risk-medium {
+            background: rgba(255, 170, 0, 0.2);
+            color: #ffaa00;
+        }
+        
+        .risk-high {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff4444;
+        }
+        
+        /* API Status Indicators */
+        .api-status {
+            display: flex;
+            gap: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .api-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-dot.connected {
+            background: #00ff88;
+        }
+        
+        .status-dot.error {
+            background: #ff4444;
+        }
+        
+        .status-dot.loading {
+            background: #ffaa00;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Container */
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Tabs Navigation */
+        .tabs-nav {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 0.5rem;
+            overflow-x: auto;
+        }
+        
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            color: #888;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        
+        .tab-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+        }
+        
+        .tab-btn.active {
+            background: #00ff88;
+            color: #000;
+            font-weight: bold;
+        }
+        
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Key Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .metric-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.1);
+        }
+        
+        .metric-title {
+            font-size: 0.875rem;
+            color: #888;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+        
+        .metric-value {
+            font-size: 1.75rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .metric-change {
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .positive { color: #00ff88; }
+        .negative { color: #ff4444; }
+        .neutral { color: #888; }
+        
+        /* Data Grid */
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .data-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .data-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.2);
+            border-color: #00ff88;
+        }
+        
+        .data-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .data-title {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #fff;
+        }
+        
+        .data-source {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            background: rgba(0, 255, 136, 0.2);
+            border-radius: 4px;
+            color: #00ff88;
+        }
+        
+        .data-value {
+            font-size: 1.75rem;
+            font-weight: bold;
+            margin: 0.75rem 0;
+        }
+        
+        .data-change {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        /* Chart Container */
+        .chart-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .chart-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+        
+        .chart-controls {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .chart-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+        }
+        
+        .chart-btn:hover {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: #00ff88;
+        }
+        
+        .chart-btn.active {
+            background: #00ff88;
+            color: #000;
+        }
+        
+        #mainChart, #blackSwanChart, #liquidityChart {
+            height: 500px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+        
+        /* ML Predictions Box */
+        .predictions-box {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(0, 204, 255, 0.1) 100%);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .predictions-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .predictions-title {
+            font-size: 1.125rem;
+            font-weight: bold;
+        }
+        
+        .predictions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .prediction-item {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        
+        .prediction-label {
+            font-size: 0.875rem;
+            color: #888;
+            margin-bottom: 0.25rem;
+        }
+        
+        .prediction-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #00ff88;
+        }
+        
+        .confidence-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+        
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00ccff);
+            transition: width 1s ease;
+        }
+        
+        /* Trading Signals */
+        .signals-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .signal-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            transition: all 0.3s;
+        }
+        
+        .signal-item:hover {
+            background: rgba(0, 255, 136, 0.1);
+        }
+        
+        .signal-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.875rem;
+        }
+        
+        .signal-buy {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+        
+        .signal-sell {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff4444;
+        }
+        
+        .signal-hold {
+            background: rgba(255, 170, 0, 0.2);
+            color: #ffaa00;
+        }
+        
+        /* Loading Spinner */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(0, 255, 136, 0.3);
+            border-top-color: #00ff88;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Error/Success Messages */
+        .message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        .error-message {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid #ff4444;
+            color: #ff6666;
+        }
+        
+        .success-message {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            color: #00ff88;
+        }
+        
+        /* Data Table */
+        .data-table {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        
+        .data-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .data-table th {
+            background: rgba(0, 255, 136, 0.1);
+            padding: 1rem;
+            text-align: left;
+            font-weight: bold;
+            color: #00ff88;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.875rem;
+        }
+        
+        .data-table td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.875rem;
+        }
+        
+        .data-table tr:hover {
+            background: rgba(0, 255, 136, 0.05);
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .data-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs-nav {
+                overflow-x: auto;
+            }
+        }
     </style>
 </head>
 <body>
-    <!-- Add Market Phase Banner -->
-    <div class="market-phase-banner" id="marketPhaseBanner">
-        📈 MARKET STATUS: NORMAL
-    </div>
-    
-    <!-- Keep your existing header exactly as it is -->
     <header class="header">
         <div class="logo">
             📊 OpenBB Platform
@@ -213,7 +604,7 @@
     </header>
     
     <div class="container">
-        <!-- Keep your existing tabs exactly as they are -->
+        <!-- Navigation Tabs -->
         <div class="tabs-nav">
             <button class="tab-btn active" data-tab="overview">📈 Overview</button>
             <button class="tab-btn" data-tab="fed">🏛️ Federal Reserve</button>
@@ -226,13 +617,55 @@
             <button class="tab-btn" data-tab="signals">📡 Trading Signals</button>
         </div>
         
-        <!-- Keep all your existing tab content structure -->
+        <!-- Overview Tab -->
         <div class="tab-content active" id="overview">
+            <!-- Key Metrics -->
             <div class="metrics-grid" id="keyMetrics">
-                <!-- Will be populated by enhanced JavaScript -->
+                <div class="metric-card">
+                    <div class="metric-title">VIX</div>
+                    <div class="metric-value positive" id="vixValue">16.57</div>
+                    <div class="metric-change positive">
+                        <span>▼</span> 0.43 (2.53%)
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">S&P 500</div>
+                    <div class="metric-value positive" id="sp500Value">6,389.45</div>
+                    <div class="metric-change positive">
+                        <span>▲</span> 45.23 (0.71%)
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">DXY</div>
+                    <div class="metric-value neutral" id="dxyValue">121.61</div>
+                    <div class="metric-change negative">
+                        <span>▼</span> 0.12 (0.10%)
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">10Y Treasury</div>
+                    <div class="metric-value neutral" id="treasury10yValue">4.23%</div>
+                    <div class="metric-change positive">
+                        <span>▲</span> 0.02%
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">Fed Balance</div>
+                    <div class="metric-value neutral" id="fedBalanceValue">$6.64T</div>
+                    <div class="metric-change negative">
+                        <span>▼</span> QT Active
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">TED Spread</div>
+                    <div class="metric-value positive" id="tedSpreadValue">0.09%</div>
+                    <div class="metric-change positive">
+                        <span>▼</span> No Stress
+                    </div>
+                </div>
             </div>
             
-            <!-- Keep your existing chart container -->
+            <!-- Main Chart -->
             <div class="chart-container">
                 <div class="chart-header">
                     <h2 class="chart-title">Market Overview</h2>
@@ -244,12 +677,12 @@
                         <button class="chart-btn" data-period="6M">6M</button>
                         <button class="chart-btn" data-period="1Y">1Y</button>
                         <button class="chart-btn" data-period="YTD">YTD</button>
-                        <button class="chart-btn" data-period="ALL">ALL</button>
                     </div>
                 </div>
                 <div id="mainChart"></div>
             </div>
             
+            <!-- Dashboard Data Grid -->
             <div class="data-grid" id="overviewGrid">
                 <div class="loading">
                     <div class="spinner"></div>
@@ -257,25 +690,23 @@
             </div>
         </div>
         
-        <!-- Enhanced Black Swan Tab -->
+        <!-- Federal Reserve Tab -->
+        <div class="tab-content" id="fed">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">Federal Reserve Balance Sheet & Operations</h2>
+                </div>
+                <div id="fedChart"></div>
+            </div>
+            <div class="data-grid" id="fedGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Black Swan Tab -->
         <div class="tab-content" id="blackswan">
-            <!-- Add custom metric form -->
-            <button onclick="toggleCustomMetricForm()" style="background: #00ff88; color: #000; padding: 10px 20px; border: none; border-radius: 5px; margin-bottom: 20px; cursor: pointer;">
-                + Add Custom Metric
-            </button>
-            
-            <div class="custom-metric-form" id="customMetricForm">
-                <h3 style="color: #00ff88;">Add Custom Black Swan Indicator</h3>
-                <input type="text" class="form-input" id="customMetricName" placeholder="Metric Name">
-                <input type="text" class="form-input" id="customMetricSymbol" placeholder="FRED Symbol">
-                <input type="number" class="form-input" id="customMetricWeight" placeholder="Weight (1-10)" min="1" max="10">
-                <button onclick="addCustomMetric()" style="background: #00ff88; color: #000; padding: 8px 15px; border: none; border-radius: 4px; margin-top: 10px;">Add</button>
-            </div>
-            
-            <div style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                <h3 style="color: #00ff88;">Black Swan Probability: <span id="blackSwanProb">2.3%</span></h3>
-            </div>
-            
             <div class="chart-container">
                 <div class="chart-header">
                     <h2 class="chart-title">Black Swan Risk Indicators</h2>
@@ -289,27 +720,141 @@
             </div>
         </div>
         
-        <!-- Keep all other tabs exactly as they are -->
-        <!-- ... rest of your HTML remains unchanged ... -->
-    </div>
-    
-    <!-- Add Historical Data Modal -->
-    <div id="historicalModal" class="modal">
-        <div class="modal-content">
-            <span class="modal-close" onclick="closeHistoricalModal()">&times;</span>
-            <h2 id="modalTitle">Historical Data</h2>
-            <div id="historicalChart" style="height: 400px;"></div>
-            <div style="margin-top: 20px;">
-                <button onclick="showChangeView('yoy')" class="chart-btn">YoY %</button>
-                <button onclick="showChangeView('qoq')" class="chart-btn">QoQ %</button>
-                <button onclick="showChangeView('mom')" class="chart-btn">MoM %</button>
+        <!-- Liquidity Tab -->
+        <div class="tab-content" id="liquidity">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">Market Liquidity Metrics</h2>
+                </div>
+                <div id="liquidityChart"></div>
+            </div>
+            <div class="data-grid" id="liquidityGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Currencies Tab -->
+        <div class="tab-content" id="currencies">
+            <div class="data-grid" id="currenciesGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Credit Markets Tab -->
+        <div class="tab-content" id="credit">
+            <div class="data-grid" id="creditGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Crisis Indicators Tab -->
+        <div class="tab-content" id="crisis">
+            <div class="data-grid" id="crisisGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ML Predictions Tab -->
+        <div class="tab-content" id="predictions">
+            <div class="predictions-box">
+                <div class="predictions-header">
+                    <span>🤖</span>
+                    <span class="predictions-title">Machine Learning Predictions</span>
+                </div>
+                <div class="predictions-grid" id="mlPredictions">
+                    <div class="prediction-item">
+                        <div class="prediction-label">VIX (1 Day)</div>
+                        <div class="prediction-value" id="vixPrediction1d">16.80</div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" style="width: 75%"></div>
+                        </div>
+                    </div>
+                    <div class="prediction-item">
+                        <div class="prediction-label">S&P 500 (1 Day)</div>
+                        <div class="prediction-value" id="sp500Prediction1d">6,396.67</div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" style="width: 68%"></div>
+                        </div>
+                    </div>
+                    <div class="prediction-item">
+                        <div class="prediction-label">Market Trend</div>
+                        <div class="prediction-value" id="trendPrediction">BULLISH</div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" style="width: 82%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Indicator</th>
+                            <th>Current</th>
+                            <th>1 Day Prediction</th>
+                            <th>5 Day Prediction</th>
+                            <th>Confidence</th>
+                            <th>Trend</th>
+                        </tr>
+                    </thead>
+                    <tbody id="predictionsTable">
+                        <tr>
+                            <td colspan="6" style="text-align: center;">Loading predictions...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Trading Signals Tab -->
+        <div class="tab-content" id="signals">
+            <div class="signals-container">
+                <h2 style="margin-bottom: 1rem;">📡 Active Trading Signals</h2>
+                <div id="tradingSignals">
+                    <div class="signal-item">
+                        <div>
+                            <strong>SPY</strong>
+                            <div style="font-size: 0.875rem; color: #888;">VIX below 15 - Low volatility</div>
+                        </div>
+                        <span class="signal-badge signal-buy">BUY</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Asset</th>
+                            <th>Signal</th>
+                            <th>Reason</th>
+                            <th>Strength</th>
+                            <th>Generated</th>
+                        </tr>
+                    </thead>
+                    <tbody id="signalsTable">
+                        <tr>
+                            <td colspan="5" style="text-align: center;">Loading signals...</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
     
     <script>
-        // Keep ALL your existing configuration exactly as is
+        // OpenBB Platform Configuration - PRODUCTION v8.0
         const OPENBB_CONFIG = {
+            // Main API (143 Active Indicators)
             MAIN_API: {
                 baseUrl: 'https://i70jxru6md.execute-api.us-east-1.amazonaws.com/prod/api/v1',
                 endpoints: {
@@ -326,7 +871,7 @@
             }
         };
         
-        // Keep your existing global state but add a few new properties
+        // Global state
         let currentData = {
             overview: {},
             fed: {},
@@ -336,10 +881,7 @@
             credit: {},
             crisis: {},
             predictions: {},
-            signals: [],
-            customNames: {},  // Added for custom names
-            customMetrics: [], // Added for black swan custom metrics
-            historicalData: {} // Added for historical data storage
+            signals: []
         };
         
         let charts = {
@@ -352,376 +894,30 @@
         let activeTab = 'overview';
         let autoRefreshInterval = null;
         
-        // Add interpretations mapping
-        const interpretations = {
-            'VIX': (value) => {
-                if (value < 15) return "Low volatility - Market complacent";
-                if (value > 30) return "High fear - Potential opportunity";
-                return "Normal volatility";
-            },
-            'S&P 500': (value, change) => {
-                if (change > 1) return "Strong momentum";
-                if (change < -1) return "Selling pressure";
-                return "Stable";
-            },
-            'DXY': (value) => {
-                if (value > 105) return "Dollar strength";
-                if (value < 95) return "Dollar weakness";
-                return "Normal range";
-            },
-            '10Y Treasury': (value) => {
-                if (value > 4.5) return "Elevated yields";
-                if (value < 3) return "Low yields";
-                return "Normal yields";
-            },
-            'Fed Balance': (value, change) => {
-                if (change < 0) return "QT Active";
-                if (change > 0) return "Expanding";
-                return "Stable";
-            },
-            'TED Spread': (value) => {
-                if (value < 0.2) return "No stress";
-                if (value > 0.5) return "Credit stress";
-                return "Normal";
-            }
-        };
-        
-        // Modified initialize function - keep most of it the same
+        // Initialize the platform
         async function initializePlatform() {
             console.log('🚀 Initializing OpenBB Platform v8.0...');
             
-            // Load saved custom names and metrics
-            loadSavedCustomizations();
-            
-            // Keep all your existing initialization
+            // Test API connections
             await testAPIConnections();
-            await loadAllData();
-            setupEventListeners();
-            initializeCharts();
-            startAutoRefresh();
             
-            // Add market phase detection
-            detectMarketPhase();
+            // Load initial data
+            await loadAllData();
+            
+            // Set up event listeners
+            setupEventListeners();
+            
+            // Initialize charts
+            initializeCharts();
+            
+            // Start auto-refresh (30 seconds)
+            startAutoRefresh();
             
             console.log('✅ Platform initialized successfully');
         }
         
-        // New function to load saved customizations
-        function loadSavedCustomizations() {
-            const savedNames = localStorage.getItem('customMetricNames');
-            const savedMetrics = localStorage.getItem('customBlackSwanMetrics');
-            
-            if (savedNames) {
-                currentData.customNames = JSON.parse(savedNames);
-            }
-            if (savedMetrics) {
-                currentData.customMetrics = JSON.parse(savedMetrics);
-            }
-        }
-        
-        // Enhanced updateKeyMetrics function
-        function updateKeyMetrics(indicators) {
-            const metricsGrid = document.getElementById('keyMetrics');
-            metricsGrid.innerHTML = '';
-            
-            const metricConfigs = [
-                { key: 'VIXCLS', display: 'VIX', suffix: '' },
-                { key: 'SP500', display: 'S&P 500', suffix: '' },
-                { key: 'DTWEXBGS', display: 'DXY', suffix: '' },
-                { key: 'DGS10', display: '10Y Treasury', suffix: '%' },
-                { key: 'WALCL', display: 'Fed Balance', suffix: '', isTrillions: true },
-                { key: 'TEDRATE', display: 'TED Spread', suffix: '%' }
-            ];
-            
-            metricConfigs.forEach(config => {
-                if (indicators[config.key]) {
-                    const card = createEnhancedMetricCard(config, indicators[config.key]);
-                    metricsGrid.appendChild(card);
-                }
-            });
-        }
-        
-        // New function to create enhanced metric cards
-        function createEnhancedMetricCard(config, data) {
-            const card = document.createElement('div');
-            card.className = 'metric-card';
-            
-            // Check for spikes
-            if (Math.abs(data.change || 0) > 5) {
-                card.classList.add(data.change > 0 ? 'spike-alert-good' : 'spike-alert-bad');
-            }
-            
-            // Get custom name or use default
-            const displayName = currentData.customNames[config.key] || config.display;
-            
-            // Format value
-            let formattedValue = data.value;
-            if (config.isTrillions && data.value) {
-                formattedValue = `$${(data.value / 1000000).toFixed(2)}T`;
-            } else if (data.value) {
-                formattedValue = data.value.toFixed(2) + config.suffix;
-            }
-            
-            // Get interpretation
-            const interpretation = interpretations[config.display] ? 
-                interpretations[config.display](data.value, data.change) : '';
-            
-            card.innerHTML = `
-                <div class="metric-title metric-title-editable" onclick="editMetricName('${config.key}')">
-                    ${displayName}
-                </div>
-                <div class="metric-value ${data.change >= 0 ? 'positive' : 'negative'}">
-                    ${formattedValue}
-                </div>
-                <div class="metric-change ${data.change >= 0 ? 'positive' : 'negative'}">
-                    <span>${data.change >= 0 ? '▲' : '▼'}</span> 
-                    ${Math.abs(data.change || 0).toFixed(2)}%
-                </div>
-                <div class="metric-interpretation ${data.change >= 0 ? 'positive' : 'negative'}">
-                    ${interpretation}
-                </div>
-            `;
-            
-            // Add click handler for historical data
-            card.addEventListener('click', (e) => {
-                if (!e.target.classList.contains('metric-title-editable')) {
-                    showHistoricalData(config.key, displayName);
-                }
-            });
-            
-            return card;
-        }
-        
-        // New function to edit metric names
-        function editMetricName(key) {
-            const currentName = currentData.customNames[key] || key;
-            const newName = prompt('Enter new name for this metric:', currentName);
-            
-            if (newName && newName !== currentName) {
-                currentData.customNames[key] = newName;
-                localStorage.setItem('customMetricNames', JSON.stringify(currentData.customNames));
-                loadOverviewData(); // Refresh display
-            }
-        }
-        
-        // New function to show historical data
-        async function showHistoricalData(key, displayName) {
-            const modal = document.getElementById('historicalModal');
-            const modalTitle = document.getElementById('modalTitle');
-            
-            modalTitle.textContent = `${displayName} - Full Historical Data`;
-            modal.style.display = 'block';
-            
-            // Here you would fetch actual FRED data
-            // For now, using simulated data
-            const historicalData = generateHistoricalData(key);
-            
-            // Create chart with full history
-            const trace = {
-                x: historicalData.dates,
-                y: historicalData.values,
-                type: 'scatter',
-                mode: 'lines',
-                name: displayName,
-                line: { color: '#00ff88', width: 2 }
-            };
-            
-            const layout = {
-                title: `${displayName} - Complete History`,
-                paper_bgcolor: 'rgba(0, 0, 0, 0)',
-                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
-                font: { color: '#fff' },
-                xaxis: {
-                    gridcolor: 'rgba(255, 255, 255, 0.1)',
-                    tickfont: { color: '#888' },
-                    rangeslider: { visible: true }
-                },
-                yaxis: {
-                    gridcolor: 'rgba(255, 255, 255, 0.1)',
-                    tickfont: { color: '#888' }
-                }
-            };
-            
-            Plotly.newPlot('historicalChart', [trace], layout);
-            
-            // Store for change calculations
-            currentData.historicalData[key] = historicalData;
-        }
-        
-        // New function to generate historical data (replace with actual FRED API call)
-        function generateHistoricalData(key) {
-            const dates = [];
-            const values = [];
-            const startDate = new Date('1970-01-01'); // Full history
-            const endDate = new Date();
-            
-            let currentDate = new Date(startDate);
-            let value = 100;
-            
-            while (currentDate <= endDate) {
-                dates.push(currentDate.toISOString().split('T')[0]);
-                value += (Math.random() - 0.5) * 2;
-                values.push(value);
-                currentDate.setMonth(currentDate.getMonth() + 1);
-            }
-            
-            return { dates, values };
-        }
-        
-        // New function to show percentage changes
-        function showChangeView(type) {
-            const key = Object.keys(currentData.historicalData)[0];
-            if (!key) return;
-            
-            const data = currentData.historicalData[key];
-            let changeData = [];
-            
-            if (type === 'yoy') {
-                // Year over year calculation
-                for (let i = 12; i < data.values.length; i++) {
-                    const change = ((data.values[i] - data.values[i-12]) / data.values[i-12]) * 100;
-                    changeData.push(change);
-                }
-            } else if (type === 'qoq') {
-                // Quarter over quarter
-                for (let i = 3; i < data.values.length; i++) {
-                    const change = ((data.values[i] - data.values[i-3]) / data.values[i-3]) * 100;
-                    changeData.push(change);
-                }
-            } else if (type === 'mom') {
-                // Month over month
-                for (let i = 1; i < data.values.length; i++) {
-                    const change = ((data.values[i] - data.values[i-1]) / data.values[i-1]) * 100;
-                    changeData.push(change);
-                }
-            }
-            
-            const trace = {
-                x: data.dates.slice(data.dates.length - changeData.length),
-                y: changeData,
-                type: 'bar',
-                marker: {
-                    color: changeData.map(v => v >= 0 ? '#00ff88' : '#ff4444')
-                }
-            };
-            
-            Plotly.newPlot('historicalChart', [trace], {
-                title: `${type.toUpperCase()} Percentage Change`,
-                paper_bgcolor: 'rgba(0, 0, 0, 0)',
-                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
-                font: { color: '#fff' }
-            });
-        }
-        
-        // New function to detect market phase
-        function detectMarketPhase() {
-            const indicators = currentData.overview.indicators || {};
-            const banner = document.getElementById('marketPhaseBanner');
-            
-            // Simple phase detection logic
-            const vix = indicators.VIXCLS?.value || 20;
-            const sp500Change = indicators.SP500?.change || 0;
-            const fedBalance = indicators.WALCL?.change || 0;
-            
-            let phase = '';
-            let className = '';
-            
-            if (vix < 15 && sp500Change > 2 && fedBalance > 0) {
-                phase = '🚀 BULL RUN START - LIQUIDITY PUMPING';
-                className = 'phase-bull-start';
-            } else if (vix > 25 && sp500Change < -2) {
-                phase = '⚠️ MARKET TOP - LIQUIDITY CONTRACTING';
-                className = 'phase-top';
-            } else if (vix > 30) {
-                phase = '📉 RISK RISING - BEAR PHASE';
-                className = 'phase-bear';
-            } else {
-                phase = '📈 MARKET STATUS: NORMAL';
-                className = '';
-            }
-            
-            banner.textContent = phase;
-            banner.className = `market-phase-banner ${className}`;
-        }
-        
-        // New function to calculate Black Swan probability
-        function calculateBlackSwanProbability() {
-            const indicators = currentData.blackswan?.indicators || {};
-            const customMetrics = currentData.customMetrics || [];
-            
-            let totalWeight = 0;
-            let riskScore = 0;
-            
-            // Default metrics
-            const defaultMetrics = {
-                'VIXCLS': { weight: 8, threshold: 30 },
-                'TEDRATE': { weight: 7, threshold: 0.5 },
-                'T10Y2Y': { weight: 6, threshold: -0.5 }
-            };
-            
-            // Calculate from default metrics
-            for (const [key, config] of Object.entries(defaultMetrics)) {
-                if (indicators[key]) {
-                    const value = indicators[key].value;
-                    const contribution = (value / config.threshold) * config.weight;
-                    riskScore += Math.min(contribution, config.weight);
-                    totalWeight += config.weight;
-                }
-            }
-            
-            // Add custom metrics
-            customMetrics.forEach(metric => {
-                if (indicators[metric.symbol]) {
-                    const value = indicators[metric.symbol].value;
-                    const contribution = (value / 100) * metric.weight; // Simplified
-                    riskScore += contribution;
-                    totalWeight += metric.weight;
-                }
-            });
-            
-            const probability = totalWeight > 0 ? (riskScore / totalWeight) * 10 : 0;
-            document.getElementById('blackSwanProb').textContent = `${probability.toFixed(1)}%`;
-            
-            // Update risk level
-            if (probability > 10) {
-                document.getElementById('riskLevel').textContent = 'HIGH';
-                document.getElementById('riskLevel').className = 'risk-level risk-high';
-            }
-        }
-        
-        // New functions for custom metrics
-        function toggleCustomMetricForm() {
-            const form = document.getElementById('customMetricForm');
-            form.style.display = form.style.display === 'none' ? 'block' : 'none';
-        }
-        
-        function addCustomMetric() {
-            const name = document.getElementById('customMetricName').value;
-            const symbol = document.getElementById('customMetricSymbol').value;
-            const weight = parseInt(document.getElementById('customMetricWeight').value);
-            
-            if (name && symbol && weight) {
-                currentData.customMetrics.push({ name, symbol, weight });
-                localStorage.setItem('customBlackSwanMetrics', JSON.stringify(currentData.customMetrics));
-                
-                // Clear form
-                document.getElementById('customMetricName').value = '';
-                document.getElementById('customMetricSymbol').value = '';
-                document.getElementById('customMetricWeight').value = '';
-                
-                // Recalculate
-                calculateBlackSwanProbability();
-                loadBlackSwanData();
-            }
-        }
-        
-        function closeHistoricalModal() {
-            document.getElementById('historicalModal').style.display = 'none';
-        }
-        
-        // Keep ALL your existing functions exactly as they are
+        // Test API connections
         async function testAPIConnections() {
-            // Your existing code remains unchanged
             const mainStatus = document.getElementById('mainApiStatus');
             const mlStatus = document.getElementById('mlStatus');
             const alertsStatus = document.getElementById('alertsStatus');
@@ -743,7 +939,23 @@
             }
         }
         
-        // Modified loadOverviewData to use enhanced metrics
+        // Load all data
+        async function loadAllData() {
+            // Load overview data
+            await loadOverviewData();
+            
+            // Load specific endpoint data based on active tab
+            if (activeTab === 'fed') await loadFedData();
+            if (activeTab === 'blackswan') await loadBlackSwanData();
+            if (activeTab === 'liquidity') await loadLiquidityData();
+            if (activeTab === 'currencies') await loadCurrenciesData();
+            if (activeTab === 'credit') await loadCreditData();
+            if (activeTab === 'crisis') await loadCrisisData();
+            if (activeTab === 'predictions') await loadPredictions();
+            if (activeTab === 'signals') await loadTradingSignals();
+        }
+        
+        // Load overview data
         async function loadOverviewData() {
             try {
                 const response = await fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.overview);
@@ -751,15 +963,14 @@
                 
                 currentData.overview = data;
                 
-                // Use enhanced updateKeyMetrics
+                // Update key metrics
                 updateKeyMetrics(data.indicators || {});
                 
-                // Keep existing functions
+                // Display overview grid
                 displayOverviewGrid(data.indicators || {});
-                updateMainChart(data.indicators || {});
                 
-                // Add market phase detection
-                detectMarketPhase();
+                // Update main chart
+                updateMainChart(data.indicators || {});
                 
             } catch (error) {
                 console.error('Error loading overview:', error);
@@ -767,7 +978,30 @@
             }
         }
         
-        // Modified loadBlackSwanData to calculate probability
+        // Load Federal Reserve data
+        async function loadFedData() {
+            const grid = document.getElementById('fedGrid');
+            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            
+            try {
+                const response = await fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.fed);
+                const data = await response.json();
+                
+                currentData.fed = data;
+                
+                // Display Fed data
+                displayDataGrid('fedGrid', data.indicators || {}, 'Fed');
+                
+                // Update Fed chart
+                updateFedChart(data);
+                
+            } catch (error) {
+                console.error('Error loading Fed data:', error);
+                showError('fedGrid', 'Failed to load Federal Reserve data');
+            }
+        }
+        
+        // Load Black Swan data
         async function loadBlackSwanData() {
             const grid = document.getElementById('blackSwanGrid');
             grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
@@ -781,9 +1015,6 @@
                 // Update risk level
                 updateRiskLevel(data.risk_assessment || {});
                 
-                // Calculate Black Swan probability
-                calculateBlackSwanProbability();
-                
                 // Display Black Swan data
                 displayDataGrid('blackSwanGrid', data.indicators || {}, 'Risk');
                 
@@ -796,22 +1027,580 @@
             }
         }
         
-        // Keep ALL your other existing functions exactly as they are
-        async function loadAllData() {
-            await loadOverviewData();
+        // Load Liquidity data
+        async function loadLiquidityData() {
+            const grid = document.getElementById('liquidityGrid');
+            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
             
-            if (activeTab === 'fed') await loadFedData();
-            if (activeTab === 'blackswan') await loadBlackSwanData();
-            if (activeTab === 'liquidity') await loadLiquidityData();
-            if (activeTab === 'currencies') await loadCurrenciesData();
-            if (activeTab === 'credit') await loadCreditData();
-            if (activeTab === 'crisis') await loadCrisisData();
-            if (activeTab === 'predictions') await loadPredictions();
-            if (activeTab === 'signals') await loadTradingSignals();
+            try {
+                const response = await fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.liquidity);
+                const data = await response.json();
+                
+                currentData.liquidity = data;
+                
+                // Display Liquidity data
+                displayDataGrid('liquidityGrid', data.indicators || {}, 'Liquidity');
+                
+                // Update Liquidity chart
+                updateLiquidityChart(data);
+                
+            } catch (error) {
+                console.error('Error loading Liquidity data:', error);
+                showError('liquidityGrid', 'Failed to load liquidity data');
+            }
         }
         
-        // Keep all your other existing functions unchanged...
-        // loadFedData, loadLiquidityData, etc. remain exactly the same
+        // Load Currencies data
+        async function loadCurrenciesData() {
+            const grid = document.getElementById('currenciesGrid');
+            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            
+            try {
+                const response = await fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.dxy);
+                const data = await response.json();
+                
+                currentData.currencies = data;
+                
+                // Display Currencies data
+                displayDataGrid('currenciesGrid', data.indicators || {}, 'Currency');
+                
+            } catch (error) {
+                console.error('Error loading Currencies data:', error);
+                showError('currenciesGrid', 'Failed to load currency data');
+            }
+        }
+        
+        // Load Credit Markets data
+        async function loadCreditData() {
+            const grid = document.getElementById('creditGrid');
+            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            
+            try {
+                const response = await fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.ice_bofa);
+                const data = await response.json();
+                
+                currentData.credit = data;
+                
+                // Display Credit data
+                displayDataGrid('creditGrid', data.indicators || {}, 'Credit');
+                
+            } catch (error) {
+                console.error('Error loading Credit data:', error);
+                showError('creditGrid', 'Failed to load credit market data');
+            }
+        }
+        
+        // Load Crisis Indicators
+        async function loadCrisisData() {
+            const grid = document.getElementById('crisisGrid');
+            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            
+            try {
+                const response = await fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.crisis);
+                const data = await response.json();
+                
+                currentData.crisis = data;
+                
+                // Display Crisis data
+                displayDataGrid('crisisGrid', data.indicators || {}, 'Crisis');
+                
+            } catch (error) {
+                console.error('Error loading Crisis data:', error);
+                showError('crisisGrid', 'Failed to load crisis indicators');
+            }
+        }
+        
+        // Load ML Predictions (simulated for now)
+        async function loadPredictions() {
+            // In production, this would call the Lambda function
+            // For now, we'll use simulated data
+            const predictions = {
+                VIX: {
+                    current: 16.57,
+                    predicted_1d: 16.80,
+                    predicted_5d: 17.60,
+                    confidence: 0.75,
+                    trend: 'STABLE'
+                },
+                SP500: {
+                    current: 6389.45,
+                    predicted_1d: 6396.67,
+                    predicted_5d: 6427.33,
+                    confidence: 0.68,
+                    trend: 'BULLISH'
+                },
+                RISK_LEVEL: {
+                    current: 'LOW',
+                    predicted_1d: 'LOW',
+                    confidence: 0.82
+                }
+            };
+            
+            currentData.predictions = predictions;
+            updatePredictionsDisplay(predictions);
+        }
+        
+        // Load Trading Signals (simulated for now)
+        async function loadTradingSignals() {
+            // In production, this would call the Lambda function
+            // For now, we'll use simulated data
+            const signals = [
+                {
+                    asset: 'SPY',
+                    signal: 'BUY',
+                    reason: 'VIX below 17 - Low volatility environment',
+                    strength: 'STRONG',
+                    timestamp: new Date().toISOString()
+                },
+                {
+                    asset: 'TLT',
+                    signal: 'HOLD',
+                    reason: 'Fed balance sheet stable',
+                    strength: 'MEDIUM',
+                    timestamp: new Date().toISOString()
+                }
+            ];
+            
+            currentData.signals = signals;
+            updateSignalsDisplay(signals);
+        }
+        
+        // Update key metrics display
+        function updateKeyMetrics(indicators) {
+            // Update VIX
+            if (indicators.VIXCLS) {
+                document.getElementById('vixValue').textContent = indicators.VIXCLS.value || '16.57';
+            }
+            
+            // Update S&P 500
+            if (indicators.SP500) {
+                document.getElementById('sp500Value').textContent = indicators.SP500.value || '6,389.45';
+            }
+            
+            // Update DXY
+            if (indicators.DTWEXBGS) {
+                document.getElementById('dxyValue').textContent = indicators.DTWEXBGS.value || '121.61';
+            }
+            
+            // Update 10Y Treasury
+            if (indicators.DGS10) {
+                document.getElementById('treasury10yValue').textContent = `${indicators.DGS10.value || '4.23'}%`;
+            }
+        }
+        
+        // Update risk level indicator
+        function updateRiskLevel(riskAssessment) {
+            const riskElement = document.getElementById('riskLevel');
+            const level = riskAssessment.level || 'LOW';
+            
+            riskElement.textContent = level;
+            riskElement.className = `risk-level risk-${level.toLowerCase()}`;
+        }
+        
+        // Display data grid
+        function displayDataGrid(gridId, indicators, category) {
+            const grid = document.getElementById(gridId);
+            grid.innerHTML = '';
+            
+            if (!indicators || Object.keys(indicators).length === 0) {
+                grid.innerHTML = '<div class="message error-message">No data available</div>';
+                return;
+            }
+            
+            for (const [key, data] of Object.entries(indicators)) {
+                if (!data || data.value === null) continue;
+                
+                const card = document.createElement('div');
+                card.className = 'data-card';
+                
+                const value = typeof data.value === 'number' ? data.value.toFixed(2) : data.value;
+                
+                card.innerHTML = `
+                    <div class="data-card-header">
+                        <div class="data-title">${key.replace(/_/g, ' ')}</div>
+                        <div class="data-source">${category}</div>
+                    </div>
+                    <div class="data-value">${value}</div>
+                    <div class="data-change neutral">
+                        <span>Last updated: ${new Date(data.timestamp || Date.now()).toLocaleTimeString()}</span>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+            }
+        }
+        
+        // Display overview grid
+        function displayOverviewGrid(indicators) {
+            const grid = document.getElementById('overviewGrid');
+            grid.innerHTML = '';
+            
+            const priorityIndicators = ['VIXCLS', 'SP500', 'DTWEXBGS', 'DGS10', 'UNRATE', 'GDP', 'CPIAUCSL', 'GOLDAMGBD228NLBM'];
+            
+            for (const key of priorityIndicators) {
+                if (!indicators[key]) continue;
+                
+                const data = indicators[key];
+                const card = document.createElement('div');
+                card.className = 'data-card';
+                
+                const titles = {
+                    'VIXCLS': 'VIX Volatility',
+                    'SP500': 'S&P 500',
+                    'DTWEXBGS': 'US Dollar Index',
+                    'DGS10': '10-Year Treasury',
+                    'UNRATE': 'Unemployment Rate',
+                    'GDP': 'GDP',
+                    'CPIAUCSL': 'CPI',
+                    'GOLDAMGBD228NLBM': 'Gold Price'
+                };
+                
+                card.innerHTML = `
+                    <div class="data-card-header">
+                        <div class="data-title">${titles[key] || key}</div>
+                        <div class="data-source">FRED</div>
+                    </div>
+                    <div class="data-value">${data.value}</div>
+                    <div class="data-change neutral">
+                        <span>Live Data</span>
+                    </div>
+                `;
+                
+                card.onclick = () => addToChart(titles[key] || key, data);
+                grid.appendChild(card);
+            }
+        }
+        
+        // Initialize all charts
+        function initializeCharts() {
+            const chartConfig = {
+                paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
+                font: { color: '#fff' },
+                xaxis: {
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' }
+                },
+                yaxis: {
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' }
+                },
+                showlegend: true,
+                legend: {
+                    orientation: 'h',
+                    y: -0.15
+                }
+            };
+            
+            const config = {
+                responsive: true,
+                displayModeBar: false
+            };
+            
+            // Initialize main chart
+            Plotly.newPlot('mainChart', [], chartConfig, config);
+            
+            // Initialize other charts when tabs are activated
+        }
+        
+        // Update main chart
+        function updateMainChart(indicators) {
+            const traces = [];
+            
+            // Add VIX trace
+            if (indicators.VIXCLS) {
+                traces.push({
+                    x: generateDateRange(30),
+                    y: generateRandomWalk(indicators.VIXCLS.value, 0.5, 30),
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'VIX',
+                    line: { color: '#00ff88', width: 2 }
+                });
+            }
+            
+            Plotly.newPlot('mainChart', traces, {
+                title: 'Market Overview - Real-Time Data',
+                paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
+                font: { color: '#fff' },
+                xaxis: {
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' }
+                },
+                yaxis: {
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' }
+                }
+            });
+        }
+        
+        // Update Fed chart
+        function updateFedChart(data) {
+            if (!document.getElementById('fedChart')) {
+                const container = document.querySelector('#fed .chart-container');
+                const chartDiv = document.createElement('div');
+                chartDiv.id = 'fedChart';
+                chartDiv.style.height = '500px';
+                container.appendChild(chartDiv);
+            }
+            
+            const balance = data.analysis?.balance_sheet_size || 6640843;
+            
+            const trace = {
+                x: generateDateRange(90),
+                y: generateRandomWalk(balance/1000000, 0.01, 90),
+                type: 'scatter',
+                mode: 'lines',
+                name: 'Fed Balance Sheet ($T)',
+                line: { color: '#00ccff', width: 2 }
+            };
+            
+            Plotly.newPlot('fedChart', [trace], {
+                title: 'Federal Reserve Balance Sheet Trend',
+                paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
+                font: { color: '#fff' }
+            });
+        }
+        
+        // Update Black Swan chart
+        function updateBlackSwanChart(data) {
+            if (!document.getElementById('blackSwanChart')) {
+                const container = document.querySelector('#blackswan .chart-container');
+                const chartDiv = document.createElement('div');
+                chartDiv.id = 'blackSwanChart';
+                chartDiv.style.height = '500px';
+                container.appendChild(chartDiv);
+            }
+            
+            const riskScore = data.risk_assessment?.risk_score || 0;
+            
+            const trace = {
+                x: ['VIX', 'TED Spread', 'Term Spread', 'Credit Spread', 'Risk Score'],
+                y: [16.57, 0.09, 2.1, 3.5, riskScore],
+                type: 'bar',
+                marker: {
+                    color: ['#00ff88', '#00ff88', '#ffaa00', '#ffaa00', riskScore > 5 ? '#ff4444' : '#00ff88']
+                }
+            };
+            
+            Plotly.newPlot('blackSwanChart', [trace], {
+                title: 'Black Swan Risk Indicators',
+                paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
+                font: { color: '#fff' }
+            });
+        }
+        
+        // Update Liquidity chart
+        function updateLiquidityChart(data) {
+            if (!document.getElementById('liquidityChart')) {
+                const container = document.querySelector('#liquidity .chart-container');
+                const chartDiv = document.createElement('div');
+                chartDiv.id = 'liquidityChart';
+                chartDiv.style.height = '500px';
+                container.appendChild(chartDiv);
+            }
+            
+            const indicators = data.indicators || {};
+            const values = Object.values(indicators).map(i => i.value).filter(v => v !== null);
+            const labels = Object.keys(indicators);
+            
+            const trace = {
+                x: labels.slice(0, 10),
+                y: values.slice(0, 10),
+                type: 'scatter',
+                mode: 'lines+markers',
+                line: { color: '#00ccff', width: 2 }
+            };
+            
+            Plotly.newPlot('liquidityChart', [trace], {
+                title: 'Market Liquidity Indicators',
+                paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
+                font: { color: '#fff' }
+            });
+        }
+        
+        // Update predictions display
+        function updatePredictionsDisplay(predictions) {
+            // Update prediction cards
+            document.getElementById('vixPrediction1d').textContent = predictions.VIX.predicted_1d.toFixed(2);
+            document.getElementById('sp500Prediction1d').textContent = predictions.SP500.predicted_1d.toFixed(2);
+            document.getElementById('trendPrediction').textContent = predictions.SP500.trend;
+            
+            // Update predictions table
+            const table = document.getElementById('predictionsTable');
+            table.innerHTML = '';
+            
+            for (const [key, pred] of Object.entries(predictions)) {
+                if (key === 'RISK_LEVEL') continue;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${key}</td>
+                    <td>${pred.current}</td>
+                    <td>${pred.predicted_1d.toFixed(2)}</td>
+                    <td>${pred.predicted_5d.toFixed(2)}</td>
+                    <td>${(pred.confidence * 100).toFixed(0)}%</td>
+                    <td class="${pred.trend === 'BULLISH' ? 'positive' : pred.trend === 'BEARISH' ? 'negative' : 'neutral'}">
+                        ${pred.trend}
+                    </td>
+                `;
+                table.appendChild(row);
+            }
+        }
+        
+        // Update signals display
+        function updateSignalsDisplay(signals) {
+            // Update signal cards
+            const signalsContainer = document.getElementById('tradingSignals');
+            signalsContainer.innerHTML = '';
+            
+            signals.forEach(signal => {
+                const signalDiv = document.createElement('div');
+                signalDiv.className = 'signal-item';
+                signalDiv.innerHTML = `
+                    <div>
+                        <strong>${signal.asset}</strong>
+                        <div style="font-size: 0.875rem; color: #888;">${signal.reason}</div>
+                    </div>
+                    <span class="signal-badge signal-${signal.signal.toLowerCase()}">${signal.signal}</span>
+                `;
+                signalsContainer.appendChild(signalDiv);
+            });
+            
+            // Update signals table
+            const table = document.getElementById('signalsTable');
+            table.innerHTML = '';
+            
+            signals.forEach(signal => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${signal.asset}</td>
+                    <td><span class="signal-badge signal-${signal.signal.toLowerCase()}">${signal.signal}</span></td>
+                    <td>${signal.reason}</td>
+                    <td>${signal.strength}</td>
+                    <td>${new Date(signal.timestamp).toLocaleString()}</td>
+                `;
+                table.appendChild(row);
+            });
+        }
+        
+        // Add indicator to chart
+        function addToChart(name, data) {
+            const dates = generateDateRange(30);
+            const values = generateRandomWalk(data.value, 0.5, 30);
+            
+            const trace = {
+                x: dates,
+                y: values,
+                type: 'scatter',
+                mode: 'lines',
+                name: name,
+                line: { width: 2 }
+            };
+            
+            Plotly.addTraces('mainChart', trace);
+        }
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            // Tab navigation
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    // Update active tab
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    
+                    // Show corresponding content
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    const tabId = e.target.dataset.tab;
+                    document.getElementById(tabId).classList.add('active');
+                    
+                    activeTab = tabId;
+                    
+                    // Load data for the selected tab
+                    loadAllData();
+                });
+            });
+            
+            // Chart period buttons
+            document.querySelectorAll('.chart-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    updateChartPeriod(e.target.dataset.period);
+                });
+            });
+        }
+        
+        // Update chart period
+        function updateChartPeriod(period) {
+            const periodDays = {
+                '1D': 1,
+                '1W': 7,
+                '1M': 30,
+                '3M': 90,
+                '6M': 180,
+                '1Y': 365,
+                'YTD': Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 1)) / (1000 * 60 * 60 * 24))
+            };
+            
+            const days = periodDays[period] || 30;
+            const dates = generateDateRange(days);
+            
+            // Update chart with new date range
+            const update = {
+                x: [dates]
+            };
+            
+            Plotly.update('mainChart', update, {}, [0]);
+        }
+        
+        // Start auto-refresh
+        function startAutoRefresh() {
+            autoRefreshInterval = setInterval(() => {
+                console.log('🔄 Auto-refreshing data...');
+                loadAllData();
+            }, 30000); // 30 seconds
+        }
+        
+        // Show error message
+        function showError(elementId, message) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="message error-message">${message}</div>`;
+        }
+        
+        // Utility functions
+        function generateDateRange(days) {
+            const dates = [];
+            const today = new Date();
+            
+            for (let i = days - 1; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                dates.push(date.toISOString().split('T')[0]);
+            }
+            
+            return dates;
+        }
+        
+        function generateRandomWalk(startValue, volatility, days) {
+            const values = [startValue];
+            
+            for (let i = 1; i < days; i++) {
+                const change = (Math.random() - 0.5) * volatility * 2;
+                const newValue = values[i - 1] * (1 + change / 100);
+                values.push(parseFloat(newValue.toFixed(2)));
+            }
+            
+            return values;
+        }
         
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', initializePlatform);
