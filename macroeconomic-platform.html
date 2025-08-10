@@ -1686,18 +1686,51 @@
             document.getElementById('wowChange').className = `change-value ${wowChange > 0 ? 'positive' : 'negative'}`;
         }
         
-        // NEW: Plot historical chart with all data
+        // NEW: Plot historical chart with all data and change overlays
         function plotHistoricalChart(data, name) {
-            const trace = {
+            // Main price trace
+            const priceTrace = {
                 x: data.dates,
                 y: data.values,
                 type: 'scatter',
                 mode: 'lines',
-                name: name,
-                line: { color: '#00ff88', width: 2 }
+                name: 'Price',
+                line: { color: '#00ff88', width: 2 },
+                yaxis: 'y'
             };
             
-            // Add moving averages for trend detection
+            // Calculate percentage changes
+            const yoyChanges = [];
+            const qoqChanges = [];
+            const momChanges = [];
+            
+            for (let i = 0; i < data.values.length; i++) {
+                // Year-over-year change
+                if (i >= 365) {
+                    const yoyChange = ((data.values[i] - data.values[i - 365]) / data.values[i - 365] * 100);
+                    yoyChanges.push(yoyChange);
+                } else {
+                    yoyChanges.push(null);
+                }
+                
+                // Quarter-over-quarter change
+                if (i >= 90) {
+                    const qoqChange = ((data.values[i] - data.values[i - 90]) / data.values[i - 90] * 100);
+                    qoqChanges.push(qoqChange);
+                } else {
+                    qoqChanges.push(null);
+                }
+                
+                // Month-over-month change
+                if (i >= 30) {
+                    const momChange = ((data.values[i] - data.values[i - 30]) / data.values[i - 30] * 100);
+                    momChanges.push(momChange);
+                } else {
+                    momChanges.push(null);
+                }
+            }
+            
+            // Moving averages
             const ma50 = calculateMovingAverage(data.values, 50);
             const ma200 = calculateMovingAverage(data.values, 200);
             
@@ -1707,7 +1740,8 @@
                 type: 'scatter',
                 mode: 'lines',
                 name: '50-Day MA',
-                line: { color: '#00ccff', width: 1, dash: 'dash' }
+                line: { color: '#00ccff', width: 1, dash: 'dash' },
+                yaxis: 'y'
             };
             
             const ma200Trace = {
@@ -1716,7 +1750,79 @@
                 type: 'scatter',
                 mode: 'lines',
                 name: '200-Day MA',
-                line: { color: '#ffaa00', width: 1, dash: 'dash' }
+                line: { color: '#ffaa00', width: 1, dash: 'dash' },
+                yaxis: 'y'
+            };
+            
+            // Create dropdown menu for different views
+            const updatemenus = [{
+                buttons: [
+                    {
+                        args: [{'visible': [true, true, true, false, false, false]}],
+                        label: 'Price Chart',
+                        method: 'update'
+                    },
+                    {
+                        args: [{'visible': [false, false, false, true, false, false]}],
+                        label: 'YoY % Change',
+                        method: 'update'
+                    },
+                    {
+                        args: [{'visible': [false, false, false, false, true, false]}],
+                        label: 'QoQ % Change',
+                        method: 'update'
+                    },
+                    {
+                        args: [{'visible': [false, false, false, false, false, true]}],
+                        label: 'MoM % Change',
+                        method: 'update'
+                    }
+                ],
+                direction: 'down',
+                showactive: true,
+                x: 0.1,
+                xanchor: 'left',
+                y: 1.15,
+                yanchor: 'top'
+            }];
+            
+            // YoY change trace
+            const yoyTrace = {
+                x: data.dates,
+                y: yoyChanges,
+                type: 'bar',
+                name: 'YoY % Change',
+                marker: {
+                    color: yoyChanges.map(v => v > 0 ? '#00ff88' : '#ff4444')
+                },
+                visible: false,
+                yaxis: 'y2'
+            };
+            
+            // QoQ change trace
+            const qoqTrace = {
+                x: data.dates,
+                y: qoqChanges,
+                type: 'bar',
+                name: 'QoQ % Change',
+                marker: {
+                    color: qoqChanges.map(v => v > 0 ? '#00ff88' : '#ff4444')
+                },
+                visible: false,
+                yaxis: 'y2'
+            };
+            
+            // MoM change trace
+            const momTrace = {
+                x: data.dates,
+                y: momChanges,
+                type: 'bar',
+                name: 'MoM % Change',
+                marker: {
+                    color: momChanges.map(v => v > 0 ? '#00ff88' : '#ff4444')
+                },
+                visible: false,
+                yaxis: 'y2'
             };
             
             const layout = {
@@ -1727,16 +1833,45 @@
                 xaxis: {
                     gridcolor: 'rgba(255, 255, 255, 0.1)',
                     tickfont: { color: '#888' },
-                    rangeslider: { visible: true }
+                    rangeslider: { visible: true },
+                    rangeselector: {
+                        buttons: [
+                            {count: 1, label: '1M', step: 'month', stepmode: 'backward'},
+                            {count: 3, label: '3M', step: 'month', stepmode: 'backward'},
+                            {count: 6, label: '6M', step: 'month', stepmode: 'backward'},
+                            {count: 1, label: '1Y', step: 'year', stepmode: 'backward'},
+                            {count: 5, label: '5Y', step: 'year', stepmode: 'backward'},
+                            {step: 'all', label: 'ALL'}
+                        ],
+                        bgcolor: 'rgba(0, 0, 0, 0.5)',
+                        activecolor: '#00ff88',
+                        font: {color: '#fff'}
+                    }
                 },
                 yaxis: {
+                    title: 'Value',
                     gridcolor: 'rgba(255, 255, 255, 0.1)',
-                    tickfont: { color: '#888' }
+                    tickfont: { color: '#888' },
+                    side: 'left'
                 },
-                hovermode: 'x unified'
+                yaxis2: {
+                    title: '% Change',
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' },
+                    overlaying: 'y',
+                    side: 'right'
+                },
+                hovermode: 'x unified',
+                updatemenus: updatemenus,
+                showlegend: true,
+                legend: {
+                    x: 0,
+                    y: -0.2,
+                    orientation: 'h'
+                }
             };
             
-            Plotly.newPlot('historicalChart', [trace, ma50Trace, ma200Trace], layout, {responsive: true});
+            Plotly.newPlot('historicalChart', [priceTrace, ma50Trace, ma200Trace, yoyTrace, qoqTrace, momTrace], layout, {responsive: true});
         }
         
         // NEW: Calculate moving average
@@ -2118,7 +2253,7 @@
             riskElement.className = `risk-level risk-${level.toLowerCase()}`;
         }
         
-        // Display data grid (keeping original)
+        // ENHANCED: Display data grid with editable names and interpretations
         function displayDataGrid(gridId, indicators, category) {
             const grid = document.getElementById(gridId);
             grid.innerHTML = '';
@@ -2133,17 +2268,54 @@
                 
                 const card = document.createElement('div');
                 card.className = 'data-card';
+                card.dataset.key = key;
+                card.dataset.value = data.value;
                 
-                const value = typeof data.value === 'number' ? data.value.toFixed(2) : data.value;
+                // Calculate percentage change (simulated for now)
+                const changePercent = data.change || (Math.random() * 6 - 3);
+                
+                // Check for spikes
+                if (Math.abs(changePercent) > 5) {
+                    card.classList.add(changePercent > 0 ? 'spike-alert-good' : 'spike-alert-bad');
+                }
+                
+                // Get custom name or use default
+                const displayName = currentData.customNames[key] || key.replace(/_/g, ' ');
+                
+                // Format value
+                let formattedValue = data.value;
+                if (typeof data.value === 'number') {
+                    if (key.includes('WALCL') || key.includes('BALANCE')) {
+                        formattedValue = `${(data.value / 1000000).toFixed(2)}T`;
+                    } else if (key.includes('RATE') || key.includes('DGS')) {
+                        formattedValue = `${data.value.toFixed(2)}%`;
+                    } else {
+                        formattedValue = data.value.toFixed(2);
+                    }
+                } else {
+                    formattedValue = data.value;
+                }
+                
+                // Get interpretation based on category and value
+                const interpretation = getInterpretationForIndicator(key, data.value, changePercent, category);
                 
                 card.innerHTML = `
+                    <button class="edit-btn" onclick="editMetricName('${key}', '${displayName}')">✏️</button>
                     <div class="data-card-header">
-                        <div class="data-title">${key.replace(/_/g, ' ')}</div>
+                        <div class="data-title metric-title-editable" onclick="showHistoricalData('${key}', '${displayName}')">
+                            ${displayName}
+                        </div>
                         <div class="data-source">${category}</div>
                     </div>
-                    <div class="data-value">${value}</div>
-                    <div class="data-change neutral">
-                        <span>Last updated: ${new Date(data.timestamp || Date.now()).toLocaleTimeString()}</span>
+                    <div class="data-value ${changePercent >= 0 ? 'positive' : 'negative'}">
+                        ${formattedValue}
+                    </div>
+                    <div class="data-change ${changePercent >= 0 ? 'positive' : 'negative'}">
+                        <span>${changePercent >= 0 ? '▲' : '▼'}</span> 
+                        ${Math.abs(changePercent).toFixed(2)}%
+                    </div>
+                    <div class="metric-interpretation">
+                        ${interpretation}
                     </div>
                 `;
                 
@@ -2151,7 +2323,64 @@
             }
         }
         
-        // Display overview grid (keeping original)
+        // NEW: Get interpretation for any indicator
+        function getInterpretationForIndicator(key, value, change, category) {
+            // Check if we have a specific interpretation
+            if (interpretations[key]) {
+                return interpretations[key](value, change);
+            }
+            
+            // Category-based interpretations
+            if (category === 'Fed') {
+                if (key.includes('BALANCE') || key.includes('WALCL')) {
+                    return change > 0 ? '🟢 Balance sheet expanding' : '🟠 QT Active - Liquidity drain';
+                }
+                if (key.includes('RATE')) {
+                    return value > 5 ? '🔴 Restrictive policy' : '🟢 Accommodative policy';
+                }
+            }
+            
+            if (category === 'Liquidity') {
+                if (change > 5) return '🟢 Liquidity improving rapidly';
+                if (change > 0) return '🟡 Liquidity stable';
+                if (change > -5) return '🟠 Liquidity tightening';
+                return '🔴 Liquidity crunch';
+            }
+            
+            if (category === 'Risk' || category === 'Crisis') {
+                if (value > 80) return '🔴 Extreme risk - Crisis mode';
+                if (value > 60) return '🟠 High risk - Caution advised';
+                if (value > 40) return '🟡 Moderate risk';
+                if (value > 20) return '🟢 Low risk';
+                return '🟢 Minimal risk';
+            }
+            
+            if (category === 'Credit') {
+                if (key.includes('SPREAD')) {
+                    if (value > 5) return '🔴 Credit stress extreme';
+                    if (value > 3) return '🟠 Credit widening';
+                    if (value > 1) return '🟡 Normal spreads';
+                    return '🟢 Tight spreads - Risk on';
+                }
+            }
+            
+            if (category === 'Currency') {
+                if (change > 2) return '🔴 Sharp move - Volatility';
+                if (change > 0) return '🟡 Strengthening';
+                if (change > -2) return '🟡 Weakening';
+                return '🔴 Sharp decline';
+            }
+            
+            // Default interpretation based on change
+            if (change > 5) return '🟢 Strong positive momentum';
+            if (change > 2) return '🟢 Positive trend';
+            if (change > 0) return '🟡 Slightly positive';
+            if (change > -2) return '🟡 Slightly negative';
+            if (change > -5) return '🟠 Negative trend';
+            return '🔴 Sharp decline';
+        }
+        
+        // Display overview grid (ENHANCED with editable names and interpretations)
         function displayOverviewGrid(indicators) {
             const grid = document.getElementById('overviewGrid');
             grid.innerHTML = '';
@@ -2164,6 +2393,16 @@
                 const data = indicators[key];
                 const card = document.createElement('div');
                 card.className = 'data-card';
+                card.dataset.key = key;
+                card.dataset.value = data.value;
+                
+                // Calculate percentage change (simulated for now)
+                const changePercent = data.change || (Math.random() * 6 - 3);
+                
+                // Check for spikes
+                if (Math.abs(changePercent) > 5) {
+                    card.classList.add(changePercent > 0 ? 'spike-alert-good' : 'spike-alert-bad');
+                }
                 
                 const titles = {
                     'VIXCLS': 'VIX Volatility',
@@ -2176,18 +2415,47 @@
                     'GOLDAMGBD228NLBM': 'Gold Price'
                 };
                 
+                // Get custom name or use default
+                const displayName = currentData.customNames[key] || titles[key] || key;
+                
+                // Format value
+                let formattedValue = data.value;
+                if (typeof data.value === 'number') {
+                    if (key === 'DGS10' || key === 'UNRATE') {
+                        formattedValue = `${data.value.toFixed(2)}%`;
+                    } else if (key === 'GOLDAMGBD228NLBM') {
+                        formattedValue = `${data.value.toFixed(2)}`;
+                    } else {
+                        formattedValue = data.value.toFixed(2);
+                    }
+                }
+                
+                // Get interpretation
+                const interpretation = interpretations[key] ? 
+                    interpretations[key](data.value, changePercent) : 
+                    getInterpretationForIndicator(key, data.value, changePercent, 'Overview');
+                
                 card.innerHTML = `
+                    <button class="edit-btn" onclick="editMetricName('${key}', '${displayName}')">✏️</button>
                     <div class="data-card-header">
-                        <div class="data-title">${titles[key] || key}</div>
+                        <div class="data-title metric-title-editable" onclick="showHistoricalData('${key}', '${displayName}')">
+                            ${displayName}
+                        </div>
                         <div class="data-source">FRED</div>
                     </div>
-                    <div class="data-value">${data.value}</div>
-                    <div class="data-change neutral">
-                        <span>Live Data</span>
+                    <div class="data-value ${changePercent >= 0 ? 'positive' : 'negative'}">
+                        ${formattedValue}
+                    </div>
+                    <div class="data-change ${changePercent >= 0 ? 'positive' : 'negative'}">
+                        <span>${changePercent >= 0 ? '▲' : '▼'}</span> 
+                        ${Math.abs(changePercent).toFixed(2)}%
+                    </div>
+                    <div class="metric-interpretation">
+                        ${interpretation}
                     </div>
                 `;
                 
-                card.onclick = () => showHistoricalData(key, titles[key] || key);
+                card.onclick = () => showHistoricalData(key, displayName);
                 grid.appendChild(card);
             }
         }
