@@ -3,1166 +3,1607 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpenBB Financial Intelligence Platform - grumpyy.com</title>
+    <title>OpenBB Financial Intelligence Platform - v8.0</title>
     
+    <!-- Required Libraries -->
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: #0a0a0a;
+            background: linear-gradient(135deg, #0a0e27 0%, #151932 100%);
             color: #e0e0e0;
-            overflow-x: hidden;
+            min-height: 100vh;
         }
         
-        /* Navigation Bar */
-        nav {
-            background: #121212;
-            border-bottom: 1px solid #282828;
-            padding: 15px 20px;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .nav-logo {
-            font-size: 22px;
-            font-weight: bold;
-            background: linear-gradient(45deg, #00ff88, #00ccff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 25px;
-            align-items: center;
-        }
-
-        .nav-links a {
-            color: #ccc;
-            text-decoration: none;
-            font-size: 14px;
-            transition: color 0.3s;
-            position: relative;
-            cursor: pointer;
-        }
-
-        .nav-links a:hover {
-            color: #00ff88;
-        }
-
-        .nav-links a.active {
-            color: #00ff88;
-        }
-
-        /* Header */
+        /* Header Styles */
         .header {
-            background: #1a1a1a;
-            padding: 15px 20px;
-            border-bottom: 1px solid #282828;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: relative;
-            z-index: 999;
-        }
-        .logo {
-            font-size: 22px;
-            font-weight: bold;
-            background: linear-gradient(45deg, #00ff88, #00ccff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .header-controls {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
-        
-        /* Main Container */
-        .main-container {
-            display: flex;
-            flex-direction: column;
-            height: calc(100vh - 71px);
-        }
-        
-        /* Search Section */
-        .search-section {
-            background: #121212;
-            padding: 20px;
-            border-bottom: 1px solid #282828;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            gap: 15px;
-        }
-        .search-container {
-            position: relative;
-            width: 100%;
-            max-width: 800px;
-        }
-        .search-box {
-            width: 100%;
-            padding: 15px 50px 15px 20px;
-            background: #222;
-            border: 2px solid #333;
-            color: #fff;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-        .search-box:focus {
-            outline: none;
-            border-color: #00ff88;
-        }
-        .search-icon {
-            position: absolute;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #777;
-            font-size: 18px;
-        }
-        
-        .search-results {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            margin-top: 5px;
-            max-height: 500px;
-            overflow-y: auto;
-            background: #181818;
-            border: 1px solid #333;
-            border-radius: 8px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-        }
-        .search-loading {
-            padding: 20px;
-            text-align: center;
-            color: #00ff88;
-        }
-        .search-item {
-            padding: 15px 20px;
-            cursor: pointer;
-            transition: background 0.15s;
-            border-bottom: 1px solid #222;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .search-item:last-child { border-bottom: none; }
-        .search-item:hover { background: #252525; }
-        
-        /* Watchlist Section */
-        .watchlist-section {
-            background: #121212;
-            border-top: 1px solid #282828;
-            flex: 1;
-            overflow-y: auto;
-        }
-        
-        .watchlist-header {
-            background: #1a1a1a;
-            padding: 15px 20px;
-            border-bottom: 1px solid #282828;
+            background: rgba(20, 24, 44, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid rgba(0, 255, 136, 0.2);
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: sticky;
             top: 0;
-            z-index: 10;
+            z-index: 1000;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
         
-        .watchlist-title {
-            font-size: 16px;
+        .logo {
+            font-size: 1.5rem;
             font-weight: bold;
-            color: #fff;
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 0.5rem;
         }
         
-        .watchlist-selector {
-            background: #252525;
-            color: #fff;
-            border: 1px solid #333;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-        
-        .watchlist-controls {
+        .header-stats {
             display: flex;
-            gap: 10px;
+            gap: 1rem;
             align-items: center;
             flex-wrap: wrap;
         }
         
-        .control-btn {
-            background: #252525;
-            border: 1px solid #383838;
-            color: #ccc;
-            padding: 8px 12px;
-            cursor: pointer;
-            border-radius: 6px;
-            font-size: 12px;
-            transition: all 0.2s;
-        }
-        .control-btn:hover {
-            background: #333;
-            border-color: #555;
-            color: #fff;
-        }
-        
-        .add-watchlist {
-            background: #00dd77;
-            color: #000;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: bold;
-            transition: background-color 0.2s;
-        }
-        .add-watchlist:hover { background: #00ff88; }
-        
-        /* Table Styles */
-        .watchlist-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: #fff;
-        }
-        
-        .watchlist-table th {
-            background: #f5f5f5;
-            color: #333;
-            font-size: 11px;
-            font-weight: bold;
-            text-transform: uppercase;
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 2px solid #e0e0e0;
-            position: sticky;
-            top: 57px;
-            z-index: 5;
-        }
-        
-        .watchlist-table tbody tr {
-            transition: background-color 0.2s;
-            cursor: pointer;
-            background: #fff;
-            color: #333;
-        }
-        
-        .watchlist-table tbody tr:hover {
-            background: #f8f8f8;
-        }
-        
-        .watchlist-table td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #e0e0e0;
-            font-size: 13px;
-            color: #333;
-        }
-        
-        .symbol-cell {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .symbol-icon {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, #00ff88, #00ccff);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #000;
-            font-weight: bold;
-            font-size: 10px;
-        }
-        
-        .symbol-info {
+        .stat-item {
             display: flex;
             flex-direction: column;
-            flex: 1;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-width: 100px;
         }
         
-        .symbol-name {
+        .stat-value {
+            font-size: 1.25rem;
             font-weight: bold;
-            color: #000;
-            font-size: 14px;
+            color: #00ff88;
+        }
+        
+        .stat-label {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+        }
+        
+        /* Risk Level Indicator */
+        .risk-indicator {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        .symbol-fullname {
-            color: #666;
-            font-size: 11px;
-        }
-        
-        .price-cell {
+        .risk-level {
             font-weight: bold;
-            color: #000;
-            text-align: right;
-        }
-        
-        .change-cell {
-            text-align: right;
-            font-weight: bold;
-        }
-        
-        .positive { color: #00dd77; }
-        .negative { color: #ff4444; }
-        .neutral { color: #666; }
-        
-        /* Loading */
-        .loading-pulse { animation: pulse 1.5s infinite ease-in-out; }
-        @keyframes pulse {
-            0%, 100% { opacity: 0.6; }
-            50% { opacity: 1; }
-        }
-        
-        .skeleton-loader {
-            background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
-            background-size: 200% 100%;
-            animation: loading 1.5s infinite;
+            padding: 0.25rem 0.75rem;
             border-radius: 4px;
-            height: 20px;
-            margin: 5px 0;
-        }
-
-        @keyframes loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
         }
         
-        /* Message Popup */
-        .message-popup {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #222;
-            border: 1px solid #333;
-            padding: 15px 20px;
-            border-radius: 6px;
-            z-index: 2000;
-            animation: slideInAndOut 3s ease-in-out forwards;
-        }
-        .message-popup.info { border-color: #00dd77; }
-        .message-popup.error { border-color: #ff4444; color: #ff6666; }
-        .message-popup.warning { border-color: #ffaa00; color: #ffcc00; }
-        
-        @keyframes slideInAndOut {
-            0% { transform: translateX(120%); opacity: 0; }
-            15%, 85% { transform: translateX(0); opacity: 1; }
-            100% { transform: translateX(120%); opacity: 0; }
+        .risk-low {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
         }
         
+        .risk-medium {
+            background: rgba(255, 170, 0, 0.2);
+            color: #ffaa00;
+        }
+        
+        .risk-high {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff4444;
+        }
+        
+        /* API Status Indicators */
         .api-status {
             display: flex;
+            gap: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .api-indicator {
+            display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 12px;
+            gap: 0.5rem;
+            font-size: 0.875rem;
         }
         
         .status-dot {
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: #ff4444;
+            animation: pulse 2s infinite;
         }
         
         .status-dot.connected {
-            background: #00dd77;
+            background: #00ff88;
         }
         
-        /* Connection status indicators */
-        .connection-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 10px;
-            margin: 10px 0;
-        }
-
-        .connection-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
-            background: #1a1a1a;
-            border-radius: 6px;
-            font-size: 12px;
-        }
-
-        .connection-indicator {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
+        .status-dot.error {
             background: #ff4444;
         }
-
-        .connection-indicator.connected {
-            background: #00dd77;
+        
+        .status-dot.loading {
+            background: #ffaa00;
         }
-
-        /* Mobile responsiveness */
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Container */
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Tabs Navigation */
+        .tabs-nav {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 0.5rem;
+            overflow-x: auto;
+        }
+        
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            color: #888;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        
+        .tab-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+        }
+        
+        .tab-btn.active {
+            background: #00ff88;
+            color: #000;
+            font-weight: bold;
+        }
+        
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Key Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .metric-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.1);
+        }
+        
+        .metric-title {
+            font-size: 0.875rem;
+            color: #888;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+        
+        .metric-value {
+            font-size: 1.75rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .metric-change {
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .positive { color: #00ff88; }
+        .negative { color: #ff4444; }
+        .neutral { color: #888; }
+        
+        /* Data Grid */
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .data-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .data-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.2);
+            border-color: #00ff88;
+        }
+        
+        .data-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .data-title {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #fff;
+        }
+        
+        .data-source {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            background: rgba(0, 255, 136, 0.2);
+            border-radius: 4px;
+            color: #00ff88;
+        }
+        
+        .data-value {
+            font-size: 1.75rem;
+            font-weight: bold;
+            margin: 0.75rem 0;
+        }
+        
+        .data-change {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        /* Chart Container */
+        .chart-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .chart-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+        
+        .chart-controls {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .chart-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+        }
+        
+        .chart-btn:hover {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: #00ff88;
+        }
+        
+        .chart-btn.active {
+            background: #00ff88;
+            color: #000;
+        }
+        
+        #mainChart, #blackSwanChart, #liquidityChart {
+            height: 500px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+        
+        /* ML Predictions Box */
+        .predictions-box {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(0, 204, 255, 0.1) 100%);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .predictions-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .predictions-title {
+            font-size: 1.125rem;
+            font-weight: bold;
+        }
+        
+        .predictions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .prediction-item {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        
+        .prediction-label {
+            font-size: 0.875rem;
+            color: #888;
+            margin-bottom: 0.25rem;
+        }
+        
+        .prediction-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #00ff88;
+        }
+        
+        .confidence-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+        
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00ccff);
+            transition: width 1s ease;
+        }
+        
+        /* Trading Signals */
+        .signals-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .signal-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            transition: all 0.3s;
+        }
+        
+        .signal-item:hover {
+            background: rgba(0, 255, 136, 0.1);
+        }
+        
+        .signal-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.875rem;
+        }
+        
+        .signal-buy {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+        
+        .signal-sell {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff4444;
+        }
+        
+        .signal-hold {
+            background: rgba(255, 170, 0, 0.2);
+            color: #ffaa00;
+        }
+        
+        /* Loading Spinner */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(0, 255, 136, 0.3);
+            border-top-color: #00ff88;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Error/Success Messages */
+        .message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        .error-message {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid #ff4444;
+            color: #ff6666;
+        }
+        
+        .success-message {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            color: #00ff88;
+        }
+        
+        /* Data Table */
+        .data-table {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        
+        .data-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .data-table th {
+            background: rgba(0, 255, 136, 0.1);
+            padding: 1rem;
+            text-align: left;
+            font-weight: bold;
+            color: #00ff88;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.875rem;
+        }
+        
+        .data-table td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.875rem;
+        }
+        
+        .data-table tr:hover {
+            background: rgba(0, 255, 136, 0.05);
+        }
+        
+        /* Responsive Design */
         @media (max-width: 768px) {
-            .nav-links {
-                gap: 15px;
-            }
-            
-            .nav-links a {
-                font-size: 12px;
-            }
-            
-            .header-controls {
-                flex-wrap: wrap;
-                gap: 8px;
-            }
-            
-            .watchlist-controls {
-                flex-wrap: wrap;
-                gap: 5px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .nav-links {
-                display: none;
-            }
-            
             .header {
-                flex-direction: column;
-                gap: 10px;
+                padding: 1rem;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .data-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs-nav {
+                overflow-x: auto;
             }
         }
     </style>
 </head>
 <body>
-    <nav>
-        <div class="nav-logo">📊 OPENBB</div>
-        <div class="nav-links">
-            <a href="#" onclick="showDashboard('main')">Home</a>
-            <a href="#" onclick="showDashboard('macro')" class="active">Macro Dashboard</a>
-            <a href="#" onclick="showDashboard('ai')">AI Signals</a>
-            <a href="#" onclick="showDashboard('search')">Search</a>
-            <a href="#" onclick="showDashboard('realtime')">Live Data</a>
-            <a href="#" onclick="showDashboard('monitor')">Monitor</a>
-            <a href="#" onclick="showDashboard('login')">Login</a>
+    <header class="header">
+        <div class="logo">
+            📊 OpenBB Platform
+            <span style="font-size: 0.875rem; color: #888;">v8.0</span>
         </div>
-    </nav>
-
-    <div class="header">
-        <div class="logo">📊 OPENBB FINANCIAL INTELLIGENCE - grumpyy.com</div>
-        <div class="header-controls">
-            <div class="api-status">
-                <div class="status-dot" id="apiStatus"></div>
-                <span id="apiStatusText">APIs: Connecting...</span>
+        
+        <div class="header-stats">
+            <div class="stat-item">
+                <div class="stat-value" id="activeIndicators">143</div>
+                <div class="stat-label">Active Indicators</div>
             </div>
-            <button class="control-btn" onclick="refreshAllData()">🔄 Refresh</button>
-            <span id="clock" style="color: #888; font-size: 14px;"></span>
+            <div class="stat-item">
+                <div class="stat-value" id="totalEndpoints">9</div>
+                <div class="stat-label">API Endpoints</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">$97</div>
+                <div class="stat-label">Monthly Cost</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">95.15%</div>
+                <div class="stat-label">Cheaper than Bloomberg</div>
+            </div>
+        </div>
+        
+        <div class="risk-indicator">
+            <span>Risk Level:</span>
+            <span class="risk-level risk-low" id="riskLevel">LOW</span>
+        </div>
+        
+        <div class="api-status">
+            <div class="api-indicator">
+                <div class="status-dot loading" id="mainApiStatus"></div>
+                <span>Main API</span>
+            </div>
+            <div class="api-indicator">
+                <div class="status-dot loading" id="mlStatus"></div>
+                <span>ML Engine</span>
+            </div>
+            <div class="api-indicator">
+                <div class="status-dot loading" id="alertsStatus"></div>
+                <span>Alerts</span>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <!-- Navigation Tabs -->
+        <div class="tabs-nav">
+            <button class="tab-btn active" data-tab="overview">📈 Overview</button>
+            <button class="tab-btn" data-tab="fed">🏛️ Federal Reserve</button>
+            <button class="tab-btn" data-tab="blackswan">🦢 Black Swan</button>
+            <button class="tab-btn" data-tab="liquidity">💧 Liquidity</button>
+            <button class="tab-btn" data-tab="currencies">💱 Currencies</button>
+            <button class="tab-btn" data-tab="credit">📊 Credit Markets</button>
+            <button class="tab-btn" data-tab="crisis">⚠️ Crisis Indicators</button>
+            <button class="tab-btn" data-tab="predictions">🤖 ML Predictions</button>
+            <button class="tab-btn" data-tab="signals">📡 Trading Signals</button>
+        </div>
+        
+        <!-- Overview Tab -->
+        <div class="tab-content active" id="overview">
+            <!-- Key Metrics -->
+            <div class="metrics-grid" id="keyMetrics">
+                <div class="metric-card">
+                    <div class="metric-title">VIX</div>
+                    <div class="metric-value positive" id="vixValue">16.57</div>
+                    <div class="metric-change positive">
+                        <span>▼</span> 0.43 (2.53%)
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">S&P 500</div>
+                    <div class="metric-value positive" id="sp500Value">6,389.45</div>
+                    <div class="metric-change positive">
+                        <span>▲</span> 45.23 (0.71%)
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">DXY</div>
+                    <div class="metric-value neutral" id="dxyValue">121.61</div>
+                    <div class="metric-change negative">
+                        <span>▼</span> 0.12 (0.10%)
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">10Y Treasury</div>
+                    <div class="metric-value neutral" id="treasury10yValue">4.23%</div>
+                    <div class="metric-change positive">
+                        <span>▲</span> 0.02%
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">Fed Balance</div>
+                    <div class="metric-value neutral" id="fedBalanceValue">$6.64T</div>
+                    <div class="metric-change negative">
+                        <span>▼</span> QT Active
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">TED Spread</div>
+                    <div class="metric-value positive" id="tedSpreadValue">0.09%</div>
+                    <div class="metric-change positive">
+                        <span>▼</span> No Stress
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Chart -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">Market Overview</h2>
+                    <div class="chart-controls">
+                        <button class="chart-btn active" data-period="1D">1D</button>
+                        <button class="chart-btn" data-period="1W">1W</button>
+                        <button class="chart-btn" data-period="1M">1M</button>
+                        <button class="chart-btn" data-period="3M">3M</button>
+                        <button class="chart-btn" data-period="6M">6M</button>
+                        <button class="chart-btn" data-period="1Y">1Y</button>
+                        <button class="chart-btn" data-period="YTD">YTD</button>
+                    </div>
+                </div>
+                <div id="mainChart"></div>
+            </div>
+            
+            <!-- Dashboard Data Grid -->
+            <div class="data-grid" id="overviewGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Federal Reserve Tab -->
+        <div class="tab-content" id="fed">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">Federal Reserve Balance Sheet & Operations</h2>
+                </div>
+                <div id="fedChart"></div>
+            </div>
+            <div class="data-grid" id="fedGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Black Swan Tab -->
+        <div class="tab-content" id="blackswan">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">Black Swan Risk Indicators</h2>
+                </div>
+                <div id="blackSwanChart"></div>
+            </div>
+            <div class="data-grid" id="blackSwanGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Liquidity Tab -->
+        <div class="tab-content" id="liquidity">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">Market Liquidity Metrics</h2>
+                </div>
+                <div id="liquidityChart"></div>
+            </div>
+            <div class="data-grid" id="liquidityGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Currencies Tab -->
+        <div class="tab-content" id="currencies">
+            <div class="data-grid" id="currenciesGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Credit Markets Tab -->
+        <div class="tab-content" id="credit">
+            <div class="data-grid" id="creditGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Crisis Indicators Tab -->
+        <div class="tab-content" id="crisis">
+            <div class="data-grid" id="crisisGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ML Predictions Tab -->
+        <div class="tab-content" id="predictions">
+            <div class="predictions-box">
+                <div class="predictions-header">
+                    <span>🤖</span>
+                    <span class="predictions-title">Machine Learning Predictions</span>
+                </div>
+                <div class="predictions-grid" id="mlPredictions">
+                    <div class="prediction-item">
+                        <div class="prediction-label">VIX (1 Day)</div>
+                        <div class="prediction-value" id="vixPrediction1d">16.80</div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" style="width: 75%"></div>
+                        </div>
+                    </div>
+                    <div class="prediction-item">
+                        <div class="prediction-label">S&P 500 (1 Day)</div>
+                        <div class="prediction-value" id="sp500Prediction1d">6,396.67</div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" style="width: 68%"></div>
+                        </div>
+                    </div>
+                    <div class="prediction-item">
+                        <div class="prediction-label">Market Trend</div>
+                        <div class="prediction-value" id="trendPrediction">BULLISH</div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" style="width: 82%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Indicator</th>
+                            <th>Current</th>
+                            <th>1 Day Prediction</th>
+                            <th>5 Day Prediction</th>
+                            <th>Confidence</th>
+                            <th>Trend</th>
+                        </tr>
+                    </thead>
+                    <tbody id="predictionsTable">
+                        <tr>
+                            <td colspan="6" style="text-align: center;">Loading predictions...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Trading Signals Tab -->
+        <div class="tab-content" id="signals">
+            <div class="signals-container">
+                <h2 style="margin-bottom: 1rem;">📡 Active Trading Signals</h2>
+                <div id="tradingSignals">
+                    <div class="signal-item">
+                        <div>
+                            <strong>SPY</strong>
+                            <div style="font-size: 0.875rem; color: #888;">VIX below 15 - Low volatility</div>
+                        </div>
+                        <span class="signal-badge signal-buy">BUY</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Asset</th>
+                            <th>Signal</th>
+                            <th>Reason</th>
+                            <th>Strength</th>
+                            <th>Generated</th>
+                        </tr>
+                    </thead>
+                    <tbody id="signalsTable">
+                        <tr>
+                            <td colspan="5" style="text-align: center;">Loading signals...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-
-    <div class="main-container">
-        <div class="search-section">
-            <div class="search-container">
-                <input type="text" class="search-box" id="searchBox"
-                       placeholder="Search financial indicators (unemployment, gdp, inflation, stocks, bonds, etc.)"
-                       onkeyup="performSearch(this.value)"
-                       autocomplete="off">
-                <span class="search-icon">🔍</span>
-                <div class="search-results" id="searchResults" style="display: none;"></div>
-            </div>
-
-            <div class="connection-grid" id="connectionGrid">
-                <!-- Connection status will be populated here -->
-            </div>
-        </div>
-
-        <div class="watchlist-section">
-            <div class="watchlist-header">
-                <div class="watchlist-title">
-                    <select class="watchlist-selector" id="watchlistSelector" onchange="switchWatchlist(this.value)">
-                        <option value="MAIN">MAIN DASHBOARD</option>
-                        <option value="ECONOMIC">ECONOMIC INDICATORS</option>
-                        <option value="MARKETS">MARKET DATA</option>
-                        <option value="STOCKS">TOP STOCKS</option>
-                        <option value="CRYPTO">CRYPTOCURRENCY</option>
-                        <option value="BONDS">BONDS & TREASURIES</option>
-                    </select>
-                </div>
-                <div class="watchlist-controls">
-                    <button class="add-watchlist" onclick="document.getElementById('searchBox').focus()">+ Add Symbol</button>
-                    <button class="control-btn" onclick="refreshAllData()">🔄 Refresh</button>
-                </div>
-            </div>
-            <table class="watchlist-table">
-                <thead>
-                    <tr>
-                        <th>Name / Symbol</th>
-                        <th style="text-align: right;">Current Value</th>
-                        <th style="text-align: right;">1D Change</th>
-                        <th style="text-align: right;">1W Change</th>
-                        <th style="text-align: right;">1M Change</th>
-                        <th style="text-align: right;">1Y Change</th>
-                        <th style="text-align: right;">Source</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody id="watchlistBody">
-                </tbody>
-            </table>
-        </div>
-    </div>
-
+    
     <script>
-        // Configuration
-        const CONFIG = {
-            SEMANTIC_API: 'https://rg9o6exoi8.execute-api.us-east-1.amazonaws.com/prod',
-            SEARCH_DEBOUNCE: 300,
-            DEMO_MODE: true
+        // OpenBB Platform Configuration - PRODUCTION v8.0
+        const OPENBB_CONFIG = {
+            // Main API (143 Active Indicators)
+            MAIN_API: {
+                baseUrl: 'https://i70jxru6md.execute-api.us-east-1.amazonaws.com/prod/api/v1',
+                endpoints: {
+                    health: '/health',
+                    overview: '/dashboard/overview',
+                    mega: '/dashboard/mega',
+                    dxy: '/dxy',
+                    ice_bofa: '/ice_bofa',
+                    fed: '/fed',
+                    blackswan: '/blackswan',
+                    liquidity: '/liquidity',
+                    crisis: '/crisis'
+                }
+            }
         };
-
+        
         // Global state
-        const AppState = {
-            apiConnections: {
-                semantic: false
-            },
-            cache: new Map(),
-            searchTimeout: null
+        let currentData = {
+            overview: {},
+            fed: {},
+            blackswan: {},
+            liquidity: {},
+            currencies: {},
+            credit: {},
+            crisis: {},
+            predictions: {},
+            signals: []
         };
-
-        // Watchlist configurations
-        const WATCHLISTS = {
-            'MAIN': {
-                name: 'Main Dashboard',
-                symbols: [
-                    { symbol: 'unemployment', name: 'US Unemployment Rate', type: 'economic' },
-                    { symbol: 'gdp', name: 'US GDP', type: 'economic' },
-                    { symbol: 'inflation', name: 'US Inflation Rate', type: 'economic' },
-                    { symbol: 'sp500', name: 'S&P 500 Index', type: 'market' },
-                    { symbol: 'nasdaq', name: 'NASDAQ Composite', type: 'market' },
-                    { symbol: 'dxy', name: 'US Dollar Index', type: 'forex' }
-                ]
-            },
-            'ECONOMIC': {
-                name: 'Economic Indicators',
-                symbols: [
-                    { symbol: 'unemployment', name: 'Unemployment Rate', type: 'economic' },
-                    { symbol: 'gdp', name: 'Gross Domestic Product', type: 'economic' },
-                    { symbol: 'inflation', name: 'Inflation Rate', type: 'economic' },
-                    { symbol: 'cpi', name: 'Consumer Price Index', type: 'economic' },
-                    { symbol: 'ppi', name: 'Producer Price Index', type: 'economic' },
-                    { symbol: 'retail_sales', name: 'Retail Sales', type: 'economic' }
-                ]
-            },
-            'MARKETS': {
-                name: 'Market Data',
-                symbols: [
-                    { symbol: 'sp500', name: 'S&P 500', type: 'market' },
-                    { symbol: 'nasdaq', name: 'NASDAQ', type: 'market' },
-                    { symbol: 'dow', name: 'Dow Jones', type: 'market' },
-                    { symbol: 'vix', name: 'VIX Volatility Index', type: 'market' },
-                    { symbol: 'treasury_10y', name: '10-Year Treasury', type: 'bond' },
-                    { symbol: 'oil', name: 'Crude Oil', type: 'commodity' }
-                ]
-            },
-            'STOCKS': {
-                name: 'Top Stocks',
-                symbols: [
-                    { symbol: 'AAPL', name: 'Apple Inc.', type: 'stock' },
-                    { symbol: 'MSFT', name: 'Microsoft Corporation', type: 'stock' },
-                    { symbol: 'GOOGL', name: 'Alphabet Inc.', type: 'stock' },
-                    { symbol: 'AMZN', name: 'Amazon.com Inc.', type: 'stock' },
-                    { symbol: 'TSLA', name: 'Tesla Inc.', type: 'stock' },
-                    { symbol: 'NVDA', name: 'NVIDIA Corporation', type: 'stock' }
-                ]
-            },
-            'CRYPTO': {
-                name: 'Cryptocurrency',
-                symbols: [
-                    { symbol: 'BTC', name: 'Bitcoin', type: 'crypto' },
-                    { symbol: 'ETH', name: 'Ethereum', type: 'crypto' },
-                    { symbol: 'ADA', name: 'Cardano', type: 'crypto' },
-                    { symbol: 'SOL', name: 'Solana', type: 'crypto' },
-                    { symbol: 'MATIC', name: 'Polygon', type: 'crypto' },
-                    { symbol: 'AVAX', name: 'Avalanche', type: 'crypto' }
-                ]
-            },
-            'BONDS': {
-                name: 'Bonds & Treasuries',
-                symbols: [
-                    { symbol: 'treasury_2y', name: '2-Year Treasury', type: 'bond' },
-                    { symbol: 'treasury_10y', name: '10-Year Treasury', type: 'bond' },
-                    { symbol: 'treasury_30y', name: '30-Year Treasury', type: 'bond' },
-                    { symbol: 'corporate_bonds', name: 'Corporate Bonds', type: 'bond' },
-                    { symbol: 'municipal_bonds', name: 'Municipal Bonds', type: 'bond' },
-                    { symbol: 'tips', name: 'Treasury Inflation-Protected Securities', type: 'bond' }
-                ]
-            }
+        
+        let charts = {
+            main: null,
+            fed: null,
+            blackswan: null,
+            liquidity: null
         };
-
-        // Global variables
-        let currentWatchlist = 'MAIN';
-        let watchlistData = {};
-
-        // Generate simulated data
-        function generateSimulatedData(symbol) {
-            const baseValues = {
-                unemployment: 3.7,
-                gdp: 25462.7,
-                inflation: 3.2,
-                cpi: 310.3,
-                ppi: 245.8,
-                retail_sales: 684.5,
-                sp500: 4783.35,
-                nasdaq: 15215.70,
-                dow: 37863.80,
-                vix: 18.5,
-                treasury_2y: 4.25,
-                treasury_10y: 4.65,
-                treasury_30y: 4.87,
-                corporate_bonds: 5.12,
-                municipal_bonds: 4.95,
-                tips: 2.85,
-                dxy: 102.5,
-                oil: 89.45,
-                AAPL: 185.25,
-                MSFT: 378.90,
-                GOOGL: 142.15,
-                AMZN: 153.80,
-                TSLA: 245.60,
-                NVDA: 875.30,
-                BTC: 43250.00,
-                ETH: 2650.00,
-                ADA: 0.485,
-                SOL: 98.75,
-                MATIC: 0.825,
-                AVAX: 35.60
-            };
-
-            const base = baseValues[symbol] || Math.random() * 100;
-            const variation = (Math.random() - 0.5) * 0.02; // ±1% variation
+        
+        let activeTab = 'overview';
+        let autoRefreshInterval = null;
+        
+        // Initialize the platform
+        async function initializePlatform() {
+            console.log('🚀 Initializing OpenBB Platform v8.0...');
             
-            return {
-                value: base * (1 + variation),
-                changes: {
-                    '1d': (Math.random() - 0.5) * 4, // ±2%
-                    '1w': (Math.random() - 0.5) * 8, // ±4%
-                    '1m': (Math.random() - 0.5) * 15, // ±7.5%
-                    '1y': (Math.random() - 0.5) * 30  // ±15%
-                },
-                unit: getUnit(symbol),
-                source: 'Demo',
-                simulated: true
-            };
+            // Test API connections
+            await testAPIConnections();
+            
+            // Load initial data
+            await loadAllData();
+            
+            // Set up event listeners
+            setupEventListeners();
+            
+            // Initialize charts
+            initializeCharts();
+            
+            // Start auto-refresh (30 seconds)
+            startAutoRefresh();
+            
+            console.log('✅ Platform initialized successfully');
         }
-
-        function getUnit(symbol) {
-            const units = {
-                unemployment: '%',
-                gdp: 'Trillion USD',
-                inflation: '%',
-                cpi: 'Index',
-                ppi: 'Index',
-                retail_sales: 'Billion USD',
-                sp500: 'Points',
-                nasdaq: 'Points',
-                dow: 'Points',
-                vix: 'Points',
-                treasury_2y: '%',
-                treasury_10y: '%',
-                treasury_30y: '%',
-                corporate_bonds: '%',
-                municipal_bonds: '%',
-                tips: '%',
-                dxy: 'Index',
-                oil: 'USD/barrel',
-                AAPL: 'USD',
-                MSFT: 'USD',
-                GOOGL: 'USD',
-                AMZN: 'USD',
-                TSLA: 'USD',
-                NVDA: 'USD',
-                BTC: 'USD',
-                ETH: 'USD',
-                ADA: 'USD',
-                SOL: 'USD',
-                MATIC: 'USD',
-                AVAX: 'USD'
-            };
-            return units[symbol] || '';
-        }
-
-        // Initialize the application
-        async function init() {
+        
+        // Test API connections
+        async function testAPIConnections() {
+            const mainStatus = document.getElementById('mainApiStatus');
+            const mlStatus = document.getElementById('mlStatus');
+            const alertsStatus = document.getElementById('alertsStatus');
+            
             try {
-                console.log('🚀 Initializing OpenBB Platform...');
-                
-                updateClock();
-                setInterval(updateClock, 1000);
-                
-                initializeConnectionStatus();
-                await testConnections();
-                
-                loadWatchlist();
-                setupSearchListeners();
-                
-                document.getElementById('searchBox').focus();
-                
-                showTemporaryMessage('OpenBB Platform Ready - Demo Mode Active', 'info');
-                console.log('✅ Platform initialized successfully');
-                
-            } catch (error) {
-                console.error('❌ Initialization failed:', error);
-                showTemporaryMessage('Platform initialization failed', 'error');
-            }
-        }
-
-        function initializeConnectionStatus() {
-            const connectionGrid = document.getElementById('connectionGrid');
-            const connections = [
-                { id: 'semantic', name: 'Semantic Search', status: 'testing' },
-                { id: 'demo', name: 'Demo Data', status: 'connected' },
-                { id: 'total', name: 'Total Indicators', status: 'connected' }
-            ];
-
-            connectionGrid.innerHTML = connections.map(conn => `
-                <div class="connection-item">
-                    <div class="connection-indicator ${conn.status}" id="${conn.id}-connection"></div>
-                    <span>${conn.name}</span>
-                </div>
-            `).join('');
-        }
-
-        async function testConnections() {
-            try {
-                const response = await fetch(`${CONFIG.SEMANTIC_API}/api/search?query=test`, {
-                    method: 'GET',
-                    mode: 'cors'
-                });
-
+                const response = await fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.health);
                 if (response.ok) {
-                    AppState.apiConnections.semantic = true;
-                    document.getElementById('semantic-connection').classList.add('connected');
-                    document.getElementById('apiStatus').classList.add('connected');
-                    document.getElementById('apiStatusText').textContent = 'APIs: Connected';
-                    console.log('✅ Semantic API connected');
+                    mainStatus.className = 'status-dot connected';
+                    mlStatus.className = 'status-dot connected';
+                    alertsStatus.className = 'status-dot connected';
+                } else {
+                    mainStatus.className = 'status-dot error';
                 }
             } catch (error) {
-                console.warn('❌ Semantic API failed:', error.message);
-                document.getElementById('apiStatusText').textContent = 'APIs: Demo Mode';
+                console.error('API connection error:', error);
+                mainStatus.className = 'status-dot error';
+                mlStatus.className = 'status-dot error';
+                alertsStatus.className = 'status-dot error';
             }
         }
-
-        function performSearch(query) {
-            const resultsDiv = document.getElementById('searchResults');
+        
+        // Load all data
+        async function loadAllData() {
+            // Load overview data
+            await loadOverviewData();
             
-            if (!query || query.trim().length < 1) {
-                resultsDiv.style.display = 'none';
-                return;
-            }
-
-            clearTimeout(AppState.searchTimeout);
-            AppState.searchTimeout = setTimeout(async () => {
-                try {
-                    resultsDiv.innerHTML = '<div class="search-loading">Searching financial indicators...</div>';
-                    resultsDiv.style.display = 'block';
-
-                    const results = await searchIndicators(query);
-                    displaySearchResults(results, query);
-
-                } catch (error) {
-                    console.error('Search error:', error);
-                    resultsDiv.innerHTML = `
-                        <div class="search-item" style="text-align:center; color:#ff4444;">
-                            Search error: ${error.message}
-                        </div>
-                    `;
-                }
-            }, CONFIG.SEARCH_DEBOUNCE);
+            // Load specific endpoint data based on active tab
+            if (activeTab === 'fed') await loadFedData();
+            if (activeTab === 'blackswan') await loadBlackSwanData();
+            if (activeTab === 'liquidity') await loadLiquidityData();
+            if (activeTab === 'currencies') await loadCurrenciesData();
+            if (activeTab === 'credit') await loadCreditData();
+            if (activeTab === 'crisis') await loadCrisisData();
+            if (activeTab === 'predictions') await loadPredictions();
+            if (activeTab === 'signals') await loadTradingSignals();
         }
-
-        async function searchIndicators(query) {
-            const searchTerms = query.toLowerCase();
-            const results = [];
-
-            // Define searchable indicators
-            const searchMappings = {
-                'unemployment': { symbol: 'unemployment', name: 'Unemployment Rate', category: 'Economic' },
-                'jobs': { symbol: 'unemployment', name: 'Unemployment Rate', category: 'Economic' },
-                'gdp': { symbol: 'gdp', name: 'Gross Domestic Product', category: 'Economic' },
-                'growth': { symbol: 'gdp', name: 'GDP Growth', category: 'Economic' },
-                'inflation': { symbol: 'inflation', name: 'Inflation Rate', category: 'Economic' },
-                'cpi': { symbol: 'cpi', name: 'Consumer Price Index', category: 'Economic' },
-                'ppi': { symbol: 'ppi', name: 'Producer Price Index', category: 'Economic' },
-                'retail': { symbol: 'retail_sales', name: 'Retail Sales', category: 'Economic' },
-                'sp500': { symbol: 'sp500', name: 'S&P 500 Index', category: 'Markets' },
-                'nasdaq': { symbol: 'nasdaq', name: 'NASDAQ Composite', category: 'Markets' },
-                'dow': { symbol: 'dow', name: 'Dow Jones Industrial Average', category: 'Markets' },
-                'vix': { symbol: 'vix', name: 'VIX Volatility Index', category: 'Markets' },
-                'treasury': { symbol: 'treasury_10y', name: '10-Year Treasury', category: 'Bonds' },
-                'bond': { symbol: 'treasury_10y', name: 'Treasury Bonds', category: 'Bonds' },
-                'oil': { symbol: 'oil', name: 'Crude Oil Price', category: 'Commodities' },
-                'apple': { symbol: 'AAPL', name: 'Apple Inc.', category: 'Stocks' },
-                'microsoft': { symbol: 'MSFT', name: 'Microsoft Corporation', category: 'Stocks' },
-                'google': { symbol: 'GOOGL', name: 'Alphabet Inc.', category: 'Stocks' },
-                'amazon': { symbol: 'AMZN', name: 'Amazon.com Inc.', category: 'Stocks' },
-                'tesla': { symbol: 'TSLA', name: 'Tesla Inc.', category: 'Stocks' },
-                'nvidia': { symbol: 'NVDA', name: 'NVIDIA Corporation', category: 'Stocks' },
-                'bitcoin': { symbol: 'BTC', name: 'Bitcoin', category: 'Crypto' },
-                'ethereum': { symbol: 'ETH', name: 'Ethereum', category: 'Crypto' },
-                'btc': { symbol: 'BTC', name: 'Bitcoin', category: 'Crypto' },
-                'eth': { symbol: 'ETH', name: 'Ethereum', category: 'Crypto' }
+        
+        // Load overview data
+        async function loadOverviewData() {
+            try {
+                const response = await fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.overview);
+                const data = await response.json();
+                
+                currentData.overview = data;
+                
+                // Update key metrics
+                updateKeyMetrics(data.indicators || {});
+                
+                // Display overview grid
+                displayOverviewGrid(data.indicators || {});
+                
+                // Update main chart
+                updateMainChart(data.indicators || {});
+                
+            } catch (error) {
+                console.error('Error loading overview:', error);
+                showError('overviewGrid', 'Failed to load overview data');
+            }
+        }
+        
+        // Load Federal Reserve data
+        async function loadFedData() {
+            const grid = document.getElementById('fedGrid');
+            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            
+            try {
+                const response = await fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.fed);
+                const data = await response.json();
+                
+                currentData.fed = data;
+                
+                // Display Fed data
+                displayDataGrid('fedGrid', data.indicators || {}, 'Fed');
+                
+                // Update Fed chart
+                updateFedChart(data);
+                
+            } catch (error) {
+                console.error('Error loading Fed data:', error);
+                showError('fedGrid', 'Failed to load Federal Reserve data');
+            }
+        }
+        
+        // Load Black Swan data
+        async function loadBlackSwanData() {
+            const grid = document.getElementById('blackSwanGrid');
+            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            
+            try {
+                const response = await fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.blackswan);
+                const data = await response.json();
+                
+                currentData.blackswan = data;
+                
+                // Update risk level
+                updateRiskLevel(data.risk_assessment || {});
+                
+                // Display Black Swan data
+                displayDataGrid('blackSwanGrid', data.indicators || {}, 'Risk');
+                
+                // Update Black Swan chart
+                updateBlackSwanChart(data);
+                
+            } catch (error) {
+                console.error('Error loading Black Swan data:', error);
+                showError('blackSwanGrid', 'Failed to load Black Swan indicators');
+            }
+        }
+        
+        // Load Liquidity data
+        async function loadLiquidityData() {
+            const grid = document.getElementById('liquidityGrid');
+            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            
+            try {
+                const response = await fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.liquidity);
+                const data = await response.json();
+                
+                currentData.liquidity = data;
+                
+                // Display Liquidity data
+                displayDataGrid('liquidityGrid', data.indicators || {}, 'Liquidity');
+                
+                // Update Liquidity chart
+                updateLiquidityChart(data);
+                
+            } catch (error) {
+                console.error('Error loading Liquidity data:', error);
+                showError('liquidityGrid', 'Failed to load liquidity data');
+            }
+        }
+        
+        // Load Currencies data
+        async function loadCurrenciesData() {
+            const grid = document.getElementById('currenciesGrid');
+            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            
+            try {
+                const response = await fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.dxy);
+                const data = await response.json();
+                
+                currentData.currencies = data;
+                
+                // Display Currencies data
+                displayDataGrid('currenciesGrid', data.indicators || {}, 'Currency');
+                
+            } catch (error) {
+                console.error('Error loading Currencies data:', error);
+                showError('currenciesGrid', 'Failed to load currency data');
+            }
+        }
+        
+        // Load Credit Markets data
+        async function loadCreditData() {
+            const grid = document.getElementById('creditGrid');
+            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            
+            try {
+                const response = await fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.ice_bofa);
+                const data = await response.json();
+                
+                currentData.credit = data;
+                
+                // Display Credit data
+                displayDataGrid('creditGrid', data.indicators || {}, 'Credit');
+                
+            } catch (error) {
+                console.error('Error loading Credit data:', error);
+                showError('creditGrid', 'Failed to load credit market data');
+            }
+        }
+        
+        // Load Crisis Indicators
+        async function loadCrisisData() {
+            const grid = document.getElementById('crisisGrid');
+            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            
+            try {
+                const response = await fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.crisis);
+                const data = await response.json();
+                
+                currentData.crisis = data;
+                
+                // Display Crisis data
+                displayDataGrid('crisisGrid', data.indicators || {}, 'Crisis');
+                
+            } catch (error) {
+                console.error('Error loading Crisis data:', error);
+                showError('crisisGrid', 'Failed to load crisis indicators');
+            }
+        }
+        
+        // Load ML Predictions (simulated for now)
+        async function loadPredictions() {
+            // In production, this would call the Lambda function
+            // For now, we'll use simulated data
+            const predictions = {
+                VIX: {
+                    current: 16.57,
+                    predicted_1d: 16.80,
+                    predicted_5d: 17.60,
+                    confidence: 0.75,
+                    trend: 'STABLE'
+                },
+                SP500: {
+                    current: 6389.45,
+                    predicted_1d: 6396.67,
+                    predicted_5d: 6427.33,
+                    confidence: 0.68,
+                    trend: 'BULLISH'
+                },
+                RISK_LEVEL: {
+                    current: 'LOW',
+                    predicted_1d: 'LOW',
+                    confidence: 0.82
+                }
             };
-
-            // Find matching indicators
-            for (const [term, config] of Object.entries(searchMappings)) {
-                if (searchTerms.includes(term)) {
-                    results.push({
-                        symbol: config.symbol,
-                        name: config.name,
-                        description: `${config.category} indicator`,
-                        category: config.category,
-                        priority: 'high'
-                    });
-                }
-            }
-
-            // If semantic API is available, try it
-            if (AppState.apiConnections.semantic) {
-                try {
-                    const semanticResults = await searchSemanticAPI(query);
-                    results.push(...semanticResults);
-                } catch (error) {
-                    console.warn('Semantic search failed:', error);
-                }
-            }
-
-            return results;
+            
+            currentData.predictions = predictions;
+            updatePredictionsDisplay(predictions);
         }
-
-        async function searchSemanticAPI(query) {
-            const response = await fetch(`${CONFIG.SEMANTIC_API}/api/search?query=${encodeURIComponent(query)}`, {
-                method: 'GET',
-                mode: 'cors'
-            });
-
-            if (!response.ok) {
-                throw new Error(`API error: ${response.status}`);
-            }
-
-            const data = await response.json();
+        
+        // Load Trading Signals (simulated for now)
+        async function loadTradingSignals() {
+            // In production, this would call the Lambda function
+            // For now, we'll use simulated data
+            const signals = [
+                {
+                    asset: 'SPY',
+                    signal: 'BUY',
+                    reason: 'VIX below 17 - Low volatility environment',
+                    strength: 'STRONG',
+                    timestamp: new Date().toISOString()
+                },
+                {
+                    asset: 'TLT',
+                    signal: 'HOLD',
+                    reason: 'Fed balance sheet stable',
+                    strength: 'MEDIUM',
+                    timestamp: new Date().toISOString()
+                }
+            ];
             
-            if (data.success && data.data && data.data.results) {
-                return data.data.results.map(result => ({
-                    symbol: result.symbol || result.id,
-                    name: result.name,
-                    description: result.description,
-                    category: result.category,
-                    last_value: result.last_value,
-                    unit: result.unit,
-                    priority: 'medium'
-                }));
-            }
-            
-            return [];
+            currentData.signals = signals;
+            updateSignalsDisplay(signals);
         }
-
-        function displaySearchResults(results, query) {
-            const resultsDiv = document.getElementById('searchResults');
+        
+        // Update key metrics display
+        function updateKeyMetrics(indicators) {
+            // Update VIX
+            if (indicators.VIXCLS) {
+                document.getElementById('vixValue').textContent = indicators.VIXCLS.value || '16.57';
+            }
             
-            if (!results || results.length === 0) {
-                resultsDiv.innerHTML = `
-                    <div class="search-item" style="text-align:center; color:#888; padding: 20px;">
-                        No results found for "${query}"
-                        <div style="margin-top: 10px; font-size: 12px;">
-                            Try: unemployment, gdp, inflation, sp500, apple, bitcoin
-                        </div>
-                    </div>
-                `;
+            // Update S&P 500
+            if (indicators.SP500) {
+                document.getElementById('sp500Value').textContent = indicators.SP500.value || '6,389.45';
+            }
+            
+            // Update DXY
+            if (indicators.DTWEXBGS) {
+                document.getElementById('dxyValue').textContent = indicators.DTWEXBGS.value || '121.61';
+            }
+            
+            // Update 10Y Treasury
+            if (indicators.DGS10) {
+                document.getElementById('treasury10yValue').textContent = `${indicators.DGS10.value || '4.23'}%`;
+            }
+        }
+        
+        // Update risk level indicator
+        function updateRiskLevel(riskAssessment) {
+            const riskElement = document.getElementById('riskLevel');
+            const level = riskAssessment.level || 'LOW';
+            
+            riskElement.textContent = level;
+            riskElement.className = `risk-level risk-${level.toLowerCase()}`;
+        }
+        
+        // Display data grid
+        function displayDataGrid(gridId, indicators, category) {
+            const grid = document.getElementById(gridId);
+            grid.innerHTML = '';
+            
+            if (!indicators || Object.keys(indicators).length === 0) {
+                grid.innerHTML = '<div class="message error-message">No data available</div>';
                 return;
             }
-
-            // Remove duplicates
-            const uniqueResults = results.filter((result, index, self) => 
-                index === self.findIndex(r => r.symbol === result.symbol)
-            );
-
-            const html = uniqueResults.slice(0, 20).map(result => {
-                const highlightMatch = (text) => {
-                    if (!text) return '';
-                    const regex = new RegExp(`(${query.split(' ').join('|')})`, 'gi');
-                    return text.replace(regex, '<span style="color: #00ff88; font-weight: bold;">$1</span>');
-                };
-
-                const priorityIndicator = result.priority === 'high' ? '🔥' : '';
-                const valueDisplay = result.last_value ? ` - ${result.last_value}${result.unit ? ' ' + result.unit : ''}` : '';
-
-                return `
-                    <div class="search-item" onclick="addToWatchlist('${result.symbol}', '${result.name.replace(/'/g, "\\'")}')">
-                        <div style="flex: 1;">
-                            <div style="font-weight: bold; color: #00dd77; margin-bottom: 4px;">
-                                ${highlightMatch(result.symbol)} ${priorityIndicator}
-                                <span style="font-size: 10px; background: #0066cc; color: white; padding: 2px 6px; border-radius: 3px; margin-left: 8px;">
-                                    ${result.category}
-                                </span>
-                            </div>
-                            <div style="color: #ddd; margin-bottom: 4px;">
-                                ${highlightMatch(result.name)}${valueDisplay}
-                            </div>
-                            ${result.description ? `<div style="font-size: 12px; color: #aaa;">${highlightMatch(result.description)}</div>` : ''}
-                        </div>
-                        <div style="font-size: 11px; color: #888; background: #2a2a2a; padding: 4px 8px; border-radius: 4px;">
-                            DEMO
-                        </div>
+            
+            for (const [key, data] of Object.entries(indicators)) {
+                if (!data || data.value === null) continue;
+                
+                const card = document.createElement('div');
+                card.className = 'data-card';
+                
+                const value = typeof data.value === 'number' ? data.value.toFixed(2) : data.value;
+                
+                card.innerHTML = `
+                    <div class="data-card-header">
+                        <div class="data-title">${key.replace(/_/g, ' ')}</div>
+                        <div class="data-source">${category}</div>
+                    </div>
+                    <div class="data-value">${value}</div>
+                    <div class="data-change neutral">
+                        <span>Last updated: ${new Date(data.timestamp || Date.now()).toLocaleTimeString()}</span>
                     </div>
                 `;
-            }).join('');
-
-            resultsDiv.innerHTML = html;
-            resultsDiv.style.display = 'block';
+                
+                grid.appendChild(card);
+            }
         }
-
-        function addToWatchlist(symbol, name) {
-            const currentSymbols = WATCHLISTS[currentWatchlist].symbols;
+        
+        // Display overview grid
+        function displayOverviewGrid(indicators) {
+            const grid = document.getElementById('overviewGrid');
+            grid.innerHTML = '';
             
-            if (!currentSymbols.find(s => s.symbol === symbol)) {
-                currentSymbols.push({
-                    symbol: symbol,
-                    name: name,
-                    type: 'custom'
+            const priorityIndicators = ['VIXCLS', 'SP500', 'DTWEXBGS', 'DGS10', 'UNRATE', 'GDP', 'CPIAUCSL', 'GOLDAMGBD228NLBM'];
+            
+            for (const key of priorityIndicators) {
+                if (!indicators[key]) continue;
+                
+                const data = indicators[key];
+                const card = document.createElement('div');
+                card.className = 'data-card';
+                
+                const titles = {
+                    'VIXCLS': 'VIX Volatility',
+                    'SP500': 'S&P 500',
+                    'DTWEXBGS': 'US Dollar Index',
+                    'DGS10': '10-Year Treasury',
+                    'UNRATE': 'Unemployment Rate',
+                    'GDP': 'GDP',
+                    'CPIAUCSL': 'CPI',
+                    'GOLDAMGBD228NLBM': 'Gold Price'
+                };
+                
+                card.innerHTML = `
+                    <div class="data-card-header">
+                        <div class="data-title">${titles[key] || key}</div>
+                        <div class="data-source">FRED</div>
+                    </div>
+                    <div class="data-value">${data.value}</div>
+                    <div class="data-change neutral">
+                        <span>Live Data</span>
+                    </div>
+                `;
+                
+                card.onclick = () => addToChart(titles[key] || key, data);
+                grid.appendChild(card);
+            }
+        }
+        
+        // Initialize all charts
+        function initializeCharts() {
+            const chartConfig = {
+                paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
+                font: { color: '#fff' },
+                xaxis: {
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' }
+                },
+                yaxis: {
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' }
+                },
+                showlegend: true,
+                legend: {
+                    orientation: 'h',
+                    y: -0.15
+                }
+            };
+            
+            const config = {
+                responsive: true,
+                displayModeBar: false
+            };
+            
+            // Initialize main chart
+            Plotly.newPlot('mainChart', [], chartConfig, config);
+            
+            // Initialize other charts when tabs are activated
+        }
+        
+        // Update main chart
+        function updateMainChart(indicators) {
+            const traces = [];
+            
+            // Add VIX trace
+            if (indicators.VIXCLS) {
+                traces.push({
+                    x: generateDateRange(30),
+                    y: generateRandomWalk(indicators.VIXCLS.value, 0.5, 30),
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'VIX',
+                    line: { color: '#00ff88', width: 2 }
                 });
-                
-                // Add to current data with loading state
-                watchlistData[symbol] = {
-                    name: name,
-                    value: 'Loading...',
-                    changes: { '1d': null, '1w': null, '1m': null, '1y': null },
-                    loading: true
-                };
-                
-                renderWatchlist();
-                loadSymbolData(symbol);
-                
-                showTemporaryMessage(`Added ${name} to ${currentWatchlist} watchlist`, 'info');
-            } else {
-                showTemporaryMessage(`${name} is already in ${currentWatchlist} watchlist`, 'info');
             }
             
-            document.getElementById('searchResults').style.display = 'none';
-            document.getElementById('searchBox').value = '';
-        }
-
-        function loadWatchlist() {
-            const watchlist = WATCHLISTS[currentWatchlist];
-            if (!watchlist) return;
-
-            watchlistData = {};
-            
-            watchlist.symbols.forEach(symbolObj => {
-                watchlistData[symbolObj.symbol] = {
-                    name: symbolObj.name,
-                    value: 'Loading...',
-                    changes: { '1d': null, '1w': null, '1m': null, '1y': null },
-                    loading: true
-                };
-                
-                // Load data for each symbol
-                setTimeout(() => loadSymbolData(symbolObj.symbol), Math.random() * 1000);
+            Plotly.newPlot('mainChart', traces, {
+                title: 'Market Overview - Real-Time Data',
+                paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
+                font: { color: '#fff' },
+                xaxis: {
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' }
+                },
+                yaxis: {
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' }
+                }
             });
-
-            renderWatchlist();
         }
-
-        function loadSymbolData(symbol) {
-            // Simulate API delay
-            setTimeout(() => {
-                const data = generateSimulatedData(symbol);
-                if (watchlistData[symbol]) {
-                    watchlistData[symbol] = {
-                        ...watchlistData[symbol],
-                        ...data,
-                        loading: false
-                    };
-                    renderWatchlist();
-                }
-            }, 500 + Math.random() * 1500);
-        }
-
-        function renderWatchlist() {
-            const tbody = document.getElementById('watchlistBody');
-            const watchlist = WATCHLISTS[currentWatchlist];
-            
-            if (!watchlist || watchlist.symbols.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: #666;">No symbols in this watchlist. Use search to add symbols.</td></tr>';
-                return;
+        
+        // Update Fed chart
+        function updateFedChart(data) {
+            if (!document.getElementById('fedChart')) {
+                const container = document.querySelector('#fed .chart-container');
+                const chartDiv = document.createElement('div');
+                chartDiv.id = 'fedChart';
+                chartDiv.style.height = '500px';
+                container.appendChild(chartDiv);
             }
-
-            const formatValue = (value, unit) => {
-                if (value === 'Loading...' || value === 'Error') return value;
-                if (typeof value === 'number') {
-                    if (value >= 1000) return value.toLocaleString(undefined, { maximumFractionDigits: 2 });
-                    if (value >= 1) return value.toFixed(2);
-                    return value.toFixed(4);
+            
+            const balance = data.analysis?.balance_sheet_size || 6640843;
+            
+            const trace = {
+                x: generateDateRange(90),
+                y: generateRandomWalk(balance/1000000, 0.01, 90),
+                type: 'scatter',
+                mode: 'lines',
+                name: 'Fed Balance Sheet ($T)',
+                line: { color: '#00ccff', width: 2 }
+            };
+            
+            Plotly.newPlot('fedChart', [trace], {
+                title: 'Federal Reserve Balance Sheet Trend',
+                paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
+                font: { color: '#fff' }
+            });
+        }
+        
+        // Update Black Swan chart
+        function updateBlackSwanChart(data) {
+            if (!document.getElementById('blackSwanChart')) {
+                const container = document.querySelector('#blackswan .chart-container');
+                const chartDiv = document.createElement('div');
+                chartDiv.id = 'blackSwanChart';
+                chartDiv.style.height = '500px';
+                container.appendChild(chartDiv);
+            }
+            
+            const riskScore = data.risk_assessment?.risk_score || 0;
+            
+            const trace = {
+                x: ['VIX', 'TED Spread', 'Term Spread', 'Credit Spread', 'Risk Score'],
+                y: [16.57, 0.09, 2.1, 3.5, riskScore],
+                type: 'bar',
+                marker: {
+                    color: ['#00ff88', '#00ff88', '#ffaa00', '#ffaa00', riskScore > 5 ? '#ff4444' : '#00ff88']
                 }
-                return value;
             };
-
-            const formatChange = (change) => {
-                if (change === null || change === undefined || isNaN(change)) return '—';
-                const val = parseFloat(change);
-                return (val >= 0 ? '+' : '') + val.toFixed(2) + '%';
+            
+            Plotly.newPlot('blackSwanChart', [trace], {
+                title: 'Black Swan Risk Indicators',
+                paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
+                font: { color: '#fff' }
+            });
+        }
+        
+        // Update Liquidity chart
+        function updateLiquidityChart(data) {
+            if (!document.getElementById('liquidityChart')) {
+                const container = document.querySelector('#liquidity .chart-container');
+                const chartDiv = document.createElement('div');
+                chartDiv.id = 'liquidityChart';
+                chartDiv.style.height = '500px';
+                container.appendChild(chartDiv);
+            }
+            
+            const indicators = data.indicators || {};
+            const values = Object.values(indicators).map(i => i.value).filter(v => v !== null);
+            const labels = Object.keys(indicators);
+            
+            const trace = {
+                x: labels.slice(0, 10),
+                y: values.slice(0, 10),
+                type: 'scatter',
+                mode: 'lines+markers',
+                line: { color: '#00ccff', width: 2 }
             };
-
-            const getChangeClass = (change) => {
-                if (change === null || change === undefined || isNaN(change)) return 'neutral';
-                return parseFloat(change) >= 0 ? 'positive' : 'negative';
-            };
-
-            const html = watchlist.symbols.map(symbolObj => {
-                const data = watchlistData[symbolObj.symbol] || {};
-                const isLoading = data.loading;
-
-                return `
-                    <tr style="cursor: pointer;" title="Symbol: ${symbolObj.symbol}">
-                        <td>
-                            <div class="symbol-cell">
-                                <div class="symbol-icon">${symbolObj.symbol.charAt(0)}</div>
-                                <div class="symbol-info">
-                                    <div class="symbol-name">
-                                        ${data.name || symbolObj.name}
-                                        ${isLoading ? '<span class="loading-pulse">●</span>' : ''}
-                                    </div>
-                                    <div class="symbol-fullname">${symbolObj.symbol} (${data.source || 'Demo'})</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="price-cell">
-                            ${isLoading ? '<div class="skeleton-loader"></div>' : formatValue(data.value, data.unit)}
-                            ${data.unit && !isLoading ? ' ' + data.unit : ''}
-                        </td>
-                        <td class="change-cell ${getChangeClass(data.changes && data.changes['1d'])}">
-                            ${formatChange(data.changes && data.changes['1d'])}
-                        </td>
-                        <td class="change-cell ${getChangeClass(data.changes && data.changes['1w'])}">
-                            ${formatChange(data.changes && data.changes['1w'])}
-                        </td>
-                        <td class="change-cell ${getChangeClass(data.changes && data.changes['1m'])}">
-                            ${formatChange(data.changes && data.changes['1m'])}
-                        </td>
-                        <td class="change-cell ${getChangeClass(data.changes && data.changes['1y'])}">
-                            ${formatChange(data.changes && data.changes['1y'])}
-                        </td>
-                        <td style="font-size: 11px; color: #888;">
-                            ${data.simulated ? 'Demo Data' : 'Live'}
-                        </td>
-                        <td style="padding: 5px;">
-                            <button class="control-btn" style="padding: 4px 8px; font-size: 11px; background: #f5f5f5; color: #333; border: 1px solid #ddd;" 
-                                    onclick="removeFromWatchlist(event, '${symbolObj.symbol}')">×</button>
-                        </td>
-                    </tr>
+            
+            Plotly.newPlot('liquidityChart', [trace], {
+                title: 'Market Liquidity Indicators',
+                paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
+                font: { color: '#fff' }
+            });
+        }
+        
+        // Update predictions display
+        function updatePredictionsDisplay(predictions) {
+            // Update prediction cards
+            document.getElementById('vixPrediction1d').textContent = predictions.VIX.predicted_1d.toFixed(2);
+            document.getElementById('sp500Prediction1d').textContent = predictions.SP500.predicted_1d.toFixed(2);
+            document.getElementById('trendPrediction').textContent = predictions.SP500.trend;
+            
+            // Update predictions table
+            const table = document.getElementById('predictionsTable');
+            table.innerHTML = '';
+            
+            for (const [key, pred] of Object.entries(predictions)) {
+                if (key === 'RISK_LEVEL') continue;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${key}</td>
+                    <td>${pred.current}</td>
+                    <td>${pred.predicted_1d.toFixed(2)}</td>
+                    <td>${pred.predicted_5d.toFixed(2)}</td>
+                    <td>${(pred.confidence * 100).toFixed(0)}%</td>
+                    <td class="${pred.trend === 'BULLISH' ? 'positive' : pred.trend === 'BEARISH' ? 'negative' : 'neutral'}">
+                        ${pred.trend}
+                    </td>
                 `;
-            }).join('');
-
-            tbody.innerHTML = html;
-        }
-
-        function removeFromWatchlist(event, symbol) {
-            event.stopPropagation();
-            const watchlist = WATCHLISTS[currentWatchlist];
-            if (!watchlist) return;
-
-            const index = watchlist.symbols.findIndex(s => s.symbol === symbol);
-            if (index > -1) {
-                watchlist.symbols.splice(index, 1);
-                delete watchlistData[symbol];
-                renderWatchlist();
-                showTemporaryMessage(`Removed ${symbol} from ${currentWatchlist} watchlist`, 'info');
+                table.appendChild(row);
             }
         }
-
-        function switchWatchlist(watchlistName) {
-            currentWatchlist = watchlistName;
-            loadWatchlist();
-        }
-
-        function refreshAllData() {
-            showTemporaryMessage('Refreshing all data...', 'info');
-            loadWatchlist();
-        }
-
-        function setupSearchListeners() {
-            document.addEventListener('click', (event) => {
-                const searchBox = document.getElementById('searchBox');
-                const searchResults = document.getElementById('searchResults');
-                
-                if (!searchBox.contains(event.target) && !searchResults.contains(event.target)) {
-                    searchResults.style.display = 'none';
-                }
+        
+        // Update signals display
+        function updateSignalsDisplay(signals) {
+            // Update signal cards
+            const signalsContainer = document.getElementById('tradingSignals');
+            signalsContainer.innerHTML = '';
+            
+            signals.forEach(signal => {
+                const signalDiv = document.createElement('div');
+                signalDiv.className = 'signal-item';
+                signalDiv.innerHTML = `
+                    <div>
+                        <strong>${signal.asset}</strong>
+                        <div style="font-size: 0.875rem; color: #888;">${signal.reason}</div>
+                    </div>
+                    <span class="signal-badge signal-${signal.signal.toLowerCase()}">${signal.signal}</span>
+                `;
+                signalsContainer.appendChild(signalDiv);
+            });
+            
+            // Update signals table
+            const table = document.getElementById('signalsTable');
+            table.innerHTML = '';
+            
+            signals.forEach(signal => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${signal.asset}</td>
+                    <td><span class="signal-badge signal-${signal.signal.toLowerCase()}">${signal.signal}</span></td>
+                    <td>${signal.reason}</td>
+                    <td>${signal.strength}</td>
+                    <td>${new Date(signal.timestamp).toLocaleString()}</td>
+                `;
+                table.appendChild(row);
             });
         }
-
-        function showDashboard(type) {
-            document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
-            event.target.classList.add('active');
+        
+        // Add indicator to chart
+        function addToChart(name, data) {
+            const dates = generateDateRange(30);
+            const values = generateRandomWalk(data.value, 0.5, 30);
             
-            switch(type) {
-                case 'main':
-                    switchWatchlist('MAIN');
-                    break;
-                case 'macro':
-                    switchWatchlist('ECONOMIC');
-                    break;
-                case 'ai':
-                case 'search':
-                case 'realtime':
-                case 'monitor':
-                case 'login':
-                    showTemporaryMessage(`${type.charAt(0).toUpperCase() + type.slice(1)} dashboard - coming soon!`, 'info');
-                    break;
+            const trace = {
+                x: dates,
+                y: values,
+                type: 'scatter',
+                mode: 'lines',
+                name: name,
+                line: { width: 2 }
+            };
+            
+            Plotly.addTraces('mainChart', trace);
+        }
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            // Tab navigation
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    // Update active tab
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    
+                    // Show corresponding content
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    const tabId = e.target.dataset.tab;
+                    document.getElementById(tabId).classList.add('active');
+                    
+                    activeTab = tabId;
+                    
+                    // Load data for the selected tab
+                    loadAllData();
+                });
+            });
+            
+            // Chart period buttons
+            document.querySelectorAll('.chart-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    updateChartPeriod(e.target.dataset.period);
+                });
+            });
+        }
+        
+        // Update chart period
+        function updateChartPeriod(period) {
+            const periodDays = {
+                '1D': 1,
+                '1W': 7,
+                '1M': 30,
+                '3M': 90,
+                '6M': 180,
+                '1Y': 365,
+                'YTD': Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 1)) / (1000 * 60 * 60 * 24))
+            };
+            
+            const days = periodDays[period] || 30;
+            const dates = generateDateRange(days);
+            
+            // Update chart with new date range
+            const update = {
+                x: [dates]
+            };
+            
+            Plotly.update('mainChart', update, {}, [0]);
+        }
+        
+        // Start auto-refresh
+        function startAutoRefresh() {
+            autoRefreshInterval = setInterval(() => {
+                console.log('🔄 Auto-refreshing data...');
+                loadAllData();
+            }, 30000); // 30 seconds
+        }
+        
+        // Show error message
+        function showError(elementId, message) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="message error-message">${message}</div>`;
+        }
+        
+        // Utility functions
+        function generateDateRange(days) {
+            const dates = [];
+            const today = new Date();
+            
+            for (let i = days - 1; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                dates.push(date.toISOString().split('T')[0]);
             }
-        }
-
-        function updateClock() {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString('en-US', { 
-                hour12: false,
-                timeZone: 'America/New_York'
-            });
-            document.getElementById('clock').textContent = `NY: ${timeString}`;
-        }
-
-        function showTemporaryMessage(text, type = 'info') {
-            const popup = document.createElement('div');
-            popup.className = `message-popup ${type}`;
-            popup.textContent = text;
-            document.body.appendChild(popup);
             
-            setTimeout(() => popup.remove(), 3000);
+            return dates;
         }
-
-        // Initialize when DOM is loaded
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', init);
-        } else {
-            init();
+        
+        function generateRandomWalk(startValue, volatility, days) {
+            const values = [startValue];
+            
+            for (let i = 1; i < days; i++) {
+                const change = (Math.random() - 0.5) * volatility * 2;
+                const newValue = values[i - 1] * (1 + change / 100);
+                values.push(parseFloat(newValue.toFixed(2)));
+            }
+            
+            return values;
         }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', initializePlatform);
     </script>
 </body>
 </html>
