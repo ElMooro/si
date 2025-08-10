@@ -9,9 +9,12 @@
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #0a0a0a; color: #e0e0e0; overflow-x: hidden; }
         
         /* Navigation */
-        nav { background: #121212; border-bottom: 1px solid #282828; padding: 15px 20px; position: sticky; top: 0; z-index: 1000; display: flex; justify-content: space-between; align-items: center; }
+        nav { background: #121212; border-bottom: 1px solid #282828; padding: 15px 20px; position: sticky; top: 0; z-index: 1000; }
+        .nav-container { display: flex; justify-content: space-between; align-items: center; }
         .nav-logo { font-size: 22px; font-weight: bold; background: linear-gradient(45deg, #00ff88, #00ccff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: flex; align-items: center; gap: 10px; }
         .version-badge { font-size: 12px; background: #00ff88; color: #000; padding: 2px 8px; border-radius: 12px; font-weight: bold; }
+        
+        /* Main Navigation */
         .nav-links { display: flex; gap: 25px; align-items: center; }
         .nav-links a { color: #ccc; text-decoration: none; font-size: 14px; transition: color 0.3s; position: relative; }
         .nav-links a:hover { color: #00ff88; }
@@ -19,6 +22,36 @@
         .nav-links a.active::after { content: ''; position: absolute; bottom: -5px; left: 0; right: 0; height: 2px; background: #00ff88; }
         .nav-links .dashboard-link { position: relative; }
         .nav-links .dashboard-link::after { content: 'LIVE'; position: absolute; top: -8px; right: -25px; background: #ff4444; color: #fff; font-size: 9px; font-weight: bold; padding: 2px 5px; border-radius: 8px; animation: pulse 2s infinite; }
+        
+        /* Dropdown Menu */
+        .nav-dropdown { position: relative; }
+        .nav-dropdown-toggle { color: #ccc; text-decoration: none; font-size: 14px; transition: color 0.3s; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+        .nav-dropdown-toggle:hover { color: #00ff88; }
+        .dropdown-arrow { font-size: 10px; transition: transform 0.3s; }
+        .nav-dropdown:hover .dropdown-arrow { transform: rotate(180deg); }
+        .dropdown-menu { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 10px 0; min-width: 200px; opacity: 0; visibility: hidden; transition: all 0.3s; margin-top: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .nav-dropdown:hover .dropdown-menu { opacity: 1; visibility: visible; margin-top: 15px; }
+        .dropdown-menu a { display: block; padding: 10px 20px; color: #ccc; text-decoration: none; font-size: 13px; transition: all 0.3s; position: relative; }
+        .dropdown-menu a:hover { background: rgba(0, 255, 136, 0.1); color: #00ff88; padding-left: 25px; }
+        .dropdown-menu a::before { content: ''; position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 0; height: 2px; background: #00ff88; transition: width 0.3s; }
+        .dropdown-menu a:hover::before { width: 5px; }
+        .dropdown-menu .dropdown-divider { height: 1px; background: #333; margin: 5px 0; }
+        .dropdown-menu .dropdown-header { padding: 5px 20px; font-size: 11px; color: #666; text-transform: uppercase; font-weight: bold; }
+        
+        /* Secondary Navigation Bar */
+        .secondary-nav { background: #181818; border-bottom: 1px solid #282828; padding: 10px 20px; display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; }
+        .secondary-nav a { color: #888; text-decoration: none; font-size: 13px; transition: all 0.3s; padding: 5px 10px; border-radius: 5px; }
+        .secondary-nav a:hover { color: #00ff88; background: rgba(0, 255, 136, 0.1); }
+        .secondary-nav a.new-badge { position: relative; }
+        .secondary-nav a.new-badge::after { content: 'NEW'; position: absolute; top: -5px; right: -20px; background: #00ff88; color: #000; font-size: 9px; font-weight: bold; padding: 2px 4px; border-radius: 4px; }
+        
+        /* Mobile Menu */
+        .mobile-menu-toggle { display: none; background: none; border: none; color: #ccc; font-size: 24px; cursor: pointer; }
+        .mobile-menu { display: none; position: fixed; top: 60px; left: 0; right: 0; background: #121212; border-bottom: 2px solid #00ff88; max-height: 80vh; overflow-y: auto; z-index: 999; }
+        .mobile-menu.active { display: block; }
+        .mobile-menu a { display: block; padding: 15px 20px; color: #ccc; text-decoration: none; border-bottom: 1px solid #282828; transition: all 0.3s; }
+        .mobile-menu a:hover { background: rgba(0, 255, 136, 0.1); color: #00ff88; padding-left: 30px; }
+        .mobile-menu .menu-section { background: #0a0a0a; padding: 10px 20px; color: #666; font-size: 12px; text-transform: uppercase; font-weight: bold; }
         
         /* Status Bar */
         .status-bar { background: linear-gradient(90deg, #00ff88, #00ccff); color: #000; padding: 10px; display: flex; justify-content: space-around; align-items: center; font-weight: bold; flex-wrap: wrap; gap: 20px; }
@@ -136,6 +169,8 @@
             .hero h1 { font-size: 32px; }
             .hero p { font-size: 16px; }
             .nav-links { display: none; }
+            .secondary-nav { display: none; }
+            .mobile-menu-toggle { display: block; }
             .stats-grid { grid-template-columns: 1fr; }
             .features-grid { grid-template-columns: 1fr; }
             .dashboard-stats { flex-direction: column; gap: 15px; }
@@ -145,20 +180,92 @@
 </head>
 <body>
     <nav>
-        <div class="nav-logo">
-            📊 OPENBB
-            <span class="version-badge">v8.0</span>
-        </div>
-        <div class="nav-links">
-            <a href="#" class="active">Home</a>
-            <a href="macroeconomic-platform.html" class="dashboard-link">📈 Live Dashboard</a>
-            <a href="#features">Features</a>
-            <a href="#api">API</a>
-            <a href="#ml">ML/AI</a>
-            <a href="#pricing">Pricing</a>
-            <a href="https://github.com/yourusername/openbb" target="_blank">GitHub</a>
+        <div class="nav-container">
+            <div class="nav-logo">
+                📊 OPENBB
+                <span class="version-badge">v8.0</span>
+            </div>
+            <div class="nav-links">
+                <a href="#" class="active">Home</a>
+                <a href="macroeconomic-platform.html" class="dashboard-link">📈 Live Dashboard</a>
+                
+                <!-- Analytics Dropdown -->
+                <div class="nav-dropdown">
+                    <span class="nav-dropdown-toggle">
+                        Analytics <span class="dropdown-arrow">▼</span>
+                    </span>
+                    <div class="dropdown-menu">
+                        <div class="dropdown-header">AI & Predictions</div>
+                        <a href="ml-predictions.html">🤖 ML Predictions</a>
+                        <a href="trading-signals.html">📡 Trading Signals</a>
+                        <div class="dropdown-divider"></div>
+                        <div class="dropdown-header">Reports & Analysis</div>
+                        <a href="reports.html">📊 Reports</a>
+                    </div>
+                </div>
+                
+                <!-- Data Sources Dropdown -->
+                <div class="nav-dropdown">
+                    <span class="nav-dropdown-toggle">
+                        Data Sources <span class="dropdown-arrow">▼</span>
+                    </span>
+                    <div class="dropdown-menu">
+                        <div class="dropdown-header">Central Banks</div>
+                        <a href="ecb.html">🏛️ ECB Data</a>
+                        <a href="ny-fed.html">🗽 NY Fed</a>
+                        <div class="dropdown-divider"></div>
+                        <div class="dropdown-header">Government Data</div>
+                        <a href="treasury-auctions.html">💵 Treasury Auctions</a>
+                        <a href="bls.html">📈 BLS Statistics</a>
+                        <a href="census.html">📋 Census Bureau</a>
+                        <a href="bea.html">💹 BEA Economic Data</a>
+                        <div class="dropdown-divider"></div>
+                        <div class="dropdown-header">Risk & Regulation</div>
+                        <a href="ofr.html">⚠️ OFR Risk Data</a>
+                    </div>
+                </div>
+                
+                <a href="#features">Features</a>
+                <a href="#api">API</a>
+                <a href="#pricing">Pricing</a>
+            </div>
+            <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
         </div>
     </nav>
+    
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="#">Home</a>
+        <a href="macroeconomic-platform.html">📈 Live Dashboard</a>
+        <div class="menu-section">Analytics</div>
+        <a href="ml-predictions.html">🤖 ML Predictions</a>
+        <a href="trading-signals.html">📡 Trading Signals</a>
+        <a href="reports.html">📊 Reports</a>
+        <div class="menu-section">Central Banks</div>
+        <a href="ecb.html">🏛️ ECB Data</a>
+        <a href="ny-fed.html">🗽 NY Fed</a>
+        <div class="menu-section">Government Data</div>
+        <a href="treasury-auctions.html">💵 Treasury Auctions</a>
+        <a href="bls.html">📈 BLS Statistics</a>
+        <a href="census.html">📋 Census Bureau</a>
+        <a href="bea.html">💹 BEA Economic Data</a>
+        <div class="menu-section">Risk & Regulation</div>
+        <a href="ofr.html">⚠️ OFR Risk Data</a>
+    </div>
+    
+    <!-- Secondary Navigation Bar -->
+    <div class="secondary-nav">
+        <a href="ml-predictions.html" class="new-badge">🤖 ML Predictions</a>
+        <a href="trading-signals.html" class="new-badge">📡 Trading Signals</a>
+        <a href="reports.html" class="new-badge">📊 Reports</a>
+        <a href="ecb.html">🏛️ ECB</a>
+        <a href="treasury-auctions.html">💵 Treasury</a>
+        <a href="bls.html">📈 BLS</a>
+        <a href="ofr.html">⚠️ OFR</a>
+        <a href="ny-fed.html">🗽 NY Fed</a>
+        <a href="census.html">📋 Census</a>
+        <a href="bea.html">💹 BEA</a>
+    </div>
     
     <div class="status-bar">
         <div class="status-item">
@@ -357,34 +464,162 @@
                 </div>
             </div>
             
-            <div class="feature-card">
-                <div class="feature-icon">📊</div>
-                <div class="feature-title">Dashboard Overview</div>
-                <div class="feature-description">Real-time monitoring of 8 key economic indicators with live updates every 30 seconds</div>
+            <div class="feature-card" onclick="window.location.href='ml-predictions.html'">
+                <div class="feature-icon">🤖</div>
+                <div class="feature-title">ML Predictions</div>
+                <div class="feature-description">Advanced machine learning models predicting market movements, volatility, and risk levels with confidence scores</div>
                 <div class="feature-stats">
                     <div class="feature-stat">
-                        <div class="feature-stat-value">8</div>
-                        <div class="feature-stat-label">Indicators</div>
+                        <div class="feature-stat-value">Hourly</div>
+                        <div class="feature-stat-label">Updates</div>
                     </div>
                     <div class="feature-stat">
-                        <div class="feature-stat-value">Live</div>
-                        <div class="feature-stat-label">Updates</div>
+                        <div class="feature-stat-value">75%</div>
+                        <div class="feature-stat-label">Accuracy</div>
                     </div>
                 </div>
             </div>
             
-            <div class="feature-card">
-                <div class="feature-icon">🏛️</div>
-                <div class="feature-title">Federal Reserve Data</div>
-                <div class="feature-description">Complete Fed balance sheet tracking with 31 metrics including QE/QT operations</div>
+            <div class="feature-card" onclick="window.location.href='trading-signals.html'">
+                <div class="feature-icon">📡</div>
+                <div class="feature-title">Trading Signals</div>
+                <div class="feature-description">Automated BUY/SELL/HOLD signals based on technical indicators and ML predictions</div>
                 <div class="feature-stats">
                     <div class="feature-stat">
-                        <div class="feature-stat-value">31</div>
-                        <div class="feature-stat-label">Metrics</div>
+                        <div class="feature-stat-value">Real-time</div>
+                        <div class="feature-stat-label">Alerts</div>
                     </div>
                     <div class="feature-stat">
-                        <div class="feature-stat-value">$6.64T</div>
-                        <div class="feature-stat-label">Balance</div>
+                        <div class="feature-stat-value">24/7</div>
+                        <div class="feature-stat-label">Monitoring</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="feature-card" onclick="window.location.href='reports.html'">
+                <div class="feature-icon">📊</div>
+                <div class="feature-title">Comprehensive Reports</div>
+                <div class="feature-description">Daily, weekly, and monthly market reports with detailed analysis and forecasts</div>
+                <div class="feature-stats">
+                    <div class="feature-stat">
+                        <div class="feature-stat-value">PDF</div>
+                        <div class="feature-stat-label">Export</div>
+                    </div>
+                    <div class="feature-stat">
+                        <div class="feature-stat-value">Custom</div>
+                        <div class="feature-stat-label">Templates</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="feature-card" onclick="window.location.href='ecb.html'">
+                <div class="feature-icon">🏛️</div>
+                <div class="feature-title">ECB Data</div>
+                <div class="feature-description">European Central Bank data including policy rates, balance sheet, and monetary operations</div>
+                <div class="feature-stats">
+                    <div class="feature-stat">
+                        <div class="feature-stat-value">Live</div>
+                        <div class="feature-stat-label">Feed</div>
+                    </div>
+                    <div class="feature-stat">
+                        <div class="feature-stat-value">EUR</div>
+                        <div class="feature-stat-label">Focus</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="feature-card" onclick="window.location.href='treasury-auctions.html'">
+                <div class="feature-icon">💵</div>
+                <div class="feature-title">Treasury Auctions</div>
+                <div class="feature-description">Real-time Treasury auction results, bid-to-cover ratios, and yield analysis</div>
+                <div class="feature-stats">
+                    <div class="feature-stat">
+                        <div class="feature-stat-value">All</div>
+                        <div class="feature-stat-label">Maturities</div>
+                    </div>
+                    <div class="feature-stat">
+                        <div class="feature-stat-value">Historical</div>
+                        <div class="feature-stat-label">Data</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="feature-card" onclick="window.location.href='bls.html'">
+                <div class="feature-icon">📈</div>
+                <div class="feature-title">BLS Statistics</div>
+                <div class="feature-description">Bureau of Labor Statistics data including employment, CPI, PPI, and productivity metrics</div>
+                <div class="feature-stats">
+                    <div class="feature-stat">
+                        <div class="feature-stat-value">Monthly</div>
+                        <div class="feature-stat-label">Updates</div>
+                    </div>
+                    <div class="feature-stat">
+                        <div class="feature-stat-value">50+</div>
+                        <div class="feature-stat-label">Series</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="feature-card" onclick="window.location.href='ofr.html'">
+                <div class="feature-icon">⚠️</div>
+                <div class="feature-title">OFR Risk Data</div>
+                <div class="feature-description">Office of Financial Research systemic risk indicators and financial stability metrics</div>
+                <div class="feature-stats">
+                    <div class="feature-stat">
+                        <div class="feature-stat-value">Daily</div>
+                        <div class="feature-stat-label">Updates</div>
+                    </div>
+                    <div class="feature-stat">
+                        <div class="feature-stat-value">Risk</div>
+                        <div class="feature-stat-label">Focus</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="feature-card" onclick="window.location.href='ny-fed.html'">
+                <div class="feature-icon">🗽</div>
+                <div class="feature-title">NY Fed Data</div>
+                <div class="feature-description">New York Fed repo operations, SOMA holdings, and primary dealer statistics</div>
+                <div class="feature-stats">
+                    <div class="feature-stat">
+                        <div class="feature-stat-value">Real-time</div>
+                        <div class="feature-stat-label">Repos</div>
+                    </div>
+                    <div class="feature-stat">
+                        <div class="feature-stat-value">SOMA</div>
+                        <div class="feature-stat-label">Portfolio</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="feature-card" onclick="window.location.href='census.html'">
+                <div class="feature-icon">📋</div>
+                <div class="feature-title">Census Bureau</div>
+                <div class="feature-description">Economic census data, retail sales, housing starts, and demographic statistics</div>
+                <div class="feature-stats">
+                    <div class="feature-stat">
+                        <div class="feature-stat-value">Economic</div>
+                        <div class="feature-stat-label">Focus</div>
+                    </div>
+                    <div class="feature-stat">
+                        <div class="feature-stat-value">Monthly</div>
+                        <div class="feature-stat-label">Reports</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="feature-card" onclick="window.location.href='bea.html'">
+                <div class="feature-icon">💹</div>
+                <div class="feature-title">BEA Economic Data</div>
+                <div class="feature-description">Bureau of Economic Analysis GDP, personal income, and national accounts data</div>
+                <div class="feature-stats">
+                    <div class="feature-stat">
+                        <div class="feature-stat-value">GDP</div>
+                        <div class="feature-stat-label">Focus</div>
+                    </div>
+                    <div class="feature-stat">
+                        <div class="feature-stat-value">Quarterly</div>
+                        <div class="feature-stat-label">Updates</div>
                     </div>
                 </div>
             </div>
@@ -401,86 +636,6 @@
                     <div class="feature-stat">
                         <div class="feature-stat-value">LOW</div>
                         <div class="feature-stat-label">Risk</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">💧</div>
-                <div class="feature-title">Market Liquidity</div>
-                <div class="feature-description">30 liquidity metrics including SOFR, EFFR, TED spread, and funding markets</div>
-                <div class="feature-stats">
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">30</div>
-                        <div class="feature-stat-label">Metrics</div>
-                    </div>
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">0.09%</div>
-                        <div class="feature-stat-label">TED</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">💱</div>
-                <div class="feature-title">Currency Markets</div>
-                <div class="feature-description">24 DXY currency pairs including majors, emerging markets, and trade-weighted indices</div>
-                <div class="feature-stats">
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">24</div>
-                        <div class="feature-stat-label">Pairs</div>
-                    </div>
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">121.61</div>
-                        <div class="feature-stat-label">DXY</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">📈</div>
-                <div class="feature-title">Credit Markets</div>
-                <div class="feature-description">17 ICE BofA credit indices from AAA to CCC with spreads and yields</div>
-                <div class="feature-stats">
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">17</div>
-                        <div class="feature-stat-label">Indices</div>
-                    </div>
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">6.77%</div>
-                        <div class="feature-stat-label">HY Spread</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">⚠️</div>
-                <div class="feature-title">Crisis Indicators</div>
-                <div class="feature-description">18 crisis metrics monitoring banking stress, sovereign risk, and systemic threats</div>
-                <div class="feature-stats">
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">18</div>
-                        <div class="feature-stat-label">Metrics</div>
-                    </div>
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">Stable</div>
-                        <div class="feature-stat-label">Status</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">🤖</div>
-                <div class="feature-title">ML Predictions</div>
-                <div class="feature-description">Machine learning forecasts for VIX, S&P 500, and risk levels with confidence scores</div>
-                <div class="feature-stats">
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">Hourly</div>
-                        <div class="feature-stat-label">Updates</div>
-                    </div>
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">75%</div>
-                        <div class="feature-stat-label">Accuracy</div>
                     </div>
                 </div>
             </div>
@@ -591,15 +746,29 @@
         <div style="margin-top: 10px;">AWS Account: 857687956942 | Region: us-east-1 | Owner: Khalid Afouis</div>
         <div class="footer-links">
             <a href="macroeconomic-platform.html" class="dashboard-footer">📈 Live Dashboard</a>
-            <a href="https://github.com/yourusername/openbb">GitHub</a>
-            <a href="mailto:raafouis@gmail.com">Contact</a>
+            <a href="ml-predictions.html">🤖 ML Predictions</a>
+            <a href="trading-signals.html">📡 Trading Signals</a>
+            <a href="reports.html">📊 Reports</a>
+            <a href="ecb.html">🏛️ ECB</a>
+            <a href="treasury-auctions.html">💵 Treasury</a>
+            <a href="bls.html">📈 BLS</a>
+            <a href="ofr.html">⚠️ OFR</a>
+            <a href="ny-fed.html">🗽 NY Fed</a>
+            <a href="census.html">📋 Census</a>
+            <a href="bea.html">💹 BEA</a>
             <a href="#api">API Docs</a>
             <a href="#pricing">Pricing</a>
-            <a href="#features">Features</a>
+            <a href="mailto:raafouis@gmail.com">Contact</a>
         </div>
     </div>
     
     <script>
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            mobileMenu.classList.toggle('active');
+        }
+        
         // OpenBB API Configuration
         const OPENBB_API = 'https://i70jxru6md.execute-api.us-east-1.amazonaws.com/prod/api/v1';
         
