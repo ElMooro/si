@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ECB Crisis Monitor - AWS Backend Integration</title>
+    <title>ECB Crisis Monitor - 217 Systemic Risk Indicators</title>
     <style>
         * {
             margin: 0;
@@ -35,6 +35,143 @@
             background: linear-gradient(90deg, #00d4ff, #0099ff, #0066ff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+        }
+
+        .tabs-container {
+            background: rgba(25, 45, 65, 0.9);
+            border-radius: 15px 15px 0 0;
+            padding: 10px 10px 0 10px;
+            margin-bottom: -1px;
+            display: flex;
+            gap: 5px;
+            overflow-x: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: none;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            background: rgba(10, 20, 35, 0.6);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 10px 10px 0 0;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+            position: relative;
+        }
+
+        .tab.active {
+            background: rgba(0, 212, 255, 0.15);
+            border-color: #00d4ff;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab:hover {
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .tab-close {
+            margin-left: 10px;
+            color: #ff3366;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .tab-content {
+            background: rgba(25, 45, 65, 0.9);
+            padding: 25px;
+            border-radius: 0 0 15px 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid #00d4ff;
+            min-height: 400px;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        .add-tab-btn {
+            padding: 12px 20px;
+            background: rgba(0, 212, 255, 0.2);
+            border: 1px solid #00d4ff;
+            border-radius: 10px 10px 0 0;
+            cursor: pointer;
+            color: #00d4ff;
+            font-weight: 600;
+        }
+
+        .indicator-selector {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(20, 40, 60, 0.98);
+            padding: 30px;
+            border-radius: 20px;
+            border: 2px solid #00d4ff;
+            z-index: 10000;
+            display: none;
+            max-width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .indicator-selector.show {
+            display: block;
+        }
+
+        .indicator-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .indicator-option {
+            padding: 10px;
+            background: rgba(10, 20, 35, 0.8);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .indicator-option:hover {
+            background: rgba(0, 212, 255, 0.2);
+            transform: translateX(5px);
+        }
+
+        .indicator-option.selected {
+            background: rgba(0, 212, 255, 0.3);
+            border-color: #00d4ff;
+        }
+
+        .editable-name {
+            background: transparent;
+            border: 1px solid transparent;
+            color: inherit;
+            padding: 2px 5px;
+            border-radius: 4px;
+            transition: all 0.3s;
+            width: 100%;
+            font-weight: 600;
+        }
+
+        .editable-name:hover {
+            border-color: rgba(0, 212, 255, 0.3);
+            background: rgba(0, 212, 255, 0.05);
+        }
+
+        .editable-name:focus {
+            outline: none;
+            border-color: #00d4ff;
+            background: rgba(0, 212, 255, 0.1);
         }
 
         .status-bar {
@@ -157,6 +294,10 @@
             background: linear-gradient(135deg, #ffaa00, #ffcc33);
         }
 
+        .btn.success {
+            background: linear-gradient(135deg, #00ff88, #00cc66);
+        }
+
         .dashboard-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -183,7 +324,7 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             transition: all 0.3s;
-            min-height: 400px;
+            min-height: 300px;
             display: flex;
             flex-direction: column;
         }
@@ -236,14 +377,29 @@
             padding: 15px;
             border-radius: 12px;
             border: 1px solid rgba(0, 212, 255, 0.2);
+            position: relative;
         }
 
         .metric-label {
             font-size: 0.85em;
             color: #8899aa;
             margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .add-to-tab {
+            cursor: pointer;
+            padding: 2px 6px;
+            background: rgba(0, 212, 255, 0.2);
+            border-radius: 4px;
+            font-size: 0.8em;
+            transition: all 0.3s;
+        }
+
+        .add-to-tab:hover {
+            background: rgba(0, 212, 255, 0.4);
         }
 
         .metric-value {
@@ -263,6 +419,39 @@
         .change-positive { color: #00ff88; }
         .change-negative { color: #ff3366; }
         .change-neutral { color: #8899aa; }
+
+        .country-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .country-item {
+            background: rgba(10, 20, 35, 0.6);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .country-item:hover {
+            background: rgba(0, 212, 255, 0.1);
+            transform: scale(1.05);
+        }
+
+        .country-code {
+            font-size: 0.8em;
+            color: #8899aa;
+            margin-bottom: 5px;
+        }
+
+        .country-value {
+            font-size: 1.2em;
+            font-weight: 700;
+        }
 
         .systemic-risk-table {
             width: 100%;
@@ -297,27 +486,6 @@
 
         .systemic-risk-table tr:hover {
             background: rgba(0, 212, 255, 0.05);
-        }
-
-        .editable-name {
-            background: transparent;
-            border: 1px solid transparent;
-            color: inherit;
-            padding: 2px 5px;
-            border-radius: 4px;
-            transition: all 0.3s;
-            width: 100%;
-        }
-
-        .editable-name:hover {
-            border-color: rgba(0, 212, 255, 0.3);
-            background: rgba(0, 212, 255, 0.05);
-        }
-
-        .editable-name:focus {
-            outline: none;
-            border-color: #00d4ff;
-            background: rgba(0, 212, 255, 0.1);
         }
 
         .risk-matrix {
@@ -415,6 +583,60 @@
         .notification.show {
             transform: translateX(0);
         }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-around;
+            padding: 15px;
+            background: rgba(10, 20, 35, 0.6);
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            color: #8899aa;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #00d4ff;
+        }
+
+        .custom-indicator-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .custom-indicator {
+            background: rgba(10, 20, 35, 0.6);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            z-index: 9998;
+        }
+
+        .overlay.show {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -423,16 +645,45 @@
     </div>
 
     <div class="notification" id="notification"></div>
+    <div class="overlay" id="overlay"></div>
+
+    <div class="indicator-selector" id="indicatorSelector">
+        <h2 style="color: #00d4ff; margin-bottom: 20px;">Select ECB Indicators to Add</h2>
+        <input type="text" id="indicatorSearchModal" placeholder="Search indicators..." style="width: 100%; padding: 10px; margin-bottom: 20px; background: rgba(10, 20, 35, 0.8); border: 1px solid #00d4ff; border-radius: 8px; color: white;">
+        <div class="indicator-list" id="indicatorList"></div>
+        <div class="btn-group" style="margin-top: 20px;">
+            <button class="btn success" onclick="addSelectedIndicators()">Add Selected</button>
+            <button class="btn" onclick="closeIndicatorSelector()">Cancel</button>
+        </div>
+    </div>
 
     <div class="main-header">
-        <h1>🏦 ECB Crisis Monitor - AWS Backend Integration</h1>
-        <p style="margin-top: 10px; color: #8899aa;">1,092 ECB Indicators | Real-time Dollar Shortage & Black Swan Detection</p>
+        <h1>🏦 ECB Systemic Risk Monitor - AWS Platform</h1>
+        <p style="margin-top: 10px; color: #8899aa;">217 ECB Indicators | Real-time Euro Area Monitoring | Black Swan Detection</p>
+        <div class="stats-row">
+            <div class="stat-item">
+                <div class="stat-label">Total Indicators</div>
+                <div class="stat-value" id="totalIndicators">0/217</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Countries Monitored</div>
+                <div class="stat-value">20</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Update Frequency</div>
+                <div class="stat-value">Daily 6AM UTC</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Data Source</div>
+                <div class="stat-value">ECB SDW</div>
+            </div>
+        </div>
     </div>
 
     <div class="status-bar">
         <div class="status-item">
             <span class="status-indicator online" id="apiIndicator"></span>
-            <span>AWS Backend: <strong id="apiStatus">Connecting...</strong></span>
+            <span>ECB API: <strong id="apiStatus">Connecting...</strong></span>
         </div>
         <div class="status-item">
             <span class="status-indicator warning" id="dollarIndicator"></span>
@@ -440,15 +691,15 @@
         </div>
         <div class="status-item">
             <span class="status-indicator online" id="crisisIndicator"></span>
-            <span>Crisis Level: <strong id="crisisStatus">Monitoring...</strong></span>
+            <span>Systemic Risk: <strong id="crisisStatus">Monitoring...</strong></span>
         </div>
         <div class="status-item">
-            <span>ECB Indicators: <strong id="indicatorCount">0/1092</strong></span>
+            <span>Active Alerts: <strong id="alertCount">0</strong></span>
         </div>
     </div>
 
     <div class="crisis-alert" id="crisisAlert">
-        <h2>⚠️ CRISIS WARNING</h2>
+        <h2>⚠️ SYSTEMIC RISK WARNING</h2>
         <p id="crisisMessage">Multiple ECB indicators suggest elevated financial stress.</p>
     </div>
 
@@ -456,334 +707,178 @@
         <h2 style="color: #00d4ff; margin-bottom: 20px;">🎛️ ECB Data Control Panel</h2>
         <div class="control-grid">
             <div class="control-item">
-                <label>Data Source</label>
-                <select id="dataSource">
-                    <option value="aws">AWS Backend (1,092 ECB)</option>
-                    <option value="search">OpenBB Search API</option>
-                    <option value="enhanced">Enhanced API</option>
-                    <option value="scrape">ECB Web Scraper</option>
+                <label>ECB Indicator Category</label>
+                <select id="categoryFilter">
+                    <option value="all">All Categories (217)</option>
+                    <option value="Systemic Risk">CISS - Systemic Stress (20)</option>
+                    <option value="Systemic Risk Components">Stress Components (100)</option>
+                    <option value="Dollar Funding">Dollar Funding Stress (8)</option>
+                    <option value="Black Swan">Black Swan Risk (5)</option>
+                    <option value="External Liabilities">External Liabilities (56)</option>
+                    <option value="TARGET2">TARGET2 Imbalances (12)</option>
+                    <option value="Financial Stability">Financial Stability (7)</option>
+                    <option value="Contagion Risk">Contagion Risk (5)</option>
+                    <option value="Crisis Measures">Crisis Measures (4)</option>
                 </select>
             </div>
             <div class="control-item">
                 <label>ECB Indicator Search</label>
-                <input type="text" id="indicatorSearch" placeholder="Search 1,092 indicators..." />
+                <input type="text" id="indicatorSearch" placeholder="Search 217 ECB indicators..." />
             </div>
             <div class="control-item">
-                <label>Update Frequency</label>
-                <select id="updateFreq">
-                    <option value="manual">Manual</option>
-                    <option value="1">Every Minute</option>
-                    <option value="5">Every 5 Minutes</option>
-                    <option value="15">Every 15 Minutes</option>
+                <label>Country Filter</label>
+                <select id="countryFilter">
+                    <option value="all">All Euro Countries</option>
+                    <option value="DE">Germany</option>
+                    <option value="FR">France</option>
+                    <option value="IT">Italy</option>
+                    <option value="ES">Spain</option>
+                    <option value="NL">Netherlands</option>
+                    <option value="BE">Belgium</option>
+                    <option value="AT">Austria</option>
+                    <option value="PT">Portugal</option>
+                    <option value="GR">Greece</option>
+                    <option value="IE">Ireland</option>
+                    <option value="U2">Euro Area</option>
                 </select>
             </div>
             <div class="control-item">
                 <label>Risk Threshold</label>
                 <select id="riskThreshold">
-                    <option value="low">Low (>30%)</option>
-                    <option value="medium">Medium (>50%)</option>
-                    <option value="high">High (>70%)</option>
+                    <option value="0.1">Low (CISS > 0.1)</option>
+                    <option value="0.2">Medium (CISS > 0.2)</option>
+                    <option value="0.3">High (CISS > 0.3)</option>
+                    <option value="0.4">Critical (CISS > 0.4)</option>
                 </select>
             </div>
         </div>
         <div class="btn-group">
-            <button class="btn" onclick="fetchAWSBackendData()">🔄 Fetch AWS ECB Data</button>
+            <button class="btn" onclick="fetchECBData()">🔄 Refresh ECB Data</button>
             <button class="btn" onclick="searchECBIndicators()">🔍 Search Indicators</button>
-            <button class="btn warning" onclick="analyzeSystemicRisk()">⚡ Analyze Risk</button>
+            <button class="btn warning" onclick="analyzeSystemicRisk()">⚡ Analyze CISS</button>
             <button class="btn danger" onclick="detectBlackSwan()">🦢 Black Swan Detection</button>
+            <button class="btn success" onclick="exportData()">📊 Export Data</button>
         </div>
     </div>
 
-    <!-- First Row: 3 Cards -->
-    <div class="dashboard-grid">
-        <!-- Key Policy Rates -->
-        <div class="dashboard-card">
-            <div class="card-header">
-                <h3 class="card-title">📊 ECB Policy Rates</h3>
-                <span class="card-badge badge-normal" id="ratesBadge">Normal</span>
-            </div>
-            <div class="metric-grid">
-                <div class="metric-item">
-                    <div class="metric-label">
-                        <input class="editable-name" value="MRO Rate" data-indicator="ECB:FM.B.U2.EUR.4F.KR.MRR.FR" />
-                    </div>
-                    <div class="metric-value" id="mroRate">4.50%</div>
-                    <div class="metric-change change-positive" id="mroChange">↑ 0.25%</div>
-                </div>
-                <div class="metric-item">
-                    <div class="metric-label">
-                        <input class="editable-name" value="Deposit Rate" data-indicator="ECB:FM.B.U2.EUR.4F.KR.DFR.FR" />
-                    </div>
-                    <div class="metric-value" id="depositRate">4.00%</div>
-                    <div class="metric-change change-positive" id="depositChange">↑ 0.25%</div>
-                </div>
-                <div class="metric-item">
-                    <div class="metric-label">
-                        <input class="editable-name" value="Lending Rate" data-indicator="ECB:FM.B.U2.EUR.4F.KR.MLFR.FR" />
-                    </div>
-                    <div class="metric-value" id="lendingRate">4.75%</div>
-                    <div class="metric-change change-positive" id="lendingChange">↑ 0.25%</div>
-                </div>
-                <div class="metric-item">
-                    <div class="metric-label">
-                        <input class="editable-name" value="€STR" data-indicator="ECB:EON.D.EONIA_TO.RATE" />
-                    </div>
-                    <div class="metric-value" id="estrRate">3.90%</div>
-                    <div class="metric-change change-neutral" id="estrChange">→ 0.00%</div>
-                </div>
-            </div>
+    <!-- Custom Tabs Section -->
+    <div class="tabs-container" id="tabsContainer">
+        <div class="tab active" data-tab="overview" onclick="switchTab('overview')">
+            Overview
         </div>
-
-        <!-- Dollar Shortage Indicators -->
-        <div class="dashboard-card">
-            <div class="card-header">
-                <h3 class="card-title">💵 Dollar Shortage</h3>
-                <span class="card-badge badge-warning" id="dollarBadge">Warning</span>
-            </div>
-            <div class="metric-grid">
-                <div class="metric-item">
-                    <div class="metric-label">
-                        <input class="editable-name" value="EUR/USD Basis" data-indicator="ECB:EXR.D.USD.EUR.SP00.A" />
-                    </div>
-                    <div class="metric-value" id="eurUsdBasis">-28bps</div>
-                    <div class="metric-change change-negative" id="basisChange">↓ 5bps</div>
-                </div>
-                <div class="metric-item">
-                    <div class="metric-label">
-                        <input class="editable-name" value="FX Swaps" data-indicator="ECB:FM.M.U2.EUR.RT.MM.EURIBOR3MD_.HSTA" />
-                    </div>
-                    <div class="metric-value" id="fxSwaps">-32bps</div>
-                    <div class="metric-change change-negative" id="swapChange">↓ 3bps</div>
-                </div>
-                <div class="metric-item">
-                    <div class="metric-label">
-                        <input class="editable-name" value="USD Liquidity" data-indicator="ECB:ILM.M.U2.C.L022.U2.EUR" />
-                    </div>
-                    <div class="metric-value" id="usdLiquidity">€185bn</div>
-                    <div class="metric-change change-negative" id="liquidityChange">↓ 12bn</div>
-                </div>
-                <div class="metric-item">
-                    <div class="metric-label">
-                        <input class="editable-name" value="Swap Lines" data-indicator="ECB:FVC.Q.U2.N.V.LE.A.A20.S121.S11.N" />
-                    </div>
-                    <div class="metric-value" id="swapLines">€8.2bn</div>
-                    <div class="metric-change change-positive" id="swapLinesChange">↑ 1.5bn</div>
-                </div>
-            </div>
+        <div class="tab" data-tab="ciss" onclick="switchTab('ciss')">
+            CISS Monitor
         </div>
-
-        <!-- Crisis Probability -->
-        <div class="dashboard-card">
-            <div class="card-header">
-                <h3 class="card-title">🎯 Crisis Probability</h3>
-                <span class="card-badge badge-warning" id="crisisBadge">Medium</span>
-            </div>
-            <div class="metric-grid">
-                <div class="metric-item">
-                    <div class="metric-label">Banking Crisis</div>
-                    <div class="metric-value" id="bankingProb" style="color: #ffaa00;">35%</div>
-                    <div class="metric-change change-negative" id="bankingTrend">↑ Rising</div>
-                </div>
-                <div class="metric-item">
-                    <div class="metric-label">Currency Crisis</div>
-                    <div class="metric-value" id="currencyProb" style="color: #00ff88;">12%</div>
-                    <div class="metric-change change-positive" id="currencyTrend">↓ Falling</div>
-                </div>
-                <div class="metric-item">
-                    <div class="metric-label">Sovereign Crisis</div>
-                    <div class="metric-value" id="sovereignProb" style="color: #ffaa00;">28%</div>
-                    <div class="metric-change change-neutral" id="sovereignTrend">→ Stable</div>
-                </div>
-                <div class="metric-item">
-                    <div class="metric-label">Systemic Crisis</div>
-                    <div class="metric-value" id="systemicProb" style="color: #ff3366;">42%</div>
-                    <div class="metric-change change-negative" id="systemicTrend">↑ Rising</div>
-                </div>
-            </div>
+        <div class="tab" data-tab="dollar" onclick="switchTab('dollar')">
+            Dollar Shortage
+        </div>
+        <div class="tab" data-tab="blackswan" onclick="switchTab('blackswan')">
+            Black Swan
+        </div>
+        <div class="add-tab-btn" onclick="createNewTab()">
+            + Add Tab
         </div>
     </div>
 
-    <!-- Second Row: 3 Cards -->
-    <div class="dashboard-grid">
-        <!-- Black Swan Risk Matrix -->
-        <div class="dashboard-card">
-            <div class="card-header">
-                <h3 class="card-title">🦢 Black Swan Matrix</h3>
-                <span class="card-badge badge-normal" id="swanBadge">Low Risk</span>
-            </div>
-            <div class="risk-matrix" id="riskMatrix">
-                <!-- Will be populated dynamically -->
-            </div>
-            <div class="interpretation-panel">
-                <div class="interpretation-title">Risk Analysis</div>
-                <div class="interpretation-text" id="riskInterpretation">
-                    Calculating tail risks from ECB indicators...
-                </div>
-            </div>
-        </div>
-
-        <!-- Financial Stability -->
-        <div class="dashboard-card">
-            <div class="card-header">
-                <h3 class="card-title">🏛️ Financial Stability</h3>
-                <span class="card-badge badge-normal" id="stabilityBadge">Stable</span>
-            </div>
-            <div class="metric-grid">
-                <div class="metric-item">
-                    <div class="metric-label">
-                        <input class="editable-name" value="CISS Index" data-indicator="ECB:CISS.D.U2.Z0Z.4F.EC.SS_CI.IDX" />
+    <div class="tab-content">
+        <!-- Overview Tab -->
+        <div class="tab-pane active" id="tab-overview">
+            <div class="dashboard-grid">
+                <!-- Main Dashboard Content Here -->
+                <div class="dashboard-card full-width">
+                    <div class="card-header">
+                        <h3 class="card-title">🌍 CISS - Composite Indicator of Systemic Stress</h3>
+                        <span class="card-badge badge-warning" id="cissBadge">Monitoring</span>
                     </div>
-                    <div class="metric-value" id="cissValue">0.124</div>
-                    <div class="metric-change change-positive" id="cissChange">↓ 0.008</div>
-                </div>
-                <div class="metric-item">
-                    <div class="metric-label">
-                        <input class="editable-name" value="Bank Stress" data-indicator="ECB:CBD2.M.U2.W0.11.510.0.Q" />
+                    <div class="country-grid" id="cissGrid"></div>
+                    <div class="interpretation-panel">
+                        <div class="interpretation-title">CISS Analysis</div>
+                        <div class="interpretation-text" id="cissInterpretation">
+                            Loading systemic stress indicators for all Euro Area countries...
+                        </div>
                     </div>
-                    <div class="metric-value" id="bankStress">0.085</div>
-                    <div class="metric-change change-negative" id="bankChange">↑ 0.012</div>
-                </div>
-                <div class="metric-item">
-                    <div class="metric-label">
-                        <input class="editable-name" value="TARGET2" data-indicator="ECB:ILM.M.U2.C.T00000.U2.EUR" />
-                    </div>
-                    <div class="metric-value" id="target2">€450bn</div>
-                    <div class="metric-change change-negative" id="target2Change">↑ 25bn</div>
-                </div>
-                <div class="metric-item">
-                    <div class="metric-label">
-                        <input class="editable-name" value="Excess Reserves" data-indicator="ECB:ILM.M.U2.C.LT00001.U2.EUR" />
-                    </div>
-                    <div class="metric-value" id="excessReserves">€3.8T</div>
-                    <div class="metric-change change-positive" id="excessChange">↓ 120bn</div>
                 </div>
             </div>
         </div>
 
-        <!-- Monetary Aggregates -->
-        <div class="dashboard-card">
-            <div class="card-header">
-                <h3 class="card-title">💰 Monetary Aggregates</h3>
-                <span class="card-badge badge-normal" id="monetaryBadge">Normal</span>
-            </div>
-            <div class="metric-grid">
-                <div class="metric-item">
-                    <div class="metric-label">
-                        <input class="editable-name" value="M1 Growth" data-indicator="ECB:BSI.M.U2.Y.V.M10.X.1.U2.2300.Z01.E" />
-                    </div>
-                    <div class="metric-value" id="m1Growth">-5.2%</div>
-                    <div class="metric-change change-negative" id="m1Change">↓ 0.8%</div>
-                </div>
-                <div class="metric-item">
-                    <div class="metric-label">
-                        <input class="editable-name" value="M2 Growth" data-indicator="ECB:BSI.M.U2.Y.V.M20.X.1.U2.2300.Z01.E" />
-                    </div>
-                    <div class="metric-value" id="m2Growth">-0.7%</div>
-                    <div class="metric-change change-negative" id="m2Change">↓ 0.3%</div>
-                </div>
-                <div class="metric-item">
-                    <div class="metric-label">
-                        <input class="editable-name" value="M3 Growth" data-indicator="ECB:BSI.M.U2.Y.V.M30.X.1.U2.2300.Z01.E" />
-                    </div>
-                    <div class="metric-value" id="m3Growth">0.9%</div>
-                    <div class="metric-change change-positive" id="m3Change">↑ 0.2%</div>
-                </div>
-                <div class="metric-item">
-                    <div class="metric-label">
-                        <input class="editable-name" value="Credit Growth" data-indicator="ECB:BSI.M.U2.N.A.A20.A.1.U2.2240.EUR.E" />
-                    </div>
-                    <div class="metric-value" id="creditGrowth">2.1%</div>
-                    <div class="metric-change change-negative" id="creditChange">↓ 0.5%</div>
-                </div>
-            </div>
+        <!-- CISS Tab -->
+        <div class="tab-pane" id="tab-ciss">
+            <h3 style="color: #00d4ff; margin-bottom: 20px;">CISS Monitoring - Custom Indicators</h3>
+            <button class="btn" onclick="openIndicatorSelector('ciss')">+ Add Indicators</button>
+            <div class="custom-indicator-grid" id="ciss-indicators"></div>
+        </div>
+
+        <!-- Dollar Tab -->
+        <div class="tab-pane" id="tab-dollar">
+            <h3 style="color: #00d4ff; margin-bottom: 20px;">Dollar Funding Stress - Custom Indicators</h3>
+            <button class="btn" onclick="openIndicatorSelector('dollar')">+ Add Indicators</button>
+            <div class="custom-indicator-grid" id="dollar-indicators"></div>
+        </div>
+
+        <!-- Black Swan Tab -->
+        <div class="tab-pane" id="tab-blackswan">
+            <h3 style="color: #00d4ff; margin-bottom: 20px;">Black Swan Risk - Custom Indicators</h3>
+            <button class="btn" onclick="openIndicatorSelector('blackswan')">+ Add Indicators</button>
+            <div class="custom-indicator-grid" id="blackswan-indicators"></div>
         </div>
     </div>
 
-    <!-- Full Width Systemic Risk Table -->
-    <div class="dashboard-grid">
+    <!-- Full Width Table -->
+    <div class="dashboard-grid" style="margin-top: 30px;">
         <div class="dashboard-card full-width">
             <div class="card-header">
-                <h3 class="card-title">📈 Systemic Risk Indicators - All ECB Data</h3>
-                <span class="card-badge badge-warning" id="systemicBadge">1,092 Indicators</span>
+                <h3 class="card-title">📈 All ECB Systemic Risk Indicators (217 Total)</h3>
+                <span class="card-badge badge-warning" id="tableBadge">Live Data</span>
             </div>
             <table class="systemic-risk-table" id="systemicRiskTable">
                 <thead>
                     <tr>
                         <th>Indicator Name</th>
-                        <th>ECB Code</th>
+                        <th>ECB Symbol</th>
+                        <th>Category</th>
                         <th>Current Value</th>
-                        <th>Weekly Change</th>
-                        <th>Risk Level</th>
-                        <th>Signal</th>
+                        <th>Last Updated</th>
+                        <th>Status</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody id="systemicRiskBody">
-                    <!-- Will be populated with all ECB indicators -->
-                </tbody>
+                <tbody id="systemicRiskBody"></tbody>
             </table>
             <div class="interpretation-panel">
-                <div class="interpretation-title">📊 Systemic Risk Analysis</div>
+                <div class="interpretation-title">📊 ECB Platform Analysis</div>
                 <div class="interpretation-text" id="systemicInterpretation">
-                    Loading comprehensive ECB systemic risk assessment from 1,092 indicators...
+                    Connecting to ECB Data Service at dv7wxb807j.execute-api.us-east-1.amazonaws.com...
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Configuration for AWS Backend
-        const CONFIG = {
-            CUSTOM_DOMAIN: 'http://api.grumpyy.com/api/v1',
-            OPENBB_SEARCH: 'https://rg9o6exoi8.execute-api.us-east-1.amazonaws.com/prod/api',
-            OPENBB_ENHANCED: 'https://i3y8tfdp1k.execute-api.us-east-1.amazonaws.com/prod/api',
+        // ECB API Configuration
+        const ECB_CONFIG = {
+            ECB_API: 'https://dv7wxb807j.execute-api.us-east-1.amazonaws.com/prod',
+            S3_BUCKET: 'openbb-lambda-data',
+            ECB_DATA_FILE: 'ecb_data.json',
+            UPDATE_TIME: '6:00 UTC',
             
-            ECB_INDICATORS: [
-                { code: 'ECB:FM.B.U2.EUR.4F.KR.MRR.FR', name: 'Main Refinancing Operations Rate', category: 'rates' },
-                { code: 'ECB:FM.B.U2.EUR.4F.KR.DFR.FR', name: 'Deposit Facility Rate', category: 'rates' },
-                { code: 'ECB:FM.B.U2.EUR.4F.KR.MLFR.FR', name: 'Marginal Lending Facility Rate', category: 'rates' },
-                { code: 'ECB:EON.D.EONIA_TO.RATE', name: '€STR (Euro Short-Term Rate)', category: 'rates' },
-                { code: 'ECB:CISS.D.U2.Z0Z.4F.EC.SS_CI.IDX', name: 'Composite Indicator of Systemic Stress', category: 'stress' },
-                { code: 'ECB:CISS.W.U2.Z0Z.4F.EC.SS_BM.IDX', name: 'Bond Market Stress', category: 'stress' },
-                { code: 'ECB:CISS.W.U2.Z0Z.4F.EC.SS_EQ.IDX', name: 'Equity Market Stress', category: 'stress' },
-                { code: 'ECB:CISS.W.U2.Z0Z.4F.EC.SS_FI.IDX', name: 'Financial Intermediaries Stress', category: 'stress' },
-                { code: 'ECB:CISS.W.U2.Z0Z.4F.EC.SS_FX.IDX', name: 'Foreign Exchange Stress', category: 'stress' },
-                { code: 'ECB:CISS.W.U2.Z0Z.4F.EC.SS_MM.IDX', name: 'Money Market Stress', category: 'stress' },
-                { code: 'ECB:EXR.D.USD.EUR.SP00.A', name: 'EUR/USD Exchange Rate', category: 'dollar' },
-                { code: 'ECB:FM.M.U2.EUR.RT.MM.EURIBOR3MD_.HSTA', name: '3M EURIBOR-OIS Spread', category: 'dollar' },
-                { code: 'ECB:ILM.M.U2.C.L022.U2.EUR', name: 'USD Liquidity Provision', category: 'dollar' },
-                { code: 'ECB:FVC.Q.U2.N.V.LE.A.A20.S121.S11.N', name: 'Central Bank Swap Lines', category: 'dollar' },
-                { code: 'ECB:ILM.M.U2.C.T00000.U2.EUR', name: 'TARGET2 Balance', category: 'liquidity' },
-                { code: 'ECB:ILM.M.U2.C.LT00001.U2.EUR', name: 'Excess Reserves', category: 'liquidity' },
-                { code: 'ECB:ILM.M.U2.C.L020100.U2.EUR', name: 'Deposit Facility Usage', category: 'liquidity' },
-                { code: 'ECB:ILM.M.U2.C.L020200.U2.EUR', name: 'Marginal Lending Facility Usage', category: 'liquidity' },
-                { code: 'ECB:BSI.M.U2.Y.V.M10.X.1.U2.2300.Z01.E', name: 'M1 Money Supply Growth', category: 'monetary' },
-                { code: 'ECB:BSI.M.U2.Y.V.M20.X.1.U2.2300.Z01.E', name: 'M2 Money Supply Growth', category: 'monetary' },
-                { code: 'ECB:BSI.M.U2.Y.V.M30.X.1.U2.2300.Z01.E', name: 'M3 Money Supply Growth', category: 'monetary' },
-                { code: 'ECB:BSI.M.U2.N.A.A20.A.1.U2.2240.EUR.E', name: 'Credit to Private Sector', category: 'monetary' },
-                { code: 'ECB:CBD2.M.U2.W0.11.510.0.Q', name: 'Bank Lending Survey', category: 'banking' },
-                { code: 'ECB:MIR.M.U2.B.L22.A.R.A.2240.EUR.N', name: 'Bank Lending Rates', category: 'banking' },
-                { code: 'ECB:SUP.M.U2._Z.BAD_DEBTS.RATIO', name: 'NPL Ratio', category: 'banking' },
-                { code: 'ECB:CBD2.A.U2.W0.11.510.0.Q', name: 'Bank Profitability', category: 'banking' }
-            ],
-            
-            UPDATE_INTERVAL: null,
-            LOADED_INDICATORS: new Map(),
-            RISK_THRESHOLDS: {
-                low: 30,
-                medium: 50,
-                high: 70
+            COUNTRIES: {
+                "DE": "Germany", "FR": "France", "IT": "Italy", "ES": "Spain",
+                "NL": "Netherlands", "BE": "Belgium", "AT": "Austria", "PT": "Portugal",
+                "GR": "Greece", "IE": "Ireland", "FI": "Finland", "SK": "Slovakia",
+                "LU": "Luxembourg", "SI": "Slovenia", "LT": "Lithuania", "LV": "Latvia",
+                "EE": "Estonia", "CY": "Cyprus", "MT": "Malta", "U2": "Euro Area"
             }
         };
 
         // Global state
-        let ecbData = new Map();
-        let riskMetrics = {
-            dollarShortage: 45,
-            bankingCrisis: 35,
-            currencyCrisis: 12,
-            sovereignCrisis: 28,
-            systemicRisk: 42
-        };
+        let ecbIndicators = new Map();
+        let customNames = new Map(); // Store custom names separately
+        let tabIndicators = new Map(); // Store indicators for each tab
+        let selectedIndicators = new Set();
+        let currentTab = 'overview';
+        let updateInterval = null;
+        let countryStressLevels = new Map();
+        let categoryData = new Map();
 
         // Initialize dashboard
         async function initializeDashboard() {
@@ -791,102 +886,99 @@
             showLoading(true);
             
             try {
+                await fetchECBData();
+                initializeCISSGrid();
                 setupEventListeners();
-                initializeRiskMatrix();
-                await fetchAWSBackendData();
-                await analyzeSystemicRisk();
-                showNotification('Connected to AWS Backend - ECB indicators loading', 'success');
+                loadSavedCustomNames();
+                loadSavedTabs();
+                startAutoRefresh();
+                
+                showNotification('Connected to ECB Data Service - 217 indicators active', 'success');
             } catch (error) {
                 console.error('Initialization error:', error);
-                loadMockECBData();
-                showNotification('Using demo data - AWS connection pending', 'warning');
+                showNotification('Failed to connect to ECB API', 'error');
             } finally {
                 showLoading(false);
             }
         }
 
-        // Fetch data from AWS Backend
-        async function fetchAWSBackendData() {
+        // Fetch ECB data from AWS backend
+        async function fetchECBData() {
             showLoading(true);
-            const dataSource = document.getElementById('dataSource').value;
-            let loadedCount = 0;
+            const startTime = Date.now();
             
             try {
-                if (dataSource === 'aws') {
-                    const promises = CONFIG.ECB_INDICATORS.map(async (indicator) => {
-                        try {
-                            const response = await fetch(`${CONFIG.CUSTOM_DOMAIN}/data/${indicator.code}`);
-                            if (response.ok) {
-                                const data = await response.json();
-                                ecbData.set(indicator.code, {
-                                    ...indicator,
-                                    value: data.value || data.last || generateMockValue(indicator.category),
-                                    change: data.change || (Math.random() - 0.5) * 10,
-                                    timestamp: data.timestamp || new Date().toISOString()
-                                });
-                                loadedCount++;
-                            }
-                        } catch (err) {
-                            ecbData.set(indicator.code, {
-                                ...indicator,
-                                value: generateMockValue(indicator.category),
-                                change: (Math.random() - 0.5) * 10,
-                                timestamp: new Date().toISOString()
-                            });
-                            loadedCount++;
-                        }
-                    });
-                    
-                    await Promise.allSettled(promises);
-                    
-                } else if (dataSource === 'search') {
-                    const response = await fetch(`${CONFIG.OPENBB_SEARCH}/search?query=ECB`);
-                    if (response.ok) {
-                        const data = await response.json();
-                        processSearchResults(data);
-                    }
-                } else if (dataSource === 'scrape') {
-                    loadMockECBData();
-                    showNotification('Web scraping simulated - data loaded', 'info');
+                const response = await fetch(`${ECB_CONFIG.ECB_API}/list?limit=300`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
-                updateDashboard();
-                updateSystemicRiskTable();
-                document.getElementById('indicatorCount').textContent = `${loadedCount}/1092`;
-                document.getElementById('apiStatus').textContent = 'Connected';
+                const data = await response.json();
+                console.log(`Fetched ${data.total} ECB indicators`);
+                
+                if (data.indicators && Array.isArray(data.indicators)) {
+                    ecbIndicators.clear();
+                    categoryData.clear();
+                    
+                    data.indicators.forEach(indicator => {
+                        // Preserve custom names
+                        if (customNames.has(indicator.symbol)) {
+                            indicator.displayName = customNames.get(indicator.symbol);
+                        } else {
+                            indicator.displayName = indicator.name;
+                        }
+                        
+                        ecbIndicators.set(indicator.symbol, indicator);
+                        
+                        const category = indicator.category || 'other';
+                        if (!categoryData.has(category)) {
+                            categoryData.set(category, []);
+                        }
+                        categoryData.get(category).push(indicator);
+                    });
+                    
+                    updateDashboard();
+                    updateSystemicRiskTable();
+                    updateTabIndicators();
+                    
+                    document.getElementById('apiStatus').textContent = 'Connected';
+                    document.getElementById('totalIndicators').textContent = `${data.total}/217`;
+                    
+                    const loadTime = ((Date.now() - startTime) / 1000).toFixed(2);
+                    console.log(`ECB data loaded in ${loadTime}s`);
+                }
+                
+                await analyzeSystemicRisk();
                 
             } catch (error) {
-                console.error('Error fetching AWS data:', error);
-                loadMockECBData();
+                console.error('Error fetching ECB data:', error);
+                document.getElementById('apiStatus').textContent = 'Error';
+                showNotification('Failed to fetch ECB data', 'error');
             } finally {
                 showLoading(false);
-            }
-        }
-
-        // Generate realistic mock values
-        function generateMockValue(category) {
-            switch(category) {
-                case 'rates': return 3.5 + Math.random() * 2;
-                case 'stress': return 0.1 + Math.random() * 0.4;
-                case 'dollar': return -20 + (Math.random() - 0.5) * 40;
-                case 'liquidity': return 100 + Math.random() * 500;
-                case 'monetary': return -2 + Math.random() * 8;
-                default: return Math.random() * 100;
             }
         }
 
         // Search ECB indicators
         async function searchECBIndicators() {
-            const searchTerm = document.getElementById('indicatorSearch').value.toLowerCase();
+            const searchTerm = document.getElementById('indicatorSearch').value;
             if (!searchTerm) return;
             
             showLoading(true);
             try {
-                const response = await fetch(`${CONFIG.OPENBB_SEARCH}/search?query=ECB ${searchTerm}`);
+                const response = await fetch(`${ECB_CONFIG.ECB_API}/search?query=${encodeURIComponent(searchTerm)}`);
+                
                 if (response.ok) {
                     const data = await response.json();
-                    processSearchResults(data);
-                    showNotification(`Found indicators matching "${searchTerm}"`, 'info');
+                    console.log(`Found ${data.total} indicators matching "${searchTerm}"`);
+                    
+                    if (data.results && data.results.length > 0) {
+                        updateSystemicRiskTable(data.results);
+                        showNotification(`Found ${data.total} indicators for "${searchTerm}"`, 'info');
+                    } else {
+                        showNotification(`No indicators found for "${searchTerm}"`, 'warning');
+                    }
                 }
             } catch (error) {
                 console.error('Search error:', error);
@@ -896,314 +988,436 @@
             }
         }
 
-        // Load mock ECB data
-        function loadMockECBData() {
-            CONFIG.ECB_INDICATORS.forEach(indicator => {
-                ecbData.set(indicator.code, {
-                    ...indicator,
-                    value: generateMockValue(indicator.category),
-                    change: (Math.random() - 0.5) * 10,
-                    timestamp: new Date().toISOString()
-                });
-            });
+        // Initialize CISS grid
+        function initializeCISSGrid() {
+            const grid = document.getElementById('cissGrid');
+            if (!grid) return;
             
-            updateDashboard();
-            updateSystemicRiskTable();
-            document.getElementById('indicatorCount').textContent = `${CONFIG.ECB_INDICATORS.length}/1092`;
+            grid.innerHTML = '';
+            
+            Object.entries(ECB_CONFIG.COUNTRIES).forEach(([code, name]) => {
+                const item = document.createElement('div');
+                item.className = 'country-item';
+                item.id = `ciss-${code}`;
+                item.innerHTML = `
+                    <div class="country-code">${code}</div>
+                    <div class="country-value" id="ciss-value-${code}">--</div>
+                    <div style="font-size: 0.7em; color: #8899aa;">${name}</div>
+                `;
+                item.onclick = () => showCountryDetails(code);
+                grid.appendChild(item);
+            });
         }
 
         // Update dashboard
         function updateDashboard() {
-            updateMetric('mroRate', 'ECB:FM.B.U2.EUR.4F.KR.MRR.FR', '%');
-            updateMetric('depositRate', 'ECB:FM.B.U2.EUR.4F.KR.DFR.FR', '%');
-            updateMetric('lendingRate', 'ECB:FM.B.U2.EUR.4F.KR.MLFR.FR', '%');
-            updateMetric('estrRate', 'ECB:EON.D.EONIA_TO.RATE', '%');
-            updateMetric('eurUsdBasis', 'ECB:EXR.D.USD.EUR.SP00.A', 'bps');
-            updateMetric('fxSwaps', 'ECB:FM.M.U2.EUR.RT.MM.EURIBOR3MD_.HSTA', 'bps');
-            updateMetric('usdLiquidity', 'ECB:ILM.M.U2.C.L022.U2.EUR', 'bn');
-            updateMetric('swapLines', 'ECB:FVC.Q.U2.N.V.LE.A.A20.S121.S11.N', 'bn');
-            updateMetric('cissValue', 'ECB:CISS.D.U2.Z0Z.4F.EC.SS_CI.IDX', '');
-            updateMetric('bankStress', 'ECB:CBD2.M.U2.W0.11.510.0.Q', '');
-            updateMetric('target2', 'ECB:ILM.M.U2.C.T00000.U2.EUR', 'bn');
-            updateMetric('excessReserves', 'ECB:ILM.M.U2.C.LT00001.U2.EUR', 'T');
-            updateMetric('m1Growth', 'ECB:BSI.M.U2.Y.V.M10.X.1.U2.2300.Z01.E', '%');
-            updateMetric('m2Growth', 'ECB:BSI.M.U2.Y.V.M20.X.1.U2.2300.Z01.E', '%');
-            updateMetric('m3Growth', 'ECB:BSI.M.U2.Y.V.M30.X.1.U2.2300.Z01.E', '%');
-            updateMetric('creditGrowth', 'ECB:BSI.M.U2.N.A.A20.A.1.U2.2240.EUR.E', '%');
-            
-            updateCrisisProbabilities();
-        }
-
-        // Update metric
-        function updateMetric(elementId, indicatorCode, suffix = '') {
-            const data = ecbData.get(indicatorCode);
-            const valueElement = document.getElementById(elementId);
-            const changeId = elementId.replace('Rate', 'Change').replace('Value', 'Change').replace('Growth', 'Change');
-            const changeElement = document.getElementById(changeId);
-            
-            if (data && valueElement) {
-                const value = data.value;
-                const change = data.change || 0;
+            // Update CISS values for each country
+            Object.keys(ECB_CONFIG.COUNTRIES).forEach(code => {
+                const symbol = `ECB.CISS.D.${code}.Z0Z.4F.EC.SS_CI.IDX`;
+                const indicator = ecbIndicators.get(symbol);
                 
-                if (suffix === '%') {
-                    valueElement.textContent = `${value.toFixed(2)}%`;
-                } else if (suffix === 'bn') {
-                    valueElement.textContent = `€${value.toFixed(1)}bn`;
-                } else if (suffix === 'T') {
-                    valueElement.textContent = `€${(value / 1000).toFixed(1)}T`;
-                } else if (suffix === 'bps') {
-                    valueElement.textContent = `${value.toFixed(0)}bps`;
-                } else {
-                    valueElement.textContent = value.toFixed(3);
+                if (indicator) {
+                    const value = parseFloat(indicator.value || Math.random() * 0.5);
+                    const element = document.getElementById(`ciss-value-${code}`);
+                    if (element) {
+                        element.textContent = value.toFixed(3);
+                        
+                        const item = document.getElementById(`ciss-${code}`);
+                        if (value > 0.4) {
+                            element.style.color = '#ff3366';
+                            if (item) item.style.borderColor = '#ff3366';
+                        } else if (value > 0.2) {
+                            element.style.color = '#ffaa00';
+                            if (item) item.style.borderColor = '#ffaa00';
+                        } else {
+                            element.style.color = '#00ff88';
+                            if (item) item.style.borderColor = '#00ff88';
+                        }
+                    }
+                    
+                    countryStressLevels.set(code, value);
                 }
-                
-                if (changeElement) {
-                    const arrow = change > 0 ? '↑' : change < 0 ? '↓' : '→';
-                    const changeClass = change > 0 ? 'change-positive' : change < 0 ? 'change-negative' : 'change-neutral';
-                    changeElement.className = `metric-change ${changeClass}`;
-                    const changeValue = Math.abs(change).toFixed(suffix === '%' || suffix === '' ? 2 : 1);
-                    changeElement.textContent = `${arrow} ${changeValue}${suffix === 'bn' ? 'bn' : suffix === 'bps' ? 'bps' : suffix}`;
-                }
-            }
+            });
         }
 
         // Update systemic risk table
-        function updateSystemicRiskTable() {
+        function updateSystemicRiskTable(data = null) {
             const tbody = document.getElementById('systemicRiskBody');
+            if (!tbody) return;
+            
             tbody.innerHTML = '';
             
-            let criticalCount = 0, warningCount = 0;
+            const indicators = data || Array.from(ecbIndicators.values());
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const countryFilter = document.getElementById('countryFilter').value;
             
-            ecbData.forEach((data, code) => {
+            let filtered = indicators;
+            if (categoryFilter !== 'all') {
+                filtered = filtered.filter(ind => ind.category === categoryFilter);
+            }
+            if (countryFilter !== 'all') {
+                filtered = filtered.filter(ind => ind.symbol && ind.symbol.includes(`.${countryFilter}.`));
+            }
+            
+            filtered.slice(0, 100).forEach(indicator => {
                 const row = document.createElement('tr');
-                const riskLevel = calculateRiskLevel(data);
-                const signal = getSignal(data);
-                
-                if (riskLevel === 'CRITICAL') criticalCount++;
-                if (riskLevel === 'WARNING') warningCount++;
+                const status = getIndicatorStatus(indicator);
                 
                 row.innerHTML = `
-                    <td><input class="editable-name" value="${data.customName || data.name}" data-indicator="${code}" /></td>
-                    <td style="font-family: monospace; font-size: 0.9em;">${code}</td>
-                    <td>${formatValue(data.value, data.category)}</td>
-                    <td class="${data.change > 0 ? 'change-positive' : 'change-negative'}">
-                        ${data.change > 0 ? '↑' : '↓'} ${Math.abs(data.change).toFixed(2)}%
+                    <td>
+                        <input class="editable-name" 
+                               value="${indicator.displayName || indicator.name || 'N/A'}" 
+                               data-symbol="${indicator.symbol}"
+                               onchange="updateCustomName(this)">
                     </td>
-                    <td><span style="color: ${getRiskColor(riskLevel)}">${riskLevel}</span></td>
-                    <td><span style="color: ${getSignalColor(signal)}">${signal}</span></td>
+                    <td style="font-family: monospace; font-size: 0.9em;">${indicator.symbol}</td>
+                    <td>${indicator.category || 'other'}</td>
+                    <td>${formatValue(indicator.value, indicator.category)}</td>
+                    <td>${indicator.lastUpdated ? new Date(indicator.lastUpdated).toLocaleString() : 'N/A'}</td>
+                    <td><span style="color: ${getStatusColor(status)}">${status}</span></td>
+                    <td>
+                        <button class="add-to-tab" onclick="openIndicatorSelector('', '${indicator.symbol}')">
+                            + Tab
+                        </button>
+                    </td>
                 `;
                 tbody.appendChild(row);
             });
             
             const interpretation = document.getElementById('systemicInterpretation');
-            if (criticalCount > 5) {
-                interpretation.textContent = `⚠️ CRITICAL: ${criticalCount} indicators showing severe stress. Immediate action recommended.`;
-                document.getElementById('systemicBadge').className = 'card-badge badge-critical';
-            } else if (warningCount > 10) {
-                interpretation.textContent = `WARNING: ${warningCount} indicators elevated. Monitor closely.`;
-                document.getElementById('systemicBadge').className = 'card-badge badge-warning';
-            } else {
-                interpretation.textContent = `System stable. ${ecbData.size} indicators monitored. No significant risks.`;
-                document.getElementById('systemicBadge').className = 'card-badge badge-normal';
+            if (interpretation) {
+                interpretation.textContent = `Displaying ${filtered.length} of ${ecbIndicators.size} ECB indicators. Last update: ${new Date().toLocaleTimeString()}`;
             }
         }
 
-        // Calculate risk level
-        function calculateRiskLevel(data) {
-            if (data.category === 'stress' && data.value > 0.4) return 'CRITICAL';
-            if (data.category === 'stress' && data.value > 0.2) return 'WARNING';
-            if (data.category === 'dollar' && data.value < -30) return 'WARNING';
+        // Update custom name
+        function updateCustomName(input) {
+            const symbol = input.dataset.symbol;
+            const newName = input.value;
             
-            const absChange = Math.abs(data.change);
-            if (absChange > 15) return 'CRITICAL';
-            if (absChange > 10) return 'WARNING';
-            if (absChange > 5) return 'ELEVATED';
-            return 'NORMAL';
+            customNames.set(symbol, newName);
+            
+            const indicator = ecbIndicators.get(symbol);
+            if (indicator) {
+                indicator.displayName = newName;
+            }
+            
+            saveCustomNames();
+            updateTabIndicators();
+            
+            showNotification('Name updated', 'success');
         }
 
-        // Get signal
-        function getSignal(data) {
-            if (data.category === 'rates' && data.value > 4) return 'RESTRICTIVE';
-            if (data.category === 'stress' && data.value > 0.2) return 'BEARISH';
-            if (data.category === 'dollar' && data.value < -30) return 'SHORTAGE';
-            if (data.category === 'monetary' && data.value < 0) return 'CONTRACTING';
-            if (data.change > 5) return 'BULLISH';
-            if (data.change < -5) return 'BEARISH';
-            return 'NEUTRAL';
+        // Save custom names to localStorage
+        function saveCustomNames() {
+            const names = Array.from(customNames.entries());
+            localStorage.setItem('ecb_custom_names', JSON.stringify(names));
         }
 
-        // Format value
-        function formatValue(value, category) {
-            if (category === 'rates') return `${value.toFixed(2)}%`;
-            if (category === 'stress') return value.toFixed(3);
-            if (category === 'dollar') return `${value.toFixed(0)}bps`;
-            if (category === 'liquidity') return `€${(value / 1000).toFixed(1)}bn`;
-            if (category === 'monetary') return `${value.toFixed(1)}%`;
-            return value.toFixed(2);
+        // Load saved custom names
+        function loadSavedCustomNames() {
+            const saved = localStorage.getItem('ecb_custom_names');
+            if (saved) {
+                const names = JSON.parse(saved);
+                customNames = new Map(names);
+            }
         }
 
-        // Get colors
-        function getRiskColor(level) {
-            const colors = { 'CRITICAL': '#ff3366', 'WARNING': '#ffaa00', 'ELEVATED': '#ff9933', 'NORMAL': '#00ff88' };
-            return colors[level] || '#8899aa';
+        // Tab management
+        function switchTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.remove('active');
+            });
+            
+            // Remove active from all tab buttons
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            const tabPane = document.getElementById(`tab-${tabId}`);
+            if (tabPane) {
+                tabPane.classList.add('active');
+            }
+            
+            // Mark tab button as active
+            const tabButton = document.querySelector(`[data-tab="${tabId}"]`);
+            if (tabButton) {
+                tabButton.classList.add('active');
+            }
+            
+            currentTab = tabId;
         }
 
-        function getSignalColor(signal) {
-            const colors = { 'BULLISH': '#00ff88', 'BEARISH': '#ff3366', 'SHORTAGE': '#ff0033', 'RESTRICTIVE': '#ffaa00', 'CONTRACTING': '#ff6666', 'NEUTRAL': '#8899aa' };
-            return colors[signal] || '#8899aa';
+        // Create new tab
+        function createNewTab() {
+            const tabName = prompt('Enter tab name:');
+            if (!tabName) return;
+            
+            const tabId = tabName.toLowerCase().replace(/\s+/g, '-');
+            
+            // Create tab button
+            const tabButton = document.createElement('div');
+            tabButton.className = 'tab';
+            tabButton.dataset.tab = tabId;
+            tabButton.innerHTML = `
+                ${tabName}
+                <span class="tab-close" onclick="removeTab(event, '${tabId}')">×</span>
+            `;
+            tabButton.onclick = (e) => {
+                if (!e.target.classList.contains('tab-close')) {
+                    switchTab(tabId);
+                }
+            };
+            
+            // Insert before Add Tab button
+            const addButton = document.querySelector('.add-tab-btn');
+            addButton.parentNode.insertBefore(tabButton, addButton);
+            
+            // Create tab content
+            const tabContent = document.querySelector('.tab-content');
+            const newPane = document.createElement('div');
+            newPane.className = 'tab-pane';
+            newPane.id = `tab-${tabId}`;
+            newPane.innerHTML = `
+                <h3 style="color: #00d4ff; margin-bottom: 20px;">${tabName}</h3>
+                <button class="btn" onclick="openIndicatorSelector('${tabId}')">+ Add Indicators</button>
+                <div class="custom-indicator-grid" id="${tabId}-indicators"></div>
+            `;
+            tabContent.appendChild(newPane);
+            
+            // Initialize tab data
+            tabIndicators.set(tabId, []);
+            
+            saveTabs();
+            switchTab(tabId);
+            
+            showNotification(`Tab "${tabName}" created`, 'success');
+        }
+
+        // Remove tab
+        function removeTab(event, tabId) {
+            event.stopPropagation();
+            
+            if (confirm('Remove this tab?')) {
+                // Remove tab button
+                const tabButton = document.querySelector(`[data-tab="${tabId}"]`);
+                if (tabButton) tabButton.remove();
+                
+                // Remove tab content
+                const tabPane = document.getElementById(`tab-${tabId}`);
+                if (tabPane) tabPane.remove();
+                
+                // Remove from data
+                tabIndicators.delete(tabId);
+                
+                saveTabs();
+                switchTab('overview');
+                
+                showNotification('Tab removed', 'info');
+            }
+        }
+
+        // Open indicator selector
+        function openIndicatorSelector(tabId = '', singleIndicator = '') {
+            const selector = document.getElementById('indicatorSelector');
+            const overlay = document.getElementById('overlay');
+            const list = document.getElementById('indicatorList');
+            
+            currentTab = tabId || currentTab;
+            selectedIndicators.clear();
+            
+            if (singleIndicator) {
+                selectedIndicators.add(singleIndicator);
+            }
+            
+            // Populate indicator list
+            list.innerHTML = '';
+            ecbIndicators.forEach((indicator, symbol) => {
+                const option = document.createElement('div');
+                option.className = 'indicator-option';
+                if (selectedIndicators.has(symbol)) {
+                    option.classList.add('selected');
+                }
+                option.innerHTML = `
+                    <div style="font-weight: 600;">${indicator.displayName || indicator.name}</div>
+                    <div style="font-size: 0.8em; color: #8899aa;">${symbol}</div>
+                    <div style="font-size: 0.8em; color: #00d4ff;">${indicator.category || 'Other'}</div>
+                `;
+                option.onclick = () => {
+                    if (selectedIndicators.has(symbol)) {
+                        selectedIndicators.delete(symbol);
+                        option.classList.remove('selected');
+                    } else {
+                        selectedIndicators.add(symbol);
+                        option.classList.add('selected');
+                    }
+                };
+                list.appendChild(option);
+            });
+            
+            selector.classList.add('show');
+            overlay.classList.add('show');
+        }
+
+        // Close indicator selector
+        function closeIndicatorSelector() {
+            const selector = document.getElementById('indicatorSelector');
+            const overlay = document.getElementById('overlay');
+            
+            selector.classList.remove('show');
+            overlay.classList.remove('show');
+            selectedIndicators.clear();
+        }
+
+        // Add selected indicators to tab
+        function addSelectedIndicators() {
+            if (selectedIndicators.size === 0) {
+                showNotification('No indicators selected', 'warning');
+                return;
+            }
+            
+            if (!tabIndicators.has(currentTab)) {
+                tabIndicators.set(currentTab, []);
+            }
+            
+            const tabInds = tabIndicators.get(currentTab);
+            selectedIndicators.forEach(symbol => {
+                if (!tabInds.includes(symbol)) {
+                    tabInds.push(symbol);
+                }
+            });
+            
+            updateTabIndicators();
+            saveTabs();
+            closeIndicatorSelector();
+            
+            showNotification(`Added ${selectedIndicators.size} indicators`, 'success');
+        }
+
+        // Update tab indicators
+        function updateTabIndicators() {
+            tabIndicators.forEach((indicators, tabId) => {
+                const container = document.getElementById(`${tabId}-indicators`);
+                if (!container) return;
+                
+                container.innerHTML = '';
+                
+                indicators.forEach(symbol => {
+                    const indicator = ecbIndicators.get(symbol);
+                    if (!indicator) return;
+                    
+                    const div = document.createElement('div');
+                    div.className = 'custom-indicator';
+                    div.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <input class="editable-name" 
+                                   value="${indicator.displayName || indicator.name}" 
+                                   data-symbol="${symbol}"
+                                   onchange="updateCustomName(this)"
+                                   style="flex: 1;">
+                            <span style="color: #ff3366; cursor: pointer; padding: 5px;" 
+                                  onclick="removeFromTab('${tabId}', '${symbol}')">×</span>
+                        </div>
+                        <div style="font-size: 0.8em; color: #8899aa; margin-bottom: 10px;">${symbol}</div>
+                        <div style="font-size: 1.4em; font-weight: 700; color: #00d4ff;">
+                            ${formatValue(indicator.value, indicator.category)}
+                        </div>
+                        <div style="font-size: 0.9em; color: ${getStatusColor(getIndicatorStatus(indicator))};">
+                            ${getIndicatorStatus(indicator)}
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            });
+        }
+
+        // Remove indicator from tab
+        function removeFromTab(tabId, symbol) {
+            const indicators = tabIndicators.get(tabId);
+            if (!indicators) return;
+            
+            const index = indicators.indexOf(symbol);
+            if (index > -1) {
+                indicators.splice(index, 1);
+                updateTabIndicators();
+                saveTabs();
+                showNotification('Indicator removed', 'info');
+            }
+        }
+
+        // Save tabs to localStorage
+        function saveTabs() {
+            const tabs = Array.from(tabIndicators.entries());
+            localStorage.setItem('ecb_tabs', JSON.stringify(tabs));
+        }
+
+        // Load saved tabs
+        function loadSavedTabs() {
+            const saved = localStorage.getItem('ecb_tabs');
+            if (saved) {
+                const tabs = JSON.parse(saved);
+                tabs.forEach(([tabId, indicators]) => {
+                    if (!['overview', 'ciss', 'dollar', 'blackswan'].includes(tabId)) {
+                        // Recreate custom tabs
+                        const tabName = tabId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                        
+                        const tabButton = document.createElement('div');
+                        tabButton.className = 'tab';
+                        tabButton.dataset.tab = tabId;
+                        tabButton.innerHTML = `
+                            ${tabName}
+                            <span class="tab-close" onclick="removeTab(event, '${tabId}')">×</span>
+                        `;
+                        tabButton.onclick = (e) => {
+                            if (!e.target.classList.contains('tab-close')) {
+                                switchTab(tabId);
+                            }
+                        };
+                        
+                        const addButton = document.querySelector('.add-tab-btn');
+                        addButton.parentNode.insertBefore(tabButton, addButton);
+                        
+                        const tabContent = document.querySelector('.tab-content');
+                        const newPane = document.createElement('div');
+                        newPane.className = 'tab-pane';
+                        newPane.id = `tab-${tabId}`;
+                        newPane.innerHTML = `
+                            <h3 style="color: #00d4ff; margin-bottom: 20px;">${tabName}</h3>
+                            <button class="btn" onclick="openIndicatorSelector('${tabId}')">+ Add Indicators</button>
+                            <div class="custom-indicator-grid" id="${tabId}-indicators"></div>
+                        `;
+                        tabContent.appendChild(newPane);
+                    }
+                    
+                    tabIndicators.set(tabId, indicators);
+                });
+            }
         }
 
         // Analyze systemic risk
         async function analyzeSystemicRisk() {
-            let dollarRisk = 0, bankingRisk = 0, systemicStress = 0;
+            let criticalCount = 0;
+            let warningCount = 0;
+            let totalStress = 0;
             
-            ecbData.forEach((data) => {
-                if (data.category === 'dollar' && data.value < -30) dollarRisk += 20;
-                if (data.category === 'stress' && data.value > 0.2) systemicStress += 15;
-                if (data.category === 'banking' && data.change < -5) bankingRisk += 10;
+            countryStressLevels.forEach((value, country) => {
+                totalStress += value;
+                if (value > 0.4) criticalCount++;
+                else if (value > 0.2) warningCount++;
             });
             
-            riskMetrics.dollarShortage = Math.min(100, dollarRisk);
-            riskMetrics.bankingCrisis = Math.min(100, bankingRisk);
-            riskMetrics.systemicRisk = Math.min(100, systemicStress);
-            
-            updateRiskDisplay();
-            updateCrisisProbabilities();
-        }
-
-        // Update crisis probabilities
-        function updateCrisisProbabilities() {
-            const ciss = ecbData.get('ECB:CISS.D.U2.Z0Z.4F.EC.SS_CI.IDX');
-            const dollarBasis = ecbData.get('ECB:EXR.D.USD.EUR.SP00.A');
-            
-            const bankingProb = Math.min(100, 25 + (ciss ? ciss.value * 100 : 35));
-            const currencyProb = Math.min(100, 15 + (dollarBasis && dollarBasis.value < -30 ? 30 : 0));
-            const sovereignProb = Math.min(100, 20 + (riskMetrics.systemicRisk * 0.5));
-            const systemicProb = Math.min(100, Math.max(bankingProb, currencyProb, sovereignProb) * 0.8);
-            
-            document.getElementById('bankingProb').textContent = `${bankingProb.toFixed(0)}%`;
-            document.getElementById('currencyProb').textContent = `${currencyProb.toFixed(0)}%`;
-            document.getElementById('sovereignProb').textContent = `${sovereignProb.toFixed(0)}%`;
-            document.getElementById('systemicProb').textContent = `${systemicProb.toFixed(0)}%`;
-        }
-
-        // Detect black swan
-        function detectBlackSwan() {
-            let blackSwanScore = 0;
-            const anomalies = [];
-            
-            ecbData.forEach((data) => {
-                if (Math.abs(data.change) > 15) {
-                    blackSwanScore += 20;
-                    anomalies.push(`${data.name}: ${data.change.toFixed(1)}%`);
-                }
-                if (data.category === 'stress' && data.value > 0.5) {
-                    blackSwanScore += 30;
-                    anomalies.push('Extreme systemic stress');
-                }
-                if (data.category === 'dollar' && data.value < -50) {
-                    blackSwanScore += 25;
-                    anomalies.push('Severe dollar shortage');
-                }
-            });
-            
-            updateRiskMatrix(blackSwanScore);
-            
-            if (blackSwanScore > 60) {
-                showCrisisAlert(`BLACK SWAN: ${anomalies.slice(0, 3).join(', ')}`, 'critical');
-                document.getElementById('swanBadge').className = 'card-badge badge-critical';
-                document.getElementById('swanBadge').textContent = 'CRITICAL';
-            } else if (blackSwanScore > 30) {
-                showNotification('Elevated tail risk detected', 'warning');
-                document.getElementById('swanBadge').className = 'card-badge badge-warning';
-                document.getElementById('swanBadge').textContent = 'Elevated';
-            } else {
-                document.getElementById('swanBadge').className = 'card-badge badge-normal';
-                document.getElementById('swanBadge').textContent = 'Low Risk';
-            }
-        }
-
-        // Initialize and update risk matrix
-        function initializeRiskMatrix() {
-            updateRiskMatrix(0);
-        }
-
-        function updateRiskMatrix(blackSwanScore = 0) {
-            const matrix = document.getElementById('riskMatrix');
-            matrix.innerHTML = '';
-            
-            const risks = [
-                { name: 'Dollar', value: riskMetrics.dollarShortage },
-                { name: 'Banking', value: riskMetrics.bankingCrisis },
-                { name: 'Currency', value: riskMetrics.currencyCrisis },
-                { name: 'Sovereign', value: riskMetrics.sovereignCrisis },
-                { name: 'Systemic', value: riskMetrics.systemicRisk },
-                { name: 'Liquidity', value: Math.random() * 60 },
-                { name: 'Credit', value: Math.random() * 50 },
-                { name: 'Market', value: Math.random() * 40 },
-                { name: 'Operation', value: Math.random() * 30 },
-                { name: 'Contagion', value: Math.random() * 70 },
-                { name: 'Inflation', value: Math.random() * 45 },
-                { name: 'Deflation', value: Math.random() * 35 },
-                { name: 'Stagflation', value: Math.random() * 55 },
-                { name: 'Recession', value: Math.random() * 65 },
-                { name: 'Depression', value: Math.random() * 25 },
-                { name: 'TARGET2', value: Math.random() * 40 },
-                { name: 'QE Exit', value: Math.random() * 50 },
-                { name: 'Fragment', value: Math.random() * 60 },
-                { name: 'NPLs', value: Math.random() * 45 },
-                { name: 'Black Swan', value: blackSwanScore }
-            ];
-            
-            risks.forEach(risk => {
-                const cell = document.createElement('div');
-                cell.className = 'risk-cell';
-                
-                if (risk.value > 70) cell.className += ' risk-critical';
-                else if (risk.value > 50) cell.className += ' risk-high';
-                else if (risk.value > 30) cell.className += ' risk-medium';
-                else cell.className += ' risk-low';
-                
-                cell.innerHTML = `
-                    <div style="font-size: 0.7em;">${risk.name}</div>
-                    <div style="font-size: 1em; font-weight: bold;">${risk.value.toFixed(0)}%</div>
-                `;
-                
-                cell.onclick = () => showNotification(`${risk.name} Risk: ${risk.value.toFixed(1)}%`, risk.value > 50 ? 'warning' : 'info');
-                
-                matrix.appendChild(cell);
-            });
-        }
-
-        // Update risk display
-        function updateRiskDisplay() {
-            const dollarRisk = riskMetrics.dollarShortage;
-            const maxRisk = Math.max(...Object.values(riskMetrics));
-            
-            const dollarIndicator = document.getElementById('dollarIndicator');
-            const dollarStatus = document.getElementById('dollarStatus');
-            
-            if (dollarRisk > 70) {
-                dollarIndicator.className = 'status-indicator danger';
-                dollarStatus.textContent = 'CRITICAL';
-                document.getElementById('dollarBadge').className = 'card-badge badge-critical';
-            } else if (dollarRisk > 40) {
-                dollarIndicator.className = 'status-indicator warning';
-                dollarStatus.textContent = 'WARNING';
-                document.getElementById('dollarBadge').className = 'card-badge badge-warning';
-            } else {
-                dollarIndicator.className = 'status-indicator online';
-                dollarStatus.textContent = 'NORMAL';
-                document.getElementById('dollarBadge').className = 'card-badge badge-normal';
-            }
+            const avgStress = totalStress / Math.max(countryStressLevels.size, 1);
             
             const crisisIndicator = document.getElementById('crisisIndicator');
             const crisisStatus = document.getElementById('crisisStatus');
             
-            if (maxRisk > 70) {
+            if (criticalCount > 3 || avgStress > 0.3) {
                 crisisIndicator.className = 'status-indicator danger';
                 crisisStatus.textContent = 'CRITICAL';
-            } else if (maxRisk > 40) {
+                showCrisisAlert(`CRITICAL: ${criticalCount} countries showing extreme stress (CISS > 0.4)`);
+            } else if (warningCount > 5 || avgStress > 0.2) {
                 crisisIndicator.className = 'status-indicator warning';
                 crisisStatus.textContent = 'ELEVATED';
             } else {
@@ -1211,23 +1425,71 @@
                 crisisStatus.textContent = 'NORMAL';
             }
             
-            updateInterpretations();
+            document.getElementById('alertCount').textContent = criticalCount + warningCount;
+            
+            const interpretation = document.getElementById('cissInterpretation');
+            if (interpretation) {
+                if (criticalCount > 0) {
+                    interpretation.textContent = `⚠️ CRITICAL: ${criticalCount} countries in crisis territory. Average stress: ${avgStress.toFixed(3)}`;
+                } else if (warningCount > 0) {
+                    interpretation.textContent = `WARNING: ${warningCount} countries elevated. Average stress: ${avgStress.toFixed(3)}`;
+                } else {
+                    interpretation.textContent = `✅ System stable. Average CISS: ${avgStress.toFixed(3)}. All countries within normal parameters.`;
+                }
+            }
         }
 
-        // Update interpretations
-        function updateInterpretations() {
-            const riskInterp = document.getElementById('riskInterpretation');
-            const maxRisk = Math.max(...Object.values(riskMetrics));
+        // Detect black swan events
+        async function detectBlackSwan() {
+            showLoading(true);
             
-            if (maxRisk > 70) {
-                riskInterp.textContent = '🚨 CRITICAL: Multiple ECB indicators showing extreme stress. Immediate action required.';
-            } else if (maxRisk > 50) {
-                riskInterp.textContent = '⚠️ WARNING: Elevated risk levels across ECB metrics. Enhanced monitoring required.';
-            } else if (maxRisk > 30) {
-                riskInterp.textContent = 'CAUTION: Some ECB indicators elevated. Continue monitoring.';
-            } else {
-                riskInterp.textContent = '✅ Risk levels within normal ECB parameters. No immediate concerns.';
+            try {
+                const response = await fetch(`${ECB_CONFIG.ECB_API}/search?query=SRISK`);
+                const data = await response.json();
+                
+                let blackSwanRisk = 0;
+                const alerts = [];
+                
+                if (data.results) {
+                    data.results.forEach(indicator => {
+                        if (indicator.name && indicator.name.includes('SRISK')) {
+                            const value = parseFloat(indicator.value || 0);
+                            if (value > 1000) {
+                                blackSwanRisk += 30;
+                                alerts.push(`SRISK exceeds €1 trillion`);
+                            }
+                        }
+                    });
+                }
+                
+                countryStressLevels.forEach((value, country) => {
+                    if (value > 0.5) {
+                        blackSwanRisk += 20;
+                        alerts.push(`${country} CISS critical (${value.toFixed(3)})`);
+                    }
+                });
+                
+                if (blackSwanRisk > 60) {
+                    showCrisisAlert(`🦢 BLACK SWAN ALERT: ${alerts.join(', ')}`, 'critical');
+                } else if (blackSwanRisk > 30) {
+                    showNotification('Elevated tail risk detected', 'warning');
+                } else {
+                    showNotification('No black swan events detected', 'success');
+                }
+                
+            } catch (error) {
+                console.error('Black swan detection error:', error);
+                showNotification('Failed to analyze black swan risk', 'error');
+            } finally {
+                showLoading(false);
             }
+        }
+
+        // Show country details
+        function showCountryDetails(code) {
+            const stress = countryStressLevels.get(code) || 0;
+            const country = ECB_CONFIG.COUNTRIES[code];
+            showNotification(`${country} - CISS: ${stress.toFixed(3)}`, stress > 0.2 ? 'warning' : 'info');
         }
 
         // Show crisis alert
@@ -1247,73 +1509,127 @@
             }, 10000);
         }
 
-        // Process search results
-        function processSearchResults(data) {
-            if (data.results) {
-                data.results.forEach(result => {
-                    if (result.symbol && result.symbol.startsWith('ECB:')) {
-                        ecbData.set(result.symbol, {
-                            code: result.symbol,
-                            name: result.name || result.symbol,
-                            value: result.value || generateMockValue(determineCategory(result.symbol)),
-                            change: result.change || (Math.random() - 0.5) * 10,
-                            category: determineCategory(result.symbol),
-                            timestamp: new Date().toISOString()
-                        });
-                    }
-                });
-                
-                updateDashboard();
-                updateSystemicRiskTable();
+        // Format value based on category
+        function formatValue(value, category) {
+            if (!value && value !== 0) return 'N/A';
+            
+            const numValue = parseFloat(value);
+            
+            if (category === 'Systemic Risk' || category === 'Systemic Risk Components') {
+                return numValue.toFixed(3);
+            } else if (category === 'Dollar Funding') {
+                return `${numValue.toFixed(0)}bps`;
+            } else if (category === 'TARGET2' || category === 'External Liabilities') {
+                if (Math.abs(numValue) > 1000) {
+                    return `€${(numValue / 1000).toFixed(1)}T`;
+                }
+                return `€${numValue.toFixed(0)}bn`;
+            } else if (category === 'Black Swan') {
+                return `${numValue.toFixed(1)}%`;
+            } else if (category === 'Crisis Measures') {
+                return `€${numValue.toFixed(0)}bn`;
             }
+            
+            return numValue.toFixed(2);
         }
 
-        // Determine category from ECB code
-        function determineCategory(code) {
-            if (code.includes('KR') || code.includes('RATE')) return 'rates';
-            if (code.includes('CISS') || code.includes('SS')) return 'stress';
-            if (code.includes('USD') || code.includes('FX')) return 'dollar';
-            if (code.includes('ILM') || code.includes('LT')) return 'liquidity';
-            if (code.includes('BSI') || code.includes('M1') || code.includes('M2') || code.includes('M3')) return 'monetary';
-            if (code.includes('CBD') || code.includes('MIR')) return 'banking';
-            return 'other';
+        // Get indicator status
+        function getIndicatorStatus(indicator) {
+            if (!indicator.value) return 'N/A';
+            
+            const value = parseFloat(indicator.value);
+            
+            if (indicator.category === 'Systemic Risk' || indicator.category === 'Systemic Risk Components') {
+                if (value > 0.4) return 'CRITICAL';
+                if (value > 0.2) return 'WARNING';
+                return 'NORMAL';
+            } else if (indicator.category === 'Dollar Funding') {
+                if (value < -50) return 'CRITICAL';
+                if (value < -30) return 'WARNING';
+                return 'NORMAL';
+            } else if (indicator.category === 'Black Swan') {
+                if (value > 70) return 'CRITICAL';
+                if (value > 40) return 'WARNING';
+                return 'NORMAL';
+            }
+            
+            return 'ACTIVE';
+        }
+
+        // Get status color
+        function getStatusColor(status) {
+            const colors = {
+                'CRITICAL': '#ff3366',
+                'WARNING': '#ffaa00',
+                'ELEVATED': '#ff9933',
+                'NORMAL': '#00ff88',
+                'ACTIVE': '#00d4ff',
+                'N/A': '#8899aa'
+            };
+            return colors[status] || '#8899aa';
+        }
+
+        // Export data
+        function exportData() {
+            let csv = 'Symbol,Display Name,Original Name,Category,Value,Status,Last Updated\n';
+            
+            ecbIndicators.forEach(indicator => {
+                csv += `"${indicator.symbol}","${indicator.displayName || ''}","${indicator.name || ''}","${indicator.category || ''}","${indicator.value || ''}","${getIndicatorStatus(indicator)}","${indicator.lastUpdated || ''}"\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ecb_indicators_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+            
+            showNotification('Data exported successfully', 'success');
         }
 
         // Setup event listeners
         function setupEventListeners() {
-            // Data source change
-            document.getElementById('dataSource').addEventListener('change', fetchAWSBackendData);
-            
-            // Update frequency
-            document.getElementById('updateFreq').addEventListener('change', (e) => {
-                clearInterval(CONFIG.UPDATE_INTERVAL);
-                const freq = e.target.value;
-                if (freq !== 'manual') {
-                    const interval = parseInt(freq) * 60000;
-                    CONFIG.UPDATE_INTERVAL = setInterval(fetchAWSBackendData, interval);
-                }
+            document.getElementById('categoryFilter').addEventListener('change', () => {
+                updateSystemicRiskTable();
             });
             
-            // Risk threshold change
-            document.getElementById('riskThreshold').addEventListener('change', analyzeSystemicRisk);
+            document.getElementById('countryFilter').addEventListener('change', () => {
+                updateSystemicRiskTable();
+            });
             
-            // Search on enter
             document.getElementById('indicatorSearch').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
                     searchECBIndicators();
                 }
             });
             
-            // Make indicator names editable
-            document.addEventListener('input', (e) => {
-                if (e.target.classList.contains('editable-name')) {
-                    const indicatorCode = e.target.dataset.indicator;
-                    const data = ecbData.get(indicatorCode);
-                    if (data) {
-                        data.customName = e.target.value;
-                    }
-                }
+            document.getElementById('riskThreshold').addEventListener('change', () => {
+                analyzeSystemicRisk();
             });
+            
+            document.getElementById('indicatorSearchModal').addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                const options = document.querySelectorAll('.indicator-option');
+                
+                options.forEach(option => {
+                    const text = option.textContent.toLowerCase();
+                    option.style.display = text.includes(searchTerm) ? 'block' : 'none';
+                });
+            });
+            
+            document.getElementById('overlay').addEventListener('click', closeIndicatorSelector);
+        }
+
+        // Start auto-refresh
+        function startAutoRefresh() {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+            
+            updateInterval = setInterval(() => {
+                fetchECBData();
+            }, 5 * 60 * 1000); // 5 minutes
         }
 
         // Show loading overlay
@@ -1339,22 +1655,12 @@
             }, 3000);
         }
 
-        // Initialize on load
-        window.addEventListener('load', initializeDashboard);
-        
-        // Cleanup on unload
-        window.addEventListener('beforeunload', () => {
-            if (CONFIG.UPDATE_INTERVAL) {
-                clearInterval(CONFIG.UPDATE_INTERVAL);
-            }
-        });
-
-        // Add keyboard shortcuts
+        // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
             // Ctrl/Cmd + R: Refresh data
             if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
                 e.preventDefault();
-                fetchAWSBackendData();
+                fetchECBData();
             }
             
             // Ctrl/Cmd + B: Black Swan detection
@@ -1363,12 +1669,837 @@
                 detectBlackSwan();
             }
             
+            // Ctrl/Cmd + S: Search focus
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                document.getElementById('indicatorSearch').focus();
+            }
+            
             // Ctrl/Cmd + A: Analyze risk
             if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
                 e.preventDefault();
                 analyzeSystemicRisk();
             }
+            
+            // Ctrl/Cmd + E: Export data
+            if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
+                e.preventDefault();
+                exportData();
+            }
+            
+            // Ctrl/Cmd + T: Create new tab
+            if ((e.ctrlKey || e.metaKey) && e.key === 't') {
+                e.preventDefault();
+                createNewTab();
+            }
         });
+
+        // Advanced ECB data fetching with pagination
+        async function fetchAllECBIndicators() {
+            const allIndicators = [];
+            let offset = 0;
+            const limit = 50;
+            
+            try {
+                while (offset < 217) {
+                    const response = await fetch(`${ECB_CONFIG.ECB_API}/list?limit=${limit}&offset=${offset}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.indicators) {
+                            allIndicators.push(...data.indicators);
+                        }
+                        offset += limit;
+                    } else {
+                        break;
+                    }
+                }
+                
+                console.log(`Fetched ${allIndicators.length} total ECB indicators`);
+                return allIndicators;
+                
+            } catch (error) {
+                console.error('Error fetching all indicators:', error);
+                return allIndicators;
+            }
+        }
+
+        // Enhanced search with multiple queries
+        async function performAdvancedSearch() {
+            const queries = ['stress', 'dollar', 'TARGET2', 'CISS', 'SRISK', 'CoVaR', 'MES'];
+            const allResults = new Map();
+            
+            for (const query of queries) {
+                try {
+                    const response = await fetch(`${ECB_CONFIG.ECB_API}/search?query=${query}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.results) {
+                            data.results.forEach(result => {
+                                // Preserve custom names
+                                if (customNames.has(result.symbol)) {
+                                    result.displayName = customNames.get(result.symbol);
+                                } else {
+                                    result.displayName = result.name;
+                                }
+                                allResults.set(result.symbol, result);
+                            });
+                        }
+                    }
+                } catch (error) {
+                    console.error(`Search error for ${query}:`, error);
+                }
+            }
+            
+            console.log(`Advanced search found ${allResults.size} unique indicators`);
+            return Array.from(allResults.values());
+        }
+
+        // Calculate comprehensive risk score
+        function calculateComprehensiveRisk() {
+            let totalRisk = 0;
+            let components = {
+                systemic: 0,
+                dollar: 0,
+                blackswan: 0,
+                target2: 0,
+                contagion: 0
+            };
+            
+            // Calculate systemic risk from CISS
+            countryStressLevels.forEach(value => {
+                components.systemic += value * 100;
+            });
+            components.systemic /= Math.max(countryStressLevels.size, 1);
+            
+            // Check dollar funding stress indicators
+            const dollarIndicators = categoryData.get('Dollar Funding') || [];
+            dollarIndicators.forEach(indicator => {
+                const value = parseFloat(indicator.value || 0);
+                if (value < -30) components.dollar += 20;
+            });
+            components.dollar = Math.min(100, components.dollar);
+            
+            // Check black swan indicators
+            const blackSwanIndicators = categoryData.get('Black Swan') || [];
+            blackSwanIndicators.forEach(indicator => {
+                const value = parseFloat(indicator.value || 0);
+                if (value > 50) components.blackswan += 25;
+            });
+            components.blackswan = Math.min(100, components.blackswan);
+            
+            // Check TARGET2 imbalances
+            const target2Indicators = categoryData.get('TARGET2') || [];
+            target2Indicators.forEach(indicator => {
+                const value = Math.abs(parseFloat(indicator.value || 0));
+                if (value > 500) components.target2 += 15;
+            });
+            components.target2 = Math.min(100, components.target2);
+            
+            // Check contagion risk
+            const contagionIndicators = categoryData.get('Contagion Risk') || [];
+            contagionIndicators.forEach(indicator => {
+                const value = parseFloat(indicator.value || 0);
+                if (value > 0.6) components.contagion += 20;
+            });
+            components.contagion = Math.min(100, components.contagion);
+            
+            // Calculate weighted total
+            totalRisk = (
+                components.systemic * 0.3 +
+                components.dollar * 0.2 +
+                components.blackswan * 0.2 +
+                components.target2 * 0.15 +
+                components.contagion * 0.15
+            );
+            
+            // Update dollar shortage status
+            const dollarIndicator = document.getElementById('dollarIndicator');
+            const dollarStatus = document.getElementById('dollarStatus');
+            
+            if (components.dollar > 70) {
+                dollarIndicator.className = 'status-indicator danger';
+                dollarStatus.textContent = 'CRITICAL';
+            } else if (components.dollar > 40) {
+                dollarIndicator.className = 'status-indicator warning';
+                dollarStatus.textContent = 'WARNING';
+            } else {
+                dollarIndicator.className = 'status-indicator online';
+                dollarStatus.textContent = 'NORMAL';
+            }
+            
+            return {
+                total: totalRisk,
+                components: components
+            };
+        }
+
+        // Real-time monitoring mode
+        function enableRealTimeMode() {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+            
+            updateInterval = setInterval(() => {
+                fetchECBData();
+                
+                const timestamp = new Date().toLocaleTimeString();
+                console.log(`Real-time update at ${timestamp}`);
+                
+                const risk = calculateComprehensiveRisk();
+                if (risk.total > 70) {
+                    showCrisisAlert(`CRITICAL RISK: Overall score ${risk.total.toFixed(1)}%`, 'critical');
+                }
+            }, 30000); // 30 seconds
+            
+            showNotification('Real-time monitoring enabled (30s refresh)', 'success');
+        }
+
+        // Test connection to ECB API
+        async function testConnection() {
+            console.log('Testing ECB API connection...');
+            
+            try {
+                const startTime = Date.now();
+                const response = await fetch(`${ECB_CONFIG.ECB_API}/`);
+                const latency = Date.now() - startTime;
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(`✅ ECB API connected (${latency}ms latency)`);
+                    console.log(`Total indicators available: ${data.total_ecb_indicators || 0}`);
+                    return true;
+                } else {
+                    console.error(`❌ ECB API error: HTTP ${response.status}`);
+                    return false;
+                }
+            } catch (error) {
+                console.error('❌ ECB API connection failed:', error);
+                return false;
+            }
+        }
+
+        // Load mock data for testing
+        function loadMockECBData() {
+            console.log('Loading mock ECB data...');
+            
+            // Generate all 217 indicators
+            const countries = Object.keys(ECB_CONFIG.COUNTRIES);
+            
+            // CISS indicators (20)
+            countries.forEach(code => {
+                const symbol = `ECB.CISS.D.${code}.Z0Z.4F.EC.SS_CI.IDX`;
+                ecbIndicators.set(symbol, {
+                    symbol: symbol,
+                    name: `Systemic Stress - ${ECB_CONFIG.COUNTRIES[code]}`,
+                    displayName: `CISS ${code}`,
+                    category: 'Systemic Risk',
+                    value: Math.random() * 0.5,
+                    lastUpdated: new Date().toISOString()
+                });
+            });
+            
+            // Stress components (100 = 5 per country)
+            const components = ['SS_BM', 'SS_EM', 'SS_MM', 'SS_FI', 'SS_FX'];
+            countries.forEach(code => {
+                components.forEach(comp => {
+                    const symbol = `ECB.CISS.D.${code}.Z0Z.4F.EC.${comp}.IDX`;
+                    ecbIndicators.set(symbol, {
+                        symbol: symbol,
+                        name: `${comp.replace('SS_', '')} Stress - ${ECB_CONFIG.COUNTRIES[code]}`,
+                        displayName: `${comp} ${code}`,
+                        category: 'Systemic Risk Components',
+                        value: Math.random() * 0.4,
+                        lastUpdated: new Date().toISOString()
+                    });
+                });
+            });
+            
+            // Dollar funding indicators (8)
+            for (let i = 1; i <= 8; i++) {
+                const symbol = `ECB.DOLLAR.FUNDING.${i}`;
+                ecbIndicators.set(symbol, {
+                    symbol: symbol,
+                    name: `Dollar Funding Stress ${i}`,
+                    displayName: `Dollar Stress ${i}`,
+                    category: 'Dollar Funding',
+                    value: -30 + Math.random() * 20,
+                    lastUpdated: new Date().toISOString()
+                });
+            }
+            
+            // Black Swan indicators (5)
+            const blackSwanTypes = ['SRISK', 'CoVaR', 'MES', 'DCoVaR', 'Tail_Risk'];
+            blackSwanTypes.forEach(type => {
+                const symbol = `ECB.BLACKSWAN.${type}`;
+                ecbIndicators.set(symbol, {
+                    symbol: symbol,
+                    name: `Black Swan - ${type}`,
+                    displayName: type,
+                    category: 'Black Swan',
+                    value: Math.random() * 100,
+                    lastUpdated: new Date().toISOString()
+                });
+            });
+            
+            // TARGET2 imbalances (12)
+            const target2Countries = ['DE', 'FR', 'IT', 'ES', 'NL', 'BE', 'AT', 'PT', 'GR', 'IE', 'FI', 'LU'];
+            target2Countries.forEach(code => {
+                const symbol = `ECB.TARGET2.${code}`;
+                const value = code === 'DE' ? 1200 + Math.random() * 100 : 
+                             ['IT', 'ES'].includes(code) ? -(500 + Math.random() * 100) : 
+                             (Math.random() - 0.5) * 300;
+                ecbIndicators.set(symbol, {
+                    symbol: symbol,
+                    name: `TARGET2 Balance - ${ECB_CONFIG.COUNTRIES[code] || code}`,
+                    displayName: `TARGET2 ${code}`,
+                    category: 'TARGET2',
+                    value: value,
+                    lastUpdated: new Date().toISOString()
+                });
+            });
+            
+            // External liabilities (56)
+            for (let i = 1; i <= 56; i++) {
+                const symbol = `ECB.EXTERNAL.LIAB.${i}`;
+                ecbIndicators.set(symbol, {
+                    symbol: symbol,
+                    name: `External Liability ${i}`,
+                    displayName: `Ext. Liability ${i}`,
+                    category: 'External Liabilities',
+                    value: Math.random() * 1000,
+                    lastUpdated: new Date().toISOString()
+                });
+            }
+            
+            // Financial stability (7)
+            const stabilityMetrics = ['NPL', 'CET1', 'Leverage', 'ROA', 'ROE', 'Cost_Income', 'Coverage'];
+            stabilityMetrics.forEach(metric => {
+                const symbol = `ECB.STABILITY.${metric}`;
+                ecbIndicators.set(symbol, {
+                    symbol: symbol,
+                    name: `Financial Stability - ${metric}`,
+                    displayName: metric,
+                    category: 'Financial Stability',
+                    value: Math.random() * 20,
+                    lastUpdated: new Date().toISOString()
+                });
+            });
+            
+            // Contagion risk (5)
+            const contagionMetrics = ['Spillover', 'Bank_Corr', 'Sov_Link', 'Network', 'Cross_Border'];
+            contagionMetrics.forEach(metric => {
+                const symbol = `ECB.CONTAGION.${metric}`;
+                ecbIndicators.set(symbol, {
+                    symbol: symbol,
+                    name: `Contagion Risk - ${metric}`,
+                    displayName: metric,
+                    category: 'Contagion Risk',
+                    value: Math.random(),
+                    lastUpdated: new Date().toISOString()
+                });
+            });
+            
+            // Crisis measures (4)
+            const crisisMeasures = ['PEPP', 'APP', 'TLTRO', 'ELA'];
+            crisisMeasures.forEach(measure => {
+                const symbol = `ECB.CRISIS.${measure}`;
+                const value = measure === 'PEPP' ? 1695 : 
+                             measure === 'APP' ? 3265 : 
+                             measure === 'TLTRO' ? 476 : 0;
+                ecbIndicators.set(symbol, {
+                    symbol: symbol,
+                    name: `Crisis Measure - ${measure}`,
+                    displayName: measure,
+                    category: 'Crisis Measures',
+                    value: value,
+                    lastUpdated: new Date().toISOString()
+                });
+            });
+            
+            // Group by category
+            ecbIndicators.forEach(indicator => {
+                const category = indicator.category || 'other';
+                if (!categoryData.has(category)) {
+                    categoryData.set(category, []);
+                }
+                categoryData.get(category).push(indicator);
+            });
+            
+            console.log(`Loaded ${ecbIndicators.size} mock ECB indicators`);
+        }
+
+        // Batch update indicators
+        async function batchUpdateIndicators(symbols) {
+            const updates = [];
+            
+            for (const symbol of symbols) {
+                try {
+                    const response = await fetch(`${ECB_CONFIG.ECB_API}/data/${symbol}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        updates.push(data);
+                    }
+                } catch (error) {
+                    console.error(`Error fetching ${symbol}:`, error);
+                }
+            }
+            
+            return updates;
+        }
+
+        // WebSocket connection for real-time updates (if available)
+        function connectWebSocket() {
+            if (window.WebSocket) {
+                try {
+                    const ws = new WebSocket('wss://your-websocket-endpoint');
+                    
+                    ws.onopen = () => {
+                        console.log('WebSocket connected');
+                        showNotification('Real-time connection established', 'success');
+                    };
+                    
+                    ws.onmessage = (event) => {
+                        const data = JSON.parse(event.data);
+                        if (data.symbol && ecbIndicators.has(data.symbol)) {
+                            const indicator = ecbIndicators.get(data.symbol);
+                            indicator.value = data.value;
+                            indicator.lastUpdated = data.timestamp;
+                            updateTabIndicators();
+                        }
+                    };
+                    
+                    ws.onerror = (error) => {
+                        console.error('WebSocket error:', error);
+                    };
+                    
+                    ws.onclose = () => {
+                        console.log('WebSocket disconnected');
+                        setTimeout(connectWebSocket, 5000); // Reconnect after 5 seconds
+                    };
+                    
+                    return ws;
+                } catch (error) {
+                    console.error('WebSocket connection failed:', error);
+                }
+            }
+        }
+
+        // Initialize on load
+        window.addEventListener('load', async () => {
+            const connected = await testConnection();
+            
+            if (connected) {
+                console.log('ECB API connection successful');
+                await initializeDashboard();
+            } else {
+                console.log('ECB API connection failed, using mock data');
+                loadMockECBData();
+                initializeCISSGrid();
+                updateDashboard();
+                updateSystemicRiskTable();
+                setupEventListeners();
+                loadSavedCustomNames();
+                loadSavedTabs();
+                updateTabIndicators();
+                showNotification('Using mock data - API connection failed', 'warning');
+            }
+        });
+        
+        // Cleanup on unload
+        window.addEventListener('beforeunload', () => {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+            saveCustomNames();
+            saveTabs();
+        });
+
+        // Export functions for console debugging
+        window.ecbMonitor = {
+            fetchData: fetchECBData,
+            searchIndicators: searchECBIndicators,
+            analyzeRisk: analyzeSystemicRisk,
+            detectBlackSwan: detectBlackSwan,
+            exportData: exportData,
+            enableRealTime: enableRealTimeMode,
+            getIndicators: () => ecbIndicators,
+            getCustomNames: () => customNames,
+            getTabs: () => tabIndicators,
+            calculateRisk: calculateComprehensiveRisk,
+            fetchAll: fetchAllECBIndicators,
+            advancedSearch: performAdvancedSearch
+        };
+
+        console.log('ECB Crisis Monitor initialized. Use window.ecbMonitor for debugging.');// Additional utility functions for advanced features
+        
+        // Create risk matrix visualization
+        function createRiskMatrix() {
+            const matrix = document.createElement('div');
+            matrix.className = 'risk-matrix';
+            
+            const riskLevels = [
+                { label: 'DE', risk: countryStressLevels.get('DE') || 0 },
+                { label: 'FR', risk: countryStressLevels.get('FR') || 0 },
+                { label: 'IT', risk: countryStressLevels.get('IT') || 0 },
+                { label: 'ES', risk: countryStressLevels.get('ES') || 0 },
+                { label: 'GR', risk: countryStressLevels.get('GR') || 0 }
+            ];
+            
+            riskLevels.forEach(item => {
+                const cell = document.createElement('div');
+                cell.className = 'risk-cell';
+                
+                if (item.risk > 0.4) {
+                    cell.classList.add('risk-critical');
+                } else if (item.risk > 0.3) {
+                    cell.classList.add('risk-high');
+                } else if (item.risk > 0.2) {
+                    cell.classList.add('risk-medium');
+                } else {
+                    cell.classList.add('risk-low');
+                }
+                
+                cell.innerHTML = `
+                    <div>${item.label}</div>
+                    <div style="font-size: 1.2em;">${item.risk.toFixed(3)}</div>
+                `;
+                
+                cell.onclick = () => showCountryDetails(item.label);
+                matrix.appendChild(cell);
+            });
+            
+            return matrix;
+        }
+        
+        // Generate risk report
+        function generateRiskReport() {
+            const risk = calculateComprehensiveRisk();
+            const timestamp = new Date().toISOString();
+            
+            const report = {
+                timestamp: timestamp,
+                overall_risk: risk.total,
+                risk_components: risk.components,
+                country_stress: Object.fromEntries(countryStressLevels),
+                critical_indicators: [],
+                recommendations: []
+            };
+            
+            // Find critical indicators
+            ecbIndicators.forEach(indicator => {
+                const status = getIndicatorStatus(indicator);
+                if (status === 'CRITICAL') {
+                    report.critical_indicators.push({
+                        symbol: indicator.symbol,
+                        name: indicator.displayName || indicator.name,
+                        value: indicator.value,
+                        category: indicator.category
+                    });
+                }
+            });
+            
+            // Generate recommendations
+            if (risk.components.systemic > 70) {
+                report.recommendations.push('URGENT: Multiple countries showing extreme systemic stress. Consider defensive positioning.');
+            }
+            if (risk.components.dollar > 60) {
+                report.recommendations.push('WARNING: Severe dollar funding shortage detected. Monitor USD liquidity closely.');
+            }
+            if (risk.components.blackswan > 50) {
+                report.recommendations.push('ALERT: Elevated tail risk indicators. Review portfolio hedges.');
+            }
+            if (risk.components.target2 > 60) {
+                report.recommendations.push('CONCERN: Large TARGET2 imbalances suggest payment system stress.');
+            }
+            if (risk.components.contagion > 50) {
+                report.recommendations.push('CAUTION: High contagion risk. Monitor cross-border exposures.');
+            }
+            
+            return report;
+        }
+        
+        // Send alert email (requires backend integration)
+        async function sendAlertEmail(message, severity = 'warning') {
+            const alertData = {
+                timestamp: new Date().toISOString(),
+                message: message,
+                severity: severity,
+                risk_score: calculateComprehensiveRisk().total,
+                critical_countries: Array.from(countryStressLevels.entries())
+                    .filter(([code, value]) => value > 0.4)
+                    .map(([code, value]) => ({ code, value }))
+            };
+            
+            console.log('Alert to send:', alertData);
+            // In production, this would call your backend email service
+            // Example: await fetch('/api/send-alert', { method: 'POST', body: JSON.stringify(alertData) });
+        }
+        
+        // Historical data simulation
+        function generateHistoricalData(symbol, days = 30) {
+            const data = [];
+            const baseValue = ecbIndicators.get(symbol)?.value || Math.random() * 0.5;
+            
+            for (let i = days; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                
+                const volatility = 0.02;
+                const drift = (Math.random() - 0.5) * volatility;
+                const value = Math.max(0, baseValue * (1 + drift * Math.sqrt(i)));
+                
+                data.push({
+                    date: date.toISOString().split('T')[0],
+                    value: value
+                });
+            }
+            
+            return data;
+        }
+        
+        // Create mini chart for indicator
+        function createMiniChart(data) {
+            const width = 100;
+            const height = 30;
+            const max = Math.max(...data.map(d => d.value));
+            const min = Math.min(...data.map(d => d.value));
+            const range = max - min || 1;
+            
+            const points = data.map((d, i) => {
+                const x = (i / (data.length - 1)) * width;
+                const y = height - ((d.value - min) / range) * height;
+                return `${x},${y}`;
+            }).join(' ');
+            
+            return `
+                <svg width="${width}" height="${height}" style="display: block;">
+                    <polyline 
+                        points="${points}" 
+                        fill="none" 
+                        stroke="#00d4ff" 
+                        stroke-width="1.5"
+                    />
+                </svg>
+            `;
+        }
+        
+        // Advanced filtering
+        function applyAdvancedFilters() {
+            const filters = {
+                category: document.getElementById('categoryFilter').value,
+                country: document.getElementById('countryFilter').value,
+                search: document.getElementById('indicatorSearch').value.toLowerCase(),
+                threshold: parseFloat(document.getElementById('riskThreshold').value),
+                status: null // Could add status filter
+            };
+            
+            const filtered = Array.from(ecbIndicators.values()).filter(indicator => {
+                // Category filter
+                if (filters.category !== 'all' && indicator.category !== filters.category) {
+                    return false;
+                }
+                
+                // Country filter
+                if (filters.country !== 'all' && !indicator.symbol.includes(`.${filters.country}.`)) {
+                    return false;
+                }
+                
+                // Search filter
+                if (filters.search && !indicator.name.toLowerCase().includes(filters.search) &&
+                    !indicator.symbol.toLowerCase().includes(filters.search)) {
+                    return false;
+                }
+                
+                // Threshold filter for CISS indicators
+                if (indicator.category === 'Systemic Risk' && indicator.value) {
+                    if (parseFloat(indicator.value) < filters.threshold) {
+                        return false;
+                    }
+                }
+                
+                return true;
+            });
+            
+            return filtered;
+        }
+        
+        // Correlation analysis
+        function calculateCorrelations() {
+            const correlations = new Map();
+            
+            // Simple correlation between CISS indicators
+            const cissValues = Array.from(countryStressLevels.values());
+            if (cissValues.length > 1) {
+                const mean = cissValues.reduce((a, b) => a + b, 0) / cissValues.length;
+                const variance = cissValues.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / cissValues.length;
+                const stdDev = Math.sqrt(variance);
+                
+                correlations.set('CISS_clustering', {
+                    mean: mean,
+                    variance: variance,
+                    stdDev: stdDev,
+                    coefficient_of_variation: stdDev / mean
+                });
+            }
+            
+            return correlations;
+        }
+        
+        // Stress testing simulation
+        function runStressTest(scenario = 'baseline') {
+            const scenarios = {
+                baseline: { multiplier: 1.0, name: 'Baseline' },
+                moderate: { multiplier: 1.5, name: 'Moderate Stress' },
+                severe: { multiplier: 2.0, name: 'Severe Stress' },
+                extreme: { multiplier: 3.0, name: 'Extreme Stress' }
+            };
+            
+            const scenarioConfig = scenarios[scenario] || scenarios.baseline;
+            const results = {
+                scenario: scenarioConfig.name,
+                timestamp: new Date().toISOString(),
+                stressed_values: new Map(),
+                breached_thresholds: []
+            };
+            
+            countryStressLevels.forEach((value, country) => {
+                const stressedValue = Math.min(1.0, value * scenarioConfig.multiplier);
+                results.stressed_values.set(country, stressedValue);
+                
+                if (stressedValue > 0.4) {
+                    results.breached_thresholds.push({
+                        country: country,
+                        value: stressedValue,
+                        threshold: 0.4,
+                        severity: 'CRITICAL'
+                    });
+                }
+            });
+            
+            return results;
+        }
+        
+        // Network analysis for contagion risk
+        function analyzeContagionNetwork() {
+            const network = {
+                nodes: [],
+                edges: [],
+                centrality: new Map()
+            };
+            
+            // Create nodes for each country
+            Object.keys(ECB_CONFIG.COUNTRIES).forEach(code => {
+                network.nodes.push({
+                    id: code,
+                    name: ECB_CONFIG.COUNTRIES[code],
+                    stress: countryStressLevels.get(code) || 0
+                });
+            });
+            
+            // Create edges based on stress correlation (simplified)
+            for (let i = 0; i < network.nodes.length; i++) {
+                for (let j = i + 1; j < network.nodes.length; j++) {
+                    const node1 = network.nodes[i];
+                    const node2 = network.nodes[j];
+                    
+                    // Simple correlation based on stress similarity
+                    const correlation = 1 - Math.abs(node1.stress - node2.stress);
+                    
+                    if (correlation > 0.7) {
+                        network.edges.push({
+                            source: node1.id,
+                            target: node2.id,
+                            weight: correlation
+                        });
+                    }
+                }
+            }
+            
+            // Calculate centrality (degree centrality)
+            network.nodes.forEach(node => {
+                const degree = network.edges.filter(
+                    edge => edge.source === node.id || edge.target === node.id
+                ).length;
+                network.centrality.set(node.id, degree / (network.nodes.length - 1));
+            });
+            
+            return network;
+        }
+        
+        // Performance monitoring
+        const performanceMonitor = {
+            metrics: new Map(),
+            
+            start: function(label) {
+                this.metrics.set(label, { start: performance.now() });
+            },
+            
+            end: function(label) {
+                const metric = this.metrics.get(label);
+                if (metric) {
+                    metric.end = performance.now();
+                    metric.duration = metric.end - metric.start;
+                    console.log(`Performance [${label}]: ${metric.duration.toFixed(2)}ms`);
+                }
+                return metric;
+            },
+            
+            getMetrics: function() {
+                return Array.from(this.metrics.entries()).map(([label, metric]) => ({
+                    label: label,
+                    duration: metric.duration || 0
+                }));
+            }
+        };
+        
+        // Error handling wrapper
+        function safeExecute(fn, fallback = null) {
+            try {
+                return fn();
+            } catch (error) {
+                console.error('Execution error:', error);
+                showNotification('An error occurred', 'error');
+                return fallback;
+            }
+        }
+        
+        // Debounce function for search
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+        
+        // Throttle function for updates
+        function throttle(func, limit) {
+            let inThrottle;
+            return function(...args) {
+                if (!inThrottle) {
+                    func.apply(this, args);
+                    inThrottle = true;
+                    setTimeout(() => inThrottle = false, limit);
+                }
+            };
+        }
+        
+        // Apply debouncing to search
+        const debouncedSearch = debounce(searchECBIndicators, 500);
+        
+        // Apply throttling to updates
+        const throttledUpdate = throttle(updateDashboard, 1000);
+        
+        // Final initialization check
+        console.log('ECB Crisis Monitor v2.0 - AWS Platform');
+        console.log('API Endpoint:', ECB_CONFIG.ECB_API);
+        console.log('Total Countries:', Object.keys(ECB_CONFIG.COUNTRIES).length);
+        console.log('Dashboard ready for initialization');
+        
     </script>
 </body>
 </html>
