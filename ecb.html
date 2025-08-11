@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ECB Systemic Risk Monitor - AI-Powered Crisis Detection</title>
+    <title>ECB Systemic Risk Monitor - Real-Time Crisis Detection</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
     <style>
         * {
             margin: 0;
@@ -17,117 +16,59 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: #0a0e27;
             color: #ffffff;
-            overflow-x: hidden;
         }
         
-        /* Header */
         .header {
             background: linear-gradient(180deg, #1a1f3a 0%, #0a0e27 100%);
             padding: 20px;
             border-bottom: 2px solid #ff0000;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 200%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,0,0,0.1), transparent);
-            animation: alertPulse 3s infinite;
-        }
-        
-        @keyframes alertPulse {
-            0% { left: -100%; }
-            100% { left: 100%; }
         }
         
         .header-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            position: relative;
-            z-index: 1;
         }
         
         h1 {
             font-size: 28px;
-            font-weight: 700;
             color: #ffffff;
-            text-shadow: 0 0 20px rgba(255,0,0,0.3);
         }
         
-        /* AI Alert System */
-        .ai-alert-banner {
+        .status-box {
+            text-align: right;
+        }
+        
+        .status-label {
+            font-size: 12px;
+            color: #7a8bb7;
+        }
+        
+        .status-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #00ff00;
+        }
+        
+        .status-value.error {
+            color: #ff0000;
+        }
+        
+        .ai-alert {
             background: linear-gradient(90deg, #ff0000, #ff6b00);
             padding: 15px;
             margin: 20px;
             border-radius: 10px;
             display: none;
-            animation: slideDown 0.5s ease;
-            box-shadow: 0 10px 40px rgba(255,0,0,0.4);
         }
         
-        .ai-alert-banner.active {
+        .ai-alert.active {
             display: block;
         }
         
-        @keyframes slideDown {
-            from {
-                transform: translateY(-100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-        
-        .ai-alert-content {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .ai-icon {
-            font-size: 40px;
-            animation: pulse 1s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-        
-        .ai-message {
-            flex: 1;
-        }
-        
-        .ai-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        
-        .ai-description {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-        
-        /* Tabs Navigation */
-        .tabs-container {
+        .tabs {
             background: #0f1426;
             padding: 0 20px;
-            border-bottom: 1px solid #2a3f5f;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        
-        .tabs {
             display: flex;
             gap: 5px;
             overflow-x: auto;
@@ -141,9 +82,7 @@
             cursor: pointer;
             font-size: 14px;
             font-weight: 600;
-            position: relative;
             transition: all 0.3s;
-            white-space: nowrap;
         }
         
         .tab:hover {
@@ -153,98 +92,62 @@
         
         .tab.active {
             color: #ffffff;
-            background: linear-gradient(180deg, rgba(59, 130, 246, 0.2) 0%, transparent 100%);
+            background: rgba(59, 130, 246, 0.2);
+            border-bottom: 3px solid #3b82f6;
         }
         
-        .tab.active::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-        }
-        
-        .tab-alert {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            background: #ff0000;
-            border-radius: 50%;
-            margin-left: 8px;
-            animation: blink 1s infinite;
-        }
-        
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-        
-        /* Tab Content */
         .tab-content {
             display: none;
             padding: 20px;
-            animation: fadeIn 0.5s;
         }
         
         .tab-content.active {
             display: block;
         }
         
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        
-        /* Risk Grid */
-        .risk-grid {
+        .grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 20px;
             margin-bottom: 30px;
         }
         
-        .risk-card {
+        .card {
             background: linear-gradient(135deg, #1a1f3a 0%, #0f1426 100%);
             border: 1px solid #2a3f5f;
             border-radius: 12px;
             padding: 20px;
-            position: relative;
-            overflow: hidden;
             transition: all 0.3s;
         }
         
-        .risk-card:hover {
+        .card:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 30px rgba(59, 130, 246, 0.2);
         }
         
-        .risk-card.critical {
+        .card.critical {
             border-color: #ff0000;
-            background: linear-gradient(135deg, rgba(255,0,0,0.1) 0%, #0f1426 100%);
-            animation: criticalPulse 2s infinite;
+            animation: pulse 2s infinite;
         }
         
-        @keyframes criticalPulse {
+        @keyframes pulse {
             0%, 100% { box-shadow: 0 0 20px rgba(255,0,0,0.3); }
             50% { box-shadow: 0 0 40px rgba(255,0,0,0.6); }
         }
         
-        .risk-header {
+        .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
         }
         
-        .risk-title {
+        .card-title {
             font-size: 16px;
             font-weight: 600;
-            color: #ffffff;
         }
         
-        .risk-badge {
+        .badge {
             padding: 4px 12px;
             border-radius: 20px;
             font-size: 11px;
@@ -272,267 +175,83 @@
             color: #000000;
         }
         
-        .risk-value {
+        .value {
             font-size: 32px;
             font-weight: 700;
             margin: 10px 0;
-            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .risk-change {
-            display: flex;
-            gap: 15px;
-            margin-top: 10px;
-        }
-        
-        .change-stat {
-            flex: 1;
-            padding: 10px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 8px;
-        }
-        
-        .change-label {
-            font-size: 11px;
-            color: #7a8bb7;
-            text-transform: uppercase;
-        }
-        
-        .change-value {
-            font-size: 18px;
-            font-weight: 600;
-            margin-top: 5px;
-        }
-        
-        .change-up {
-            color: #ff4444;
-        }
-        
-        .change-down {
-            color: #00ff88;
-        }
-        
-        /* Charts Container */
-        .charts-container {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 20px;
-            margin-top: 30px;
-        }
-        
-        .chart-panel {
-            background: linear-gradient(135deg, #1a1f3a 0%, #0f1426 100%);
-            border: 1px solid #2a3f5f;
-            border-radius: 12px;
-            padding: 20px;
-        }
-        
-        .chart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
-        .chart-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #ffffff;
+            color: #3b82f6;
         }
         
         .chart-container {
-            position: relative;
-            height: 400px;
-        }
-        
-        /* AI Analysis Panel */
-        .ai-panel {
-            background: linear-gradient(135deg, #1a1f3a 0%, #0f1426 100%);
-            border: 1px solid #3b82f6;
+            background: #1a1f3a;
+            border: 1px solid #2a3f5f;
             border-radius: 12px;
             padding: 20px;
-            margin-top: 20px;
-        }
-        
-        .ai-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        
-        .ai-indicator {
-            width: 12px;
-            height: 12px;
-            background: #00ff00;
-            border-radius: 50%;
-            animation: aiPulse 2s infinite;
-        }
-        
-        @keyframes aiPulse {
-            0%, 100% { box-shadow: 0 0 10px rgba(0,255,0,0.5); }
-            50% { box-shadow: 0 0 20px rgba(0,255,0,0.8); }
-        }
-        
-        .ai-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #ffffff;
-        }
-        
-        .ai-insights {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        
-        .ai-insight {
-            padding: 15px;
-            background: rgba(0,0,0,0.3);
-            border-left: 3px solid #3b82f6;
-            border-radius: 8px;
-        }
-        
-        .ai-insight.warning {
-            border-left-color: #ff6b00;
-            background: rgba(255,107,0,0.1);
-        }
-        
-        .ai-insight.critical {
-            border-left-color: #ff0000;
-            background: rgba(255,0,0,0.1);
-            animation: criticalGlow 2s infinite;
-        }
-        
-        @keyframes criticalGlow {
-            0%, 100% { background: rgba(255,0,0,0.1); }
-            50% { background: rgba(255,0,0,0.2); }
-        }
-        
-        .insight-title {
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 5px;
-            color: #ffffff;
-        }
-        
-        .insight-text {
-            font-size: 13px;
-            color: #a0aec0;
-            line-height: 1.6;
-        }
-        
-        /* Dollar Shortage Indicators */
-        .dollar-gauge {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 200px;
+            margin: 20px 0;
+            height: 400px;
             position: relative;
         }
         
-        .gauge-circle {
-            width: 180px;
-            height: 180px;
-            border-radius: 50%;
-            background: conic-gradient(
-                from 180deg,
-                #00ff00 0deg,
-                #ffff00 90deg,
-                #ff6b00 180deg,
-                #ff0000 270deg,
-                #00ff00 360deg
-            );
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-        
-        .gauge-inner {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            background: #0a0e27;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .gauge-value {
-            font-size: 36px;
-            font-weight: 700;
-            color: #ffffff;
-        }
-        
-        .gauge-label {
-            font-size: 12px;
+        .loading {
+            text-align: center;
+            padding: 50px;
             color: #7a8bb7;
-            text-transform: uppercase;
         }
         
-        /* Country Risk Matrix */
-        .country-matrix {
+        .spinner {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 3px solid #2a3f5f;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .country-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 10px;
-            margin-top: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
         }
         
-        .country-cell {
-            padding: 15px;
+        .country-card {
             background: rgba(0,0,0,0.3);
             border: 1px solid #2a3f5f;
             border-radius: 8px;
+            padding: 15px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s;
         }
         
-        .country-cell:hover {
+        .country-card:hover {
             transform: scale(1.05);
             border-color: #3b82f6;
         }
         
         .country-flag {
-            font-size: 24px;
+            font-size: 32px;
             margin-bottom: 5px;
         }
         
         .country-code {
             font-size: 14px;
             font-weight: 600;
-            color: #ffffff;
             margin-bottom: 5px;
         }
         
         .country-value {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 700;
         }
         
-        .country-risk-low {
-            background: linear-gradient(135deg, rgba(0,255,0,0.1) 0%, rgba(0,0,0,0.3) 100%);
-        }
-        
-        .country-risk-medium {
-            background: linear-gradient(135deg, rgba(255,215,0,0.1) 0%, rgba(0,0,0,0.3) 100%);
-        }
-        
-        .country-risk-high {
-            background: linear-gradient(135deg, rgba(255,107,0,0.1) 0%, rgba(0,0,0,0.3) 100%);
-        }
-        
-        .country-risk-critical {
-            background: linear-gradient(135deg, rgba(255,0,0,0.1) 0%, rgba(0,0,0,0.3) 100%);
-            animation: criticalPulse 2s infinite;
-        }
-        
-        /* Live Feed */
-        .live-feed {
+        .feed {
             background: rgba(0,0,0,0.3);
             border: 1px solid #2a3f5f;
             border-radius: 8px;
@@ -547,18 +266,6 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            animation: slideIn 0.5s;
-        }
-        
-        @keyframes slideIn {
-            from {
-                transform: translateX(-100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
         }
         
         .feed-time {
@@ -574,796 +281,496 @@
         .feed-message {
             flex: 1;
             font-size: 13px;
-            color: #e2e8f0;
-        }
-        
-        /* Loading Spinner */
-        .loading {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 200px;
-        }
-        
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid #2a3f5f;
-            border-top: 3px solid #3b82f6;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        /* Responsive */
-        @media (max-width: 1200px) {
-            .charts-container {
-                grid-template-columns: 1fr;
-            }
-            
-            .risk-grid {
-                grid-template-columns: 1fr;
-            }
         }
     </style>
 </head>
 <body>
-    <!-- AI Alert Banner -->
-    <div class="ai-alert-banner" id="ai-alert">
-        <div class="ai-alert-content">
-            <div class="ai-icon">🚨</div>
-            <div class="ai-message">
-                <div class="ai-title" id="ai-alert-title">AI CRISIS DETECTION ACTIVATED</div>
-                <div class="ai-description" id="ai-alert-description">
-                    Multiple risk indicators showing critical levels. Immediate attention required.
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Header -->
     <div class="header">
         <div class="header-content">
             <h1>🏦 ECB SYSTEMIC RISK MONITOR</h1>
-            <div style="display: flex; gap: 20px; align-items: center;">
-                <div style="text-align: right;">
-                    <div style="font-size: 12px; color: #7a8bb7;">System Status</div>
-                    <div style="font-size: 18px; font-weight: bold;" id="system-status">MONITORING</div>
-                </div>
-                <div style="text-align: right;">
-                    <div style="font-size: 12px; color: #7a8bb7;">Last Update</div>
-                    <div style="font-size: 14px;" id="last-update">--:--:--</div>
-                </div>
+            <div class="status-box">
+                <div class="status-label">System Status</div>
+                <div class="status-value" id="system-status">LOADING...</div>
+                <div class="status-label">Last Update</div>
+                <div class="status-value" id="last-update">--:--:--</div>
             </div>
         </div>
     </div>
     
-    <!-- Tabs -->
-    <div class="tabs-container">
-        <div class="tabs">
-            <button class="tab active" onclick="switchTab('overview')">
-                🏠 Overview
-            </button>
-            <button class="tab" onclick="switchTab('systemic-risk')">
-                ⚠️ Systemic Risk <span class="tab-alert" id="systemic-alert" style="display:none;"></span>
-            </button>
-            <button class="tab" onclick="switchTab('dollar-shortage')">
-                💵 Dollar Shortage <span class="tab-alert" id="dollar-alert" style="display:none;"></span>
-            </button>
-            <button class="tab" onclick="switchTab('financial-crisis')">
-                🔥 Financial Crisis <span class="tab-alert" id="crisis-alert" style="display:none;"></span>
-            </button>
-            <button class="tab" onclick="switchTab('country-risk')">
-                🌍 Country Risk
-            </button>
-            <button class="tab" onclick="switchTab('liquidity')">
-                💧 Liquidity Monitor
-            </button>
-            <button class="tab" onclick="switchTab('interest-rates')">
-                📈 Interest Rates
-            </button>
-            <button class="tab" onclick="switchTab('unemployment')">
-                👥 Unemployment
-            </button>
-            <button class="tab" onclick="switchTab('ai-analysis')">
-                🤖 AI Analysis
-            </button>
-        </div>
+    <div class="ai-alert" id="ai-alert">
+        <h3 id="ai-alert-title">🚨 AI CRISIS WARNING</h3>
+        <p id="ai-alert-message">Multiple risk indicators showing critical levels</p>
     </div>
     
-    <!-- Tab Contents -->
+    <div class="tabs">
+        <button class="tab active" onclick="switchTab('overview', this)">🏠 Overview</button>
+        <button class="tab" onclick="switchTab('systemic', this)">⚠️ Systemic Risk</button>
+        <button class="tab" onclick="switchTab('dollar', this)">💵 Dollar Shortage</button>
+        <button class="tab" onclick="switchTab('crisis', this)">🔥 Financial Crisis</button>
+        <button class="tab" onclick="switchTab('country', this)">🌍 Country Risk</button>
+        <button class="tab" onclick="switchTab('liquidity', this)">💧 Liquidity</button>
+        <button class="tab" onclick="switchTab('rates', this)">📈 Interest Rates</button>
+        <button class="tab" onclick="switchTab('unemployment', this)">👥 Unemployment</button>
+    </div>
     
     <!-- Overview Tab -->
     <div class="tab-content active" id="overview-tab">
-        <div class="risk-grid" id="overview-grid">
-            <!-- Overview cards will be populated here -->
+        <div class="grid" id="overview-grid">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading ECB data...</p>
+            </div>
         </div>
-        
-        <div class="charts-container">
-            <div class="chart-panel">
-                <div class="chart-header">
-                    <div class="chart-title">Euro Area Systemic Stress Trend</div>
-                </div>
-                <div class="chart-container">
-                    <canvas id="overview-chart"></canvas>
-                </div>
-            </div>
-            
-            <div class="chart-panel">
-                <div class="chart-header">
-                    <div class="chart-title">Live Risk Feed</div>
-                </div>
-                <div class="live-feed" id="live-feed">
-                    <!-- Live feed items will be populated here -->
-                </div>
-            </div>
+        <div class="chart-container">
+            <canvas id="overview-chart"></canvas>
         </div>
     </div>
     
     <!-- Systemic Risk Tab -->
-    <div class="tab-content" id="systemic-risk-tab">
-        <div class="risk-grid" id="systemic-grid">
-            <!-- Systemic risk cards will be populated here -->
-        </div>
-        
-        <div class="chart-panel">
-            <div class="chart-header">
-                <div class="chart-title">CISS Composite Indicators - All Countries</div>
-            </div>
-            <div class="chart-container">
-                <canvas id="systemic-chart"></canvas>
-            </div>
-        </div>
-        
-        <div class="ai-panel">
-            <div class="ai-header">
-                <div class="ai-indicator"></div>
-                <div class="ai-title">AI Risk Assessment</div>
-            </div>
-            <div class="ai-insights" id="systemic-ai">
-                <!-- AI insights will be populated here -->
-            </div>
+    <div class="tab-content" id="systemic-tab">
+        <div class="grid" id="systemic-grid"></div>
+        <div class="chart-container">
+            <canvas id="systemic-chart"></canvas>
         </div>
     </div>
     
     <!-- Dollar Shortage Tab -->
-    <div class="tab-content" id="dollar-shortage-tab">
-        <div class="risk-grid">
-            <div class="risk-card">
-                <div class="risk-header">
-                    <div class="risk-title">Dollar Funding Stress</div>
-                    <div class="risk-badge" id="dollar-badge">MONITORING</div>
-                </div>
-                <div class="dollar-gauge">
-                    <div class="gauge-circle">
-                        <div class="gauge-inner">
-                            <div class="gauge-value" id="dollar-gauge-value">0</div>
-                            <div class="gauge-label">Stress Level</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="risk-card">
-                <div class="risk-header">
-                    <div class="risk-title">Cross-Currency Basis</div>
-                </div>
-                <div class="risk-value" id="basis-value">-</div>
-                <div class="risk-change">
-                    <div class="change-stat">
-                        <div class="change-label">1W Change</div>
-                        <div class="change-value" id="basis-1w">-</div>
-                    </div>
-                    <div class="change-stat">
-                        <div class="change-label">1M Change</div>
-                        <div class="change-value" id="basis-1m">-</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="risk-card">
-                <div class="risk-header">
-                    <div class="risk-title">FX Swap Rates</div>
-                </div>
-                <div class="risk-value" id="swap-value">-</div>
-                <div id="swap-indicators"></div>
-            </div>
-        </div>
-        
-        <div class="chart-panel">
-            <div class="chart-header">
-                <div class="chart-title">Dollar Shortage Indicators</div>
-            </div>
-            <div class="chart-container">
-                <canvas id="dollar-chart"></canvas>
-            </div>
-        </div>
-        
-        <div class="ai-panel">
-            <div class="ai-header">
-                <div class="ai-indicator"></div>
-                <div class="ai-title">Dollar Shortage Analysis</div>
-            </div>
-            <div class="ai-insights" id="dollar-ai">
-                <!-- AI insights will be populated here -->
-            </div>
+    <div class="tab-content" id="dollar-tab">
+        <div class="grid" id="dollar-grid"></div>
+        <div class="chart-container">
+            <canvas id="dollar-chart"></canvas>
         </div>
     </div>
     
     <!-- Financial Crisis Tab -->
-    <div class="tab-content" id="financial-crisis-tab">
-        <div class="risk-grid" id="crisis-grid">
-            <!-- Crisis indicators will be populated here -->
-        </div>
-        
-        <div class="chart-panel">
-            <div class="chart-header">
-                <div class="chart-title">Crisis Probability Model</div>
-            </div>
-            <div class="chart-container">
-                <canvas id="crisis-chart"></canvas>
-            </div>
-        </div>
-        
-        <div class="ai-panel">
-            <div class="ai-header">
-                <div class="ai-indicator"></div>
-                <div class="ai-title">Crisis Early Warning System</div>
-            </div>
-            <div class="ai-insights" id="crisis-ai">
-                <!-- AI crisis warnings will be populated here -->
-            </div>
+    <div class="tab-content" id="crisis-tab">
+        <div class="grid" id="crisis-grid"></div>
+        <div class="chart-container">
+            <canvas id="crisis-chart"></canvas>
         </div>
     </div>
     
     <!-- Country Risk Tab -->
-    <div class="tab-content" id="country-risk-tab">
-        <div class="country-matrix" id="country-matrix">
-            <!-- Country risk matrix will be populated here -->
-        </div>
-        
-        <div class="chart-panel">
-            <div class="chart-header">
-                <div class="chart-title">Country Risk Comparison</div>
-            </div>
-            <div class="chart-container">
-                <canvas id="country-chart"></canvas>
-            </div>
+    <div class="tab-content" id="country-tab">
+        <div class="country-grid" id="country-grid"></div>
+        <div class="chart-container">
+            <canvas id="country-chart"></canvas>
         </div>
     </div>
     
     <!-- Liquidity Tab -->
     <div class="tab-content" id="liquidity-tab">
-        <div class="risk-grid" id="liquidity-grid">
-            <!-- Liquidity indicators will be populated here -->
-        </div>
-        
-        <div class="chart-panel">
-            <div class="chart-header">
-                <div class="chart-title">Liquidity Conditions</div>
-            </div>
-            <div class="chart-container">
-                <canvas id="liquidity-chart"></canvas>
-            </div>
+        <div class="grid" id="liquidity-grid"></div>
+        <div class="chart-container">
+            <canvas id="liquidity-chart"></canvas>
         </div>
     </div>
     
     <!-- Interest Rates Tab -->
-    <div class="tab-content" id="interest-rates-tab">
-        <div class="risk-grid" id="rates-grid">
-            <!-- Interest rate cards will be populated here -->
-        </div>
-        
-        <div class="chart-panel">
-            <div class="chart-header">
-                <div class="chart-title">Interest Rate Spreads</div>
-            </div>
-            <div class="chart-container">
-                <canvas id="rates-chart"></canvas>
-            </div>
+    <div class="tab-content" id="rates-tab">
+        <div class="grid" id="rates-grid"></div>
+        <div class="chart-container">
+            <canvas id="rates-chart"></canvas>
         </div>
     </div>
     
     <!-- Unemployment Tab -->
     <div class="tab-content" id="unemployment-tab">
-        <div class="country-matrix" id="unemployment-matrix">
-            <!-- Unemployment data will be populated here -->
-        </div>
-        
-        <div class="chart-panel">
-            <div class="chart-header">
-                <div class="chart-title">Unemployment Trends</div>
-            </div>
-            <div class="chart-container">
-                <canvas id="unemployment-chart"></canvas>
-            </div>
-        </div>
-    </div>
-    
-    <!-- AI Analysis Tab -->
-    <div class="tab-content" id="ai-analysis-tab">
-        <div class="ai-panel">
-            <div class="ai-header">
-                <div class="ai-indicator"></div>
-                <div class="ai-title">Comprehensive AI Analysis</div>
-            </div>
-            <div class="ai-insights" id="comprehensive-ai">
-                <!-- Comprehensive AI analysis will be populated here -->
-            </div>
-        </div>
-        
-        <div class="risk-grid" id="ai-recommendations">
-            <!-- AI recommendations will be populated here -->
+        <div class="country-grid" id="unemployment-grid"></div>
+        <div class="chart-container">
+            <canvas id="unemployment-chart"></canvas>
         </div>
     </div>
     
     <script>
-        // Configuration
+        // API Configuration
         const API_BASE = 'https://dv7wxb807j.execute-api.us-east-1.amazonaws.com/prod';
         
-        // Global variables
-        let allData = {};
-        let charts = {};
-        let currentTab = 'overview';
-        let aiAlerts = [];
-        let criticalThresholds = {
-            CISS: 0.2,
-            unemployment: 10,
-            interestRate: 8,
-            liquidityDrop: -10
+        // Global data storage
+        let ecbData = {
+            indicators: [],
+            riskAssessment: null,
+            historical: {},
+            charts: {}
         };
         
-        // Country flags mapping
-        const countryFlags = {
+        // Country flags
+        const flags = {
             'DE': '🇩🇪', 'IT': '🇮🇹', 'ES': '🇪🇸', 'FR': '🇫🇷',
             'GR': '🇬🇷', 'PT': '🇵🇹', 'IE': '🇮🇪', 'NL': '🇳🇱',
-            'BE': '🇧🇪', 'AT': '🇦🇹', 'FI': '🇫🇮', 'LU': '🇱🇺',
-            'SK': '🇸🇰', 'SI': '🇸🇮', 'MT': '🇲🇹', 'CY': '🇨🇾',
-            'EE': '🇪🇪', 'LV': '🇱🇻', 'LT': '🇱🇹'
+            'BE': '🇧🇪', 'AT': '🇦🇹', 'FI': '🇫🇮', 'LU': '🇱🇺'
         };
         
-        // Initialize
-        document.addEventListener('DOMContentLoaded', async () => {
-            await loadAllData();
-            initializeCharts();
-            startAIMonitoring();
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Initializing ECB Dashboard...');
+            loadAllData();
             setInterval(updateTime, 1000);
-            setInterval(refreshData, 60000); // Refresh every minute
+            setInterval(loadAllData, 60000); // Refresh every minute
         });
         
         // Load all ECB data
         async function loadAllData() {
+            console.log('Loading ECB data from API...');
+            
             try {
-                // Show loading
+                // Update status
                 document.getElementById('system-status').textContent = 'LOADING...';
+                document.getElementById('system-status').className = 'status-value';
                 
-                // Load all indicators
-                const response = await fetch(`${API_BASE}/list?limit=200`);
-                const data = await response.json();
+                // Fetch indicators list
+                const listResponse = await fetch(`${API_BASE}/list?limit=200`);
+                console.log('List response status:', listResponse.status);
                 
-                // Organize data by type
-                allData.indicators = data.indicators || [];
-                allData.CISS = allData.indicators.filter(i => i.dataset === 'CISS');
-                allData.BSI = allData.indicators.filter(i => i.dataset === 'BSI');
-                allData.MIR = allData.indicators.filter(i => i.dataset === 'MIR');
-                allData.UNEMPLOYMENT = allData.indicators.filter(i => i.dataset === 'UNEMPLOYMENT');
-                allData.ILM = allData.indicators.filter(i => i.dataset === 'ILM');
+                if (!listResponse.ok) {
+                    throw new Error(`HTTP error! status: ${listResponse.status}`);
+                }
                 
-                // Load risk assessment
-                const riskResponse = await fetch(`${API_BASE}/risk-assessment`);
-                allData.riskAssessment = await riskResponse.json();
+                const listData = await listResponse.json();
+                console.log('Received indicators:', listData.total || 0);
                 
-                // Load historical data for key indicators
-                await loadHistoricalData();
+                ecbData.indicators = listData.indicators || [];
+                
+                // Fetch risk assessment
+                try {
+                    const riskResponse = await fetch(`${API_BASE}/risk-assessment`);
+                    if (riskResponse.ok) {
+                        ecbData.riskAssessment = await riskResponse.json();
+                        console.log('Risk assessment loaded');
+                    }
+                } catch (e) {
+                    console.log('Risk assessment not available');
+                }
+                
+                // Load some historical data for key indicators
+                await loadKeyHistoricalData();
                 
                 // Update all tabs
-                updateOverview();
-                updateSystemicRisk();
-                updateDollarShortage();
-                updateFinancialCrisis();
-                updateCountryRisk();
-                updateLiquidity();
-                updateInterestRates();
-                updateUnemployment();
-                updateAIAnalysis();
+                updateAllTabs();
                 
-                // Update status
-                document.getElementById('system-status').textContent = 
-                    allData.riskAssessment.systemic_risk || 'MONITORING';
+                // Update status to show success
+                const riskLevel = ecbData.riskAssessment?.systemic_risk || 'MONITORING';
+                document.getElementById('system-status').textContent = riskLevel;
+                document.getElementById('system-status').className = 
+                    riskLevel === 'CRITICAL' ? 'status-value error' : 'status-value';
+                
+                // Check for alerts
+                checkForAlerts();
+                
+                console.log('Data loading complete');
                 
             } catch (error) {
                 console.error('Error loading data:', error);
                 document.getElementById('system-status').textContent = 'ERROR';
+                document.getElementById('system-status').className = 'status-value error';
+                
+                // Show error in overview
+                document.getElementById('overview-grid').innerHTML = `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Connection Error</div>
+                        </div>
+                        <p>Unable to load ECB data. Please check your connection and refresh.</p>
+                        <p style="color: #ff6b00; margin-top: 10px;">Error: ${error.message}</p>
+                    </div>
+                `;
             }
         }
         
         // Load historical data for key indicators
-        async function loadHistoricalData() {
-            const keyIndicators = [
+        async function loadKeyHistoricalData() {
+            const keySymbols = [
                 'ECB.CISS.M.DE.Z0Z.4F.EC.SOV_CI.IDX',
                 'ECB.CISS.M.IT.Z0Z.4F.EC.SOV_CI.IDX',
-                'ECB.CISS.M.ES.Z0Z.4F.EC.SOV_CI.IDX',
-                'ECB.CISS.M.FR.Z0Z.4F.EC.SOV_CI.IDX'
+                'ECB.CISS.M.ES.Z0Z.4F.EC.SOV_CI.IDX'
             ];
             
-            allData.historical = {};
-            
-            for (const symbol of keyIndicators) {
+            for (const symbol of keySymbols) {
                 try {
                     const response = await fetch(`${API_BASE}/historical/${symbol}`);
-                    const data = await response.json();
-                    allData.historical[symbol] = data;
-                } catch (error) {
-                    console.error(`Error loading historical for ${symbol}:`, error);
+                    if (response.ok) {
+                        ecbData.historical[symbol] = await response.json();
+                    }
+                } catch (e) {
+                    console.log(`Could not load historical for ${symbol}`);
                 }
             }
         }
         
-        // Tab switching
-        function switchTab(tabName) {
-            // Hide all tabs
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            // Remove active from all tab buttons
-            document.querySelectorAll('.tab').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            // Show selected tab
-            document.getElementById(`${tabName}-tab`).classList.add('active');
-            
-            // Mark tab button as active
-            event.target.classList.add('active');
-            
-            currentTab = tabName;
+        // Update all tabs with data
+        function updateAllTabs() {
+            updateOverview();
+            updateSystemicRisk();
+            updateDollarShortage();
+            updateFinancialCrisis();
+            updateCountryRisk();
+            updateLiquidity();
+            updateInterestRates();
+            updateUnemployment();
         }
         
-        // Update Overview Tab
+        // Update Overview
         function updateOverview() {
             const grid = document.getElementById('overview-grid');
             
-            // Calculate key metrics
-            const avgStress = allData.riskAssessment?.average_stress || 0;
-            const highRiskCountries = allData.riskAssessment?.country_risks?.filter(
-                c => c.risk === 'HIGH' || c.risk === 'CRITICAL'
-            ).length || 0;
+            // Group data by dataset
+            const ciss = ecbData.indicators.filter(i => i.dataset === 'CISS');
+            const unemployment = ecbData.indicators.filter(i => i.dataset === 'UNEMPLOYMENT');
+            const ilm = ecbData.indicators.filter(i => i.dataset === 'ILM');
             
-            const unemploymentAvg = allData.UNEMPLOYMENT.reduce((sum, i) => sum + i.value, 0) / 
-                                   (allData.UNEMPLOYMENT.length || 1);
+            // Calculate averages
+            const avgStress = ecbData.riskAssessment?.average_stress || 0;
+            const avgUnemployment = unemployment.length > 0 
+                ? unemployment.reduce((sum, i) => sum + (i.value || 0), 0) / unemployment.length 
+                : 0;
             
             grid.innerHTML = `
-                <div class="risk-card ${avgStress > 0.15 ? 'critical' : ''}">
-                    <div class="risk-header">
-                        <div class="risk-title">Systemic Stress</div>
-                        <div class="risk-badge badge-${getRiskLevel(avgStress)}">${getRiskLevel(avgStress).toUpperCase()}</div>
+                <div class="card ${avgStress > 0.15 ? 'critical' : ''}">
+                    <div class="card-header">
+                        <div class="card-title">Systemic Stress</div>
+                        <div class="badge badge-${getRiskBadge(avgStress)}">${getRiskLevel(avgStress)}</div>
                     </div>
-                    <div class="risk-value">${(avgStress * 100).toFixed(2)}%</div>
-                    <div class="risk-change">
-                        <div class="change-stat">
-                            <div class="change-label">High Risk Countries</div>
-                            <div class="change-value">${highRiskCountries}</div>
-                        </div>
-                    </div>
+                    <div class="value">${(avgStress * 100).toFixed(2)}%</div>
+                    <p>Countries monitored: ${ciss.length}</p>
                 </div>
                 
-                <div class="risk-card">
-                    <div class="risk-header">
-                        <div class="risk-title">Dollar Funding</div>
-                        <div class="risk-badge badge-medium">WATCH</div>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Total Indicators</div>
+                        <div class="badge badge-low">ACTIVE</div>
                     </div>
-                    <div class="risk-value">${allData.ILM[0]?.value?.toLocaleString() || 'N/A'}</div>
-                    <div class="risk-change">
-                        <div class="change-stat">
-                            <div class="change-label">Liquidity Status</div>
-                            <div class="change-value">ADEQUATE</div>
-                        </div>
-                    </div>
+                    <div class="value">${ecbData.indicators.length}</div>
+                    <p>Last update: ${new Date().toLocaleTimeString()}</p>
                 </div>
                 
-                <div class="risk-card">
-                    <div class="risk-header">
-                        <div class="risk-title">Unemployment</div>
-                        <div class="risk-badge badge-${unemploymentAvg > 10 ? 'high' : 'medium'}">
-                            ${unemploymentAvg > 10 ? 'HIGH' : 'MODERATE'}
-                        </div>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Avg Unemployment</div>
+                        <div class="badge badge-${avgUnemployment > 10 ? 'high' : 'medium'}">${avgUnemployment > 10 ? 'HIGH' : 'MODERATE'}</div>
                     </div>
-                    <div class="risk-value">${unemploymentAvg.toFixed(1)}%</div>
-                    <div class="risk-change">
-                        <div class="change-stat">
-                            <div class="change-label">Highest</div>
-                            <div class="change-value">ES: 11.7%</div>
-                        </div>
+                    <div class="value">${avgUnemployment.toFixed(1)}%</div>
+                    <p>Euro Area average</p>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Liquidity Monitor</div>
+                        <div class="badge badge-medium">WATCH</div>
                     </div>
+                    <div class="value">${ilm[0]?.value?.toLocaleString() || 'N/A'}</div>
+                    <p>Claims on euro residents</p>
                 </div>
             `;
             
-            // Update live feed
-            updateLiveFeed();
-            
-            // Update overview chart
+            // Update chart
             updateOverviewChart();
         }
         
-        // Update Systemic Risk Tab
+        // Update Systemic Risk
         function updateSystemicRisk() {
             const grid = document.getElementById('systemic-grid');
-            const cissData = allData.CISS.filter(i => i.series_type?.includes('Sovereign Stress Monthly'));
+            const cissData = ecbData.indicators.filter(i => 
+                i.dataset === 'CISS' && i.name?.includes('Sovereign Stress')
+            ).slice(0, 12);
             
-            grid.innerHTML = cissData.slice(0, 6).map(indicator => {
-                const risk = getRiskLevel(indicator.value);
-                return `
-                    <div class="risk-card ${risk === 'critical' ? 'critical' : ''}">
-                        <div class="risk-header">
-                            <div class="risk-title">${countryFlags[indicator.country]} ${indicator.country} CISS</div>
-                            <div class="risk-badge badge-${risk}">${risk.toUpperCase()}</div>
-                        </div>
-                        <div class="risk-value">${indicator.value.toFixed(4)}</div>
-                        <div class="risk-change">
-                            <div class="change-stat">
-                                <div class="change-label">Date</div>
-                                <div class="change-value">${indicator.date}</div>
-                            </div>
-                            <div class="change-stat">
-                                <div class="change-label">Observations</div>
-                                <div class="change-value">${indicator.observations}</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            
-            // Check for alerts
-            const criticalCountries = cissData.filter(i => i.value > criticalThresholds.CISS);
-            if (criticalCountries.length > 0) {
-                document.getElementById('systemic-alert').style.display = 'inline-block';
-                updateAIInsights('systemic-ai', [
-                    {
-                        type: 'critical',
-                        title: '🚨 CRITICAL SYSTEMIC STRESS DETECTED',
-                        text: `${criticalCountries.length} countries showing critical stress levels above ${(criticalThresholds.CISS * 100).toFixed(0)}%. Immediate risk assessment required.`
-                    },
-                    {
-                        type: 'warning',
-                        title: '⚠️ Contagion Risk Elevated',
-                        text: 'Multiple countries showing synchronized stress increases. Monitor cross-border exposures.'
-                    }
-                ]);
+            if (cissData.length === 0) {
+                grid.innerHTML = '<div class="card"><p>No CISS data available</p></div>';
+                return;
             }
+            
+            grid.innerHTML = cissData.map(indicator => `
+                <div class="card ${indicator.value > 0.2 ? 'critical' : ''}">
+                    <div class="card-header">
+                        <div class="card-title">${flags[indicator.country] || ''} ${indicator.country || 'N/A'}</div>
+                        <div class="badge badge-${getRiskBadge(indicator.value)}">${getRiskLevel(indicator.value)}</div>
+                    </div>
+                    <div class="value">${(indicator.value * 100).toFixed(3)}%</div>
+                    <p>Date: ${indicator.date || 'N/A'}</p>
+                </div>
+            `).join('');
             
             updateSystemicChart();
         }
         
-        // Update Dollar Shortage Tab
+        // Update Dollar Shortage
         function updateDollarShortage() {
-            const ilmData = allData.ILM[0];
+            const grid = document.getElementById('dollar-grid');
+            const ilmData = ecbData.indicators.filter(i => i.dataset === 'ILM');
+            
             const dollarStress = calculateDollarStress();
             
-            // Update gauge
-            document.getElementById('dollar-gauge-value').textContent = dollarStress.toFixed(0);
-            document.getElementById('dollar-badge').textContent = 
-                dollarStress > 70 ? 'CRITICAL' : dollarStress > 50 ? 'HIGH' : 'MODERATE';
-            document.getElementById('dollar-badge').className = 
-                `risk-badge badge-${dollarStress > 70 ? 'critical' : dollarStress > 50 ? 'high' : 'medium'}`;
+            grid.innerHTML = `
+                <div class="card ${dollarStress > 70 ? 'critical' : ''}">
+                    <div class="card-header">
+                        <div class="card-title">Dollar Funding Stress</div>
+                        <div class="badge badge-${dollarStress > 70 ? 'critical' : 'high'}">${dollarStress > 70 ? 'CRITICAL' : 'ELEVATED'}</div>
+                    </div>
+                    <div class="value">${dollarStress.toFixed(0)}%</div>
+                    <p>Funding pressure indicator</p>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Euro Area Claims</div>
+                    </div>
+                    <div class="value">${ilmData[0]?.value?.toLocaleString() || 'N/A'}</div>
+                    <p>Weekly data</p>
+                </div>
+            `;
             
-            // Check for dollar shortage alert
             if (dollarStress > 70) {
-                document.getElementById('dollar-alert').style.display = 'inline-block';
-                updateAIInsights('dollar-ai', [
-                    {
-                        type: 'critical',
-                        title: '💵 SEVERE DOLLAR SHORTAGE',
-                        text: 'Dollar funding markets showing extreme stress. Cross-currency basis swaps widening significantly.'
-                    },
-                    {
-                        type: 'warning',
-                        title: '🏦 Banking Sector Impact',
-                        text: 'European banks may face funding difficulties. Monitor USD liquidity provisions.'
-                    }
-                ]);
+                showAlert('DOLLAR SHORTAGE DETECTED', 'Severe funding stress in dollar markets');
             }
-            
-            updateDollarChart();
         }
         
-        // Update Financial Crisis Tab
+        // Update Financial Crisis
         function updateFinancialCrisis() {
-            const crisisProbability = calculateCrisisProbability();
             const grid = document.getElementById('crisis-grid');
+            const crisisProbability = calculateCrisisProbability();
             
             grid.innerHTML = `
-                <div class="risk-card ${crisisProbability > 60 ? 'critical' : ''}">
-                    <div class="risk-header">
-                        <div class="risk-title">Crisis Probability</div>
-                        <div class="risk-badge badge-${crisisProbability > 60 ? 'critical' : 'high'}">
+                <div class="card ${crisisProbability > 60 ? 'critical' : ''}">
+                    <div class="card-header">
+                        <div class="card-title">Crisis Probability</div>
+                        <div class="badge badge-${crisisProbability > 60 ? 'critical' : 'high'}">
                             ${crisisProbability > 60 ? 'IMMINENT' : 'ELEVATED'}
                         </div>
                     </div>
-                    <div class="risk-value">${crisisProbability.toFixed(1)}%</div>
+                    <div class="value">${crisisProbability.toFixed(1)}%</div>
+                    <p>Based on multiple indicators</p>
                 </div>
                 
-                <div class="risk-card">
-                    <div class="risk-header">
-                        <div class="risk-title">Banking Stress</div>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Risk Indicators</div>
                     </div>
-                    <div class="risk-value">${calculateBankingStress().toFixed(2)}</div>
-                </div>
-                
-                <div class="risk-card">
-                    <div class="risk-header">
-                        <div class="risk-title">Contagion Risk</div>
-                    </div>
-                    <div class="risk-value">${calculateContagionRisk().toFixed(2)}</div>
+                    <div class="value">${ecbData.indicators.length}</div>
+                    <p>Total monitored</p>
                 </div>
             `;
             
             if (crisisProbability > 60) {
-                document.getElementById('crisis-alert').style.display = 'inline-block';
-                showAIAlert('FINANCIAL CRISIS WARNING', 
-                    'Multiple indicators suggest heightened crisis probability. Implement defensive strategies immediately.');
-                
-                updateAIInsights('crisis-ai', [
-                    {
-                        type: 'critical',
-                        title: '🔥 CRISIS CONDITIONS DETECTED',
-                        text: `Crisis probability at ${crisisProbability.toFixed(1)}%. Multiple stress indicators exceeding critical thresholds.`
-                    },
-                    {
-                        type: 'critical',
-                        title: '📉 MARKET BREAKDOWN RISK',
-                        text: 'Systemic stress, dollar shortage, and banking stress converging. Prepare for market disruption.'
-                    },
-                    {
-                        type: 'warning',
-                        title: '🛡️ DEFENSIVE ACTIONS REQUIRED',
-                        text: 'Reduce risk exposure, increase cash positions, hedge critical exposures.'
-                    }
-                ]);
+                showAlert('FINANCIAL CRISIS WARNING', `Crisis probability at ${crisisProbability.toFixed(1)}%`);
             }
-            
-            updateCrisisChart();
         }
         
-        // Update Country Risk Tab
+        // Update Country Risk
         function updateCountryRisk() {
-            const matrix = document.getElementById('country-matrix');
-            const countries = allData.riskAssessment?.country_risks || [];
+            const grid = document.getElementById('country-grid');
+            const countries = ecbData.riskAssessment?.country_risks || [];
             
-            matrix.innerHTML = countries.map(country => {
-                const flag = countryFlags[country.country] || '🏳️';
-                const riskClass = `country-risk-${country.risk.toLowerCase()}`;
+            if (countries.length === 0) {
+                // Use CISS data as fallback
+                const cissData = ecbData.indicators.filter(i => 
+                    i.dataset === 'CISS' && i.country
+                );
                 
-                return `
-                    <div class="country-cell ${riskClass}" onclick="showCountryDetail('${country.country}')">
-                        <div class="country-flag">${flag}</div>
+                grid.innerHTML = cissData.slice(0, 20).map(indicator => `
+                    <div class="country-card">
+                        <div class="country-flag">${flags[indicator.country] || '🏳️'}</div>
+                        <div class="country-code">${indicator.country}</div>
+                        <div class="country-value" style="color: ${getValueColor(indicator.value)}">
+                            ${(indicator.value * 100).toFixed(2)}%
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                grid.innerHTML = countries.map(country => `
+                    <div class="country-card">
+                        <div class="country-flag">${flags[country.country] || '🏳️'}</div>
                         <div class="country-code">${country.country}</div>
-                        <div class="country-value" style="color: ${getColorForValue(country.value)}">
+                        <div class="country-value" style="color: ${getValueColor(country.value)}">
                             ${(country.value * 100).toFixed(2)}%
                         </div>
                     </div>
-                `;
-            }).join('');
-            
-            updateCountryChart();
+                `).join('');
+            }
         }
         
-        // Update Liquidity Tab
+        // Update Liquidity
         function updateLiquidity() {
             const grid = document.getElementById('liquidity-grid');
-            const bsiData = allData.BSI.slice(0, 6);
+            const bsiData = ecbData.indicators.filter(i => i.dataset === 'BSI').slice(0, 6);
+            
+            if (bsiData.length === 0) {
+                grid.innerHTML = '<div class="card"><p>No liquidity data available</p></div>';
+                return;
+            }
             
             grid.innerHTML = bsiData.map(indicator => `
-                <div class="risk-card">
-                    <div class="risk-header">
-                        <div class="risk-title">${countryFlags[indicator.country]} ${indicator.country} Liquidity</div>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">${flags[indicator.country] || ''} ${indicator.country}</div>
                     </div>
-                    <div class="risk-value">${indicator.value.toLocaleString()}</div>
-                    <div class="risk-change">
-                        <div class="change-stat">
-                            <div class="change-label">Type</div>
-                            <div class="change-value">${indicator.series_type || 'Bank Liabilities'}</div>
-                        </div>
-                    </div>
+                    <div class="value">${indicator.value?.toLocaleString() || 'N/A'}</div>
+                    <p>Bank liabilities</p>
                 </div>
             `).join('');
-            
-            updateLiquidityChart();
         }
         
-        // Update Interest Rates Tab
+        // Update Interest Rates
         function updateInterestRates() {
             const grid = document.getElementById('rates-grid');
-            const mirData = allData.MIR.filter(i => i.series_type?.includes('Lending')).slice(0, 6);
+            const mirData = ecbData.indicators.filter(i => i.dataset === 'MIR').slice(0, 6);
+            
+            if (mirData.length === 0) {
+                grid.innerHTML = '<div class="card"><p>No interest rate data available</p></div>';
+                return;
+            }
             
             grid.innerHTML = mirData.map(indicator => `
-                <div class="risk-card">
-                    <div class="risk-header">
-                        <div class="risk-title">${countryFlags[indicator.country]} ${indicator.country} Rates</div>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">${flags[indicator.country] || ''} ${indicator.country}</div>
                     </div>
-                    <div class="risk-value">${indicator.value.toFixed(2)}%</div>
-                    <div class="risk-change">
-                        <div class="change-stat">
-                            <div class="change-label">Type</div>
-                            <div class="change-value">Corporate Lending</div>
-                        </div>
+                    <div class="value">${indicator.value?.toFixed(2)}%</div>
+                    <p>${indicator.name?.includes('Deposit') ? 'Deposit rate' : 'Lending rate'}</p>
+                </div>
+            `).join('');
+        }
+        
+        // Update Unemployment
+        function updateUnemployment() {
+            const grid = document.getElementById('unemployment-grid');
+            const unemploymentData = ecbData.indicators.filter(i => i.dataset === 'UNEMPLOYMENT');
+            
+            if (unemploymentData.length === 0) {
+                grid.innerHTML = '<div class="card"><p>No unemployment data available</p></div>';
+                return;
+            }
+            
+            grid.innerHTML = unemploymentData.map(indicator => `
+                <div class="country-card">
+                    <div class="country-flag">${flags[indicator.country] || '🏳️'}</div>
+                    <div class="country-code">${indicator.country}</div>
+                    <div class="country-value" style="color: ${indicator.value > 10 ? '#ff0000' : indicator.value > 7 ? '#ffd700' : '#00ff00'}">
+                        ${indicator.value?.toFixed(1)}%
                     </div>
                 </div>
             `).join('');
-            
-            updateRatesChart();
         }
         
-        // Update Unemployment Tab
-        function updateUnemployment() {
-            const matrix = document.getElementById('unemployment-matrix');
-            
-            matrix.innerHTML = allData.UNEMPLOYMENT.map(indicator => {
-                const flag = countryFlags[indicator.country] || '🏳️';
-                const riskClass = indicator.value > 10 ? 'country-risk-high' : 
-                                 indicator.value > 7 ? 'country-risk-medium' : 'country-risk-low';
-                
-                return `
-                    <div class="country-cell ${riskClass}">
-                        <div class="country-flag">${flag}</div>
-                        <div class="country-code">${indicator.country}</div>
-                        <div class="country-value" style="color: ${getColorForValue(indicator.value, true)}">
-                            ${indicator.value.toFixed(1)}%
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            
-            updateUnemploymentChart();
-        }
-        
-        // Update AI Analysis Tab
-        function updateAIAnalysis() {
-            const insights = generateComprehensiveAIAnalysis();
-            updateAIInsights('comprehensive-ai', insights);
-            
-            // Generate recommendations
-            const recommendations = document.getElementById('ai-recommendations');
-            recommendations.innerHTML = generateAIRecommendations();
-        }
-        
-        // Chart Updates
-        function initializeCharts() {
-            // Initialize all chart contexts
-            const chartConfigs = [
-                'overview', 'systemic', 'dollar', 'crisis', 
-                'country', 'liquidity', 'rates', 'unemployment'
-            ];
-            
-            chartConfigs.forEach(name => {
-                const ctx = document.getElementById(`${name}-chart`);
-                if (ctx) {
-                    charts[name] = null; // Will be created when needed
-                }
-            });
-        }
-        
+        // Chart functions
         function updateOverviewChart() {
-            const ctx = document.getElementById('overview-chart').getContext('2d');
+            const ctx = document.getElementById('overview-chart');
+            if (!ctx) return;
             
-            if (charts.overview) charts.overview.destroy();
+            const historical = Object.values(ecbData.historical)[0];
+            if (!historical?.historical_data) return;
             
-            const historicalData = Object.values(allData.historical)[0];
-            if (!historicalData?.historical_data) return;
+            const data = historical.historical_data.slice(-30);
             
-            const data = historicalData.historical_data.slice(-30);
+            if (ecbData.charts.overview) {
+                ecbData.charts.overview.destroy();
+            }
             
-            charts.overview = new Chart(ctx, {
+            ecbData.charts.overview = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: data.map(d => d.date),
                     datasets: [{
-                        label: 'Systemic Stress',
-                        data: data.map(d => d.value),
+                        label: 'Systemic Stress Trend',
+                        data: data.map(d => d.value * 100),
                         borderColor: '#3b82f6',
                         backgroundColor: 'rgba(59, 130, 246, 0.1)',
                         tension: 0.4
@@ -1374,22 +781,28 @@
         }
         
         function updateSystemicChart() {
-            const ctx = document.getElementById('systemic-chart').getContext('2d');
+            const ctx = document.getElementById('systemic-chart');
+            if (!ctx) return;
             
-            if (charts.systemic) charts.systemic.destroy();
+            const cissData = ecbData.indicators.filter(i => 
+                i.dataset === 'CISS' && i.name?.includes('Sovereign Stress')
+            ).slice(0, 10);
             
-            const cissData = allData.CISS.filter(i => i.series_type?.includes('Sovereign Stress Monthly'));
+            if (cissData.length === 0) return;
             
-            charts.systemic = new Chart(ctx, {
+            if (ecbData.charts.systemic) {
+                ecbData.charts.systemic.destroy();
+            }
+            
+            ecbData.charts.systemic = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: cissData.map(d => countryFlags[d.country] + ' ' + d.country),
+                    labels: cissData.map(d => d.country || 'N/A'),
                     datasets: [{
-                        label: 'CISS Value',
-                        data: cissData.map(d => d.value),
+                        label: 'CISS Stress Level (%)',
+                        data: cissData.map(d => (d.value || 0) * 100),
                         backgroundColor: cissData.map(d => 
                             d.value > 0.2 ? 'rgba(255,0,0,0.6)' :
-                            d.value > 0.15 ? 'rgba(255,107,0,0.6)' :
                             d.value > 0.1 ? 'rgba(255,215,0,0.6)' :
                             'rgba(0,255,0,0.6)'
                         )
@@ -1399,228 +812,60 @@
             });
         }
         
-        function updateDollarChart() {
-            const ctx = document.getElementById('dollar-chart')?.getContext('2d');
-            if (!ctx) return;
-            
-            if (charts.dollar) charts.dollar.destroy();
-            
-            // Simulate dollar shortage data
-            const labels = ['T-30d', 'T-25d', 'T-20d', 'T-15d', 'T-10d', 'T-5d', 'Today'];
-            const data = [45, 48, 52, 58, 65, 68, calculateDollarStress()];
-            
-            charts.dollar = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Dollar Stress Index',
-                        data: data,
-                        borderColor: '#ff0000',
-                        backgroundColor: 'rgba(255,0,0,0.1)',
-                        tension: 0.4
-                    }]
-                },
-                options: getChartOptions()
-            });
-        }
-        
-        function updateCrisisChart() {
-            const ctx = document.getElementById('crisis-chart')?.getContext('2d');
-            if (!ctx) return;
-            
-            if (charts.crisis) charts.crisis.destroy();
-            
-            // Crisis probability over time
-            const labels = ['6M ago', '5M ago', '4M ago', '3M ago', '2M ago', '1M ago', 'Now'];
-            const data = [25, 30, 35, 42, 48, 55, calculateCrisisProbability()];
-            
-            charts.crisis = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Crisis Probability',
-                        data: data,
-                        borderColor: '#ff0000',
-                        backgroundColor: 'rgba(255,0,0,0.1)',
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    ...getChartOptions(),
-                    plugins: {
-                        ...getChartOptions().plugins,
-                        annotation: {
-                            annotations: {
-                                line1: {
-                                    type: 'line',
-                                    yMin: 60,
-                                    yMax: 60,
-                                    borderColor: 'rgb(255, 0, 0)',
-                                    borderWidth: 2,
-                                    borderDash: [5, 5]
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-        
-        function updateCountryChart() {
-            const ctx = document.getElementById('country-chart')?.getContext('2d');
-            if (!ctx) return;
-            
-            if (charts.country) charts.country.destroy();
-            
-            const countries = allData.riskAssessment?.country_risks || [];
-            
-            charts.country = new Chart(ctx, {
-                type: 'radar',
-                data: {
-                    labels: countries.map(c => c.country),
-                    datasets: [{
-                        label: 'Risk Level',
-                        data: countries.map(c => c.value * 100),
-                        borderColor: '#3b82f6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.2)'
-                    }]
-                },
-                options: {
-                    ...getChartOptions(),
-                    scales: {
-                        r: {
-                            beginAtZero: true,
-                            ticks: { color: '#7a8bb7' },
-                            grid: { color: 'rgba(122, 139, 183, 0.2)' }
-                        }
-                    }
-                }
-            });
-        }
-        
-        function updateLiquidityChart() {
-            const ctx = document.getElementById('liquidity-chart')?.getContext('2d');
-            if (!ctx) return;
-            
-            if (charts.liquidity) charts.liquidity.destroy();
-            
-            const bsiData = allData.BSI.slice(0, 10);
-            
-            charts.liquidity = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: bsiData.map(d => d.country),
-                    datasets: [{
-                        label: 'Bank Liabilities',
-                        data: bsiData.map(d => d.value),
-                        backgroundColor: 'rgba(59, 130, 246, 0.6)'
-                    }]
-                },
-                options: getChartOptions()
-            });
-        }
-        
-        function updateRatesChart() {
-            const ctx = document.getElementById('rates-chart')?.getContext('2d');
-            if (!ctx) return;
-            
-            if (charts.rates) charts.rates.destroy();
-            
-            const lendingRates = allData.MIR.filter(i => i.series_type?.includes('Lending')).slice(0, 10);
-            const depositRates = allData.MIR.filter(i => i.series_type?.includes('Deposit')).slice(0, 10);
-            
-            charts.rates = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: lendingRates.map(d => d.country),
-                    datasets: [
-                        {
-                            label: 'Lending Rates',
-                            data: lendingRates.map(d => d.value),
-                            borderColor: '#ff0000',
-                            backgroundColor: 'rgba(255,0,0,0.1)'
-                        },
-                        {
-                            label: 'Deposit Rates',
-                            data: depositRates.map(d => d.value),
-                            borderColor: '#00ff00',
-                            backgroundColor: 'rgba(0,255,0,0.1)'
-                        }
-                    ]
-                },
-                options: getChartOptions()
-            });
-        }
-        
-        function updateUnemploymentChart() {
-            const ctx = document.getElementById('unemployment-chart')?.getContext('2d');
-            if (!ctx) return;
-            
-            if (charts.unemployment) charts.unemployment.destroy();
-            
-            charts.unemployment = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: allData.UNEMPLOYMENT.map(d => countryFlags[d.country] + ' ' + d.country),
-                    datasets: [{
-                        label: 'Unemployment Rate',
-                        data: allData.UNEMPLOYMENT.map(d => d.value),
-                        backgroundColor: allData.UNEMPLOYMENT.map(d => 
-                            d.value > 10 ? 'rgba(255,0,0,0.6)' :
-                            d.value > 7 ? 'rgba(255,215,0,0.6)' :
-                            'rgba(0,255,0,0.6)'
-                        )
-                    }]
-                },
-                options: getChartOptions()
-            });
-        }
-        
-        // Helper Functions
         function getChartOptions() {
             return {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        labels: { color: '#e2e8f0' }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                        titleColor: '#60a5fa',
-                        bodyColor: '#e2e8f0'
+                        labels: { color: '#ffffff' }
                     }
                 },
                 scales: {
                     x: {
                         ticks: { color: '#7a8bb7' },
-                        grid: { color: 'rgba(122, 139, 183, 0.1)' }
+                        grid: { color: 'rgba(255,255,255,0.1)' }
                     },
                     y: {
                         ticks: { color: '#7a8bb7' },
-                        grid: { color: 'rgba(122, 139, 183, 0.1)' }
+                        grid: { color: 'rgba(255,255,255,0.1)' }
                     }
                 }
             };
         }
         
+        // Helper functions
+        function switchTab(tabName, button) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active from all buttons
+            document.querySelectorAll('.tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            button.classList.add('active');
+        }
+        
         function getRiskLevel(value) {
+            if (value > 0.3) return 'CRITICAL';
+            if (value > 0.2) return 'HIGH';
+            if (value > 0.1) return 'MEDIUM';
+            return 'LOW';
+        }
+        
+        function getRiskBadge(value) {
             if (value > 0.3) return 'critical';
             if (value > 0.2) return 'high';
             if (value > 0.1) return 'medium';
             return 'low';
         }
         
-        function getColorForValue(value, inverse = false) {
-            if (inverse) {
-                if (value > 10) return '#ff0000';
-                if (value > 7) return '#ff6b00';
-                if (value > 4) return '#ffd700';
-                return '#00ff00';
-            }
+        function getValueColor(value) {
             if (value > 0.3) return '#ff0000';
             if (value > 0.2) return '#ff6b00';
             if (value > 0.1) return '#ffd700';
@@ -1628,478 +873,57 @@
         }
         
         function calculateDollarStress() {
-            // Simulate dollar stress calculation
-            const ilmValue = allData.ILM[0]?.value || 18000;
+            const ilm = ecbData.indicators.find(i => i.dataset === 'ILM');
+            if (!ilm) return 50;
+            
+            // Simple calculation based on ILM value
             const baseline = 20000;
-            const stress = Math.max(0, Math.min(100, ((baseline - ilmValue) / baseline) * 200));
+            const current = ilm.value || baseline;
+            const stress = Math.max(0, Math.min(100, ((baseline - current) / baseline) * 200));
             return stress;
         }
         
         function calculateCrisisProbability() {
-            const avgStress = allData.riskAssessment?.average_stress || 0;
-            const unemploymentAvg = allData.UNEMPLOYMENT.reduce((sum, i) => sum + i.value, 0) / 
-                                  (allData.UNEMPLOYMENT.length || 1);
-            const dollarStress = calculateDollarStress();
+            const avgStress = ecbData.riskAssessment?.average_stress || 0;
+            const unemployment = ecbData.indicators.filter(i => i.dataset === 'UNEMPLOYMENT');
+            const avgUnemployment = unemployment.length > 0
+                ? unemployment.reduce((sum, i) => sum + (i.value || 0), 0) / unemployment.length
+                : 5;
             
-            // Weighted crisis probability
-            const probability = (avgStress * 300) + (unemploymentAvg * 3) + (dollarStress * 0.4);
-            return Math.min(100, probability);
+            // Simple crisis probability calculation
+            const probability = (avgStress * 200) + (avgUnemployment * 3) + 20;
+            return Math.min(100, Math.max(0, probability));
         }
         
-        function calculateBankingStress() {
-            const bsiValues = allData.BSI.map(i => i.value);
-            const avg = bsiValues.reduce((a, b) => a + b, 0) / bsiValues.length;
-            const variance = bsiValues.reduce((sum, val) => sum + Math.pow(val - avg, 2), 0) / bsiValues.length;
-            return Math.sqrt(variance) / 1000;
-        }
-        
-        function calculateContagionRisk() {
-            const countries = allData.riskAssessment?.country_risks || [];
-            const highRisk = countries.filter(c => c.risk === 'HIGH' || c.risk === 'CRITICAL').length;
-            return (highRisk / countries.length) * 100;
-        }
-        
-        // AI Functions
-        function startAIMonitoring() {
-            setInterval(() => {
-                runAIAnalysis();
-            }, 30000); // Run every 30 seconds
-        }
-        
-        function runAIAnalysis() {
-            const alerts = [];
-            
-            // Check systemic stress
-            const avgStress = allData.riskAssessment?.average_stress || 0;
-            if (avgStress > 0.15) {
-                alerts.push({
-                    type: 'critical',
-                    title: 'Systemic Stress Critical',
-                    message: `Average stress at ${(avgStress * 100).toFixed(2)}% - exceeds critical threshold`
-                });
-            }
-            
-            // Check dollar shortage
-            const dollarStress = calculateDollarStress();
-            if (dollarStress > 70) {
-                alerts.push({
-                    type: 'critical',
-                    title: 'Dollar Shortage Detected',
-                    message: 'Severe dollar funding stress - immediate action required'
-                });
-            }
-            
-            // Check crisis probability
+        function checkForAlerts() {
+            const avgStress = ecbData.riskAssessment?.average_stress || 0;
             const crisisProbability = calculateCrisisProbability();
-            if (crisisProbability > 60) {
-                alerts.push({
-                    type: 'critical',title: 'Financial Crisis Warning',
-                   message: `Crisis probability at ${crisisProbability.toFixed(1)}% - defensive measures critical`
-               });
-           }
-           
-           // Check for rapid changes
-           checkRapidChanges(alerts);
-           
-           // Update UI with alerts
-           if (alerts.length > 0) {
-               processAIAlerts(alerts);
-           }
-       }
-       
-       function checkRapidChanges(alerts) {
-           // Check for rapid deterioration in any indicator
-           Object.values(allData.historical || {}).forEach(hist => {
-               if (hist.changes) {
-                   if (Math.abs(hist.changes.wow_percent) > 10) {
-                       alerts.push({
-                           type: 'warning',
-                           title: 'Rapid Change Detected',
-                           message: `${hist.name}: ${hist.changes.wow_percent > 0 ? '+' : ''}${hist.changes.wow_percent.toFixed(2)}% weekly change`
-                       });
-                   }
-               }
-           });
-       }
-       
-       function processAIAlerts(alerts) {
-           // Show most critical alert
-           const criticalAlert = alerts.find(a => a.type === 'critical');
-           if (criticalAlert) {
-               showAIAlert(criticalAlert.title, criticalAlert.message);
-           }
-           
-           // Update live feed
-           alerts.forEach(alert => {
-               addToLiveFeed(alert.title, alert.type);
-           });
-           
-           // Store alerts
-           aiAlerts = alerts;
-       }
-       
-       function showAIAlert(title, description) {
-           const alertBanner = document.getElementById('ai-alert');
-           document.getElementById('ai-alert-title').textContent = '🚨 AI ALERT: ' + title;
-           document.getElementById('ai-alert-description').textContent = description;
-           alertBanner.classList.add('active');
-           
-           // Auto-hide after 10 seconds
-           setTimeout(() => {
-               alertBanner.classList.remove('active');
-           }, 10000);
-       }
-       
-       function updateAIInsights(elementId, insights) {
-           const element = document.getElementById(elementId);
-           if (!element) return;
-           
-           element.innerHTML = insights.map(insight => `
-               <div class="ai-insight ${insight.type}">
-                   <div class="insight-title">${insight.title}</div>
-                   <div class="insight-text">${insight.text}</div>
-               </div>
-           `).join('');
-       }
-       
-       function generateComprehensiveAIAnalysis() {
-           const insights = [];
-           const avgStress = allData.riskAssessment?.average_stress || 0;
-           const crisisProbability = calculateCrisisProbability();
-           const dollarStress = calculateDollarStress();
-           
-           // Overall assessment
-           if (crisisProbability > 60) {
-               insights.push({
-                   type: 'critical',
-                   title: '🔴 CRISIS CONDITIONS IMMINENT',
-                   text: `Multiple indicators converging toward crisis levels. Crisis probability: ${crisisProbability.toFixed(1)}%. Immediate defensive action required.`
-               });
-           } else if (crisisProbability > 40) {
-               insights.push({
-                   type: 'warning',
-                   title: '🟡 ELEVATED RISK ENVIRONMENT',
-                   text: `Risk indicators showing concerning trends. Crisis probability: ${crisisProbability.toFixed(1)}%. Enhanced monitoring and risk reduction recommended.`
-               });
-           } else {
-               insights.push({
-                   type: 'normal',
-                   title: '🟢 STABLE CONDITIONS',
-                   text: `Markets operating within normal parameters. Crisis probability: ${crisisProbability.toFixed(1)}%. Maintain standard risk protocols.`
-               });
-           }
-           
-           // Systemic stress analysis
-           if (avgStress > 0.15) {
-               insights.push({
-                   type: 'critical',
-                   title: '⚠️ SYSTEMIC STRESS CRITICAL',
-                   text: `Euro area systemic stress at ${(avgStress * 100).toFixed(2)}%. Historical analysis shows this level preceded previous crises. Consider reducing European exposure.`
-               });
-           }
-           
-           // Dollar shortage analysis
-           if (dollarStress > 50) {
-               insights.push({
-                   type: dollarStress > 70 ? 'critical' : 'warning',
-                   title: '💵 DOLLAR FUNDING STRESS',
-                   text: `Dollar shortage indicators at ${dollarStress.toFixed(0)}%. European banks may face USD funding challenges. Monitor FX swap markets closely.`
-               });
-           }
-           
-           // Contagion risk
-           const contagionRisk = calculateContagionRisk();
-           if (contagionRisk > 30) {
-               insights.push({
-                   type: 'warning',
-                   title: '🌐 CONTAGION RISK ELEVATED',
-                   text: `${contagionRisk.toFixed(0)}% of countries showing high stress. Cross-border spillover risk increasing. Diversification critical.`
-               });
-           }
-           
-           // Unemployment impact
-           const unemploymentAvg = allData.UNEMPLOYMENT.reduce((sum, i) => sum + i.value, 0) / 
-                                 (allData.UNEMPLOYMENT.length || 1);
-           if (unemploymentAvg > 8) {
-               insights.push({
-                   type: 'warning',
-                   title: '👥 LABOR MARKET STRESS',
-                   text: `Average unemployment at ${unemploymentAvg.toFixed(1)}%. Economic recovery at risk. Consumer spending likely to decline.`
-               });
-           }
-           
-           // Interest rate divergence
-           const rateSpread = calculateRateSpread();
-           if (rateSpread > 3) {
-               insights.push({
-                   type: 'warning',
-                   title: '📊 RATE DIVERGENCE WARNING',
-                   text: `Interest rate spreads widening to ${rateSpread.toFixed(2)}%. Peripheral countries facing funding pressure.`
-               });
-           }
-           
-           // Predictive analysis
-           insights.push({
-               type: 'normal',
-               title: '🔮 30-DAY FORECAST',
-               text: generateForecast()
-           });
-           
-           return insights;
-       }
-       
-       function generateAIRecommendations() {
-           const recommendations = [];
-           const crisisProbability = calculateCrisisProbability();
-           const dollarStress = calculateDollarStress();
-           
-           // Risk level based recommendations
-           if (crisisProbability > 60) {
-               recommendations.push({
-                   title: 'IMMEDIATE ACTIONS',
-                   items: [
-                       'Reduce leverage to minimum levels',
-                       'Increase cash positions to 40%+',
-                       'Hedge all FX exposures',
-                       'Exit peripheral European positions',
-                       'Activate crisis management protocols'
-                   ],
-                   priority: 'critical'
-               });
-           }
-           
-           if (dollarStress > 70) {
-               recommendations.push({
-                   title: 'DOLLAR SHORTAGE RESPONSE',
-                   items: [
-                       'Secure USD funding lines',
-                       'Reduce dollar-denominated liabilities',
-                       'Consider EUR/USD hedging strategies',
-                       'Monitor cross-currency basis swaps',
-                       'Prepare for ECB dollar liquidity operations'
-                   ],
-                   priority: 'high'
-               });
-           }
-           
-           // Sector recommendations
-           recommendations.push({
-               title: 'SECTOR POSITIONING',
-               items: [
-                   crisisProbability > 50 ? 'Underweight: Financials, Real Estate' : 'Neutral: Financials',
-                   'Overweight: Defensive sectors, Utilities',
-                   'Consider: Gold, Safe-haven assets',
-                   dollarStress > 50 ? 'Long USD vs EUR' : 'Neutral FX positioning'
-               ],
-               priority: 'medium'
-           });
-           
-           // Monitoring recommendations
-           recommendations.push({
-               title: 'ENHANCED MONITORING',
-               items: [
-                   'Set alerts for CISS > 0.25',
-                   'Monitor TARGET2 imbalances daily',
-                   'Track ECB policy announcements',
-                   'Watch sovereign spreads vs Germany',
-                   'Review counterparty exposures'
-               ],
-               priority: 'medium'
-           });
-           
-           return recommendations.map(rec => `
-               <div class="risk-card">
-                   <div class="risk-header">
-                       <div class="risk-title">${rec.title}</div>
-                       <div class="risk-badge badge-${rec.priority}">${rec.priority.toUpperCase()}</div>
-                   </div>
-                   <ul style="margin: 15px 0; padding-left: 20px; color: #a0aec0;">
-                       ${rec.items.map(item => `<li style="margin: 8px 0;">${item}</li>`).join('')}
-                   </ul>
-               </div>
-           `).join('');
-       }
-       
-       function generateForecast() {
-           const trend = analyzeTrend();
-           const seasonality = checkSeasonality();
-           
-           let forecast = 'Based on current trajectories: ';
-           
-           if (trend === 'deteriorating') {
-               forecast += 'Stress indicators likely to increase. ';
-           } else if (trend === 'improving') {
-               forecast += 'Gradual improvement expected. ';
-           } else {
-               forecast += 'Stable conditions likely to persist. ';
-           }
-           
-           if (seasonality) {
-               forecast += `Seasonal patterns suggest ${seasonality}. `;
-           }
-           
-           const events = checkUpcomingEvents();
-           if (events.length > 0) {
-               forecast += `Key events: ${events.join(', ')}.`;
-           }
-           
-           return forecast;
-       }
-       
-       function analyzeTrend() {
-           // Analyze recent trend in indicators
-           const recentChanges = Object.values(allData.historical || {})
-               .map(h => h.changes?.mom_percent || 0)
-               .filter(c => c !== 0);
-           
-           if (recentChanges.length === 0) return 'stable';
-           
-           const avgChange = recentChanges.reduce((a, b) => a + b, 0) / recentChanges.length;
-           
-           if (avgChange > 5) return 'deteriorating';
-           if (avgChange < -5) return 'improving';
-           return 'stable';
-       }
-       
-       function checkSeasonality() {
-           const month = new Date().getMonth();
-           
-           // Known seasonal patterns
-           if (month === 11 || month === 0) return 'year-end volatility';
-           if (month === 7 || month === 8) return 'summer thin liquidity';
-           if (month === 2 || month === 3) return 'quarter-end rebalancing';
-           
-           return null;
-       }
-       
-       function checkUpcomingEvents() {
-           const events = [];
-           const day = new Date().getDate();
-           
-           // ECB meeting dates (simplified)
-           if (day < 15) events.push('ECB meeting');
-           if (day > 20) events.push('Month-end flows');
-           
-           return events;
-       }
-       
-       function calculateRateSpread() {
-           const rates = allData.MIR.filter(i => i.series_type?.includes('Lending'));
-           if (rates.length < 2) return 0;
-           
-           const values = rates.map(r => r.value);
-           const max = Math.max(...values);
-           const min = Math.min(...values);
-           
-           return max - min;
-       }
-       
-       // Live Feed Functions
-       function updateLiveFeed() {
-           const feed = document.getElementById('live-feed');
-           if (!feed) return;
-           
-           // Add initial items
-           if (feed.children.length === 0) {
-               addToLiveFeed('System initialized', 'normal');
-               addToLiveFeed('Monitoring 159 indicators', 'normal');
-               
-               // Check for any immediate alerts
-               const avgStress = allData.riskAssessment?.average_stress || 0;
-               if (avgStress > 0.15) {
-                   addToLiveFeed('High systemic stress detected', 'critical');
-               }
-           }
-       }
-       
-       function addToLiveFeed(message, type = 'normal') {
-           const feed = document.getElementById('live-feed');
-           if (!feed) return;
-           
-           const time = new Date().toLocaleTimeString('en-US', { 
-               hour: '2-digit', 
-               minute: '2-digit' 
-           });
-           
-           const icon = type === 'critical' ? '🔴' : 
-                       type === 'warning' ? '🟡' : 
-                       type === 'success' ? '🟢' : 'ℹ️';
-           
-           const item = document.createElement('div');
-           item.className = 'feed-item';
-           item.innerHTML = `
-               <div class="feed-time">${time}</div>
-               <div class="feed-icon">${icon}</div>
-               <div class="feed-message">${message}</div>
-           `;
-           
-           // Add to top of feed
-           feed.insertBefore(item, feed.firstChild);
-           
-           // Keep only last 20 items
-           while (feed.children.length > 20) {
-               feed.removeChild(feed.lastChild);
-           }
-       }
-       
-       // Utility Functions
-       function updateTime() {
-           const now = new Date();
-           document.getElementById('last-update').textContent = 
-               now.toLocaleTimeString('en-US', { 
-                   hour: '2-digit', 
-                   minute: '2-digit', 
-                   second: '2-digit' 
-               });
-       }
-       
-       function refreshData() {
-           loadAllData();
-           addToLiveFeed('Data refreshed', 'success');
-       }
-       
-       function showCountryDetail(countryCode) {
-           const countryData = allData.indicators.filter(i => i.country === countryCode);
-           
-           alert(`${countryFlags[countryCode]} ${countryCode} Details:\n\n` +
-                 `Indicators: ${countryData.length}\n` +
-                 `CISS: ${countryData.find(i => i.dataset === 'CISS')?.value.toFixed(4) || 'N/A'}\n` +
-                 `Unemployment: ${countryData.find(i => i.dataset === 'UNEMPLOYMENT')?.value.toFixed(1) || 'N/A'}%\n` +
-                 `Status: ${allData.riskAssessment?.country_risks?.find(c => c.country === countryCode)?.risk || 'N/A'}`);
-       }
-       
-       // Keyboard shortcuts
-       document.addEventListener('keydown', (e) => {
-           if (e.ctrlKey || e.metaKey) {
-               switch(e.key) {
-                   case 'r':
-                       e.preventDefault();
-                       refreshData();
-                       break;
-                   case '1':
-                       e.preventDefault();
-                       switchTab('overview');
-                       break;
-                   case '2':
-                       e.preventDefault();
-                       switchTab('systemic-risk');
-                       break;
-                   case '3':
-                       e.preventDefault();
-                       switchTab('dollar-shortage');
-                       break;
-                   case '4':
-                       e.preventDefault();
-                       switchTab('financial-crisis');
-                       break;
-               }
-           }
-       });
-       
-       // Initialize AI monitoring on load
-       setTimeout(() => {
-           runAIAnalysis();
-       }, 2000);
-   </script>
+            const dollarStress = calculateDollarStress();
+            
+            if (avgStress > 0.2) {
+                showAlert('SYSTEMIC STRESS WARNING', `Stress level at ${(avgStress * 100).toFixed(2)}%`);
+            } else if (crisisProbability > 60) {
+                showAlert('CRISIS PROBABILITY HIGH', `${crisisProbability.toFixed(1)}% probability detected`);
+            } else if (dollarStress > 70) {
+                showAlert('DOLLAR SHORTAGE', 'Funding stress detected');
+            }
+        }
+        
+        function showAlert(title, message) {
+            const alertDiv = document.getElementById('ai-alert');
+            document.getElementById('ai-alert-title').textContent = '🚨 ' + title;
+            document.getElementById('ai-alert-message').textContent = message;
+            alertDiv.classList.add('active');
+            
+            setTimeout(() => {
+                alertDiv.classList.remove('active');
+            }, 10000);
+        }
+        
+        function updateTime() {
+            document.getElementById('last-update').textContent = 
+                new Date().toLocaleTimeString();
+        }
+    </script>
 </body>
 </html>
