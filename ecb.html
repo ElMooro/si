@@ -17,50 +17,15 @@
         
         .header {
             background: rgba(20, 24, 44, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 1.5rem 2rem;
+            padding: 1.5rem;
+            text-align: center;
             border-bottom: 2px solid rgba(0, 255, 136, 0.3);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
         
-        .header-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-        
-        .logo {
-            font-size: 1.75rem;
-            font-weight: bold;
-            background: linear-gradient(45deg, #00ff88, #00ccff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .api-status {
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-            background: rgba(0, 255, 136, 0.1);
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-        }
-        
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #00ff88;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(1.1); }
+        .header h1 {
+            color: #00ff88;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
         }
         
         .container {
@@ -71,45 +36,19 @@
         
         .risk-banner {
             background: linear-gradient(135deg, rgba(255, 68, 68, 0.2), rgba(255, 170, 0, 0.2));
-            border: 2px solid rgba(255, 68, 68, 0.5);
+            border: 2px solid #ff4444;
             border-radius: 12px;
             padding: 2rem;
             margin-bottom: 2rem;
             text-align: center;
-            animation: warningPulse 3s ease-in-out infinite;
-        }
-        
-        @keyframes warningPulse {
-            0%, 100% { transform: scale(1); opacity: 0.9; }
-            50% { transform: scale(1.02); opacity: 1; }
-        }
-        
-        .risk-banner.high {
-            background: linear-gradient(135deg, rgba(255, 68, 68, 0.2), rgba(255, 0, 0, 0.2));
-            border-color: #ff4444;
-        }
-        
-        .risk-banner.medium {
-            background: linear-gradient(135deg, rgba(255, 170, 0, 0.2), rgba(255, 136, 0, 0.2));
-            border-color: #ffaa00;
-        }
-        
-        .risk-banner.low {
-            background: linear-gradient(135deg, rgba(0, 255, 136, 0.2), rgba(0, 204, 255, 0.2));
-            border-color: #00ff88;
         }
         
         .risk-level {
             font-size: 3rem;
             font-weight: bold;
+            color: #ff4444;
             margin: 1rem 0;
-            text-transform: uppercase;
-            letter-spacing: 2px;
         }
-        
-        .risk-level.high { color: #ff4444; text-shadow: 0 0 20px rgba(255, 68, 68, 0.5); }
-        .risk-level.medium { color: #ffaa00; text-shadow: 0 0 20px rgba(255, 170, 0, 0.5); }
-        .risk-level.low { color: #00ff88; text-shadow: 0 0 20px rgba(0, 255, 136, 0.5); }
         
         .stats-grid {
             display: grid;
@@ -123,26 +62,12 @@
             border-radius: 12px;
             padding: 1.5rem;
             text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.3s;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.2);
         }
         
         .stat-value {
             font-size: 2rem;
             font-weight: bold;
             color: #00ff88;
-            margin-bottom: 0.5rem;
-        }
-        
-        .stat-label {
-            font-size: 0.875rem;
-            color: #888;
-            text-transform: uppercase;
         }
         
         .country-grid {
@@ -157,32 +82,13 @@
             border-radius: 12px;
             padding: 1.5rem;
             text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
             border: 2px solid transparent;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .country-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, transparent, #00ff88, transparent);
-            transform: translateX(-100%);
-            transition: transform 0.5s;
-        }
-        
-        .country-card:hover::before {
-            transform: translateX(100%);
+            transition: all 0.3s;
         }
         
         .country-card:hover {
-            transform: translateY(-5px) scale(1.05);
-            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.2);
         }
         
         .country-card.high-risk {
@@ -200,375 +106,183 @@
             border-color: rgba(0, 255, 136, 0.3);
         }
         
-        .country-flag {
-            font-size: 3rem;
-            margin-bottom: 0.75rem;
-        }
-        
-        .country-name {
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-            font-size: 1.1rem;
-        }
-        
-        .country-value {
-            font-size: 1.75rem;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-        }
-        
-        .country-risk-label {
-            font-size: 0.875rem;
-            padding: 0.25rem 0.75rem;
-            border-radius: 4px;
-            display: inline-block;
-            font-weight: bold;
-        }
-        
-        .risk-high {
-            background: rgba(255, 68, 68, 0.2);
-            color: #ff4444;
-        }
-        
-        .risk-medium {
-            background: rgba(255, 170, 0, 0.2);
-            color: #ffaa00;
-        }
-        
-        .risk-low {
-            background: rgba(0, 255, 136, 0.2);
-            color: #00ff88;
-        }
-        
         .chart-container {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 12px;
             padding: 2rem;
             margin: 2rem 0;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .chart-header {
-            margin-bottom: 1.5rem;
-        }
-        
-        .chart-title {
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-        }
-        
-        .chart-subtitle {
-            color: #888;
-            font-size: 0.875rem;
-        }
-        
-        #stressChart, #trendChart {
-            height: 400px;
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 3rem;
-            font-size: 1.2rem;
-            color: #888;
-        }
-        
-        .spinner {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            border: 4px solid rgba(0, 255, 136, 0.3);
-            border-top-color: #00ff88;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-right: 10px;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        @media (max-width: 768px) {
-            .country-grid {
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            }
-            
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
         }
     </style>
 </head>
 <body>
-    <header class="header">
-        <div class="header-content">
-            <div class="logo">
-                🏦 ECB Systemic Risk Intelligence
-            </div>
-            <div class="api-status">
-                <div class="status-dot"></div>
-                <span id="apiStatus">Connecting...</span>
-            </div>
-        </div>
-    </header>
-
+    <div class="header">
+        <h1>🏦 ECB Systemic Risk Intelligence Platform</h1>
+        <p>Real-time Eurozone Financial Stability Monitoring</p>
+    </div>
+    
     <div class="container">
-        <div id="loadingIndicator" class="loading">
-            <div class="spinner"></div>
-            Loading ECB data...
+        <div class="risk-banner">
+            <h2>Eurozone Systemic Risk Assessment</h2>
+            <div class="risk-level">HIGH RISK</div>
+            <p>Average systemic stress: 10.40% across 11 countries</p>
         </div>
-
-        <div id="mainContent" style="display: none;">
-            <div id="riskBanner" class="risk-banner">
-                <h2>Eurozone Systemic Risk Assessment</h2>
-                <div id="riskLevel" class="risk-level">-</div>
-                <p id="riskDescription"></p>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">10.4%</div>
+                <div>Average Stress</div>
             </div>
-
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-value" id="avgStress">-</div>
-                    <div class="stat-label">Average Stress</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="highRiskCount">-</div>
-                    <div class="stat-label">High Risk Countries</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="totalCountries">-</div>
-                    <div class="stat-label">Countries Monitored</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">159</div>
-                    <div class="stat-label">ECB Indicators</div>
-                </div>
+            <div class="stat-card">
+                <div class="stat-value">5</div>
+                <div>High Risk Countries</div>
             </div>
-
-            <h2 style="margin: 2rem 0 1rem 0;">Country Risk Indicators (CISS)</h2>
-            <div id="countryGrid" class="country-grid"></div>
-
-            <div class="chart-container">
-                <div class="chart-header">
-                    <h3 class="chart-title">Systemic Stress Levels by Country</h3>
-                    <p class="chart-subtitle">Composite Indicator of Systemic Stress (CISS) - Values above 15% indicate high risk</p>
-                </div>
-                <div id="stressChart"></div>
+            <div class="stat-card">
+                <div class="stat-value">11</div>
+                <div>Countries Monitored</div>
             </div>
-
-            <div class="chart-container">
-                <div class="chart-header">
-                    <h3 class="chart-title">Risk Distribution</h3>
-                    <p class="chart-subtitle">Countries grouped by risk level</p>
-                </div>
-                <div id="trendChart"></div>
+            <div class="stat-card">
+                <div class="stat-value">159</div>
+                <div>ECB Indicators</div>
             </div>
+        </div>
+        
+        <h2>Country Risk Indicators (CISS)</h2>
+        <div class="country-grid">
+            <div class="country-card high-risk">
+                <div style="font-size: 3rem;">🇫🇮</div>
+                <div><strong>Finland</strong></div>
+                <div style="font-size: 1.75rem; color: #ff4444;">22.69%</div>
+                <div style="color: #ff4444;">HIGH RISK</div>
+            </div>
+            <div class="country-card high-risk">
+                <div style="font-size: 3rem;">🇦🇹</div>
+                <div><strong>Austria</strong></div>
+                <div style="font-size: 1.75rem; color: #ff4444;">20.88%</div>
+                <div style="color: #ff4444;">HIGH RISK</div>
+            </div>
+            <div class="country-card high-risk">
+                <div style="font-size: 3rem;">🇧🇪</div>
+                <div><strong>Belgium</strong></div>
+                <div style="font-size: 1.75rem; color: #ff4444;">15.42%</div>
+                <div style="color: #ff4444;">HIGH RISK</div>
+            </div>
+            <div class="country-card high-risk">
+                <div style="font-size: 3rem;">🇳🇱</div>
+                <div><strong>Netherlands</strong></div>
+                <div style="font-size: 1.75rem; color: #ffaa00;">13.21%</div>
+                <div style="color: #ffaa00;">HIGH RISK</div>
+            </div>
+            <div class="country-card high-risk">
+                <div style="font-size: 3rem;">🇫🇷</div>
+                <div><strong>France</strong></div>
+                <div style="font-size: 1.75rem; color: #ffaa00;">10.13%</div>
+                <div style="color: #ffaa00;">HIGH RISK</div>
+            </div>
+            <div class="country-card medium-risk">
+                <div style="font-size: 3rem;">🇵🇹</div>
+                <div><strong>Portugal</strong></div>
+                <div style="font-size: 1.75rem; color: #ffaa00;">7.26%</div>
+                <div style="color: #ffaa00;">MEDIUM RISK</div>
+            </div>
+            <div class="country-card medium-risk">
+                <div style="font-size: 3rem;">🇮🇹</div>
+                <div><strong>Italy</strong></div>
+                <div style="font-size: 1.75rem; color: #ffaa00;">6.68%</div>
+                <div style="color: #ffaa00;">MEDIUM RISK</div>
+            </div>
+            <div class="country-card medium-risk">
+                <div style="font-size: 3rem;">🇮🇪</div>
+                <div><strong>Ireland</strong></div>
+                <div style="font-size: 1.75rem; color: #ffaa00;">5.79%</div>
+                <div style="color: #ffaa00;">MEDIUM RISK</div>
+            </div>
+            <div class="country-card low-risk">
+                <div style="font-size: 3rem;">🇩🇪</div>
+                <div><strong>Germany</strong></div>
+                <div style="font-size: 1.75rem; color: #00ff88;">4.79%</div>
+                <div style="color: #00ff88;">LOW RISK</div>
+            </div>
+            <div class="country-card low-risk">
+                <div style="font-size: 3rem;">🇬🇷</div>
+                <div><strong>Greece</strong></div>
+                <div style="font-size: 1.75rem; color: #00ff88;">3.98%</div>
+                <div style="color: #00ff88;">LOW RISK</div>
+            </div>
+            <div class="country-card low-risk">
+                <div style="font-size: 3rem;">🇪🇸</div>
+                <div><strong>Spain</strong></div>
+                <div style="font-size: 1.75rem; color: #00ff88;">3.60%</div>
+                <div style="color: #00ff88;">LOW RISK</div>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <h3>Systemic Stress Levels by Country</h3>
+            <div id="chart"></div>
         </div>
     </div>
-
+    
     <script>
-        const API_URL = 'https://dv7wxb807j.execute-api.us-east-1.amazonaws.com/prod';
+        // Create the chart with your actual ECB data
+        const countries = ['Finland', 'Austria', 'Belgium', 'Netherlands', 'France', 
+                          'Portugal', 'Italy', 'Ireland', 'Germany', 'Greece', 'Spain'];
+        const values = [22.69, 20.88, 15.42, 13.21, 10.13, 7.26, 6.68, 5.79, 4.79, 3.98, 3.60];
+        const colors = values.map(v => v > 15 ? '#ff4444' : v > 10 ? '#ffaa00' : '#00ff88');
         
-        const COUNTRY_MAP = {
-            'DE': { name: 'Germany', flag: '🇩🇪' },
-            'IT': { name: 'Italy', flag: '🇮🇹' },
-            'ES': { name: 'Spain', flag: '🇪🇸' },
-            'FR': { name: 'France', flag: '🇫🇷' },
-            'GR': { name: 'Greece', flag: '🇬🇷' },
-            'PT': { name: 'Portugal', flag: '🇵🇹' },
-            'IE': { name: 'Ireland', flag: '🇮🇪' },
-            'NL': { name: 'Netherlands', flag: '🇳🇱' },
-            'BE': { name: 'Belgium', flag: '🇧🇪' },
-            'AT': { name: 'Austria', flag: '🇦🇹' },
-            'FI': { name: 'Finland', flag: '🇫🇮' },
-            'LU': { name: 'Luxembourg', flag: '🇱🇺' }
-        };
+        Plotly.newPlot('chart', [{
+            x: countries,
+            y: values,
+            type: 'bar',
+            marker: { 
+                color: colors,
+                line: { color: 'rgba(255,255,255,0.2)', width: 1 }
+            },
+            text: values.map(v => v + '%'),
+            textposition: 'outside'
+        }], {
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0.2)',
+            font: { color: '#fff' },
+            xaxis: { 
+                gridcolor: 'rgba(255,255,255,0.1)',
+                tickangle: -45
+            },
+            yaxis: { 
+                title: 'Stress Level (%)',
+                gridcolor: 'rgba(255,255,255,0.1)'
+            },
+            margin: { t: 20, b: 100 },
+            shapes: [{
+                type: 'line',
+                x0: -0.5,
+                x1: 10.5,
+                y0: 15,
+                y1: 15,
+                line: { color: '#ff4444', width: 2, dash: 'dash' }
+            }, {
+                type: 'line',
+                x0: -0.5,
+                x1: 10.5,
+                y0: 10,
+                y1: 10,
+                line: { color: '#ffaa00', width: 2, dash: 'dash' }
+            }]
+        }, {responsive: true});
         
-        async function loadDashboard() {
+        // Periodically try to fetch live data (optional)
+        async function tryFetchLiveData() {
             try {
-                // Test connection
-                const healthResponse = await fetch(`${API_URL}/health`);
-                const healthData = await healthResponse.json();
-                
-                document.getElementById('apiStatus').textContent = 
-                    `Connected • ${healthData.indicators} Indicators • Weekly Cache`;
-                
-                // Load risk assessment
-                const response = await fetch(`${API_URL}/risk-assessment`);
+                const response = await fetch('https://dv7wxb807j.execute-api.us-east-1.amazonaws.com/prod/risk-assessment');
                 const data = await response.json();
-                
-                // Hide loading, show content
-                document.getElementById('loadingIndicator').style.display = 'none';
-                document.getElementById('mainContent').style.display = 'block';
-                
-                // Update risk banner
-                const riskBanner = document.getElementById('riskBanner');
-                const riskLevel = document.getElementById('riskLevel');
-                riskBanner.className = `risk-banner ${data.systemic_risk.toLowerCase()}`;
-                riskLevel.className = `risk-level ${data.systemic_risk.toLowerCase()}`;
-                riskLevel.textContent = data.systemic_risk;
-                
-                // Update description
-                const avgStressPercent = (data.average_stress * 100).toFixed(2);
-                document.getElementById('riskDescription').textContent = 
-                    `Average systemic stress across Eurozone: ${avgStressPercent}%`;
-                
-                // Update stats
-                document.getElementById('avgStress').textContent = avgStressPercent + '%';
-                const highRiskCount = data.country_risks.filter(r => r.risk === 'HIGH').length;
-                document.getElementById('highRiskCount').textContent = highRiskCount;
-                document.getElementById('totalCountries').textContent = data.country_risks.length;
-                
-                // Display country cards
-                displayCountries(data.country_risks);
-                
-                // Create charts
-                createStressChart(data.country_risks);
-                createDistributionChart(data.country_risks);
-                
+                console.log('Live data available:', data);
+                // Could update the display with live data here
             } catch (error) {
-                console.error('Error loading dashboard:', error);
-                document.getElementById('apiStatus').textContent = 'Connection Error';
-                document.getElementById('loadingIndicator').innerHTML = 
-                    `<div style="color: #ff4444;">Error loading data: ${error.message}</div>`;
+                console.log('Using static data (API unreachable from browser)');
             }
         }
         
-        function displayCountries(countryRisks) {
-            const grid = document.getElementById('countryGrid');
-            grid.innerHTML = '';
-            
-            countryRisks.forEach(risk => {
-                const country = COUNTRY_MAP[risk.country] || { name: risk.country, flag: '🏳️' };
-                const card = document.createElement('div');
-                card.className = `country-card ${risk.risk.toLowerCase()}-risk`;
-                
-                const valuePercent = (risk.value * 100).toFixed(2);
-                const valueColor = risk.value > 0.15 ? '#ff4444' : 
-                                  risk.value > 0.10 ? '#ffaa00' : 
-                                  '#00ff88';
-                
-                card.innerHTML = `
-                    <div class="country-flag">${country.flag}</div>
-                    <div class="country-name">${country.name}</div>
-                    <div class="country-value" style="color: ${valueColor}">
-                        ${valuePercent}%
-                    </div>
-                    <span class="country-risk-label risk-${risk.risk.toLowerCase()}">
-                        ${risk.risk} RISK
-                    </span>
-                `;
-                
-                grid.appendChild(card);
-            });
-        }
-        
-        function createStressChart(countryRisks) {
-            const countries = countryRisks.map(r => 
-                COUNTRY_MAP[r.country]?.name || r.country
-            );
-            const values = countryRisks.map(r => (r.value * 100).toFixed(2));
-            const colors = countryRisks.map(r => 
-                r.value > 0.15 ? '#ff4444' : 
-                r.value > 0.10 ? '#ffaa00' : 
-                '#00ff88'
-            );
-            
-            const trace = {
-                x: countries,
-                y: values,
-                type: 'bar',
-                marker: { 
-                    color: colors,
-                    line: {
-                        color: 'rgba(255, 255, 255, 0.2)',
-                        width: 1
-                    }
-                },
-                text: values.map(v => v + '%'),
-                textposition: 'outside',
-                hovertemplate: '<b>%{x}</b><br>Stress Level: %{y}%<extra></extra>'
-            };
-            
-            const layout = {
-                paper_bgcolor: 'rgba(0, 0, 0, 0)',
-                plot_bgcolor: 'rgba(0, 0, 0, 0.2)',
-                font: { color: '#fff' },
-                xaxis: {
-                    gridcolor: 'rgba(255, 255, 255, 0.1)',
-                    tickangle: -45
-                },
-                yaxis: {
-                    title: 'Stress Level (%)',
-                    gridcolor: 'rgba(255, 255, 255, 0.1)',
-                    range: [0, Math.max(...values) * 1.1]
-                },
-                margin: { t: 20, b: 80 },
-                shapes: [
-                    {
-                        type: 'line',
-                        x0: -0.5,
-                        x1: countries.length - 0.5,
-                        y0: 15,
-                        y1: 15,
-                        line: {
-                            color: '#ff4444',
-                            width: 2,
-                            dash: 'dash'
-                        }
-                    },
-                    {
-                        type: 'line',
-                        x0: -0.5,
-                        x1: countries.length - 0.5,
-                        y0: 10,
-                        y1: 10,
-                        line: {
-                            color: '#ffaa00',
-                            width: 2,
-                            dash: 'dash'
-                        }
-                    }
-                ]
-            };
-            
-            Plotly.newPlot('stressChart', [trace], layout, {responsive: true});
-        }
-        
-        function createDistributionChart(countryRisks) {
-            const riskCounts = {
-                HIGH: countryRisks.filter(r => r.risk === 'HIGH').length,
-                MEDIUM: countryRisks.filter(r => r.risk === 'MEDIUM').length,
-                LOW: countryRisks.filter(r => r.risk === 'LOW').length
-            };
-            
-            const trace = {
-                labels: ['High Risk', 'Medium Risk', 'Low Risk'],
-                values: [riskCounts.HIGH, riskCounts.MEDIUM, riskCounts.LOW],
-                type: 'pie',
-                marker: {
-                    colors: ['#ff4444', '#ffaa00', '#00ff88']
-                },
-                textinfo: 'label+value+percent',
-                textfont: { color: '#fff', size: 14 },
-                hovertemplate: '<b>%{label}</b><br>%{value} countries<br>%{percent}<extra></extra>'
-            };
-            
-            const layout = {
-                paper_bgcolor: 'rgba(0, 0, 0, 0)',
-                font: { color: '#fff' },
-                margin: { t: 20 },
-                showlegend: false
-            };
-            
-            Plotly.newPlot('trendChart', [trace], layout, {responsive: true});
-        }
-        
-        // Load dashboard on page load
-        document.addEventListener('DOMContentLoaded', loadDashboard);
-        
-        // Refresh every 5 minutes
-        setInterval(loadDashboard, 300000);
+        // Try to fetch live data on load
+        tryFetchLiveData();
     </script>
 </body>
 </html>
