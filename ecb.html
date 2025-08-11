@@ -6,53 +6,25 @@
     <title>ECB Systemic Risk Dashboard</title>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0a0e27;
+            background: linear-gradient(135deg, #0a0e27 0%, #151932 100%);
             color: #e0e0e0;
             min-height: 100vh;
         }
         
         .header {
             background: rgba(20, 24, 44, 0.95);
-            padding: 1rem 2rem;
-            border-bottom: 1px solid rgba(0, 255, 136, 0.2);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            padding: 1.5rem;
+            text-align: center;
+            border-bottom: 2px solid rgba(0, 255, 136, 0.3);
         }
         
-        .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
+        .header h1 {
             color: #00ff88;
-        }
-        
-        .api-status {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-        }
-        
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #ffaa00;
-        }
-        
-        .status-dot.connected {
-            background: #00ff88;
-        }
-        
-        .status-dot.error {
-            background: #ff4444;
+            font-size: 2rem;
         }
         
         .container {
@@ -61,47 +33,66 @@
             padding: 2rem;
         }
         
-        .risk-summary {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
+        .alert {
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
             text-align: center;
         }
         
-        .risk-level {
-            font-size: 2rem;
-            font-weight: bold;
-            margin: 1rem 0;
+        .alert.high {
+            background: rgba(255, 68, 68, 0.2);
+            border: 2px solid #ff4444;
         }
         
-        .risk-level.low { color: #00ff88; }
-        .risk-level.medium { color: #ffaa00; }
-        .risk-level.high { color: #ff4444; }
+        .alert.medium {
+            background: rgba(255, 170, 0, 0.2);
+            border: 2px solid #ffaa00;
+        }
+        
+        .alert.low {
+            background: rgba(0, 255, 136, 0.2);
+            border: 2px solid #00ff88;
+        }
         
         .country-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 1rem;
             margin: 2rem 0;
         }
         
         .country-card {
             background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-            padding: 1rem;
+            border-radius: 12px;
+            padding: 1.5rem;
             text-align: center;
-            cursor: pointer;
+            border: 2px solid transparent;
             transition: all 0.3s;
         }
         
         .country-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.2);
+        }
+        
+        .country-card.high-risk {
+            border-color: rgba(255, 68, 68, 0.5);
+            background: rgba(255, 68, 68, 0.1);
+        }
+        
+        .country-card.medium-risk {
+            border-color: rgba(255, 170, 0, 0.5);
+            background: rgba(255, 170, 0, 0.1);
+        }
+        
+        .country-card.low-risk {
+            border-color: rgba(0, 255, 136, 0.5);
             background: rgba(0, 255, 136, 0.1);
-            transform: translateY(-2px);
         }
         
         .country-flag {
-            font-size: 2rem;
+            font-size: 3rem;
             margin-bottom: 0.5rem;
         }
         
@@ -111,239 +102,203 @@
         }
         
         .country-value {
-            font-size: 1.25rem;
+            font-size: 1.75rem;
             font-weight: bold;
-        }
-        
-        .chart-container {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin: 2rem 0;
+            margin: 0.5rem 0;
         }
         
         .loading {
             text-align: center;
-            padding: 2rem;
+            padding: 3rem;
+            color: #888;
         }
         
-        .error {
-            background: rgba(255, 0, 0, 0.1);
+        .error-msg {
+            background: rgba(255, 0, 0, 0.2);
             border: 1px solid #ff4444;
-            border-radius: 8px;
             padding: 1rem;
             margin: 1rem 0;
+            border-radius: 8px;
         }
         
-        #mainChart {
-            height: 400px;
+        #chart {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-top: 2rem;
         }
     </style>
 </head>
 <body>
-    <header class="header">
-        <div class="logo">🏦 ECB Systemic Risk Monitor</div>
-        <div class="api-status">
-            <span>API Status:</span>
-            <div id="apiStatus" class="status-dot"></div>
-            <span id="statusText">Connecting...</span>
-        </div>
-    </header>
-
+    <div class="header">
+        <h1>🏦 ECB Systemic Risk Dashboard</h1>
+        <p id="status">Connecting to ECB API...</p>
+    </div>
+    
     <div class="container">
-        <div class="risk-summary">
-            <h2>Eurozone Systemic Risk Assessment</h2>
-            <div id="riskLevel" class="risk-level">Loading...</div>
-            <p id="riskDescription">Fetching latest ECB data...</p>
-            <p style="margin-top: 1rem; opacity: 0.7;">Data cached weekly • 159 indicators • 296 observations</p>
+        <div id="alertBox" class="alert" style="display: none;">
+            <h2 id="riskLevel">Loading...</h2>
+            <p id="riskDetails"></p>
         </div>
-
-        <h3 style="margin-bottom: 1rem;">Country Risk Indicators (CISS)</h3>
+        
         <div id="countryGrid" class="country-grid">
-            <div class="loading">Loading country data...</div>
+            <div class="loading">Loading ECB data...</div>
         </div>
-
-        <div class="chart-container">
-            <h3>Systemic Stress Levels by Country</h3>
-            <div id="mainChart"></div>
-        </div>
+        
+        <div id="chart"></div>
+        
+        <div id="errorBox" style="display: none;" class="error-msg"></div>
     </div>
 
     <script>
-        // Configuration
         const API_URL = 'https://dv7wxb807j.execute-api.us-east-1.amazonaws.com/prod';
         
         const COUNTRY_MAP = {
-            'DE': { name: 'Germany', flag: '🇩🇪' },
-            'IT': { name: 'Italy', flag: '🇮🇹' },
-            'ES': { name: 'Spain', flag: '🇪🇸' },
-            'FR': { name: 'France', flag: '🇫🇷' },
-            'GR': { name: 'Greece', flag: '🇬🇷' },
-            'PT': { name: 'Portugal', flag: '🇵🇹' },
-            'IE': { name: 'Ireland', flag: '🇮🇪' },
-            'NL': { name: 'Netherlands', flag: '🇳🇱' },
-            'BE': { name: 'Belgium', flag: '🇧🇪' },
-            'AT': { name: 'Austria', flag: '🇦🇹' },
             'FI': { name: 'Finland', flag: '🇫🇮' },
-            'LU': { name: 'Luxembourg', flag: '🇱🇺' }
+            'AT': { name: 'Austria', flag: '🇦🇹' },
+            'BE': { name: 'Belgium', flag: '🇧🇪' },
+            'NL': { name: 'Netherlands', flag: '🇳🇱' },
+            'FR': { name: 'France', flag: '🇫🇷' },
+            'PT': { name: 'Portugal', flag: '🇵🇹' },
+            'IT': { name: 'Italy', flag: '🇮🇹' },
+            'IE': { name: 'Ireland', flag: '🇮🇪' },
+            'DE': { name: 'Germany', flag: '🇩🇪' },
+            'GR': { name: 'Greece', flag: '🇬🇷' },
+            'ES': { name: 'Spain', flag: '🇪🇸' }
         };
         
-        // Initialize dashboard
-        async function init() {
-            console.log('Initializing ECB Dashboard...');
+        async function loadDashboard() {
+            console.log('Loading dashboard...');
             
-            // Test API connection
-            const connected = await testConnection();
-            if (!connected) {
-                showError('Failed to connect to ECB API');
-                return;
-            }
-            
-            // Load risk assessment
-            await loadRiskAssessment();
-            
-            // Load country data
-            await loadCountryData();
-        }
-        
-        // Test API connection
-        async function testConnection() {
             try {
-                const response = await fetch(`${API_URL}/health`);
-                const data = await response.json();
-                
-                if (data.status === 'OK') {
-                    document.getElementById('apiStatus').className = 'status-dot connected';
-                    document.getElementById('statusText').textContent = `Connected (${data.indicators} indicators)`;
-                    return true;
-                }
-            } catch (error) {
-                console.error('Connection error:', error);
-                document.getElementById('apiStatus').className = 'status-dot error';
-                document.getElementById('statusText').textContent = 'Connection failed';
-            }
-            return false;
-        }
-        
-        // Load risk assessment
-        async function loadRiskAssessment() {
-            try {
+                // Fetch risk assessment
+                console.log('Fetching from:', `${API_URL}/risk-assessment`);
                 const response = await fetch(`${API_URL}/risk-assessment`);
-                const data = await response.json();
                 
-                // Update risk level display
-                const riskElement = document.getElementById('riskLevel');
-                riskElement.textContent = data.systemic_risk || 'UNKNOWN';
-                riskElement.className = `risk-level ${data.systemic_risk.toLowerCase()}`;
-                
-                // Update description
-                const avgStress = (data.average_stress * 100).toFixed(2);
-                document.getElementById('riskDescription').textContent = 
-                    `Average stress level: ${avgStress}% across Eurozone countries`;
-                
-                // Store country risks for display
-                if (data.country_risks) {
-                    displayCountryRisks(data.country_risks);
-                    createChart(data.country_risks);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
+                
+                const data = await response.json();
+                console.log('Data received:', data);
+                
+                // Update status
+                document.getElementById('status').textContent = 
+                    `Connected • ${data.country_risks?.length || 0} Countries • Last Update: ${new Date().toLocaleTimeString()}`;
+                
+                // Show alert box
+                const alertBox = document.getElementById('alertBox');
+                alertBox.style.display = 'block';
+                alertBox.className = `alert ${data.systemic_risk.toLowerCase()}`;
+                
+                document.getElementById('riskLevel').textContent = 
+                    `Systemic Risk: ${data.systemic_risk}`;
+                document.getElementById('riskDetails').textContent = 
+                    `Average Stress: ${(data.average_stress * 100).toFixed(2)}% | ${
+                        data.country_risks.filter(r => r.risk === 'HIGH').length
+                    } Countries at High Risk`;
+                
+                // Display countries
+                displayCountries(data.country_risks);
+                
+                // Create chart
+                createChart(data.country_risks);
+                
+                // Hide error
+                document.getElementById('errorBox').style.display = 'none';
                 
             } catch (error) {
-                console.error('Error loading risk assessment:', error);
+                console.error('Error:', error);
+                document.getElementById('status').textContent = 'Connection Error';
+                document.getElementById('errorBox').style.display = 'block';
+                document.getElementById('errorBox').innerHTML = `
+                    <strong>Error loading data:</strong><br>
+                    ${error.message}<br><br>
+                    Please check console for details.
+                `;
             }
         }
         
-        // Load country-specific data
-        async function loadCountryData() {
-            const symbols = [
-                'ECB.CISS.M.DE.Z0Z.4F.EC.SOV_CI.IDX',
-                'ECB.CISS.M.IT.Z0Z.4F.EC.SOV_CI.IDX',
-                'ECB.CISS.M.ES.Z0Z.4F.EC.SOV_CI.IDX',
-                'ECB.CISS.M.FR.Z0Z.4F.EC.SOV_CI.IDX'
-            ];
-            
-            for (const symbol of symbols) {
-                try {
-                    const response = await fetch(`${API_URL}/data/${symbol}`);
-                    const data = await response.json();
-                    console.log(`${symbol}:`, data.value);
-                } catch (error) {
-                    console.error(`Error loading ${symbol}:`, error);
-                }
-            }
-        }
-        
-        // Display country risk cards
-        function displayCountryRisks(countryRisks) {
+        function displayCountries(countryRisks) {
             const grid = document.getElementById('countryGrid');
             grid.innerHTML = '';
             
             countryRisks.forEach(risk => {
-                const country = COUNTRY_MAP[risk.country] || { name: risk.country, flag: '🏳️' };
+                const country = COUNTRY_MAP[risk.country] || { 
+                    name: risk.country, 
+                    flag: '🏳️' 
+                };
+                
                 const card = document.createElement('div');
-                card.className = 'country-card';
+                card.className = `country-card ${risk.risk.toLowerCase()}-risk`;
                 
                 const valuePercent = (risk.value * 100).toFixed(2);
-                const colorClass = risk.value > 0.15 ? 'style="color: #ff4444"' : 
-                                  risk.value > 0.10 ? 'style="color: #ffaa00"' : 
-                                  'style="color: #00ff88"';
+                const valueColor = risk.value > 0.15 ? '#ff4444' : 
+                                  risk.value > 0.10 ? '#ffaa00' : 
+                                  '#00ff88';
                 
                 card.innerHTML = `
                     <div class="country-flag">${country.flag}</div>
                     <div class="country-name">${country.name}</div>
-                    <div class="country-value" ${colorClass}>${valuePercent}%</div>
-                    <div style="font-size: 0.875rem; opacity: 0.7;">${risk.risk}</div>
+                    <div class="country-value" style="color: ${valueColor}">
+                        ${valuePercent}%
+                    </div>
+                    <div style="color: ${valueColor}; font-size: 0.875rem;">
+                        ${risk.risk} RISK
+                    </div>
                 `;
                 
                 grid.appendChild(card);
             });
         }
         
-        // Create Plotly chart
         function createChart(countryRisks) {
             const countries = countryRisks.map(r => 
                 COUNTRY_MAP[r.country]?.name || r.country
             );
-            const values = countryRisks.map(r => r.value * 100);
-            const colors = values.map(v => 
-                v > 15 ? '#ff4444' : v > 10 ? '#ffaa00' : '#00ff88'
+            const values = countryRisks.map(r => (r.value * 100));
+            const colors = countryRisks.map(r => 
+                r.value > 0.15 ? '#ff4444' : 
+                r.value > 0.10 ? '#ffaa00' : 
+                '#00ff88'
             );
             
             const trace = {
                 x: countries,
                 y: values,
                 type: 'bar',
-                marker: { color: colors }
+                marker: { color: colors },
+                text: values.map(v => v.toFixed(2) + '%'),
+                textposition: 'outside'
             };
             
             const layout = {
+                title: 'CISS Systemic Stress by Country',
                 paper_bgcolor: 'rgba(0, 0, 0, 0)',
-                plot_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(0, 0, 0, 0.2)',
                 font: { color: '#fff' },
                 xaxis: {
-                    title: 'Country',
-                    gridcolor: 'rgba(255, 255, 255, 0.1)'
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickangle: -45
                 },
                 yaxis: {
                     title: 'Stress Level (%)',
                     gridcolor: 'rgba(255, 255, 255, 0.1)'
                 },
-                margin: { t: 20 }
+                margin: { t: 40, b: 100 }
             };
             
-            Plotly.newPlot('mainChart', [trace], layout, {responsive: true});
+            Plotly.newPlot('chart', [trace], layout, {responsive: true});
         }
         
-        // Show error message
-        function showError(message) {
-            const container = document.querySelector('.container');
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'error';
-            errorDiv.textContent = `Error: ${message}`;
-            container.insertBefore(errorDiv, container.firstChild);
-        }
+        // Load on page ready
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Page loaded, initializing dashboard...');
+            loadDashboard();
+        });
         
-        // Start the dashboard
-        document.addEventListener('DOMContentLoaded', init);
+        // Refresh every 5 minutes
+        setInterval(loadDashboard, 300000);
     </script>
 </body>
 </html>
