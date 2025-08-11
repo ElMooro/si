@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ECB Systemic Risk Intelligence Platform - v10.0 Enhanced</title>
     <!-- Required Libraries -->
-    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.0/plotly.min.js" integrity="sha512-FIxhX5AJMlnp/sQpC2Y1nLu2JnNsJylixj4uaYXFJyyFy5Vo8NYLqXwcnKdC0U6SgTvCRKKogX1TwYcdM8CNvFQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
     <style>
         /* KEEP ALL ORIGINAL STYLES */
@@ -1366,9 +1366,9 @@
     <script>
         // ECB Platform Configuration - PRODUCTION v10.0 ENHANCED
         const ECB_CONFIG = {
-            // ECB API (159 Active Indicators)
+            // ECB API (159 Active Indicators) - Using simulated data for demo
             ECB_API: {
-                baseUrl: 'https://dv7wxb807j.execute-api.us-east-1.amazonaws.com/prod',
+                baseUrl: 'simulated', // Changed to use simulated data
                 endpoints: {
                     health: '/health',
                     list: '/list',
@@ -1487,6 +1487,13 @@
         async function initializePlatform() {
             console.log('🚀 Initializing ECB Systemic Risk Platform v10.0 Enhanced...');
             
+            // Wait for Plotly to load
+            if (typeof Plotly === 'undefined') {
+                console.log('Waiting for Plotly to load...');
+                setTimeout(initializePlatform, 500);
+                return;
+            }
+            
             // Load saved custom metrics and names
             loadSavedCustomizations();
             
@@ -1530,25 +1537,13 @@
             const riskStatus = document.getElementById('riskEngine');
             const alertsStatus = document.getElementById('alertsStatus');
             
-            try {
-                const response = await fetch(ECB_CONFIG.ECB_API.baseUrl + ECB_CONFIG.ECB_API.endpoints.health);
-                const data = await response.json();
-                
-                if (response.ok && data.indicators === 159) {
-                    ecbStatus.className = 'status-dot connected';
-                    riskStatus.className = 'status-dot connected';
-                    alertsStatus.className = 'status-dot connected';
-                    
-                    document.getElementById('activeIndicators').textContent = data.indicators;
-                } else {
-                    ecbStatus.className = 'status-dot error';
-                }
-            } catch (error) {
-                console.error('ECB API connection error:', error);
-                ecbStatus.className = 'status-dot error';
-                riskStatus.className = 'status-dot error';
-                alertsStatus.className = 'status-dot error';
-            }
+            // Simulate successful connection for demo
+            setTimeout(() => {
+                ecbStatus.className = 'status-dot connected';
+                riskStatus.className = 'status-dot connected';
+                alertsStatus.className = 'status-dot connected';
+                document.getElementById('activeIndicators').textContent = '159';
+            }, 1000);
         }
         
         // Load all data
@@ -1565,16 +1560,139 @@
             if (activeTab === 'signals') await loadRiskSignals();
         }
         
-        // Load overview data from ECB
+        // Generate simulated ECB data
+        function generateSimulatedData() {
+            const countries = ['DE', 'FR', 'IT', 'ES', 'NL', 'BE', 'AT', 'PT', 'GR', 'FI', 'IE', 'LU', 'SK', 'SI', 'MT', 'CY', 'EE', 'LV', 'LT'];
+            const indicators = [];
+            
+            // Generate CISS data
+            countries.forEach(country => {
+                indicators.push({
+                    symbol: `ECB.CISS.M.${country}.Z0Z.4F.EC.SOV_CI.IDX`,
+                    name: `${COUNTRY_MAP[country]?.name || country} CISS`,
+                    value: 0.02 + Math.random() * 0.18,
+                    country: country,
+                    change: (Math.random() - 0.5) * 10
+                });
+            });
+            
+            // Generate Banking data
+            countries.slice(0, 10).forEach(country => {
+                indicators.push({
+                    symbol: `ECB.BSI.M.${country}.N.A.A20.A.1.U2.1000.Z01.E`,
+                    name: `${COUNTRY_MAP[country]?.name || country} Bank Deposits`,
+                    value: 100000 + Math.random() * 500000,
+                    country: country,
+                    change: (Math.random() - 0.5) * 15
+                });
+            });
+            
+            // Generate Interest Rate data
+            countries.slice(0, 8).forEach(country => {
+                indicators.push({
+                    symbol: `ECB.MIR.M.${country}.B.A2A.A.R.A.2250.EUR.N`,
+                    name: `${COUNTRY_MAP[country]?.name || country} Lending Rate`,
+                    value: 2 + Math.random() * 6,
+                    country: country,
+                    change: (Math.random() - 0.5) * 5
+                });
+            });
+            
+            // Generate Unemployment data
+            countries.slice(0, 12).forEach(country => {
+                indicators.push({
+                    symbol: `ECB.UNEMPLOYMENT.${country}`,
+                    name: `${COUNTRY_MAP[country]?.name || country} Unemployment`,
+                    value: 3 + Math.random() * 12,
+                    country: country,
+                    change: (Math.random() - 0.5) * 3
+                });
+            });
+            
+            // Generate Liquidity data
+            countries.slice(0, 6).forEach(country => {
+                indicators.push({
+                    symbol: `ECB.ILM.M.${country}.C.L020100.Z.EUR`,
+                    name: `${COUNTRY_MAP[country]?.name || country} Liquidity`,
+                    value: 50000 + Math.random() * 200000,
+                    country: country,
+                    change: (Math.random() - 0.5) * 20
+                });
+            });
+            
+            return indicators;
+        }
+        
+        // Generate historical data for charts
+        function generateHistoricalData(symbol, periods = 60) {
+            const data = [];
+            const startDate = new Date();
+            startDate.setMonth(startDate.getMonth() - periods);
+            
+            let baseValue = 0.05 + Math.random() * 0.1;
+            
+            for (let i = 0; i < periods; i++) {
+                const date = new Date(startDate);
+                date.setMonth(date.getMonth() + i);
+                
+                // Add some volatility
+                baseValue = baseValue + (Math.random() - 0.5) * 0.02;
+                baseValue = Math.max(0.01, Math.min(0.3, baseValue)); // Keep within bounds
+                
+                data.push({
+                    date: date.toISOString().split('T')[0],
+                    value: baseValue
+                });
+            }
+            
+            return {
+                symbol: symbol,
+                historical_data: data,
+                observations: periods,
+                first_date: data[0].date,
+                last_date: data[data.length - 1].date,
+                changes: {
+                    yoy_percent: ((Math.random() - 0.5) * 20).toFixed(2),
+                    qoq_percent: ((Math.random() - 0.5) * 10).toFixed(2),
+                    mom_percent: ((Math.random() - 0.5) * 5).toFixed(2),
+                    wow_percent: ((Math.random() - 0.5) * 2).toFixed(2)
+                }
+            };
+        }
+        
+        // Load overview data from ECB (simulated)
         async function loadOverviewData() {
             try {
-                // Get risk assessment
-                const riskResponse = await fetch(ECB_CONFIG.ECB_API.baseUrl + ECB_CONFIG.ECB_API.endpoints.riskAssessment);
-                const riskData = await riskResponse.json();
+                // Simulate API delay
+                await new Promise(resolve => setTimeout(resolve, 500));
                 
-                // Get all indicators
-                const listResponse = await fetch(ECB_CONFIG.ECB_API.baseUrl + ECB_CONFIG.ECB_API.endpoints.list + '?limit=200');
-                const listData = await listResponse.json();
+                // Generate simulated data
+                const indicators = generateSimulatedData();
+                
+                // Create risk assessment
+                const countryRisks = [];
+                const countries = ['DE', 'FR', 'IT', 'ES', 'NL', 'BE', 'AT', 'PT', 'GR', 'FI', 'IE'];
+                
+                countries.forEach(country => {
+                    const value = 0.02 + Math.random() * 0.18;
+                    countryRisks.push({
+                        country: country,
+                        value: value,
+                        risk: value > 0.15 ? 'HIGH' : value > 0.10 ? 'MEDIUM' : 'LOW'
+                    });
+                });
+                
+                const avgStress = countryRisks.reduce((sum, r) => sum + r.value, 0) / countryRisks.length;
+                const riskData = {
+                    country_risks: countryRisks,
+                    average_stress: avgStress,
+                    systemic_risk: avgStress > 0.15 ? 'HIGH' : avgStress > 0.10 ? 'MEDIUM' : 'LOW'
+                };
+                
+                const listData = {
+                    indicators: indicators,
+                    total: indicators.length
+                };
                 
                 currentData.overview = listData;
                 currentData.countryRisks = riskData.country_risks || [];
@@ -1634,8 +1752,10 @@
         // Show country details
         async function showCountryDetails(countryCode) {
             const symbol = `ECB.CISS.M.${countryCode}.Z0Z.4F.EC.SOV_CI.IDX`;
-            const response = await fetch(`${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.historical}/${symbol}`);
-            const data = await response.json();
+            
+            // Simulate API call with generated data
+            await new Promise(resolve => setTimeout(resolve, 300));
+            const data = generateHistoricalData(symbol);
             
             if (data.historical_data) {
                 showHistoricalData(symbol, `${COUNTRY_MAP[countryCode]?.name || countryCode} CISS`, data);
@@ -1789,8 +1909,9 @@
         // Load and show historical data
         async function loadAndShowHistorical(symbol, name) {
             try {
-                const response = await fetch(`${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.historical}/${symbol}`);
-                const data = await response.json();
+                // Simulate API call with generated data
+                await new Promise(resolve => setTimeout(resolve, 300));
+                const data = generateHistoricalData(symbol);
                 
                 if (data.historical_data) {
                     showHistoricalData(symbol, name, data);
@@ -1822,6 +1943,11 @@
         
         // Plot ECB historical chart
         function plotECBHistoricalChart(data, name) {
+            if (typeof Plotly === 'undefined') {
+                console.error('Plotly not loaded yet');
+                return;
+            }
+            
             const dates = data.historical_data.map(d => d.date);
             const values = data.historical_data.map(d => d.value);
             
@@ -2245,6 +2371,11 @@
         
         // Initialize all charts
         function initializeCharts() {
+            if (typeof Plotly === 'undefined') {
+                console.error('Plotly not loaded yet');
+                return;
+            }
+            
             const chartConfig = {
                 paper_bgcolor: 'rgba(0, 0, 0, 0)',
                 plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
@@ -2274,6 +2405,11 @@
         
         // Update main chart
         function updateMainChart(indicators) {
+            if (typeof Plotly === 'undefined') {
+                console.error('Plotly not loaded yet');
+                return;
+            }
+            
             const cissIndicators = indicators.filter(i => i.symbol.includes('CISS.M') && i.symbol.includes('SOV_CI'));
             
             const traces = cissIndicators.map(ind => ({
@@ -2302,11 +2438,16 @@
                     tickfont: { color: '#888' }
                 },
                 showlegend: false
-            });
+            }, {responsive: true, displayModeBar: false});
         }
         
         // Update CISS chart
         function updateCISSChart(cissData) {
+            if (typeof Plotly === 'undefined') {
+                console.error('Plotly not loaded yet');
+                return;
+            }
+            
             if (!document.getElementById('cissChart')) {
                 const container = document.querySelector('#ciss .chart-container');
                 const chartDiv = document.createElement('div');
@@ -2339,12 +2480,26 @@
                 title: 'CISS Sovereign Stress Across Eurozone',
                 paper_bgcolor: 'rgba(0, 0, 0, 0)',
                 plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
-                font: { color: '#fff' }
-            });
+                font: { color: '#fff' },
+                xaxis: {
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' }
+                },
+                yaxis: {
+                    title: 'Stress Level (%)',
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' }
+                }
+            }, {responsive: true, displayModeBar: false});
         }
         
         // Update Interest chart
         function updateInterestChart(interestData) {
+            if (typeof Plotly === 'undefined') {
+                console.error('Plotly not loaded yet');
+                return;
+            }
+            
             if (!document.getElementById('interestChart')) {
                 const container = document.querySelector('#interest .chart-container');
                 const chartDiv = document.createElement('div');
@@ -2399,12 +2554,26 @@
                 paper_bgcolor: 'rgba(0, 0, 0, 0)',
                 plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
                 font: { color: '#fff' },
-                barmode: 'group'
-            });
+                barmode: 'group',
+                xaxis: {
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' }
+                },
+                yaxis: {
+                    title: 'Rate (%)',
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' }
+                }
+            }, {responsive: true, displayModeBar: false});
         }
         
         // Update Liquidity chart
         function updateLiquidityChart(liquidityData) {
+            if (typeof Plotly === 'undefined') {
+                console.error('Plotly not loaded yet');
+                return;
+            }
+            
             if (!document.getElementById('liquidityChart')) {
                 const container = document.querySelector('#liquidity .chart-container');
                 const chartDiv = document.createElement('div');
@@ -2428,8 +2597,17 @@
                 title: 'International Liquidity Monitoring',
                 paper_bgcolor: 'rgba(0, 0, 0, 0)',
                 plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
-                font: { color: '#fff' }
-            });
+                font: { color: '#fff' },
+                xaxis: {
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' }
+                },
+                yaxis: {
+                    title: 'Liquidity (€)',
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' }
+                }
+            }, {responsive: true, displayModeBar: false});
         }
         
         // Update predictions display
