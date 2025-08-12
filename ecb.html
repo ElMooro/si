@@ -1875,15 +1875,22 @@
             grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
             
             try {
-                // Get all country-specific indicators
-                const countryIndicators = currentData.allIndicators.filter(ind => 
-                    ind.symbol && ind.symbol.includes('CISS')
-                );
+                console.log('Loading countries data...');
+                
+                // Get all indicators that have country codes
+                const countryIndicators = currentData.allIndicators.filter(ind => {
+                    // Match indicators with country codes like DE, FR, IT, etc.
+                    return ind.symbol && /\.[A-Z]{2}\./.test(ind.symbol);
+                });
+                
+                console.log(`Found ${countryIndicators.length} country indicators`);
                 
                 const countryData = {};
-                for (const indicator of countryIndicators.slice(0, 20)) { // Limit to 20 for performance
+                // Load up to 30 indicators for better coverage
+                for (const indicator of countryIndicators.slice(0, 30)) {
                     try {
-                        const response = await fetch(`${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`);
+                        const dataUrl = `${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`;
+                        const response = await fetch(dataUrl);
                         if (response.ok) {
                             const data = await response.json();
                             countryData[indicator.symbol] = data;
@@ -1909,16 +1916,22 @@
             grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
             
             try {
-                // Get sector-specific indicators (banking, financial, sovereign, etc.)
-                const sectorKeywords = ['BANK', 'FIN', 'SOV', 'INS', 'CORP'];
-                const sectorIndicators = currentData.allIndicators.filter(ind => 
-                    sectorKeywords.some(keyword => ind.symbol?.includes(keyword))
-                );
+                console.log('Loading sectors data...');
+                
+                // Get different sector types from the indicators
+                const sectorKeywords = ['BANK', 'FIN', 'SOV', 'INS', 'CORP', 'NFC', 'FC', 'CI'];
+                const sectorIndicators = currentData.allIndicators.filter(ind => {
+                    if (!ind.symbol) return false;
+                    return sectorKeywords.some(keyword => ind.symbol.includes(keyword));
+                });
+                
+                console.log(`Found ${sectorIndicators.length} sector indicators`);
                 
                 const sectorData = {};
-                for (const indicator of sectorIndicators.slice(0, 15)) {
+                for (const indicator of sectorIndicators.slice(0, 20)) {
                     try {
-                        const response = await fetch(`${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`);
+                        const dataUrl = `${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`;
+                        const response = await fetch(dataUrl);
                         if (response.ok) {
                             const data = await response.json();
                             sectorData[indicator.symbol] = data;
@@ -1938,30 +1951,44 @@
             }
         }
         
-        // Load bonds data
+        // Load bonds data - Fixed to look for bond market indicators
         async function loadBondsData() {
             const grid = document.getElementById('bondsGrid');
             grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
             
             try {
-                const bondIndicators = currentData.allIndicators.filter(ind => 
-                    ind.symbol?.includes('BOND') || ind.symbol?.includes('YLD')
-                );
+                console.log('Loading bonds data...');
+                
+                // Look for bond market stress indicators
+                const bondKeywords = ['BOND', 'YLD', 'YIELD', 'BM', 'SOV', 'SPREAD'];
+                const bondIndicators = currentData.allIndicators.filter(ind => {
+                    if (!ind.symbol) return false;
+                    return bondKeywords.some(keyword => ind.symbol.toUpperCase().includes(keyword));
+                });
+                
+                console.log(`Found ${bondIndicators.length} bond indicators`);
                 
                 const bondData = {};
-                for (const indicator of bondIndicators.slice(0, 10)) {
+                for (const indicator of bondIndicators.slice(0, 15)) {
                     try {
-                        const response = await fetch(`${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`);
+                        const dataUrl = `${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`;
+                        const response = await fetch(dataUrl);
                         if (response.ok) {
-                            bondData[indicator.symbol] = await response.json();
+                            const data = await response.json();
+                            bondData[indicator.symbol] = data;
                         }
                     } catch (error) {
                         console.error(`Error loading ${indicator.symbol}:`, error);
                     }
                 }
                 
-                currentData.bonds = bondData;
-                displayDataGrid('bondsGrid', bondData, 'Bonds');
+                if (Object.keys(bondData).length === 0) {
+                    // If no bond data found, show message
+                    grid.innerHTML = '<div class="message">No bond market indicators available in current dataset</div>';
+                } else {
+                    currentData.bonds = bondData;
+                    displayDataGrid('bondsGrid', bondData, 'Bonds');
+                }
                 
             } catch (error) {
                 console.error('Error loading bonds data:', error);
@@ -1969,30 +1996,43 @@
             }
         }
         
-        // Load equity data
+        // Load equity data - Fixed to look for equity market indicators
         async function loadEquityData() {
             const grid = document.getElementById('equityGrid');
             grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
             
             try {
-                const equityIndicators = currentData.allIndicators.filter(ind => 
-                    ind.symbol?.includes('EQ') || ind.symbol?.includes('STK')
-                );
+                console.log('Loading equity data...');
+                
+                // Look for equity market indicators
+                const equityKeywords = ['EQ', 'STK', 'STOCK', 'EM', 'EQUITY'];
+                const equityIndicators = currentData.allIndicators.filter(ind => {
+                    if (!ind.symbol) return false;
+                    return equityKeywords.some(keyword => ind.symbol.toUpperCase().includes(keyword));
+                });
+                
+                console.log(`Found ${equityIndicators.length} equity indicators`);
                 
                 const equityData = {};
-                for (const indicator of equityIndicators.slice(0, 10)) {
+                for (const indicator of equityIndicators.slice(0, 15)) {
                     try {
-                        const response = await fetch(`${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`);
+                        const dataUrl = `${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`;
+                        const response = await fetch(dataUrl);
                         if (response.ok) {
-                            equityData[indicator.symbol] = await response.json();
+                            const data = await response.json();
+                            equityData[indicator.symbol] = data;
                         }
                     } catch (error) {
                         console.error(`Error loading ${indicator.symbol}:`, error);
                     }
                 }
                 
-                currentData.equity = equityData;
-                displayDataGrid('equityGrid', equityData, 'Equity');
+                if (Object.keys(equityData).length === 0) {
+                    grid.innerHTML = '<div class="message">No equity market indicators available in current dataset</div>';
+                } else {
+                    currentData.equity = equityData;
+                    displayDataGrid('equityGrid', equityData, 'Equity');
+                }
                 
             } catch (error) {
                 console.error('Error loading equity data:', error);
@@ -2000,30 +2040,43 @@
             }
         }
         
-        // Load forex data
+        // Load forex data - Fixed to look for FX indicators
         async function loadForexData() {
             const grid = document.getElementById('forexGrid');
             grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
             
             try {
-                const forexIndicators = currentData.allIndicators.filter(ind => 
-                    ind.symbol?.includes('FX') || ind.symbol?.includes('EUR')
-                );
+                console.log('Loading forex data...');
+                
+                // Look for forex/FX indicators
+                const forexKeywords = ['FX', 'EUR', 'USD', 'GBP', 'JPY', 'CHF', 'FOREX', 'FM'];
+                const forexIndicators = currentData.allIndicators.filter(ind => {
+                    if (!ind.symbol) return false;
+                    return forexKeywords.some(keyword => ind.symbol.toUpperCase().includes(keyword));
+                });
+                
+                console.log(`Found ${forexIndicators.length} forex indicators`);
                 
                 const forexData = {};
-                for (const indicator of forexIndicators.slice(0, 10)) {
+                for (const indicator of forexIndicators.slice(0, 15)) {
                     try {
-                        const response = await fetch(`${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`);
+                        const dataUrl = `${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`;
+                        const response = await fetch(dataUrl);
                         if (response.ok) {
-                            forexData[indicator.symbol] = await response.json();
+                            const data = await response.json();
+                            forexData[indicator.symbol] = data;
                         }
                     } catch (error) {
                         console.error(`Error loading ${indicator.symbol}:`, error);
                     }
                 }
                 
-                currentData.forex = forexData;
-                displayDataGrid('forexGrid', forexData, 'Forex');
+                if (Object.keys(forexData).length === 0) {
+                    grid.innerHTML = '<div class="message">No forex market indicators available in current dataset</div>';
+                } else {
+                    currentData.forex = forexData;
+                    displayDataGrid('forexGrid', forexData, 'Forex');
+                }
                 
             } catch (error) {
                 console.error('Error loading forex data:', error);
@@ -2037,24 +2090,37 @@
             grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
             
             try {
-                const commodityIndicators = currentData.allIndicators.filter(ind => 
-                    ind.symbol?.includes('COMM') || ind.symbol?.includes('OIL') || ind.symbol?.includes('GOLD')
-                );
+                console.log('Loading commodities data...');
+                
+                // Look for commodity indicators
+                const commodityKeywords = ['COMM', 'OIL', 'GOLD', 'COM', 'CMDTY'];
+                const commodityIndicators = currentData.allIndicators.filter(ind => {
+                    if (!ind.symbol) return false;
+                    return commodityKeywords.some(keyword => ind.symbol.toUpperCase().includes(keyword));
+                });
+                
+                console.log(`Found ${commodityIndicators.length} commodity indicators`);
                 
                 const commodityData = {};
-                for (const indicator of commodityIndicators.slice(0, 10)) {
+                for (const indicator of commodityIndicators.slice(0, 15)) {
                     try {
-                        const response = await fetch(`${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`);
+                        const dataUrl = `${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`;
+                        const response = await fetch(dataUrl);
                         if (response.ok) {
-                            commodityData[indicator.symbol] = await response.json();
+                            const data = await response.json();
+                            commodityData[indicator.symbol] = data;
                         }
                     } catch (error) {
                         console.error(`Error loading ${indicator.symbol}:`, error);
                     }
                 }
                 
-                currentData.commodities = commodityData;
-                displayDataGrid('commoditiesGrid', commodityData, 'Commodities');
+                if (Object.keys(commodityData).length === 0) {
+                    grid.innerHTML = '<div class="message">No commodity indicators available in current dataset</div>';
+                } else {
+                    currentData.commodities = commodityData;
+                    displayDataGrid('commoditiesGrid', commodityData, 'Commodities');
+                }
                 
             } catch (error) {
                 console.error('Error loading commodities data:', error);
@@ -2068,24 +2134,37 @@
             grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
             
             try {
-                const mmfIndicators = currentData.allIndicators.filter(ind => 
-                    ind.symbol?.includes('MMF') || ind.symbol?.includes('MON')
-                );
+                console.log('Loading money market data...');
+                
+                // Look for money market indicators
+                const mmfKeywords = ['MMF', 'MON', 'MM', 'MONEY'];
+                const mmfIndicators = currentData.allIndicators.filter(ind => {
+                    if (!ind.symbol) return false;
+                    return mmfKeywords.some(keyword => ind.symbol.toUpperCase().includes(keyword));
+                });
+                
+                console.log(`Found ${mmfIndicators.length} money market indicators`);
                 
                 const mmfData = {};
-                for (const indicator of mmfIndicators.slice(0, 10)) {
+                for (const indicator of mmfIndicators.slice(0, 15)) {
                     try {
-                        const response = await fetch(`${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`);
+                        const dataUrl = `${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`;
+                        const response = await fetch(dataUrl);
                         if (response.ok) {
-                            mmfData[indicator.symbol] = await response.json();
+                            const data = await response.json();
+                            mmfData[indicator.symbol] = data;
                         }
                     } catch (error) {
                         console.error(`Error loading ${indicator.symbol}:`, error);
                     }
                 }
                 
-                currentData.mmf = mmfData;
-                displayDataGrid('mmfGrid', mmfData, 'MMF');
+                if (Object.keys(mmfData).length === 0) {
+                    grid.innerHTML = '<div class="message">No money market indicators available in current dataset</div>';
+                } else {
+                    currentData.mmf = mmfData;
+                    displayDataGrid('mmfGrid', mmfData, 'MMF');
+                }
                 
             } catch (error) {
                 console.error('Error loading MMF data:', error);
@@ -2099,37 +2178,121 @@
             table.innerHTML = '<tr><td colspan="6" style="text-align: center;">Loading analysis...</td></tr>';
             
             try {
-                // Combine all loaded data for analysis
-                const allData = [
-                    ...Object.entries(currentData.countries || {}),
-                    ...Object.entries(currentData.sectors || {}),
-                    ...Object.entries(currentData.overview || {})
-                ];
+                console.log('Loading analysis data...');
                 
+                // Show ALL available indicators in the analysis tab
                 table.innerHTML = '';
                 
-                allData.forEach(([symbol, data]) => {
-                    if (!data || !data.value) return;
+                // First, add a summary row
+                const summaryRow = document.createElement('tr');
+                summaryRow.innerHTML = `
+                    <td colspan="6" style="background: rgba(0, 255, 136, 0.1); font-weight: bold;">
+                        Total Indicators Available: ${currentData.allIndicators.length}
+                    </td>
+                `;
+                table.appendChild(summaryRow);
+                
+                // Group indicators by type
+                const indicatorGroups = {
+                    'CISS Indicators': [],
+                    'Banking Sector': [],
+                    'Financial Markets': [],
+                    'Sovereign/Bond': [],
+                    'Money Markets': [],
+                    'Equity Markets': [],
+                    'Forex Markets': [],
+                    'Other': []
+                };
+                
+                // Categorize all indicators
+                currentData.allIndicators.forEach(indicator => {
+                    if (!indicator.symbol) return;
                     
-                    const row = document.createElement('tr');
-                    const riskLevel = data.value < 0.10 ? 'LOW' : data.value < 0.20 ? 'MEDIUM' : 'HIGH';
-                    const riskClass = riskLevel.toLowerCase();
-                    const trend = data.observations > 290 ? '📈' : '📊';
-                    
-                    row.innerHTML = `
-                        <td>${data.symbol || symbol}</td>
-                        <td>${data.country || 'EU'}</td>
-                        <td>${(data.value * 100).toFixed(3)}%</td>
-                        <td><span class="risk-${riskClass}">${riskLevel}</span></td>
-                        <td>${trend}</td>
-                        <td>${data.date || 'N/A'}</td>
-                    `;
-                    
-                    table.appendChild(row);
+                    const symbol = indicator.symbol.toUpperCase();
+                    if (symbol.includes('CISS')) {
+                        indicatorGroups['CISS Indicators'].push(indicator);
+                    } else if (symbol.includes('BANK') || symbol.includes('NFC')) {
+                        indicatorGroups['Banking Sector'].push(indicator);
+                    } else if (symbol.includes('FIN') || symbol.includes('FC')) {
+                        indicatorGroups['Financial Markets'].push(indicator);
+                    } else if (symbol.includes('SOV') || symbol.includes('BOND') || symbol.includes('YLD')) {
+                        indicatorGroups['Sovereign/Bond'].push(indicator);
+                    } else if (symbol.includes('MM') || symbol.includes('MON')) {
+                        indicatorGroups['Money Markets'].push(indicator);
+                    } else if (symbol.includes('EQ') || symbol.includes('STK') || symbol.includes('EM')) {
+                        indicatorGroups['Equity Markets'].push(indicator);
+                    } else if (symbol.includes('FX') || symbol.includes('EUR') || symbol.includes('USD')) {
+                        indicatorGroups['Forex Markets'].push(indicator);
+                    } else {
+                        indicatorGroups['Other'].push(indicator);
+                    }
                 });
                 
-                if (table.children.length === 0) {
-                    table.innerHTML = '<tr><td colspan="6" style="text-align: center;">No data available for analysis</td></tr>';
+                // Display each group
+                for (const [groupName, indicators] of Object.entries(indicatorGroups)) {
+                    if (indicators.length === 0) continue;
+                    
+                    // Add group header
+                    const groupHeader = document.createElement('tr');
+                    groupHeader.innerHTML = `
+                        <td colspan="6" style="background: rgba(0, 204, 255, 0.1); font-weight: bold; padding: 10px;">
+                            ${groupName} (${indicators.length} indicators)
+                        </td>
+                    `;
+                    table.appendChild(groupHeader);
+                    
+                    // Add indicators in this group (show first 5 of each group)
+                    for (const indicator of indicators.slice(0, 5)) {
+                        // Try to load the actual data for this indicator
+                        try {
+                            const dataUrl = `${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`;
+                            const response = await fetch(dataUrl);
+                            
+                            if (response.ok) {
+                                const data = await response.json();
+                                const riskLevel = data.value < 0.10 ? 'LOW' : data.value < 0.20 ? 'MEDIUM' : 'HIGH';
+                                const riskClass = riskLevel.toLowerCase();
+                                
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td style="font-size: 0.75rem;">${indicator.symbol}</td>
+                                    <td>${data.country || indicator.country || 'EU'}</td>
+                                    <td>${data.value ? (data.value * 100).toFixed(3) + '%' : 'N/A'}</td>
+                                    <td><span class="risk-${riskClass}">${riskLevel}</span></td>
+                                    <td>${data.observations || 'N/A'}</td>
+                                    <td>${data.date || 'N/A'}</td>
+                                `;
+                                table.appendChild(row);
+                            }
+                        } catch (error) {
+                            // If can't load data, show basic info
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td style="font-size: 0.75rem;">${indicator.symbol}</td>
+                                <td>${indicator.country || 'EU'}</td>
+                                <td>Loading...</td>
+                                <td>-</td>
+                                <td>${indicator.observations || 'N/A'}</td>
+                                <td>-</td>
+                            `;
+                            table.appendChild(row);
+                        }
+                    }
+                    
+                    // If there are more indicators in this group, show count
+                    if (indicators.length > 5) {
+                        const moreRow = document.createElement('tr');
+                        moreRow.innerHTML = `
+                            <td colspan="6" style="text-align: center; font-style: italic; color: #888;">
+                                ... and ${indicators.length - 5} more ${groupName} indicators
+                            </td>
+                        `;
+                        table.appendChild(moreRow);
+                    }
+                }
+                
+                if (table.children.length === 1) {
+                    table.innerHTML = '<tr><td colspan="6" style="text-align: center;">No indicators found. Check console for errors.</td></tr>';
                 }
                 
             } catch (error) {
