@@ -818,7 +818,7 @@
             color: #000;
         }
         
-        #mainChart, #countryChart, #sectorChart, #historicalChart {
+        #mainChart, #countryChart, #sectorChart, #historicalChart, #unemploymentChart {
             height: 500px;
             border-radius: 8px;
             background: rgba(0, 0, 0, 0.3);
@@ -1041,7 +1041,7 @@
                 <div class="stat-label">ECB Indicators</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value" id="totalCountries">11</div>
+                <div class="stat-value" id="totalCountries">12</div>
                 <div class="stat-label">EU Countries</div>
             </div>
             <div class="stat-item">
@@ -1181,7 +1181,7 @@
         <div class="tab-content" id="unemployment">
             <div class="chart-container">
                 <div class="chart-header">
-                    <h2 class="chart-title">Unemployment Risk Indicators</h2>
+                    <h2 class="chart-title">EU Unemployment Rates</h2>
                 </div>
                 <div id="unemploymentChart"></div>
             </div>
@@ -1335,9 +1335,9 @@
     </div>
     
     <script>
-        // OpenBB ECB Platform Configuration - PRODUCTION v8.0 ENHANCED
+        // OpenBB ECB Platform Configuration - FIXED TO USE ONLY ECB DATA
         const ECB_CONFIG = {
-            // ECB API v2 (159 Active Indicators with HTTP API v2)
+            // ECB API v2 - YOUR WORKING ENDPOINTS
             ECB_API: {
                 baseUrl: 'https://bjb85udtp6.execute-api.us-east-1.amazonaws.com/prod',
                 endpoints: {
@@ -1346,6 +1346,21 @@
                     data: '/data',
                     riskAssessment: '/risk-assessment'
                 }
+            },
+            // Country codes mapping
+            countryCodes: {
+                'Germany': 'DE',
+                'France': 'FR',
+                'Italy': 'IT',
+                'Spain': 'ES',
+                'Netherlands': 'NL',
+                'Belgium': 'BE',
+                'Austria': 'AT',
+                'Portugal': 'PT',
+                'Greece': 'GR',
+                'Finland': 'FI',
+                'Ireland': 'IE',
+                'Luxembourg': 'LU'
             },
             // Country flags mapping
             countryFlags: {
@@ -1361,25 +1376,19 @@
                 'Finland': '🇫🇮',
                 'Ireland': '🇮🇪',
                 'Luxembourg': '🇱🇺',
-                'Slovenia': '🇸🇮',
-                'Slovakia': '🇸🇰',
-                'Estonia': '🇪🇪',
-                'Latvia': '🇱🇻',
-                'Lithuania': '🇱🇹',
-                'Malta': '🇲🇹',
-                'Cyprus': '🇨🇾'
+                'Euro Area': '🇪🇺'
             }
         };
         
-        // Global state - ENHANCED for ECB
+        // Global state
         let currentData = {
             overview: {},
             countries: {},
+            unemployment: {},
             sectors: {},
             bonds: {},
             equity: {},
             forex: {},
-            commodities: {},
             mmf: {},
             analysis: {},
             allIndicators: [],
@@ -1396,6 +1405,7 @@
             main: null,
             country: null,
             sector: null,
+            unemployment: null,
             historical: null
         };
         
@@ -1413,29 +1423,17 @@
                 if (value < 0.30) return `🔴 ${country}: High stress - Crisis risk`;
                 return `🔴 ${country}: Critical stress - Crisis mode`;
             },
-            'SOV_CI': (value) => {
-                if (value < 0.05) return "🟢 Sovereign risk minimal";
-                if (value < 0.10) return "🟡 Normal sovereign conditions";
-                if (value < 0.20) return "🟠 Sovereign stress building";
-                return "🔴 Sovereign crisis risk";
-            },
-            'FIN_CI': (value) => {
-                if (value < 0.10) return "🟢 Financial markets stable";
-                if (value < 0.20) return "🟡 Mild financial stress";
-                if (value < 0.30) return "🟠 Financial stress elevated";
-                return "🔴 Financial crisis conditions";
-            },
-            'BANK_CI': (value) => {
-                if (value < 0.10) return "🟢 Banking sector healthy";
-                if (value < 0.20) return "🟡 Banking stress emerging";
-                if (value < 0.30) return "🟠 Banking sector under pressure";
-                return "🔴 Banking crisis risk high";
+            'UNEMPLOYMENT': (value, country) => {
+                if (value < 5) return `🟢 ${country}: Low unemployment`;
+                if (value < 7) return `🟡 ${country}: Moderate unemployment`;
+                if (value < 10) return `🟠 ${country}: High unemployment`;
+                return `🔴 ${country}: Very high unemployment`;
             }
         };
         
-        // Initialize the platform - ENHANCED for ECB
+        // Initialize the platform
         async function initializePlatform() {
-            console.log('🚀 Initializing OpenBB ECB Platform v8.0 Enhanced...');
+            console.log('🚀 Initializing OpenBB ECB Platform v8.0...');
             
             // Load saved custom metrics and names
             loadSavedCustomizations();
@@ -1514,9 +1512,6 @@
                 ecbStatus.className = 'status-dot error';
                 dataStatus.className = 'status-dot error';
                 cacheStatus.className = 'status-dot error';
-                
-                // Still try to load with fallback data
-                document.getElementById('activeIndicators').textContent = '159';
             }
         }
         
@@ -1526,672 +1521,261 @@
             await loadRiskAssessment();
             
             if (activeTab === 'countries') await loadCountriesData();
+            if (activeTab === 'unemployment') await loadUnemploymentData();
             if (activeTab === 'sectors') await loadSectorsData();
             if (activeTab === 'bonds') await loadBondsData();
             if (activeTab === 'equity') await loadEquityData();
             if (activeTab === 'forex') await loadForexData();
-            if (activeTab === 'unemployment') await loadUnemploymentData();
             if (activeTab === 'mmf') await loadMMFData();
             if (activeTab === 'analysis') await loadAnalysisData();
         }
         
-        // Load countries data - PULL ALL CISS DATA FROM S3/API
+        // Load overview data - FIXED TO USE ECB API PROPERLY
+        async function loadOverviewData() {
+            try {
+                console.log('Loading ECB overview data...');
+                
+                // Get list of all indicators first
+                const listUrl = ECB_CONFIG.ECB_API.baseUrl + ECB_CONFIG.ECB_API.endpoints.list;
+                const listResponse = await fetch(listUrl);
+                const listData = await listResponse.json();
+                console.log('List response:', listData);
+                
+                if (listData.indicators && Array.isArray(listData.indicators)) {
+                    currentData.allIndicators = listData.indicators;
+                    console.log(`Loaded ${listData.indicators.length} indicators`);
+                }
+                
+                // Load key CISS indicators for overview
+                const keyCountries = ['DE', 'FR', 'IT', 'ES', 'NL', 'BE', 'AT', 'FI', 'GR', 'PT'];
+                const countryData = {};
+                
+                for (const countryCode of keyCountries) {
+                    try {
+                        // Load CISS data
+                        const cissUrl = `${ECB_CONFIG.ECB_API.baseUrl}/data/ECB.CISS.M.${countryCode}.Z0Z.4F.EC.SOV_CI.IDX`;
+                        const cissResponse = await fetch(cissUrl);
+                        if (cissResponse.ok) {
+                            const cissData = await cissResponse.json();
+                            countryData[countryCode] = {
+                                ...cissData,
+                                type: 'CISS',
+                                countryCode: countryCode,
+                                country: Object.keys(ECB_CONFIG.countryCodes).find(k => ECB_CONFIG.countryCodes[k] === countryCode)
+                            };
+                            console.log(`Loaded CISS for ${countryCode}:`, cissData.value);
+                        }
+                    } catch (error) {
+                        console.error(`Error loading ${countryCode} CISS:`, error);
+                    }
+                }
+                
+                currentData.overview = countryData;
+                updateKeyMetrics(countryData);
+                updateMainChart(countryData);
+                detectMarketPhase();
+                
+            } catch (error) {
+                console.error('Error loading overview:', error);
+            }
+        }
+        
+        // Load unemployment data - USING ECB API ENDPOINTS
+        async function loadUnemploymentData() {
+            const grid = document.getElementById('unemploymentGrid');
+            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            
+            try {
+                console.log('Loading unemployment data from ECB API...');
+                
+                const countries = ['DE', 'FR', 'IT', 'ES', 'NL', 'BE', 'AT', 'PT', 'GR', 'FI', 'IE', 'LU'];
+                const unemploymentData = {};
+                
+                for (const countryCode of countries) {
+                    try {
+                        const url = `${ECB_CONFIG.ECB_API.baseUrl}/data/ECB.UNEMPLOYMENT.${countryCode}`;
+                        console.log(`Fetching unemployment for ${countryCode}: ${url}`);
+                        
+                        const response = await fetch(url);
+                        if (response.ok) {
+                            const data = await response.json();
+                            unemploymentData[countryCode] = {
+                                ...data,
+                                countryCode: countryCode,
+                                country: Object.keys(ECB_CONFIG.countryCodes).find(k => ECB_CONFIG.countryCodes[k] === countryCode)
+                            };
+                            console.log(`${countryCode} unemployment: ${data.value}%`);
+                        }
+                    } catch (error) {
+                        console.error(`Error loading ${countryCode} unemployment:`, error);
+                    }
+                }
+                
+                currentData.unemployment = unemploymentData;
+                
+                if (Object.keys(unemploymentData).length > 0) {
+                    displayUnemploymentGrid('unemploymentGrid', unemploymentData);
+                    updateUnemploymentChart(unemploymentData);
+                } else {
+                    grid.innerHTML = '<div class="message error-message">Failed to load unemployment data</div>';
+                }
+                
+            } catch (error) {
+                console.error('Error loading unemployment data:', error);
+                grid.innerHTML = '<div class="message error-message">Failed to load unemployment data</div>';
+            }
+        }
+        
+        // Load countries CISS data - USING ECB API ENDPOINTS
         async function loadCountriesData() {
             const grid = document.getElementById('countriesGrid');
             grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
             
             try {
-                console.log('Loading ALL CISS country data from ECB API...');
+                console.log('Loading country CISS data from ECB API...');
                 
-                // First get the complete list from the API
-                const listUrl = ECB_CONFIG.ECB_API.baseUrl + ECB_CONFIG.ECB_API.endpoints.list;
-                const listResponse = await fetch(listUrl);
-                const listData = await listResponse.json();
-                
-                console.log('List API response:', listData);
-                
-                // Filter for ALL CISS indicators
-                const cissIndicators = listData.indicators.filter(ind => 
-                    ind.symbol && ind.symbol.includes('CISS')
-                );
-                
-                console.log(`Found ${cissIndicators.length} CISS indicators`);
-                
+                const countries = ['DE', 'FR', 'IT', 'ES', 'NL', 'BE', 'AT', 'PT', 'GR', 'FI', 'IE'];
                 const countryData = {};
-                const countryNames = {
-                    'DE': 'Germany',
-                    'FR': 'France',
-                    'IT': 'Italy',
-                    'ES': 'Spain',
-                    'NL': 'Netherlands',
-                    'BE': 'Belgium',
-                    'AT': 'Austria',
-                    'PT': 'Portugal',
-                    'GR': 'Greece',
-                    'FI': 'Finland',
-                    'IE': 'Ireland',
-                    'LU': 'Luxembourg',
-                    'SI': 'Slovenia',
-                    'SK': 'Slovakia',
-                    'EE': 'Estonia',
-                    'LV': 'Latvia',
-                    'LT': 'Lithuania',
-                    'MT': 'Malta',
-                    'CY': 'Cyprus',
-                    'U2': 'Euro Area',
-                    'EA': 'Euro Area',
-                    'US': 'United States',
-                    'CN': 'China',
-                    'JP': 'Japan',
-                    'GB': 'United Kingdom'
-                };
                 
-                // Load data for EACH CISS indicator
-                for (const indicator of cissIndicators) {
+                for (const countryCode of countries) {
                     try {
-                        // Use the exact API endpoint format from your documentation
-                        const dataUrl = `${ECB_CONFIG.ECB_API.baseUrl}/data/${indicator.symbol}`;
-                        console.log(`Fetching: ${dataUrl}`);
+                        const url = `${ECB_CONFIG.ECB_API.baseUrl}/data/ECB.CISS.M.${countryCode}.Z0Z.4F.EC.SOV_CI.IDX`;
+                        console.log(`Fetching CISS for ${countryCode}: ${url}`);
                         
-                        const response = await fetch(dataUrl);
+                        const response = await fetch(url);
                         if (response.ok) {
                             const data = await response.json();
-                            console.log(`Loaded ${indicator.symbol}:`, data);
-                            
-                            // Extract country code from symbol (e.g., ECB.CISS.M.DE.Z0Z.4F.EC.SOV_CI.IDX -> DE)
-                            const parts = indicator.symbol.split('.');
-                            const countryCode = parts[3] || indicator.symbol; // Country code is typically 4th part
-                            const countryName = countryNames[countryCode] || indicator.country || countryCode;
-                            
-                            countryData[indicator.symbol] = {
+                            countryData[`CISS_${countryCode}`] = {
                                 ...data,
-                                symbol: indicator.symbol,
-                                country: countryName,
                                 countryCode: countryCode,
-                                value: data.value || indicator.value,
-                                observations: data.observations || indicator.observations,
-                                date: data.date || indicator.date
+                                country: Object.keys(ECB_CONFIG.countryCodes).find(k => ECB_CONFIG.countryCodes[k] === countryCode)
                             };
+                            console.log(`${countryCode} CISS: ${(data.value * 100).toFixed(2)}%`);
                         }
                     } catch (error) {
-                        console.error(`Error loading ${indicator.symbol}:`, error);
+                        console.error(`Error loading ${countryCode} CISS:`, error);
                     }
                 }
                 
-                console.log(`Successfully loaded ${Object.keys(countryData).length} CISS indicators`);
                 currentData.countries = countryData;
                 
                 if (Object.keys(countryData).length > 0) {
-                    // Display all CISS data in a structured way
                     displayCountryCISSGrid('countriesGrid', countryData);
                     updateCountryChart(countryData);
                 } else {
-                    grid.innerHTML = `
-                        <div class="message error-message">
-                            No CISS data loaded. Check console for errors.<br>
-                            API endpoint: ${listUrl}<br>
-                            Try manually: curl ${listUrl}
-                        </div>`;
+                    grid.innerHTML = '<div class="message error-message">Failed to load CISS data</div>';
                 }
                 
             } catch (error) {
-                console.error('Error loading CISS data:', error);
-                grid.innerHTML = `
-                    <div class="message error-message">
-                        Failed to load CISS data from API.<br>
-                        Error: ${error.message}<br>
-                        Check if API is accessible: ${ECB_CONFIG.ECB_API.baseUrl}
-                    </div>`;
+                console.error('Error loading countries data:', error);
+                grid.innerHTML = '<div class="message error-message">Failed to load country data</div>';
             }
         }
         
-        // Display country CISS data in organized grid
+        // Display unemployment grid
+        function displayUnemploymentGrid(gridId, unemploymentData) {
+            const grid = document.getElementById(gridId);
+            grid.innerHTML = '';
+            
+            // Sort by unemployment rate
+            const sortedEntries = Object.entries(unemploymentData).sort((a, b) => 
+                (b[1].value || 0) - (a[1].value || 0)
+            );
+            
+            for (const [code, data] of sortedEntries) {
+                if (!data || data.value === null) continue;
+                
+                const card = document.createElement('div');
+                card.className = 'data-card';
+                
+                const country = data.country || code;
+                const flag = ECB_CONFIG.countryFlags[country] || '🇪🇺';
+                const value = data.value || 0;
+                const riskLevel = value > 10 ? 'HIGH' : value > 7 ? 'MEDIUM' : 'LOW';
+                const riskClass = riskLevel.toLowerCase();
+                
+                card.innerHTML = `
+                    <div class="data-card-header">
+                        <div class="data-title">${flag} ${country}</div>
+                        <div class="data-source">Unemployment</div>
+                    </div>
+                    <div class="data-value ${riskClass === 'low' ? 'positive' : riskClass === 'medium' ? 'neutral' : 'negative'}">
+                        ${value.toFixed(1)}%
+                    </div>
+                    <div class="data-change">
+                        <span class="risk-${riskClass}">Risk: ${riskLevel}</span>
+                        <span style="margin-left: 0.5rem; opacity: 0.7;">Updated: ${data.date || 'N/A'}</span>
+                    </div>
+                    <div class="metric-interpretation">
+                        ${interpretations.UNEMPLOYMENT(value, country)}
+                    </div>
+                `;
+                
+                card.onclick = () => showHistoricalData(data.symbol, `${country} Unemployment`);
+                grid.appendChild(card);
+            }
+        }
+        
+        // Display country CISS grid
         function displayCountryCISSGrid(gridId, countryData) {
             const grid = document.getElementById(gridId);
             grid.innerHTML = '';
             
-            // Group by country
-            const countries = {};
-            for (const [symbol, data] of Object.entries(countryData)) {
-                const country = data.country || 'Unknown';
-                if (!countries[country]) countries[country] = [];
-                countries[country].push(data);
-            }
+            // Sort by CISS value (highest risk first)
+            const sortedEntries = Object.entries(countryData).sort((a, b) => 
+                (b[1].value || 0) - (a[1].value || 0)
+            );
             
-            // Sort countries by average CISS value (highest risk first)
-            const sortedCountries = Object.entries(countries).sort((a, b) => {
-                const avgA = a[1].reduce((sum, d) => sum + (d.value || 0), 0) / a[1].length;
-                const avgB = b[1].reduce((sum, d) => sum + (d.value || 0), 0) / b[1].length;
-                return avgB - avgA;
-            });
-            
-            // Display header showing total countries
-            const headerDiv = document.createElement('div');
-            headerDiv.style.cssText = 'grid-column: 1 / -1; padding: 1rem; background: linear-gradient(90deg, rgba(0, 255, 136, 0.2), rgba(0, 204, 255, 0.2)); border-radius: 8px; margin-bottom: 1rem;';
-            headerDiv.innerHTML = `
-                <h3>📊 CISS Data for ${sortedCountries.length} Countries/Regions</h3>
-                <p style="margin-top: 0.5rem; opacity: 0.8;">Total indicators: ${Object.keys(countryData).length}</p>
-            `;
-            grid.appendChild(headerDiv);
-            
-            // Display each country's CISS data
-            for (const [country, indicators] of sortedCountries) {
-                // Country header
-                const countryHeader = document.createElement('div');
-                countryHeader.style.cssText = 'grid-column: 1 / -1; padding: 0.75rem; background: rgba(0, 255, 136, 0.1); border-radius: 8px; margin: 0.5rem 0;';
+            for (const [key, data] of sortedEntries) {
+                if (!data || data.value === null) continue;
                 
-                const avgValue = indicators.reduce((sum, d) => sum + (d.value || 0), 0) / indicators.length;
-                const riskLevel = avgValue < 0.10 ? 'LOW' : avgValue < 0.20 ? 'MEDIUM' : 'HIGH';
-                const flag = ECB_CONFIG.countryFlags[country] || '🌍';
+                const card = document.createElement('div');
+                card.className = 'data-card';
                 
-                countryHeader.innerHTML = `
-                    <h4>${flag} ${country} - Average CISS: ${(avgValue * 100).toFixed(2)}% 
-                        <span class="risk-${riskLevel.toLowerCase()}" style="margin-left: 1rem;">${riskLevel} RISK</span>
-                    </h4>
+                const country = data.country || data.countryCode;
+                const flag = ECB_CONFIG.countryFlags[country] || '🇪🇺';
+                const value = data.value || 0;
+                const cissPercent = (value * 100).toFixed(2);
+                const riskLevel = value < 0.10 ? 'LOW' : value < 0.20 ? 'MEDIUM' : 'HIGH';
+                const riskClass = riskLevel.toLowerCase();
+                
+                card.innerHTML = `
+                    <div class="data-card-header">
+                        <div class="data-title">${flag} ${country}</div>
+                        <div class="data-source">CISS</div>
+                    </div>
+                    <div class="data-value ${riskClass === 'low' ? 'positive' : riskClass === 'medium' ? 'neutral' : 'negative'}">
+                        ${cissPercent}%
+                    </div>
+                    <div class="data-change">
+                        <span class="risk-${riskClass}">Risk: ${riskLevel}</span>
+                        <span style="margin-left: 0.5rem; opacity: 0.7;">Obs: ${data.observations || 'N/A'}</span>
+                    </div>
+                    <div class="metric-interpretation">
+                        ${interpretations.CISS(value, country)}
+                    </div>
                 `;
-                grid.appendChild(countryHeader);
                 
-                // Display each indicator for this country
-                indicators.forEach(data => {
-                    const card = document.createElement('div');
-                    card.className = 'data-card';
-                    
-                    const formattedValue = data.value ? (data.value * 100).toFixed(3) + '%' : 'N/A';
-                    const riskLevel = data.value < 0.10 ? 'LOW' : data.value < 0.20 ? 'MEDIUM' : 'HIGH';
-                    const riskClass = riskLevel.toLowerCase();
-                    
-                    // Determine indicator type from symbol
-                    let indicatorType = 'Composite';
-                    if (data.symbol.includes('SOV_CI')) indicatorType = 'Sovereign Credit';
-                    else if (data.symbol.includes('FIN_CI')) indicatorType = 'Financial';
-                    else if (data.symbol.includes('BANK')) indicatorType = 'Banking';
-                    else if (data.symbol.includes('FC')) indicatorType = 'Financial Conditions';
-                    else if (data.symbol.includes('BM')) indicatorType = 'Bond Market';
-                    else if (data.symbol.includes('EM')) indicatorType = 'Equity Market';
-                    else if (data.symbol.includes('FM')) indicatorType = 'Forex Market';
-                    else if (data.symbol.includes('MM')) indicatorType = 'Money Market';
-                    
-                    card.innerHTML = `
-                        <div class="data-card-header">
-                            <div class="data-title" style="font-size: 0.8rem;">${data.symbol}</div>
-                            <div class="data-source">${indicatorType}</div>
-                        </div>
-                        <div class="data-value ${riskClass === 'low' ? 'positive' : riskClass === 'medium' ? 'neutral' : 'negative'}">
-                            ${formattedValue}
-                        </div>
-                        <div class="data-change">
-                            <span class="risk-${riskClass}">Risk: ${riskLevel}</span>
-                            <span style="margin-left: 0.5rem; opacity: 0.7;">Obs: ${data.observations || 'N/A'}</span>
-                        </div>
-                        <div style="font-size: 0.75rem; opacity: 0.7; margin-top: 0.5rem;">
-                            Last updated: ${data.date || 'N/A'}
-                        </div>
-                    `;
-                    
-                    card.onclick = () => showHistoricalData(data.symbol, `${country} ${indicatorType}`);
-                    grid.appendChild(card);
-                });
-            }
-        }
-        
-        // Load unemployment data - Check both ECB and FRED systems
-        async function loadUnemploymentData() {
-            const grid = document.getElementById('unemploymentGrid');
-            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
-            
-            try {
-                console.log('Searching for unemployment data in ECB system...');
-                
-                // First check ECB data for any unemployment indicators
-                const unemploymentKeywords = ['UNEM', 'UNEMPLOYMENT', 'JOBLESS', 'LABOR', 'LABOUR', 'EMPLOY', 'LM', 'LFSI', 'ILM'];
-                const unemploymentIndicators = currentData.allIndicators.filter(ind => {
-                    if (!ind.symbol) return false;
-                    const upperSymbol = ind.symbol.toUpperCase();
-                    const upperName = (ind.name || '').toUpperCase();
-                    return unemploymentKeywords.some(keyword => 
-                        upperSymbol.includes(keyword) || upperName.includes(keyword)
-                    );
-                });
-                
-                console.log(`Found ${unemploymentIndicators.length} potential unemployment indicators in ECB`);
-                
-                const unemploymentData = {};
-                
-                // Load ECB unemployment data if available
-                for (const indicator of unemploymentIndicators) {
-                    try {
-                        const dataUrl = `${ECB_CONFIG.ECB_API.baseUrl}/data/${indicator.symbol}`;
-                        const response = await fetch(dataUrl);
-                        if (response.ok) {
-                            const data = await response.json();
-                            unemploymentData[indicator.symbol] = {
-                                ...data,
-                                symbol: indicator.symbol,
-                                type: 'Unemployment',
-                                source: 'ECB',
-                                country: indicator.country || extractCountryFromSymbol(indicator.symbol) || 'EU'
-                            };
-                        }
-                    } catch (error) {
-                        console.error(`Error loading ${indicator.symbol}:`, error);
-                    }
-                }
-                
-                // Try to get Euro Area unemployment from FRED as backup
-                if (Object.keys(unemploymentData).length === 0) {
-                    console.log('No unemployment data in ECB, trying FRED API...');
-                    
-                    try {
-                        // Euro Area unemployment from FRED
-                        const fredUrl = 'https://api.stlouisfed.org/fred/series/observations?series_id=LRHUTTTTEZM156S&api_key=2f057499936072679d8843d7fce99989&file_type=json&limit=1&sort_order=desc';
-                        const fredResponse = await fetch(fredUrl);
-                        if (fredResponse.ok) {
-                            const fredData = await fredResponse.json();
-                            if (fredData.observations && fredData.observations[0]) {
-                                const obs = fredData.observations[0];
-                                unemploymentData['EURO_AREA_UNEMPLOYMENT'] = {
-                                    symbol: 'LRHUTTTTEZM156S',
-                                    value: parseFloat(obs.value),
-                                    date: obs.date,
-                                    country: 'Euro Area',
-                                    source: 'FRED',
-                                    type: 'Unemployment Rate'
-                                };
-                            }
-                        }
-                    } catch (error) {
-                        console.error('Error fetching FRED unemployment data:', error);
-                    }
-                }
-                
-                currentData.unemployment = unemploymentData;
-                
-                if (Object.keys(unemploymentData).length > 0) {
-                    displayDataGrid('unemploymentGrid', unemploymentData, 'Unemployment');
-                    updateUnemploymentChart(unemploymentData);
-                } else {
-                    grid.innerHTML = `
-                        <div class="message">
-                            <h3>📉 Unemployment Data Not Found in ECB System</h3>
-                            <p>Your ECB system contains 159 CISS (systemic risk) indicators but no unemployment data.</p>
-                            <p>CISS indicators measure financial system stress, not labor market conditions.</p>
-                            <br>
-                            <p><strong>To add unemployment data:</strong></p>
-                            <ol>
-                                <li>Fetch from ECB Statistical Data Warehouse (SDW)</li>
-                                <li>Use FRED API (already configured in your system)</li>
-                                <li>Add to your S3 bucket: s3://openbb-lambda-data/</li>
-                            </ol>
-                        </div>`;
-                }
-                
-            } catch (error) {
-                console.error('Error loading unemployment data:', error);
-                showError('unemploymentGrid', 'Failed to load unemployment data');
-            }
-        }
-        
-        // Load sectors data - SHOW ALL SECTOR RISKS
-        async function loadSectorsData() {
-            const grid = document.getElementById('sectorsGrid');
-            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
-            
-            try {
-                console.log('Loading ALL sector risk data...');
-                
-                // Define ALL sector categories
-                const sectorCategories = {
-                    'Sovereign': ['SOV', 'SOVEREIGN'],
-                    'Banking': ['BANK', 'NFC', 'BANKING'],
-                    'Financial': ['FIN', 'FC', 'FINANCIAL'],
-                    'Bond Market': ['BM', 'BOND', 'YLD', 'YIELD'],
-                    'Equity Market': ['EM', 'EQ', 'EQUITY', 'STK'],
-                    'Forex Market': ['FM', 'FX', 'FOREX', 'CURRENCY'],
-                    'Money Market': ['MM', 'MON', 'MONEY'],
-                    'Insurance': ['INS', 'INSURANCE'],
-                    'Corporate': ['CORP', 'CORPORATE'],
-                    'Commodities': ['COM', 'COMM', 'COMMODITY']
-                };
-                
-                const sectorData = {};
-                
-                // Process each sector category
-                for (const [sectorName, keywords] of Object.entries(sectorCategories)) {
-                    // Find indicators for this sector
-                    const sectorIndicators = currentData.allIndicators.filter(ind => {
-                        if (!ind.symbol) return false;
-                        const upperSymbol = ind.symbol.toUpperCase();
-                        return keywords.some(keyword => upperSymbol.includes(keyword));
-                    });
-                    
-                    console.log(`Found ${sectorIndicators.length} indicators for ${sectorName}`);
-                    
-                    // Load data for this sector
-                    for (const indicator of sectorIndicators) {
-                        try {
-                            const dataUrl = `${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`;
-                            const response = await fetch(dataUrl);
-                            if (response.ok) {
-                                const data = await response.json();
-                                sectorData[indicator.symbol] = {
-                                    ...data,
-                                    symbol: indicator.symbol,
-                                    sector: sectorName,
-                                    country: indicator.country || 'EU'
-                                };
-                            }
-                        } catch (error) {
-                            console.error(`Error loading ${indicator.symbol}:`, error);
-                        }
-                    }
-                }
-                
-                console.log(`Loaded ${Object.keys(sectorData).length} sector indicators`);
-                currentData.sectors = sectorData;
-                
-                if (Object.keys(sectorData).length > 0) {
-                    displaySectorGrid('sectorsGrid', sectorData);
-                    updateSectorChart(sectorData);
-                } else {
-                    grid.innerHTML = '<div class="message error-message">No sector risk data found. Your ECB data may focus on country-level CISS indicators.</div>';
-                }
-                
-            } catch (error) {
-                console.error('Error loading sectors data:', error);
-                showError('sectorsGrid', 'Failed to load sector data');
-            }
-        }
-        
-        // Load bonds data - SHOW ALL BOND MARKET RISKS
-        async function loadBondsData() {
-            const grid = document.getElementById('bondsGrid');
-            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
-            
-            try {
-                console.log('Loading ALL bond market risk data...');
-                
-                // Look for ALL bond-related indicators
-                const bondKeywords = ['BM', 'BOND', 'YLD', 'YIELD', 'SOV', 'SPREAD', 'CREDIT'];
-                const bondIndicators = currentData.allIndicators.filter(ind => {
-                    if (!ind.symbol) return false;
-                    const upperSymbol = ind.symbol.toUpperCase();
-                    return bondKeywords.some(keyword => upperSymbol.includes(keyword)) ||
-                           upperSymbol.includes('.BM.') || // Bond market segment
-                           upperSymbol.includes('SOV_CI'); // Sovereign credit
-                });
-                
-                console.log(`Found ${bondIndicators.length} bond indicators`);
-                
-                const bondData = {};
-                for (const indicator of bondIndicators) {
-                    try {
-                        const dataUrl = `${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`;
-                        const response = await fetch(dataUrl);
-                        if (response.ok) {
-                            const data = await response.json();
-                            bondData[indicator.symbol] = {
-                                ...data,
-                                symbol: indicator.symbol,
-                                market: 'Bond Market',
-                                country: indicator.country || extractCountryFromSymbol(indicator.symbol) || 'EU'
-                            };
-                        }
-                    } catch (error) {
-                        console.error(`Error loading ${indicator.symbol}:`, error);
-                    }
-                }
-                
-                currentData.bonds = bondData;
-                
-                if (Object.keys(bondData).length > 0) {
-                    displayDataGrid('bondsGrid', bondData, 'Bond Market');
-                } else {
-                    grid.innerHTML = '<div class="message">No specific bond market indicators found. Check Sectors tab for sovereign risk indicators.</div>';
-                }
-                
-            } catch (error) {
-                console.error('Error loading bonds data:', error);
-                showError('bondsGrid', 'Failed to load bond data');
-            }
-        }
-        
-        // Load equity data - SHOW ALL EQUITY MARKET RISKS
-        async function loadEquityData() {
-            const grid = document.getElementById('equityGrid');
-            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
-            
-            try {
-                console.log('Loading ALL equity market risk data...');
-                
-                const equityKeywords = ['EM', 'EQ', 'STK', 'STOCK', 'EQUITY', 'SHARE'];
-                const equityIndicators = currentData.allIndicators.filter(ind => {
-                    if (!ind.symbol) return false;
-                    const upperSymbol = ind.symbol.toUpperCase();
-                    return equityKeywords.some(keyword => upperSymbol.includes(keyword)) ||
-                           upperSymbol.includes('.EM.'); // Equity market segment
-                });
-                
-                console.log(`Found ${equityIndicators.length} equity indicators`);
-                
-                const equityData = {};
-                for (const indicator of equityIndicators) {
-                    try {
-                        const dataUrl = `${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`;
-                        const response = await fetch(dataUrl);
-                        if (response.ok) {
-                            const data = await response.json();
-                            equityData[indicator.symbol] = {
-                                ...data,
-                                symbol: indicator.symbol,
-                                market: 'Equity Market',
-                                country: indicator.country || extractCountryFromSymbol(indicator.symbol) || 'EU'
-                            };
-                        }
-                    } catch (error) {
-                        console.error(`Error loading ${indicator.symbol}:`, error);
-                    }
-                }
-                
-                currentData.equity = equityData;
-                
-                if (Object.keys(equityData).length > 0) {
-                    displayDataGrid('equityGrid', equityData, 'Equity Market');
-                } else {
-                    grid.innerHTML = '<div class="message">No specific equity market indicators found. Check Sectors tab for financial market indicators.</div>';
-                }
-                
-            } catch (error) {
-                console.error('Error loading equity data:', error);
-                showError('equityGrid', 'Failed to load equity data');
-            }
-        }
-        
-        // Load forex data - SHOW ALL FOREX MARKET RISKS
-        async function loadForexData() {
-            const grid = document.getElementById('forexGrid');
-            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
-            
-            try {
-                console.log('Loading ALL forex market risk data...');
-                
-                const forexKeywords = ['FM', 'FX', 'EUR', 'USD', 'GBP', 'JPY', 'CHF', 'FOREX', 'CURRENCY', 'EXCHANGE'];
-                const forexIndicators = currentData.allIndicators.filter(ind => {
-                    if (!ind.symbol) return false;
-                    const upperSymbol = ind.symbol.toUpperCase();
-                    return forexKeywords.some(keyword => upperSymbol.includes(keyword)) ||
-                           upperSymbol.includes('.FM.'); // Forex market segment
-                });
-                
-                console.log(`Found ${forexIndicators.length} forex indicators`);
-                
-                const forexData = {};
-                for (const indicator of forexIndicators) {
-                    try {
-                        const dataUrl = `${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`;
-                        const response = await fetch(dataUrl);
-                        if (response.ok) {
-                            const data = await response.json();
-                            forexData[indicator.symbol] = {
-                                ...data,
-                                symbol: indicator.symbol,
-                                market: 'Forex Market',
-                                country: indicator.country || extractCountryFromSymbol(indicator.symbol) || 'EU'
-                            };
-                        }
-                    } catch (error) {
-                        console.error(`Error loading ${indicator.symbol}:`, error);
-                    }
-                }
-                
-                currentData.forex = forexData;
-                
-                if (Object.keys(forexData).length > 0) {
-                    displayDataGrid('forexGrid', forexData, 'Forex Market');
-                } else {
-                    grid.innerHTML = '<div class="message">No specific forex market indicators found. Check overview for foreign currency claims data.</div>';
-                }
-                
-            } catch (error) {
-                console.error('Error loading forex data:', error);
-                showError('forexGrid', 'Failed to load forex data');
-            }
-        }
-        
-        // NEW: Load unemployment data
-        async function loadUnemploymentData() {
-            const grid = document.getElementById('unemploymentGrid');
-            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
-            
-            try {
-                console.log('Loading ALL unemployment data...');
-                
-                // Look for unemployment indicators
-                const unemploymentKeywords = ['UNEMP', 'UNEMPLOYMENT', 'JOBLESS', 'LABOR', 'LABOUR', 'EMPLOY'];
-                const unemploymentIndicators = currentData.allIndicators.filter(ind => {
-                    if (!ind.symbol) return false;
-                    const upperSymbol = ind.symbol.toUpperCase();
-                    return unemploymentKeywords.some(keyword => upperSymbol.includes(keyword));
-                });
-                
-                console.log(`Found ${unemploymentIndicators.length} unemployment indicators`);
-                
-                const unemploymentData = {};
-                for (const indicator of unemploymentIndicators) {
-                    try {
-                        const dataUrl = `${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`;
-                        const response = await fetch(dataUrl);
-                        if (response.ok) {
-                            const data = await response.json();
-                            unemploymentData[indicator.symbol] = {
-                                ...data,
-                                symbol: indicator.symbol,
-                                type: 'Unemployment',
-                                country: indicator.country || extractCountryFromSymbol(indicator.symbol) || 'EU'
-                            };
-                        }
-                    } catch (error) {
-                        console.error(`Error loading ${indicator.symbol}:`, error);
-                    }
-                }
-                
-                currentData.unemployment = unemploymentData;
-                
-                if (Object.keys(unemploymentData).length > 0) {
-                    displayDataGrid('unemploymentGrid', unemploymentData, 'Unemployment');
-                    updateUnemploymentChart(unemploymentData);
-                } else {
-                    grid.innerHTML = '<div class="message">No unemployment indicators found in ECB dataset. This data may need to be added from external sources.</div>';
-                }
-                
-            } catch (error) {
-                console.error('Error loading unemployment data:', error);
-                showError('unemploymentGrid', 'Failed to load unemployment data');
-            }
-        }
-        
-        // Helper function to extract country from symbol
-        function extractCountryFromSymbol(symbol) {
-            const match = symbol.match(/\.([A-Z]{2})\./);
-            if (match) {
-                const countryCode = match[1];
-                const countryMap = {
-                    'DE': 'Germany', 'FR': 'France', 'IT': 'Italy', 'ES': 'Spain',
-                    'NL': 'Netherlands', 'BE': 'Belgium', 'AT': 'Austria', 'PT': 'Portugal',
-                    'GR': 'Greece', 'FI': 'Finland', 'IE': 'Ireland', 'LU': 'Luxembourg',
-                    'SI': 'Slovenia', 'SK': 'Slovakia', 'EE': 'Estonia', 'LV': 'Latvia',
-                    'LT': 'Lithuania', 'MT': 'Malta', 'CY': 'Cyprus', 'US': 'United States',
-                    'CN': 'China', 'JP': 'Japan', 'GB': 'United Kingdom', 'CH': 'Switzerland'
-                };
-                return countryMap[countryCode] || countryCode;
-            }
-            return null;
-        }
-        
-        // Display sector-specific grid
-        function displaySectorGrid(gridId, sectorData) {
-            const grid = document.getElementById(gridId);
-            grid.innerHTML = '';
-            
-            // Group by sector
-            const sectors = {};
-            for (const [key, data] of Object.entries(sectorData)) {
-                const sector = data.sector || 'Other';
-                if (!sectors[sector]) sectors[sector] = [];
-                sectors[sector].push(data);
-            }
-            
-            // Display each sector group
-            for (const [sectorName, indicators] of Object.entries(sectors)) {
-                // Create sector header
-                const sectorHeader = document.createElement('div');
-                sectorHeader.style.cssText = 'grid-column: 1 / -1; padding: 1rem; background: rgba(0, 255, 136, 0.1); border-radius: 8px; margin: 1rem 0;';
-                sectorHeader.innerHTML = `<h3>${sectorName} Risk (${indicators.length} indicators)</h3>`;
-                grid.appendChild(sectorHeader);
-                
-                // Display indicators in this sector
-                indicators.forEach(data => {
-                    const card = document.createElement('div');
-                    card.className = 'data-card';
-                    
-                    const formattedValue = data.value ? (data.value * 100).toFixed(3) + '%' : 'N/A';
-                    const riskLevel = data.value < 0.10 ? 'LOW' : data.value < 0.20 ? 'MEDIUM' : 'HIGH';
-                    const riskClass = riskLevel.toLowerCase();
-                    
-                    card.innerHTML = `
-                        <div class="data-card-header">
-                            <div class="data-title">${data.symbol}</div>
-                            <div class="data-source">${sectorName}</div>
-                        </div>
-                        <div class="data-value ${riskClass === 'low' ? 'positive' : riskClass === 'medium' ? 'neutral' : 'negative'}">
-                            ${formattedValue}
-                        </div>
-                        <div class="data-change">
-                            <span class="risk-${riskClass}">Risk: ${riskLevel}</span>
-                        </div>
-                    `;
-                    
-                    grid.appendChild(card);
-                });
+                card.onclick = () => showHistoricalData(data.symbol, `${country} CISS`);
+                grid.appendChild(card);
             }
         }
         
         // Update unemployment chart
         function updateUnemploymentChart(unemploymentData) {
-            if (!document.getElementById('unemploymentChart')) {
-                const container = document.querySelector('#unemployment .chart-container');
-                const chartDiv = document.createElement('div');
-                chartDiv.id = 'unemploymentChart';
-                chartDiv.style.height = '500px';
-                container.appendChild(chartDiv);
-            }
+            const chartDiv = document.getElementById('unemploymentChart');
+            if (!chartDiv) return;
             
             const countries = [];
             const values = [];
+            const colors = [];
             
-            for (const [key, data] of Object.entries(unemploymentData)) {
+            for (const [code, data] of Object.entries(unemploymentData)) {
                 if (data && data.value !== null) {
-                    countries.push(data.country || key);
+                    const country = data.country || code;
+                    countries.push(ECB_CONFIG.countryFlags[country] + ' ' + country);
                     values.push(data.value);
+                    colors.push(data.value > 10 ? '#ff4444' : data.value > 7 ? '#ffaa00' : '#00ff88');
                 }
             }
             
@@ -2199,603 +1783,77 @@
                 x: countries,
                 y: values,
                 type: 'bar',
-                marker: {
-                    color: values.map(v => v < 5 ? '#00ff88' : v < 10 ? '#ffaa00' : '#ff4444')
-                }
+                marker: { color: colors },
+                text: values.map(v => v.toFixed(1) + '%'),
+                textposition: 'outside'
             };
             
-            Plotly.newPlot('unemploymentChart', [trace], {
-                title: 'Unemployment Rates by Country',
+            const layout = {
+                title: 'EU Unemployment Rates by Country',
                 paper_bgcolor: 'rgba(0, 0, 0, 0)',
                 plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
                 font: { color: '#fff' },
+                xaxis: {
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' }
+                },
                 yaxis: {
                     title: 'Unemployment Rate (%)',
-                    gridcolor: 'rgba(255, 255, 255, 0.1)'
-                }
-            });
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' },
+                    range: [0, Math.max(...values) * 1.2]
+                },
+                showlegend: false
+            };
+            
+            Plotly.newPlot('unemploymentChart', [trace], layout, {responsive: true});
         }
         
-        // Load ECB overview data
-        async function loadOverviewData() {
-            try {
-                console.log('Loading ECB overview data...');
-                
-                // First, get the list of all indicators
-                const listUrl = ECB_CONFIG.ECB_API.baseUrl + ECB_CONFIG.ECB_API.endpoints.list;
-                console.log('Fetching list from:', listUrl);
-                
-                const listResponse = await fetch(listUrl);
-                const listData = await listResponse.json();
-                console.log('List response:', listData);
-                
-                // Store all indicators
-                if (listData.indicators && Array.isArray(listData.indicators)) {
-                    currentData.allIndicators = listData.indicators;
-                    console.log(`Loaded ${listData.indicators.length} indicators`);
-                    
-                    // Load MAIN risk indicators including Euro Area, US, China
-                    const mainRiskSymbols = [
-                        // Euro Area systemic risk
-                        'ECB.CISS.M.U2.Z0Z.4F.EC.SOV_CI.IDX',
-                        'ECB.CISS.M.EA.Z0Z.4F.EC.SOV_CI.IDX',
-                        // US systemic risk  
-                        'ECB.CISS.M.US.Z0Z.4F.EC.SOV_CI.IDX',
-                        // China systemic risk
-                        'ECB.CISS.M.CN.Z0Z.4F.EC.SOV_CI.IDX',
-                        // Key country CISS
-                        'ECB.CISS.M.DE.Z0Z.4F.EC.SOV_CI.IDX',
-                        'ECB.CISS.M.FR.Z0Z.4F.EC.SOV_CI.IDX',
-                        'ECB.CISS.M.IT.Z0Z.4F.EC.SOV_CI.IDX',
-                        'ECB.CISS.M.ES.Z0Z.4F.EC.SOV_CI.IDX',
-                        'ECB.CISS.M.NL.Z0Z.4F.EC.SOV_CI.IDX',
-                        'ECB.CISS.M.BE.Z0Z.4F.EC.SOV_CI.IDX'
-                    ];
-                    
-                    // Also look for foreign currency claims indicator
-                    const foreignCurrencyIndicator = listData.indicators.find(ind => 
-                        ind.symbol && (
-                            ind.symbol.includes('foreign currency') ||
-                            ind.symbol.includes('FOREIGN') ||
-                            ind.symbol.includes('FX_CLAIMS') ||
-                            ind.symbol.includes('FC_CLAIMS')
-                        )
-                    );
-                    
-                    if (foreignCurrencyIndicator) {
-                        mainRiskSymbols.push(foreignCurrencyIndicator.symbol);
-                    }
-                    
-                    const countryData = {};
-                    
-                    // Try to load each main risk indicator
-                    for (const symbol of mainRiskSymbols) {
-                        try {
-                            // First check if this symbol exists in our list
-                            const indicator = listData.indicators.find(ind => ind.symbol === symbol);
-                            
-                            if (indicator) {
-                                const dataUrl = `${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${symbol}`;
-                                console.log('Fetching main indicator:', dataUrl);
-                                
-                                const response = await fetch(dataUrl);
-                                if (response.ok) {
-                                    const data = await response.json();
-                                    console.log(`Data for ${symbol}:`, data);
-                                    
-                                    // Determine country/region code
-                                    let code = 'OTHER';
-                                    if (symbol.includes('.DE.')) code = 'DE';
-                                    else if (symbol.includes('.FR.')) code = 'FR';
-                                    else if (symbol.includes('.IT.')) code = 'IT';
-                                    else if (symbol.includes('.ES.')) code = 'ES';
-                                    else if (symbol.includes('.NL.')) code = 'NL';
-                                    else if (symbol.includes('.BE.')) code = 'BE';
-                                    else if (symbol.includes('.U2.') || symbol.includes('.EA.')) code = 'EA';
-                                    else if (symbol.includes('.US.')) code = 'US';
-                                    else if (symbol.includes('.CN.')) code = 'CN';
-                                    else if (symbol.includes('foreign') || symbol.includes('FOREIGN')) code = 'FX_CLAIMS';
-                                    
-                                    countryData[code] = {
-                                        ...data,
-                                        symbol: symbol,
-                                        country: indicator.country || code,
-                                        historical_data: data.historical_data || []
-                                    };
-                                }
-                            }
-                        } catch (error) {
-                            console.error(`Error loading ${symbol}:`, error);
-                        }
-                    }
-                    
-                    // If we couldn't find specific indicators, load any CISS indicators available
-                    if (Object.keys(countryData).length === 0) {
-                        const cissIndicators = listData.indicators.filter(ind => 
-                            ind.symbol && ind.symbol.includes('CISS')
-                        ).slice(0, 10);
-                        
-                        for (const indicator of cissIndicators) {
-                            try {
-                                const dataUrl = `${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`;
-                                const response = await fetch(dataUrl);
-                                if (response.ok) {
-                                    const data = await response.json();
-                                    const code = indicator.symbol.split('.')[3] || indicator.symbol;
-                                    countryData[code] = {
-                                        ...data,
-                                        symbol: indicator.symbol,
-                                        country: indicator.country || code,
-                                        historical_data: data.historical_data || []
-                                    };
-                                }
-                            } catch (error) {
-                                console.error(`Error loading ${indicator.symbol}:`, error);
-                            }
-                        }
-                    }
-                    
-                    currentData.overview = countryData;
-                    console.log('Country data loaded:', countryData);
-                    
-                    // Update UI
-                    updateKeyMetrics(countryData);
-                    updateMainChart(countryData);
-                    detectMarketPhase();
-                    
-                } else {
-                    console.error('No indicators found in response');
-                    // Use comprehensive fallback data
-                    const fallbackData = {
-                        'EA': { symbol: 'ECB.CISS.M.EA', value: 0.104, country: 'Euro Area', observations: 296 },
-                        'US': { symbol: 'ECB.CISS.M.US', value: 0.125, country: 'United States', observations: 296 },
-                        'CN': { symbol: 'ECB.CISS.M.CN', value: 0.089, country: 'China', observations: 296 },
-                        'DE': { symbol: 'ECB.CISS.M.DE', value: 0.047887, country: 'Germany', observations: 296 },
-                        'FR': { symbol: 'ECB.CISS.M.FR', value: 0.052, country: 'France', observations: 296 },
-                        'IT': { symbol: 'ECB.CISS.M.IT', value: 0.06679, country: 'Italy', observations: 296 },
-                        'FX_CLAIMS': { symbol: 'ECB.FX.CLAIMS', value: 1250.5, country: 'FX Claims (€B)', observations: 52 }
-                    };
-                    
-                    currentData.overview = fallbackData;
-                    updateKeyMetrics(fallbackData);
-                    updateMainChart(fallbackData);
-                    detectMarketPhase();
-                }
-                
-            } catch (error) {
-                console.error('Error loading overview:', error);
-                
-                // Use comprehensive fallback data on error
-                const fallbackData = {
-                    'EA': { symbol: 'ECB.CISS.M.EA', value: 0.104, country: 'Euro Area', observations: 296 },
-                    'US': { symbol: 'ECB.CISS.M.US', value: 0.125, country: 'United States', observations: 296 },
-                    'CN': { symbol: 'ECB.CISS.M.CN', value: 0.089, country: 'China', observations: 296 },
-                    'DE': { symbol: 'ECB.CISS.M.DE', value: 0.047887, country: 'Germany', observations: 296 },
-                    'FR': { symbol: 'ECB.CISS.M.FR', value: 0.052, country: 'France', observations: 296 },
-                    'IT': { symbol: 'ECB.CISS.M.IT', value: 0.06679, country: 'Italy', observations: 296 }
-                };
-                
-                currentData.overview = fallbackData;
-                updateKeyMetrics(fallbackData);
-                updateMainChart(fallbackData);
-                detectMarketPhase();
-            }
-        }
-        
-        // Load risk assessment - FIXED to use actual API
+        // Load risk assessment
         async function loadRiskAssessment() {
             try {
                 console.log('Loading risk assessment...');
                 const url = ECB_CONFIG.ECB_API.baseUrl + ECB_CONFIG.ECB_API.endpoints.riskAssessment;
-                console.log('Risk assessment URL:', url);
                 
                 const response = await fetch(url);
-                console.log('Risk response:', response);
-                
                 if (response.ok) {
                     const data = await response.json();
                     console.log('Risk assessment data:', data);
                     
                     currentData.riskAssessment = data;
-                    
-                    // Update risk level indicator
                     updateRiskLevel(data);
-                    
-                    // Display country risk grid
-                    if (data.country_risks && data.country_risks.length > 0) {
-                        displayCountryRiskGrid(data);
-                    } else {
-                        // Create risk data from available CISS indicators
-                        createRiskAssessmentFromCISS();
-                    }
-                    
-                    // Calculate ECB-specific predictions
+                    displayCountryRiskGrid(data);
                     calculateECBPredictions(data);
-                } else {
-                    console.log('Risk assessment endpoint not available, creating from CISS data');
-                    createRiskAssessmentFromCISS();
                 }
-                
             } catch (error) {
                 console.error('Error loading risk assessment:', error);
-                createRiskAssessmentFromCISS();
             }
         }
         
-        // Create risk assessment from CISS data if endpoint not available
-        async function createRiskAssessmentFromCISS() {
-            try {
-                // Known CISS indicators from your documentation
-                const knownCISS = [
-                    { symbol: 'ECB.CISS.M.DE.Z0Z.4F.EC.SOV_CI.IDX', country: 'Germany', value: 0.047887 },
-                    { symbol: 'ECB.CISS.M.IT.Z0Z.4F.EC.SOV_CI.IDX', country: 'Italy', value: 0.06679 },
-                    { symbol: 'ECB.CISS.M.FI.Z0Z.4F.EC.SOV_CI.IDX', country: 'Finland', value: 0.226894 },
-                    { symbol: 'ECB.CISS.M.FR.Z0Z.4F.EC.SOV_CI.IDX', country: 'France', value: 0.052 },
-                    { symbol: 'ECB.CISS.M.ES.Z0Z.4F.EC.SOV_CI.IDX', country: 'Spain', value: 0.089 },
-                    { symbol: 'ECB.CISS.M.BE.Z0Z.4F.EC.SOV_CI.IDX', country: 'Belgium', value: 0.154247 },
-                    { symbol: 'ECB.CISS.M.AT.Z0Z.4F.EC.SOV_CI.IDX', country: 'Austria', value: 0.208847 },
-                    { symbol: 'ECB.CISS.M.NL.Z0Z.4F.EC.SOV_CI.IDX', country: 'Netherlands', value: 0.041 },
-                    { symbol: 'ECB.CISS.M.GR.Z0Z.4F.EC.SOV_CI.IDX', country: 'Greece', value: 0.039893 },
-                    { symbol: 'ECB.CISS.M.PT.Z0Z.4F.EC.SOV_CI.IDX', country: 'Portugal', value: 0.045 },
-                    { symbol: 'ECB.CISS.M.SI.Z0Z.4F.EC.SOV_CI.IDX', country: 'Slovenia', value: 0.108959 }
-                ];
-                
-                const country_risks = [];
-                let totalStress = 0;
-                
-                // Try to fetch each CISS indicator
-                for (const ciss of knownCISS) {
-                    try {
-                        const url = `${ECB_CONFIG.ECB_API.baseUrl}/data/${ciss.symbol}`;
-                        const response = await fetch(url);
-                        
-                        if (response.ok) {
-                            const data = await response.json();
-                            const value = data.value || ciss.value;
-                            country_risks.push({
-                                country: ciss.country,
-                                value: value,
-                                risk: value < 0.10 ? 'LOW' : value < 0.20 ? 'MEDIUM' : 'HIGH'
-                            });
-                            totalStress += value;
-                        } else {
-                            // Use fallback value
-                            country_risks.push({
-                                country: ciss.country,
-                                value: ciss.value,
-                                risk: ciss.value < 0.10 ? 'LOW' : ciss.value < 0.20 ? 'MEDIUM' : 'HIGH'
-                            });
-                            totalStress += ciss.value;
-                        }
-                    } catch (error) {
-                        // Use fallback value on error
-                        country_risks.push({
-                            country: ciss.country,
-                            value: ciss.value,
-                            risk: ciss.value < 0.10 ? 'LOW' : ciss.value < 0.20 ? 'MEDIUM' : 'HIGH'
-                        });
-                        totalStress += ciss.value;
-                    }
-                }
-                
-                // Sort by risk level
-                country_risks.sort((a, b) => b.value - a.value);
-                
-                const avgStress = totalStress / country_risks.length;
-                const riskLevel = avgStress > 0.15 ? 'HIGH' : avgStress > 0.10 ? 'MEDIUM' : 'LOW';
-                
-                const riskAssessment = {
-                    systemic_risk: riskLevel,
-                    average_stress: avgStress,
-                    total_countries: country_risks.length,
-                    country_risks: country_risks
-                };
-                
-                currentData.riskAssessment = riskAssessment;
-                updateRiskLevel(riskAssessment);
-                displayCountryRiskGrid(riskAssessment);
-                calculateECBPredictions(riskAssessment);
-                
-            } catch (error) {
-                console.error('Error creating risk assessment:', error);
-            }
-        }
-        
-        // Load countries data - SIMPLIFIED AND FIXED
-        async function loadCountriesData() {
-            const grid = document.getElementById('countriesGrid');
-            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
-            
-            try {
-                console.log('Loading country CISS data...');
-                
-                // First try to get the list of indicators
-                const listUrl = `${ECB_CONFIG.ECB_API.baseUrl}/list`;
-                console.log('Fetching indicator list from:', listUrl);
-                
-                let allIndicators = [];
-                
-                try {
-                    const listResponse = await fetch(listUrl);
-                    if (listResponse.ok) {
-                        const listData = await listResponse.json();
-                        console.log('List response:', listData);
-                        
-                        if (listData.indicators && Array.isArray(listData.indicators)) {
-                            allIndicators = listData.indicators;
-                        }
-                    }
-                } catch (listError) {
-                    console.error('Error fetching list:', listError);
-                }
-                
-                // If we couldn't get the list, use known CISS indicators
-                if (allIndicators.length === 0) {
-                    console.log('Using known CISS indicators');
-                    allIndicators = [
-                        { symbol: 'ECB.CISS.M.DE.Z0Z.4F.EC.SOV_CI.IDX', country: 'Germany' },
-                        { symbol: 'ECB.CISS.M.IT.Z0Z.4F.EC.SOV_CI.IDX', country: 'Italy' },
-                        { symbol: 'ECB.CISS.M.FI.Z0Z.4F.EC.SOV_CI.IDX', country: 'Finland' },
-                        { symbol: 'ECB.CISS.M.FR.Z0Z.4F.EC.SOV_CI.IDX', country: 'France' },
-                        { symbol: 'ECB.CISS.M.ES.Z0Z.4F.EC.SOV_CI.IDX', country: 'Spain' },
-                        { symbol: 'ECB.CISS.M.BE.Z0Z.4F.EC.SOV_CI.IDX', country: 'Belgium' },
-                        { symbol: 'ECB.CISS.M.AT.Z0Z.4F.EC.SOV_CI.IDX', country: 'Austria' },
-                        { symbol: 'ECB.CISS.M.NL.Z0Z.4F.EC.SOV_CI.IDX', country: 'Netherlands' },
-                        { symbol: 'ECB.CISS.M.GR.Z0Z.4F.EC.SOV_CI.IDX', country: 'Greece' },
-                        { symbol: 'ECB.CISS.M.PT.Z0Z.4F.EC.SOV_CI.IDX', country: 'Portugal' },
-                        { symbol: 'ECB.CISS.M.SI.Z0Z.4F.EC.SOV_CI.IDX', country: 'Slovenia' }
-                    ];
-                }
-                
-                // Filter for CISS indicators
-                const cissIndicators = allIndicators.filter(ind => 
-                    ind.symbol && ind.symbol.includes('CISS')
-                );
-                
-                console.log(`Found ${cissIndicators.length} CISS indicators`);
-                
-                const countryData = {};
-                let loadedCount = 0;
-                
-                // Try to load each CISS indicator
-                for (const indicator of cissIndicators) {
-                    try {
-                        const dataUrl = `${ECB_CONFIG.ECB_API.baseUrl}/data/${indicator.symbol}`;
-                        console.log(`Fetching: ${dataUrl}`);
-                        
-                        const response = await fetch(dataUrl);
-                        if (response.ok) {
-                            const data = await response.json();
-                            console.log(`Loaded ${indicator.symbol}:`, data);
-                            
-                            countryData[indicator.symbol] = {
-                                ...data,
-                                symbol: indicator.symbol,
-                                country: indicator.country || extractCountryFromSymbol(indicator.symbol) || 'Unknown'
-                            };
-                            loadedCount++;
-                        }
-                    } catch (error) {
-                        console.error(`Error loading ${indicator.symbol}:`, error);
-                    }
-                }
-                
-                console.log(`Successfully loaded ${loadedCount} CISS indicators`);
-                
-                // If no data loaded, show known values
-                if (Object.keys(countryData).length === 0) {
-                    console.log('No data from API, using fallback values');
-                    
-                    // Use known CISS values from documentation
-                    const fallbackData = {
-                        'ECB.CISS.M.DE.Z0Z.4F.EC.SOV_CI.IDX': { 
-                            symbol: 'ECB.CISS.M.DE.Z0Z.4F.EC.SOV_CI.IDX',
-                            value: 0.047887, 
-                            country: 'Germany', 
-                            observations: 296,
-                            date: '2025-08'
-                        },
-                        'ECB.CISS.M.IT.Z0Z.4F.EC.SOV_CI.IDX': { 
-                            symbol: 'ECB.CISS.M.IT.Z0Z.4F.EC.SOV_CI.IDX',
-                            value: 0.06679, 
-                            country: 'Italy', 
-                            observations: 296,
-                            date: '2025-08'
-                        },
-                        'ECB.CISS.M.FI.Z0Z.4F.EC.SOV_CI.IDX': { 
-                            symbol: 'ECB.CISS.M.FI.Z0Z.4F.EC.SOV_CI.IDX',
-                            value: 0.226894, 
-                            country: 'Finland', 
-                            observations: 296,
-                            date: '2025-08'
-                        },
-                        'ECB.CISS.M.FR.Z0Z.4F.EC.SOV_CI.IDX': { 
-                            symbol: 'ECB.CISS.M.FR.Z0Z.4F.EC.SOV_CI.IDX',
-                            value: 0.052, 
-                            country: 'France', 
-                            observations: 296,
-                            date: '2025-08'
-                        },
-                        'ECB.CISS.M.ES.Z0Z.4F.EC.SOV_CI.IDX': { 
-                            symbol: 'ECB.CISS.M.ES.Z0Z.4F.EC.SOV_CI.IDX',
-                            value: 0.089, 
-                            country: 'Spain', 
-                            observations: 296,
-                            date: '2025-08'
-                        },
-                        'ECB.CISS.M.BE.Z0Z.4F.EC.SOV_CI.IDX': { 
-                            symbol: 'ECB.CISS.M.BE.Z0Z.4F.EC.SOV_CI.IDX',
-                            value: 0.154247, 
-                            country: 'Belgium', 
-                            observations: 296,
-                            date: '2025-08'
-                        },
-                        'ECB.CISS.M.AT.Z0Z.4F.EC.SOV_CI.IDX': { 
-                            symbol: 'ECB.CISS.M.AT.Z0Z.4F.EC.SOV_CI.IDX',
-                            value: 0.208847, 
-                            country: 'Austria', 
-                            observations: 296,
-                            date: '2025-08'
-                        },
-                        'ECB.CISS.M.NL.Z0Z.4F.EC.SOV_CI.IDX': { 
-                            symbol: 'ECB.CISS.M.NL.Z0Z.4F.EC.SOV_CI.IDX',
-                            value: 0.041, 
-                            country: 'Netherlands', 
-                            observations: 296,
-                            date: '2025-08'
-                        },
-                        'ECB.CISS.M.GR.Z0Z.4F.EC.SOV_CI.IDX': { 
-                            symbol: 'ECB.CISS.M.GR.Z0Z.4F.EC.SOV_CI.IDX',
-                            value: 0.039893, 
-                            country: 'Greece', 
-                            observations: 296,
-                            date: '2025-08'
-                        },
-                        'ECB.CISS.M.PT.Z0Z.4F.EC.SOV_CI.IDX': { 
-                            symbol: 'ECB.CISS.M.PT.Z0Z.4F.EC.SOV_CI.IDX',
-                            value: 0.045, 
-                            country: 'Portugal', 
-                            observations: 296,
-                            date: '2025-08'
-                        },
-                        'ECB.CISS.M.SI.Z0Z.4F.EC.SOV_CI.IDX': { 
-                            symbol: 'ECB.CISS.M.SI.Z0Z.4F.EC.SOV_CI.IDX',
-                            value: 0.108959, 
-                            country: 'Slovenia', 
-                            observations: 296,
-                            date: '2025-08'
-                        }
-                    };
-                    
-                    currentData.countries = fallbackData;
-                    displayCountryCISSGrid('countriesGrid', fallbackData);
-                } else {
-                    currentData.countries = countryData;
-                    displayCountryCISSGrid('countriesGrid', countryData);
-                }
-                
-                // Update chart
-                updateCountryChart(currentData.countries);
-                
-            } catch (error) {
-                console.error('Error loading countries data:', error);
-                
-                // Show error with API test commands
-                grid.innerHTML = `
-                    <div class="message error-message">
-                        <h3>Failed to load CISS data</h3>
-                        <p>Error: ${error.message}</p>
-                        <br>
-                        <p><strong>Test your API with these commands:</strong></p>
-                        <pre style="background: rgba(0,0,0,0.5); padding: 1rem; border-radius: 8px; margin: 1rem 0;">
-# Test API health
-curl ${ECB_CONFIG.ECB_API.baseUrl}/health
-
-# Get list of indicators
-curl ${ECB_CONFIG.ECB_API.baseUrl}/list
-
-# Get specific CISS data
-curl ${ECB_CONFIG.ECB_API.baseUrl}/data/ECB.CISS.M.DE.Z0Z.4F.EC.SOV_CI.IDX
-                        </pre>
-                        <p>If API is not accessible, check:</p>
-                        <ul>
-                            <li>API Gateway is running</li>
-                            <li>Lambda function 'ecb' is deployed</li>
-                            <li>S3 bucket has ecb_data.json</li>
-                        </ul>
-                    </div>`;
-            }
-        }
-        
-        // Update key metrics with ECB data
+        // Update key metrics
         function updateKeyMetrics(countryData) {
             const metricsGrid = document.getElementById('keyMetrics');
             if (!metricsGrid) return;
             
             metricsGrid.innerHTML = '';
             
-            // Priority order for display (Euro Area, US, China first, then EU countries)
-            const priorityOrder = ['EA', 'US', 'CN', 'FX_CLAIMS', 'DE', 'FR', 'IT', 'ES', 'NL', 'BE'];
+            // Sort by CISS value
+            const sortedEntries = Object.entries(countryData).sort((a, b) => 
+                (b[1].value || 0) - (a[1].value || 0)
+            );
             
-            const countryNames = {
-                'EA': 'Euro Area',
-                'US': 'United States',
-                'CN': 'China',
-                'FX_CLAIMS': 'FX Claims',
-                'DE': 'Germany',
-                'FR': 'France', 
-                'IT': 'Italy',
-                'ES': 'Spain',
-                'NL': 'Netherlands',
-                'BE': 'Belgium'
-            };
-            
-            const countryFlagsExtended = {
-                ...ECB_CONFIG.countryFlags,
-                'Euro Area': '🇪🇺',
-                'United States': '🇺🇸',
-                'China': '🇨🇳',
-                'FX Claims': '💱'
-            };
-            
-            // Add custom metrics to the display
-            currentData.customMetrics.forEach(custom => {
-                if (custom.category === 'overview') {
-                    const customKey = custom.symbol.split('.').pop();
-                    countryNames[customKey] = custom.name;
-                }
-            });
-            
-            // Sort data by priority order
-            const sortedEntries = Object.entries(countryData).sort((a, b) => {
-                const indexA = priorityOrder.indexOf(a[0]);
-                const indexB = priorityOrder.indexOf(b[0]);
-                if (indexA === -1 && indexB === -1) return 0;
-                if (indexA === -1) return 1;
-                if (indexB === -1) return -1;
-                return indexA - indexB;
-            });
-            
-            for (const [code, data] of sortedEntries) {
+            for (const [code, data] of sortedEntries.slice(0, 12)) {
                 const card = document.createElement('div');
                 card.className = 'metric-card';
-                card.dataset.key = data.symbol;
-                card.dataset.value = data.value;
                 
-                const countryName = countryNames[code] || data.country || code;
-                const flag = countryFlagsExtended[countryName] || ECB_CONFIG.countryFlags[countryName] || '🌍';
-                
-                // Special handling for FX Claims - different value format
-                let formattedValue, interpretation, riskLevel;
-                
-                if (code === 'FX_CLAIMS') {
-                    // FX Claims in billions
-                    formattedValue = `€${(data.value / 1000).toFixed(1)}T`;
-                    interpretation = data.value > 1500 ? '🔴 Very high FX exposure' : 
-                                   data.value > 1000 ? '🟠 Elevated FX exposure' : 
-                                   '🟢 Normal FX exposure';
-                    riskLevel = data.value > 1500 ? 'HIGH' : data.value > 1000 ? 'MEDIUM' : 'LOW';
-                } else {
-                    // Regular CISS values
-                    formattedValue = (data.value * 100).toFixed(2) + '%';
-                    interpretation = interpretations.CISS(data.value, countryName);
-                    riskLevel = data.value < 0.10 ? 'LOW' : data.value < 0.20 ? 'MEDIUM' : 'HIGH';
-                }
-                
-                // Check for spikes
-                const changePercent = ((data.value - 0.10) / 0.10 * 100);
-                if (Math.abs(changePercent) > 50 && code !== 'FX_CLAIMS') {
-                    card.classList.add(changePercent < 0 ? 'spike-alert-good' : 'spike-alert-bad');
-                }
-                
-                // Get custom name or use default
-                const displayName = currentData.customNames[data.symbol] || `${flag} ${countryName} ${code === 'FX_CLAIMS' ? '' : 'CISS'}`;
+                const country = data.country || code;
+                const flag = ECB_CONFIG.countryFlags[country] || '🇪🇺';
+                const value = data.value || 0;
+                const formattedValue = (value * 100).toFixed(2) + '%';
+                const riskLevel = value < 0.10 ? 'LOW' : value < 0.20 ? 'MEDIUM' : 'HIGH';
                 
                 card.innerHTML = `
-                    <button class="edit-btn" onclick="editMetricName('${data.symbol}', '${displayName}')">✏️</button>
-                    <div class="metric-title metric-title-editable" onclick="showHistoricalData('${data.symbol}', '${displayName}')">
-                        ${displayName}
-                    </div>
+                    <div class="metric-title">${flag} ${country} CISS</div>
                     <div class="metric-value ${riskLevel === 'LOW' ? 'positive' : riskLevel === 'MEDIUM' ? 'neutral' : 'negative'}">
                         ${formattedValue}
                     </div>
@@ -2803,23 +1861,23 @@ curl ${ECB_CONFIG.ECB_API.baseUrl}/data/ECB.CISS.M.DE.Z0Z.4F.EC.SOV_CI.IDX
                         <span>Risk: ${riskLevel}</span>
                     </div>
                     <div class="metric-interpretation">
-                        ${interpretation}
+                        ${interpretations.CISS(value, country)}
                     </div>
                 `;
                 
+                card.onclick = () => showHistoricalData(data.symbol, `${country} CISS`);
                 metricsGrid.appendChild(card);
             }
         }
         
-        // Update risk level from ECB data
+        // Update risk level
         function updateRiskLevel(riskAssessment) {
             const riskElement = document.getElementById('riskLevel');
             const level = riskAssessment.systemic_risk || 'UNKNOWN';
             
             riskElement.textContent = level;
-            
-            // Update class based on risk level
             riskElement.className = 'risk-level';
+            
             if (level === 'LOW') riskElement.classList.add('risk-low');
             else if (level === 'MEDIUM') riskElement.classList.add('risk-medium');
             else if (level === 'HIGH') riskElement.classList.add('risk-high');
@@ -2834,7 +1892,7 @@ curl ${ECB_CONFIG.ECB_API.baseUrl}/data/ECB.CISS.M.DE.Z0Z.4F.EC.SOV_CI.IDX
             grid.innerHTML = '';
             
             if (!riskData.country_risks || riskData.country_risks.length === 0) {
-                grid.innerHTML = '<div class="message error-message">No risk data available</div>';
+                grid.innerHTML = '<div class="message">Loading risk assessment...</div>';
                 return;
             }
             
@@ -2859,20 +1917,17 @@ curl ${ECB_CONFIG.ECB_API.baseUrl}/data/ECB.CISS.M.DE.Z0Z.4F.EC.SOV_CI.IDX
                     </span>
                 `;
                 
-                card.onclick = () => showCountryDetails(country.country);
                 grid.appendChild(card);
             });
         }
         
-        // Calculate ECB-specific predictions
+        // Calculate ECB predictions
         function calculateECBPredictions(riskData) {
             const avgStress = riskData.average_stress || 0.10;
             const highestRisk = riskData.country_risks?.[0] || { country: 'Unknown', value: 0 };
             
-            // Predict next week's EU average CISS (simple trend)
             const predictedCiss = (avgStress * 100 * (1 + (Math.random() - 0.5) * 0.1)).toFixed(1);
             
-            // Calculate crisis probability based on current stress levels
             let crisisProbability = 0;
             if (avgStress > 0.20) crisisProbability = 50;
             else if (avgStress > 0.15) crisisProbability = 25;
@@ -2880,25 +1935,17 @@ curl ${ECB_CONFIG.ECB_API.baseUrl}/data/ECB.CISS.M.DE.Z0Z.4F.EC.SOV_CI.IDX
             else if (avgStress > 0.05) crisisProbability = 5;
             else crisisProbability = 2.3;
             
-            // Update predictions display
             document.getElementById('euCissPrediction').textContent = predictedCiss + '%';
             document.getElementById('highestRiskCountry').textContent = highestRisk.country;
             document.getElementById('crisisProbability').textContent = crisisProbability.toFixed(1) + '%';
-            
-            currentData.predictions = {
-                avgCiss: predictedCiss,
-                highestRisk: highestRisk.country,
-                crisisProbability: crisisProbability
-            };
         }
         
-        // Detect market phase based on ECB data
+        // Detect market phase
         function detectMarketPhase() {
             const banner = document.getElementById('marketPhaseBanner');
             if (!banner) return;
             
             const avgStress = currentData.riskAssessment?.average_stress || 0;
-            const riskLevel = currentData.riskAssessment?.systemic_risk || 'UNKNOWN';
             
             let phase = '';
             let bannerClass = '';
@@ -2920,1043 +1967,46 @@ curl ${ECB_CONFIG.ECB_API.baseUrl}/data/ECB.CISS.M.DE.Z0Z.4F.EC.SOV_CI.IDX
                 bannerClass = 'bear-phase';
             }
             
-            // Add specific country warnings
-            const highRiskCountries = currentData.riskAssessment?.country_risks?.filter(c => c.risk === 'HIGH') || [];
-            if (highRiskCountries.length > 0) {
-                phase += ` | ⚠️ ${highRiskCountries.map(c => c.country).join(', ')} AT HIGH RISK`;
-            }
-            
             banner.textContent = phase;
             banner.className = `market-phase-banner ${bannerClass}`;
         }
         
-        // Load countries data
-        async function loadCountriesData() {
-            const grid = document.getElementById('countriesGrid');
-            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
-            
-            try {
-                console.log('Loading countries data...');
-                
-                // Get all indicators that have country codes
-                const countryIndicators = currentData.allIndicators.filter(ind => {
-                    // Match indicators with country codes like DE, FR, IT, etc.
-                    return ind.symbol && /\.[A-Z]{2}\./.test(ind.symbol);
-                });
-                
-                console.log(`Found ${countryIndicators.length} country indicators`);
-                
-                const countryData = {};
-                // Load up to 30 indicators for better coverage
-                for (const indicator of countryIndicators.slice(0, 30)) {
-                    try {
-                        const dataUrl = `${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`;
-                        const response = await fetch(dataUrl);
-                        if (response.ok) {
-                            const data = await response.json();
-                            countryData[indicator.symbol] = data;
-                        }
-                    } catch (error) {
-                        console.error(`Error loading ${indicator.symbol}:`, error);
-                    }
-                }
-                
-                currentData.countries = countryData;
-                displayDataGrid('countriesGrid', countryData, 'Country');
-                updateCountryChart(countryData);
-                
-            } catch (error) {
-                console.error('Error loading countries data:', error);
-                showError('countriesGrid', 'Failed to load country data');
-            }
-        }
-        
-        // Load sectors data
-        async function loadSectorsData() {
-            const grid = document.getElementById('sectorsGrid');
-            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
-            
-            try {
-                console.log('Loading sectors data...');
-                
-                // Get different sector types from the indicators
-                const sectorKeywords = ['BANK', 'FIN', 'SOV', 'INS', 'CORP', 'NFC', 'FC', 'CI'];
-                const sectorIndicators = currentData.allIndicators.filter(ind => {
-                    if (!ind.symbol) return false;
-                    return sectorKeywords.some(keyword => ind.symbol.includes(keyword));
-                });
-                
-                console.log(`Found ${sectorIndicators.length} sector indicators`);
-                
-                const sectorData = {};
-                for (const indicator of sectorIndicators.slice(0, 20)) {
-                    try {
-                        const dataUrl = `${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`;
-                        const response = await fetch(dataUrl);
-                        if (response.ok) {
-                            const data = await response.json();
-                            sectorData[indicator.symbol] = data;
-                        }
-                    } catch (error) {
-                        console.error(`Error loading ${indicator.symbol}:`, error);
-                    }
-                }
-                
-                currentData.sectors = sectorData;
-                displayDataGrid('sectorsGrid', sectorData, 'Sector');
-                updateSectorChart(sectorData);
-                
-            } catch (error) {
-                console.error('Error loading sectors data:', error);
-                showError('sectorsGrid', 'Failed to load sector data');
-            }
-        }
-        
-        // Load bonds data - Fixed to look for bond market indicators
-        async function loadBondsData() {
-            const grid = document.getElementById('bondsGrid');
-            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
-            
-            try {
-                console.log('Loading bonds data...');
-                
-                // Look for bond market stress indicators
-                const bondKeywords = ['BOND', 'YLD', 'YIELD', 'BM', 'SOV', 'SPREAD'];
-                const bondIndicators = currentData.allIndicators.filter(ind => {
-                    if (!ind.symbol) return false;
-                    return bondKeywords.some(keyword => ind.symbol.toUpperCase().includes(keyword));
-                });
-                
-                console.log(`Found ${bondIndicators.length} bond indicators`);
-                
-                const bondData = {};
-                for (const indicator of bondIndicators.slice(0, 15)) {
-                    try {
-                        const dataUrl = `${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`;
-                        const response = await fetch(dataUrl);
-                        if (response.ok) {
-                            const data = await response.json();
-                            bondData[indicator.symbol] = data;
-                        }
-                    } catch (error) {
-                        console.error(`Error loading ${indicator.symbol}:`, error);
-                    }
-                }
-                
-                if (Object.keys(bondData).length === 0) {
-                    // If no bond data found, show message
-                    grid.innerHTML = '<div class="message">No bond market indicators available in current dataset</div>';
-                } else {
-                    currentData.bonds = bondData;
-                    displayDataGrid('bondsGrid', bondData, 'Bonds');
-                }
-                
-            } catch (error) {
-                console.error('Error loading bonds data:', error);
-                showError('bondsGrid', 'Failed to load bond data');
-            }
-        }
-        
-        // Load equity data - Fixed to look for equity market indicators
-        async function loadEquityData() {
-            const grid = document.getElementById('equityGrid');
-            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
-            
-            try {
-                console.log('Loading equity data...');
-                
-                // Look for equity market indicators
-                const equityKeywords = ['EQ', 'STK', 'STOCK', 'EM', 'EQUITY'];
-                const equityIndicators = currentData.allIndicators.filter(ind => {
-                    if (!ind.symbol) return false;
-                    return equityKeywords.some(keyword => ind.symbol.toUpperCase().includes(keyword));
-                });
-                
-                console.log(`Found ${equityIndicators.length} equity indicators`);
-                
-                const equityData = {};
-                for (const indicator of equityIndicators.slice(0, 15)) {
-                    try {
-                        const dataUrl = `${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`;
-                        const response = await fetch(dataUrl);
-                        if (response.ok) {
-                            const data = await response.json();
-                            equityData[indicator.symbol] = data;
-                        }
-                    } catch (error) {
-                        console.error(`Error loading ${indicator.symbol}:`, error);
-                    }
-                }
-                
-                if (Object.keys(equityData).length === 0) {
-                    grid.innerHTML = '<div class="message">No equity market indicators available in current dataset</div>';
-                } else {
-                    currentData.equity = equityData;
-                    displayDataGrid('equityGrid', equityData, 'Equity');
-                }
-                
-            } catch (error) {
-                console.error('Error loading equity data:', error);
-                showError('equityGrid', 'Failed to load equity data');
-            }
-        }
-        
-        // Load forex data - Fixed to look for FX indicators
-        async function loadForexData() {
-            const grid = document.getElementById('forexGrid');
-            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
-            
-            try {
-                console.log('Loading forex data...');
-                
-                // Look for forex/FX indicators
-                const forexKeywords = ['FX', 'EUR', 'USD', 'GBP', 'JPY', 'CHF', 'FOREX', 'FM'];
-                const forexIndicators = currentData.allIndicators.filter(ind => {
-                    if (!ind.symbol) return false;
-                    return forexKeywords.some(keyword => ind.symbol.toUpperCase().includes(keyword));
-                });
-                
-                console.log(`Found ${forexIndicators.length} forex indicators`);
-                
-                const forexData = {};
-                for (const indicator of forexIndicators.slice(0, 15)) {
-                    try {
-                        const dataUrl = `${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`;
-                        const response = await fetch(dataUrl);
-                        if (response.ok) {
-                            const data = await response.json();
-                            forexData[indicator.symbol] = data;
-                        }
-                    } catch (error) {
-                        console.error(`Error loading ${indicator.symbol}:`, error);
-                    }
-                }
-                
-                if (Object.keys(forexData).length === 0) {
-                    grid.innerHTML = '<div class="message">No forex market indicators available in current dataset</div>';
-                } else {
-                    currentData.forex = forexData;
-                    displayDataGrid('forexGrid', forexData, 'Forex');
-                }
-                
-            } catch (error) {
-                console.error('Error loading forex data:', error);
-                showError('forexGrid', 'Failed to load forex data');
-            }
-        }
-        
-        // Load commodities data
-        async function loadCommoditiesData() {
-            const grid = document.getElementById('commoditiesGrid');
-            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
-            
-            try {
-                console.log('Loading commodities data...');
-                
-                // Look for commodity indicators
-                const commodityKeywords = ['COMM', 'OIL', 'GOLD', 'COM', 'CMDTY'];
-                const commodityIndicators = currentData.allIndicators.filter(ind => {
-                    if (!ind.symbol) return false;
-                    return commodityKeywords.some(keyword => ind.symbol.toUpperCase().includes(keyword));
-                });
-                
-                console.log(`Found ${commodityIndicators.length} commodity indicators`);
-                
-                const commodityData = {};
-                for (const indicator of commodityIndicators.slice(0, 15)) {
-                    try {
-                        const dataUrl = `${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`;
-                        const response = await fetch(dataUrl);
-                        if (response.ok) {
-                            const data = await response.json();
-                            commodityData[indicator.symbol] = data;
-                        }
-                    } catch (error) {
-                        console.error(`Error loading ${indicator.symbol}:`, error);
-                    }
-                }
-                
-                if (Object.keys(commodityData).length === 0) {
-                    grid.innerHTML = '<div class="message">No commodity indicators available in current dataset</div>';
-                } else {
-                    currentData.commodities = commodityData;
-                    displayDataGrid('commoditiesGrid', commodityData, 'Commodities');
-                }
-                
-            } catch (error) {
-                console.error('Error loading commodities data:', error);
-                showError('commoditiesGrid', 'Failed to load commodity data');
-            }
-        }
-        
-        // Load money market funds data
-        async function loadMMFData() {
-            const grid = document.getElementById('mmfGrid');
-            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
-            
-            try {
-                console.log('Loading money market data...');
-                
-                // Look for money market indicators
-                const mmfKeywords = ['MMF', 'MON', 'MM', 'MONEY'];
-                const mmfIndicators = currentData.allIndicators.filter(ind => {
-                    if (!ind.symbol) return false;
-                    return mmfKeywords.some(keyword => ind.symbol.toUpperCase().includes(keyword));
-                });
-                
-                console.log(`Found ${mmfIndicators.length} money market indicators`);
-                
-                const mmfData = {};
-                for (const indicator of mmfIndicators.slice(0, 15)) {
-                    try {
-                        const dataUrl = `${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`;
-                        const response = await fetch(dataUrl);
-                        if (response.ok) {
-                            const data = await response.json();
-                            mmfData[indicator.symbol] = data;
-                        }
-                    } catch (error) {
-                        console.error(`Error loading ${indicator.symbol}:`, error);
-                    }
-                }
-                
-                if (Object.keys(mmfData).length === 0) {
-                    grid.innerHTML = '<div class="message">No money market indicators available in current dataset</div>';
-                } else {
-                    currentData.mmf = mmfData;
-                    displayDataGrid('mmfGrid', mmfData, 'MMF');
-                }
-                
-            } catch (error) {
-                console.error('Error loading MMF data:', error);
-                showError('mmfGrid', 'Failed to load money market data');
-            }
-        }
-        
-        // Load analysis data - COMPREHENSIVE RISK ANALYSIS
-        async function loadAnalysisData() {
-            const table = document.getElementById('analysisTable');
-            table.innerHTML = '<tr><td colspan="6" style="text-align: center;">Analyzing all risk indicators...</td></tr>';
-            
-            try {
-                console.log('Loading comprehensive risk analysis...');
-                
-                // Collect ALL data from all sources
-                const allRiskData = {
-                    countries: currentData.countries || {},
-                    sectors: currentData.sectors || {},
-                    bonds: currentData.bonds || {},
-                    equity: currentData.equity || {},
-                    forex: currentData.forex || {},
-                    unemployment: currentData.unemployment || {},
-                    mmf: currentData.mmf || {},
-                    overview: currentData.overview || {}
-                };
-                
-                // Calculate aggregate risk metrics
-                let totalRisk = 0;
-                let riskCount = 0;
-                let highRiskIndicators = [];
-                let mediumRiskIndicators = [];
-                let unemploymentImpact = 0;
-                
-                table.innerHTML = '';
-                
-                // Add comprehensive analysis header
-                const headerRow = document.createElement('tr');
-                headerRow.innerHTML = `
-                    <td colspan="6" style="background: linear-gradient(90deg, rgba(0, 255, 136, 0.2), rgba(0, 204, 255, 0.2)); font-weight: bold; font-size: 1.1rem;">
-                        🤖 COMPREHENSIVE RISK ANALYSIS - ${new Date().toLocaleString()}
-                    </td>
-                `;
-                table.appendChild(headerRow);
-                
-                // Analyze each category
-                for (const [category, categoryData] of Object.entries(allRiskData)) {
-                    const indicators = Object.entries(categoryData);
-                    if (indicators.length === 0) continue;
-                    
-                    // Category header
-                    const catHeader = document.createElement('tr');
-                    catHeader.innerHTML = `
-                        <td colspan="6" style="background: rgba(0, 255, 136, 0.1); font-weight: bold;">
-                            ${getCategoryIcon(category)} ${category.toUpperCase()} (${indicators.length} indicators)
-                        </td>
-                    `;
-                    table.appendChild(catHeader);
-                    
-                    // Analyze each indicator
-                    for (const [symbol, data] of indicators) {
-                        if (!data || data.value === null || data.value === undefined) continue;
-                        
-                        const riskValue = category === 'unemployment' ? 
-                            (data.value / 100) : // Convert unemployment to decimal
-                            data.value;
-                        
-                        // Calculate risk level
-                        let riskLevel, riskClass;
-                        if (category === 'unemployment') {
-                            riskLevel = data.value > 10 ? 'HIGH' : data.value > 5 ? 'MEDIUM' : 'LOW';
-                            unemploymentImpact += data.value > 10 ? 0.2 : data.value > 5 ? 0.1 : 0;
-                        } else {
-                            riskLevel = riskValue < 0.10 ? 'LOW' : riskValue < 0.20 ? 'MEDIUM' : 'HIGH';
-                        }
-                        riskClass = riskLevel.toLowerCase();
-                        
-                        // Track high risk indicators
-                        if (riskLevel === 'HIGH') {
-                            highRiskIndicators.push({ symbol: data.symbol || symbol, value: riskValue, category });
-                        } else if (riskLevel === 'MEDIUM') {
-                            mediumRiskIndicators.push({ symbol: data.symbol || symbol, value: riskValue, category });
-                        }
-                        
-                        // Add to total risk calculation
-                        if (typeof riskValue === 'number' && !isNaN(riskValue)) {
-                            totalRisk += riskValue;
-                            riskCount++;
-                        }
-                        
-                        // Add row to table
-                        const row = document.createElement('tr');
-                        const displayValue = category === 'unemployment' ? 
-                            `${data.value?.toFixed(2)}%` : 
-                            `${(riskValue * 100).toFixed(3)}%`;
-                        
-                        row.innerHTML = `
-                            <td style="font-size: 0.8rem;">${data.symbol || symbol}</td>
-                            <td>${data.country || data.sector || data.market || category}</td>
-                            <td>${displayValue}</td>
-                            <td><span class="risk-${riskClass}">${riskLevel}</span></td>
-                            <td>${data.observations || '-'}</td>
-                            <td>${data.date || 'Current'}</td>
-                        `;
-                        table.appendChild(row);
-                    }
-                }
-                
-                // Calculate overall risk assessment
-                const averageRisk = riskCount > 0 ? (totalRisk / riskCount) : 0;
-                const adjustedRisk = averageRisk + unemploymentImpact; // Add unemployment impact
-                const overallRiskLevel = adjustedRisk > 0.20 ? 'CRITICAL' : 
-                                        adjustedRisk > 0.15 ? 'HIGH' : 
-                                        adjustedRisk > 0.10 ? 'MEDIUM' : 'LOW';
-                
-                // Add summary analysis
-                const summaryRow = document.createElement('tr');
-                summaryRow.innerHTML = `
-                    <td colspan="6" style="background: rgba(255, 170, 0, 0.1); padding: 1.5rem;">
-                        <h3>📊 RISK SUMMARY</h3>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
-                            <div>
-                                <strong>Overall Risk Level:</strong> 
-                                <span class="risk-${overallRiskLevel.toLowerCase()}" style="font-size: 1.2rem;">
-                                    ${overallRiskLevel}
-                                </span>
-                            </div>
-                            <div>
-                                <strong>Average Risk Score:</strong> ${(averageRisk * 100).toFixed(2)}%
-                            </div>
-                            <div>
-                                <strong>Unemployment Impact:</strong> ${unemploymentImpact > 0 ? '+' + (unemploymentImpact * 100).toFixed(1) + '%' : 'Minimal'}
-                            </div>
-                            <div>
-                                <strong>High Risk Indicators:</strong> ${highRiskIndicators.length}
-                            </div>
-                            <div>
-                                <strong>Medium Risk Indicators:</strong> ${mediumRiskIndicators.length}
-                            </div>
-                            <div>
-                                <strong>Total Indicators Analyzed:</strong> ${riskCount}
-                            </div>
-                        </div>
-                    </td>
-                `;
-                table.appendChild(summaryRow);
-                
-                // Add top risk factors
-                if (highRiskIndicators.length > 0) {
-                    const riskFactorsRow = document.createElement('tr');
-                    riskFactorsRow.innerHTML = `
-                        <td colspan="6" style="background: rgba(255, 68, 68, 0.1); padding: 1rem;">
-                            <h4>⚠️ TOP RISK FACTORS</h4>
-                            <ul style="margin-top: 0.5rem;">
-                                ${highRiskIndicators.slice(0, 5).map(ind => 
-                                    `<li>${ind.symbol} (${ind.category}): ${(ind.value * 100).toFixed(2)}%</li>`
-                                ).join('')}
-                            </ul>
-                        </td>
-                    `;
-                    table.appendChild(riskFactorsRow);
-                }
-                
-                // Add recommendations
-                const recommendationsRow = document.createElement('tr');
-                let recommendations = [];
-                
-                if (overallRiskLevel === 'CRITICAL' || overallRiskLevel === 'HIGH') {
-                    recommendations = [
-                        '🔴 Immediate risk mitigation required',
-                        '📉 Consider defensive positioning',
-                        '💰 Increase cash reserves',
-                        '🛡️ Hedge against systemic events'
-                    ];
-                } else if (overallRiskLevel === 'MEDIUM') {
-                    recommendations = [
-                        '🟡 Monitor risk indicators closely',
-                        '📊 Maintain balanced portfolio',
-                        '🔍 Watch for trend changes',
-                        '⚖️ Consider partial hedging'
-                    ];
-                } else {
-                    recommendations = [
-                        '🟢 Risk environment favorable',
-                        '📈 Consider risk-on positioning',
-                        '🎯 Look for opportunities',
-                        '📊 Maintain normal allocations'
-                    ];
-                }
-                
-                if (unemploymentImpact > 0.1) {
-                    recommendations.push('👥 High unemployment affecting economic stability');
-                }
-                
-                recommendationsRow.innerHTML = `
-                    <td colspan="6" style="background: rgba(0, 204, 255, 0.1); padding: 1rem;">
-                        <h4>💡 RECOMMENDATIONS</h4>
-                        <ul style="margin-top: 0.5rem;">
-                            ${recommendations.map(rec => `<li>${rec}</li>`).join('')}
-                        </ul>
-                    </td>
-                `;
-                table.appendChild(recommendationsRow);
-                
-                // Update predictions based on analysis
-                updatePredictionsFromAnalysis(averageRisk, adjustedRisk, highRiskIndicators);
-                
-            } catch (error) {
-                console.error('Error in comprehensive analysis:', error);
-                table.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #ff4444;">Failed to complete analysis</td></tr>';
-            }
-        }
-        
-        // Helper function to get category icon
-        function getCategoryIcon(category) {
-            const icons = {
-                'countries': '🌍',
-                'sectors': '🏦',
-                'bonds': '📈',
-                'equity': '💹',
-                'forex': '💱',
-                'unemployment': '📉',
-                'mmf': '💰',
-                'overview': '📊'
-            };
-            return icons[category] || '📊';
-        }
-        
-        // Update predictions based on analysis
-        function updatePredictionsFromAnalysis(avgRisk, adjustedRisk, highRiskFactors) {
-            // Update the predictions display based on comprehensive analysis
-            const predictedCiss = (adjustedRisk * 100 * (1 + (Math.random() - 0.5) * 0.1)).toFixed(1);
-            const crisisProbability = adjustedRisk > 0.20 ? 60 : 
-                                     adjustedRisk > 0.15 ? 30 : 
-                                     adjustedRisk > 0.10 ? 15 : 5;
-            
-            if (document.getElementById('euCissPrediction')) {
-                document.getElementById('euCissPrediction').textContent = predictedCiss + '%';
-            }
-            if (document.getElementById('crisisProbability')) {
-                document.getElementById('crisisProbability').textContent = crisisProbability.toFixed(1) + '%';
-            }
-        }
-        
-        // Populate ECB symbols dropdown
-        async function populateECBSymbols() {
-            try {
-                const response = await fetch(ECB_CONFIG.ECB_API.baseUrl + ECB_CONFIG.ECB_API.endpoints.list);
-                const data = await response.json();
-                
-                const select = document.getElementById('ecbSymbol');
-                select.innerHTML = '<option value="">Select an indicator...</option>';
-                
-                if (data.indicators && data.indicators.length > 0) {
-                    data.indicators.forEach(indicator => {
-                        const option = document.createElement('option');
-                        option.value = indicator.symbol;
-                        option.textContent = `${indicator.symbol} - ${indicator.country || 'EU'} (${indicator.observations} obs)`;
-                        select.appendChild(option);
-                    });
-                }
-            } catch (error) {
-                console.error('Error populating ECB symbols:', error);
-            }
-        }
-        
-        // Show country details
-        async function showCountryDetails(countryName) {
-            const modal = document.getElementById('historicalModal');
-            const modalTitle = document.getElementById('modalTitle');
-            
-            modalTitle.textContent = `${ECB_CONFIG.countryFlags[countryName] || '🇪🇺'} ${countryName} - Systemic Risk Analysis`;
-            modal.classList.add('active');
-            
-            // Load detailed country data
-            const countryCode = Object.keys(ECB_CONFIG.countryFlags).find(
-                key => ECB_CONFIG.countryFlags[key] === ECB_CONFIG.countryFlags[countryName]
-            );
-            
-            if (countryCode) {
-                const symbol = `ECB.CISS.M.${countryCode}.Z0Z.4F.EC.SOV_CI.IDX`;
-                await showHistoricalData(symbol, countryName);
-            }
-        }
-        
-        // Edit metric name
-        function editMetricName(key, currentName) {
-            const newName = prompt('Enter new name for this indicator:', currentName);
-            
-            if (newName && newName !== currentName) {
-                currentData.customNames[key] = newName;
-                localStorage.setItem('ecbCustomMetricNames', JSON.stringify(currentData.customNames));
-                updateKeyMetrics(currentData.overview);
-            }
-        }
-        
-        // Show historical data modal
-        async function showHistoricalData(symbol, name) {
-            const modal = document.getElementById('historicalModal');
-            const modalTitle = document.getElementById('modalTitle');
-            
-            modalTitle.textContent = `${name} - Historical Analysis`;
-            modal.classList.add('active');
-            
-            try {
-                // Fetch full data for the indicator
-                const response = await fetch(`${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${symbol}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    
-                    // The ECB data includes historical_data array
-                    if (data.historical_data && data.historical_data.length > 0) {
-                        const dates = data.historical_data.map(d => d.date);
-                        const values = data.historical_data.map(d => d.value);
-                        
-                        const historicalData = { dates, values };
-                        
-                        // Calculate change metrics
-                        calculateChangeMetrics(historicalData);
-                        
-                        // Plot historical chart
-                        plotHistoricalChart(historicalData, name);
-                    } else {
-                        // Simulate historical data if not available
-                        const historicalData = await generateSimulatedHistoricalData(data.value);
-                        calculateChangeMetrics(historicalData);
-                        plotHistoricalChart(historicalData, name);
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading historical data:', error);
-                // Generate simulated data as fallback
-                const historicalData = await generateSimulatedHistoricalData(0.10);
-                calculateChangeMetrics(historicalData);
-                plotHistoricalChart(historicalData, name);
-            }
-        }
-        
-        // Generate simulated historical data for demonstration
-        async function generateSimulatedHistoricalData(currentValue) {
-            const days = 1095; // 3 years of data
-            const dates = [];
-            const values = [];
-            const baseValue = currentValue || 0.10;
-            
-            for (let i = days; i >= 0; i--) {
-                const date = new Date();
-                date.setDate(date.getDate() - i);
-                dates.push(date.toISOString().split('T')[0]);
-                
-                // Simulate realistic CISS movement
-                const randomWalk = (Math.random() - 0.5) * 0.02;
-                const trendComponent = Math.sin(i / 180 * Math.PI) * 0.05;
-                const value = Math.max(0, Math.min(1, baseValue + randomWalk + trendComponent));
-                values.push(value);
-            }
-            
-            return { dates, values };
-        }
-        
-        // Calculate change metrics
-        function calculateChangeMetrics(data) {
-            const current = data.values[data.values.length - 1];
-            const yearAgo = data.values[data.values.length - 365] || current;
-            const quarterAgo = data.values[data.values.length - 90] || current;
-            const monthAgo = data.values[data.values.length - 30] || current;
-            const weekAgo = data.values[data.values.length - 7] || current;
-            
-            const yoyChange = ((current - yearAgo) / yearAgo * 100).toFixed(2);
-            const qoqChange = ((current - quarterAgo) / quarterAgo * 100).toFixed(2);
-            const momChange = ((current - monthAgo) / monthAgo * 100).toFixed(2);
-            const wowChange = ((current - weekAgo) / weekAgo * 100).toFixed(2);
-            
-            document.getElementById('yoyChange').textContent = `${yoyChange > 0 ? '+' : ''}${yoyChange}%`;
-            document.getElementById('yoyChange').className = `change-value ${yoyChange < 0 ? 'positive' : 'negative'}`; // Lower is better for risk
-            
-            document.getElementById('qoqChange').textContent = `${qoqChange > 0 ? '+' : ''}${qoqChange}%`;
-            document.getElementById('qoqChange').className = `change-value ${qoqChange < 0 ? 'positive' : 'negative'}`;
-            
-            document.getElementById('momChange').textContent = `${momChange > 0 ? '+' : ''}${momChange}%`;
-            document.getElementById('momChange').className = `change-value ${momChange < 0 ? 'positive' : 'negative'}`;
-            
-            document.getElementById('wowChange').textContent = `${wowChange > 0 ? '+' : ''}${wowChange}%`;
-            document.getElementById('wowChange').className = `change-value ${wowChange < 0 ? 'positive' : 'negative'}`;
-        }
-        
-        // Plot historical chart
-        function plotHistoricalChart(data, name) {
-            // Convert CISS values to percentages
-            const percentValues = data.values.map(v => v * 100);
-            
-            // Main CISS trace
-            const cissTrace = {
-                x: data.dates,
-                y: percentValues,
-                type: 'scatter',
-                mode: 'lines',
-                name: 'CISS Value',
-                line: { color: '#00ff88', width: 2 },
-                yaxis: 'y'
-            };
-            
-            // Add threshold lines
-            const lowThreshold = {
-                x: data.dates,
-                y: new Array(data.dates.length).fill(10),
-                type: 'scatter',
-                mode: 'lines',
-                name: 'Low Risk Threshold',
-                line: { color: '#00ff88', width: 1, dash: 'dash' }
-            };
-            
-            const highThreshold = {
-                x: data.dates,
-                y: new Array(data.dates.length).fill(20),
-                type: 'scatter',
-                mode: 'lines',
-                name: 'High Risk Threshold',
-                line: { color: '#ff4444', width: 1, dash: 'dash' }
-            };
-            
-            // Calculate moving averages
-            const ma30 = calculateMovingAverage(percentValues, 30);
-            const ma90 = calculateMovingAverage(percentValues, 90);
-            
-            const ma30Trace = {
-                x: data.dates.slice(29),
-                y: ma30,
-                type: 'scatter',
-                mode: 'lines',
-                name: '30-Day MA',
-                line: { color: '#00ccff', width: 1, dash: 'dot' }
-            };
-            
-            const ma90Trace = {
-                x: data.dates.slice(89),
-                y: ma90,
-                type: 'scatter',
-                mode: 'lines',
-                name: '90-Day MA',
-                line: { color: '#ffaa00', width: 1, dash: 'dot' }
-            };
-            
-            const layout = {
-                title: `${name} - Systemic Risk Evolution`,
-                paper_bgcolor: 'rgba(0, 0, 0, 0)',
-                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
-                font: { color: '#fff' },
-                xaxis: {
-                    gridcolor: 'rgba(255, 255, 255, 0.1)',
-                    tickfont: { color: '#888' },
-                    rangeslider: { visible: true },
-                    rangeselector: {
-                        buttons: [
-                            {count: 1, label: '1M', step: 'month', stepmode: 'backward'},
-                            {count: 3, label: '3M', step: 'month', stepmode: 'backward'},
-                            {count: 6, label: '6M', step: 'month', stepmode: 'backward'},
-                            {count: 1, label: '1Y', step: 'year', stepmode: 'backward'},
-                            {step: 'all', label: 'ALL'}
-                        ],
-                        bgcolor: 'rgba(0, 0, 0, 0.5)',
-                        activecolor: '#00ff88',
-                        font: {color: '#fff'}
-                    }
-                },
-                yaxis: {
-                    title: 'CISS Value (%)',
-                    gridcolor: 'rgba(255, 255, 255, 0.1)',
-                    tickfont: { color: '#888' },
-                    side: 'left'
-                },
-                hovermode: 'x unified',
-                showlegend: true,
-                legend: {
-                    x: 0,
-                    y: -0.2,
-                    orientation: 'h'
-                }
-            };
-            
-            Plotly.newPlot('historicalChart', [cissTrace, lowThreshold, highThreshold, ma30Trace, ma90Trace], layout, {responsive: true});
-        }
-        
-        // Calculate moving average
-        function calculateMovingAverage(values, period) {
-            const ma = [];
-            for (let i = period - 1; i < values.length; i++) {
-                const sum = values.slice(i - period + 1, i + 1).reduce((a, b) => a + b, 0);
-                ma.push(sum / period);
-            }
-            return ma;
-        }
-        
-        // Close historical modal
-        function closeHistoricalModal() {
-            document.getElementById('historicalModal').classList.remove('active');
-        }
-        
-        // Toggle custom metric form
-        function toggleMetricForm() {
-            const form = document.getElementById('customMetricForm');
-            form.classList.toggle('active');
-        }
-        
-        // Save custom metric
-        function saveCustomMetric() {
-            const name = document.getElementById('metricName').value;
-            const symbol = document.getElementById('ecbSymbol').value;
-            const category = document.getElementById('metricCategory').value;
-            const riskWeight = parseFloat(document.getElementById('riskWeight').value);
-            
-            if (!name || !symbol) {
-                alert('Please fill in all required fields');
-                return;
-            }
-            
-            const newMetric = {
-                name,
-                symbol,
-                category,
-                riskWeight,
-                addedAt: new Date().toISOString()
-            };
-            
-            currentData.customMetrics.push(newMetric);
-            localStorage.setItem('ecbCustomMetrics', JSON.stringify(currentData.customMetrics));
-            
-            // Clear form
-            document.getElementById('metricName').value = '';
-            document.getElementById('ecbSymbol').value = '';
-            document.getElementById('riskWeight').value = '5';
-            
-            // Hide form
-            toggleMetricForm();
-            
-            // Reload data to include new metric
-            loadAllData();
-        }
-        
-        // Display data grid
-        function displayDataGrid(gridId, indicators, category) {
-            const grid = document.getElementById(gridId);
-            grid.innerHTML = '';
-            
-            if (!indicators || Object.keys(indicators).length === 0) {
-                grid.innerHTML = '<div class="message error-message">No data available</div>';
-                return;
-            }
-            
-            for (const [key, data] of Object.entries(indicators)) {
-                if (!data || data.value === null || data.value === undefined) continue;
-                
-                const card = document.createElement('div');
-                card.className = 'data-card';
-                card.dataset.key = key;
-                card.dataset.value = data.value;
-                
-                // Check for spikes (significant changes in CISS)
-                const isHighRisk = data.value > 0.20;
-                if (isHighRisk) {
-                    card.classList.add('spike-alert-bad');
-                }
-                
-                // Get custom name or use default
-                const displayName = currentData.customNames[key] || data.symbol || key;
-                
-                // Format value (CISS values are between 0 and 1)
-                const formattedValue = (data.value * 100).toFixed(3) + '%';
-                
-                // Get interpretation
-                const interpretation = getInterpretationForIndicator(key, data.value, category);
-                
-                // Determine risk level
-                const riskLevel = data.value < 0.10 ? 'LOW' : data.value < 0.20 ? 'MEDIUM' : 'HIGH';
-                const riskClass = riskLevel.toLowerCase();
-                
-                card.innerHTML = `
-                    <button class="edit-btn" onclick="editMetricName('${key}', '${displayName}')">✏️</button>
-                    <div class="data-card-header">
-                        <div class="data-title metric-title-editable" onclick="showHistoricalData('${key}', '${displayName}')">
-                            ${displayName}
-                        </div>
-                        <div class="data-source">${category}</div>
-                    </div>
-                    <div class="data-value ${riskClass === 'low' ? 'positive' : riskClass === 'medium' ? 'neutral' : 'negative'}">
-                        ${formattedValue}
-                    </div>
-                    <div class="data-change">
-                        <span class="risk-${riskClass}">Risk: ${riskLevel}</span>
-                    </div>
-                    <div class="metric-interpretation">
-                        ${interpretation}
-                    </div>
-                `;
-                
-                grid.appendChild(card);
-            }
-        }
-        
-        // Get interpretation for ECB indicators
-        function getInterpretationForIndicator(key, value, category) {
-            // Check for specific indicator types
-            if (key.includes('CISS')) {
-                const country = key.match(/\.([A-Z]{2})\./)?.[1] || 'EU';
-                return interpretations.CISS(value, country);
-            }
-            if (key.includes('SOV')) return interpretations.SOV_CI(value);
-            if (key.includes('FIN')) return interpretations.FIN_CI(value);
-            if (key.includes('BANK')) return interpretations.BANK_CI(value);
-            
-            // Category-based interpretations
-            if (category === 'Country') {
-                if (value < 0.10) return '🟢 Country risk minimal';
-                if (value < 0.20) return '🟡 Country stress emerging';
-                if (value < 0.30) return '🟠 Country risk elevated';
-                return '🔴 Country crisis risk';
-            }
-            
-            if (category === 'Sector') {
-                if (value < 0.10) return '🟢 Sector stable';
-                if (value < 0.20) return '🟡 Sector stress building';
-                if (value < 0.30) return '🟠 Sector under pressure';
-                return '🔴 Sector crisis conditions';
-            }
-            
-            // Default interpretation based on value
-            if (value < 0.05) return '🟢 Very low stress';
-            if (value < 0.10) return '🟢 Low stress';
-            if (value < 0.15) return '🟡 Moderate stress';
-            if (value < 0.20) return '🟠 Elevated stress';
-            if (value < 0.30) return '🔴 High stress';
-            return '🔴 Critical stress';
-        }
-        
-        // Initialize all charts
-        function initializeCharts() {
-            const chartConfig = {
-                paper_bgcolor: 'rgba(0, 0, 0, 0)',
-                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
-                font: { color: '#fff' },
-                xaxis: {
-                    gridcolor: 'rgba(255, 255, 255, 0.1)',
-                    tickfont: { color: '#888' }
-                },
-                yaxis: {
-                    gridcolor: 'rgba(255, 255, 255, 0.1)',
-                    tickfont: { color: '#888' }
-                },
-                showlegend: true,
-                legend: {
-                    orientation: 'h',
-                    y: -0.15
-                }
-            };
-            
-            const config = {
-                responsive: true,
-                displayModeBar: false
-            };
-            
-            Plotly.newPlot('mainChart', [], chartConfig, config);
-        }
-        
-        // Update main chart with ECB data - WITH FULL HISTORICAL DATA
+        // Update main chart
         function updateMainChart(countryData) {
+            const chartDiv = document.getElementById('mainChart');
+            if (!chartDiv) return;
+            
             const traces = [];
-            const countryNames = {
-                'EA': 'Euro Area',
-                'US': 'United States',
-                'CN': 'China',
-                'DE': 'Germany',
-                'FR': 'France',
-                'IT': 'Italy',
-                'ES': 'Spain',
-                'NL': 'Netherlands',
-                'BE': 'Belgium'
-            };
             
-            const countryColors = {
-                'EA': '#0066CC',  // EU Blue
-                'US': '#B22234',  // US Red
-                'CN': '#DE2910',  // China Red
-                'DE': '#000000',  // Germany Black
-                'FR': '#0055A4',  // France Blue
-                'IT': '#009246',  // Italy Green
-                'ES': '#F1BF00',  // Spain Yellow
-                'NL': '#FF7F00',  // Netherlands Orange
-                'BE': '#FAE042'   // Belgium Yellow
-            };
-            
-            // Create traces for each country/region
+            // Create trace for each country
             for (const [code, data] of Object.entries(countryData)) {
-                if (code === 'FX_CLAIMS') continue; // Skip FX claims for main chart
+                if (!data || !data.value) continue;
                 
-                const countryName = countryNames[code] || data.country || code;
-                if (!data.value && !data.historical_data) continue;
+                const country = data.country || code;
+                const flag = ECB_CONFIG.countryFlags[country] || '🇪🇺';
                 
+                // Use historical data if available, otherwise generate sample data
                 let dates, values;
-                
-                // Check if we have actual historical data
                 if (data.historical_data && data.historical_data.length > 0) {
-                    // Use actual historical data
                     dates = data.historical_data.map(d => d.date);
-                    values = data.historical_data.map(d => d.value * 100); // Convert to percentage
-                    console.log(`Using ${dates.length} historical data points for ${countryName}`);
+                    values = data.historical_data.map(d => d.value * 100);
                 } else {
-                    // Generate simulated historical data for last 365 days
+                    // Generate sample historical data
                     dates = generateDateRange(365);
                     values = generateRealisticCISSData(data.value * 100, 365);
                 }
-                
-                const flagEmoji = code === 'EA' ? '🇪🇺' : 
-                                 code === 'US' ? '🇺🇸' : 
-                                 code === 'CN' ? '🇨🇳' : 
-                                 ECB_CONFIG.countryFlags[countryName] || '🌍';
                 
                 traces.push({
                     x: dates,
                     y: values,
                     type: 'scatter',
                     mode: 'lines',
-                    name: `${flagEmoji} ${countryName}`,
-                    line: { 
-                        color: countryColors[code] || '#00ff88',
-                        width: code === 'EA' || code === 'US' || code === 'CN' ? 3 : 2
-                    },
-                    visible: true
+                    name: `${flag} ${country}`,
+                    line: { width: 2 }
                 });
             }
             
-            // Add risk threshold lines
+            // Add threshold lines
             const dateRange = traces.length > 0 ? traces[0].x : generateDateRange(365);
             
             traces.push({
@@ -3979,138 +2029,46 @@ curl ${ECB_CONFIG.ECB_API.baseUrl}/data/ECB.CISS.M.DE.Z0Z.4F.EC.SOV_CI.IDX
                 showlegend: false
             });
             
-            // Add EU average if we have risk assessment data
-            if (currentData.riskAssessment?.average_stress) {
-                const avgValue = currentData.riskAssessment.average_stress * 100;
-                traces.push({
-                    x: dateRange,
-                    y: new Array(dateRange.length).fill(avgValue),
-                    type: 'scatter',
-                    mode: 'lines',
-                    name: '📊 Current EU Average',
-                    line: { color: '#ffaa00', width: 2, dash: 'dot' },
-                    visible: true
-                });
-            }
-            
             const layout = {
-                title: {
-                    text: 'Global & European Systemic Risk Indicators (CISS)',
-                    font: { color: '#fff', size: 18 }
-                },
+                title: 'European Systemic Risk Indicators (CISS)',
                 paper_bgcolor: 'rgba(0, 0, 0, 0)',
                 plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
                 font: { color: '#fff' },
                 xaxis: {
                     gridcolor: 'rgba(255, 255, 255, 0.1)',
-                    tickfont: { color: '#888' },
-                    rangeselector: {
-                        buttons: [
-                            {count: 1, label: '1M', step: 'month', stepmode: 'backward'},
-                            {count: 3, label: '3M', step: 'month', stepmode: 'backward'},
-                            {count: 6, label: '6M', step: 'month', stepmode: 'backward'},
-                            {count: 1, label: '1Y', step: 'year', stepmode: 'backward'},
-                            {count: 5, label: '5Y', step: 'year', stepmode: 'backward'},
-                            {step: 'all', label: 'ALL'}
-                        ],
-                        bgcolor: 'rgba(0, 0, 0, 0.5)',
-                        activecolor: '#00ff88',
-                        font: {color: '#fff'}
-                    },
-                    rangeslider: { visible: false }
+                    tickfont: { color: '#888' }
                 },
                 yaxis: {
                     title: 'CISS Value (%)',
                     gridcolor: 'rgba(255, 255, 255, 0.1)',
                     tickfont: { color: '#888' },
-                    range: [0, 40] // Set reasonable range for CISS values
+                    range: [0, 30]
                 },
                 hovermode: 'x unified',
                 legend: {
                     orientation: 'h',
-                    y: -0.15,
-                    x: 0.5,
-                    xanchor: 'center'
-                },
-                annotations: [
-                    {
-                        x: 0.02,
-                        y: 0.98,
-                        xref: 'paper',
-                        yref: 'paper',
-                        text: '<b>Risk Levels:</b><br>< 10% = Low<br>10-20% = Medium<br>> 20% = High',
-                        showarrow: false,
-                        bgcolor: 'rgba(0, 0, 0, 0.5)',
-                        bordercolor: '#00ff88',
-                        borderwidth: 1,
-                        font: { size: 10, color: '#fff' },
-                        align: 'left'
-                    }
-                ]
-            };
-            
-            const config = {
-                responsive: true,
-                displayModeBar: true,
-                displaylogo: false,
-                modeBarButtonsToRemove: ['pan2d', 'select2d', 'lasso2d']
-            };
-            
-            Plotly.newPlot('mainChart', traces, layout, config);
-        }
-        
-        // Generate realistic CISS historical data
-        function generateRealisticCISSData(currentValue, days) {
-            const values = [];
-            let value = currentValue;
-            
-            // Generate backwards from current value
-            for (let i = days - 1; i >= 0; i--) {
-                // Add some realistic volatility and mean reversion
-                const randomChange = (Math.random() - 0.5) * 1; // ±0.5% daily change
-                const meanReversion = (10 - value) * 0.01; // Slight pull toward 10%
-                
-                // Crisis events simulation (occasional spikes)
-                const crisisChance = Math.random();
-                if (crisisChance > 0.98) {
-                    // Simulate crisis event (2% chance)
-                    value += Math.random() * 5;
-                } else if (crisisChance > 0.95) {
-                    // Simulate stress event (3% chance)
-                    value += Math.random() * 2;
+                    y: -0.15
                 }
-                
-                value = Math.max(0, Math.min(40, value + randomChange + meanReversion));
-                values.unshift(value);
-            }
+            };
             
-            // Smooth the last values to match current
-            const smoothingWindow = 10;
-            for (let i = values.length - smoothingWindow; i < values.length; i++) {
-                const weight = (i - (values.length - smoothingWindow)) / smoothingWindow;
-                values[i] = values[i] * (1 - weight) + currentValue * weight;
-            }
-            
-            return values;
+            Plotly.newPlot('mainChart', traces, layout, {responsive: true});
         }
         
         // Update country chart
         function updateCountryChart(countryData) {
-            if (!document.getElementById('countryChart')) {
-                const container = document.querySelector('#countries .chart-container');
-                const chartDiv = document.createElement('div');
-                chartDiv.id = 'countryChart';
-                chartDiv.style.height = '500px';
-                container.appendChild(chartDiv);
-            }
+            const chartDiv = document.getElementById('countryChart');
+            if (!chartDiv) return;
             
             const countries = [];
             const values = [];
+            const colors = [];
             
             for (const [key, data] of Object.entries(countryData)) {
                 if (data && data.value !== null) {
-                    countries.push(data.country || key);
+                    const country = data.country || data.countryCode;
+                    countries.push(ECB_CONFIG.countryFlags[country] + ' ' + country);
                     values.push(data.value * 100);
+                    colors.push(data.value < 0.10 ? '#00ff88' : data.value < 0.20 ? '#ffaa00' : '#ff4444');
                 }
             }
             
@@ -4118,12 +2076,12 @@ curl ${ECB_CONFIG.ECB_API.baseUrl}/data/ECB.CISS.M.DE.Z0Z.4F.EC.SOV_CI.IDX
                 x: countries,
                 y: values,
                 type: 'bar',
-                marker: {
-                    color: values.map(v => v < 10 ? '#00ff88' : v < 20 ? '#ffaa00' : '#ff4444')
-                }
+                marker: { color: colors },
+                text: values.map(v => v.toFixed(2) + '%'),
+                textposition: 'outside'
             };
             
-            Plotly.newPlot('countryChart', [trace], {
+            const layout = {
                 title: 'Country CISS Values Comparison',
                 paper_bgcolor: 'rgba(0, 0, 0, 0)',
                 plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
@@ -4132,51 +2090,195 @@ curl ${ECB_CONFIG.ECB_API.baseUrl}/data/ECB.CISS.M.DE.Z0Z.4F.EC.SOV_CI.IDX
                     title: 'CISS Value (%)',
                     gridcolor: 'rgba(255, 255, 255, 0.1)'
                 }
-            });
+            };
+            
+            Plotly.newPlot('countryChart', [trace], layout, {responsive: true});
         }
         
-        // Update sector chart
-        function updateSectorChart(sectorData) {
-            if (!document.getElementById('sectorChart')) {
-                const container = document.querySelector('#sectors .chart-container');
-                const chartDiv = document.createElement('div');
-                chartDiv.id = 'sectorChart';
-                chartDiv.style.height = '500px';
-                container.appendChild(chartDiv);
+        // Load sectors data (placeholder - adjust based on your actual ECB data)
+        async function loadSectorsData() {
+            const grid = document.getElementById('sectorsGrid');
+            grid.innerHTML = '<div class="message">Sector data not available in current ECB dataset</div>';
+        }
+        
+        // Load bonds data (placeholder)
+        async function loadBondsData() {
+            const grid = document.getElementById('bondsGrid');
+            grid.innerHTML = '<div class="message">Bond data not available in current ECB dataset</div>';
+        }
+        
+        // Load equity data (placeholder)
+        async function loadEquityData() {
+            const grid = document.getElementById('equityGrid');
+            grid.innerHTML = '<div class="message">Equity data not available in current ECB dataset</div>';
+        }
+        
+        // Load forex data (placeholder)
+        async function loadForexData() {
+            const grid = document.getElementById('forexGrid');
+            grid.innerHTML = '<div class="message">Forex data not available in current ECB dataset</div>';
+        }
+        
+        // Load money market data (placeholder)
+        async function loadMMFData() {
+            const grid = document.getElementById('mmfGrid');
+            grid.innerHTML = '<div class="message">Money market data not available in current ECB dataset</div>';
+        }
+        
+        // Load analysis data
+        async function loadAnalysisData() {
+            const table = document.getElementById('analysisTable');
+            table.innerHTML = '';
+            
+            // Combine CISS and unemployment data for analysis
+            const allData = {
+                ...currentData.countries,
+                ...currentData.unemployment
+            };
+            
+            for (const [key, data] of Object.entries(allData)) {
+                if (!data || data.value === null) continue;
+                
+                const row = document.createElement('tr');
+                const isUnemployment = data.dataset === 'UNEMPLOYMENT';
+                const value = isUnemployment ? data.value : data.value * 100;
+                const riskLevel = isUnemployment ? 
+                    (data.value > 10 ? 'HIGH' : data.value > 7 ? 'MEDIUM' : 'LOW') :
+                    (data.value < 0.10 ? 'LOW' : data.value < 0.20 ? 'MEDIUM' : 'HIGH');
+                
+                row.innerHTML = `
+                    <td>${data.symbol || key}</td>
+                    <td>${data.country || data.countryCode || '-'}</td>
+                    <td>${value.toFixed(2)}%</td>
+                    <td><span class="risk-${riskLevel.toLowerCase()}">${riskLevel}</span></td>
+                    <td>${data.observations || '-'}</td>
+                    <td>${data.date || data.last_updated || 'Current'}</td>
+                `;
+                
+                table.appendChild(row);
             }
-            
-            const sectors = [];
-            const values = [];
-            
-            for (const [key, data] of Object.entries(sectorData)) {
-                if (data && data.value !== null) {
-                    let sectorName = 'Other';
-                    if (key.includes('BANK')) sectorName = 'Banking';
-                    else if (key.includes('FIN')) sectorName = 'Financial';
-                    else if (key.includes('SOV')) sectorName = 'Sovereign';
-                    else if (key.includes('INS')) sectorName = 'Insurance';
-                    else if (key.includes('CORP')) sectorName = 'Corporate';
-                    
-                    sectors.push(sectorName);
-                    values.push(data.value * 100);
+        }
+        
+        // Populate ECB symbols dropdown
+        async function populateECBSymbols() {
+            try {
+                const response = await fetch(ECB_CONFIG.ECB_API.baseUrl + ECB_CONFIG.ECB_API.endpoints.list);
+                const data = await response.json();
+                
+                const select = document.getElementById('ecbSymbol');
+                select.innerHTML = '<option value="">Select an indicator...</option>';
+                
+                if (data.indicators && data.indicators.length > 0) {
+                    data.indicators.forEach(indicator => {
+                        const option = document.createElement('option');
+                        option.value = indicator.symbol;
+                        option.textContent = `${indicator.symbol} - ${indicator.country || 'EU'}`;
+                        select.appendChild(option);
+                    });
                 }
+            } catch (error) {
+                console.error('Error populating ECB symbols:', error);
             }
+        }
+        
+        // Show historical data
+        async function showHistoricalData(symbol, name) {
+            const modal = document.getElementById('historicalModal');
+            const modalTitle = document.getElementById('modalTitle');
             
+            modalTitle.textContent = `${name} - Historical Analysis`;
+            modal.classList.add('active');
+            
+            try {
+                const response = await fetch(`${ECB_CONFIG.ECB_API.baseUrl}/data/${symbol}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.historical_data && data.historical_data.length > 0) {
+                        const dates = data.historical_data.map(d => d.date);
+                        const values = data.historical_data.map(d => d.value);
+                        plotHistoricalChart({ dates, values }, name);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading historical data:', error);
+            }
+        }
+        
+        // Plot historical chart
+        function plotHistoricalChart(data, name) {
             const trace = {
-                labels: sectors,
-                values: values,
-                type: 'pie',
-                marker: {
-                    colors: ['#00ff88', '#00ccff', '#ffaa00', '#ff4444', '#ff00ff']
+                x: data.dates,
+                y: data.values,
+                type: 'scatter',
+                mode: 'lines',
+                name: name,
+                line: { color: '#00ff88', width: 2 }
+            };
+            
+            const layout = {
+                title: `${name} - Historical Data`,
+                paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
+                font: { color: '#fff' },
+                xaxis: {
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' }
+                },
+                yaxis: {
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' }
                 }
             };
             
-            Plotly.newPlot('sectorChart', [trace], {
-                title: 'Sectoral Risk Distribution',
+            Plotly.newPlot('historicalChart', [trace], layout, {responsive: true});
+        }
+        
+        // Close historical modal
+        function closeHistoricalModal() {
+            document.getElementById('historicalModal').classList.remove('active');
+        }
+        
+        // Toggle custom metric form
+        function toggleMetricForm() {
+            const form = document.getElementById('customMetricForm');
+            form.classList.toggle('active');
+        }
+        
+        // Save custom metric
+        function saveCustomMetric() {
+            const name = document.getElementById('metricName').value;
+            const symbol = document.getElementById('ecbSymbol').value;
+            const category = document.getElementById('metricCategory').value;
+            
+            if (!name || !symbol) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            const newMetric = {
+                name,
+                symbol,
+                category,
+                addedAt: new Date().toISOString()
+            };
+            
+            currentData.customMetrics.push(newMetric);
+            localStorage.setItem('ecbCustomMetrics', JSON.stringify(currentData.customMetrics));
+            
+            toggleMetricForm();
+            loadAllData();
+        }
+        
+        // Initialize charts
+        function initializeCharts() {
+            const chartConfig = {
                 paper_bgcolor: 'rgba(0, 0, 0, 0)',
                 plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
                 font: { color: '#fff' }
-            });
+            };
+            
+            Plotly.newPlot('mainChart', [], chartConfig, {responsive: true});
         }
         
         // Setup event listeners
@@ -4198,66 +2300,6 @@ curl ${ECB_CONFIG.ECB_API.baseUrl}/data/ECB.CISS.M.DE.Z0Z.4F.EC.SOV_CI.IDX
                     loadAllData();
                 });
             });
-            
-            // Chart period buttons
-            document.querySelectorAll('.chart-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('active'));
-                    e.target.classList.add('active');
-                    updateChartPeriod(e.target.dataset.period);
-                });
-            });
-            
-            // Historical modal time range buttons
-            document.querySelectorAll('.time-range-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    document.querySelectorAll('.time-range-btn').forEach(b => b.classList.remove('active'));
-                    e.target.classList.add('active');
-                    updateHistoricalChartRange(e.target.dataset.range);
-                });
-            });
-        }
-        
-        // Update chart period
-        function updateChartPeriod(period) {
-            const periodDays = {
-                '1M': 30,
-                '3M': 90,
-                '6M': 180,
-                '1Y': 365,
-                '5Y': 1825,
-                'ALL': 3650
-            };
-            
-            const days = periodDays[period] || 90;
-            
-            // Reload chart with new period
-            updateMainChart(currentData.overview);
-        }
-        
-        // Update historical chart range
-        function updateHistoricalChartRange(range) {
-            const rangeMap = {
-                '1M': 30,
-                '3M': 90,
-                '6M': 180,
-                '1Y': 365,
-                '5Y': 1825,
-                'ALL': 3650
-            };
-            
-            const days = rangeMap[range] || 365;
-            
-            // Update the x-axis range
-            const endDate = new Date();
-            const startDate = new Date();
-            startDate.setDate(startDate.getDate() - days);
-            
-            const update = {
-                'xaxis.range': [startDate.toISOString().split('T')[0], endDate.toISOString().split('T')[0]]
-            };
-            
-            Plotly.relayout('historicalChart', update);
         }
         
         // Start auto-refresh
@@ -4270,34 +2312,7 @@ curl ${ECB_CONFIG.ECB_API.baseUrl}/data/ECB.CISS.M.DE.Z0Z.4F.EC.SOV_CI.IDX
         
         // Start spike detection
         function startSpikeDetection() {
-            spikeCheckInterval = setInterval(() => {
-                const metrics = document.querySelectorAll('.metric-card');
-                metrics.forEach(card => {
-                    const key = card.dataset.key;
-                    const oldValue = parseFloat(card.dataset.value) || 0;
-                    const newValue = currentData.overview[key]?.value || oldValue;
-                    
-                    const changePercent = ((newValue - oldValue) / oldValue * 100);
-                    
-                    // Remove old spike alerts
-                    card.classList.remove('spike-alert-good', 'spike-alert-bad');
-                    
-                    // Add new spike alerts if change > 10% (significant for CISS)
-                    if (Math.abs(changePercent) > 10) {
-                        // For risk metrics, lower is better
-                        card.classList.add(changePercent < 0 ? 'spike-alert-good' : 'spike-alert-bad');
-                        
-                        // Update the stored value
-                        card.dataset.value = newValue;
-                    }
-                });
-            }, 5000); // Check every 5 seconds
-        }
-        
-        // Show error message
-        function showError(elementId, message) {
-            const element = document.getElementById(elementId);
-            element.innerHTML = `<div class="message error-message">${message}</div>`;
+            // Implement spike detection if needed
         }
         
         // Utility functions
@@ -4314,13 +2329,15 @@ curl ${ECB_CONFIG.ECB_API.baseUrl}/data/ECB.CISS.M.DE.Z0Z.4F.EC.SOV_CI.IDX
             return dates;
         }
         
-        function generateRandomWalk(startValue, volatility, days) {
-            const values = [startValue];
+        function generateRealisticCISSData(currentValue, days) {
+            const values = [];
+            let value = currentValue;
             
-            for (let i = 1; i < days; i++) {
-                const change = (Math.random() - 0.5) * volatility * 2;
-                const newValue = values[i - 1] * (1 + change / 100);
-                values.push(parseFloat(newValue.toFixed(3)));
+            for (let i = 0; i < days; i++) {
+                const randomChange = (Math.random() - 0.5) * 1;
+                const meanReversion = (10 - value) * 0.01;
+                value = Math.max(0, Math.min(30, value + randomChange + meanReversion));
+                values.push(value);
             }
             
             return values;
