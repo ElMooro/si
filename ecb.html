@@ -1535,34 +1535,82 @@
             if (activeTab === 'analysis') await loadAnalysisData();
         }
         
-        // Load countries data - SHOW ALL CISS INDICATORS
+        // Load countries data - PULL ALL CISS DATA FROM S3/API
         async function loadCountriesData() {
             const grid = document.getElementById('countriesGrid');
             grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
             
             try {
-                console.log('Loading ALL country CISS data...');
+                console.log('Loading ALL CISS country data from ECB API...');
                 
-                // Get ALL CISS indicators
-                const cissIndicators = currentData.allIndicators.filter(ind => 
-                    ind.symbol && ind.symbol.toUpperCase().includes('CISS')
+                // First get the complete list from the API
+                const listUrl = ECB_CONFIG.ECB_API.baseUrl + ECB_CONFIG.ECB_API.endpoints.list;
+                const listResponse = await fetch(listUrl);
+                const listData = await listResponse.json();
+                
+                console.log('List API response:', listData);
+                
+                // Filter for ALL CISS indicators
+                const cissIndicators = listData.indicators.filter(ind => 
+                    ind.symbol && ind.symbol.includes('CISS')
                 );
                 
-                console.log(`Found ${cissIndicators.length} CISS indicators - loading ALL`);
+                console.log(`Found ${cissIndicators.length} CISS indicators`);
                 
                 const countryData = {};
+                const countryNames = {
+                    'DE': 'Germany',
+                    'FR': 'France',
+                    'IT': 'Italy',
+                    'ES': 'Spain',
+                    'NL': 'Netherlands',
+                    'BE': 'Belgium',
+                    'AT': 'Austria',
+                    'PT': 'Portugal',
+                    'GR': 'Greece',
+                    'FI': 'Finland',
+                    'IE': 'Ireland',
+                    'LU': 'Luxembourg',
+                    'SI': 'Slovenia',
+                    'SK': 'Slovakia',
+                    'EE': 'Estonia',
+                    'LV': 'Latvia',
+                    'LT': 'Lithuania',
+                    'MT': 'Malta',
+                    'CY': 'Cyprus',
+                    'U2': 'Euro Area',
+                    'EA': 'Euro Area',
+                    'US': 'United States',
+                    'CN': 'China',
+                    'JP': 'Japan',
+                    'GB': 'United Kingdom'
+                };
                 
-                // Load ALL CISS indicators
+                // Load data for EACH CISS indicator
                 for (const indicator of cissIndicators) {
                     try {
-                        const dataUrl = `${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`;
+                        // Use the exact API endpoint format from your documentation
+                        const dataUrl = `${ECB_CONFIG.ECB_API.baseUrl}/data/${indicator.symbol}`;
+                        console.log(`Fetching: ${dataUrl}`);
+                        
                         const response = await fetch(dataUrl);
                         if (response.ok) {
                             const data = await response.json();
+                            console.log(`Loaded ${indicator.symbol}:`, data);
+                            
+                            // Extract country code from symbol (e.g., ECB.CISS.M.DE.Z0Z.4F.EC.SOV_CI.IDX -> DE)
+                            const parts = indicator.symbol.split('.');
+                            const countryCode = parts[3] || indicator.symbol; // Country code is typically 4th part
+                            const countryName = countryNames[countryCode] || indicator.country || countryCode;
+                            
                             countryData[indicator.symbol] = {
                                 ...data,
                                 symbol: indicator.symbol,
-                                country: indicator.country || extractCountryFromSymbol(indicator.symbol)
+                                country: countryName,
+                                countryCode: countryCode,
+                                value: data.value || indicator.value,
+                                observations: data.observations || indicator.observations,
+                                date: data.date || indicator.date
                             };
                         }
                     } catch (error) {
@@ -1570,19 +1618,216 @@
                     }
                 }
                 
-                console.log(`Loaded ${Object.keys(countryData).length} country indicators`);
+                console.log(`Successfully loaded ${Object.keys(countryData).length} CISS indicators`);
                 currentData.countries = countryData;
                 
                 if (Object.keys(countryData).length > 0) {
-                    displayDataGrid('countriesGrid', countryData, 'Country');
+                    // Display all CISS data in a structured way
+                    displayCountryCISSGrid('countriesGrid', countryData);
                     updateCountryChart(countryData);
                 } else {
-                    grid.innerHTML = '<div class="message error-message">No CISS country data found. Check console for errors.</div>';
+                    grid.innerHTML = `
+                        <div class="message error-message">
+                            No CISS data loaded. Check console for errors.<br>
+                            API endpoint: ${listUrl}<br>
+                            Try manually: curl ${listUrl}
+                        </div>`;
                 }
                 
             } catch (error) {
-                console.error('Error loading countries data:', error);
-                showError('countriesGrid', 'Failed to load country data');
+                console.error('Error loading CISS data:', error);
+                grid.innerHTML = `
+                    <div class="message error-message">
+                        Failed to load CISS data from API.<br>
+                        Error: ${error.message}<br>
+                        Check if API is accessible: ${ECB_CONFIG.ECB_API.baseUrl}
+                    </div>`;
+            }
+        }
+        
+        // Display country CISS data in organized grid
+        function displayCountryCISSGrid(gridId, countryData) {
+            const grid = document.getElementById(gridId);
+            grid.innerHTML = '';
+            
+            // Group by country
+            const countries = {};
+            for (const [symbol, data] of Object.entries(countryData)) {
+                const country = data.country || 'Unknown';
+                if (!countries[country]) countries[country] = [];
+                countries[country].push(data);
+            }
+            
+            // Sort countries by average CISS value (highest risk first)
+            const sortedCountries = Object.entries(countries).sort((a, b) => {
+                const avgA = a[1].reduce((sum, d) => sum + (d.value || 0), 0) / a[1].length;
+                const avgB = b[1].reduce((sum, d) => sum + (d.value || 0), 0) / b[1].length;
+                return avgB - avgA;
+            });
+            
+            // Display header showing total countries
+            const headerDiv = document.createElement('div');
+            headerDiv.style.cssText = 'grid-column: 1 / -1; padding: 1rem; background: linear-gradient(90deg, rgba(0, 255, 136, 0.2), rgba(0, 204, 255, 0.2)); border-radius: 8px; margin-bottom: 1rem;';
+            headerDiv.innerHTML = `
+                <h3>📊 CISS Data for ${sortedCountries.length} Countries/Regions</h3>
+                <p style="margin-top: 0.5rem; opacity: 0.8;">Total indicators: ${Object.keys(countryData).length}</p>
+            `;
+            grid.appendChild(headerDiv);
+            
+            // Display each country's CISS data
+            for (const [country, indicators] of sortedCountries) {
+                // Country header
+                const countryHeader = document.createElement('div');
+                countryHeader.style.cssText = 'grid-column: 1 / -1; padding: 0.75rem; background: rgba(0, 255, 136, 0.1); border-radius: 8px; margin: 0.5rem 0;';
+                
+                const avgValue = indicators.reduce((sum, d) => sum + (d.value || 0), 0) / indicators.length;
+                const riskLevel = avgValue < 0.10 ? 'LOW' : avgValue < 0.20 ? 'MEDIUM' : 'HIGH';
+                const flag = ECB_CONFIG.countryFlags[country] || '🌍';
+                
+                countryHeader.innerHTML = `
+                    <h4>${flag} ${country} - Average CISS: ${(avgValue * 100).toFixed(2)}% 
+                        <span class="risk-${riskLevel.toLowerCase()}" style="margin-left: 1rem;">${riskLevel} RISK</span>
+                    </h4>
+                `;
+                grid.appendChild(countryHeader);
+                
+                // Display each indicator for this country
+                indicators.forEach(data => {
+                    const card = document.createElement('div');
+                    card.className = 'data-card';
+                    
+                    const formattedValue = data.value ? (data.value * 100).toFixed(3) + '%' : 'N/A';
+                    const riskLevel = data.value < 0.10 ? 'LOW' : data.value < 0.20 ? 'MEDIUM' : 'HIGH';
+                    const riskClass = riskLevel.toLowerCase();
+                    
+                    // Determine indicator type from symbol
+                    let indicatorType = 'Composite';
+                    if (data.symbol.includes('SOV_CI')) indicatorType = 'Sovereign Credit';
+                    else if (data.symbol.includes('FIN_CI')) indicatorType = 'Financial';
+                    else if (data.symbol.includes('BANK')) indicatorType = 'Banking';
+                    else if (data.symbol.includes('FC')) indicatorType = 'Financial Conditions';
+                    else if (data.symbol.includes('BM')) indicatorType = 'Bond Market';
+                    else if (data.symbol.includes('EM')) indicatorType = 'Equity Market';
+                    else if (data.symbol.includes('FM')) indicatorType = 'Forex Market';
+                    else if (data.symbol.includes('MM')) indicatorType = 'Money Market';
+                    
+                    card.innerHTML = `
+                        <div class="data-card-header">
+                            <div class="data-title" style="font-size: 0.8rem;">${data.symbol}</div>
+                            <div class="data-source">${indicatorType}</div>
+                        </div>
+                        <div class="data-value ${riskClass === 'low' ? 'positive' : riskClass === 'medium' ? 'neutral' : 'negative'}">
+                            ${formattedValue}
+                        </div>
+                        <div class="data-change">
+                            <span class="risk-${riskClass}">Risk: ${riskLevel}</span>
+                            <span style="margin-left: 0.5rem; opacity: 0.7;">Obs: ${data.observations || 'N/A'}</span>
+                        </div>
+                        <div style="font-size: 0.75rem; opacity: 0.7; margin-top: 0.5rem;">
+                            Last updated: ${data.date || 'N/A'}
+                        </div>
+                    `;
+                    
+                    card.onclick = () => showHistoricalData(data.symbol, `${country} ${indicatorType}`);
+                    grid.appendChild(card);
+                });
+            }
+        }
+        
+        // Load unemployment data - Check both ECB and FRED systems
+        async function loadUnemploymentData() {
+            const grid = document.getElementById('unemploymentGrid');
+            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            
+            try {
+                console.log('Searching for unemployment data in ECB system...');
+                
+                // First check ECB data for any unemployment indicators
+                const unemploymentKeywords = ['UNEM', 'UNEMPLOYMENT', 'JOBLESS', 'LABOR', 'LABOUR', 'EMPLOY', 'LM', 'LFSI', 'ILM'];
+                const unemploymentIndicators = currentData.allIndicators.filter(ind => {
+                    if (!ind.symbol) return false;
+                    const upperSymbol = ind.symbol.toUpperCase();
+                    const upperName = (ind.name || '').toUpperCase();
+                    return unemploymentKeywords.some(keyword => 
+                        upperSymbol.includes(keyword) || upperName.includes(keyword)
+                    );
+                });
+                
+                console.log(`Found ${unemploymentIndicators.length} potential unemployment indicators in ECB`);
+                
+                const unemploymentData = {};
+                
+                // Load ECB unemployment data if available
+                for (const indicator of unemploymentIndicators) {
+                    try {
+                        const dataUrl = `${ECB_CONFIG.ECB_API.baseUrl}/data/${indicator.symbol}`;
+                        const response = await fetch(dataUrl);
+                        if (response.ok) {
+                            const data = await response.json();
+                            unemploymentData[indicator.symbol] = {
+                                ...data,
+                                symbol: indicator.symbol,
+                                type: 'Unemployment',
+                                source: 'ECB',
+                                country: indicator.country || extractCountryFromSymbol(indicator.symbol) || 'EU'
+                            };
+                        }
+                    } catch (error) {
+                        console.error(`Error loading ${indicator.symbol}:`, error);
+                    }
+                }
+                
+                // Try to get Euro Area unemployment from FRED as backup
+                if (Object.keys(unemploymentData).length === 0) {
+                    console.log('No unemployment data in ECB, trying FRED API...');
+                    
+                    try {
+                        // Euro Area unemployment from FRED
+                        const fredUrl = 'https://api.stlouisfed.org/fred/series/observations?series_id=LRHUTTTTEZM156S&api_key=2f057499936072679d8843d7fce99989&file_type=json&limit=1&sort_order=desc';
+                        const fredResponse = await fetch(fredUrl);
+                        if (fredResponse.ok) {
+                            const fredData = await fredResponse.json();
+                            if (fredData.observations && fredData.observations[0]) {
+                                const obs = fredData.observations[0];
+                                unemploymentData['EURO_AREA_UNEMPLOYMENT'] = {
+                                    symbol: 'LRHUTTTTEZM156S',
+                                    value: parseFloat(obs.value),
+                                    date: obs.date,
+                                    country: 'Euro Area',
+                                    source: 'FRED',
+                                    type: 'Unemployment Rate'
+                                };
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error fetching FRED unemployment data:', error);
+                    }
+                }
+                
+                currentData.unemployment = unemploymentData;
+                
+                if (Object.keys(unemploymentData).length > 0) {
+                    displayDataGrid('unemploymentGrid', unemploymentData, 'Unemployment');
+                    updateUnemploymentChart(unemploymentData);
+                } else {
+                    grid.innerHTML = `
+                        <div class="message">
+                            <h3>📉 Unemployment Data Not Found in ECB System</h3>
+                            <p>Your ECB system contains 159 CISS (systemic risk) indicators but no unemployment data.</p>
+                            <p>CISS indicators measure financial system stress, not labor market conditions.</p>
+                            <br>
+                            <p><strong>To add unemployment data:</strong></p>
+                            <ol>
+                                <li>Fetch from ECB Statistical Data Warehouse (SDW)</li>
+                                <li>Use FRED API (already configured in your system)</li>
+                                <li>Add to your S3 bucket: s3://openbb-lambda-data/</li>
+                            </ol>
+                        </div>`;
+                }
+                
+            } catch (error) {
+                console.error('Error loading unemployment data:', error);
+                showError('unemploymentGrid', 'Failed to load unemployment data');
             }
         }
         
