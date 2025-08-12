@@ -1546,8 +1546,8 @@
                     console.log(`Loaded ${listData.indicators.length} indicators`);
                 }
                 
-                // Load key CISS indicators for overview
-                const keyCountries = ['DE', 'FR', 'IT', 'ES', 'NL', 'BE', 'AT', 'FI', 'GR', 'PT'];
+                // Load key CISS indicators and unemployment for overview
+                const keyCountries = ['DE', 'FR', 'IT', 'ES', 'NL', 'BE', 'AT', 'FI', 'GR', 'PT', 'IE', 'LU'];
                 const countryData = {};
                 
                 for (const countryCode of keyCountries) {
@@ -1557,7 +1557,7 @@
                         const cissResponse = await fetch(cissUrl);
                         if (cissResponse.ok) {
                             const cissData = await cissResponse.json();
-                            countryData[countryCode] = {
+                            countryData[`CISS_${countryCode}`] = {
                                 ...cissData,
                                 type: 'CISS',
                                 countryCode: countryCode,
@@ -1565,9 +1565,41 @@
                             };
                             console.log(`Loaded CISS for ${countryCode}:`, cissData.value);
                         }
+                        
+                        // Load unemployment data for overview
+                        const unemploymentUrl = `${ECB_CONFIG.ECB_API.baseUrl}/data/ECB.UNEMPLOYMENT.${countryCode}`;
+                        const unemploymentResponse = await fetch(unemploymentUrl);
+                        if (unemploymentResponse.ok) {
+                            const unemploymentData = await unemploymentResponse.json();
+                            countryData[`UNEMPLOYMENT_${countryCode}`] = {
+                                ...unemploymentData,
+                                type: 'UNEMPLOYMENT',
+                                countryCode: countryCode,
+                                country: Object.keys(ECB_CONFIG.countryCodes).find(k => ECB_CONFIG.countryCodes[k] === countryCode)
+                            };
+                            console.log(`Loaded unemployment for ${countryCode}:`, unemploymentData.value);
+                        }
                     } catch (error) {
-                        console.error(`Error loading ${countryCode} CISS:`, error);
+                        console.error(`Error loading ${countryCode} data:`, error);
                     }
+                }
+                
+                // Load foreign currency claims indicator
+                try {
+                    const fxClaimsUrl = `${ECB_CONFIG.ECB_API.baseUrl}/data/Claims on euro area residents denominated in foreign currency - Eurosystem, Euro area (changing composition), Weekly`;
+                    const fxResponse = await fetch(fxClaimsUrl);
+                    if (fxResponse.ok) {
+                        const fxData = await fxResponse.json();
+                        countryData['FX_CLAIMS'] = {
+                            ...fxData,
+                            type: 'FX_CLAIMS',
+                            country: 'Euro Area FX Claims',
+                            displayName: 'Claims on EA residents in foreign currency'
+                        };
+                        console.log('Loaded FX Claims:', fxData.value);
+                    }
+                } catch (error) {
+                    console.error('Error loading FX claims:', error);
                 }
                 
                 currentData.overview = countryData;
@@ -1837,23 +1869,48 @@
             
             metricsGrid.innerHTML = '';
             
-            // Sort by CISS value
-            const sortedEntries = Object.entries(countryData).sort((a, b) => 
-                (b[1].value || 0) - (a[1].value || 0)
-            );
+            // Display both CISS and unemployment data
+            const sortedEntries = Object.entries(countryData).sort((a, b) => {
+                // Sort CISS first, then unemployment
+                if (a[1].type === 'CISS' && b[1].type !== 'CISS') return -1;
+                if (a[1].type !== 'CISS' && b[1].type === 'CISS') return 1;
+                if (a[1].type === 'FX_CLAIMS') return -1;
+                if (b[1].type === 'FX_CLAIMS') return 1;
+                return (b[1].value || 0) - (a[1].value || 0);
+            });
             
-            for (const [code, data] of sortedEntries.slice(0, 12)) {
+            for (const [key, data] of sortedEntries) {
                 const card = document.createElement('div');
                 card.className = 'metric-card';
                 
-                const country = data.country || code;
+                const country = data.country || data.countryCode || key;
                 const flag = ECB_CONFIG.countryFlags[country] || '🇪🇺';
-                const value = data.value || 0;
-                const formattedValue = (value * 100).toFixed(2) + '%';
-                const riskLevel = value < 0.10 ? 'LOW' : value < 0.20 ? 'MEDIUM' : 'HIGH';
+                
+                let formattedValue, riskLevel, metricType;
+                
+                if (data.type === 'FX_CLAIMS') {
+                    // Foreign currency claims - show as billions
+                    formattedValue = data.value ? `€${(data.value / 1000).toFixed(1)}B` : 'N/A';
+                    riskLevel = data.value > 1500 ? 'HIGH' : data.value > 1000 ? 'MEDIUM' : 'LOW';
+                    metricType = 'FX Claims';
+                } else if (data.type === 'UNEMPLOYMENT') {
+                    formattedValue = data.value ? data.value.toFixed(1) + '%' : 'N/A';
+                    riskLevel = data.value > 10 ? 'HIGH' : data.value > 7 ? 'MEDIUM' : 'LOW';
+                    metricType = 'Unemployment';
+                } else {
+                    // CISS data
+                    formattedValue = data.value ? (data.value * 100).toFixed(2) + '%' : 'N/A';
+                    riskLevel = data.value < 0.10 ? 'LOW' : data.value < 0.20 ? 'MEDIUM' : 'HIGH';
+                    metricType = 'CISS';
+                }
+                
+                const displayName = currentData.customNames[data.symbol] || `${flag} ${country} ${metricType}`;
                 
                 card.innerHTML = `
-                    <div class="metric-title">${flag} ${country} CISS</div>
+                    <button class="edit-btn" onclick="editMetricName('${data.symbol}', '${displayName}')">✏️</button>
+                    <div class="metric-title metric-title-editable" onclick="showHistoricalData('${data.symbol}', '${displayName}')">
+                        ${displayName}
+                    </div>
                     <div class="metric-value ${riskLevel === 'LOW' ? 'positive' : riskLevel === 'MEDIUM' ? 'neutral' : 'negative'}">
                         ${formattedValue}
                     </div>
@@ -1861,11 +1918,13 @@
                         <span>Risk: ${riskLevel}</span>
                     </div>
                     <div class="metric-interpretation">
-                        ${interpretations.CISS(value, country)}
+                        ${data.type === 'UNEMPLOYMENT' ? interpretations.UNEMPLOYMENT(data.value, country) : 
+                          data.type === 'FX_CLAIMS' ? '💱 Foreign currency exposure indicator' :
+                          interpretations.CISS(data.value, country)}
                     </div>
                 `;
                 
-                card.onclick = () => showHistoricalData(data.symbol, `${country} CISS`);
+                card.onclick = () => showHistoricalData(data.symbol, displayName);
                 metricsGrid.appendChild(card);
             }
         }
@@ -2116,7 +2175,79 @@
         // Load forex data (placeholder)
         async function loadForexData() {
             const grid = document.getElementById('forexGrid');
-            grid.innerHTML = '<div class="message">Forex data not available in current ECB dataset</div>';
+            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            
+            try {
+                console.log('Loading forex data...');
+                const forexData = {};
+                
+                // Load foreign currency claims indicator
+                try {
+                    const fxClaimsUrl = `${ECB_CONFIG.ECB_API.baseUrl}/data/Claims on euro area residents denominated in foreign currency - Eurosystem, Euro area (changing composition), Weekly`;
+                    const fxResponse = await fetch(fxClaimsUrl);
+                    if (fxResponse.ok) {
+                        const fxData = await fxResponse.json();
+                        forexData['FX_CLAIMS_EA'] = {
+                            ...fxData,
+                            type: 'FX_CLAIMS',
+                            country: 'Euro Area',
+                            displayName: 'Claims on EA residents in foreign currency (Weekly)'
+                        };
+                        console.log('Loaded FX Claims for forex tab:', fxData.value);
+                    }
+                } catch (error) {
+                    console.error('Error loading FX claims:', error);
+                }
+                
+                if (Object.keys(forexData).length > 0) {
+                    displayForexGrid('forexGrid', forexData);
+                } else {
+                    grid.innerHTML = '<div class="message">Foreign currency claims data not available</div>';
+                }
+                
+            } catch (error) {
+                console.error('Error loading forex data:', error);
+                grid.innerHTML = '<div class="message error-message">Failed to load forex data</div>';
+            }
+        }
+        
+        // Display forex grid
+        function displayForexGrid(gridId, forexData) {
+            const grid = document.getElementById(gridId);
+            grid.innerHTML = '';
+            
+            for (const [key, data] of Object.entries(forexData)) {
+                if (!data) continue;
+                
+                const card = document.createElement('div');
+                card.className = 'data-card';
+                
+                const displayName = currentData.customNames[data.symbol] || data.displayName || 'FX Claims';
+                const formattedValue = data.value ? `€${(data.value / 1000).toFixed(1)}B` : 'N/A';
+                const riskLevel = data.value > 1500 ? 'HIGH' : data.value > 1000 ? 'MEDIUM' : 'LOW';
+                const riskClass = riskLevel.toLowerCase();
+                
+                card.innerHTML = `
+                    <button class="edit-btn" onclick="editMetricName('${data.symbol}', '${displayName}')">✏️</button>
+                    <div class="data-card-header">
+                        <div class="data-title">${displayName}</div>
+                        <div class="data-source">Weekly</div>
+                    </div>
+                    <div class="data-value ${riskClass === 'low' ? 'positive' : riskClass === 'medium' ? 'neutral' : 'negative'}">
+                        ${formattedValue}
+                    </div>
+                    <div class="data-change">
+                        <span class="risk-${riskClass}">Exposure: ${riskLevel}</span>
+                        <span style="margin-left: 0.5rem; opacity: 0.7;">Updated: ${data.date || 'Weekly'}</span>
+                    </div>
+                    <div class="metric-interpretation">
+                        💱 Foreign currency exposure of Euro Area residents
+                    </div>
+                `;
+                
+                card.onclick = () => showHistoricalData(data.symbol, displayName);
+                grid.appendChild(card);
+            }
         }
         
         // Load money market data (placeholder)
@@ -2130,32 +2261,92 @@
             const table = document.getElementById('analysisTable');
             table.innerHTML = '';
             
-            // Combine CISS and unemployment data for analysis
+            // Combine ALL data for analysis - CISS, unemployment, and FX claims
             const allData = {
+                ...currentData.overview,
                 ...currentData.countries,
                 ...currentData.unemployment
             };
             
+            // Add foreign currency claims if not already included
+            if (!allData['FX_CLAIMS']) {
+                try {
+                    const fxClaimsUrl = `${ECB_CONFIG.ECB_API.baseUrl}/data/Claims on euro area residents denominated in foreign currency - Eurosystem, Euro area (changing composition), Weekly`;
+                    const fxResponse = await fetch(fxClaimsUrl);
+                    if (fxResponse.ok) {
+                        const fxData = await fxResponse.json();
+                        allData['FX_CLAIMS'] = {
+                            ...fxData,
+                            type: 'FX_CLAIMS',
+                            country: 'Euro Area',
+                            displayName: 'Claims on EA residents in foreign currency'
+                        };
+                    }
+                } catch (error) {
+                    console.error('Error loading FX claims for analysis:', error);
+                }
+            }
+            
             for (const [key, data] of Object.entries(allData)) {
-                if (!data || data.value === null) continue;
+                if (!data || (data.value === null && data.value === undefined)) continue;
                 
                 const row = document.createElement('tr');
-                const isUnemployment = data.dataset === 'UNEMPLOYMENT';
-                const value = isUnemployment ? data.value : data.value * 100;
-                const riskLevel = isUnemployment ? 
-                    (data.value > 10 ? 'HIGH' : data.value > 7 ? 'MEDIUM' : 'LOW') :
-                    (data.value < 0.10 ? 'LOW' : data.value < 0.20 ? 'MEDIUM' : 'HIGH');
+                const isUnemployment = data.type === 'UNEMPLOYMENT' || data.dataset === 'UNEMPLOYMENT';
+                const isFXClaims = data.type === 'FX_CLAIMS';
+                
+                let value, riskLevel, displayValue;
+                
+                if (isFXClaims) {
+                    displayValue = data.value ? `€${(data.value / 1000).toFixed(1)}B` : 'N/A';
+                    riskLevel = data.value > 1500 ? 'HIGH' : data.value > 1000 ? 'MEDIUM' : 'LOW';
+                } else if (isUnemployment) {
+                    displayValue = data.value ? `${data.value.toFixed(2)}%` : 'N/A';
+                    riskLevel = data.value > 10 ? 'HIGH' : data.value > 7 ? 'MEDIUM' : 'LOW';
+                } else {
+                    // CISS data
+                    displayValue = data.value ? `${(data.value * 100).toFixed(2)}%` : 'N/A';
+                    riskLevel = data.value < 0.10 ? 'LOW' : data.value < 0.20 ? 'MEDIUM' : 'HIGH';
+                }
+                
+                const displayName = currentData.customNames[data.symbol] || data.displayName || data.symbol || key;
                 
                 row.innerHTML = `
-                    <td>${data.symbol || key}</td>
+                    <td>
+                        <span class="editable-indicator" onclick="editIndicatorName('${data.symbol || key}', '${displayName}')" style="cursor: pointer; text-decoration: underline;">
+                            ${displayName}
+                        </span>
+                    </td>
                     <td>${data.country || data.countryCode || '-'}</td>
-                    <td>${value.toFixed(2)}%</td>
+                    <td>${displayValue}</td>
                     <td><span class="risk-${riskLevel.toLowerCase()}">${riskLevel}</span></td>
                     <td>${data.observations || '-'}</td>
                     <td>${data.date || data.last_updated || 'Current'}</td>
                 `;
                 
                 table.appendChild(row);
+            }
+        }
+        
+        // Edit indicator name in analysis table
+        function editIndicatorName(key, currentName) {
+            const newName = prompt('Enter new name for this indicator:', currentName);
+            
+            if (newName && newName !== currentName) {
+                currentData.customNames[key] = newName;
+                localStorage.setItem('ecbCustomMetricNames', JSON.stringify(currentData.customNames));
+                loadAnalysisData(); // Refresh the analysis table
+                loadAllData(); // Refresh all data to update names everywhere
+            }
+        }
+        
+        // Edit metric name (for cards)
+        function editMetricName(key, currentName) {
+            const newName = prompt('Enter new name for this indicator:', currentName);
+            
+            if (newName && newName !== currentName) {
+                currentData.customNames[key] = newName;
+                localStorage.setItem('ecbCustomMetricNames', JSON.stringify(currentData.customNames));
+                loadAllData(); // Refresh all data
             }
         }
         
@@ -2345,6 +2536,14 @@
         
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', initializePlatform);
+        
+        // Make functions available globally for onclick handlers
+        window.editMetricName = editMetricName;
+        window.editIndicatorName = editIndicatorName;
+        window.showHistoricalData = showHistoricalData;
+        window.closeHistoricalModal = closeHistoricalModal;
+        window.toggleMetricForm = toggleMetricForm;
+        window.saveCustomMetric = saveCustomMetric;
     </script>
 </body>
 </html>
