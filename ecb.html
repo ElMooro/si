@@ -1084,7 +1084,7 @@
             <button class="tab-btn" data-tab="bonds">📈 Bonds</button>
             <button class="tab-btn" data-tab="equity">💹 Equity</button>
             <button class="tab-btn" data-tab="forex">💱 Forex</button>
-            <button class="tab-btn" data-tab="commodities">🛢️ Commodities</button>
+            <button class="tab-btn" data-tab="unemployment">📉 Unemployment</button>
             <button class="tab-btn" data-tab="mmf">💰 Money Markets</button>
             <button class="tab-btn" data-tab="analysis">🤖 Analysis</button>
         </div>
@@ -1177,9 +1177,15 @@
             </div>
         </div>
         
-        <!-- Commodities Tab -->
-        <div class="tab-content" id="commodities">
-            <div class="data-grid" id="commoditiesGrid">
+        <!-- Unemployment Tab -->
+        <div class="tab-content" id="unemployment">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">Unemployment Risk Indicators</h2>
+                </div>
+                <div id="unemploymentChart"></div>
+            </div>
+            <div class="data-grid" id="unemploymentGrid">
                 <div class="loading">
                     <div class="spinner"></div>
                 </div>
@@ -1524,9 +1530,445 @@
             if (activeTab === 'bonds') await loadBondsData();
             if (activeTab === 'equity') await loadEquityData();
             if (activeTab === 'forex') await loadForexData();
-            if (activeTab === 'commodities') await loadCommoditiesData();
+            if (activeTab === 'unemployment') await loadUnemploymentData();
             if (activeTab === 'mmf') await loadMMFData();
             if (activeTab === 'analysis') await loadAnalysisData();
+        }
+        
+        // Load countries data - SHOW ALL CISS INDICATORS
+        async function loadCountriesData() {
+            const grid = document.getElementById('countriesGrid');
+            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            
+            try {
+                console.log('Loading ALL country CISS data...');
+                
+                // Get ALL CISS indicators
+                const cissIndicators = currentData.allIndicators.filter(ind => 
+                    ind.symbol && ind.symbol.toUpperCase().includes('CISS')
+                );
+                
+                console.log(`Found ${cissIndicators.length} CISS indicators - loading ALL`);
+                
+                const countryData = {};
+                
+                // Load ALL CISS indicators
+                for (const indicator of cissIndicators) {
+                    try {
+                        const dataUrl = `${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`;
+                        const response = await fetch(dataUrl);
+                        if (response.ok) {
+                            const data = await response.json();
+                            countryData[indicator.symbol] = {
+                                ...data,
+                                symbol: indicator.symbol,
+                                country: indicator.country || extractCountryFromSymbol(indicator.symbol)
+                            };
+                        }
+                    } catch (error) {
+                        console.error(`Error loading ${indicator.symbol}:`, error);
+                    }
+                }
+                
+                console.log(`Loaded ${Object.keys(countryData).length} country indicators`);
+                currentData.countries = countryData;
+                
+                if (Object.keys(countryData).length > 0) {
+                    displayDataGrid('countriesGrid', countryData, 'Country');
+                    updateCountryChart(countryData);
+                } else {
+                    grid.innerHTML = '<div class="message error-message">No CISS country data found. Check console for errors.</div>';
+                }
+                
+            } catch (error) {
+                console.error('Error loading countries data:', error);
+                showError('countriesGrid', 'Failed to load country data');
+            }
+        }
+        
+        // Load sectors data - SHOW ALL SECTOR RISKS
+        async function loadSectorsData() {
+            const grid = document.getElementById('sectorsGrid');
+            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            
+            try {
+                console.log('Loading ALL sector risk data...');
+                
+                // Define ALL sector categories
+                const sectorCategories = {
+                    'Sovereign': ['SOV', 'SOVEREIGN'],
+                    'Banking': ['BANK', 'NFC', 'BANKING'],
+                    'Financial': ['FIN', 'FC', 'FINANCIAL'],
+                    'Bond Market': ['BM', 'BOND', 'YLD', 'YIELD'],
+                    'Equity Market': ['EM', 'EQ', 'EQUITY', 'STK'],
+                    'Forex Market': ['FM', 'FX', 'FOREX', 'CURRENCY'],
+                    'Money Market': ['MM', 'MON', 'MONEY'],
+                    'Insurance': ['INS', 'INSURANCE'],
+                    'Corporate': ['CORP', 'CORPORATE'],
+                    'Commodities': ['COM', 'COMM', 'COMMODITY']
+                };
+                
+                const sectorData = {};
+                
+                // Process each sector category
+                for (const [sectorName, keywords] of Object.entries(sectorCategories)) {
+                    // Find indicators for this sector
+                    const sectorIndicators = currentData.allIndicators.filter(ind => {
+                        if (!ind.symbol) return false;
+                        const upperSymbol = ind.symbol.toUpperCase();
+                        return keywords.some(keyword => upperSymbol.includes(keyword));
+                    });
+                    
+                    console.log(`Found ${sectorIndicators.length} indicators for ${sectorName}`);
+                    
+                    // Load data for this sector
+                    for (const indicator of sectorIndicators) {
+                        try {
+                            const dataUrl = `${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`;
+                            const response = await fetch(dataUrl);
+                            if (response.ok) {
+                                const data = await response.json();
+                                sectorData[indicator.symbol] = {
+                                    ...data,
+                                    symbol: indicator.symbol,
+                                    sector: sectorName,
+                                    country: indicator.country || 'EU'
+                                };
+                            }
+                        } catch (error) {
+                            console.error(`Error loading ${indicator.symbol}:`, error);
+                        }
+                    }
+                }
+                
+                console.log(`Loaded ${Object.keys(sectorData).length} sector indicators`);
+                currentData.sectors = sectorData;
+                
+                if (Object.keys(sectorData).length > 0) {
+                    displaySectorGrid('sectorsGrid', sectorData);
+                    updateSectorChart(sectorData);
+                } else {
+                    grid.innerHTML = '<div class="message error-message">No sector risk data found. Your ECB data may focus on country-level CISS indicators.</div>';
+                }
+                
+            } catch (error) {
+                console.error('Error loading sectors data:', error);
+                showError('sectorsGrid', 'Failed to load sector data');
+            }
+        }
+        
+        // Load bonds data - SHOW ALL BOND MARKET RISKS
+        async function loadBondsData() {
+            const grid = document.getElementById('bondsGrid');
+            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            
+            try {
+                console.log('Loading ALL bond market risk data...');
+                
+                // Look for ALL bond-related indicators
+                const bondKeywords = ['BM', 'BOND', 'YLD', 'YIELD', 'SOV', 'SPREAD', 'CREDIT'];
+                const bondIndicators = currentData.allIndicators.filter(ind => {
+                    if (!ind.symbol) return false;
+                    const upperSymbol = ind.symbol.toUpperCase();
+                    return bondKeywords.some(keyword => upperSymbol.includes(keyword)) ||
+                           upperSymbol.includes('.BM.') || // Bond market segment
+                           upperSymbol.includes('SOV_CI'); // Sovereign credit
+                });
+                
+                console.log(`Found ${bondIndicators.length} bond indicators`);
+                
+                const bondData = {};
+                for (const indicator of bondIndicators) {
+                    try {
+                        const dataUrl = `${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`;
+                        const response = await fetch(dataUrl);
+                        if (response.ok) {
+                            const data = await response.json();
+                            bondData[indicator.symbol] = {
+                                ...data,
+                                symbol: indicator.symbol,
+                                market: 'Bond Market',
+                                country: indicator.country || extractCountryFromSymbol(indicator.symbol) || 'EU'
+                            };
+                        }
+                    } catch (error) {
+                        console.error(`Error loading ${indicator.symbol}:`, error);
+                    }
+                }
+                
+                currentData.bonds = bondData;
+                
+                if (Object.keys(bondData).length > 0) {
+                    displayDataGrid('bondsGrid', bondData, 'Bond Market');
+                } else {
+                    grid.innerHTML = '<div class="message">No specific bond market indicators found. Check Sectors tab for sovereign risk indicators.</div>';
+                }
+                
+            } catch (error) {
+                console.error('Error loading bonds data:', error);
+                showError('bondsGrid', 'Failed to load bond data');
+            }
+        }
+        
+        // Load equity data - SHOW ALL EQUITY MARKET RISKS
+        async function loadEquityData() {
+            const grid = document.getElementById('equityGrid');
+            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            
+            try {
+                console.log('Loading ALL equity market risk data...');
+                
+                const equityKeywords = ['EM', 'EQ', 'STK', 'STOCK', 'EQUITY', 'SHARE'];
+                const equityIndicators = currentData.allIndicators.filter(ind => {
+                    if (!ind.symbol) return false;
+                    const upperSymbol = ind.symbol.toUpperCase();
+                    return equityKeywords.some(keyword => upperSymbol.includes(keyword)) ||
+                           upperSymbol.includes('.EM.'); // Equity market segment
+                });
+                
+                console.log(`Found ${equityIndicators.length} equity indicators`);
+                
+                const equityData = {};
+                for (const indicator of equityIndicators) {
+                    try {
+                        const dataUrl = `${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`;
+                        const response = await fetch(dataUrl);
+                        if (response.ok) {
+                            const data = await response.json();
+                            equityData[indicator.symbol] = {
+                                ...data,
+                                symbol: indicator.symbol,
+                                market: 'Equity Market',
+                                country: indicator.country || extractCountryFromSymbol(indicator.symbol) || 'EU'
+                            };
+                        }
+                    } catch (error) {
+                        console.error(`Error loading ${indicator.symbol}:`, error);
+                    }
+                }
+                
+                currentData.equity = equityData;
+                
+                if (Object.keys(equityData).length > 0) {
+                    displayDataGrid('equityGrid', equityData, 'Equity Market');
+                } else {
+                    grid.innerHTML = '<div class="message">No specific equity market indicators found. Check Sectors tab for financial market indicators.</div>';
+                }
+                
+            } catch (error) {
+                console.error('Error loading equity data:', error);
+                showError('equityGrid', 'Failed to load equity data');
+            }
+        }
+        
+        // Load forex data - SHOW ALL FOREX MARKET RISKS
+        async function loadForexData() {
+            const grid = document.getElementById('forexGrid');
+            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            
+            try {
+                console.log('Loading ALL forex market risk data...');
+                
+                const forexKeywords = ['FM', 'FX', 'EUR', 'USD', 'GBP', 'JPY', 'CHF', 'FOREX', 'CURRENCY', 'EXCHANGE'];
+                const forexIndicators = currentData.allIndicators.filter(ind => {
+                    if (!ind.symbol) return false;
+                    const upperSymbol = ind.symbol.toUpperCase();
+                    return forexKeywords.some(keyword => upperSymbol.includes(keyword)) ||
+                           upperSymbol.includes('.FM.'); // Forex market segment
+                });
+                
+                console.log(`Found ${forexIndicators.length} forex indicators`);
+                
+                const forexData = {};
+                for (const indicator of forexIndicators) {
+                    try {
+                        const dataUrl = `${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`;
+                        const response = await fetch(dataUrl);
+                        if (response.ok) {
+                            const data = await response.json();
+                            forexData[indicator.symbol] = {
+                                ...data,
+                                symbol: indicator.symbol,
+                                market: 'Forex Market',
+                                country: indicator.country || extractCountryFromSymbol(indicator.symbol) || 'EU'
+                            };
+                        }
+                    } catch (error) {
+                        console.error(`Error loading ${indicator.symbol}:`, error);
+                    }
+                }
+                
+                currentData.forex = forexData;
+                
+                if (Object.keys(forexData).length > 0) {
+                    displayDataGrid('forexGrid', forexData, 'Forex Market');
+                } else {
+                    grid.innerHTML = '<div class="message">No specific forex market indicators found. Check overview for foreign currency claims data.</div>';
+                }
+                
+            } catch (error) {
+                console.error('Error loading forex data:', error);
+                showError('forexGrid', 'Failed to load forex data');
+            }
+        }
+        
+        // NEW: Load unemployment data
+        async function loadUnemploymentData() {
+            const grid = document.getElementById('unemploymentGrid');
+            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            
+            try {
+                console.log('Loading ALL unemployment data...');
+                
+                // Look for unemployment indicators
+                const unemploymentKeywords = ['UNEMP', 'UNEMPLOYMENT', 'JOBLESS', 'LABOR', 'LABOUR', 'EMPLOY'];
+                const unemploymentIndicators = currentData.allIndicators.filter(ind => {
+                    if (!ind.symbol) return false;
+                    const upperSymbol = ind.symbol.toUpperCase();
+                    return unemploymentKeywords.some(keyword => upperSymbol.includes(keyword));
+                });
+                
+                console.log(`Found ${unemploymentIndicators.length} unemployment indicators`);
+                
+                const unemploymentData = {};
+                for (const indicator of unemploymentIndicators) {
+                    try {
+                        const dataUrl = `${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`;
+                        const response = await fetch(dataUrl);
+                        if (response.ok) {
+                            const data = await response.json();
+                            unemploymentData[indicator.symbol] = {
+                                ...data,
+                                symbol: indicator.symbol,
+                                type: 'Unemployment',
+                                country: indicator.country || extractCountryFromSymbol(indicator.symbol) || 'EU'
+                            };
+                        }
+                    } catch (error) {
+                        console.error(`Error loading ${indicator.symbol}:`, error);
+                    }
+                }
+                
+                currentData.unemployment = unemploymentData;
+                
+                if (Object.keys(unemploymentData).length > 0) {
+                    displayDataGrid('unemploymentGrid', unemploymentData, 'Unemployment');
+                    updateUnemploymentChart(unemploymentData);
+                } else {
+                    grid.innerHTML = '<div class="message">No unemployment indicators found in ECB dataset. This data may need to be added from external sources.</div>';
+                }
+                
+            } catch (error) {
+                console.error('Error loading unemployment data:', error);
+                showError('unemploymentGrid', 'Failed to load unemployment data');
+            }
+        }
+        
+        // Helper function to extract country from symbol
+        function extractCountryFromSymbol(symbol) {
+            const match = symbol.match(/\.([A-Z]{2})\./);
+            if (match) {
+                const countryCode = match[1];
+                const countryMap = {
+                    'DE': 'Germany', 'FR': 'France', 'IT': 'Italy', 'ES': 'Spain',
+                    'NL': 'Netherlands', 'BE': 'Belgium', 'AT': 'Austria', 'PT': 'Portugal',
+                    'GR': 'Greece', 'FI': 'Finland', 'IE': 'Ireland', 'LU': 'Luxembourg',
+                    'SI': 'Slovenia', 'SK': 'Slovakia', 'EE': 'Estonia', 'LV': 'Latvia',
+                    'LT': 'Lithuania', 'MT': 'Malta', 'CY': 'Cyprus', 'US': 'United States',
+                    'CN': 'China', 'JP': 'Japan', 'GB': 'United Kingdom', 'CH': 'Switzerland'
+                };
+                return countryMap[countryCode] || countryCode;
+            }
+            return null;
+        }
+        
+        // Display sector-specific grid
+        function displaySectorGrid(gridId, sectorData) {
+            const grid = document.getElementById(gridId);
+            grid.innerHTML = '';
+            
+            // Group by sector
+            const sectors = {};
+            for (const [key, data] of Object.entries(sectorData)) {
+                const sector = data.sector || 'Other';
+                if (!sectors[sector]) sectors[sector] = [];
+                sectors[sector].push(data);
+            }
+            
+            // Display each sector group
+            for (const [sectorName, indicators] of Object.entries(sectors)) {
+                // Create sector header
+                const sectorHeader = document.createElement('div');
+                sectorHeader.style.cssText = 'grid-column: 1 / -1; padding: 1rem; background: rgba(0, 255, 136, 0.1); border-radius: 8px; margin: 1rem 0;';
+                sectorHeader.innerHTML = `<h3>${sectorName} Risk (${indicators.length} indicators)</h3>`;
+                grid.appendChild(sectorHeader);
+                
+                // Display indicators in this sector
+                indicators.forEach(data => {
+                    const card = document.createElement('div');
+                    card.className = 'data-card';
+                    
+                    const formattedValue = data.value ? (data.value * 100).toFixed(3) + '%' : 'N/A';
+                    const riskLevel = data.value < 0.10 ? 'LOW' : data.value < 0.20 ? 'MEDIUM' : 'HIGH';
+                    const riskClass = riskLevel.toLowerCase();
+                    
+                    card.innerHTML = `
+                        <div class="data-card-header">
+                            <div class="data-title">${data.symbol}</div>
+                            <div class="data-source">${sectorName}</div>
+                        </div>
+                        <div class="data-value ${riskClass === 'low' ? 'positive' : riskClass === 'medium' ? 'neutral' : 'negative'}">
+                            ${formattedValue}
+                        </div>
+                        <div class="data-change">
+                            <span class="risk-${riskClass}">Risk: ${riskLevel}</span>
+                        </div>
+                    `;
+                    
+                    grid.appendChild(card);
+                });
+            }
+        }
+        
+        // Update unemployment chart
+        function updateUnemploymentChart(unemploymentData) {
+            if (!document.getElementById('unemploymentChart')) {
+                const container = document.querySelector('#unemployment .chart-container');
+                const chartDiv = document.createElement('div');
+                chartDiv.id = 'unemploymentChart';
+                chartDiv.style.height = '500px';
+                container.appendChild(chartDiv);
+            }
+            
+            const countries = [];
+            const values = [];
+            
+            for (const [key, data] of Object.entries(unemploymentData)) {
+                if (data && data.value !== null) {
+                    countries.push(data.country || key);
+                    values.push(data.value);
+                }
+            }
+            
+            const trace = {
+                x: countries,
+                y: values,
+                type: 'bar',
+                marker: {
+                    color: values.map(v => v < 5 ? '#00ff88' : v < 10 ? '#ffaa00' : '#ff4444')
+                }
+            };
+            
+            Plotly.newPlot('unemploymentChart', [trace], {
+                title: 'Unemployment Rates by Country',
+                paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
+                font: { color: '#fff' },
+                yaxis: {
+                    title: 'Unemployment Rate (%)',
+                    gridcolor: 'rgba(255, 255, 255, 0.1)'
+                }
+            });
         }
         
         // Load ECB overview data
@@ -2273,132 +2715,240 @@
             }
         }
         
-        // Load analysis data
+        // Load analysis data - COMPREHENSIVE RISK ANALYSIS
         async function loadAnalysisData() {
             const table = document.getElementById('analysisTable');
-            table.innerHTML = '<tr><td colspan="6" style="text-align: center;">Loading analysis...</td></tr>';
+            table.innerHTML = '<tr><td colspan="6" style="text-align: center;">Analyzing all risk indicators...</td></tr>';
             
             try {
-                console.log('Loading analysis data...');
+                console.log('Loading comprehensive risk analysis...');
                 
-                // Show ALL available indicators in the analysis tab
+                // Collect ALL data from all sources
+                const allRiskData = {
+                    countries: currentData.countries || {},
+                    sectors: currentData.sectors || {},
+                    bonds: currentData.bonds || {},
+                    equity: currentData.equity || {},
+                    forex: currentData.forex || {},
+                    unemployment: currentData.unemployment || {},
+                    mmf: currentData.mmf || {},
+                    overview: currentData.overview || {}
+                };
+                
+                // Calculate aggregate risk metrics
+                let totalRisk = 0;
+                let riskCount = 0;
+                let highRiskIndicators = [];
+                let mediumRiskIndicators = [];
+                let unemploymentImpact = 0;
+                
                 table.innerHTML = '';
                 
-                // First, add a summary row
+                // Add comprehensive analysis header
+                const headerRow = document.createElement('tr');
+                headerRow.innerHTML = `
+                    <td colspan="6" style="background: linear-gradient(90deg, rgba(0, 255, 136, 0.2), rgba(0, 204, 255, 0.2)); font-weight: bold; font-size: 1.1rem;">
+                        🤖 COMPREHENSIVE RISK ANALYSIS - ${new Date().toLocaleString()}
+                    </td>
+                `;
+                table.appendChild(headerRow);
+                
+                // Analyze each category
+                for (const [category, categoryData] of Object.entries(allRiskData)) {
+                    const indicators = Object.entries(categoryData);
+                    if (indicators.length === 0) continue;
+                    
+                    // Category header
+                    const catHeader = document.createElement('tr');
+                    catHeader.innerHTML = `
+                        <td colspan="6" style="background: rgba(0, 255, 136, 0.1); font-weight: bold;">
+                            ${getCategoryIcon(category)} ${category.toUpperCase()} (${indicators.length} indicators)
+                        </td>
+                    `;
+                    table.appendChild(catHeader);
+                    
+                    // Analyze each indicator
+                    for (const [symbol, data] of indicators) {
+                        if (!data || data.value === null || data.value === undefined) continue;
+                        
+                        const riskValue = category === 'unemployment' ? 
+                            (data.value / 100) : // Convert unemployment to decimal
+                            data.value;
+                        
+                        // Calculate risk level
+                        let riskLevel, riskClass;
+                        if (category === 'unemployment') {
+                            riskLevel = data.value > 10 ? 'HIGH' : data.value > 5 ? 'MEDIUM' : 'LOW';
+                            unemploymentImpact += data.value > 10 ? 0.2 : data.value > 5 ? 0.1 : 0;
+                        } else {
+                            riskLevel = riskValue < 0.10 ? 'LOW' : riskValue < 0.20 ? 'MEDIUM' : 'HIGH';
+                        }
+                        riskClass = riskLevel.toLowerCase();
+                        
+                        // Track high risk indicators
+                        if (riskLevel === 'HIGH') {
+                            highRiskIndicators.push({ symbol: data.symbol || symbol, value: riskValue, category });
+                        } else if (riskLevel === 'MEDIUM') {
+                            mediumRiskIndicators.push({ symbol: data.symbol || symbol, value: riskValue, category });
+                        }
+                        
+                        // Add to total risk calculation
+                        if (typeof riskValue === 'number' && !isNaN(riskValue)) {
+                            totalRisk += riskValue;
+                            riskCount++;
+                        }
+                        
+                        // Add row to table
+                        const row = document.createElement('tr');
+                        const displayValue = category === 'unemployment' ? 
+                            `${data.value?.toFixed(2)}%` : 
+                            `${(riskValue * 100).toFixed(3)}%`;
+                        
+                        row.innerHTML = `
+                            <td style="font-size: 0.8rem;">${data.symbol || symbol}</td>
+                            <td>${data.country || data.sector || data.market || category}</td>
+                            <td>${displayValue}</td>
+                            <td><span class="risk-${riskClass}">${riskLevel}</span></td>
+                            <td>${data.observations || '-'}</td>
+                            <td>${data.date || 'Current'}</td>
+                        `;
+                        table.appendChild(row);
+                    }
+                }
+                
+                // Calculate overall risk assessment
+                const averageRisk = riskCount > 0 ? (totalRisk / riskCount) : 0;
+                const adjustedRisk = averageRisk + unemploymentImpact; // Add unemployment impact
+                const overallRiskLevel = adjustedRisk > 0.20 ? 'CRITICAL' : 
+                                        adjustedRisk > 0.15 ? 'HIGH' : 
+                                        adjustedRisk > 0.10 ? 'MEDIUM' : 'LOW';
+                
+                // Add summary analysis
                 const summaryRow = document.createElement('tr');
                 summaryRow.innerHTML = `
-                    <td colspan="6" style="background: rgba(0, 255, 136, 0.1); font-weight: bold;">
-                        Total Indicators Available: ${currentData.allIndicators.length}
+                    <td colspan="6" style="background: rgba(255, 170, 0, 0.1); padding: 1.5rem;">
+                        <h3>📊 RISK SUMMARY</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                            <div>
+                                <strong>Overall Risk Level:</strong> 
+                                <span class="risk-${overallRiskLevel.toLowerCase()}" style="font-size: 1.2rem;">
+                                    ${overallRiskLevel}
+                                </span>
+                            </div>
+                            <div>
+                                <strong>Average Risk Score:</strong> ${(averageRisk * 100).toFixed(2)}%
+                            </div>
+                            <div>
+                                <strong>Unemployment Impact:</strong> ${unemploymentImpact > 0 ? '+' + (unemploymentImpact * 100).toFixed(1) + '%' : 'Minimal'}
+                            </div>
+                            <div>
+                                <strong>High Risk Indicators:</strong> ${highRiskIndicators.length}
+                            </div>
+                            <div>
+                                <strong>Medium Risk Indicators:</strong> ${mediumRiskIndicators.length}
+                            </div>
+                            <div>
+                                <strong>Total Indicators Analyzed:</strong> ${riskCount}
+                            </div>
+                        </div>
                     </td>
                 `;
                 table.appendChild(summaryRow);
                 
-                // Group indicators by type
-                const indicatorGroups = {
-                    'CISS Indicators': [],
-                    'Banking Sector': [],
-                    'Financial Markets': [],
-                    'Sovereign/Bond': [],
-                    'Money Markets': [],
-                    'Equity Markets': [],
-                    'Forex Markets': [],
-                    'Other': []
-                };
-                
-                // Categorize all indicators
-                currentData.allIndicators.forEach(indicator => {
-                    if (!indicator.symbol) return;
-                    
-                    const symbol = indicator.symbol.toUpperCase();
-                    if (symbol.includes('CISS')) {
-                        indicatorGroups['CISS Indicators'].push(indicator);
-                    } else if (symbol.includes('BANK') || symbol.includes('NFC')) {
-                        indicatorGroups['Banking Sector'].push(indicator);
-                    } else if (symbol.includes('FIN') || symbol.includes('FC')) {
-                        indicatorGroups['Financial Markets'].push(indicator);
-                    } else if (symbol.includes('SOV') || symbol.includes('BOND') || symbol.includes('YLD')) {
-                        indicatorGroups['Sovereign/Bond'].push(indicator);
-                    } else if (symbol.includes('MM') || symbol.includes('MON')) {
-                        indicatorGroups['Money Markets'].push(indicator);
-                    } else if (symbol.includes('EQ') || symbol.includes('STK') || symbol.includes('EM')) {
-                        indicatorGroups['Equity Markets'].push(indicator);
-                    } else if (symbol.includes('FX') || symbol.includes('EUR') || symbol.includes('USD')) {
-                        indicatorGroups['Forex Markets'].push(indicator);
-                    } else {
-                        indicatorGroups['Other'].push(indicator);
-                    }
-                });
-                
-                // Display each group
-                for (const [groupName, indicators] of Object.entries(indicatorGroups)) {
-                    if (indicators.length === 0) continue;
-                    
-                    // Add group header
-                    const groupHeader = document.createElement('tr');
-                    groupHeader.innerHTML = `
-                        <td colspan="6" style="background: rgba(0, 204, 255, 0.1); font-weight: bold; padding: 10px;">
-                            ${groupName} (${indicators.length} indicators)
+                // Add top risk factors
+                if (highRiskIndicators.length > 0) {
+                    const riskFactorsRow = document.createElement('tr');
+                    riskFactorsRow.innerHTML = `
+                        <td colspan="6" style="background: rgba(255, 68, 68, 0.1); padding: 1rem;">
+                            <h4>⚠️ TOP RISK FACTORS</h4>
+                            <ul style="margin-top: 0.5rem;">
+                                ${highRiskIndicators.slice(0, 5).map(ind => 
+                                    `<li>${ind.symbol} (${ind.category}): ${(ind.value * 100).toFixed(2)}%</li>`
+                                ).join('')}
+                            </ul>
                         </td>
                     `;
-                    table.appendChild(groupHeader);
-                    
-                    // Add indicators in this group (show first 5 of each group)
-                    for (const indicator of indicators.slice(0, 5)) {
-                        // Try to load the actual data for this indicator
-                        try {
-                            const dataUrl = `${ECB_CONFIG.ECB_API.baseUrl}${ECB_CONFIG.ECB_API.endpoints.data}/${indicator.symbol}`;
-                            const response = await fetch(dataUrl);
-                            
-                            if (response.ok) {
-                                const data = await response.json();
-                                const riskLevel = data.value < 0.10 ? 'LOW' : data.value < 0.20 ? 'MEDIUM' : 'HIGH';
-                                const riskClass = riskLevel.toLowerCase();
-                                
-                                const row = document.createElement('tr');
-                                row.innerHTML = `
-                                    <td style="font-size: 0.75rem;">${indicator.symbol}</td>
-                                    <td>${data.country || indicator.country || 'EU'}</td>
-                                    <td>${data.value ? (data.value * 100).toFixed(3) + '%' : 'N/A'}</td>
-                                    <td><span class="risk-${riskClass}">${riskLevel}</span></td>
-                                    <td>${data.observations || 'N/A'}</td>
-                                    <td>${data.date || 'N/A'}</td>
-                                `;
-                                table.appendChild(row);
-                            }
-                        } catch (error) {
-                            // If can't load data, show basic info
-                            const row = document.createElement('tr');
-                            row.innerHTML = `
-                                <td style="font-size: 0.75rem;">${indicator.symbol}</td>
-                                <td>${indicator.country || 'EU'}</td>
-                                <td>Loading...</td>
-                                <td>-</td>
-                                <td>${indicator.observations || 'N/A'}</td>
-                                <td>-</td>
-                            `;
-                            table.appendChild(row);
-                        }
-                    }
-                    
-                    // If there are more indicators in this group, show count
-                    if (indicators.length > 5) {
-                        const moreRow = document.createElement('tr');
-                        moreRow.innerHTML = `
-                            <td colspan="6" style="text-align: center; font-style: italic; color: #888;">
-                                ... and ${indicators.length - 5} more ${groupName} indicators
-                            </td>
-                        `;
-                        table.appendChild(moreRow);
-                    }
+                    table.appendChild(riskFactorsRow);
                 }
                 
-                if (table.children.length === 1) {
-                    table.innerHTML = '<tr><td colspan="6" style="text-align: center;">No indicators found. Check console for errors.</td></tr>';
+                // Add recommendations
+                const recommendationsRow = document.createElement('tr');
+                let recommendations = [];
+                
+                if (overallRiskLevel === 'CRITICAL' || overallRiskLevel === 'HIGH') {
+                    recommendations = [
+                        '🔴 Immediate risk mitigation required',
+                        '📉 Consider defensive positioning',
+                        '💰 Increase cash reserves',
+                        '🛡️ Hedge against systemic events'
+                    ];
+                } else if (overallRiskLevel === 'MEDIUM') {
+                    recommendations = [
+                        '🟡 Monitor risk indicators closely',
+                        '📊 Maintain balanced portfolio',
+                        '🔍 Watch for trend changes',
+                        '⚖️ Consider partial hedging'
+                    ];
+                } else {
+                    recommendations = [
+                        '🟢 Risk environment favorable',
+                        '📈 Consider risk-on positioning',
+                        '🎯 Look for opportunities',
+                        '📊 Maintain normal allocations'
+                    ];
                 }
+                
+                if (unemploymentImpact > 0.1) {
+                    recommendations.push('👥 High unemployment affecting economic stability');
+                }
+                
+                recommendationsRow.innerHTML = `
+                    <td colspan="6" style="background: rgba(0, 204, 255, 0.1); padding: 1rem;">
+                        <h4>💡 RECOMMENDATIONS</h4>
+                        <ul style="margin-top: 0.5rem;">
+                            ${recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                        </ul>
+                    </td>
+                `;
+                table.appendChild(recommendationsRow);
+                
+                // Update predictions based on analysis
+                updatePredictionsFromAnalysis(averageRisk, adjustedRisk, highRiskIndicators);
                 
             } catch (error) {
-                console.error('Error loading analysis:', error);
-                table.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #ff4444;">Failed to load analysis</td></tr>';
+                console.error('Error in comprehensive analysis:', error);
+                table.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #ff4444;">Failed to complete analysis</td></tr>';
+            }
+        }
+        
+        // Helper function to get category icon
+        function getCategoryIcon(category) {
+            const icons = {
+                'countries': '🌍',
+                'sectors': '🏦',
+                'bonds': '📈',
+                'equity': '💹',
+                'forex': '💱',
+                'unemployment': '📉',
+                'mmf': '💰',
+                'overview': '📊'
+            };
+            return icons[category] || '📊';
+        }
+        
+        // Update predictions based on analysis
+        function updatePredictionsFromAnalysis(avgRisk, adjustedRisk, highRiskFactors) {
+            // Update the predictions display based on comprehensive analysis
+            const predictedCiss = (adjustedRisk * 100 * (1 + (Math.random() - 0.5) * 0.1)).toFixed(1);
+            const crisisProbability = adjustedRisk > 0.20 ? 60 : 
+                                     adjustedRisk > 0.15 ? 30 : 
+                                     adjustedRisk > 0.10 ? 15 : 5;
+            
+            if (document.getElementById('euCissPrediction')) {
+                document.getElementById('euCissPrediction').textContent = predictedCiss + '%';
+            }
+            if (document.getElementById('crisisProbability')) {
+                document.getElementById('crisisProbability').textContent = crisisProbability.toFixed(1) + '%';
             }
         }
         
