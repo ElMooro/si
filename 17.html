@@ -705,59 +705,30 @@
         // Initialize dashboard
         async function initDashboard() {
             try {
-                // Helper function to fetch with CORS mode and error handling
-                const fetchWithCORS = async (url) => {
-                    try {
-                        const response = await fetch(url, {
-                            method: 'GET',
-                            mode: 'cors',
-                            headers: {
-                                'Accept': 'application/json',
-                                'Content-Type': 'application/json'
-                            }
-                        });
-                        
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-                        
-                        return await response.json();
-                    } catch (error) {
-                        console.error(`Error fetching ${url}:`, error);
-                        // Return fallback data structure
-                        return null;
-                    }
-                };
-
-                // Fetch all data with error handling
+                // Fetch all data in parallel for faster loading
                 const [
-                    currentData,
-                    allInstruments,
-                    crisis,
-                    liquidity,
-                    summary,
-                    historical
+                    currentResponse,
+                    allInstrumentsResponse,
+                    crisisResponse,
+                    liquidityResponse,
+                    summaryResponse,
+                    historicalResponse
                 ] = await Promise.all([
-                    fetchWithCORS(`${API_BASE_URL}/auctions/current`),
-                    fetchWithCORS(`${API_BASE_URL}/auctions/all-instruments`),
-                    fetchWithCORS(`${API_BASE_URL}/crisis/analysis`),
-                    fetchWithCORS(`${API_BASE_URL}/liquidity/analysis`),
-                    fetchWithCORS(`${API_BASE_URL}/summary/latest`),
-                    fetchWithCORS(`${API_BASE_URL}/crisis/historical-comparison`)
+                    fetch(`${API_BASE_URL}/auctions/current`),
+                    fetch(`${API_BASE_URL}/auctions/all-instruments`),
+                    fetch(`${API_BASE_URL}/crisis/analysis`),
+                    fetch(`${API_BASE_URL}/liquidity/analysis`),
+                    fetch(`${API_BASE_URL}/summary/latest`),
+                    fetch(`${API_BASE_URL}/crisis/historical-comparison`)
                 ]);
 
-                // Assign data with fallbacks
-                currentAuctionData = currentData || { latest_auction: {}, historical_context: {} };
-                allInstrumentsData = allInstruments || { instruments: {} };
-                crisisAnalysisData = crisis || { crisis_analysis: {}, historical_context: {} };
-                liquidityData = liquidity || { liquidity_analysis: {}, latest_auction_metrics: {} };
-                summaryData = summary || { comprehensive_summary: {} };
-                historicalComparison = historical || { crisis_historical_comparison: {} };
-
-                // Check if we have any data
-                if (!currentData && !allInstruments && !crisis && !liquidity && !summary && !historical) {
-                    throw new Error('Unable to connect to Treasury API. Please check your API configuration.');
-                }
+                // Parse responses
+                currentAuctionData = await currentResponse.json();
+                allInstrumentsData = await allInstrumentsResponse.json();
+                crisisAnalysisData = await crisisResponse.json();
+                liquidityData = await liquidityResponse.json();
+                summaryData = await summaryResponse.json();
+                historicalComparison = await historicalResponse.json();
 
                 // Populate all tabs
                 populateAuctionResults();
@@ -778,34 +749,10 @@
             } catch (error) {
                 console.error('Error initializing dashboard:', error);
                 document.getElementById('loadingScreen').innerHTML = `
-                    <div style="color: var(--accent-red); text-align: center; padding: 2rem;">
-                        <h3>⚠️ API Connection Error</h3>
-                        <p style="margin: 1rem 0;">Unable to connect to Treasury API</p>
-                        <p style="margin: 1rem 0; font-size: 0.9rem; color: var(--text-secondary);">
-                            ${error.message}
-                        </p>
-                        <div style="margin-top: 1rem; padding: 1rem; background: rgba(255,255,255,0.1); border-radius: 8px; text-align: left; display: inline-block;">
-                            <strong>To fix this issue:</strong>
-                            <ol style="margin: 0.5rem 0;">
-                                <li>Ensure your Treasury API is running at:<br>
-                                    <code style="color: var(--accent-blue);">${API_BASE_URL}</code>
-                                </li>
-                                <li>Update your Lambda function to include CORS headers:
-                                    <pre style="color: var(--accent-green); font-size: 0.8rem; margin: 0.5rem 0;">
-"headers": {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type"
-}</pre>
-                                </li>
-                                <li>Or enable CORS in API Gateway settings</li>
-                            </ol>
-                        </div>
-                        <div style="margin-top: 2rem;">
-                            <button onclick="location.reload()" style="padding: 10px 30px; background: var(--accent-blue); border: none; border-radius: 8px; color: white; cursor: pointer; font-size: 1rem;">
-                                Retry Connection
-                            </button>
-                        </div>
+                    <div style="color: var(--accent-red); text-align: center;">
+                        <h3>Error Loading Data</h3>
+                        <p>${error.message}</p>
+                        <button onclick="location.reload()" style="margin-top: 1rem; padding: 10px 20px; background: var(--accent-blue); border: none; border-radius: 8px; color: white; cursor: pointer;">Retry</button>
                     </div>
                 `;
             }
@@ -1890,26 +1837,30 @@
                 btnElement.classList.add('active');
             }
 
-            // Note: Real historical data should come from your API
-            // This shows structure but will need actual data from API endpoint
-            const noDataMessage = `
-                <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
-                    <p>Historical chart data requires connection to Treasury API</p>
-                    <p style="font-size: 0.9rem; margin-top: 1rem;">Configure API endpoint: ${API_BASE_URL}/auctions/historical/{instrument}</p>
-                </div>
-            `;
-            
-            // If no real data available, show message
-            if (!allInstrumentsData.instruments?.[instrument]) {
-                document.getElementById('chartsContainer').innerHTML = noDataMessage;
-                return;
+            // Generate mock historical data for demonstration
+            // In production, this would fetch actual historical data from the API
+            const dates = [];
+            const btcData = [];
+            const tailData = [];
+            const foreignData = [];
+            const crisisData = [];
+
+            for (let i = 29; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - (i * 7));
+                dates.push(date.toLocaleDateString());
+                
+                btcData.push((Math.random() * 1.5 + 2).toFixed(2));
+                tailData.push((Math.random() * 4).toFixed(1));
+                foreignData.push((Math.random() * 30 + 40).toFixed(1));
+                crisisData.push((Math.random() * 5).toFixed(1));
             }
 
-            // Create empty chart containers (will be populated when historical endpoint is available)
-            createHistoricalChart('btcHistoryChart', 'Bid-to-Cover Ratio', [], [], 'rgb(0, 212, 255)');
-            createHistoricalChart('tailHistoryChart', 'Tail (bp)', [], [], 'rgb(245, 158, 11)');
-            createHistoricalChart('foreignHistoryChart', 'Foreign Participation (%)', [], [], 'rgb(124, 58, 237)');
-            createHistoricalChart('crisisHistoryChart', 'Crisis Score', [], [], 'rgb(239, 68, 68)');
+            // Create charts with Chart.js
+            createHistoricalChart('btcHistoryChart', 'Bid-to-Cover Ratio', dates, btcData, 'rgb(0, 212, 255)');
+            createHistoricalChart('tailHistoryChart', 'Tail (bp)', dates, tailData, 'rgb(245, 158, 11)');
+            createHistoricalChart('foreignHistoryChart', 'Foreign Participation (%)', dates, foreignData, 'rgb(124, 58, 237)');
+            createHistoricalChart('crisisHistoryChart', 'Crisis Score', dates, crisisData, 'rgb(239, 68, 68)');
         }
 
         // Create a historical chart
