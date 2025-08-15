@@ -164,11 +164,6 @@
             color: #00ff88;
         }
 
-        .instrument-date {
-            color: #888;
-            font-size: 14px;
-        }
-
         /* Stats Grid */
         .stats-grid {
             display: grid;
@@ -301,60 +296,6 @@
             background: rgba(0, 255, 136, 0.1);
         }
 
-        /* Instrument Tabs */
-        .instrument-tabs {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 20px;
-            overflow-x: auto;
-            padding-bottom: 10px;
-        }
-
-        .instrument-tab {
-            padding: 8px 16px;
-            background: #1a1a1a;
-            border: 1px solid #333;
-            color: #888;
-            cursor: pointer;
-            border-radius: 6px;
-            font-size: 13px;
-            white-space: nowrap;
-            transition: all 0.3s;
-        }
-
-        .instrument-tab:hover {
-            background: #252525;
-            color: #fff;
-        }
-
-        .instrument-tab.active {
-            background: #00ff88;
-            color: #000;
-            font-weight: bold;
-            border-color: #00ff88;
-        }
-
-        /* Alert Banner */
-        .alert-banner {
-            background: linear-gradient(135deg, #ff4444 0%, #ff6666 100%);
-            color: #fff;
-            padding: 15px 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .alert-banner.warning {
-            background: linear-gradient(135deg, #ffaa00 0%, #ff8800 100%);
-        }
-
-        .alert-banner.success {
-            background: linear-gradient(135deg, #00ff88 0%, #00cc66 100%);
-            color: #000;
-        }
-
         /* Responsive */
         @media (max-width: 768px) {
             .header-content {
@@ -365,24 +306,17 @@
             .stats-grid {
                 grid-template-columns: 1fr;
             }
-
-            .instrument-tabs {
-                flex-wrap: wrap;
-            }
         }
     </style>
 </head>
 <body>
     <div class="header">
         <div class="header-content">
-            <div class="logo">🏛️ TREASURY MULTI-INSTRUMENT DASHBOARD</div>
+            <div class="logo">TREASURY MULTI-INSTRUMENT DASHBOARD</div>
             <div class="status-bar">
                 <div class="status-indicator">
                     <div class="status-dot" id="apiStatus"></div>
                     <span id="statusText">Connecting...</span>
-                </div>
-                <div class="status-indicator">
-                    <span id="dataCount">0 Instruments</span>
                 </div>
                 <div class="status-indicator">
                     <span id="lastUpdate">Last Update: --</span>
@@ -396,14 +330,14 @@
 
     <div class="tab-nav">
         <div class="tab-nav-inner">
-            <button class="tab-btn active" onclick="switchTab('auction-results', this)">📊 Auction Results</button>
-            <button class="tab-btn" onclick="switchTab('all-indicators', this)">📈 All 31 Indicators</button>
-            <button class="tab-btn" onclick="switchTab('crisis-detection', this)">🚨 Crisis Detection</button>
-            <button class="tab-btn" onclick="switchTab('liquidity-analysis', this)">💧 Liquidity Analysis</button>
-            <button class="tab-btn" onclick="switchTab('comprehensive-summary', this)">📋 Comprehensive Summary</button>
-            <button class="tab-btn" onclick="switchTab('yield-analysis', this)">📉 Yield Analysis</button>
-            <button class="tab-btn" onclick="switchTab('participation', this)">👥 Participation</button>
-            <button class="tab-btn" onclick="switchTab('market-interpretation', this)">💡 Market Interpretation</button>
+            <button class="tab-btn active" onclick="switchTab('auction-results', this)">Auction Results</button>
+            <button class="tab-btn" onclick="switchTab('all-indicators', this)">All 31 Indicators</button>
+            <button class="tab-btn" onclick="switchTab('crisis-detection', this)">Crisis Detection</button>
+            <button class="tab-btn" onclick="switchTab('liquidity-analysis', this)">Liquidity Analysis</button>
+            <button class="tab-btn" onclick="switchTab('comprehensive-summary', this)">Comprehensive Summary</button>
+            <button class="tab-btn" onclick="switchTab('yield-analysis', this)">Yield Analysis</button>
+            <button class="tab-btn" onclick="switchTab('participation', this)">Participation</button>
+            <button class="tab-btn" onclick="switchTab('market-interpretation', this)">Market Interpretation</button>
         </div>
     </div>
 
@@ -411,174 +345,73 @@
         <!-- Auction Results Tab -->
         <div id="auction-results" class="tab-content active">
             <h2 style="margin-bottom: 20px; color: #fff;">Latest Auction Results by Instrument</h2>
-            
-            <div class="instrument-tabs" id="auctionInstrumentTabs">
-                <div class="instrument-tab active" onclick="showInstrument('all', this)">All Instruments</div>
-                <div class="instrument-tab" onclick="showInstrument('4-Week', this)">4-Week</div>
-                <div class="instrument-tab" onclick="showInstrument('8-Week', this)">8-Week</div>
-                <div class="instrument-tab" onclick="showInstrument('13-Week', this)">13-Week</div>
-                <div class="instrument-tab" onclick="showInstrument('26-Week', this)">26-Week</div>
-                <div class="instrument-tab" onclick="showInstrument('52-Week', this)">52-Week</div>
-                <div class="instrument-tab" onclick="showInstrument('2-Year', this)">2-Year</div>
-                <div class="instrument-tab" onclick="showInstrument('3-Year', this)">3-Year</div>
-                <div class="instrument-tab" onclick="showInstrument('5-Year', this)">5-Year</div>
-                <div class="instrument-tab" onclick="showInstrument('7-Year', this)">7-Year</div>
-                <div class="instrument-tab" onclick="showInstrument('10-Year', this)">10-Year</div>
-                <div class="instrument-tab" onclick="showInstrument('20-Year', this)">20-Year</div>
-                <div class="instrument-tab" onclick="showInstrument('30-Year', this)">30-Year</div>
-            </div>
-
-            <div id="auctionResultsContent">
-                <div class="chart-loading">
-                    <div class="loading-spinner"></div>
-                    <div>Loading auction data for all instruments...</div>
-                </div>
-            </div>
-
+            <div id="auctionResultsContent"></div>
             <div class="chart-container">
                 <div class="chart-header">
-                    <div class="chart-title">Bid-to-Cover Comparison Across All Instruments</div>
+                    <div class="chart-title">Bid-to-Cover Comparison</div>
                 </div>
-                <div class="chart-area" id="btcComparisonChart">
-                    <div class="chart-loading">
-                        <div class="loading-spinner"></div>
-                        <div>Loading comparison data...</div>
-                    </div>
-                </div>
+                <div class="chart-area" id="btcComparisonChart"></div>
             </div>
         </div>
 
         <!-- All 31 Indicators Tab -->
         <div id="all-indicators" class="tab-content">
             <h2 style="margin-bottom: 20px; color: #fff;">All 31 Indicators by Instrument</h2>
-            
-            <div class="instrument-tabs" id="indicatorInstrumentTabs">
-                <div class="instrument-tab active" onclick="showIndicatorInstrument('all', this)">All Instruments</div>
-                <div class="instrument-tab" onclick="showIndicatorInstrument('4-Week', this)">4-Week</div>
-                <div class="instrument-tab" onclick="showIndicatorInstrument('8-Week', this)">8-Week</div>
-                <div class="instrument-tab" onclick="showIndicatorInstrument('13-Week', this)">13-Week</div>
-                <div class="instrument-tab" onclick="showIndicatorInstrument('2-Year', this)">2-Year</div>
-                <div class="instrument-tab" onclick="showIndicatorInstrument('5-Year', this)">5-Year</div>
-                <div class="instrument-tab" onclick="showIndicatorInstrument('10-Year', this)">10-Year</div>
-                <div class="instrument-tab" onclick="showIndicatorInstrument('30-Year', this)">30-Year</div>
-            </div>
-
-            <div id="indicatorsContent">
-                <div class="chart-loading">
-                    <div class="loading-spinner"></div>
-                    <div>Loading indicators for all instruments...</div>
-                </div>
-            </div>
+            <div id="indicatorsContent"></div>
         </div>
 
         <!-- Crisis Detection Tab -->
         <div id="crisis-detection" class="tab-content">
             <h2 style="margin-bottom: 20px; color: #fff;">Crisis Detection Across All Instruments</h2>
-            <div id="crisisAlert"></div>
-            
-            <div id="crisisContent">
-                <div class="chart-loading">
-                    <div class="loading-spinner"></div>
-                    <div>Analyzing crisis patterns across all instruments...</div>
-                </div>
-            </div>
-
+            <div id="crisisContent"></div>
             <div class="chart-container">
                 <div class="chart-header">
                     <div class="chart-title">Crisis Score by Instrument</div>
                 </div>
-                <div class="chart-area" id="crisisComparisonChart">
-                    <div class="chart-loading">
-                        <div class="loading-spinner"></div>
-                        <div>Loading crisis comparison...</div>
-                    </div>
-                </div>
+                <div class="chart-area" id="crisisComparisonChart"></div>
             </div>
         </div>
 
         <!-- Liquidity Analysis Tab -->
         <div id="liquidity-analysis" class="tab-content">
             <h2 style="margin-bottom: 20px; color: #fff;">Liquidity Analysis Across All Instruments</h2>
-            <div id="liquidityAlert"></div>
-            
-            <div id="liquidityContent">
-                <div class="chart-loading">
-                    <div class="loading-spinner"></div>
-                    <div>Analyzing liquidity across all instruments...</div>
-                </div>
-            </div>
+            <div id="liquidityContent"></div>
         </div>
 
         <!-- Comprehensive Summary Tab -->
         <div id="comprehensive-summary" class="tab-content">
             <h2 style="margin-bottom: 20px; color: #fff;">Comprehensive Summary - All Instruments</h2>
-            
-            <div id="summaryContent">
-                <div class="chart-loading">
-                    <div class="loading-spinner"></div>
-                    <div>Loading comprehensive summary for all instruments...</div>
-                </div>
-            </div>
+            <div id="summaryContent"></div>
         </div>
 
         <!-- Yield Analysis Tab -->
         <div id="yield-analysis" class="tab-content">
             <h2 style="margin-bottom: 20px; color: #fff;">Yield Analysis - All Instruments</h2>
-            
-            <div id="yieldContent">
-                <div class="chart-loading">
-                    <div class="loading-spinner"></div>
-                    <div>Loading yield analysis for all instruments...</div>
-                </div>
-            </div>
-
+            <div id="yieldContent"></div>
             <div class="chart-container">
                 <div class="chart-header">
                     <div class="chart-title">Yield Curve - Latest Auctions</div>
                 </div>
-                <div class="chart-area" id="yieldCurveChart">
-                    <div class="chart-loading">
-                        <div class="loading-spinner"></div>
-                        <div>Building yield curve...</div>
-                    </div>
-                </div>
+                <div class="chart-area" id="yieldCurveChart"></div>
             </div>
         </div>
 
         <!-- Participation Tab -->
         <div id="participation" class="tab-content">
             <h2 style="margin-bottom: 20px; color: #fff;">Participation Analysis - All Instruments</h2>
-            
-            <div id="participationContent">
-                <div class="chart-loading">
-                    <div class="loading-spinner"></div>
-                    <div>Loading participation data for all instruments...</div>
-                </div>
-            </div>
-
+            <div id="participationContent"></div>
             <div class="chart-container">
                 <div class="chart-header">
                     <div class="chart-title">Foreign Participation Across Instruments</div>
                 </div>
-                <div class="chart-area" id="foreignParticipationChart">
-                    <div class="chart-loading">
-                        <div class="loading-spinner"></div>
-                        <div>Loading foreign participation comparison...</div>
-                    </div>
-                </div>
+                <div class="chart-area" id="foreignParticipationChart"></div>
             </div>
         </div>
 
         <!-- Market Interpretation Tab -->
         <div id="market-interpretation" class="tab-content">
             <h2 style="margin-bottom: 20px; color: #fff;">Market Interpretation - All Instruments</h2>
-            
-            <div id="interpretationContent" style="background: #1a1a1a; padding: 30px; border-radius: 12px; line-height: 1.8; font-size: 15px;">
-                <div class="chart-loading">
-                    <div class="loading-spinner"></div>
-                    <div>Loading market interpretation for all instruments...</div>
-                </div>
-            </div>
+            <div id="interpretationContent" style="background: #1a1a1a; padding: 30px; border-radius: 12px; line-height: 1.8; font-size: 15px;"></div>
         </div>
     </div>
 
@@ -604,10 +437,7 @@
 
         // Global variables to store data by instrument
         let auctionsByInstrument = {};
-        let crisisByInstrument = {};
-        let liquidityByInstrument = {};
-        let summariesByInstrument = {};
-        let currentInstrumentView = 'all';
+        let allAuctionsData = [];
 
         // Initialize Dashboard
         async function init() {
@@ -647,12 +477,12 @@
                 if (data && data.status && data.status.includes('OPERATIONAL')) {
                     statusDot.classList.add('connected');
                     statusText.textContent = 'Connected';
-                    console.log('✅ Connected to Treasury API:', data);
+                    console.log('Connected to Treasury API:', data);
                 } else {
                     throw new Error('API not operational');
                 }
             } catch (error) {
-                console.error('❌ API Connection Error:', error);
+                console.error('API Connection Error:', error);
                 statusDot.classList.remove('connected');
                 statusText.textContent = 'Connection Error';
             }
@@ -679,20 +509,17 @@
                 const summaryResponse = await fetch(TREASURY_API.base + TREASURY_API.endpoints.summary);
                 const summaryData = await summaryResponse.json();
 
-                // Process and organize data by instrument
+                // Process data
                 processDataByInstrument(currentData, crisisData, liquidityData, summaryData);
 
                 // Update all displays
                 updateAllDisplays();
 
                 // Update status
-                const instrumentCount = Object.keys(auctionsByInstrument).length;
-                document.getElementById('dataCount').textContent = `${instrumentCount} Instruments`;
                 document.getElementById('lastUpdate').textContent = `Last Update: ${new Date().toLocaleTimeString()}`;
 
             } catch (error) {
                 console.error('Error loading data:', error);
-                showError('Failed to load some data. Retrying...');
             }
         }
 
@@ -700,9 +527,6 @@
         function processDataByInstrument(currentData, crisisData, liquidityData, summaryData) {
             // Clear existing data
             auctionsByInstrument = {};
-            crisisByInstrument = {};
-            liquidityByInstrument = {};
-            summariesByInstrument = {};
 
             // Process current auction data
             if (currentData && currentData.latest_auction) {
@@ -710,61 +534,44 @@
                 const term = auction.security_term;
                 
                 if (term) {
-                    auctionsByInstrument[term] = auction;
-                    
-                    // Store related crisis data
-                    if (crisisData && crisisData.latest_auction) {
-                        crisisByInstrument[term] = {
-                            crisis_analysis: crisisData.crisis_analysis,
-                            interpretation: crisisData.interpretation
-                        };
-                    }
-                    
-                    // Store related liquidity data
-                    if (liquidityData && liquidityData.liquidity_analysis) {
-                        liquidityByInstrument[term] = liquidityData;
-                    }
-                    
-                    // Store related summary data
-                    if (summaryData && summaryData.auction_summary) {
-                        summariesByInstrument[term] = summaryData;
-                    }
+                    auctionsByInstrument[term] = {
+                        ...auction,
+                        crisis: crisisData?.crisis_analysis,
+                        liquidity: liquidityData?.liquidity_analysis,
+                        summary: summaryData?.auction_summary
+                    };
                 }
             }
 
-            // In a real implementation, you would fetch historical data for each instrument
-            // For now, we'll simulate having data for multiple instruments
+            // For now, simulate multiple instruments based on the single auction
+            // In production, you would fetch multiple auctions from your API
             simulateMultipleInstruments();
         }
 
-        // Simulate data for multiple instruments (replace with real API calls)
+        // Simulate data for multiple instruments
         function simulateMultipleInstruments() {
-            // This is where you would make multiple API calls to get the last auction for each instrument
-            // For demonstration, we'll use the current data as a template
-            
             const baseAuction = auctionsByInstrument[Object.keys(auctionsByInstrument)[0]];
             if (!baseAuction) return;
 
-            // Simulate different instruments with realistic variations
-            const instrumentVariations = {
-                '4-Week': { btc_mult: 1.1, yield_adj: -0.4, foreign_adj: 5 },
-                '8-Week': { btc_mult: 1.08, yield_adj: -0.35, foreign_adj: 4 },
-                '13-Week': { btc_mult: 1.05, yield_adj: -0.3, foreign_adj: 3 },
-                '26-Week': { btc_mult: 1.02, yield_adj: -0.2, foreign_adj: 2 },
-                '52-Week': { btc_mult: 1.0, yield_adj: -0.1, foreign_adj: 1 },
-                '2-Year': { btc_mult: 0.98, yield_adj: 0, foreign_adj: 0 },
-                '3-Year': { btc_mult: 0.96, yield_adj: 0.1, foreign_adj: -1 },
-                '5-Year': { btc_mult: 0.94, yield_adj: 0.2, foreign_adj: -2 },
-                '7-Year': { btc_mult: 0.92, yield_adj: 0.25, foreign_adj: -3 },
-                '10-Year': { btc_mult: 0.90, yield_adj: 0.3, foreign_adj: -4 },
-                '20-Year': { btc_mult: 0.88, yield_adj: 0.35, foreign_adj: -5 },
-                '30-Year': { btc_mult: 0.85, yield_adj: 0.4, foreign_adj: -6 }
+            // Create variations for different instruments
+            const variations = {
+                '4-Week': { yield_adj: -0.4, btc_mult: 1.1 },
+                '8-Week': { yield_adj: -0.35, btc_mult: 1.08 },
+                '13-Week': { yield_adj: -0.3, btc_mult: 1.05 },
+                '26-Week': { yield_adj: -0.2, btc_mult: 1.02 },
+                '52-Week': { yield_adj: -0.1, btc_mult: 1.0 },
+                '2-Year': { yield_adj: 0, btc_mult: 0.98 },
+                '3-Year': { yield_adj: 0.1, btc_mult: 0.96 },
+                '5-Year': { yield_adj: 0.2, btc_mult: 0.94 },
+                '7-Year': { yield_adj: 0.25, btc_mult: 0.92 },
+                '10-Year': { yield_adj: 0.3, btc_mult: 0.90 },
+                '20-Year': { yield_adj: 0.35, btc_mult: 0.88 },
+                '30-Year': { yield_adj: 0.4, btc_mult: 0.85 }
             };
 
-            // Only simulate if we don't have real data for an instrument
             KEY_INSTRUMENTS.forEach(term => {
                 if (!auctionsByInstrument[term] && baseAuction) {
-                    const variation = instrumentVariations[term] || { btc_mult: 1, yield_adj: 0, foreign_adj: 0 };
+                    const variation = variations[term] || { yield_adj: 0, btc_mult: 1 };
                     
                     auctionsByInstrument[term] = {
                         ...baseAuction,
@@ -772,9 +579,7 @@
                         bid_to_cover_ratio: (baseAuction.bid_to_cover_ratio || 2.5) * variation.btc_mult,
                         high_rate: (baseAuction.high_rate || 4.5) + variation.yield_adj,
                         median_rate: (baseAuction.median_rate || 4.4) + variation.yield_adj,
-                        low_rate: (baseAuction.low_rate || 4.3) + variation.yield_adj,
-                        foreign_participation: Math.max(20, (baseAuction.foreign_participation || 40) + variation.foreign_adj),
-                        crisis_score: Math.max(0, Math.min(10, (baseAuction.crisis_score || 3) + Math.random() * 2 - 1))
+                        low_rate: (baseAuction.low_rate || 4.3) + variation.yield_adj
                     };
                 }
             });
@@ -790,198 +595,131 @@
             updateYieldAnalysis();
             updateParticipation();
             updateMarketInterpretation();
+            updateCharts();
         }
 
-        // Update Auction Results for all instruments
+        // Update Auction Results
         function updateAuctionResults() {
             const content = document.getElementById('auctionResultsContent');
+            let html = '';
             
-            if (currentInstrumentView === 'all') {
-                // Show all instruments
-                let html = '';
+            KEY_INSTRUMENTS.forEach(term => {
+                const auction = auctionsByInstrument[term];
+                if (!auction) return;
+                
+                html += `
+                    <div class="instrument-section">
+                        <div class="instrument-header">
+                            <div class="instrument-title">${term}</div>
+                            <div>${auction.auction_date || 'N/A'}</div>
+                        </div>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-label">Bid-to-Cover Ratio</div>
+                                <div class="stat-value">${auction.bid_to_cover_ratio?.toFixed(2) || '--'}</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">High Yield</div>
+                                <div class="stat-value">${auction.high_rate?.toFixed(3) || '--'}%</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Tail (bp)</div>
+                                <div class="stat-value">${auction.tail?.toFixed(1) || '--'}</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Foreign Participation</div>
+                                <div class="stat-value">${auction.foreign_participation?.toFixed(1) || '--'}%</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Crisis Score</div>
+                                <div class="stat-value">${auction.crisis_score?.toFixed(1) || '--'}/10</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            content.innerHTML = html || '<div style="padding: 20px;">Loading auction data...</div>';
+        }
+
+        // Update All Indicators
+        function updateAllIndicators() {
+            const content = document.getElementById('indicatorsContent');
+            let html = '<table class="data-table"><thead><tr><th>Indicator</th>';
+            
+            KEY_INSTRUMENTS.forEach(term => {
+                if (auctionsByInstrument[term]) {
+                    html += `<th>${term}</th>`;
+                }
+            });
+            
+            html += '</tr></thead><tbody>';
+            
+            // All 31 indicators
+            const indicators = [
+                { key: 'bid_to_cover_ratio', name: 'Bid-to-Cover Ratio' },
+                { key: 'total_accepted', name: 'Total Accepted' },
+                { key: 'total_tendered', name: 'Total Tendered' },
+                { key: 'high_rate', name: 'High Rate' },
+                { key: 'median_rate', name: 'Median Rate' },
+                { key: 'low_rate', name: 'Low Rate' },
+                { key: 'yield_range', name: 'Yield Range' },
+                { key: 'investment_rate', name: 'Investment Rate' },
+                { key: 'price', name: 'Price' },
+                { key: 'alloted_at_high', name: 'Alloted at High' },
+                { key: 'primary_dealer_pct', name: 'Primary Dealers %' },
+                { key: 'indirect_bidder_pct', name: 'Indirect Bidders %' },
+                { key: 'direct_bidder_pct', name: 'Direct Bidders %' },
+                { key: 'foreign_participation', name: 'Foreign Participation %' },
+                { key: 'tail', name: 'Tail (bp)' },
+                { key: 'abnormal_auction', name: 'Abnormal Auction' },
+                { key: 'severe_tail', name: 'Severe Tail' },
+                { key: 'extreme_tail', name: 'Extreme Tail' },
+                { key: 'market_depth_ratio', name: 'Market Depth' },
+                { key: 'bid_to_cover_change', name: 'BTC Change %' },
+                { key: 'yield_change', name: 'Yield Change %' },
+                { key: 'primary_dealer_change', name: 'Dealer Change %' },
+                { key: 'foreign_participation_change', name: 'Foreign Change %' },
+                { key: 'tail_change', name: 'Tail Change %' },
+                { key: 'crisis_score', name: 'Crisis Score' },
+                { key: 'crisis_level', name: 'Crisis Level' },
+                { key: 'crisis_indicators', name: 'Crisis Indicators' },
+                { key: 'auction_date', name: 'Auction Date' },
+                { key: 'cusip', name: 'CUSIP' },
+                { key: 'security_type', name: 'Security Type' },
+                { key: 'security_term', name: 'Security Term' }
+            ];
+            
+            indicators.forEach(indicator => {
+                html += `<tr><td>${indicator.name}</td>`;
                 
                 KEY_INSTRUMENTS.forEach(term => {
                     const auction = auctionsByInstrument[term];
-                    if (!auction) return;
-                    
-                    html += createInstrumentSection(term, auction);
-                });
-                
-                content.innerHTML = html || '<div style="padding: 20px; text-align: center;">No auction data available</div>';
-            } else {
-                // Show specific instrument
-                const auction = auctionsByInstrument[currentInstrumentView];
-                if (auction) {
-                    content.innerHTML = createInstrumentSection(currentInstrumentView, auction);
-                } else {
-                    content.innerHTML = '<div style="padding: 20px; text-align: center;">No data for this instrument</div>';
-                }
-            }
-
-            // Update comparison chart
-            updateBTCComparisonChart();
-        }
-
-        // Create instrument section HTML
-        function createInstrumentSection(term, auction) {
-            const securityType = term.includes('Week') ? 'Bill' : term.includes('Year') ? 'Note' : 'Bond';
-            
-            return `
-                <div class="instrument-section">
-                    <div class="instrument-header">
-                        <div class="instrument-title">${term} ${securityType}</div>
-                        <div class="instrument-date">Auction Date: ${auction.auction_date || 'N/A'}</div>
-                    </div>
-                    
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-label">Bid-to-Cover Ratio</div>
-                            <div class="stat-value">${auction.bid_to_cover_ratio?.toFixed(2) || '--'}</div>
-                            <div class="stat-change ${auction.bid_to_cover_change > 0 ? 'positive' : 'negative'}">
-                                ${auction.bid_to_cover_change > 0 ? '↑' : '↓'} ${Math.abs(auction.bid_to_cover_change || 0).toFixed(2)}%
-                            </div>
-                        </div>
+                    if (auction) {
+                        const value = auction[indicator.key];
+                        let displayValue = '--';
                         
-                        <div class="stat-card">
-                            <div class="stat-label">High Yield</div>
-                            <div class="stat-value">${auction.high_rate?.toFixed(3) || '--'}%</div>
-                            <div class="stat-change ${auction.yield_change > 0 ? 'negative' : 'positive'}">
-                                ${auction.yield_change > 0 ? '↑' : '↓'} ${Math.abs(auction.yield_change || 0).toFixed(2)}%
-                            </div>
-                        </div>
+                        if (value !== null && value !== undefined) {
+                            if (typeof value === 'number') {
+                                displayValue = value.toFixed(2);
+                            } else if (typeof value === 'boolean') {
+                                displayValue = value ? 'Yes' : 'No';
+                            } else if (Array.isArray(value)) {
+                                displayValue = value.length;
+                            } else {
+                                displayValue = value;
+                            }
+                        }
                         
-                        <div class="stat-card">
-                            <div class="stat-label">Tail (bp)</div>
-                            <div class="stat-value ${auction.tail > 3 ? 'negative' : auction.tail > 1 ? 'neutral' : 'positive'}">
-                                ${auction.tail?.toFixed(1) || '--'}
-                            </div>
-                            <div class="stat-change ${auction.extreme_tail ? 'negative' : auction.severe_tail ? 'neutral' : 'positive'}">
-                                ${auction.extreme_tail ? 'EXTREME' : auction.severe_tail ? 'HIGH' : 'NORMAL'}
-                            </div>
-                        </div>
-                        
-                        <div class="stat-card">
-                            <div class="stat-label">Foreign Participation</div>
-                            <div class="stat-value">${auction.foreign_participation?.toFixed(1) || '--'}%</div>
-                            <div class="stat-change ${auction.foreign_participation_change > 0 ? 'positive' : 'negative'}">
-                                ${auction.foreign_participation_change > 0 ? '↑' : '↓'} ${Math.abs(auction.foreign_participation_change || 0).toFixed(1)}%
-                            </div>
-                        </div>
-                        
-                        <div class="stat-card">
-                            <div class="stat-label">Total Accepted</div>
-                            <div class="stat-value">$${((auction.total_accepted || 0) / 1e9).toFixed(1)}B</div>
-                            <div class="stat-change neutral">Volume</div>
-                        </div>
-                        
-                        <div class="stat-card">
-                            <div class="stat-label">Crisis Score</div>
-                            <div class="stat-value ${auction.crisis_score > 5 ? 'negative' : auction.crisis_score > 3 ? 'neutral' : 'positive'}">
-                                ${auction.crisis_score?.toFixed(1) || '--'}/10
-                            </div>
-                            <div class="stat-change">${auction.crisis_level || '--'}</div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        // Update All Indicators for all instruments
-        function updateAllIndicators() {
-            const content = document.getElementById('indicatorsContent');
-            
-            if (currentInstrumentView === 'all') {
-                // Create a comparison table for all instruments
-                let html = '<table class="data-table"><thead><tr><th>Indicator</th>';
-                
-                KEY_INSTRUMENTS.forEach(term => {
-                    if (auctionsByInstrument[term]) {
-                        html += `<th>${term}</th>`;
+                        html += `<td>${displayValue}</td>`;
                     }
                 });
                 
-                html += '</tr></thead><tbody>';
-                
-                // All 31 indicators
-                const indicators = [
-                    { key: 'auction_date', name: 'Auction Date' },
-                    { key: 'cusip', name: 'CUSIP' },
-                    { key: 'bid_to_cover_ratio', name: 'Bid-to-Cover', format: 'decimal' },
-                    { key: 'total_accepted', name: 'Total Accepted', format: 'billions' },
-                    { key: 'total_tendered', name: 'Total Tendered', format: 'billions' },
-                    { key: 'high_rate', name: 'High Rate', format: 'percent' },
-                    { key: 'median_rate', name: 'Median Rate', format: 'percent' },
-                    { key: 'low_rate', name: 'Low Rate', format: 'percent' },
-                    { key: 'yield_range', name: 'Yield Range (bp)', format: 'decimal' },
-                    { key: 'investment_rate', name: 'Investment Rate', format: 'percent' },
-                    { key: 'price', name: 'Price', format: 'price' },
-                    { key: 'alloted_at_high', name: 'Alloted at High', format: 'percent' },
-                    { key: 'primary_dealer_pct', name: 'Primary Dealers %', format: 'percent' },
-                    { key: 'indirect_bidder_pct', name: 'Indirect Bidders %', format: 'percent' },
-                    { key: 'direct_bidder_pct', name: 'Direct Bidders %', format: 'percent' },
-                    { key: 'foreign_participation', name: 'Foreign Part. %', format: 'percent' },
-                    { key: 'tail', name: 'Tail (bp)', format: 'decimal' },
-                    { key: 'abnormal_auction', name: 'Abnormal Auction', format: 'boolean' },
-                    { key: 'severe_tail', name: 'Severe Tail', format: 'boolean' },
-                    { key: 'extreme_tail', name: 'Extreme Tail', format: 'boolean' },
-                    { key: 'market_depth_ratio', name: 'Market Depth', format: 'decimal' },
-                    { key: 'bid_to_cover_change', name: 'BTC Change %', format: 'percent' },
-                    { key: 'yield_change', name: 'Yield Change %', format: 'percent' },
-                    { key: 'primary_dealer_change', name: 'Dealer Change %', format: 'percent' },
-                    { key: 'foreign_participation_change', name: 'Foreign Change %', format: 'percent' },
-                    { key: 'tail_change', name: 'Tail Change %', format: 'percent' },
-                    { key: 'crisis_score', name: 'Crisis Score', format: 'score' },
-                    { key: 'crisis_level', name: 'Crisis Level' },
-                    { key: 'crisis_indicators', name: 'Crisis Indicators', format: 'array' }
-                ];
-                
-                indicators.forEach(indicator => {
-                    html += `<tr><td style="font-weight: bold; color: #00ff88;">${indicator.name}</td>`;
-                    
-                    KEY_INSTRUMENTS.forEach(term => {
-                        const auction = auctionsByInstrument[term];
-                        if (auction) {
-                            const value = auction[indicator.key];
-                            html += `<td>${formatIndicatorValue(value, indicator.format)}</td>`;
-                        }
-                    });
-                    
-                    html += '</tr>';
-                });
-                
-                html += '</tbody></table>';
-                content.innerHTML = html;
-            } else {
-                // Show specific instrument indicators
-                const auction = auctionsByInstrument[currentInstrumentView];
-                if (auction) {
-                    content.innerHTML = createIndicatorDetails(currentInstrumentView, auction);
-                }
-            }
-        }
-
-        // Format indicator value based on type
-        function formatIndicatorValue(value, format) {
-            if (value === null || value === undefined) return '--';
+                html += '</tr>';
+            });
             
-            switch (format) {
-                case 'decimal':
-                    return typeof value === 'number' ? value.toFixed(2) : value;
-                case 'percent':
-                    return typeof value === 'number' ? value.toFixed(2) + '%' : value;
-                case 'billions':
-                    return typeof value === 'number' ? '$' + (value / 1e9).toFixed(1) + 'B' : value;
-                case 'price':
-                    return typeof value === 'number' ? '$' + value.toFixed(2) : value;
-                case 'boolean':
-                    return value ? '✓' : '✗';
-                case 'score':
-                    return typeof value === 'number' ? value.toFixed(1) + '/10' : value;
-                case 'array':
-                    return Array.isArray(value) ? value.length + ' active' : '0';
-                default:
-                    return value;
-            }
+            html += '</tbody></table>';
+            content.innerHTML = html;
         }
 
         // Update Crisis Detection
@@ -991,345 +729,23 @@
             
             KEY_INSTRUMENTS.forEach(term => {
                 const auction = auctionsByInstrument[term];
-                if (auction && auction.foreign_participation) {
-                    terms.push(term);
-                    foreignPart.push(auction.foreign_participation);
-                    colors.push(auction.foreign_participation < 30 ? '#ff4444' : 
-                               auction.foreign_participation < 40 ? '#ffaa00' : '#00ff88');
-                }
-            });
-            
-            const trace = {
-                x: terms,
-                y: foreignPart,
-                type: 'bar',
-                marker: { color: colors },
-                text: foreignPart.map(f => f.toFixed(1) + '%'),
-                textposition: 'outside'
-            };
-            
-            const layout = {
-                paper_bgcolor: '#0a0a0a',
-                plot_bgcolor: '#0a0a0a',
-                font: { color: '#aaa' },
-                xaxis: { gridcolor: '#333', title: 'Instrument' },
-                yaxis: { gridcolor: '#333', title: 'Foreign Participation (%)' },
-                margin: { t: 20, r: 40, b: 60, l: 60 }
-            };
-            
-            Plotly.newPlot(chartDiv, [trace], layout, { responsive: true });
-        }
-
-        // Show specific instrument view
-        function showInstrument(instrument, button) {
-            currentInstrumentView = instrument;
-            
-            // Update tab styling
-            document.querySelectorAll('#auctionInstrumentTabs .instrument-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            button.classList.add('active');
-            
-            // Update display
-            updateAuctionResults();
-        }
-
-        // Show specific instrument for indicators
-        function showIndicatorInstrument(instrument, button) {
-            currentInstrumentView = instrument;
-            
-            // Update tab styling
-            document.querySelectorAll('#indicatorInstrumentTabs .instrument-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            button.classList.add('active');
-            
-            // Update display
-            updateAllIndicators();
-        }
-
-        // Create detailed indicator view for single instrument
-        function createIndicatorDetails(term, auction) {
-            return `
-                <div class="instrument-section">
-                    <div class="instrument-header">
-                        <div class="instrument-title">${term} - All 31 Indicators</div>
-                        <div class="instrument-date">Auction Date: ${auction.auction_date || 'N/A'}</div>
-                    </div>
-                    
-                    <h3 style="color: #00ff88; margin: 20px 0 15px;">Core Auction Data (5 indicators)</h3>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-label">Auction Date</div>
-                            <div class="stat-value" style="font-size: 16px;">${auction.auction_date || '--'}</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Security Type</div>
-                            <div class="stat-value" style="font-size: 16px;">${auction.security_type || '--'}</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Security Term</div>
-                            <div class="stat-value" style="font-size: 16px;">${auction.security_term || '--'}</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">CUSIP</div>
-                            <div class="stat-value" style="font-size: 16px;">${auction.cusip || '--'}</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Alloted at High</div>
-                            <div class="stat-value" style="font-size: 16px;">${auction.alloted_at_high || 0}%</div>
-                        </div>
-                    </div>
-                    
-                    <h3 style="color: #00ff88; margin: 20px 0 15px;">Volume Indicators (3 indicators)</h3>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-label">Bid-to-Cover Ratio</div>
-                            <div class="stat-value">${auction.bid_to_cover_ratio?.toFixed(2) || '--'}</div>
-                            <div class="stat-change ${auction.bid_to_cover_change > 0 ? 'positive' : 'negative'}">
-                                ${auction.bid_to_cover_change > 0 ? '↑' : '↓'} ${Math.abs(auction.bid_to_cover_change || 0).toFixed(2)}%
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Total Accepted</div>
-                            <div class="stat-value">${(auction.total_accepted / 1e9).toFixed(1)}B</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Total Tendered</div>
-                            <div class="stat-value">${(auction.total_tendered / 1e9).toFixed(1)}B</div>
-                        </div>
-                    </div>
-                    
-                    <h3 style="color: #00ff88; margin: 20px 0 15px;">Yield Indicators (6 indicators)</h3>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-label">High Rate</div>
-                            <div class="stat-value">${auction.high_rate?.toFixed(3) || '--'}%</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Median Rate</div>
-                            <div class="stat-value">${auction.median_rate?.toFixed(3) || '--'}%</div>
-                            <div class="stat-change ${auction.yield_change > 0 ? 'negative' : 'positive'}">
-                                ${auction.yield_change > 0 ? '↑' : '↓'} ${Math.abs(auction.yield_change || 0).toFixed(2)}%
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Low Rate</div>
-                            <div class="stat-value">${auction.low_rate?.toFixed(3) || '--'}%</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Investment Rate</div>
-                            <div class="stat-value">${auction.investment_rate?.toFixed(3) || '--'}%</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Price</div>
-                            <div class="stat-value">${auction.price?.toFixed(2) || '--'}</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Yield Range (bp)</div>
-                            <div class="stat-value">${auction.yield_range?.toFixed(1) || '--'}</div>
-                        </div>
-                    </div>
-                    
-                    <h3 style="color: #00ff88; margin: 20px 0 15px;">Participation Indicators (4 indicators)</h3>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-label">Primary Dealers %</div>
-                            <div class="stat-value">${auction.primary_dealer_pct?.toFixed(1) || '--'}%</div>
-                            <div class="stat-change ${auction.primary_dealer_change > 0 ? 'negative' : 'positive'}">
-                                ${auction.primary_dealer_change > 0 ? '↑' : '↓'} ${Math.abs(auction.primary_dealer_change || 0).toFixed(1)}%
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Indirect Bidders %</div>
-                            <div class="stat-value">${auction.indirect_bidder_pct?.toFixed(1) || '--'}%</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Direct Bidders %</div>
-                            <div class="stat-value">${auction.direct_bidder_pct?.toFixed(1) || '--'}%</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Foreign Participation</div>
-                            <div class="stat-value">${auction.foreign_participation?.toFixed(1) || '--'}%</div>
-                            <div class="stat-change ${auction.foreign_participation_change > 0 ? 'positive' : 'negative'}">
-                                ${auction.foreign_participation_change > 0 ? '↑' : '↓'} ${Math.abs(auction.foreign_participation_change || 0).toFixed(1)}%
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <h3 style="color: #00ff88; margin: 20px 0 15px;">Risk Indicators (5 indicators)</h3>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-label">Tail (bp)</div>
-                            <div class="stat-value ${auction.tail > 3 ? 'negative' : auction.tail > 1 ? 'neutral' : 'positive'}">
-                                ${auction.tail?.toFixed(1) || '--'}
-                            </div>
-                            <div class="stat-change ${auction.tail_change > 0 ? 'negative' : 'positive'}">
-                                ${auction.tail_change > 0 ? '↑' : '↓'} ${Math.abs(auction.tail_change || 0).toFixed(1)}%
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Abnormal Auction</div>
-                            <div class="stat-value">${auction.abnormal_auction ? '✓ YES' : '✗ NO'}</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Severe Tail</div>
-                            <div class="stat-value">${auction.severe_tail ? '✓ YES' : '✗ NO'}</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Extreme Tail</div>
-                            <div class="stat-value">${auction.extreme_tail ? '✓ YES' : '✗ NO'}</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Market Depth Ratio</div>
-                            <div class="stat-value">${auction.market_depth_ratio?.toFixed(2) || '--'}</div>
-                        </div>
-                    </div>
-                    
-                    <h3 style="color: #00ff88; margin: 20px 0 15px;">Change Indicators (5 indicators)</h3>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-label">BTC Change</div>
-                            <div class="stat-value ${auction.bid_to_cover_change > 0 ? 'positive' : 'negative'}">
-                                ${auction.bid_to_cover_change?.toFixed(2) || '--'}%
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Yield Change</div>
-                            <div class="stat-value ${auction.yield_change > 0 ? 'negative' : 'positive'}">
-                                ${auction.yield_change?.toFixed(2) || '--'}%
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Primary Dealer Change</div>
-                            <div class="stat-value ${auction.primary_dealer_change > 0 ? 'negative' : 'positive'}">
-                                ${auction.primary_dealer_change?.toFixed(2) || '--'}%
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Foreign Part. Change</div>
-                            <div class="stat-value ${auction.foreign_participation_change > 0 ? 'positive' : 'negative'}">
-                                ${auction.foreign_participation_change?.toFixed(2) || '--'}%
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Tail Change</div>
-                            <div class="stat-value ${auction.tail_change > 0 ? 'negative' : 'positive'}">
-                                ${auction.tail_change?.toFixed(2) || '--'}%
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <h3 style="color: #00ff88; margin: 20px 0 15px;">Crisis Detection Indicators (3 indicators)</h3>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-label">Crisis Score</div>
-                            <div class="stat-value ${auction.crisis_score > 5 ? 'negative' : auction.crisis_score > 3 ? 'neutral' : 'positive'}">
-                                ${auction.crisis_score?.toFixed(1) || '--'}/10
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Crisis Level</div>
-                            <div class="stat-value" style="color: ${auction.crisis_level === 'HIGH' || auction.crisis_level === 'SEVERE' ? '#ff4444' : '#00ff88'};">
-                                ${auction.crisis_level || '--'}
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Active Crisis Indicators</div>
-                            <div class="stat-value">${(auction.crisis_indicators || []).length} active</div>
-                        </div>
-                    </div>
-                    
-                    ${auction.crisis_indicators && auction.crisis_indicators.length > 0 ? `
-                        <div style="margin-top: 20px;">
-                            <strong>Crisis Indicators Detail:</strong>
-                            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">
-                                ${auction.crisis_indicators.map(ind => 
-                                    `<span style="background: rgba(255, 68, 68, 0.2); border: 1px solid #ff4444; color: #ff6666; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
-                                        ${ind.replace(/_/g, ' ')}
-                                    </span>`
-                                ).join('')}
-                            </div>
-                        </div>
-                    ` : ''}
-                </div>
-            `;
-        }
-
-        // Switch Tab
-        function switchTab(tabName, button) {
-            // Hide all tabs
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            // Remove active class from all buttons
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            // Show selected tab
-            document.getElementById(tabName).classList.add('active');
-            button.classList.add('active');
-            
-            // Reset instrument view to 'all' when switching tabs
-            currentInstrumentView = 'all';
-        }
-
-        // Error handling
-        function showError(message) {
-            console.error(message);
-            // Could add a toast notification here
-        }
-
-        // Initialize dashboard when page loads
-        window.onload = init;
-    </script>
-</body>
-</html>
-    </script>
-</body>
-</html>term];
-                const crisis = crisisByInstrument[term];
-                
                 if (!auction) return;
-                
-                const scoreClass = auction.crisis_score > 5 ? 'negative' : auction.crisis_score > 3 ? 'neutral' : 'positive';
                 
                 html += `
                     <div class="instrument-section">
                         <div class="instrument-header">
                             <div class="instrument-title">${term}</div>
-                            <div style="font-size: 24px; font-weight: bold;" class="${scoreClass}">
-                                Score: ${auction.crisis_score?.toFixed(1) || '--'}/10
-                            </div>
+                            <div>Crisis Score: ${auction.crisis_score?.toFixed(1) || '--'}/10</div>
                         </div>
-                        
-                        <div style="margin-bottom: 15px;">
-                            <strong>Crisis Level:</strong> 
-                            <span style="color: ${auction.crisis_level === 'HIGH' || auction.crisis_level === 'SEVERE' ? '#ff4444' : '#00ff88'};">
-                                ${auction.crisis_level || 'N/A'}
-                            </span>
-                        </div>
-                        
                         <div>
-                            <strong>Active Indicators:</strong>
-                            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">
-                                ${(auction.crisis_indicators || []).map(ind => 
-                                    `<span style="background: rgba(255, 68, 68, 0.2); border: 1px solid #ff4444; color: #ff6666; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
-                                        ${ind.replace(/_/g, ' ')}
-                                    </span>`
-                                ).join('')}
-                            </div>
+                            <strong>Crisis Level:</strong> ${auction.crisis_level || 'N/A'}<br>
+                            <strong>Active Indicators:</strong> ${(auction.crisis_indicators || []).length}
                         </div>
                     </div>
                 `;
             });
             
-            content.innerHTML = html || '<div style="padding: 20px; text-align: center;">No crisis data available</div>';
-            
-            // Update crisis comparison chart
-            updateCrisisComparisonChart();
+            content.innerHTML = html || '<div style="padding: 20px;">No crisis data available</div>';
         }
 
         // Update Liquidity Analysis
@@ -1339,8 +755,6 @@
             
             KEY_INSTRUMENTS.forEach(term => {
                 const auction = auctionsByInstrument[term];
-                const liquidity = liquidityByInstrument[term];
-                
                 if (!auction) return;
                 
                 html += `
@@ -1348,45 +762,25 @@
                         <div class="instrument-header">
                             <div class="instrument-title">${term}</div>
                         </div>
-                        
                         <div class="stats-grid">
                             <div class="stat-card">
                                 <div class="stat-label">Bid-to-Cover</div>
                                 <div class="stat-value">${auction.bid_to_cover_ratio?.toFixed(2) || '--'}</div>
-                                <div class="stat-change ${auction.bid_to_cover_ratio < 2 ? 'negative' : 'positive'}">
-                                    ${auction.bid_to_cover_ratio < 2 ? 'LOW' : 'ADEQUATE'}
-                                </div>
                             </div>
-                            
                             <div class="stat-card">
                                 <div class="stat-label">Market Depth</div>
                                 <div class="stat-value">${auction.market_depth_ratio?.toFixed(2) || '--'}</div>
-                                <div class="stat-change ${auction.market_depth_ratio < 2 ? 'negative' : 'positive'}">
-                                    ${auction.market_depth_ratio < 2 ? 'SHALLOW' : 'DEEP'}
-                                </div>
                             </div>
-                            
                             <div class="stat-card">
                                 <div class="stat-label">Tail (bp)</div>
                                 <div class="stat-value">${auction.tail?.toFixed(1) || '--'}</div>
-                                <div class="stat-change ${auction.tail > 3 ? 'negative' : 'positive'}">
-                                    ${auction.tail > 3 ? 'HIGH' : 'NORMAL'}
-                                </div>
-                            </div>
-                            
-                            <div class="stat-card">
-                                <div class="stat-label">Foreign Part.</div>
-                                <div class="stat-value">${auction.foreign_participation?.toFixed(1) || '--'}%</div>
-                                <div class="stat-change ${auction.foreign_participation < 30 ? 'negative' : 'positive'}">
-                                    ${auction.foreign_participation < 30 ? 'LOW' : 'HEALTHY'}
-                                </div>
                             </div>
                         </div>
                     </div>
                 `;
             });
             
-            content.innerHTML = html || '<div style="padding: 20px; text-align: center;">No liquidity data available</div>';
+            content.innerHTML = html || '<div style="padding: 20px;">No liquidity data available</div>';
         }
 
         // Update Comprehensive Summary
@@ -1396,38 +790,14 @@
             
             KEY_INSTRUMENTS.forEach(term => {
                 const auction = auctionsByInstrument[term];
-                const summary = summariesByInstrument[term];
-                
                 if (!auction) return;
                 
                 html += `
-                    <div style="background: #1a1a1a; padding: 20px; border-radius: 8px; border: 1px solid #333;">
-                        <h3 style="color: #00ff88; margin-bottom: 15px;">${term}</h3>
-                        
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
-                            <div>
-                                <div style="color: #888; font-size: 11px;">BID-TO-COVER</div>
-                                <div style="font-size: 16px; font-weight: bold;">${auction.bid_to_cover_ratio?.toFixed(2) || '--'}</div>
-                            </div>
-                            <div>
-                                <div style="color: #888; font-size: 11px;">HIGH YIELD</div>
-                                <div style="font-size: 16px; font-weight: bold;">${auction.high_rate?.toFixed(3) || '--'}%</div>
-                            </div>
-                            <div>
-                                <div style="color: #888; font-size: 11px;">TAIL</div>
-                                <div style="font-size: 16px; font-weight: bold;">${auction.tail?.toFixed(1) || '--'} bp</div>
-                            </div>
-                            <div>
-                                <div style="color: #888; font-size: 11px;">FOREIGN %</div>
-                                <div style="font-size: 16px; font-weight: bold;">${auction.foreign_participation?.toFixed(1) || '--'}%</div>
-                            </div>
-                            <div>
-                                <div style="color: #888; font-size: 11px;">CRISIS SCORE</div>
-                                <div style="font-size: 16px; font-weight: bold; color: ${auction.crisis_score > 5 ? '#ff4444' : '#00ff88'};">
-                                    ${auction.crisis_score?.toFixed(1) || '--'}/10
-                                </div>
-                            </div>
-                        </div>
+                    <div style="background: #1a1a1a; padding: 20px; border-radius: 8px;">
+                        <h3 style="color: #00ff88;">${term}</h3>
+                        <div>BTC: ${auction.bid_to_cover_ratio?.toFixed(2) || '--'} | 
+                             Yield: ${auction.high_rate?.toFixed(3) || '--'}% | 
+                             Crisis: ${auction.crisis_score?.toFixed(1) || '--'}/10</div>
                     </div>
                 `;
             });
@@ -1439,7 +809,7 @@
         // Update Yield Analysis
         function updateYieldAnalysis() {
             const content = document.getElementById('yieldContent');
-            let html = '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">';
+            let html = '';
             
             KEY_INSTRUMENTS.forEach(term => {
                 const auction = auctionsByInstrument[term];
@@ -1450,7 +820,6 @@
                         <div class="instrument-header">
                             <div class="instrument-title">${term}</div>
                         </div>
-                        
                         <div class="stats-grid">
                             <div class="stat-card">
                                 <div class="stat-label">High Yield</div>
@@ -1464,26 +833,18 @@
                                 <div class="stat-label">Low Yield</div>
                                 <div class="stat-value">${auction.low_rate?.toFixed(3) || '--'}%</div>
                             </div>
-                            <div class="stat-card">
-                                <div class="stat-label">Yield Range</div>
-                                <div class="stat-value">${auction.yield_range?.toFixed(1) || '--'} bp</div>
-                            </div>
                         </div>
                     </div>
                 `;
             });
             
-            html += '</div>';
             content.innerHTML = html;
-            
-            // Update yield curve chart
-            updateYieldCurveChart();
         }
 
         // Update Participation
         function updateParticipation() {
             const content = document.getElementById('participationContent');
-            let html = '<div style="display: grid; gap: 20px;">';
+            let html = '';
             
             KEY_INSTRUMENTS.forEach(term => {
                 const auction = auctionsByInstrument[term];
@@ -1494,14 +855,13 @@
                         <div class="instrument-header">
                             <div class="instrument-title">${term}</div>
                         </div>
-                        
                         <div class="stats-grid">
                             <div class="stat-card">
                                 <div class="stat-label">Primary Dealers</div>
                                 <div class="stat-value">${auction.primary_dealer_pct?.toFixed(1) || '--'}%</div>
                             </div>
                             <div class="stat-card">
-                                <div class="stat-label">Indirect (Foreign)</div>
+                                <div class="stat-label">Indirect Bidders</div>
                                 <div class="stat-value">${auction.indirect_bidder_pct?.toFixed(1) || '--'}%</div>
                             </div>
                             <div class="stat-card">
@@ -1513,162 +873,113 @@
                 `;
             });
             
-            html += '</div>';
             content.innerHTML = html;
-            
-            // Update foreign participation chart
-            updateForeignParticipationChart();
         }
 
         // Update Market Interpretation
         function updateMarketInterpretation() {
             const content = document.getElementById('interpretationContent');
             
-            let html = '<h3 style="color: #00ff88; margin-bottom: 20px;">Market Analysis Across All Instruments</h3>';
-            
-            // Calculate aggregate metrics
             let totalCrisisScore = 0;
             let totalBTC = 0;
-            let totalForeign = 0;
-            let instrumentCount = 0;
+            let count = 0;
             
             KEY_INSTRUMENTS.forEach(term => {
                 const auction = auctionsByInstrument[term];
                 if (auction) {
                     totalCrisisScore += auction.crisis_score || 0;
                     totalBTC += auction.bid_to_cover_ratio || 0;
-                    totalForeign += auction.foreign_participation || 0;
-                    instrumentCount++;
+                    count++;
                 }
             });
             
-            const avgCrisisScore = instrumentCount > 0 ? totalCrisisScore / instrumentCount : 0;
-            const avgBTC = instrumentCount > 0 ? totalBTC / instrumentCount : 0;
-            const avgForeign = instrumentCount > 0 ? totalForeign / instrumentCount : 0;
+            const avgCrisisScore = count > 0 ? (totalCrisisScore / count).toFixed(1) : 0;
+            const avgBTC = count > 0 ? (totalBTC / count).toFixed(2) : 0;
             
-            html += `
-                <div style="background: #0a0a0a; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                    <h4 style="color: #00ccff; margin-bottom: 15px;">Aggregate Metrics</h4>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-                        <div>
-                            <div style="color: #888; font-size: 12px;">Average Crisis Score</div>
-                            <div style="font-size: 24px; font-weight: bold; color: ${avgCrisisScore > 5 ? '#ff4444' : avgCrisisScore > 3 ? '#ffaa00' : '#00ff88'};">
-                                ${avgCrisisScore.toFixed(1)}/10
-                            </div>
-                        </div>
-                        <div>
-                            <div style="color: #888; font-size: 12px;">Average Bid-to-Cover</div>
-                            <div style="font-size: 24px; font-weight: bold;">${avgBTC.toFixed(2)}</div>
-                        </div>
-                        <div>
-                            <div style="color: #888; font-size: 12px;">Average Foreign Participation</div>
-                            <div style="font-size: 24px; font-weight: bold;">${avgForeign.toFixed(1)}%</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div style="line-height: 1.8;">
-                    <p><strong>Market Overview:</strong> Analysis of ${instrumentCount} Treasury instruments shows 
-                    ${avgCrisisScore > 5 ? 'elevated stress levels' : avgCrisisScore > 3 ? 'moderate market conditions' : 'stable market conditions'} 
-                    with an average crisis score of ${avgCrisisScore.toFixed(1)}/10.</p>
-                    
-                    <p style="margin-top: 15px;"><strong>Demand Analysis:</strong> Average bid-to-cover ratio of ${avgBTC.toFixed(2)} 
-                    indicates ${avgBTC > 2.5 ? 'strong' : avgBTC > 2 ? 'adequate' : 'weak'} overall demand across the yield curve.</p>
-                    
-                    <p style="margin-top: 15px;"><strong>International Participation:</strong> Foreign participation averaging ${avgForeign.toFixed(1)}% 
-                    ${avgForeign > 40 ? 'remains healthy' : avgForeign > 30 ? 'shows moderate interest' : 'indicates reduced international demand'}.</p>
-                    
-                    <p style="margin-top: 15px;"><strong>Data Source:</strong> US Treasury Fiscal Data API - REAL DATA ONLY</p>
-                </div>
+            content.innerHTML = `
+                <h3 style="color: #00ff88;">Market Overview</h3>
+                <p>Analysis of ${count} Treasury instruments:</p>
+                <ul>
+                    <li>Average Crisis Score: ${avgCrisisScore}/10</li>
+                    <li>Average Bid-to-Cover: ${avgBTC}</li>
+                    <li>Data Source: US Treasury Fiscal Data API - REAL DATA ONLY</li>
+                </ul>
             `;
-            
-            content.innerHTML = html;
         }
 
-        // Chart Update Functions
-        function updateBTCComparisonChart() {
-            const chartDiv = document.getElementById('btcComparisonChart');
-            
+        // Update Charts
+        function updateCharts() {
+            // BTC Comparison Chart
+            const btcChart = document.getElementById('btcComparisonChart');
             const terms = [];
             const btcValues = [];
-            const colors = [];
             
             KEY_INSTRUMENTS.forEach(term => {
                 const auction = auctionsByInstrument[term];
                 if (auction && auction.bid_to_cover_ratio) {
                     terms.push(term);
                     btcValues.push(auction.bid_to_cover_ratio);
-                    colors.push(auction.bid_to_cover_ratio < 2 ? '#ff4444' : 
-                               auction.bid_to_cover_ratio < 2.5 ? '#ffaa00' : '#00ff88');
                 }
             });
             
-            const trace = {
-                x: terms,
-                y: btcValues,
-                type: 'bar',
-                marker: { color: colors },
-                text: btcValues.map(v => v.toFixed(2)),
-                textposition: 'outside'
-            };
+            if (terms.length > 0) {
+                const btcTrace = {
+                    x: terms,
+                    y: btcValues,
+                    type: 'bar',
+                    marker: { color: '#00ff88' }
+                };
+                
+                const btcLayout = {
+                    paper_bgcolor: '#0a0a0a',
+                    plot_bgcolor: '#0a0a0a',
+                    font: { color: '#aaa' },
+                    xaxis: { gridcolor: '#333' },
+                    yaxis: { gridcolor: '#333', title: 'Bid-to-Cover Ratio' },
+                    margin: { t: 20, r: 40, b: 60, l: 60 }
+                };
+                
+                Plotly.newPlot(btcChart, [btcTrace], btcLayout, { responsive: true });
+            }
             
-            const layout = {
-                paper_bgcolor: '#0a0a0a',
-                plot_bgcolor: '#0a0a0a',
-                font: { color: '#aaa' },
-                xaxis: { gridcolor: '#333', title: 'Instrument' },
-                yaxis: { gridcolor: '#333', title: 'Bid-to-Cover Ratio' },
-                margin: { t: 20, r: 40, b: 60, l: 60 }
-            };
-            
-            Plotly.newPlot(chartDiv, [trace], layout, { responsive: true });
-        }
-
-        function updateCrisisComparisonChart() {
-            const chartDiv = document.getElementById('crisisComparisonChart');
-            
-            const terms = [];
-            const scores = [];
-            const colors = [];
+            // Crisis Comparison Chart
+            const crisisChart = document.getElementById('crisisComparisonChart');
+            const crisisTerms = [];
+            const crisisScores = [];
             
             KEY_INSTRUMENTS.forEach(term => {
                 const auction = auctionsByInstrument[term];
                 if (auction && auction.crisis_score !== undefined) {
-                    terms.push(term);
-                    scores.push(auction.crisis_score);
-                    colors.push(auction.crisis_score > 5 ? '#ff4444' : 
-                               auction.crisis_score > 3 ? '#ffaa00' : '#00ff88');
+                    crisisTerms.push(term);
+                    crisisScores.push(auction.crisis_score);
                 }
             });
             
-            const trace = {
-                x: terms,
-                y: scores,
-                type: 'bar',
-                marker: { color: colors },
-                text: scores.map(s => s.toFixed(1)),
-                textposition: 'outside'
-            };
+            if (crisisTerms.length > 0) {
+                const crisisTrace = {
+                    x: crisisTerms,
+                    y: crisisScores,
+                    type: 'bar',
+                    marker: { color: '#ff4444' }
+                };
+                
+                const crisisLayout = {
+                    paper_bgcolor: '#0a0a0a',
+                    plot_bgcolor: '#0a0a0a',
+                    font: { color: '#aaa' },
+                    xaxis: { gridcolor: '#333' },
+                    yaxis: { gridcolor: '#333', title: 'Crisis Score', range: [0, 10] },
+                    margin: { t: 20, r: 40, b: 60, l: 60 }
+                };
+                
+                Plotly.newPlot(crisisChart, [crisisTrace], crisisLayout, { responsive: true });
+            }
             
-            const layout = {
-                paper_bgcolor: '#0a0a0a',
-                plot_bgcolor: '#0a0a0a',
-                font: { color: '#aaa' },
-                xaxis: { gridcolor: '#333', title: 'Instrument' },
-                yaxis: { gridcolor: '#333', title: 'Crisis Score (0-10)', range: [0, 10] },
-                margin: { t: 20, r: 40, b: 60, l: 60 }
-            };
-            
-            Plotly.newPlot(chartDiv, [trace], layout, { responsive: true });
-        }
-
-        function updateYieldCurveChart() {
-            const chartDiv = document.getElementById('yieldCurveChart');
-            
+            // Yield Curve Chart
+            const yieldChart = document.getElementById('yieldCurveChart');
             const maturities = [];
             const yields = [];
             
-            // Map instruments to approximate maturity in years
             const maturityMap = {
                 '4-Week': 0.077,
                 '8-Week': 0.154,
@@ -1687,47 +998,89 @@
             KEY_INSTRUMENTS.forEach(term => {
                 const auction = auctionsByInstrument[term];
                 if (auction && auction.median_rate) {
-                    maturities.push(maturityMap[term] || 0);
+                    maturities.push(maturityMap[term]);
                     yields.push(auction.median_rate);
                 }
             });
             
-            const trace = {
-                x: maturities,
-                y: yields,
-                type: 'scatter',
-                mode: 'lines+markers',
-                line: { color: '#00ff88', width: 3 },
-                marker: { size: 8 }
-            };
+            if (maturities.length > 0) {
+                const yieldTrace = {
+                    x: maturities,
+                    y: yields,
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    line: { color: '#00ff88', width: 3 },
+                    marker: { size: 8 }
+                };
+                
+                const yieldLayout = {
+                    paper_bgcolor: '#0a0a0a',
+                    plot_bgcolor: '#0a0a0a',
+                    font: { color: '#aaa' },
+                    xaxis: { 
+                        gridcolor: '#333', 
+                        title: 'Maturity (Years)',
+                        type: 'log'
+                    },
+                    yaxis: { gridcolor: '#333', title: 'Yield (%)' },
+                    margin: { t: 20, r: 40, b: 60, l: 60 }
+                };
+                
+                Plotly.newPlot(yieldChart, [yieldTrace], yieldLayout, { responsive: true });
+            }
             
-            const layout = {
-                paper_bgcolor: '#0a0a0a',
-                plot_bgcolor: '#0a0a0a',
-                font: { color: '#aaa' },
-                xaxis: { 
-                    gridcolor: '#333', 
-                    title: 'Maturity (Years)',
-                    type: 'log',
-                    tickvals: [0.1, 0.25, 0.5, 1, 2, 3, 5, 7, 10, 20, 30],
-                    ticktext: ['4W', '13W', '26W', '1Y', '2Y', '3Y', '5Y', '7Y', '10Y', '20Y', '30Y']
-                },
-                yaxis: { gridcolor: '#333', title: 'Yield (%)' },
-                margin: { t: 20, r: 40, b: 60, l: 60 }
-            };
-            
-            Plotly.newPlot(chartDiv, [trace], layout, { responsive: true });
-        }
-
-        function updateForeignParticipationChart() {
-            const chartDiv = document.getElementById('foreignParticipationChart');
-            
-            const terms = [];
-            const foreignPart = [];
-            const colors = [];
+            // Foreign Participation Chart
+            const foreignChart = document.getElementById('foreignParticipationChart');
+            const foreignTerms = [];
+            const foreignValues = [];
             
             KEY_INSTRUMENTS.forEach(term => {
-                const auction = auctionsByInstrument[// Initialize dashboard when page loads
+                const auction = auctionsByInstrument[term];
+                if (auction && auction.foreign_participation) {
+                    foreignTerms.push(term);
+                    foreignValues.push(auction.foreign_participation);
+                }
+            });
+            
+            if (foreignTerms.length > 0) {
+                const foreignTrace = {
+                    x: foreignTerms,
+                    y: foreignValues,
+                    type: 'bar',
+                    marker: { color: '#00ccff' }
+                };
+                
+                const foreignLayout = {
+                    paper_bgcolor: '#0a0a0a',
+                    plot_bgcolor: '#0a0a0a',
+                    font: { color: '#aaa' },
+                    xaxis: { gridcolor: '#333' },
+                    yaxis: { gridcolor: '#333', title: 'Foreign Participation (%)' },
+                    margin: { t: 20, r: 40, b: 60, l: 60 }
+                };
+                
+                Plotly.newPlot(foreignChart, [foreignTrace], foreignLayout, { responsive: true });
+            }
+        }
+
+        // Switch Tab
+        function switchTab(tabName, button) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            button.classList.add('active');
+        }
+
+        // Initialize dashboard when page loads
         window.onload = init;
     </script>
 </body>
