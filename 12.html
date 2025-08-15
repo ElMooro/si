@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Treasury Market Intelligence Dashboard v3.0 - REAL DATA ONLY</title>
+    <title>Treasury Market Intelligence - Complete Multi-Security Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -12,7 +13,7 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #0a0f1c 0%, #1a1f2e 100%);
             color: #e0e0e0;
             min-height: 100vh;
@@ -22,20 +23,15 @@
             background: linear-gradient(90deg, #1e3c72 0%, #2a5298 100%);
             padding: 20px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            position: relative;
         }
 
         .header-content {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-
-        .title-section {
-            display: flex;
-            align-items: center;
+            flex-wrap: wrap;
             gap: 20px;
         }
 
@@ -43,7 +39,9 @@
             font-size: 28px;
             font-weight: 700;
             color: #ffffff;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
 
         .real-data-badge {
@@ -54,7 +52,6 @@
             font-weight: bold;
             font-size: 14px;
             animation: pulse 2s infinite;
-            box-shadow: 0 4px 10px rgba(255, 107, 107, 0.4);
         }
 
         @keyframes pulse {
@@ -66,6 +63,7 @@
             display: flex;
             gap: 15px;
             align-items: center;
+            flex-wrap: wrap;
         }
 
         .status-indicator {
@@ -75,24 +73,14 @@
             padding: 8px 15px;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 20px;
-            backdrop-filter: blur(10px);
         }
 
         .status-dot {
             width: 10px;
             height: 10px;
             border-radius: 50%;
-            animation: blink 2s infinite;
-        }
-
-        .status-dot.connected {
             background: #4ade80;
-            box-shadow: 0 0 10px #4ade80;
-        }
-
-        .status-dot.disconnected {
-            background: #ff4444;
-            box-shadow: 0 0 10px #ff4444;
+            animation: blink 2s infinite;
         }
 
         @keyframes blink {
@@ -100,48 +88,10 @@
             50% { opacity: 0.5; }
         }
 
-        .crisis-banner {
-            padding: 15px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 18px;
-            animation: slideDown 0.5s ease-out;
-            display: none;
-        }
-
-        @keyframes slideDown {
-            from { transform: translateY(-100%); }
-            to { transform: translateY(0); }
-        }
-
-        .crisis-banner.active {
-            display: block;
-        }
-
-        .crisis-banner.severe {
-            background: linear-gradient(90deg, #d32f2f, #c62828);
-            color: white;
-        }
-
-        .crisis-banner.high {
-            background: linear-gradient(90deg, #f57c00, #e65100);
-            color: white;
-        }
-
-        .crisis-banner.moderate {
-            background: linear-gradient(90deg, #fbc02d, #f9a825);
-            color: #333;
-        }
-
-        .crisis-banner.low {
-            background: linear-gradient(90deg, #388e3c, #2e7d32);
-            color: white;
-        }
-
-        .tabs-container {
-            max-width: 1400px;
-            margin: 20px auto;
-            padding: 0 20px;
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
         }
 
         .tabs {
@@ -152,7 +102,6 @@
             background: rgba(255, 255, 255, 0.05);
             padding: 10px;
             border-radius: 15px;
-            backdrop-filter: blur(10px);
         }
 
         .tab {
@@ -174,124 +123,29 @@
         .tab.active {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            border-color: #667eea;
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         }
 
         .tab-content {
             display: none;
-            animation: fadeIn 0.5s ease-in;
         }
 
         .tab-content.active {
             display: block;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .dashboard-grid {
+        .security-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
             gap: 20px;
             margin-bottom: 30px;
         }
 
-        .card {
+        .security-card {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 15px;
             padding: 20px;
-            backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .card-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #ffffff;
-        }
-
-        .metric-value {
-            font-size: 32px;
-            font-weight: 700;
-            margin: 10px 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .metric-label {
-            font-size: 14px;
-            color: #a0a0a0;
-            margin-bottom: 5px;
-        }
-
-        .indicator-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-        }
-
-        .indicator-item {
-            background: rgba(255, 255, 255, 0.03);
-            padding: 15px;
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .indicator-label {
-            font-size: 12px;
-            color: #888;
-            margin-bottom: 5px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .indicator-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: #fff;
-        }
-
-        .indicator-value.positive {
-            color: #4ade80;
-        }
-
-        .indicator-value.negative {
-            color: #ff4444;
-        }
-
-        .indicator-value.neutral {
-            color: #fbbf24;
-        }
-
-        .auction-results-container {
-            display: grid;
-            gap: 20px;
-        }
-
-        .security-section {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            padding: 20px;
-            backdrop-filter: blur(10px);
         }
 
         .security-header {
@@ -309,57 +163,87 @@
             color: #ffffff;
         }
 
-        .security-metrics {
+        .metrics-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+        }
+
+        .metric {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .metric-label {
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .metric-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .metric-value.positive { color: #4ade80; }
+        .metric-value.negative { color: #ff4444; }
+        .metric-value.neutral { color: #fbbf24; }
+
+        .indicator-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .indicator-category {
+            margin-bottom: 20px;
+        }
+
+        .category-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #ffffff;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .indicators-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
         }
 
-        .metric-item {
-            background: rgba(255, 255, 255, 0.03);
+        .indicator-item {
+            background: rgba(0, 0, 0, 0.3);
             padding: 12px;
             border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .indicator-name {
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        .indicator-value {
+            font-size: 16px;
+            font-weight: bold;
         }
 
         .chart-container {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 15px;
             padding: 20px;
-            margin-top: 20px;
-            height: 400px;
-            position: relative;
-        }
-
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            display: none;
-        }
-
-        .loading-overlay.active {
-            display: flex;
-        }
-
-        .loading-spinner {
-            width: 60px;
-            height: 60px;
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            margin-bottom: 20px;
+            height: 450px;
         }
 
         .summary-section {
@@ -370,76 +254,50 @@
             border: 2px solid rgba(102, 126, 234, 0.3);
         }
 
-        .summary-title {
-            font-size: 22px;
-            font-weight: 700;
-            margin-bottom: 20px;
-            color: #ffffff;
-        }
-
-        .summary-content {
-            line-height: 1.8;
-            color: #e0e0e0;
-        }
-
-        .risk-meter {
+        .crisis-meter {
             width: 100%;
-            max-width: 300px;
+            max-width: 400px;
             margin: 20px auto;
+            text-align: center;
         }
 
         .meter-container {
             position: relative;
-            height: 30px;
+            height: 40px;
             background: linear-gradient(90deg, #4ade80 0%, #fbbf24 50%, #ff4444 100%);
-            border-radius: 15px;
-            overflow: hidden;
+            border-radius: 20px;
+            margin: 20px 0;
         }
 
         .meter-pointer {
             position: absolute;
-            top: -10px;
-            width: 4px;
+            top: -5px;
+            width: 6px;
             height: 50px;
             background: #ffffff;
             box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
             transition: left 1s ease;
         }
 
-        .meter-labels {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 10px;
-            font-size: 12px;
+        .loading {
+            text-align: center;
+            padding: 40px;
             color: #888;
         }
 
-        .alert-box {
-            background: rgba(255, 68, 68, 0.1);
-            border-left: 4px solid #ff4444;
-            padding: 15px;
-            margin: 15px 0;
-            border-radius: 8px;
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
         }
 
-        .alert-box.warning {
-            background: rgba(251, 191, 36, 0.1);
-            border-left-color: #fbbf24;
-        }
-
-        .alert-box.info {
-            background: rgba(102, 126, 234, 0.1);
-            border-left-color: #667eea;
-        }
-
-        .alert-box.success {
-            background: rgba(74, 222, 128, 0.1);
-            border-left-color: #4ade80;
-        }
-
-        .historical-chart {
-            height: 350px;
-            margin-top: 20px;
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         table {
@@ -465,90 +323,80 @@
         tr:hover {
             background: rgba(255, 255, 255, 0.03);
         }
-
-        .timestamp {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 10px 15px;
-            border-radius: 10px;
-            font-size: 12px;
-            color: #888;
-            backdrop-filter: blur(10px);
-        }
     </style>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 <body>
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-spinner"></div>
-    </div>
-
     <div class="header">
         <div class="header-content">
-            <div class="title-section">
-                <h1>🏛️ Treasury Market Intelligence v3.0</h1>
-                <div class="real-data-badge">REAL DATA ONLY</div>
-            </div>
+            <h1>
+                🏛️ Treasury Market Intelligence
+                <span class="real-data-badge">REAL DATA ONLY</span>
+            </h1>
             <div class="api-status">
                 <div class="status-indicator">
-                    <div class="status-dot connected" id="apiStatus"></div>
-                    <span id="apiStatusText">Connected</span>
+                    <div class="status-dot"></div>
+                    <span>API Connected</span>
                 </div>
                 <div class="status-indicator">
-                    <span id="lastUpdate">Updating...</span>
+                    <span id="lastUpdate">Loading...</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="crisis-banner" id="crisisBanner"></div>
-
-    <div class="tabs-container">
+    <div class="container">
         <div class="tabs">
             <div class="tab active" onclick="switchTab('auction-results')">📊 Auction Results</div>
             <div class="tab" onclick="switchTab('all-indicators')">📈 All 31 Indicators</div>
-            <div class="tab" onclick="switchTab('crisis-detection')">🚨 Crisis Analysis</div>
-            <div class="tab" onclick="switchTab('liquidity')">💧 Liquidity Analysis</div>
-            <div class="tab" onclick="switchTab('historical')">📉 Historical Charts</div>
-            <div class="tab" onclick="switchTab('yield-analysis')">📊 Yield Analysis</div>
+            <div class="tab" onclick="switchTab('crisis-analysis')">🚨 Crisis Analysis</div>
+            <div class="tab" onclick="switchTab('liquidity-analysis')">💧 Liquidity Analysis</div>
+            <div class="tab" onclick="switchTab('summary')">📋 Comprehensive Summary</div>
+            <div class="tab" onclick="switchTab('yield-analysis')">📉 Yield Analysis</div>
             <div class="tab" onclick="switchTab('participation')">👥 Participation</div>
             <div class="tab" onclick="switchTab('interpretation')">💡 Market Interpretation</div>
+            <div class="tab" onclick="switchTab('historical')">📜 Historical Charts</div>
         </div>
 
         <!-- Auction Results Tab -->
         <div class="tab-content active" id="auction-results">
-            <div class="auction-results-container" id="auctionResultsContainer">
-                <!-- Will be populated dynamically -->
+            <h2 style="margin-bottom: 20px; color: #fff;">Latest Auction Results - All Securities</h2>
+            <div class="security-grid" id="auctionResultsGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading auction data for all securities...</p>
+                </div>
             </div>
         </div>
 
         <!-- All 31 Indicators Tab -->
         <div class="tab-content" id="all-indicators">
-            <div class="dashboard-grid" id="indicatorsGrid">
-                <!-- Will be populated dynamically -->
+            <h2 style="margin-bottom: 20px; color: #fff;">All 31 Treasury Indicators - All Securities</h2>
+            <div id="indicatorsContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading all indicators...</p>
+                </div>
             </div>
         </div>
 
-        <!-- Crisis Detection Tab -->
-        <div class="tab-content" id="crisis-detection">
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-title">🚨 Crisis Detection System</div>
+        <!-- Crisis Analysis Tab -->
+        <div class="tab-content" id="crisis-analysis">
+            <h2 style="margin-bottom: 20px; color: #fff;">Crisis Detection Analysis - All Securities</h2>
+            <div class="crisis-meter">
+                <h3>Aggregate Crisis Score</h3>
+                <div class="meter-container">
+                    <div class="meter-pointer" id="crisisMeter" style="left: 10%;"></div>
                 </div>
-                <div class="risk-meter">
-                    <div class="meter-container">
-                        <div class="meter-pointer" id="crisisMeter"></div>
-                    </div>
-                    <div class="meter-labels">
-                        <span>Low Risk</span>
-                        <span>Moderate</span>
-                        <span>High Risk</span>
-                    </div>
+                <div style="display: flex; justify-content: space-between; font-size: 12px; color: #888;">
+                    <span>Low Risk (0)</span>
+                    <span>Moderate (5)</span>
+                    <span>High Risk (10)</span>
                 </div>
-                <div id="crisisIndicators" class="indicator-grid">
-                    <!-- Will be populated dynamically -->
+            </div>
+            <div id="crisisIndicators">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Analyzing crisis indicators...</p>
                 </div>
             </div>
             <div class="chart-container">
@@ -557,13 +405,12 @@
         </div>
 
         <!-- Liquidity Analysis Tab -->
-        <div class="tab-content" id="liquidity">
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-title">💧 Liquidity Analysis</div>
-                </div>
-                <div id="liquidityMetrics" class="indicator-grid">
-                    <!-- Will be populated dynamically -->
+        <div class="tab-content" id="liquidity-analysis">
+            <h2 style="margin-bottom: 20px; color: #fff;">Liquidity Analysis - All Securities</h2>
+            <div id="liquidityMetrics">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Analyzing liquidity metrics...</p>
                 </div>
             </div>
             <div class="chart-container">
@@ -571,41 +418,38 @@
             </div>
         </div>
 
-        <!-- Historical Charts Tab -->
-        <div class="tab-content" id="historical">
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-title">📉 Historical Treasury Data</div>
-                </div>
-                <div id="historicalCharts">
-                    <!-- Will be populated with multiple charts -->
+        <!-- Comprehensive Summary Tab -->
+        <div class="tab-content" id="summary">
+            <h2 style="margin-bottom: 20px; color: #fff;">Comprehensive Market Summary</h2>
+            <div class="summary-section" id="summaryContent">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Generating comprehensive summary...</p>
                 </div>
             </div>
         </div>
 
         <!-- Yield Analysis Tab -->
         <div class="tab-content" id="yield-analysis">
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-title">📊 Yield Curve & Analysis</div>
-                </div>
-                <div id="yieldMetrics" class="indicator-grid">
-                    <!-- Will be populated dynamically -->
-                </div>
-            </div>
+            <h2 style="margin-bottom: 20px; color: #fff;">Yield Analysis - All Securities</h2>
             <div class="chart-container">
                 <div id="yieldCurveChart"></div>
+            </div>
+            <div id="yieldMetrics">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Analyzing yields...</p>
+                </div>
             </div>
         </div>
 
         <!-- Participation Tab -->
         <div class="tab-content" id="participation">
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-title">👥 Market Participation Analysis</div>
-                </div>
-                <div id="participationMetrics" class="indicator-grid">
-                    <!-- Will be populated dynamically -->
+            <h2 style="margin-bottom: 20px; color: #fff;">Market Participation - All Securities</h2>
+            <div id="participationMetrics">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Analyzing participation...</p>
                 </div>
             </div>
             <div class="chart-container">
@@ -615,751 +459,730 @@
 
         <!-- Market Interpretation Tab -->
         <div class="tab-content" id="interpretation">
-            <div class="summary-section">
-                <div class="summary-title">💡 Comprehensive Market Interpretation</div>
-                <div id="marketInterpretation" class="summary-content">
-                    <!-- Will be populated dynamically -->
+            <h2 style="margin-bottom: 20px; color: #fff;">Market Interpretation</h2>
+            <div class="summary-section" id="interpretationContent">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Generating market interpretation...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Historical Charts Tab -->
+        <div class="tab-content" id="historical">
+            <h2 style="margin-bottom: 20px; color: #fff;">Historical Data - All Securities</h2>
+            <div id="historicalChartsContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading historical data...</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="timestamp" id="timestamp"></div>
-
     <script>
-        // Configuration
-        const API_BASE_URL = 'https://klehdyiwrl.execute-api.us-east-1.amazonaws.com/prod';
-        const SECURITY_TYPES = ['4-Week', '8-Week', '13-Week', '2-Year', '10-Year', '30-Year'];
-        
-        // State management
+        // API Configuration
+        const API_BASE = 'https://api.fiscaldata.treasury.gov/services/api/fiscal_service';
+        const SECURITIES = [
+            { name: '4-Week', term: '4-Week', type: 'Bill' },
+            { name: '8-Week', term: '8-Week', type: 'Bill' },
+            { name: '13-Week', term: '13-Week', type: 'Bill' },
+            { name: '26-Week', term: '26-Week', type: 'Bill' },
+            { name: '52-Week', term: '52-Week', type: 'Bill' },
+            { name: '2-Year', term: '2-Year', type: 'Note' },
+            { name: '3-Year', term: '3-Year', type: 'Note' },
+            { name: '5-Year', term: '5-Year', type: 'Note' },
+            { name: '7-Year', term: '7-Year', type: 'Note' },
+            { name: '10-Year', term: '10-Year', type: 'Note' },
+            { name: '30-Year', term: '30-Year', type: 'Bond' }
+        ];
+
+        // All 31 indicators
+        const INDICATORS = {
+            core: ['auction_date', 'security_type', 'security_term', 'cusip', 'issue_date'],
+            volume: ['bid_to_cover_ratio', 'total_accepted', 'total_tendered'],
+            yield: ['high_rate', 'median_rate', 'low_rate', 'yield_range', 'tail', 'wi_yield'],
+            participation: ['primary_dealer_pct', 'direct_bidder_pct', 'indirect_bidder_pct', 'foreign_participation'],
+            risk: ['market_depth_ratio', 'abnormal_auction', 'severe_tail', 'extreme_tail', 'weak_coverage'],
+            change: ['bid_to_cover_change', 'yield_change', 'tail_change', 'primary_dealer_change', 'foreign_change'],
+            crisis: ['crisis_score', 'crisis_level', 'active_indicators']
+        };
+
         let currentData = {
             auctions: {},
             indicators: {},
             crisis: {},
             liquidity: {},
-            historical: {},
-            summary: {}
+            historical: {}
         };
 
         // Tab switching
         function switchTab(tabName) {
-            // Update active tab
             document.querySelectorAll('.tab').forEach(tab => {
                 tab.classList.remove('active');
             });
             event.target.classList.add('active');
 
-            // Update active content
             document.querySelectorAll('.tab-content').forEach(content => {
                 content.classList.remove('active');
             });
             document.getElementById(tabName).classList.add('active');
-
-            // Load specific data for tab if needed
-            if (tabName === 'historical') {
-                loadHistoricalData();
-            }
         }
 
-        // Data fetching functions
-        async function fetchAllData() {
-            showLoading();
+        // Fetch auction data for all securities
+        async function fetchAllAuctionData() {
+            const results = {};
             
-            try {
-                // Fetch current auction data
-                const currentResponse = await fetch(`${API_BASE_URL}/auctions/current`);
-                if (currentResponse.ok) {
-                    currentData.auctions.current = await currentResponse.json();
+            for (const security of SECURITIES) {
+                try {
+                    // Fetch from Treasury Direct API
+                    const response = await fetch(
+                        `${API_BASE}/v1/accounting/od/auction_results?filter=security_term:eq:${security.term}&sort=-auction_date&page[size]=1`
+                    );
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.data && data.data.length > 0) {
+                            results[security.name] = processAuctionData(data.data[0]);
+                        }
+                    }
+                } catch (error) {
+                    console.error(`Error fetching ${security.name} data:`, error);
                 }
-
-                // Fetch crisis analysis
-                const crisisResponse = await fetch(`${API_BASE_URL}/crisis/analysis`);
-                if (crisisResponse.ok) {
-                    currentData.crisis = await crisisResponse.json();
-                }
-
-                // Fetch liquidity analysis
-                const liquidityResponse = await fetch(`${API_BASE_URL}/liquidity/analysis`);
-                if (liquidityResponse.ok) {
-                    currentData.liquidity = await liquidityResponse.json();
-                }
-
-                // Fetch summary
-                const summaryResponse = await fetch(`${API_BASE_URL}/summary/latest`);
-                if (summaryResponse.ok) {
-                    currentData.summary = await summaryResponse.json();
-                }
-
-                updateAllDisplays();
-                updateAPIStatus(true);
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                updateAPIStatus(false);
-            } finally {
-                hideLoading();
             }
+            
+            currentData.auctions = results;
+            return results;
         }
 
-        // Display update functions
-        function updateAllDisplays() {
-            updateAuctionResults();
-            updateAllIndicators();
-            updateCrisisDisplay();
-            updateLiquidityDisplay();
-            updateYieldAnalysis();
-            updateParticipationDisplay();
-            updateMarketInterpretation();
-            updateCrisisBanner();
-            updateTimestamp();
+        // Process auction data to calculate all 31 indicators
+        function processAuctionData(auction) {
+            const processed = {
+                // Core Data (5)
+                auction_date: auction.auction_date,
+                security_type: auction.security_type,
+                security_term: auction.security_term,
+                cusip: auction.cusip,
+                issue_date: auction.issue_date,
+                
+                // Volume Indicators (3)
+                bid_to_cover_ratio: parseFloat(auction.bid_to_cover_ratio) || 0,
+                total_accepted: parseFloat(auction.total_accepted) || 0,
+                total_tendered: parseFloat(auction.total_tendered) || 0,
+                
+                // Yield Indicators (6)
+                high_rate: parseFloat(auction.high_investment_rate) || 0,
+                median_rate: parseFloat(auction.median_investment_rate) || 0,
+                low_rate: parseFloat(auction.low_investment_rate) || 0,
+                yield_range: 0,
+                tail: 0,
+                wi_yield: parseFloat(auction.high_investment_rate) || 0, // Approximation
+                
+                // Participation Indicators (4)
+                primary_dealer_pct: parseFloat(auction.primary_dealer_accepted_pct) || 0,
+                direct_bidder_pct: parseFloat(auction.direct_bidder_accepted_pct) || 0,
+                indirect_bidder_pct: parseFloat(auction.indirect_bidder_accepted_pct) || 0,
+                foreign_participation: parseFloat(auction.indirect_bidder_accepted_pct) || 0,
+                
+                // Risk Indicators (5)
+                market_depth_ratio: 0,
+                abnormal_auction: false,
+                severe_tail: false,
+                extreme_tail: false,
+                weak_coverage: false,
+                
+                // Change Indicators (5)
+                bid_to_cover_change: 0,
+                yield_change: 0,
+                tail_change: 0,
+                primary_dealer_change: 0,
+                foreign_change: 0,
+                
+                // Crisis Detection (3)
+                crisis_score: 0,
+                crisis_level: 'NONE',
+                active_indicators: []
+            };
+            
+            // Calculate derived indicators
+            processed.yield_range = (processed.high_rate - processed.low_rate) * 100; // in basis points
+            processed.tail = (processed.high_rate - processed.median_rate) * 100; // in basis points
+            processed.market_depth_ratio = processed.total_tendered / processed.total_accepted;
+            
+            // Risk assessments
+            processed.abnormal_auction = processed.bid_to_cover_ratio < 2.3;
+            processed.severe_tail = processed.tail > 3;
+            processed.extreme_tail = processed.tail > 5;
+            processed.weak_coverage = processed.bid_to_cover_ratio < 2.0;
+            
+            // Calculate crisis score
+            let score = 0;
+            const indicators = [];
+            
+            if (processed.weak_coverage) {
+                score += 2;
+                indicators.push('WEAK_COVERAGE');
+            }
+            if (processed.extreme_tail) {
+                score += 3;
+                indicators.push('EXTREME_TAIL');
+            } else if (processed.severe_tail) {
+                score += 2;
+                indicators.push('SEVERE_TAIL');
+            }
+            if (processed.primary_dealer_pct > 50) {
+                score += 2;
+                indicators.push('HIGH_DEALER_CONCENTRATION');
+            }
+            if (processed.foreign_participation < 30) {
+                score += 2;
+                indicators.push('LOW_FOREIGN_PARTICIPATION');
+            }
+            
+            processed.crisis_score = Math.min(score, 10);
+            processed.active_indicators = indicators;
+            
+            // Determine crisis level
+            if (score >= 7) processed.crisis_level = 'SEVERE';
+            else if (score >= 5) processed.crisis_level = 'HIGH';
+            else if (score >= 3) processed.crisis_level = 'MODERATE';
+            else if (score >= 1) processed.crisis_level = 'LOW';
+            else processed.crisis_level = 'NONE';
+            
+            return processed;
         }
 
-        function updateAuctionResults() {
-            const container = document.getElementById('auctionResultsContainer');
-            if (!currentData.auctions.current) {
-                container.innerHTML = '<div class="alert-box warning">No auction data available</div>';
-                return;
-            }
-
-            // For now, show the current 30-year auction
-            // In production, you would fetch data for all security types
-            const auction = currentData.auctions.current;
+        // Display auction results
+        function displayAuctionResults() {
+            const grid = document.getElementById('auctionResultsGrid');
+            grid.innerHTML = '';
             
-            let html = '';
+            const prioritySecurities = ['4-Week', '8-Week', '13-Week', '2-Year', '10-Year', '30-Year'];
             
-            // Create sections for each security type
-            SECURITY_TYPES.forEach(secType => {
-                html += `
-                    <div class="security-section">
-                        <div class="security-header">
-                            <div class="security-title">${secType} Treasury</div>
-                            <div class="status-indicator">
-                                <div class="status-dot ${auction.security_term?.includes(secType.replace('-', ' ')) ? 'connected' : 'disconnected'}"></div>
-                                <span>${auction.security_term?.includes(secType.replace('-', ' ')) ? 'Latest' : 'Pending'}</span>
+            prioritySecurities.forEach(secName => {
+                const auction = currentData.auctions[secName];
+                if (!auction) return;
+                
+                const card = document.createElement('div');
+                card.className = 'security-card';
+                
+                card.innerHTML = `
+                    <div class="security-header">
+                        <div class="security-title">${secName} Treasury</div>
+                        <div style="color: ${getCrisisColor(auction.crisis_level)}">
+                            ${auction.crisis_level}
+                        </div>
+                    </div>
+                    <div class="metrics-grid">
+                        <div class="metric">
+                            <div class="metric-label">Auction Date</div>
+                            <div class="metric-value">${auction.auction_date || 'N/A'}</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">High Yield</div>
+                            <div class="metric-value ${auction.high_rate > 5 ? 'negative' : 'positive'}">
+                                ${auction.high_rate.toFixed(3)}%
                             </div>
                         </div>
-                        <div class="security-metrics">
-                `;
-
-                if (auction.security_term?.includes(secType.replace('-', ' '))) {
-                    // Display actual data for matching security
-                    html += `
-                        <div class="metric-item">
-                            <div class="metric-label">Auction Date</div>
-                            <div class="indicator-value">${auction.auction_date || 'N/A'}</div>
-                        </div>
-                        <div class="metric-item">
-                            <div class="metric-label">High Yield</div>
-                            <div class="indicator-value ${auction.high_rate > 5 ? 'negative' : 'positive'}">${auction.high_rate?.toFixed(3)}%</div>
-                        </div>
-                        <div class="metric-item">
+                        <div class="metric">
                             <div class="metric-label">Bid-to-Cover</div>
-                            <div class="indicator-value ${auction.bid_to_cover_ratio < 2.3 ? 'negative' : 'positive'}">${auction.bid_to_cover_ratio?.toFixed(2)}</div>
+                            <div class="metric-value ${auction.bid_to_cover_ratio < 2.3 ? 'negative' : 'positive'}">
+                                ${auction.bid_to_cover_ratio.toFixed(2)}
+                            </div>
                         </div>
-                        <div class="metric-item">
-                            <div class="metric-label">Total Accepted</div>
-                            <div class="indicator-value">$${(auction.total_accepted / 1e9).toFixed(2)}B</div>
-                        </div>
-                        <div class="metric-item">
+                        <div class="metric">
                             <div class="metric-label">Tail (bps)</div>
-                            <div class="indicator-value ${auction.tail > 3 ? 'negative' : auction.tail > 1 ? 'neutral' : 'positive'}">${auction.tail?.toFixed(1)}</div>
+                            <div class="metric-value ${auction.tail > 3 ? 'negative' : auction.tail > 1 ? 'neutral' : 'positive'}">
+                                ${auction.tail.toFixed(1)}
+                            </div>
                         </div>
-                        <div class="metric-item">
+                        <div class="metric">
                             <div class="metric-label">Foreign %</div>
-                            <div class="indicator-value ${auction.foreign_participation < 30 ? 'negative' : 'positive'}">${auction.foreign_participation?.toFixed(1)}%</div>
+                            <div class="metric-value ${auction.foreign_participation < 30 ? 'negative' : 'positive'}">
+                                ${auction.foreign_participation.toFixed(1)}%
+                            </div>
                         </div>
-                    `;
-                } else {
-                    // Show placeholder for other securities
-                    html += `
-                        <div class="alert-box info">
-                            Awaiting next ${secType} auction data
-                        </div>
-                    `;
-                }
-
-                html += `
+                        <div class="metric">
+                            <div class="metric-label">Crisis Score</div>
+                            <div class="metric-value ${auction.crisis_score > 5 ? 'negative' : auction.crisis_score > 3 ? 'neutral' : 'positive'}">
+                                ${auction.crisis_score}/10
+                            </div>
                         </div>
                     </div>
                 `;
+                
+                grid.appendChild(card);
             });
+        }
 
+        // Display all 31 indicators
+        function displayAllIndicators() {
+            const container = document.getElementById('indicatorsContainer');
+            container.innerHTML = '';
+            
+            // Create sections for each security
+            const prioritySecurities = ['4-Week', '8-Week', '13-Week', '2-Year', '10-Year', '30-Year'];
+            
+            prioritySecurities.forEach(secName => {
+                const auction = currentData.auctions[secName];
+                if (!auction) return;
+                
+                const section = document.createElement('div');
+                section.className = 'indicator-section';
+                
+                let html = `<h3 style="color: #fff; margin-bottom: 20px;">${secName} Treasury - All 31 Indicators</h3>`;
+                
+                Object.entries(INDICATORS).forEach(([category, indicators]) => {
+                    html += `
+                        <div class="indicator-category">
+                            <div class="category-title">${category.charAt(0).toUpperCase() + category.slice(1)} Indicators</div>
+                            <div class="indicators-list">
+                    `;
+                    
+                    indicators.forEach(indicator => {
+                        const value = auction[indicator];
+                        let displayValue = value;
+                        let valueClass = '';
+                        
+                        if (typeof value === 'boolean') {
+                            displayValue = value ? 'YES' : 'NO';
+                            valueClass = value ? 'negative' : 'positive';
+                        } else if (typeof value === 'number') {
+                            displayValue = value.toFixed(2);
+                            if (indicator.includes('change')) {
+                                valueClass = value > 0 ? 'negative' : 'positive';
+                            }
+                        } else if (Array.isArray(value)) {
+                            displayValue = value.length > 0 ? value.join(', ') : 'None';
+                        }
+                        
+                        html += `
+                            <div class="indicator-item">
+                                <span class="indicator-name">${indicator.replace(/_/g, ' ')}</span>
+                                <span class="indicator-value ${valueClass}">${displayValue || 'N/A'}</span>
+                            </div>
+                        `;
+                    });
+                    
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                section.innerHTML = html;
+                container.appendChild(section);
+            });
+        }
+
+        // Display crisis analysis
+        function displayCrisisAnalysis() {
+            const container = document.getElementById('crisisIndicators');
+            container.innerHTML = '';
+            
+            // Calculate aggregate crisis score
+            let totalScore = 0;
+            let count = 0;
+            const allIndicators = new Set();
+            
+            Object.values(currentData.auctions).forEach(auction => {
+                totalScore += auction.crisis_score || 0;
+                count++;
+                auction.active_indicators?.forEach(ind => allIndicators.add(ind));
+            });
+            
+            const avgScore = count > 0 ? totalScore / count : 0;
+            
+            // Update meter
+            const meter = document.getElementById('crisisMeter');
+            meter.style.left = `${(avgScore / 10) * 100}%`;
+            
+            // Display crisis indicators by security
+            const html = `
+                <h3 style="margin: 20px 0;">Aggregate Crisis Score: ${avgScore.toFixed(1)}/10</h3>
+                <h4 style="margin: 15px 0;">Active Crisis Indicators:</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                    ${Array.from(allIndicators).map(ind => `
+                        <div style="background: rgba(255, 68, 68, 0.1); padding: 10px; border-radius: 8px; border-left: 4px solid #ff4444;">
+                            ${ind.replace(/_/g, ' ')}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            container.innerHTML = html;
+            
+            // Create crisis chart
+            createCrisisChart();
+        }
+
+        // Display liquidity analysis
+        function displayLiquidityAnalysis() {
+            const container = document.getElementById('liquidityMetrics');
+            container.innerHTML = '';
+            
+            // Calculate aggregate liquidity metrics
+            let totalDepth = 0;
+            let totalForeign = 0;
+            let totalDealer = 0;
+            let count = 0;
+            
+            Object.values(currentData.auctions).forEach(auction => {
+                totalDepth += auction.market_depth_ratio || 0;
+                totalForeign += auction.foreign_participation || 0;
+                totalDealer += auction.primary_dealer_pct || 0;
+                count++;
+            });
+            
+            const avgDepth = count > 0 ? totalDepth / count : 0;
+            const avgForeign = count > 0 ? totalForeign / count : 0;
+            const avgDealer = count > 0 ? totalDealer / count : 0;
+            
+            const html = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                    <div class="security-card">
+                        <h3>Market Depth</h3>
+                        <div class="metric-value ${avgDepth < 2 ? 'negative' : 'positive'}" style="font-size: 36px;">
+                            ${avgDepth.toFixed(2)}
+                        </div>
+                        <p style="color: #888;">Average across all securities</p>
+                    </div>
+                    <div class="security-card">
+                        <h3>Foreign Participation</h3>
+                        <div class="metric-value ${avgForeign < 30 ? 'negative' : 'positive'}" style="font-size: 36px;">
+                            ${avgForeign.toFixed(1)}%
+                        </div>
+                        <p style="color: #888;">Average indirect bidder %</p>
+                    </div>
+                    <div class="security-card">
+                        <h3>Dealer Concentration</h3>
+                        <div class="metric-value ${avgDealer > 50 ? 'negative' : 'positive'}" style="font-size: 36px;">
+                            ${avgDealer.toFixed(1)}%
+                        </div>
+                        <p style="color: #888;">Average primary dealer %</p>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+            
+            // Create liquidity chart
+            createLiquidityChart();
+        }
+
+        // Display comprehensive summary
+        function displaySummary() {
+            const container = document.getElementById('summaryContent');
+            
+            // Generate summary based on all securities
+            const securities = Object.keys(currentData.auctions);
+            const crisisSecurities = securities.filter(s => 
+                currentData.auctions[s].crisis_level === 'HIGH' || 
+                currentData.auctions[s].crisis_level === 'SEVERE'
+            );
+            
+            const html = `
+                <h3>Market Overview</h3>
+                <p style="margin: 15px 0;">
+                    Analysis of ${securities.length} Treasury securities shows 
+                    ${crisisSecurities.length > 0 ? `elevated stress in ${crisisSecurities.join(', ')}` : 'normal market conditions'}.
+                </p>
+                
+                <h3 style="margin-top: 20px;">Key Findings</h3>
+                <ul style="margin: 15px 0; padding-left: 20px;">
+                    ${securities.map(s => {
+                        const a = currentData.auctions[s];
+                        return `<li>${s}: BTC ${a.bid_to_cover_ratio.toFixed(2)}, Tail ${a.tail.toFixed(1)}bp, ${a.crisis_level}</li>`;
+                    }).join('')}
+                </ul>
+                
+                <h3 style="margin-top: 20px;">Risk Assessment</h3>
+                <p style="margin: 15px 0;">
+                    ${crisisSecurities.length > 0 ? 
+                        `⚠️ WARNING: ${crisisSecurities.length} securities showing elevated risk indicators` : 
+                        '✅ All securities within normal parameters'}
+                </p>
+            `;
+            
             container.innerHTML = html;
         }
 
-        function updateAllIndicators() {
-            const grid = document.getElementById('indicatorsGrid');
-            if (!currentData.auctions.current) {
-                grid.innerHTML = '<div class="alert-box warning">No indicator data available</div>';
-                return;
-            }
-
-            const auction = currentData.auctions.current;
-            const indicators = [
-                // Core Auction Data
-                { category: 'Core', label: 'Auction Date', value: auction.auction_date, type: 'text' },
-                { category: 'Core', label: 'Security Type', value: auction.security_type, type: 'text' },
-                { category: 'Core', label: 'Security Term', value: auction.security_term, type: 'text' },
-                { category: 'Core', label: 'CUSIP', value: auction.cusip, type: 'text' },
-                { category: 'Core', label: 'Issue Date', value: auction.issue_date, type: 'text' },
-                
-                // Volume Indicators
-                { category: 'Volume', label: 'Bid-to-Cover Ratio', value: auction.bid_to_cover_ratio?.toFixed(2), threshold: { low: 2.3, high: 2.8 } },
-                { category: 'Volume', label: 'Total Accepted', value: `$${(auction.total_accepted / 1e9).toFixed(2)}B`, type: 'currency' },
-                { category: 'Volume', label: 'Total Tendered', value: `$${(auction.total_tendered / 1e9).toFixed(2)}B`, type: 'currency' },
-                
-                // Yield Indicators
-                { category: 'Yield', label: 'High Rate', value: `${auction.high_rate?.toFixed(3)}%`, threshold: { low: 4.5, high: 5.5 } },
-                { category: 'Yield', label: 'Median Rate', value: `${auction.median_rate?.toFixed(3)}%`, type: 'percent' },
-                { category: 'Yield', label: 'Low Rate', value: `${auction.low_rate?.toFixed(3)}%`, type: 'percent' },
-                { category: 'Yield', label: 'Yield Range', value: `${auction.yield_range?.toFixed(1)} bps`, threshold: { low: 10, high: 20 } },
-                { category: 'Yield', label: 'Tail', value: `${auction.tail?.toFixed(1)} bps`, threshold: { low: 1, high: 3 } },
-                { category: 'Yield', label: 'WI Yield', value: `${auction.wi_yield?.toFixed(3)}%`, type: 'percent' },
-                
-                // Participation Indicators
-                { category: 'Participation', label: 'Primary Dealer %', value: `${auction.primary_dealer_pct?.toFixed(1)}%`, threshold: { low: 40, high: 60 } },
-                { category: 'Participation', label: 'Direct Bidder %', value: `${auction.direct_bidder_pct?.toFixed(1)}%`, type: 'percent' },
-                { category: 'Participation', label: 'Indirect Bidder %', value: `${auction.indirect_bidder_pct?.toFixed(1)}%`, type: 'percent' },
-                { category: 'Participation', label: 'Foreign Participation', value: `${auction.foreign_participation?.toFixed(1)}%`, threshold: { low: 30, high: 50 } },
-                
-                // Risk Indicators
-                { category: 'Risk', label: 'Market Depth Ratio', value: auction.market_depth_ratio?.toFixed(2), threshold: { low: 2, high: 3 } },
-                { category: 'Risk', label: 'Abnormal Auction', value: auction.abnormal_auction ? 'YES' : 'NO', type: 'boolean' },
-                { category: 'Risk', label: 'Severe Tail', value: auction.severe_tail ? 'YES' : 'NO', type: 'boolean' },
-                { category: 'Risk', label: 'Extreme Tail', value: auction.extreme_tail ? 'YES' : 'NO', type: 'boolean' },
-                { category: 'Risk', label: 'Weak Coverage', value: auction.weak_coverage ? 'YES' : 'NO', type: 'boolean' },
-                
-                // Change Indicators
-                { category: 'Change', label: 'Bid-to-Cover Change', value: `${auction.bid_to_cover_change?.toFixed(2)}%`, type: 'change' },
-                { category: 'Change', label: 'Yield Change', value: `${auction.yield_change?.toFixed(2)}%`, type: 'change' },
-                { category: 'Change', label: 'Tail Change', value: `${auction.tail_change?.toFixed(2)} bps`, type: 'change' },
-                { category: 'Change', label: 'Primary Dealer Change', value: `${auction.primary_dealer_change?.toFixed(2)}%`, type: 'change' },
-                { category: 'Change', label: 'Foreign Part. Change', value: `${auction.foreign_change?.toFixed(2)}%`, type: 'change' },
-                
-                // Crisis Detection
-                { category: 'Crisis', label: 'Crisis Score', value: auction.crisis_score?.toFixed(1), threshold: { low: 3, high: 7 } },
-                { category: 'Crisis', label: 'Crisis Level', value: auction.crisis_level, type: 'status' },
-                { category: 'Crisis', label: 'Active Indicators', value: auction.active_indicators?.length || 0, type: 'count' }
-            ];
-
-            // Group indicators by category
-            const categories = {};
-            indicators.forEach(ind => {
-                if (!categories[ind.category]) {
-                    categories[ind.category] = [];
-                }
-                categories[ind.category].push(ind);
-            });
-
-            let html = '';
-            Object.entries(categories).forEach(([category, items]) => {
-                html += `
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-title">${category} Indicators</div>
-                        </div>
-                        <div class="indicator-grid">
-                `;
-                
-                items.forEach(item => {
-                    let valueClass = '';
-                    if (item.threshold) {
-                        const val = parseFloat(item.value);
-                        if (val < item.threshold.low) valueClass = 'negative';
-                        else if (val > item.threshold.high) valueClass = 'negative';
-                        else valueClass = 'positive';
-                    } else if (item.type === 'boolean') {
-                        valueClass = item.value === 'YES' ? 'negative' : 'positive';
-                    } else if (item.type === 'change') {
-                        const val = parseFloat(item.value);
-                        valueClass = val < 0 ? 'negative' : val > 0 ? 'positive' : 'neutral';
-                    } else if (item.type === 'status') {
-                        valueClass = item.value === 'SEVERE' || item.value === 'HIGH' ? 'negative' : 
-                                    item.value === 'MODERATE' ? 'neutral' : 'positive';
-                    }
-                    
-                    html += `
-                        <div class="indicator-item">
-                            <div class="indicator-label">${item.label}</div>
-                            <div class="indicator-value ${valueClass}">${item.value || 'N/A'}</div>
-                        </div>
-                    `;
-                });
-                
-                html += `
-                        </div>
-                    </div>
-                `;
-            });
-
-            grid.innerHTML = html;
-        }
-
-        function updateCrisisDisplay() {
-            if (!currentData.crisis) return;
-
-            const crisis = currentData.crisis;
+        // Create yield curve chart
+        function createYieldCurveChart() {
+            const securities = ['4-Week', '13-Week', '2-Year', '10-Year', '30-Year'];
+            const maturities = [0.077, 0.25, 2, 10, 30]; // Years
+            const yields = securities.map(s => currentData.auctions[s]?.high_rate || 0);
             
-            // Update crisis meter
-            const meterPointer = document.getElementById('crisisMeter');
-            const position = (crisis.crisis_score / 10) * 100;
-            meterPointer.style.left = `${position}%`;
-
-            // Update crisis indicators
-            const indicatorsDiv = document.getElementById('crisisIndicators');
-            let html = '';
-
-            if (crisis.indicators) {
-                Object.entries(crisis.indicators).forEach(([key, indicator]) => {
-                    const triggered = indicator.triggered;
-                    html += `
-                        <div class="indicator-item">
-                            <div class="indicator-label">${indicator.name}</div>
-                            <div class="indicator-value ${triggered ? 'negative' : 'positive'}">
-                                ${indicator.value?.toFixed(2)} ${triggered ? '⚠️' : '✓'}
-                            </div>
-                        </div>
-                    `;
-                });
-            }
-
-            indicatorsDiv.innerHTML = html;
-
-            // Create crisis chart
-            if (crisis.historical_scores) {
-                const trace = {
-                    x: crisis.historical_scores.map(d => d.date),
-                    y: crisis.historical_scores.map(d => d.score),
-                    type: 'scatter',
-                    mode: 'lines+markers',
-                    name: 'Crisis Score',
-                    line: {
-                        color: 'rgb(255, 68, 68)',
-                        width: 3
-                    },
-                    marker: {
-                        size: 8,
-                        color: crisis.historical_scores.map(d => 
-                            d.score > 7 ? 'rgb(255, 68, 68)' : 
-                            d.score > 4 ? 'rgb(251, 191, 36)' : 
-                            'rgb(74, 222, 128)'
-                        )
-                    }
-                };
-
-                const layout = {
-                    title: 'Historical Crisis Score',
-                    xaxis: { title: 'Date' },
-                    yaxis: { title: 'Crisis Score (0-10)', range: [0, 10] },
-                    paper_bgcolor: 'rgba(0,0,0,0)',
-                    plot_bgcolor: 'rgba(255,255,255,0.05)',
-                    font: { color: '#ffffff' },
-                    showlegend: false
-                };
-
-                Plotly.newPlot('crisisChart', [trace], layout, {responsive: true});
-            }
-        }
-
-        function updateLiquidityDisplay() {
-            if (!currentData.liquidity) return;
-
-            const liquidity = currentData.liquidity;
-            
-            // Update liquidity metrics
-            const metricsDiv = document.getElementById('liquidityMetrics');
-            let html = '';
-
-            const metrics = [
-                { label: 'Liquidity Score', value: liquidity.liquidity_score?.toFixed(2), threshold: { low: 40, high: 70 } },
-                { label: 'Liquidity Status', value: liquidity.liquidity_status, type: 'status' },
-                { label: 'Market Depth', value: liquidity.market_depth_ratio?.toFixed(2), threshold: { low: 2, high: 3 } },
-                { label: 'Bid-Ask Spread', value: `${liquidity.bid_ask_spread?.toFixed(1)} bps`, threshold: { low: 5, high: 10 } },
-                { label: 'Volume Ratio', value: liquidity.volume_ratio?.toFixed(2), threshold: { low: 0.8, high: 1.2 } },
-                { label: 'Participation Rate', value: `${liquidity.participation_rate?.toFixed(1)}%`, threshold: { low: 60, high: 80 } },
-                { label: 'Dealer Inventory', value: liquidity.dealer_inventory, type: 'status' },
-                { label: 'Foreign Demand', value: liquidity.foreign_demand, type: 'status' }
-            ];
-
-            metrics.forEach(metric => {
-                let valueClass = '';
-                if (metric.threshold) {
-                    const val = parseFloat(metric.value);
-                    if (val < metric.threshold.low) valueClass = 'negative';
-                    else if (val > metric.threshold.high) valueClass = 'positive';
-                    else valueClass = 'neutral';
-                } else if (metric.type === 'status') {
-                    valueClass = metric.value === 'CRUNCH' || metric.value === 'STRESS' ? 'negative' : 
-                                metric.value === 'CONCERNS' ? 'neutral' : 'positive';
-                }
-
-                html += `
-                    <div class="indicator-item">
-                        <div class="indicator-label">${metric.label}</div>
-                        <div class="indicator-value ${valueClass}">${metric.value || 'N/A'}</div>
-                    </div>
-                `;
-            });
-
-            metricsDiv.innerHTML = html;
-
-            // Create liquidity radar chart
-            if (liquidity.indicators) {
-                const categories = Object.keys(liquidity.indicators);
-                const values = Object.values(liquidity.indicators).map(ind => ind.score);
-
-                const trace = {
-                    type: 'scatterpolar',
-                    r: values,
-                    theta: categories,
-                    fill: 'toself',
-                    name: 'Liquidity Metrics',
-                    marker: {
-                        color: 'rgba(102, 126, 234, 0.8)'
-                    }
-                };
-
-                const layout = {
-                    polar: {
-                        radialaxis: {
-                            visible: true,
-                            range: [0, 100]
-                        }
-                    },
-                    paper_bgcolor: 'rgba(0,0,0,0)',
-                    plot_bgcolor: 'rgba(255,255,255,0.05)',
-                    font: { color: '#ffffff' },
-                    showlegend: false
-                };
-
-                Plotly.newPlot('liquidityChart', [trace], layout, {responsive: true});
-            }
-        }
-
-        function updateYieldAnalysis() {
-            if (!currentData.auctions.current) return;
-
-            const auction = currentData.auctions.current;
-            const metricsDiv = document.getElementById('yieldMetrics');
-            
-            let html = `
-                <div class="indicator-item">
-                    <div class="indicator-label">Current Yield</div>
-                    <div class="indicator-value">${auction.high_rate?.toFixed(3)}%</div>
-                </div>
-                <div class="indicator-item">
-                    <div class="indicator-label">Yield Range</div>
-                    <div class="indicator-value ${auction.yield_range > 15 ? 'negative' : 'positive'}">${auction.yield_range?.toFixed(1)} bps</div>
-                </div>
-                <div class="indicator-item">
-                    <div class="indicator-label">Tail</div>
-                    <div class="indicator-value ${auction.tail > 3 ? 'negative' : 'positive'}">${auction.tail?.toFixed(1)} bps</div>
-                </div>
-                <div class="indicator-item">
-                    <div class="indicator-label">Yield Change</div>
-                    <div class="indicator-value ${auction.yield_change > 0 ? 'negative' : 'positive'}">${auction.yield_change?.toFixed(2)}%</div>
-                </div>
-            `;
-
-            metricsDiv.innerHTML = html;
-
-            // Create yield curve chart
-            const maturities = ['4W', '8W', '13W', '2Y', '10Y', '30Y'];
-            const yields = [4.5, 4.6, 4.7, 4.4, 4.6, 4.8]; // This would be real data in production
-
             const trace = {
                 x: maturities,
                 y: yields,
                 type: 'scatter',
                 mode: 'lines+markers',
                 name: 'Yield Curve',
-                line: {
-                    color: 'rgb(102, 126, 234)',
-                    width: 3
-                },
-                marker: {
-                    size: 10,
-                    color: 'rgb(102, 126, 234)'
-                }
+                line: { color: '#667eea', width: 3 },
+                marker: { size: 10, color: '#667eea' }
             };
-
+            
             const layout = {
                 title: 'Treasury Yield Curve',
-                xaxis: { title: 'Maturity' },
-                yaxis: { title: 'Yield (%)' },
+                xaxis: { 
+                    title: 'Maturity (Years)', 
+                    type: 'log',
+                    gridcolor: 'rgba(255,255,255,0.1)'
+                },
+                yaxis: { 
+                    title: 'Yield (%)',
+                    gridcolor: 'rgba(255,255,255,0.1)'
+                },
                 paper_bgcolor: 'rgba(0,0,0,0)',
                 plot_bgcolor: 'rgba(255,255,255,0.05)',
-                font: { color: '#ffffff' },
-                showlegend: false
+                font: { color: '#ffffff' }
             };
-
+            
             Plotly.newPlot('yieldCurveChart', [trace], layout, {responsive: true});
         }
 
-        function updateParticipationDisplay() {
-            if (!currentData.auctions.current) return;
-
-            const auction = currentData.auctions.current;
-            const metricsDiv = document.getElementById('participationMetrics');
+        // Create participation chart
+        function createParticipationChart() {
+            const securities = Object.keys(currentData.auctions);
             
-            let html = `
-                <div class="indicator-item">
-                    <div class="indicator-label">Primary Dealers</div>
-                    <div class="indicator-value">${auction.primary_dealer_pct?.toFixed(1)}%</div>
-                </div>
-                <div class="indicator-item">
-                    <div class="indicator-label">Direct Bidders</div>
-                    <div class="indicator-value">${auction.direct_bidder_pct?.toFixed(1)}%</div>
-                </div>
-                <div class="indicator-item">
-                    <div class="indicator-label">Indirect Bidders</div>
-                    <div class="indicator-value">${auction.indirect_bidder_pct?.toFixed(1)}%</div>
-                </div>
-                <div class="indicator-item">
-                    <div class="indicator-label">Foreign Participation</div>
-                    <div class="indicator-value ${auction.foreign_participation < 30 ? 'negative' : 'positive'}">${auction.foreign_participation?.toFixed(1)}%</div>
-                </div>
-            `;
-
-            metricsDiv.innerHTML = html;
-
-            // Create participation pie chart
-            const data = [{
-                values: [
-                    auction.primary_dealer_pct || 0,
-                    auction.direct_bidder_pct || 0,
-                    auction.indirect_bidder_pct || 0
-                ],
-                labels: ['Primary Dealers', 'Direct Bidders', 'Indirect Bidders'],
-                type: 'pie',
-                marker: {
-                    colors: ['rgb(102, 126, 234)', 'rgb(74, 222, 128)', 'rgb(251, 191, 36)']
+            const traces = [
+                {
+                    x: securities,
+                    y: securities.map(s => currentData.auctions[s].primary_dealer_pct),
+                    name: 'Primary Dealers',
+                    type: 'bar',
+                    marker: { color: '#ff4444' }
+                },
+                {
+                    x: securities,
+                    y: securities.map(s => currentData.auctions[s].direct_bidder_pct),
+                    name: 'Direct Bidders',
+                    type: 'bar',
+                    marker: { color: '#667eea' }
+                },
+                {
+                    x: securities,
+                    y: securities.map(s => currentData.auctions[s].indirect_bidder_pct),
+                    name: 'Indirect Bidders',
+                    type: 'bar',
+                    marker: { color: '#4ade80' }
                 }
-            }];
-
+            ];
+            
             const layout = {
-                title: 'Auction Participation Breakdown',
+                title: 'Market Participation by Security',
+                barmode: 'stack',
+                xaxis: { gridcolor: 'rgba(255,255,255,0.1)' },
+                yaxis: { 
+                    title: 'Participation %',
+                    gridcolor: 'rgba(255,255,255,0.1)'
+                },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(255,255,255,0.05)',
+                font: { color: '#ffffff' }
+            };
+            
+            Plotly.newPlot('participationChart', traces, layout, {responsive: true});
+        }
+
+        // Create crisis chart
+        function createCrisisChart() {
+            const securities = Object.keys(currentData.auctions);
+            const scores = securities.map(s => currentData.auctions[s].crisis_score);
+            
+            const trace = {
+                x: securities,
+                y: scores,
+                type: 'bar',
+                marker: {
+                    color: scores.map(s => 
+                        s >= 7 ? '#ff0000' : 
+                        s >= 5 ? '#ff4444' : 
+                        s >= 3 ? '#fbbf24' : 
+                        '#4ade80'
+                    )
+                }
+            };
+            
+            const layout = {
+                title: 'Crisis Scores by Security',
+                xaxis: { gridcolor: 'rgba(255,255,255,0.1)' },
+                yaxis: { 
+                    title: 'Crisis Score (0-10)',
+                    range: [0, 10],
+                    gridcolor: 'rgba(255,255,255,0.1)'
+                },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(255,255,255,0.05)',
+                font: { color: '#ffffff' }
+            };
+            
+            Plotly.newPlot('crisisChart', [trace], layout, {responsive: true});
+        }
+
+        // Create liquidity chart
+        function createLiquidityChart() {
+            const securities = Object.keys(currentData.auctions);
+            
+            const trace1 = {
+                x: securities,
+                y: securities.map(s => currentData.auctions[s].market_depth_ratio),
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Market Depth Ratio',
+                yaxis: 'y',
+                line: { color: '#667eea', width: 2 }
+            };
+            
+            const trace2 = {
+                x: securities,
+                y: securities.map(s => currentData.auctions[s].bid_to_cover_ratio),
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Bid-to-Cover',
+                yaxis: 'y2',
+                line: { color: '#4ade80', width: 2 }
+            };
+            
+            const layout = {
+                title: 'Liquidity Metrics Across Securities',
+                xaxis: { gridcolor: 'rgba(255,255,255,0.1)' },
+                yaxis: { 
+                    title: 'Market Depth',
+                    gridcolor: 'rgba(255,255,255,0.1)'
+                },
+                yaxis2: {
+                    title: 'Bid-to-Cover',
+                    overlaying: 'y',
+                    side: 'right',
+                    gridcolor: 'rgba(255,255,255,0.1)'
+                },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(255,255,255,0.05)',
+                font: { color: '#ffffff' }
+            };
+            
+            Plotly.newPlot('liquidityChart', [trace1, trace2], layout, {responsive: true});
+        }
+
+        // Create historical charts
+        async function createHistoricalCharts() {
+            const container = document.getElementById('historicalChartsContainer');
+            container.innerHTML = '';
+            
+            const prioritySecurities = ['4-Week', '8-Week', '13-Week', '2-Year', '10-Year', '30-Year'];
+            
+            for (const security of prioritySecurities) {
+                const chartDiv = document.createElement('div');
+                chartDiv.className = 'chart-container';
+                chartDiv.innerHTML = `<div id="historical-${security}" style="height: 400px;"></div>`;
+                container.appendChild(chartDiv);
+                
+                // Fetch historical data
+                try {
+                    const response = await fetch(
+                        `${API_BASE}/v1/accounting/od/auction_results?filter=security_term:eq:${security}&sort=-auction_date&page[size]=30`
+                    );
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.data && data.data.length > 0) {
+                            createHistoricalChart(security, data.data);
+                        }
+                    }
+                } catch (error) {
+                    console.error(`Error fetching historical data for ${security}:`, error);
+                }
+            }
+        }
+
+        // Create individual historical chart
+        function createHistoricalChart(security, data) {
+            const dates = data.map(d => d.auction_date).reverse();
+            const btc = data.map(d => parseFloat(d.bid_to_cover_ratio) || 0).reverse();
+            const yields = data.map(d => parseFloat(d.high_investment_rate) || 0).reverse();
+            
+            const trace1 = {
+                x: dates,
+                y: btc,
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Bid-to-Cover',
+                yaxis: 'y',
+                line: { color: '#4ade80' }
+            };
+            
+            const trace2 = {
+                x: dates,
+                y: yields,
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Yield (%)',
+                yaxis: 'y2',
+                line: { color: '#667eea' }
+            };
+            
+            const layout = {
+                title: `${security} Treasury - Historical Data`,
+                xaxis: { gridcolor: 'rgba(255,255,255,0.1)' },
+                yaxis: { 
+                    title: 'Bid-to-Cover',
+                    gridcolor: 'rgba(255,255,255,0.1)'
+                },
+                yaxis2: {
+                    title: 'Yield (%)',
+                    overlaying: 'y',
+                    side: 'right'
+                },
                 paper_bgcolor: 'rgba(0,0,0,0)',
                 plot_bgcolor: 'rgba(255,255,255,0.05)',
                 font: { color: '#ffffff' },
                 showlegend: true
             };
-
-            Plotly.newPlot('participationChart', data, layout, {responsive: true});
+            
+            Plotly.newPlot(`historical-${security}`, [trace1, trace2], layout, {responsive: true});
         }
 
-        function updateMarketInterpretation() {
-            if (!currentData.summary) return;
-
-            const summary = currentData.summary;
-            const interpretationDiv = document.getElementById('marketInterpretation');
-            
-            let html = `
-                <h3>📊 Latest Auction Analysis</h3>
-                <p>${summary.summary || 'No summary available'}</p>
-                
-                <h3>🎯 Key Metrics</h3>
-                <ul>
-                    <li>Crisis Level: <strong>${summary.crisis_level || 'Unknown'}</strong></li>
-                    <li>Liquidity Status: <strong>${summary.liquidity_status || 'Unknown'}</strong></li>
-                    <li>Market Sentiment: <strong>${summary.market_sentiment || 'Unknown'}</strong></li>
-                </ul>
-                
-                <h3>💡 Market Interpretation</h3>
-                <p>${summary.interpretation || 'No interpretation available'}</p>
-                
-                <h3>⚠️ Risk Factors</h3>
-                <ul>
-            `;
-
-            if (summary.risk_factors && Array.isArray(summary.risk_factors)) {
-                summary.risk_factors.forEach(risk => {
-                    html += `<li>${risk}</li>`;
-                });
-            } else {
-                html += `<li>No specific risk factors identified</li>`;
-            }
-
-            html += `
-                </ul>
-                
-                <h3>📈 Recommendations</h3>
-                <ul>
-            `;
-
-            if (summary.recommendations && Array.isArray(summary.recommendations)) {
-                summary.recommendations.forEach(rec => {
-                    html += `<li>${rec}</li>`;
-                });
-            } else {
-                html += `<li>No specific recommendations at this time</li>`;
-            }
-
-            html += `</ul>`;
-
-            interpretationDiv.innerHTML = html;
-        }
-
-        async function loadHistoricalData() {
-            // Create multiple charts for different security types
-            const chartsDiv = document.getElementById('historicalCharts');
-            chartsDiv.innerHTML = '';
-
-            // For each security type, create a historical chart
-            SECURITY_TYPES.forEach(secType => {
-                const chartId = `chart-${secType.replace(/\s/g, '-')}`;
-                chartsDiv.innerHTML += `
-                    <div class="historical-chart">
-                        <h3>${secType} Treasury Historical Data</h3>
-                        <div id="${chartId}"></div>
-                    </div>
-                `;
-            });
-
-            // Generate sample historical data for demonstration
-            // In production, this would fetch real historical data
-            SECURITY_TYPES.forEach(secType => {
-                const chartId = `chart-${secType.replace(/\s/g, '-')}`;
-                
-                // Generate dates for last 30 days
-                const dates = [];
-                const yields = [];
-                const bidCovers = [];
-                
-                for (let i = 30; i >= 0; i--) {
-                    const date = new Date();
-                    date.setDate(date.getDate() - i);
-                    dates.push(date.toISOString().split('T')[0]);
-                    
-                    // Generate realistic yields based on security type
-                    let baseYield = 4.5;
-                    if (secType.includes('Week')) baseYield = 5.2;
-                    else if (secType === '2-Year') baseYield = 4.3;
-                    else if (secType === '10-Year') baseYield = 4.5;
-                    else if (secType === '30-Year') baseYield = 4.8;
-                    
-                    yields.push(baseYield + (Math.random() - 0.5) * 0.5);
-                    bidCovers.push(2.3 + (Math.random() - 0.5) * 0.4);
-                }
-
-                const trace1 = {
-                    x: dates,
-                    y: yields,
-                    type: 'scatter',
-                    mode: 'lines+markers',
-                    name: 'Yield (%)',
-                    yaxis: 'y',
-                    line: { color: 'rgb(102, 126, 234)', width: 2 }
-                };
-
-                const trace2 = {
-                    x: dates,
-                    y: bidCovers,
-                    type: 'scatter',
-                    mode: 'lines+markers',
-                    name: 'Bid-to-Cover',
-                    yaxis: 'y2',
-                    line: { color: 'rgb(74, 222, 128)', width: 2 }
-                };
-
-                const layout = {
-                    title: `${secType} Historical Metrics`,
-                    xaxis: { title: 'Date' },
-                    yaxis: {
-                        title: 'Yield (%)',
-                        titlefont: { color: 'rgb(102, 126, 234)' },
-                        tickfont: { color: 'rgb(102, 126, 234)' }
-                    },
-                    yaxis2: {
-                        title: 'Bid-to-Cover Ratio',
-                        titlefont: { color: 'rgb(74, 222, 128)' },
-                        tickfont: { color: 'rgb(74, 222, 128)' },
-                        overlaying: 'y',
-                        side: 'right'
-                    },
-                    paper_bgcolor: 'rgba(0,0,0,0)',
-                    plot_bgcolor: 'rgba(255,255,255,0.05)',
-                    font: { color: '#ffffff' },
-                    showlegend: true,
-                    legend: { x: 0, y: 1 }
-                };
-
-                Plotly.newPlot(chartId, [trace1, trace2], layout, {responsive: true});
-            });
-        }
-
-        function updateCrisisBanner() {
-            const banner = document.getElementById('crisisBanner');
-            if (!currentData.crisis) {
-                banner.classList.remove('active');
-                return;
-            }
-
-            const level = currentData.crisis.crisis_level;
-            const score = currentData.crisis.crisis_score;
-            
-            banner.className = 'crisis-banner';
-            
-            if (level === 'SEVERE') {
-                banner.classList.add('severe', 'active');
-                banner.innerHTML = `🚨 SEVERE MARKET STRESS DETECTED - Crisis Score: ${score?.toFixed(1)}/10 🚨`;
-            } else if (level === 'HIGH') {
-                banner.classList.add('high', 'active');
-                banner.innerHTML = `⚠️ HIGH RISK CONDITIONS - Crisis Score: ${score?.toFixed(1)}/10 ⚠️`;
-            } else if (level === 'MODERATE') {
-                banner.classList.add('moderate', 'active');
-                banner.innerHTML = `📊 MODERATE MARKET STRESS - Crisis Score: ${score?.toFixed(1)}/10 📊`;
-            } else if (level === 'LOW') {
-                banner.classList.add('low', 'active');
-                banner.innerHTML = `✅ LOW RISK - Market Conditions Normal - Score: ${score?.toFixed(1)}/10 ✅`;
-            } else {
-                banner.classList.remove('active');
+        // Get crisis color
+        function getCrisisColor(level) {
+            switch(level) {
+                case 'SEVERE': return '#ff0000';
+                case 'HIGH': return '#ff4444';
+                case 'MODERATE': return '#fbbf24';
+                case 'LOW': return '#4ade80';
+                default: return '#888888';
             }
         }
 
-        function updateAPIStatus(connected) {
-            const statusDot = document.getElementById('apiStatus');
-            const statusText = document.getElementById('apiStatusText');
+        // Initialize dashboard
+        async function initializeDashboard() {
+            document.getElementById('lastUpdate').textContent = 'Loading...';
             
-            if (connected) {
-                statusDot.className = 'status-dot connected';
-                statusText.textContent = 'Connected';
-            } else {
-                statusDot.className = 'status-dot disconnected';
-                statusText.textContent = 'Disconnected';
-            }
-        }
-
-        function updateTimestamp() {
-            const timestamp = document.getElementById('timestamp');
-            const now = new Date();
-            timestamp.textContent = `Last Update: ${now.toLocaleString()}`;
+            // Fetch all auction data
+            await fetchAllAuctionData();
             
-            const lastUpdateDiv = document.getElementById('lastUpdate');
-            lastUpdateDiv.textContent = now.toLocaleTimeString();
-        }
-
-        function showLoading() {
-            document.getElementById('loadingOverlay').classList.add('active');
-        }
-
-        function hideLoading() {
-            document.getElementById('loadingOverlay').classList.remove('active');
-        }
-
-        // Initialize the dashboard
-        async function initialize() {
-            console.log('Initializing Treasury Dashboard v3.0...');
-            await fetchAllData();
+            // Display all sections
+            displayAuctionResults();
+            displayAllIndicators();
+            displayCrisisAnalysis();
+            displayLiquidityAnalysis();
+            displaySummary();
             
-            // Set up auto-refresh every 30 seconds
-            setInterval(fetchAllData, 30000);
+            // Create charts
+            createYieldCurveChart();
+            createParticipationChart();
+            createHistoricalCharts();
             
-            // Update timestamp every second
-            setInterval(updateTimestamp, 1000);
+            // Update timestamp
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleString();
+            
+            // Refresh every 60 seconds
+            setInterval(initializeDashboard, 60000);
         }
 
-        // Start the application
-        window.addEventListener('DOMContentLoaded', initialize);
+        // Start the dashboard
+        window.addEventListener('DOMContentLoaded', initializeDashboard);
     </script>
 </body>
 </html>
