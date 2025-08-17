@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpenBB Financial Intelligence Platform - NY Fed Integration</title>
+    <title>OpenBB Financial Intelligence Platform - NY Fed v3.0 Integration</title>
     
     <!-- Required Libraries -->
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
-        /* KEEP ALL YOUR ORIGINAL STYLES */
+        /* Core Styles */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
@@ -209,7 +210,7 @@
         /* Key Metrics Grid */
         .metrics-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 1rem;
             margin-bottom: 2rem;
         }
@@ -229,6 +230,20 @@
             box-shadow: 0 10px 30px rgba(0, 255, 136, 0.1);
         }
         
+        .metric-card.high-risk {
+            border-color: #ff4444;
+            animation: risk-pulse 2s infinite;
+        }
+        
+        .metric-card.medium-risk {
+            border-color: #ffaa00;
+        }
+        
+        @keyframes risk-pulse {
+            0%, 100% { box-shadow: 0 0 0 rgba(255, 68, 68, 0); }
+            50% { box-shadow: 0 0 20px rgba(255, 68, 68, 0.5); }
+        }
+        
         .metric-title {
             font-size: 0.875rem;
             color: #888;
@@ -242,11 +257,22 @@
             margin-bottom: 0.5rem;
         }
         
-        .metric-change {
+        .metric-unit {
             font-size: 0.875rem;
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
+            color: #aaa;
+            margin-left: 0.5rem;
+        }
+        
+        .metric-date {
+            font-size: 0.75rem;
+            color: #666;
+        }
+        
+        .metric-description {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 0.5rem;
+            font-style: italic;
         }
         
         .positive { color: #00ff88; }
@@ -272,73 +298,34 @@
             50% { opacity: 1; }
         }
         
-        .market-phase-banner.bull-run {
-            background: linear-gradient(90deg, #00ff44, #00ff88);
-            animation: bullPulse 1s ease-in-out infinite;
-        }
-        
-        .market-phase-banner.market-top {
-            background: linear-gradient(90deg, #ff8800, #ffaa00);
-            animation: topWarning 1.5s ease-in-out infinite;
-        }
-        
-        .market-phase-banner.bear-phase {
+        .market-phase-banner.crisis {
             background: linear-gradient(90deg, #ff0000, #ff4444);
-            animation: bearAlert 0.8s ease-in-out infinite;
+            animation: crisisAlert 0.5s ease-in-out infinite;
         }
         
-        @keyframes bullPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.02); }
+        .market-phase-banner.warning {
+            background: linear-gradient(90deg, #ff8800, #ffaa00);
+            animation: warningPulse 1s ease-in-out infinite;
         }
         
-        @keyframes topWarning {
+        .market-phase-banner.stable {
+            background: linear-gradient(90deg, #00ff44, #00ff88);
+        }
+        
+        @keyframes crisisAlert {
             0%, 100% { opacity: 0.8; }
             50% { opacity: 1; }
         }
         
-        @keyframes bearAlert {
-            0%, 100% { opacity: 0.7; }
-            50% { opacity: 1; }
-        }
-        
-        /* Spike animations */
-        @keyframes spike-flash-good {
-            0%, 100% { 
-                box-shadow: 0 0 0 rgba(0, 255, 136, 0);
-                border-color: rgba(0, 255, 136, 0.3);
-            }
-            50% { 
-                box-shadow: 0 0 30px rgba(0, 255, 136, 0.8);
-                border-color: #00ff88;
-            }
-        }
-        
-        @keyframes spike-flash-bad {
-            0%, 100% { 
-                box-shadow: 0 0 0 rgba(255, 68, 68, 0);
-                border-color: rgba(255, 68, 68, 0.3);
-            }
-            50% { 
-                box-shadow: 0 0 30px rgba(255, 68, 68, 0.8);
-                border-color: #ff4444;
-            }
-        }
-        
-        .spike-alert-good {
-            animation: spike-flash-good 1s ease-in-out infinite;
-            border: 2px solid #00ff88 !important;
-        }
-        
-        .spike-alert-bad {
-            animation: spike-flash-bad 1s ease-in-out infinite;
-            border: 2px solid #ff4444 !important;
+        @keyframes warningPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.01); }
         }
         
         /* Data Grid */
         .data-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
@@ -392,12 +379,6 @@
             font-style: italic;
         }
         
-        .data-unit {
-            font-size: 0.875rem;
-            color: #aaa;
-            margin-left: 0.5rem;
-        }
-        
         /* Chart Container */
         .chart-container {
             background: rgba(255, 255, 255, 0.05);
@@ -421,10 +402,61 @@
             font-weight: bold;
         }
         
-        #mainChart, #crisisChart, #liquidityChart, #dollarChart, #somaChart {
+        .chart-controls {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .chart-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+        }
+        
+        .chart-btn:hover {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: #00ff88;
+        }
+        
+        .chart-btn.active {
+            background: #00ff88;
+            color: #000;
+        }
+        
+        #cmdiChart, #primaryDealersChart, #financialStabilityChart, #historicalChart {
             height: 500px;
             border-radius: 8px;
             background: rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Historical Data Controls */
+        .historical-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .date-input {
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: #fff;
+            font-size: 0.875rem;
+        }
+        
+        .date-input:focus {
+            outline: none;
+            border-color: #00ff88;
+            background: rgba(0, 255, 136, 0.05);
         }
         
         /* Loading Spinner */
@@ -448,7 +480,7 @@
             to { transform: rotate(360deg); }
         }
         
-        /* Error/Success Messages */
+        /* Messages */
         .message {
             padding: 1rem;
             border-radius: 8px;
@@ -501,6 +533,33 @@
             background: rgba(0, 255, 136, 0.05);
         }
         
+        /* Historical Stats Box */
+        .historical-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+        
+        .stat-box {
+            text-align: center;
+        }
+        
+        .stat-box-label {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+            margin-bottom: 0.25rem;
+        }
+        
+        .stat-box-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+        
         /* Last Update */
         .last-update {
             text-align: center;
@@ -532,23 +591,27 @@
 <body>
     <!-- Market Phase Banner -->
     <div class="market-phase-banner" id="marketPhaseBanner">
-        📈 MARKET STATUS: CONNECTING TO NY FED API...
+        📈 MARKET STATUS: CONNECTING TO NY FED API v3.0...
     </div>
     
     <header class="header">
         <div class="logo">
             📊 OpenBB Platform
-            <span style="font-size: 0.875rem; color: #888;">NY Fed Integration</span>
+            <span style="font-size: 0.875rem; color: #888;">NY Fed v3.0 Integration</span>
         </div>
         
         <div class="header-stats">
             <div class="stat-item">
-                <div class="stat-value" id="activeIndicators">78</div>
-                <div class="stat-label">NY Fed Indicators</div>
+                <div class="stat-value" id="activeIndicators">18</div>
+                <div class="stat-label">Real-Time Indicators</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value" id="totalCategories">7</div>
-                <div class="stat-label">Categories</div>
+                <div class="stat-value" id="historicalYears">25+</div>
+                <div class="stat-label">Years Historical</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="dataPoints">--</div>
+                <div class="stat-label">Data Points</div>
             </div>
             <div class="stat-item">
                 <div class="stat-value" id="cacheAge">--</div>
@@ -557,7 +620,7 @@
         </div>
         
         <div class="risk-indicator">
-            <span>Crisis Risk:</span>
+            <span>CMDI Risk:</span>
             <span class="risk-level risk-low" id="riskLevel">LOADING...</span>
         </div>
         
@@ -570,6 +633,10 @@
                 <div class="status-dot loading" id="dataStatus"></div>
                 <span>Data Stream</span>
             </div>
+            <div class="api-indicator">
+                <div class="status-dot loading" id="historicalStatus"></div>
+                <span>Historical</span>
+            </div>
         </div>
     </header>
     
@@ -577,33 +644,26 @@
         <!-- Navigation Tabs -->
         <div class="tabs-nav">
             <button class="tab-btn active" data-tab="overview">📈 Overview</button>
-            <button class="tab-btn" data-tab="crisis">🚨 Crisis Indicators</button>
-            <button class="tab-btn" data-tab="dollar">💵 Dollar Shortage</button>
-            <button class="tab-btn" data-tab="liquidity">💧 Liquidity Stress</button>
+            <button class="tab-btn" data-tab="cmdi">🚨 CMDI Crisis Detection</button>
+            <button class="tab-btn" data-tab="primary-dealers">🏦 Primary Dealers</button>
+            <button class="tab-btn" data-tab="financial-stability">💰 Financial Stability</button>
             <button class="tab-btn" data-tab="rates">📊 Reference Rates</button>
-            <button class="tab-btn" data-tab="repo">🏦 Repo Markets</button>
-            <button class="tab-btn" data-tab="soma">🏛️ SOMA Holdings</button>
-            <button class="tab-btn" data-tab="dealers">🏢 Primary Dealers</button>
+            <button class="tab-btn" data-tab="repo">🔄 Repo Markets</button>
+            <button class="tab-btn" data-tab="historical">📅 Historical Analysis</button>
         </div>
         
         <!-- Overview Tab -->
         <div class="tab-content active" id="overview">
             <!-- Key Metrics -->
+            <h2 style="margin-bottom: 1rem;">🎯 Key Financial Indicators</h2>
             <div class="metrics-grid" id="keyMetrics">
                 <div class="loading">
                     <div class="spinner"></div>
                 </div>
             </div>
             
-            <!-- Main Chart -->
-            <div class="chart-container">
-                <div class="chart-header">
-                    <h2 class="chart-title">Market Overview - Live NY Fed Data</h2>
-                </div>
-                <div id="mainChart"></div>
-            </div>
-            
-            <!-- All Indicators Grid -->
+            <!-- Summary Grid -->
+            <h2 style="margin-bottom: 1rem; margin-top: 2rem;">📊 All Indicators Summary</h2>
             <div class="data-grid" id="overviewGrid">
                 <div class="loading">
                     <div class="spinner"></div>
@@ -613,45 +673,72 @@
             <div class="last-update" id="lastUpdate">Last Update: --</div>
         </div>
         
-        <!-- Crisis Indicators Tab -->
-        <div class="tab-content" id="crisis">
+        <!-- CMDI Crisis Detection Tab -->
+        <div class="tab-content" id="cmdi">
             <div class="chart-container">
                 <div class="chart-header">
-                    <h2 class="chart-title">Crisis Risk Assessment</h2>
+                    <h2 class="chart-title">Corporate Bond Market Distress Index (CMDI)</h2>
+                    <div class="chart-controls">
+                        <button class="chart-btn active" onclick="updateCMDIChart('current')">Current</button>
+                        <button class="chart-btn" onclick="updateCMDIChart('1Y')">1 Year</button>
+                        <button class="chart-btn" onclick="updateCMDIChart('5Y')">5 Years</button>
+                        <button class="chart-btn" onclick="updateCMDIChart('ALL')">All (2000-2025)</button>
+                    </div>
                 </div>
-                <div id="crisisChart"></div>
+                <div id="cmdiChart"></div>
             </div>
-            <div class="data-grid" id="crisisGrid">
+            
+            <!-- CMDI Historical Stats -->
+            <div class="historical-stats" id="cmdiStats">
+                <div class="stat-box">
+                    <div class="stat-box-label">Historical Min</div>
+                    <div class="stat-box-value positive" id="cmdiMin">--</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-box-label">Historical Max</div>
+                    <div class="stat-box-value negative" id="cmdiMax">--</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-box-label">Historical Avg</div>
+                    <div class="stat-box-value neutral" id="cmdiAvg">--</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-box-label">Crisis Periods</div>
+                    <div class="stat-box-value negative" id="cmdiCrisis">--</div>
+                </div>
+            </div>
+            
+            <div class="data-grid" id="cmdiGrid">
                 <div class="loading">
                     <div class="spinner"></div>
                 </div>
             </div>
         </div>
         
-        <!-- Dollar Shortage Tab -->
-        <div class="tab-content" id="dollar">
+        <!-- Primary Dealers Tab -->
+        <div class="tab-content" id="primary-dealers">
             <div class="chart-container">
                 <div class="chart-header">
-                    <h2 class="chart-title">Global USD Shortage Indicators</h2>
+                    <h2 class="chart-title">Primary Dealer Statistics</h2>
                 </div>
-                <div id="dollarChart"></div>
+                <div id="primaryDealersChart"></div>
             </div>
-            <div class="data-grid" id="dollarGrid">
+            <div class="data-grid" id="primaryDealersGrid">
                 <div class="loading">
                     <div class="spinner"></div>
                 </div>
             </div>
         </div>
         
-        <!-- Liquidity Stress Tab -->
-        <div class="tab-content" id="liquidity">
+        <!-- Financial Stability Tab -->
+        <div class="tab-content" id="financial-stability">
             <div class="chart-container">
                 <div class="chart-header">
-                    <h2 class="chart-title">Cross-Market Liquidity Stress</h2>
+                    <h2 class="chart-title">Financial Stability Indicators</h2>
                 </div>
-                <div id="liquidityChart"></div>
+                <div id="financialStabilityChart"></div>
             </div>
-            <div class="data-grid" id="liquidityGrid">
+            <div class="data-grid" id="financialStabilityGrid">
                 <div class="loading">
                     <div class="spinner"></div>
                 </div>
@@ -666,13 +753,14 @@
                         <tr>
                             <th>Rate</th>
                             <th>Current Value</th>
+                            <th>Date</th>
                             <th>Description</th>
-                            <th>Update Frequency</th>
+                            <th>Source</th>
                         </tr>
                     </thead>
                     <tbody id="ratesTable">
                         <tr>
-                            <td colspan="4" style="text-align: center;">Loading rates...</td>
+                            <td colspan="5" style="text-align: center;">Loading rates...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -693,69 +781,94 @@
             </div>
         </div>
         
-        <!-- SOMA Holdings Tab -->
-        <div class="tab-content" id="soma">
+        <!-- Historical Analysis Tab -->
+        <div class="tab-content" id="historical">
+            <div class="historical-controls">
+                <label>Start Date:</label>
+                <input type="date" id="histStartDate" class="date-input" value="2020-01-01">
+                <label>End Date:</label>
+                <input type="date" id="histEndDate" class="date-input">
+                <label>Indicator:</label>
+                <select id="histIndicator" class="date-input">
+                    <option value="CMDI_OVERALL">CMDI Overall</option>
+                    <option value="CMDI_INVESTMENT_GRADE">CMDI Investment Grade</option>
+                    <option value="CMDI_HIGH_YIELD">CMDI High Yield</option>
+                    <option value="GLOBAL_SUPPLY_CHAIN_PRESSURE">Supply Chain Pressure</option>
+                    <option value="FINANCIAL_STRESS_INDEX">Financial Stress Index</option>
+                </select>
+                <button class="chart-btn" onclick="loadHistoricalData()">Load Data</button>
+            </div>
+            
             <div class="chart-container">
                 <div class="chart-header">
-                    <h2 class="chart-title">SOMA Portfolio & Fed Balance Sheet</h2>
+                    <h2 class="chart-title">Historical Analysis (2000-2025)</h2>
                 </div>
-                <div id="somaChart"></div>
+                <div id="historicalChart"></div>
             </div>
-            <div class="data-grid" id="somaGrid">
-                <div class="loading">
-                    <div class="spinner"></div>
+            
+            <div class="historical-stats" id="historicalStats">
+                <div class="stat-box">
+                    <div class="stat-box-label">Data Points</div>
+                    <div class="stat-box-value" id="histDataPoints">--</div>
                 </div>
-            </div>
-        </div>
-        
-        <!-- Primary Dealers Tab -->
-        <div class="tab-content" id="dealers">
-            <div class="data-grid" id="dealersGrid">
-                <div class="loading">
-                    <div class="spinner"></div>
+                <div class="stat-box">
+                    <div class="stat-box-label">Period Coverage</div>
+                    <div class="stat-box-value" id="histPeriod">--</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-box-label">Min Value</div>
+                    <div class="stat-box-value positive" id="histMin">--</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-box-label">Max Value</div>
+                    <div class="stat-box-value negative" id="histMax">--</div>
                 </div>
             </div>
         </div>
     </div>
     
     <script>
-        // NY Fed API Configuration
+        // NY Fed API v3.0 Configuration
         const NYFED_CONFIG = {
             baseUrl: 'https://jc6ripzwk1.execute-api.us-east-1.amazonaws.com/prod',
             endpoints: {
+                info: '/',
                 health: '/health',
                 stats: '/stats',
                 all: '/all',
-                crisis: '/crisis',
-                dollarShortage: '/dollar-shortage',
-                liquidity: '/liquidity',
+                cmdi: '/cmdi',
+                primaryDealers: '/primary-dealers',
+                financialStability: '/financial-stability',
                 rates: '/rates',
                 repo: '/repo',
                 soma: '/soma',
-                dealers: '/dealers',
                 search: '/search'
             }
         };
         
         // Global state
         let currentData = {
+            info: {},
             all: {},
-            crisis: {},
-            dollarShortage: {},
-            liquidity: {},
+            cmdi: {},
+            primaryDealers: {},
+            financialStability: {},
             rates: {},
             repo: {},
-            soma: {},
-            dealers: {},
+            historicalData: {},
             lastUpdate: null
         };
         
         let activeTab = 'overview';
         let autoRefreshInterval = null;
+        let charts = {};
         
         // Initialize the platform
         async function initializePlatform() {
-            console.log('🚀 Initializing NY Fed Integration...');
+            console.log('🚀 Initializing NY Fed v3.0 Integration...');
+            
+            // Set today's date for historical end date
+            document.getElementById('histEndDate').valueAsDate = new Date();
             
             // Test API connection
             await testAPIConnection();
@@ -769,7 +882,7 @@
             // Initialize charts
             initializeCharts();
             
-            // Start auto-refresh (4 hours as per API cache)
+            // Start auto-refresh (30 minutes as per API cache)
             startAutoRefresh();
             
             console.log('✅ Platform initialized successfully');
@@ -779,20 +892,24 @@
         async function testAPIConnection() {
             const nyFedStatus = document.getElementById('nyFedApiStatus');
             const dataStatus = document.getElementById('dataStatus');
+            const historicalStatus = document.getElementById('historicalStatus');
             
             try {
-                const response = await fetch(NYFED_CONFIG.baseUrl + NYFED_CONFIG.endpoints.health);
+                const response = await fetch(NYFED_CONFIG.baseUrl + NYFED_CONFIG.endpoints.info);
                 const data = await response.json();
                 
                 if (data.status === 'OK') {
                     nyFedStatus.className = 'status-dot connected';
                     dataStatus.className = 'status-dot connected';
+                    historicalStatus.className = 'status-dot connected';
+                    
+                    // Store API info
+                    currentData.info = data;
                     
                     // Update header stats
-                    document.getElementById('activeIndicators').textContent = data.indicators || 78;
-                    document.getElementById('totalCategories').textContent = data.categories?.length || 7;
+                    document.getElementById('activeIndicators').textContent = data.total_indicators || 18;
                     
-                    console.log('✅ NY Fed API Connected:', data);
+                    console.log('✅ NY Fed API v3.0 Connected:', data);
                 } else {
                     throw new Error('API not operational');
                 }
@@ -800,33 +917,30 @@
                 console.error('API connection error:', error);
                 nyFedStatus.className = 'status-dot error';
                 dataStatus.className = 'status-dot error';
+                historicalStatus.className = 'status-dot error';
                 showError('Connection failed. Please check API status.');
             }
         }
         
-        // Load all data from NY Fed API
+        // Load all data
         async function loadAllData() {
             try {
-                // Load data based on active tab for efficiency
                 if (activeTab === 'overview') {
                     await loadOverviewData();
-                } else if (activeTab === 'crisis') {
-                    await loadCrisisData();
-                } else if (activeTab === 'dollar') {
-                    await loadDollarShortageData();
-                } else if (activeTab === 'liquidity') {
-                    await loadLiquidityData();
+                } else if (activeTab === 'cmdi') {
+                    await loadCMDIData();
+                } else if (activeTab === 'primary-dealers') {
+                    await loadPrimaryDealersData();
+                } else if (activeTab === 'financial-stability') {
+                    await loadFinancialStabilityData();
                 } else if (activeTab === 'rates') {
                     await loadRatesData();
                 } else if (activeTab === 'repo') {
                     await loadRepoData();
-                } else if (activeTab === 'soma') {
-                    await loadSomaData();
-                } else if (activeTab === 'dealers') {
-                    await loadDealersData();
+                } else if (activeTab === 'historical') {
+                    await loadHistoricalData();
                 }
                 
-                // Update last update time
                 updateLastUpdateTime();
                 
             } catch (error) {
@@ -835,28 +949,41 @@
             }
         }
         
-        // Load overview data (all indicators)
+        // Load overview data
         async function loadOverviewData() {
             try {
-                const response = await fetch(NYFED_CONFIG.baseUrl + NYFED_CONFIG.endpoints.all);
-                const data = await response.json();
+                // Fetch all endpoints for overview
+                const [allData, cmdiData, primaryDealersData, financialStabilityData, ratesData, repoData] = await Promise.all([
+                    fetch(NYFED_CONFIG.baseUrl + NYFED_CONFIG.endpoints.all).then(r => r.json()),
+                    fetch(NYFED_CONFIG.baseUrl + NYFED_CONFIG.endpoints.cmdi).then(r => r.json()),
+                    fetch(NYFED_CONFIG.baseUrl + NYFED_CONFIG.endpoints.primaryDealers).then(r => r.json()),
+                    fetch(NYFED_CONFIG.baseUrl + NYFED_CONFIG.endpoints.financialStability).then(r => r.json()),
+                    fetch(NYFED_CONFIG.baseUrl + NYFED_CONFIG.endpoints.rates).then(r => r.json()),
+                    fetch(NYFED_CONFIG.baseUrl + NYFED_CONFIG.endpoints.repo).then(r => r.json())
+                ]);
                 
-                currentData.all = data;
+                // Store data
+                currentData.all = allData;
+                currentData.cmdi = cmdiData;
+                currentData.primaryDealers = primaryDealersData;
+                currentData.financialStability = financialStabilityData;
+                currentData.rates = ratesData;
+                currentData.repo = repoData;
                 
                 // Update key metrics
-                updateKeyMetrics(data);
+                updateKeyMetrics();
                 
-                // Display all indicators
-                displayOverviewGrid(data.indicators || {});
-                
-                // Update main chart
-                updateMainChart(data);
+                // Display overview grid
+                displayOverviewGrid();
                 
                 // Detect market phase
-                detectMarketPhase(data);
+                detectMarketPhase();
                 
                 // Update cache age
-                updateCacheAge(data.timestamp);
+                updateCacheAge(cmdiData.timestamp);
+                
+                // Update data points count
+                updateDataPointsCount();
                 
             } catch (error) {
                 console.error('Error loading overview:', error);
@@ -864,64 +991,65 @@
             }
         }
         
-        // Load crisis indicators
-        async function loadCrisisData() {
+        // Load CMDI data with historical
+        async function loadCMDIData() {
             try {
-                const response = await fetch(NYFED_CONFIG.baseUrl + NYFED_CONFIG.endpoints.crisis);
-                const data = await response.json();
+                const [currentData, historicalData] = await Promise.all([
+                    fetch(NYFED_CONFIG.baseUrl + NYFED_CONFIG.endpoints.cmdi).then(r => r.json()),
+                    fetch(NYFED_CONFIG.baseUrl + NYFED_CONFIG.endpoints.cmdi + '?history=true').then(r => r.json())
+                ]);
                 
-                currentData.crisis = data;
+                currentData.cmdi = currentData;
+                currentData.cmdiHistorical = historicalData;
                 
-                // Update risk level
-                if (data.risk_assessment) {
-                    updateRiskLevel(data.risk_assessment.overall_risk_level, data.risk_assessment.average_stress);
+                // Display CMDI grid
+                displayDataGrid('cmdiGrid', currentData.indicators || {}, 'CMDI');
+                
+                // Update CMDI chart with historical data
+                if (historicalData.indicators?.CMDI_OVERALL?.historical_data) {
+                    updateCMDIChartWithHistory(historicalData.indicators.CMDI_OVERALL.historical_data);
+                    updateCMDIStats(historicalData.indicators.CMDI_OVERALL.historical_data);
                 }
                 
-                // Display crisis indicators
-                displayDataGrid('crisisGrid', data.indicators || {}, 'Crisis Indicators');
-                
-                // Update crisis chart
-                updateCrisisChart(data);
-                
             } catch (error) {
-                console.error('Error loading crisis data:', error);
-                showError('Failed to load crisis indicators');
+                console.error('Error loading CMDI data:', error);
+                showError('Failed to load CMDI data');
             }
         }
         
-        // Load dollar shortage data
-        async function loadDollarShortageData() {
+        // Load Primary Dealers data
+        async function loadPrimaryDealersData() {
             try {
-                const response = await fetch(NYFED_CONFIG.baseUrl + NYFED_CONFIG.endpoints.dollarShortage);
+                const response = await fetch(NYFED_CONFIG.baseUrl + NYFED_CONFIG.endpoints.primaryDealers);
                 const data = await response.json();
                 
-                currentData.dollarShortage = data;
-                displayDataGrid('dollarGrid', data.indicators || {}, 'Dollar Shortage');
-                updateDollarChart(data);
+                currentData.primaryDealers = data;
+                displayDataGrid('primaryDealersGrid', data.indicators || {}, 'Primary Dealers');
+                updatePrimaryDealersChart(data);
                 
             } catch (error) {
-                console.error('Error loading dollar shortage data:', error);
-                showError('Failed to load dollar shortage data');
+                console.error('Error loading Primary Dealers data:', error);
+                showError('Failed to load Primary Dealers data');
             }
         }
         
-        // Load liquidity stress data
-        async function loadLiquidityData() {
+        // Load Financial Stability data
+        async function loadFinancialStabilityData() {
             try {
-                const response = await fetch(NYFED_CONFIG.baseUrl + NYFED_CONFIG.endpoints.liquidity);
+                const response = await fetch(NYFED_CONFIG.baseUrl + NYFED_CONFIG.endpoints.financialStability);
                 const data = await response.json();
                 
-                currentData.liquidity = data;
-                displayDataGrid('liquidityGrid', data.indicators || {}, 'Liquidity Stress');
-                updateLiquidityChart(data);
+                currentData.financialStability = data;
+                displayDataGrid('financialStabilityGrid', data.indicators || {}, 'Financial Stability');
+                updateFinancialStabilityChart(data);
                 
             } catch (error) {
-                console.error('Error loading liquidity data:', error);
-                showError('Failed to load liquidity data');
+                console.error('Error loading Financial Stability data:', error);
+                showError('Failed to load Financial Stability data');
             }
         }
         
-        // Load reference rates
+        // Load Reference Rates
         async function loadRatesData() {
             try {
                 const response = await fetch(NYFED_CONFIG.baseUrl + NYFED_CONFIG.endpoints.rates);
@@ -937,7 +1065,7 @@
             }
         }
         
-        // Load repo markets data
+        // Load Repo Markets data
         async function loadRepoData() {
             try {
                 const response = await fetch(NYFED_CONFIG.baseUrl + NYFED_CONFIG.endpoints.repo);
@@ -952,101 +1080,145 @@
             }
         }
         
-        // Load SOMA holdings
-        async function loadSomaData() {
+        // Load Historical Data
+        async function loadHistoricalData() {
+            const startDate = document.getElementById('histStartDate').value;
+            const endDate = document.getElementById('histEndDate').value;
+            const indicator = document.getElementById('histIndicator').value;
+            
             try {
-                const response = await fetch(NYFED_CONFIG.baseUrl + NYFED_CONFIG.endpoints.soma);
+                // Determine which endpoint to use based on indicator
+                let endpoint = '';
+                if (indicator.startsWith('CMDI_')) {
+                    endpoint = NYFED_CONFIG.endpoints.cmdi;
+                } else if (indicator.startsWith('PD_')) {
+                    endpoint = NYFED_CONFIG.endpoints.primaryDealers;
+                } else {
+                    endpoint = NYFED_CONFIG.endpoints.financialStability;
+                }
+                
+                const url = `${NYFED_CONFIG.baseUrl}${endpoint}?history=true&start_date=${startDate}&end_date=${endDate}`;
+                const response = await fetch(url);
                 const data = await response.json();
                 
-                currentData.soma = data;
-                displayDataGrid('somaGrid', data.indicators || {}, 'SOMA Holdings');
-                updateSomaChart(data);
+                if (data.indicators?.[indicator]?.historical_data) {
+                    const histData = data.indicators[indicator].historical_data;
+                    updateHistoricalChart(histData, indicator);
+                    updateHistoricalStats(histData);
+                }
                 
             } catch (error) {
-                console.error('Error loading SOMA data:', error);
-                showError('Failed to load SOMA holdings');
-            }
-        }
-        
-        // Load primary dealers data
-        async function loadDealersData() {
-            try {
-                const response = await fetch(NYFED_CONFIG.baseUrl + NYFED_CONFIG.endpoints.dealers);
-                const data = await response.json();
-                
-                currentData.dealers = data;
-                displayDataGrid('dealersGrid', data.indicators || {}, 'Primary Dealers');
-                
-            } catch (error) {
-                console.error('Error loading dealers data:', error);
-                showError('Failed to load primary dealers data');
+                console.error('Error loading historical data:', error);
+                showError('Failed to load historical data');
             }
         }
         
         // Update key metrics
-        function updateKeyMetrics(data) {
+        function updateKeyMetrics() {
             const metricsGrid = document.getElementById('keyMetrics');
             if (!metricsGrid) return;
             
             metricsGrid.innerHTML = '';
             
-            // Select key indicators to highlight
+            // Select key indicators from each category
             const keyIndicators = [
-                'SYSTEMIC_LIQUIDITY_RISK',
-                'USD_SHORTAGE_INDEX',
-                'FUNDING_LIQUIDITY_STRESS',
-                'NYFED_EFFR',
-                'NYFED_SOFR',
-                'REPO_MARKET_SIZE'
+                { data: currentData.cmdi, key: 'CMDI_OVERALL', category: 'Crisis' },
+                { data: currentData.cmdi, key: 'CMDI_HIGH_YIELD', category: 'Crisis' },
+                { data: currentData.financialStability, key: 'FINANCIAL_STRESS_INDEX', category: 'Stability' },
+                { data: currentData.financialStability, key: 'DOLLAR_SHORTAGE_INDEX', category: 'Dollar' },
+                { data: currentData.primaryDealers, key: 'PD_TREASURY_POSITIONS', category: 'Dealers' },
+                { data: currentData.rates, key: 'NYFED_SOFR', category: 'Rates' }
             ];
             
-            const indicators = data.indicators || {};
-            
-            keyIndicators.forEach(key => {
-                if (indicators[key]) {
-                    const indicator = indicators[key];
-                    const card = createMetricCard(key, indicator);
+            keyIndicators.forEach(({ data, key, category }) => {
+                if (data?.indicators?.[key]) {
+                    const indicator = data.indicators[key];
+                    const card = createMetricCard(key, indicator, category);
                     metricsGrid.appendChild(card);
                 }
             });
         }
         
         // Create metric card
-        function createMetricCard(key, indicator) {
+        function createMetricCard(key, indicator, category) {
             const card = document.createElement('div');
             card.className = 'metric-card';
             
-            // Format value based on unit
-            let formattedValue = indicator.value;
-            if (indicator.unit === 'Billions USD') {
-                formattedValue = `$${indicator.value.toFixed(2)}B`;
-            } else if (indicator.unit === 'Percent') {
-                formattedValue = `${indicator.value.toFixed(4)}%`;
-            } else if (indicator.unit === 'Basis Points') {
-                formattedValue = `${indicator.value.toFixed(2)} bps`;
-            } else if (indicator.unit === 'Index (0-1)') {
-                formattedValue = indicator.value.toFixed(4);
-            } else {
-                formattedValue = indicator.value.toFixed(2);
+            // Determine risk level for CMDI indicators
+            if (key.includes('CMDI') || key.includes('STRESS') || key.includes('SHORTAGE')) {
+                if (indicator.value > 0.40) {
+                    card.className += ' high-risk';
+                } else if (indicator.value > 0.20) {
+                    card.className += ' medium-risk';
+                }
             }
             
-            // Determine color based on value and type
-            let valueClass = 'neutral';
-            if (key.includes('RISK') || key.includes('STRESS') || key.includes('SHORTAGE')) {
-                valueClass = indicator.value > 0.1 ? 'negative' : 'positive';
-            } else if (key.includes('EFFR') || key.includes('SOFR')) {
-                valueClass = 'neutral';
-            }
+            // Format value based on unit
+            let formattedValue = formatIndicatorValue(indicator.value, indicator.unit);
             
             card.innerHTML = `
-                <div class="metric-title">${indicator.description || key}</div>
-                <div class="metric-value ${valueClass}">${formattedValue}</div>
-                <div class="metric-change neutral">
-                    <span>${indicator.unit || ''}</span>
+                <div class="metric-title">${key.replace(/_/g, ' ')}</div>
+                <div class="metric-value ${getValueClass(key, indicator.value)}">
+                    ${formattedValue}
+                    <span class="metric-unit">${indicator.unit || ''}</span>
                 </div>
+                <div class="metric-date">Updated: ${indicator.date || 'N/A'}</div>
+                <div class="metric-description">${indicator.description || ''}</div>
             `;
             
+            card.onclick = () => {
+                if (key.includes('CMDI')) {
+                    switchToTab('cmdi');
+                } else if (key.includes('PD_')) {
+                    switchToTab('primary-dealers');
+                } else if (category === 'Stability') {
+                    switchToTab('financial-stability');
+                } else if (category === 'Rates') {
+                    switchToTab('rates');
+                }
+            };
+            
             return card;
+        }
+        
+        // Display overview grid
+        function displayOverviewGrid() {
+            const grid = document.getElementById('overviewGrid');
+            if (!grid) return;
+            
+            grid.innerHTML = '';
+            
+            // Combine all indicators
+            const allIndicators = {
+                ...currentData.cmdi?.indicators || {},
+                ...currentData.primaryDealers?.indicators || {},
+                ...currentData.financialStability?.indicators || {},
+                ...currentData.rates?.indicators || {},
+                ...currentData.repo?.indicators || {}
+            };
+            
+            for (const [key, indicator] of Object.entries(allIndicators)) {
+                if (!indicator || indicator.value === null) continue;
+                
+                const card = document.createElement('div');
+                card.className = 'data-card';
+                
+                // Format value
+                let formattedValue = formatIndicatorValue(indicator.value, indicator.unit);
+                
+                card.innerHTML = `
+                    <div class="data-card-header">
+                        <div class="data-title">${key.replace(/_/g, ' ')}</div>
+                        <div class="data-source">${indicator.source || indicator.category || 'NY Fed'}</div>
+                    </div>
+                    <div class="data-value ${getValueClass(key, indicator.value)}">
+                        ${formattedValue}
+                    </div>
+                    <div class="data-description">${indicator.description || ''}</div>
+                `;
+                
+                grid.appendChild(card);
+            }
         }
         
         // Display data grid
@@ -1067,35 +1239,19 @@
                 const card = document.createElement('div');
                 card.className = 'data-card';
                 
-                // Format value
-                let formattedValue = indicator.value;
-                if (indicator.unit === 'Billions USD') {
-                    formattedValue = `$${indicator.value.toFixed(2)}B`;
-                } else if (indicator.unit === 'Billions USD/month') {
-                    formattedValue = `$${indicator.value.toFixed(2)}B/mo`;
-                } else if (indicator.unit === 'Percent') {
-                    formattedValue = `${indicator.value.toFixed(4)}%`;
-                } else if (indicator.unit === 'Basis Points') {
-                    formattedValue = `${indicator.value.toFixed(2)} bps`;
-                } else if (indicator.unit === 'Index (0-1)') {
-                    formattedValue = indicator.value.toFixed(4);
-                    
-                    // Add risk color for index values
-                    if (indicator.value > 0.15) {
-                        card.style.borderColor = '#ff4444';
-                    } else if (indicator.value > 0.10) {
-                        card.style.borderColor = '#ffaa00';
-                    }
-                } else if (indicator.unit === 'Standard Deviation') {
-                    formattedValue = `σ = ${indicator.value.toFixed(4)}`;
-                } else {
-                    formattedValue = indicator.value.toFixed(2);
+                // Add risk coloring for CMDI
+                if (key.includes('CMDI') && indicator.value > 0.40) {
+                    card.style.borderColor = '#ff4444';
+                } else if (key.includes('CMDI') && indicator.value > 0.20) {
+                    card.style.borderColor = '#ffaa00';
                 }
+                
+                let formattedValue = formatIndicatorValue(indicator.value, indicator.unit);
                 
                 card.innerHTML = `
                     <div class="data-card-header">
                         <div class="data-title">${key.replace(/_/g, ' ')}</div>
-                        <div class="data-source">${indicator.category || category}</div>
+                        <div class="data-source">${indicator.source || category}</div>
                     </div>
                     <div class="data-value ${getValueClass(key, indicator.value)}">
                         ${formattedValue}
@@ -1104,65 +1260,6 @@
                 `;
                 
                 grid.appendChild(card);
-            }
-        }
-        
-        // Display overview grid with all indicators
-        function displayOverviewGrid(indicators) {
-            const grid = document.getElementById('overviewGrid');
-            if (!grid) return;
-            
-            grid.innerHTML = '';
-            
-            if (!indicators || Object.keys(indicators).length === 0) {
-                grid.innerHTML = '<div class="message error-message">No indicators available</div>';
-                return;
-            }
-            
-            // Group indicators by category for better organization
-            const categories = {};
-            
-            for (const [key, indicator] of Object.entries(indicators)) {
-                if (!indicator || indicator.value === null) continue;
-                
-                const category = indicator.category || 'Other';
-                if (!categories[category]) {
-                    categories[category] = [];
-                }
-                categories[category].push({ key, ...indicator });
-            }
-            
-            // Display indicators grouped by category
-            for (const [category, items] of Object.entries(categories)) {
-                items.forEach(indicator => {
-                    const card = document.createElement('div');
-                    card.className = 'data-card';
-                    
-                    // Format value
-                    let formattedValue = formatIndicatorValue(indicator.value, indicator.unit);
-                    
-                    // Add risk coloring for certain indicators
-                    if (indicator.key.includes('RISK') || indicator.key.includes('STRESS')) {
-                        if (indicator.value > 0.15) {
-                            card.style.borderColor = '#ff4444';
-                        } else if (indicator.value > 0.10) {
-                            card.style.borderColor = '#ffaa00';
-                        }
-                    }
-                    
-                    card.innerHTML = `
-                        <div class="data-card-header">
-                            <div class="data-title">${indicator.key.replace(/_/g, ' ')}</div>
-                            <div class="data-source">${category}</div>
-                        </div>
-                        <div class="data-value ${getValueClass(indicator.key, indicator.value)}">
-                            ${formattedValue}
-                        </div>
-                        <div class="data-description">${indicator.description || ''}</div>
-                    `;
-                    
-                    grid.appendChild(card);
-                });
             }
         }
         
@@ -1179,9 +1276,10 @@
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td><strong>${key}</strong></td>
-                    <td class="${getValueClass(key, rate.value)}">${rate.value.toFixed(4)}%</td>
+                    <td class="${getValueClass(key, rate.value)}">${rate.value.toFixed(2)}%</td>
+                    <td>${rate.date || 'N/A'}</td>
                     <td>${rate.description}</td>
-                    <td>Daily</td>
+                    <td>${rate.source || 'NY Fed Markets API'}</td>
                 `;
                 
                 table.appendChild(row);
@@ -1191,17 +1289,15 @@
         // Format indicator value based on unit
         function formatIndicatorValue(value, unit) {
             if (unit === 'Billions USD') {
-                return `$${value.toFixed(2)}B`;
-            } else if (unit === 'Billions USD/month') {
-                return `$${value.toFixed(2)}B/mo`;
+                return `$${(value / 1).toFixed(2)}B`;
             } else if (unit === 'Percent') {
-                return `${value.toFixed(4)}%`;
-            } else if (unit === 'Basis Points') {
-                return `${value.toFixed(2)} bps`;
+                return `${value.toFixed(2)}%`;
             } else if (unit === 'Index (0-1)') {
                 return value.toFixed(4);
-            } else if (unit === 'Standard Deviation') {
-                return `σ = ${value.toFixed(4)}`;
+            } else if (unit === 'Standard Deviations') {
+                return `${value.toFixed(2)}σ`;
+            } else if (unit === 'Percentage Points') {
+                return `${value.toFixed(2)}pp`;
             } else {
                 return value.toFixed(2);
             }
@@ -1209,80 +1305,57 @@
         
         // Get value class for styling
         function getValueClass(key, value) {
-            if (key.includes('RISK') || key.includes('STRESS') || key.includes('SHORTAGE')) {
-                if (value > 0.15) return 'negative';
-                if (value > 0.10) return 'neutral';
+            if (key.includes('CMDI') || key.includes('STRESS') || key.includes('SHORTAGE')) {
+                if (value > 0.40) return 'negative';
+                if (value > 0.20) return 'neutral';
                 return 'positive';
             }
             return 'neutral';
         }
         
-        // Update risk level
-        function updateRiskLevel(level, averageStress) {
-            const riskElement = document.getElementById('riskLevel');
-            
-            if (level) {
-                riskElement.textContent = level;
-                riskElement.className = `risk-level risk-${level.toLowerCase()}`;
-            } else if (averageStress) {
-                // Calculate risk level from average stress
-                let riskLevel = 'LOW';
-                let riskClass = 'risk-low';
-                
-                if (averageStress > 0.15) {
-                    riskLevel = 'CRITICAL';
-                    riskClass = 'risk-critical';
-                } else if (averageStress > 0.10) {
-                    riskLevel = 'HIGH';
-                    riskClass = 'risk-high';
-                } else if (averageStress > 0.06) {
-                    riskLevel = 'MEDIUM';
-                    riskClass = 'risk-medium';
-                }
-                
-                riskElement.textContent = riskLevel;
-                riskElement.className = `risk-level ${riskClass}`;
-            }
-        }
-        
-        // Detect market phase based on indicators
-        function detectMarketPhase(data) {
+        // Detect market phase based on CMDI
+        function detectMarketPhase() {
             const banner = document.getElementById('marketPhaseBanner');
             if (!banner) return;
             
-            const indicators = data.indicators || {};
-            const assessment = data.system_assessment || {};
+            const cmdiOverall = currentData.cmdi?.indicators?.CMDI_OVERALL?.value || 0;
+            const financialStress = currentData.financialStability?.indicators?.FINANCIAL_STRESS_INDEX?.value || 0;
+            const dollarShortage = currentData.financialStability?.indicators?.DOLLAR_SHORTAGE_INDEX?.value || 0;
             
             let phase = '';
             let bannerClass = '';
+            let riskLevel = 'LOW';
+            let riskClass = 'risk-low';
             
-            // Check systemic liquidity risk
-            const liquidityRisk = indicators.SYSTEMIC_LIQUIDITY_RISK?.value || 0;
-            const dollarShortage = indicators.USD_SHORTAGE_INDEX?.value || 0;
-            const fundingStress = indicators.FUNDING_LIQUIDITY_STRESS?.value || 0;
-            
-            if (liquidityRisk > 0.2 || assessment.average_stress > 0.15) {
-                phase = '🚨 CRISIS MODE - EXTREME RISK DETECTED';
-                bannerClass = 'bear-phase';
-            } else if (liquidityRisk > 0.15 || assessment.average_stress > 0.10) {
+            if (cmdiOverall > 0.70 || financialStress > 0.70) {
+                phase = '🚨 CRISIS ALERT - EXTREME DISTRESS DETECTED';
+                bannerClass = 'crisis';
+                riskLevel = 'CRITICAL';
+                riskClass = 'risk-critical';
+            } else if (cmdiOverall > 0.40 || financialStress > 0.40) {
                 phase = '⚠️ HIGH RISK - MARKET STRESS ELEVATED';
-                bannerClass = 'market-top';
-            } else if (dollarShortage > 0.15) {
-                phase = '💵 DOLLAR SHORTAGE - FUNDING STRESS';
-                bannerClass = 'market-top';
-            } else if (fundingStress > 0.15) {
-                phase = '💧 LIQUIDITY STRESS - CAUTION ADVISED';
-                bannerClass = 'market-top';
-            } else if (liquidityRisk < 0.05 && dollarShortage < 0.05) {
-                phase = '✅ MARKET STABLE - LOW STRESS CONDITIONS';
-                bannerClass = 'bull-run';
+                bannerClass = 'warning';
+                riskLevel = 'HIGH';
+                riskClass = 'risk-high';
+            } else if (cmdiOverall > 0.20 || dollarShortage > 0.30) {
+                phase = '📊 MODERATE RISK - MONITORING ACTIVE';
+                bannerClass = 'warning';
+                riskLevel = 'MEDIUM';
+                riskClass = 'risk-medium';
             } else {
-                phase = '📊 MARKET NORMAL - MONITORING ACTIVE';
-                bannerClass = '';
+                phase = '✅ MARKET STABLE - LOW STRESS CONDITIONS';
+                bannerClass = 'stable';
+                riskLevel = 'LOW';
+                riskClass = 'risk-low';
             }
             
             banner.textContent = phase;
             banner.className = `market-phase-banner ${bannerClass}`;
+            
+            // Update risk level indicator
+            const riskElement = document.getElementById('riskLevel');
+            riskElement.textContent = riskLevel;
+            riskElement.className = `risk-level ${riskClass}`;
         }
         
         // Initialize charts
@@ -1312,107 +1385,170 @@
             };
             
             // Initialize empty charts
-            if (document.getElementById('mainChart')) {
-                Plotly.newPlot('mainChart', [], chartConfig, config);
+            if (document.getElementById('cmdiChart')) {
+                Plotly.newPlot('cmdiChart', [], chartConfig, config);
+            }
+            if (document.getElementById('primaryDealersChart')) {
+                Plotly.newPlot('primaryDealersChart', [], chartConfig, config);
+            }
+            if (document.getElementById('financialStabilityChart')) {
+                Plotly.newPlot('financialStabilityChart', [], chartConfig, config);
+            }
+            if (document.getElementById('historicalChart')) {
+                Plotly.newPlot('historicalChart', [], chartConfig, config);
             }
         }
         
-        // Update main chart with key indicators
-        function updateMainChart(data) {
-            const indicators = data.indicators || {};
+        // Update CMDI chart with historical data
+        function updateCMDIChartWithHistory(historicalData) {
+            if (!document.getElementById('cmdiChart') || !historicalData?.chart_data) return;
             
-            // Select key indicators for visualization
-            const traces = [];
+            const chartData = historicalData.chart_data;
             
-            // Crisis indicators trace
-            const crisisIndicators = ['SYSTEMIC_LIQUIDITY_RISK', 'FINANCIAL_FRAGILITY_INDEX', 
-                                      'CONTAGION_RISK_INDEX', 'LIQUIDITY_SPIRAL_RISK', 
-                                      'TAIL_RISK_INDICATOR', 'MARKET_DISLOCATION_INDEX'];
+            // Separate crisis and normal periods
+            const crisisPeriods = chartData.filter(d => d.crisis_period);
+            const normalPeriods = chartData.filter(d => !d.crisis_period);
             
-            const crisisValues = [];
-            const crisisLabels = [];
-            
-            crisisIndicators.forEach(key => {
-                if (indicators[key]) {
-                    crisisValues.push(indicators[key].value * 100); // Convert to percentage
-                    crisisLabels.push(key.replace(/_/g, ' '));
+            const traces = [
+                {
+                    x: normalPeriods.map(d => d.date),
+                    y: normalPeriods.map(d => d.value),
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'CMDI - Normal',
+                    line: { color: '#00ff88', width: 2 }
                 }
-            });
+            ];
             
-            if (crisisValues.length > 0) {
+            if (crisisPeriods.length > 0) {
                 traces.push({
-                    x: crisisLabels,
-                    y: crisisValues,
-                    type: 'bar',
-                    name: 'Crisis Indicators (%)',
-                    marker: {
-                        color: crisisValues.map(v => {
-                            if (v > 15) return '#ff4444';
-                            if (v > 10) return '#ffaa00';
-                            if (v > 6) return '#ffff00';
-                            return '#00ff88';
-                        })
+                    x: crisisPeriods.map(d => d.date),
+                    y: crisisPeriods.map(d => d.value),
+                    type: 'scatter',
+                    mode: 'markers',
+                    name: 'Crisis Periods',
+                    marker: { 
+                        color: '#ff4444', 
+                        size: 8,
+                        symbol: 'diamond'
                     }
                 });
             }
             
+            // Add threshold lines
+            traces.push({
+                x: [chartData[0].date, chartData[chartData.length - 1].date],
+                y: [0.20, 0.20],
+                type: 'scatter',
+                mode: 'lines',
+                name: 'Medium Risk',
+                line: { color: '#ffaa00', width: 1, dash: 'dash' }
+            });
+            
+            traces.push({
+                x: [chartData[0].date, chartData[chartData.length - 1].date],
+                y: [0.40, 0.40],
+                type: 'scatter',
+                mode: 'lines',
+                name: 'High Risk',
+                line: { color: '#ff4444', width: 1, dash: 'dash' }
+            });
+            
+            traces.push({
+                x: [chartData[0].date, chartData[chartData.length - 1].date],
+                y: [0.70, 0.70],
+                type: 'scatter',
+                mode: 'lines',
+                name: 'Critical',
+                line: { color: '#ff0000', width: 1, dash: 'dash' }
+            });
+            
             const layout = {
-                title: 'NY Fed Crisis & Risk Indicators',
+                title: `CMDI Historical Data (${historicalData.period})`,
                 paper_bgcolor: 'rgba(0, 0, 0, 0)',
                 plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
                 font: { color: '#fff' },
                 xaxis: {
-                    gridcolor: 'rgba(255, 255, 255, 0.1)',
-                    tickfont: { color: '#888', size: 10 },
-                    tickangle: -45
-                },
-                yaxis: {
-                    title: 'Risk Level (%)',
+                    title: 'Date',
                     gridcolor: 'rgba(255, 255, 255, 0.1)',
                     tickfont: { color: '#888' }
+                },
+                yaxis: {
+                    title: 'CMDI Index (0-1)',
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' },
+                    range: [0, 1]
                 },
                 hovermode: 'x unified'
             };
             
-            Plotly.newPlot('mainChart', traces, layout, {responsive: true});
+            Plotly.newPlot('cmdiChart', traces, layout, {responsive: true});
         }
         
-        // Update crisis chart
-        function updateCrisisChart(data) {
-            if (!document.getElementById('crisisChart')) return;
+        // Update CMDI stats
+        function updateCMDIStats(historicalData) {
+            if (!historicalData?.historical_stats) return;
             
-            const indicators = data.indicators || {};
-            const values = [];
-            const labels = [];
-            const colors = [];
+            const stats = historicalData.historical_stats;
+            document.getElementById('cmdiMin').textContent = stats.min?.toFixed(4) || '--';
+            document.getElementById('cmdiMax').textContent = stats.max?.toFixed(4) || '--';
+            document.getElementById('cmdiAvg').textContent = stats.average?.toFixed(4) || '--';
+            document.getElementById('cmdiCrisis').textContent = stats.crisis_periods_included || '--';
+        }
+        
+        // Update CMDI chart period
+        async function updateCMDIChart(period) {
+            let startDate = '2000-01-01';
+            const endDate = new Date().toISOString().split('T')[0];
             
-            for (const [key, indicator] of Object.entries(indicators)) {
-                if (indicator && indicator.value !== null) {
-                    values.push(indicator.value * 100);
-                    labels.push(key.replace(/_/g, ' '));
-                    
-                    // Color based on risk level
-                    if (indicator.value > 0.15) {
-                        colors.push('#ff4444');
-                    } else if (indicator.value > 0.10) {
-                        colors.push('#ffaa00');
-                    } else if (indicator.value > 0.06) {
-                        colors.push('#ffff00');
-                    } else {
-                        colors.push('#00ff88');
-                    }
-                }
+            if (period === 'current') {
+                return;
+            } else if (period === '1Y') {
+                const date = new Date();
+                date.setFullYear(date.getFullYear() - 1);
+                startDate = date.toISOString().split('T')[0];
+            } else if (period === '5Y') {
+                const date = new Date();
+                date.setFullYear(date.getFullYear() - 5);
+                startDate = date.toISOString().split('T')[0];
             }
             
+            try {
+                const url = `${NYFED_CONFIG.baseUrl}${NYFED_CONFIG.endpoints.cmdi}?history=true&start_date=${startDate}&end_date=${endDate}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.indicators?.CMDI_OVERALL?.historical_data) {
+                    updateCMDIChartWithHistory(data.indicators.CMDI_OVERALL.historical_data);
+                    updateCMDIStats(data.indicators.CMDI_OVERALL.historical_data);
+                }
+            } catch (error) {
+                console.error('Error updating CMDI chart:', error);
+            }
+        }
+        
+        // Update Primary Dealers chart
+        function updatePrimaryDealersChart(data) {
+            if (!document.getElementById('primaryDealersChart')) return;
+            
+            const indicators = data.indicators || {};
+            
             const trace = {
-                x: labels,
-                y: values,
+                x: Object.keys(indicators).map(k => k.replace('PD_', '').replace(/_/g, ' ')),
+                y: Object.values(indicators).map(i => i.value),
                 type: 'bar',
-                marker: { color: colors }
+                marker: {
+                    color: Object.values(indicators).map(i => {
+                        if (i.value > 1000) return '#00ff88';
+                        if (i.value > 500) return '#00ccff';
+                        if (i.value > 100) return '#ffaa00';
+                        return '#ff4444';
+                    })
+                }
             };
             
             const layout = {
-                title: 'Crisis Risk Indicators - Real-Time Assessment',
+                title: 'Primary Dealer Statistics',
                 paper_bgcolor: 'rgba(0, 0, 0, 0)',
                 plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
                 font: { color: '#fff' },
@@ -1422,113 +1558,45 @@
                     tickangle: -45
                 },
                 yaxis: {
-                    title: 'Risk Index (%)',
+                    title: 'Billions USD',
                     gridcolor: 'rgba(255, 255, 255, 0.1)',
                     tickfont: { color: '#888' }
-                },
-                annotations: [
-                    {
-                        x: 0.5,
-                        y: 15,
-                        xref: 'paper',
-                        yref: 'y',
-                        text: 'Critical Risk Threshold',
-                        showarrow: false,
-                        font: { color: '#ff4444', size: 10 },
-                        bordercolor: '#ff4444',
-                        borderwidth: 1,
-                        borderpad: 4,
-                        bgcolor: 'rgba(255, 68, 68, 0.1)'
-                    }
-                ]
+                }
             };
             
-            Plotly.newPlot('crisisChart', [trace], layout, {responsive: true});
+            Plotly.newPlot('primaryDealersChart', [trace], layout, {responsive: true});
         }
         
-        // Update dollar shortage chart
-        function updateDollarChart(data) {
-            if (!document.getElementById('dollarChart')) return;
+        // Update Financial Stability chart
+        function updateFinancialStabilityChart(data) {
+            if (!document.getElementById('financialStabilityChart')) return;
             
             const indicators = data.indicators || {};
             
-            // Create traces for different dollar shortage metrics
-            const traces = [];
-            
-            // USD Shortage Index
-            if (indicators.USD_SHORTAGE_INDEX) {
-                traces.push({
-                    x: ['USD Shortage Index'],
-                    y: [indicators.USD_SHORTAGE_INDEX.value * 100],
-                    type: 'bar',
-                    name: 'Shortage Index',
-                    marker: { color: '#ff4444' }
-                });
-            }
-            
-            // Offshore Premium
-            if (indicators.OFFSHORE_USD_PREMIUM) {
-                traces.push({
-                    x: ['Offshore Premium'],
-                    y: [indicators.OFFSHORE_USD_PREMIUM.value],
-                    type: 'bar',
-                    name: 'Offshore Premium (bps)',
-                    marker: { color: '#ffaa00' }
-                });
-            }
-            
-            // FX Swap Basis
-            if (indicators.FX_SWAP_BASIS_EURUSD) {
-                traces.push({
-                    x: ['EUR/USD Basis'],
-                    y: [indicators.FX_SWAP_BASIS_EURUSD.value],
-                    type: 'bar',
-                    name: 'FX Swap Basis (bps)',
-                    marker: { color: indicators.FX_SWAP_BASIS_EURUSD.value < 0 ? '#ff4444' : '#00ff88' }
-                });
-            }
-            
-            const layout = {
-                title: 'Global Dollar Shortage Indicators',
-                paper_bgcolor: 'rgba(0, 0, 0, 0)',
-                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
-                font: { color: '#fff' },
-                xaxis: {
-                    gridcolor: 'rgba(255, 255, 255, 0.1)',
-                    tickfont: { color: '#888' }
-                },
-                yaxis: {
-                    title: 'Value',
-                    gridcolor: 'rgba(255, 255, 255, 0.1)',
-                    tickfont: { color: '#888' }
-                },
-                barmode: 'group'
-            };
-            
-            Plotly.newPlot('dollarChart', traces, layout, {responsive: true});
-        }
-        
-        // Update liquidity chart
-        function updateLiquidityChart(data) {
-            if (!document.getElementById('liquidityChart')) return;
-            
-            const indicators = data.indicators || {};
-            const values = [];
+            // Create radar chart for stability indicators
             const labels = [];
+            const values = [];
             const colors = [];
             
             for (const [key, indicator] of Object.entries(indicators)) {
                 if (indicator && indicator.value !== null) {
-                    values.push(indicator.value * 100);
-                    labels.push(key.replace(/_/g, ' ').replace('STRESS', ''));
+                    labels.push(key.replace(/_/g, ' ').replace('INDEX', ''));
+                    
+                    // Normalize values for radar chart
+                    let normalizedValue = indicator.value;
+                    if (indicator.unit === 'Standard Deviations') {
+                        normalizedValue = Math.abs(indicator.value) / 3;
+                    } else if (indicator.unit === 'Percentage Points') {
+                        normalizedValue = indicator.value / 5;
+                    }
+                    
+                    values.push(normalizedValue * 100);
                     
                     // Color based on stress level
-                    if (indicator.value > 0.15) {
+                    if (normalizedValue > 0.7) {
                         colors.push('#ff4444');
-                    } else if (indicator.value > 0.10) {
+                    } else if (normalizedValue > 0.4) {
                         colors.push('#ffaa00');
-                    } else if (indicator.value > 0.06) {
-                        colors.push('#ffff00');
                     } else {
                         colors.push('#00ff88');
                     }
@@ -1541,19 +1609,19 @@
                 theta: labels,
                 fill: 'toself',
                 fillcolor: 'rgba(0, 255, 136, 0.2)',
-                line: { color: '#00ff88' },
-                marker: { color: colors }
+                line: { color: '#00ff88', width: 2 },
+                marker: { color: colors, size: 10 }
             };
             
             const layout = {
-                title: 'Cross-Market Liquidity Stress',
+                title: 'Financial Stability Indicators',
                 paper_bgcolor: 'rgba(0, 0, 0, 0)',
                 plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
                 font: { color: '#fff' },
                 polar: {
                     radialaxis: {
                         visible: true,
-                        range: [0, Math.max(...values, 20)],
+                        range: [0, 100],
                         tickfont: { color: '#888' }
                     },
                     angularaxis: {
@@ -1562,67 +1630,63 @@
                 }
             };
             
-            Plotly.newPlot('liquidityChart', [trace], layout, {responsive: true});
+            Plotly.newPlot('financialStabilityChart', [trace], layout, {responsive: true});
         }
         
-        // Update SOMA chart
-        function updateSomaChart(data) {
-            if (!document.getElementById('somaChart')) return;
+        // Update Historical chart
+        function updateHistoricalChart(historicalData, indicatorName) {
+            if (!document.getElementById('historicalChart') || !historicalData?.chart_data) return;
             
-            const indicators = data.indicators || {};
-            const traces = [];
+            const chartData = historicalData.chart_data;
             
-            // SOMA Holdings
-            if (indicators.SOMA_TOTAL_HOLDINGS) {
-                traces.push({
-                    x: ['SOMA Holdings'],
-                    y: [indicators.SOMA_TOTAL_HOLDINGS.value],
-                    type: 'bar',
-                    name: 'SOMA Holdings ($B)',
-                    marker: { color: '#00ccff' }
-                });
-            }
-            
-            // Fed Balance Sheet
-            if (indicators.FED_BALANCE_SHEET_SIZE) {
-                traces.push({
-                    x: ['Fed Balance Sheet'],
-                    y: [indicators.FED_BALANCE_SHEET_SIZE.value],
-                    type: 'bar',
-                    name: 'Balance Sheet ($B)',
-                    marker: { color: '#00ff88' }
-                });
-            }
-            
-            // QT Runoff Pace
-            if (indicators.QT_RUNOFF_PACE) {
-                traces.push({
-                    x: ['QT Runoff'],
-                    y: [Math.abs(indicators.QT_RUNOFF_PACE.value)],
-                    type: 'bar',
-                    name: 'QT Pace ($B/month)',
-                    marker: { color: '#ffaa00' }
-                });
-            }
+            const trace = {
+                x: chartData.map(d => d.date),
+                y: chartData.map(d => d.value),
+                type: 'scatter',
+                mode: 'lines',
+                name: indicatorName.replace(/_/g, ' '),
+                line: { color: '#00ff88', width: 2 }
+            };
             
             const layout = {
-                title: 'Federal Reserve Balance Sheet & SOMA Portfolio',
+                title: `${indicatorName.replace(/_/g, ' ')} - Historical Analysis`,
                 paper_bgcolor: 'rgba(0, 0, 0, 0)',
                 plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
                 font: { color: '#fff' },
                 xaxis: {
+                    title: 'Date',
                     gridcolor: 'rgba(255, 255, 255, 0.1)',
-                    tickfont: { color: '#888' }
+                    tickfont: { color: '#888' },
+                    rangeslider: { visible: true }
                 },
                 yaxis: {
-                    title: 'Billions USD',
+                    title: historicalData.y_axis_label || 'Value',
                     gridcolor: 'rgba(255, 255, 255, 0.1)',
                     tickfont: { color: '#888' }
                 },
-                barmode: 'group'
+                hovermode: 'x unified'
             };
             
-            Plotly.newPlot('somaChart', traces, layout, {responsive: true});
+            Plotly.newPlot('historicalChart', [trace], layout, {responsive: true});
+        }
+        
+        // Update Historical stats
+        function updateHistoricalStats(historicalData) {
+            if (!historicalData) return;
+            
+            document.getElementById('histDataPoints').textContent = historicalData.data_points || '--';
+            document.getElementById('histPeriod').textContent = historicalData.period || '--';
+            
+            if (historicalData.historical_stats) {
+                const stats = historicalData.historical_stats;
+                document.getElementById('histMin').textContent = stats.min?.toFixed(4) || '--';
+                document.getElementById('histMax').textContent = stats.max?.toFixed(4) || '--';
+            } else if (historicalData.chart_data) {
+                // Calculate min/max from chart data
+                const values = historicalData.chart_data.map(d => d.value);
+                document.getElementById('histMin').textContent = Math.min(...values).toFixed(4);
+                document.getElementById('histMax').textContent = Math.max(...values).toFixed(4);
+            }
         }
         
         // Update cache age
@@ -1637,12 +1701,34 @@
             cacheAgeElement.textContent = ageInMinutes;
             
             // Color based on age
-            if (ageInMinutes > 240) { // Over 4 hours
+            if (ageInMinutes > 60) { // Over 1 hour
                 cacheAgeElement.style.color = '#ffaa00';
-            } else if (ageInMinutes > 480) { // Over 8 hours
-                cacheAgeElement.style.color = '#ff4444';
+            } else if (ageInMinutes > 30) { // Over 30 minutes
+                cacheAgeElement.style.color = '#ffff00';
             } else {
                 cacheAgeElement.style.color = '#00ff88';
+            }
+        }
+        
+        // Update data points count
+        function updateDataPointsCount() {
+            let totalDataPoints = 0;
+            
+            // Count indicators
+            const indicatorCount = Object.keys({
+                ...currentData.cmdi?.indicators || {},
+                ...currentData.primaryDealers?.indicators || {},
+                ...currentData.financialStability?.indicators || {},
+                ...currentData.rates?.indicators || {},
+                ...currentData.repo?.indicators || {}
+            }).length;
+            
+            // Estimate historical data points (average ~1500 per indicator with history)
+            totalDataPoints = indicatorCount * 1500;
+            
+            const element = document.getElementById('dataPoints');
+            if (element) {
+                element.textContent = totalDataPoints > 1000 ? `${(totalDataPoints / 1000).toFixed(1)}K` : totalDataPoints;
             }
         }
         
@@ -1654,37 +1740,43 @@
             }
         }
         
+        // Switch to tab
+        function switchToTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.tab === tabName) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tabName).classList.add('active');
+            
+            activeTab = tabName;
+            loadAllData();
+        }
+        
         // Setup event listeners
         function setupEventListeners() {
             // Tab navigation
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
-                    // Update active state
-                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                    e.target.classList.add('active');
-                    
-                    // Show corresponding content
-                    document.querySelectorAll('.tab-content').forEach(content => {
-                        content.classList.remove('active');
-                    });
-                    
-                    const tabId = e.target.dataset.tab;
-                    document.getElementById(tabId).classList.add('active');
-                    
-                    // Update active tab and load data
-                    activeTab = tabId;
-                    loadAllData();
+                    switchToTab(e.target.dataset.tab);
                 });
             });
         }
         
         // Start auto-refresh
         function startAutoRefresh() {
-            // Refresh every 4 hours (matching API cache duration)
+            // Refresh every 30 minutes (matching API cache duration)
             autoRefreshInterval = setInterval(() => {
                 console.log('🔄 Auto-refreshing NY Fed data...');
                 loadAllData();
-            }, 4 * 60 * 60 * 1000); // 4 hours
+            }, 30 * 60 * 1000); // 30 minutes
         }
         
         // Show error message
