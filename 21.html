@@ -1542,6 +1542,12 @@
             
             initializePlatform();
         });
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            // Save any pending changes
+            saveCustomNames();
+        });
     </script>
 </body>
 </html>
