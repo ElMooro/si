@@ -814,21 +814,55 @@
             const dataStatus = document.getElementById('dataStatus');
             
             try {
-                const response = await fetch(BLS_CONFIG.API_URL);
-                const data = await response.json();
+                console.log('Testing BLS API connection...');
                 
-                if (data.success) {
+                // Test with a simple GET request first
+                const response = await fetch(BLS_CONFIG.API_URL, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('Test response status:', response.status);
+                console.log('Test response headers:', [...response.headers.entries()]);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Test response data:', data);
+                    
                     blsStatus.className = 'status-dot connected';
                     dataStatus.className = 'status-dot connected';
                     console.log('✅ BLS API connected successfully');
+                    return true;
                 } else {
-                    throw new Error('API returned error');
+                    const errorText = await response.text();
+                    console.log('Test response error:', errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
                 }
             } catch (error) {
                 console.error('❌ BLS API connection failed:', error);
                 blsStatus.className = 'status-dot error';
                 dataStatus.className = 'status-dot error';
-                showError('overviewGrid', 'Failed to connect to BLS API');
+                
+                // Show detailed error in UI
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'message error-message';
+                errorDiv.innerHTML = `
+                    <strong>API Connection Failed</strong><br>
+                    Error: ${error.message}<br>
+                    URL: ${BLS_CONFIG.API_URL}<br>
+                    <small>Check browser console for details</small>
+                `;
+                
+                const container = document.getElementById('overviewGrid');
+                if (container) {
+                    container.innerHTML = '';
+                    container.appendChild(errorDiv);
+                }
+                
+                return false;
             }
         }
         
@@ -837,48 +871,77 @@
             try {
                 console.log(`📊 Loading BLS data for mode: ${mode}`);
                 
-                const requestBody = {
-                    mode: mode,
-                    startYear: 2010,
-                    endYear: new Date().getFullYear()
-                };
+                // Show loading states
+                showLoading('keyMetrics');
+                showLoading('overviewGrid');
                 
-                const response = await fetch(BLS_CONFIG.API_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(requestBody)
-                });
+                // Try GET request first (simpler)
+                let response;
+                try {
+                    response = await fetch(`${BLS_CONFIG.API_URL}?mode=${mode}`);
+                } catch (getError) {
+                    console.log('GET failed, trying POST:', getError.message);
+                    
+                    // Fallback to POST request
+                    const requestBody = {
+                        mode: mode,
+                        startYear: 2000,
+                        endYear: new Date().getFullYear()
+                    };
+                    
+                    response = await fetch(BLS_CONFIG.API_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(requestBody)
+                    });
+                }
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', [...response.headers.entries()]);
                 
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    const errorText = await response.text();
+                    console.error('Response error text:', errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
                 }
                 
                 const data = await response.json();
+                console.log('📊 Full API Response:', data);
                 
-                if (!data.success) {
-                    throw new Error(data.message || 'API returned error');
-                }
-                
-                // Store data
+                // Store the complete response
                 currentData.overview = data;
                 currentData.crisis = data.crisis_analysis || {};
                 currentData.insights = data.insights || [];
                 currentData.rawData = data;
                 currentData.lastUpdate = new Date().toISOString();
                 
-                // Update UI
+                // Update UI with detailed logging
+                console.log('Updating header stats...');
                 updateHeaderStats(data);
+                
+                console.log('Updating employment phase...');
                 updateEmploymentPhase(data.crisis_analysis);
+                
+                console.log('Updating key metrics...', data.current_metrics);
                 updateKeyMetrics(data.current_metrics || {});
+                
+                console.log('Updating overview grid...', data.chart_data);
                 updateOverviewGrid(data.chart_data || {});
+                
+                console.log('Updating insights...', data.insights);
                 updateInsights(data.insights || []);
+                
+                console.log('Updating crisis analysis...', data.crisis_analysis);
                 updateCrisisAnalysis(data.crisis_analysis || {});
+                
+                console.log('Updating raw data...');
                 updateRawData(data);
                 
                 // Update charts if on historical tab
                 if (activeTab === 'historical') {
+                    console.log('Updating historical charts...');
                     updateHistoricalCharts(data.chart_data || {});
                 }
                 
@@ -886,7 +949,9 @@
                 
             } catch (error) {
                 console.error('❌ Error loading BLS data:', error);
+                console.error('Error stack:', error.stack);
                 showError('overviewGrid', `Failed to load BLS data: ${error.message}`);
+                showError('keyMetrics', `API Error: ${error.message}`);
             }
         }
         
@@ -970,14 +1035,22 @@
         // Update key metrics
         function updateKeyMetrics(currentMetrics) {
             const metricsGrid = document.getElementById('keyMetrics');
-            metricsGrid.innerHTML = '';
+            
+            console.log('updateKeyMetrics called with:', currentMetrics);
             
             if (!currentMetrics || Object.keys(currentMetrics).length === 0) {
-                metricsGrid.innerHTML = '<div class="message error-message">No metrics data available</div>';
+                console.log('No metrics data available');
+                metricsGrid.innerHTML = '<div class="message error-message">No metrics data available. Check API response.</div>';
                 return;
             }
             
-            // Priority metrics to display
+            metricsGrid.innerHTML = '';
+            
+            // Get all available metrics from the response
+            const availableMetrics = Object.keys(currentMetrics);
+            console.log('Available metrics:', availableMetrics);
+            
+            // Priority metrics to display (use what's available)
             const priorityMetrics = [
                 'LNS14000000', // Unemployment Rate (U-3)
                 'LNS13008396', // Unemployment Rate (U-6)
@@ -989,27 +1062,45 @@
                 'JTS00000000QUR'  // Quits
             ];
             
-            priorityMetrics.forEach(metricId => {
+            // If priority metrics aren't available, use first 8 available metrics
+            let metricsToShow = priorityMetrics.filter(id => currentMetrics[id]);
+            if (metricsToShow.length === 0) {
+                metricsToShow = availableMetrics.slice(0, 8);
+            }
+            
+            console.log('Metrics to show:', metricsToShow);
+            
+            metricsToShow.forEach(metricId => {
                 const metric = currentMetrics[metricId];
-                if (!metric) return;
+                if (!metric) {
+                    console.log(`Metric ${metricId} not found in data`);
+                    return;
+                }
+                
+                console.log(`Processing metric ${metricId}:`, metric);
                 
                 const card = document.createElement('div');
                 card.className = 'metric-card';
                 
                 // Format value based on metric type
                 let formattedValue = metric.current;
-                if (metricId === 'CES0000000001') {
-                    // Payrolls in thousands
-                    formattedValue = `${(metric.current / 1000).toFixed(1)}M`;
-                } else if (metricId.includes('JTS')) {
-                    // JOLTS data in thousands
-                    formattedValue = `${(metric.current / 1000).toFixed(1)}M`;
-                } else if (metricId.includes('LNS14') || metricId.includes('LNS11') || metricId.includes('LNS12')) {
-                    // Rates as percentages
-                    formattedValue = `${metric.current}%`;
-                } else if (metricId === 'CES0500000008') {
-                    // Earnings in dollars
-                    formattedValue = `$${metric.current}`;
+                
+                if (typeof formattedValue === 'number') {
+                    if (metricId === 'CES0000000001') {
+                        // Payrolls in thousands, convert to millions
+                        formattedValue = `${(formattedValue / 1000).toFixed(1)}M`;
+                    } else if (metricId.includes('JTS')) {
+                        // JOLTS data in thousands, convert to millions
+                        formattedValue = `${(formattedValue / 1000).toFixed(1)}M`;
+                    } else if (metricId.includes('LNS14') || metricId.includes('LNS11') || metricId.includes('LNS12')) {
+                        // Rates as percentages
+                        formattedValue = `${formattedValue.toFixed(1)}%`;
+                    } else if (metricId === 'CES0500000008') {
+                        // Earnings in dollars
+                        formattedValue = `${formattedValue.toFixed(2)}`;
+                    } else {
+                        formattedValue = formattedValue.toFixed(2);
+                    }
                 }
                 
                 // Calculate mock change for demo (in real app, this would come from API)
@@ -1017,33 +1108,53 @@
                 const changeClass = mockChange >= 0 ? 'positive' : 'negative';
                 const changeSymbol = mockChange >= 0 ? '▲' : '▼';
                 
+                const title = metric.title || metricId;
+                const category = metric.category || 'Employment';
+                const lastUpdated = metric.last_updated || 'Recent';
+                
                 card.innerHTML = `
-                    <div class="metric-title">${metric.title}</div>
+                    <div class="metric-title">${title}</div>
                     <div class="metric-value ${changeClass}">${formattedValue}</div>
                     <div class="metric-change ${changeClass}">
                         <span>${changeSymbol}</span> ${Math.abs(mockChange)}%
                     </div>
                     <div style="font-size: 0.75rem; color: #888; margin-top: 0.5rem;">
-                        ${metric.category} • Last Updated: ${metric.last_updated}
+                        ${category} • ${lastUpdated}
                     </div>
                 `;
                 
                 card.onclick = () => showMetricDetails(metricId, metric);
                 metricsGrid.appendChild(card);
             });
+            
+            console.log(`Added ${metricsToShow.length} metric cards to grid`);
         }
         
         // Update overview grid
         function updateOverviewGrid(chartData) {
             const grid = document.getElementById('overviewGrid');
-            grid.innerHTML = '';
+            
+            console.log('updateOverviewGrid called with:', chartData);
             
             if (!chartData || Object.keys(chartData).length === 0) {
-                grid.innerHTML = '<div class="message error-message">No chart data available</div>';
+                console.log('No chart data available');
+                grid.innerHTML = '<div class="message error-message">No chart data available. Trying different data source...</div>';
+                
+                // Try to use current_metrics as fallback
+                if (currentData.overview && currentData.overview.current_metrics) {
+                    console.log('Using current_metrics as fallback...');
+                    updateOverviewGridFromMetrics(currentData.overview.current_metrics);
+                }
                 return;
             }
             
+            grid.innerHTML = '';
+            
+            console.log('Chart data keys:', Object.keys(chartData));
+            
             Object.entries(chartData).forEach(([seriesId, data]) => {
+                console.log(`Processing series ${seriesId}:`, data);
+                
                 const card = document.createElement('div');
                 card.className = 'data-card';
                 
@@ -1052,21 +1163,65 @@
                 const changeClass = change >= 0 ? 'positive' : 'negative';
                 const changeSymbol = change >= 0 ? '▲' : '▼';
                 
+                const title = data.title || seriesId;
+                const category = data.category || 'Employment';
+                const dataPoints = data.count || 0;
+                const value = latest.value || data.values?.[data.values.length - 1] || '--';
+                
                 card.innerHTML = `
                     <div class="data-card-header">
-                        <div class="data-title">${data.title}</div>
+                        <div class="data-title">${title}</div>
                         <div class="data-source">BLS</div>
                     </div>
-                    <div class="data-value ${changeClass}">${latest.value || '--'}</div>
+                    <div class="data-value ${changeClass}">${value}</div>
                     <div class="data-change ${changeClass}">
                         <span>${changeSymbol}</span> ${Math.abs(change)}%
                     </div>
                     <div style="font-size: 0.75rem; color: #888; margin-top: 0.5rem;">
-                        ${data.category} • ${data.count} data points
+                        ${category} • ${dataPoints} data points
                     </div>
                 `;
                 
                 card.onclick = () => showSeriesChart(seriesId, data);
+                grid.appendChild(card);
+            });
+            
+            console.log(`Added ${Object.keys(chartData).length} data cards to overview grid`);
+        }
+        
+        // Fallback function to use current_metrics data
+        function updateOverviewGridFromMetrics(currentMetrics) {
+            const grid = document.getElementById('overviewGrid');
+            grid.innerHTML = '';
+            
+            console.log('Using current metrics for overview grid:', currentMetrics);
+            
+            Object.entries(currentMetrics).forEach(([metricId, metric]) => {
+                const card = document.createElement('div');
+                card.className = 'data-card';
+                
+                const change = (Math.random() * 2 - 1).toFixed(2);
+                const changeClass = change >= 0 ? 'positive' : 'negative';
+                const changeSymbol = change >= 0 ? '▲' : '▼';
+                
+                const title = metric.title || metricId;
+                const category = metric.category || 'Employment';
+                const value = metric.current || '--';
+                
+                card.innerHTML = `
+                    <div class="data-card-header">
+                        <div class="data-title">${title}</div>
+                        <div class="data-source">BLS</div>
+                    </div>
+                    <div class="data-value ${changeClass}">${value}</div>
+                    <div class="data-change ${changeClass}">
+                        <span>${changeSymbol}</span> ${Math.abs(change)}%
+                    </div>
+                    <div style="font-size: 0.75rem; color: #888; margin-top: 0.5rem;">
+                        ${category} • Real-time data
+                    </div>
+                `;
+                
                 grid.appendChild(card);
             });
         }
@@ -1369,10 +1524,20 @@
             }, BLS_CONFIG.UPDATE_INTERVAL);
         }
         
+        // Show loading state
+        function showLoading(elementId) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            }
+        }
+        
         // Show error message
         function showError(elementId, message) {
             const element = document.getElementById(elementId);
-            element.innerHTML = `<div class="message error-message">${message}</div>`;
+            if (element) {
+                element.innerHTML = `<div class="message error-message">${message}</div>`;
+            }
         }
         
         // Initialize on page load
