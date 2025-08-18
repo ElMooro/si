@@ -1,1 +1,1547 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLS Employment Crisis Detection Platform - Advanced Dashboard</title>
+    
+    <!-- Required Libraries -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #151932 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        
+        /* Header Styles */
+        .header {
+            background: rgba(20, 24, 44, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .header-stats {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-width: 100px;
+        }
+        
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #00ff88;
+        }
+        
+        .stat-label {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+        }
+        
+        /* Crisis Level Indicator */
+        .crisis-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .crisis-level {
+            font-weight: bold;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+        }
+        
+        .crisis-normal {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+        
+        .crisis-elevated {
+            background: rgba(255, 170, 0, 0.2);
+            color: #ffaa00;
+        }
+        
+        .crisis-warning {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff4444;
+        }
+        
+        .crisis-severe {
+            background: rgba(255, 0, 0, 0.3);
+            color: #ff0000;
+            animation: criticalPulse 1s ease-in-out infinite;
+        }
+        
+        @keyframes criticalPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        /* API Status Indicators */
+        .api-status {
+            display: flex;
+            gap: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .api-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-dot.connected {
+            background: #00ff88;
+        }
+        
+        .status-dot.error {
+            background: #ff4444;
+        }
+        
+        .status-dot.loading {
+            background: #ffaa00;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Container */
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Tabs Navigation */
+        .tabs-nav {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 0.5rem;
+            overflow-x: auto;
+        }
+        
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            color: #888;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        
+        .tab-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+        }
+        
+        .tab-btn.active {
+            background: #00ff88;
+            color: #000;
+            font-weight: bold;
+        }
+        
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Key Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .metric-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.1);
+        }
+        
+        .metric-title {
+            font-size: 0.875rem;
+            color: #888;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+        
+        .metric-value {
+            font-size: 1.75rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .metric-changes {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+        
+        .change-item {
+            display: flex;
+            flex-direction: column;
+            font-size: 0.75rem;
+        }
+        
+        .change-label {
+            color: #666;
+            margin-bottom: 0.25rem;
+        }
+        
+        .change-value {
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .positive { color: #00ff88; }
+        .negative { color: #ff4444; }
+        .neutral { color: #888; }
+        
+        /* Crisis Phase Banner */
+        .crisis-phase-banner {
+            background: linear-gradient(90deg, #00ff88, #00ccff);
+            color: #000;
+            padding: 12px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            animation: phaseGlow 2s ease-in-out infinite;
+            position: sticky;
+            top: 80px;
+            z-index: 999;
+        }
+        
+        @keyframes phaseGlow {
+            0%, 100% { opacity: 0.9; }
+            50% { opacity: 1; }
+        }
+        
+        /* Data Grid */
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .data-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .data-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.2);
+            border-color: #00ff88;
+        }
+        
+        .data-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .data-title {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #fff;
+            flex: 1;
+            margin-right: 0.5rem;
+            cursor: text;
+        }
+        
+        .data-title.editable {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            border: 1px solid transparent;
+        }
+        
+        .data-title.editable:hover {
+            border-color: #00ff88;
+        }
+        
+        .data-source {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            background: rgba(0, 255, 136, 0.2);
+            border-radius: 4px;
+            color: #00ff88;
+        }
+        
+        .data-value {
+            font-size: 1.75rem;
+            font-weight: bold;
+            margin: 0.75rem 0;
+        }
+        
+        .data-changes {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+        }
+        
+        .data-change {
+            display: flex;
+            flex-direction: column;
+            font-size: 0.875rem;
+        }
+        
+        .series-id {
+            font-size: 0.65rem;
+            color: #666;
+            margin-top: 0.5rem;
+            font-family: monospace;
+        }
+        
+        .edit-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #888;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+        
+        .edit-btn:hover {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+        
+        /* Chart Container */
+        .chart-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .chart-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+        
+        .chart-controls {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .chart-control-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+        }
+        
+        .chart-control-btn:hover {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: #00ff88;
+        }
+        
+        .chart-control-btn.active {
+            background: #00ff88;
+            color: #000;
+        }
+        
+        .main-chart-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1rem;
+            height: 500px;
+        }
+        
+        #mainChart, #secondaryChart, .category-chart {
+            height: 100%;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+        
+        .chart-legend {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .legend-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+        
+        .legend-text {
+            font-size: 0.875rem;
+            flex: 1;
+        }
+        
+        .legend-value {
+            font-size: 0.875rem;
+            font-weight: bold;
+        }
+        
+        /* Summary Statistics */
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+        }
+        
+        .summary-stat {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+        }
+        
+        .summary-stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .summary-stat-label {
+            font-size: 0.875rem;
+            color: #888;
+        }
+        
+        /* Loading Spinner */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(0, 255, 136, 0.3);
+            border-top-color: #00ff88;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Edit Modal */
+        .edit-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(20, 24, 44, 0.98);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            z-index: 2000;
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        .edit-modal.active {
+            display: block;
+        }
+        
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1999;
+        }
+        
+        .modal-overlay.active {
+            display: block;
+        }
+        
+        .modal-header {
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+            color: #00ff88;
+        }
+        
+        .modal-input {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: #fff;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+        
+        .modal-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .modal-btn.save {
+            background: #00ff88;
+            color: #000;
+        }
+        
+        .modal-btn.cancel {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .main-chart-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .data-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs-nav {
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Crisis Phase Banner -->
+    <div class="crisis-phase-banner" id="crisisPhaseBanner">
+        📊 BLS EMPLOYMENT STATUS: LOADING REAL-TIME FEDERAL DATA...
+    </div>
+    
+    <header class="header">
+        <div class="logo">
+            🏛️ BLS Employment Platform
+            <span style="font-size: 0.875rem; color: #888;">Advanced Analytics</span>
+        </div>
+        
+        <div class="header-stats">
+            <div class="stat-item">
+                <div class="stat-value" id="unemploymentRate">--</div>
+                <div class="stat-label">Unemployment</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="totalIndicators">--</div>
+                <div class="stat-label">Indicators</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="dataPoints">--</div>
+                <div class="stat-label">Data Points</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="lastUpdate">--</div>
+                <div class="stat-label">Last Update</div>
+            </div>
+        </div>
+        
+        <div class="crisis-indicator">
+            <span>Crisis Level:</span>
+            <span class="crisis-level crisis-normal" id="crisisLevel">ANALYZING...</span>
+        </div>
+        
+        <div class="api-status">
+            <div class="api-indicator">
+                <div class="status-dot loading" id="blsApiStatus"></div>
+                <span>BLS API</span>
+            </div>
+            <div class="api-indicator">
+                <div class="status-dot loading" id="lambdaStatus"></div>
+                <span>Lambda</span>
+            </div>
+            <div class="api-indicator">
+                <div class="status-dot loading" id="autoUpdate"></div>
+                <span>Live</span>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <!-- Navigation Tabs -->
+        <div class="tabs-nav">
+            <button class="tab-btn active" data-tab="overview">📊 Overview</button>
+            <button class="tab-btn" data-tab="core">💼 Core</button>
+            <button class="tab-btn" data-tab="demographics">👥 Demographics</button>
+            <button class="tab-btn" data-tab="states">🗺️ States</button>
+            <button class="tab-btn" data-tab="jolts">📈 JOLTS</button>
+            <button class="tab-btn" data-tab="payroll">💰 Payroll</button>
+            <button class="tab-btn" data-tab="sectors">🏭 Sectors</button>
+            <button class="tab-btn" data-tab="costs">💵 Costs</button>
+            <button class="tab-btn" data-tab="alternative">📉 Alternative</button>
+            <button class="tab-btn" data-tab="inflation">📈 Inflation</button>
+            <button class="tab-btn" data-tab="analysis">🔬 Analysis</button>
+        </div>
+        
+        <!-- Overview Tab -->
+        <div class="tab-content active" id="overview">
+            <!-- Key Metrics with Changes -->
+            <div class="metrics-grid" id="keyMetrics">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+            
+            <!-- Main Charts -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">Employment Trends - Advanced Analytics</h2>
+                    <div class="chart-controls">
+                        <button class="chart-control-btn" onclick="changeChartType('line')">Line</button>
+                        <button class="chart-control-btn" onclick="changeChartType('bar')">Bar</button>
+                        <button class="chart-control-btn" onclick="changeChartType('area')">Area</button>
+                        <button class="chart-control-btn active" onclick="updateChartPeriod('1y')">1Y</button>
+                        <button class="chart-control-btn" onclick="updateChartPeriod('5y')">5Y</button>
+                        <button class="chart-control-btn" onclick="updateChartPeriod('10y')">10Y</button>
+                        <button class="chart-control-btn" onclick="updateChartPeriod('all')">All</button>
+                    </div>
+                </div>
+                <div class="main-chart-container">
+                    <div id="mainChart"></div>
+                    <div class="chart-legend" id="mainChartLegend"></div>
+                </div>
+            </div>
+            
+            <!-- Summary Statistics -->
+            <div class="summary-stats" id="summaryStats">
+                <div class="summary-stat">
+                    <div class="summary-stat-value">--</div>
+                    <div class="summary-stat-label">Average Change</div>
+                </div>
+                <div class="summary-stat">
+                    <div class="summary-stat-value">--</div>
+                    <div class="summary-stat-label">Max Value</div>
+                </div>
+                <div class="summary-stat">
+                    <div class="summary-stat-value">--</div>
+                    <div class="summary-stat-label">Min Value</div>
+                </div>
+                <div class="summary-stat">
+                    <div class="summary-stat-value">--</div>
+                    <div class="summary-stat-label">Volatility</div>
+                </div>
+            </div>
+            
+            <!-- All Indicators -->
+            <h3 style="margin: 2rem 0 1rem 0; color: #00ff88;">All Indicators with Change Analysis</h3>
+            <div class="data-grid" id="overviewGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- JOLTS Tab with Enhanced Data -->
+        <div class="tab-content" id="jolts">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">JOLTS - Comprehensive Job Market Dynamics</h2>
+                </div>
+                <canvas id="joltsChart" style="height: 400px;"></canvas>
+            </div>
+            <div class="summary-stats" id="joltsSummary"></div>
+            <div class="data-grid" id="joltsGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Payroll Tab with Enhanced Data -->
+        <div class="tab-content" id="payroll">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">Payroll Employment & Earnings Analysis</h2>
+                </div>
+                <canvas id="payrollChart" style="height: 400px;"></canvas>
+            </div>
+            <div class="summary-stats" id="payrollSummary"></div>
+            <div class="data-grid" id="payrollGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sectors Tab with Enhanced Data -->
+        <div class="tab-content" id="sectors">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">Employment by All Industry Sectors</h2>
+                </div>
+                <canvas id="sectorsChart" style="height: 400px;"></canvas>
+            </div>
+            <div class="summary-stats" id="sectorsSummary"></div>
+            <div class="data-grid" id="sectorsGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Costs Tab with Enhanced Data -->
+        <div class="tab-content" id="costs">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">Employment Costs & Productivity Metrics</h2>
+                </div>
+                <canvas id="costsChart" style="height: 400px;"></canvas>
+            </div>
+            <div class="summary-stats" id="costsSummary"></div>
+            <div class="data-grid" id="costsGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Alternative Tab with Enhanced Data -->
+        <div class="tab-content" id="alternative">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">Alternative Employment Measures - Complete Analysis</h2>
+                </div>
+                <canvas id="alternativeChart" style="height: 400px;"></canvas>
+            </div>
+            <div class="summary-stats" id="alternativeSummary"></div>
+            <div class="data-grid" id="alternativeGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Inflation Tab with Enhanced Data -->
+        <div class="tab-content" id="inflation">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">Comprehensive Inflation & Price Indicators</h2>
+                </div>
+                <canvas id="inflationChart" style="height: 400px;"></canvas>
+            </div>
+            <div class="summary-stats" id="inflationSummary"></div>
+            <div class="data-grid" id="inflationGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Other tabs remain similar but will be populated with data -->
+        <div class="tab-content" id="core">
+            <div class="data-grid" id="coreGrid">
+                <div class="loading"><div class="spinner"></div></div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="demographics">
+            <div class="data-grid" id="demographicsGrid">
+                <div class="loading"><div class="spinner"></div></div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="states">
+            <div class="data-grid" id="statesGrid">
+                <div class="loading"><div class="spinner"></div></div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="analysis">
+            <h3 style="color: #00ff88;">Comparative Analysis</h3>
+            <div id="analysisContent"></div>
+        </div>
+    </div>
+    
+    <!-- Edit Modal -->
+    <div class="modal-overlay" id="modalOverlay"></div>
+    <div class="edit-modal" id="editModal">
+        <div class="modal-header">Edit Indicator Name</div>
+        <input type="text" class="modal-input" id="modalInput" placeholder="Enter new name">
+        <div class="modal-buttons">
+            <button class="modal-btn cancel" onclick="closeEditModal()">Cancel</button>
+            <button class="modal-btn save" onclick="saveIndicatorName()">Save</button>
+        </div>
+    </div>
+    
+    <script>
+        // Configuration
+        const BLS_CONFIG = {
+            API_URL: 'https://tajry2f7v3.execute-api.us-east-1.amazonaws.com/prod/data',
+            UPDATE_INTERVAL: 60000,
+            CHART_UPDATE_INTERVAL: 120000
+        };
+        
+        // Extended BLS Series IDs for comprehensive data
+        const EXTENDED_SERIES = {
+            jolts: [
+                'JTS00000000JOL', 'JTS00000000HIR', 'JTS00000000QUR', 'JTS00000000LDR', 'JTS00000000TSR',
+                'JTS10000000JOL', 'JTS20000000JOL', 'JTS30000000JOL', 'JTS40000000JOL', 'JTS50000000JOL',
+                'JTS60000000JOL', 'JTS70000000JOL', 'JTS90000000JOL', 'JTS00000000HIL', 'JTS00000000QUL'
+            ],
+            payroll: [
+                'CES0000000001', 'CES0500000002', 'CES0500000003', 'CES0500000007', 'CES0500000008',
+                'CES0500000011', 'CES0500000012', 'CES0500000013', 'CES0500000031', 'CES0500000032',
+                'CES0500000033', 'CES0600000001', 'CES0600000002', 'CES0600000003', 'CES0800000001'
+            ],
+            sectors: [
+                'CES1000000001', 'CES2000000001', 'CES3000000001', 'CES3100000001', 'CES3200000001',
+                'CES4000000001', 'CES4142000001', 'CES4200000001', 'CES4300000001', 'CES5000000001',
+                'CES5500000001', 'CES6000000001', 'CES6500000001', 'CES7000000001', 'CES8000000001',
+                'CES9000000001', 'CES9091000001', 'CES9092000001', 'CES9093000001', 'CES0600000001'
+            ],
+            costs: [
+                'CIU1010000000000A', 'CIU2010000000000A', 'CIU2020000000000A', 'CIU2030000000000A',
+                'PRS85006092', 'PRS85006112', 'PRS85006152', 'PRS85006162', 'PRS85006172', 'PRS85006182',
+                'EIUIR', 'EIUIS', 'CIVPART', 'EMRATIO', 'UNRATE'
+            ],
+            alternative: [
+                'LNS12026620', 'LNS12032194', 'LNS15026642', 'LNS15026645', 'LNS14000024', 'LNS14000025',
+                'LNS14027659', 'LNS14027660', 'LNS14027661', 'LNS14027662', 'LNS13008396', 'LNS13008636',
+                'LNS13008756', 'LNS13008876', 'LNS13008996'
+            ],
+            inflation: [
+                'CUUR0000SA0', 'CUUR0000SA0L1E', 'CUUR0000SAF1', 'CUUR0000SAH1', 'CUUR0000SETB01',
+                'CUUR0000SAM', 'CUUR0000SAC', 'CUUR0000SAS', 'CUUR0000SAT', 'CUUR0000SAE', 'CUUR0000SAG',
+                'WPUFD49207', 'WPUFD49104', 'WPUFD49116', 'WPU057'
+            ]
+        };
+        
+        // Global state
+        let blsData = {
+            rawResponse: null,
+            current: {},
+            historical: {},
+            customNames: {},
+            chartData: {},
+            lastUpdate: null,
+            currentSeriesId: null,
+            chartType: 'line'
+        };
+        
+        // Load custom names from localStorage
+        function loadCustomNames() {
+            const saved = localStorage.getItem('blsCustomNames');
+            if (saved) {
+                blsData.customNames = JSON.parse(saved);
+            }
+        }
+        
+        // Save custom names to localStorage
+        function saveCustomNames() {
+            localStorage.setItem('blsCustomNames', JSON.stringify(blsData.customNames));
+        }
+        
+        // Open edit modal
+        function openEditModal(seriesId, currentName) {
+            blsData.currentSeriesId = seriesId;
+            document.getElementById('modalInput').value = currentName;
+            document.getElementById('modalOverlay').classList.add('active');
+            document.getElementById('editModal').classList.add('active');
+        }
+        
+        // Close edit modal
+        function closeEditModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+            document.getElementById('editModal').classList.remove('active');
+        }
+        
+        // Save indicator name
+        function saveIndicatorName() {
+            const newName = document.getElementById('modalInput').value;
+            if (newName && blsData.currentSeriesId) {
+                blsData.customNames[blsData.currentSeriesId] = newName;
+                saveCustomNames();
+                updateAllDisplays();
+            }
+            closeEditModal();
+        }
+        
+        // Calculate percentage change
+        function calculatePercentageChange(current, previous) {
+            if (!previous || previous === 0) return null;
+            return ((current - previous) / Math.abs(previous)) * 100;
+        }
+        
+        // Get indicator display name
+        function getIndicatorName(seriesId, defaultName) {
+            return blsData.customNames[seriesId] || defaultName || seriesId;
+        }
+        
+        // Initialize platform
+        async function initializePlatform() {
+            console.log('🚀 Initializing Advanced BLS Dashboard...');
+            loadCustomNames();
+            
+            try {
+                await loadAllData();
+                setupEventListeners();
+                startAutoUpdate();
+                console.log('✅ Dashboard initialized successfully');
+            } catch (error) {
+                console.error('❌ Initialization failed:', error);
+            }
+        }
+        
+        // Load all data
+        async function loadAllData() {
+            const modes = ['core', 'demographics', 'states', 'jolts', 'payroll', 'sectors', 'costs', 'alternative', 'inflation'];
+            
+            for (const mode of modes) {
+                try {
+                    console.log(`Loading ${mode} data...`);
+                    const response = await axios.post(BLS_CONFIG.API_URL, {
+                        mode: mode,
+                        startYear: 2020,
+                        endYear: new Date().getFullYear()
+                    });
+                    
+                    if (response.data) {
+                        processAPIResponse(response.data, mode);
+                    }
+                    
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                } catch (error) {
+                    console.error(`Failed to load ${mode}:`, error);
+                }
+            }
+            
+            // Load additional series data
+            await loadExtendedData();
+            updateAllDisplays();
+        }
+        
+        // Load extended data for specific categories
+        async function loadExtendedData() {
+            for (const [category, seriesList] of Object.entries(EXTENDED_SERIES)) {
+                try {
+                    console.log(`Loading extended ${category} data...`);
+                    // In real implementation, you would make specific API calls for these series
+                    // For now, we'll simulate with the available data
+                } catch (error) {
+                    console.error(`Failed to load extended ${category} data:`, error);
+                }
+            }
+        }
+        
+        // Process API response
+        function processAPIResponse(data, mode) {
+            if (!data) return;
+            
+            if (data.current_metrics) {
+                blsData.current[mode] = data.current_metrics;
+            }
+            
+            if (data.chart_data) {
+                blsData.historical[mode] = data.chart_data;
+                processHistoricalData(data.chart_data, mode);
+            }
+            
+            if (data.crisis_analysis) {
+                updateCrisisDisplay(data.crisis_analysis);
+            }
+            
+            if (data.results) {
+                updateStatistics(data.results);
+            }
+            
+            blsData.lastUpdate = new Date();
+            updateLastUpdateTime();
+        }
+        
+        // Process historical data for percentage changes
+        function processHistoricalData(chartData, mode) {
+            Object.entries(chartData).forEach(([seriesId, data]) => {
+                if (data.values && data.values.length > 1) {
+                    const current = data.values[data.values.length - 1];
+                    const previous = data.values[data.values.length - 2];
+                    const yearAgo = data.values[Math.max(0, data.values.length - 13)]; // 12 months ago
+                    
+                    if (!blsData.chartData[seriesId]) {
+                        blsData.chartData[seriesId] = {};
+                    }
+                    
+                    blsData.chartData[seriesId].currentValue = current;
+                    blsData.chartData[seriesId].previousValue = previous;
+                    blsData.chartData[seriesId].yearAgoValue = yearAgo;
+                    blsData.chartData[seriesId].monthChange = calculatePercentageChange(current, previous);
+                    blsData.chartData[seriesId].yearChange = calculatePercentageChange(current, yearAgo);
+                }
+            });
+        }
+        
+        // Update all displays
+        function updateAllDisplays() {
+            updateKeyMetrics();
+            updateDataGrids();
+            updateCharts();
+            updateSummaryStatistics();
+        }
+        
+        // Update key metrics with percentage changes
+        function updateKeyMetrics() {
+            const metricsGrid = document.getElementById('keyMetrics');
+            if (!metricsGrid) return;
+            
+            metricsGrid.innerHTML = '';
+            
+            const priorityIndicators = [
+                'LNS14000000', 'CES0000000001', 'LNS11300000', 
+                'JTS00000000JOL', 'CES0500000008', 'CUUR0000SA0'
+            ];
+            
+            Object.values(blsData.current).forEach(modeData => {
+                Object.entries(modeData).forEach(([seriesId, data]) => {
+                    if (priorityIndicators.includes(seriesId)) {
+                        const card = createMetricCardWithChanges(seriesId, data);
+                        if (card) metricsGrid.appendChild(card);
+                    }
+                });
+            });
+        }
+        
+        // Create metric card with percentage changes
+        function createMetricCardWithChanges(seriesId, data) {
+            const card = document.createElement('div');
+            card.className = 'metric-card';
+            
+            const value = data.current || data.value || 0;
+            const chartData = blsData.chartData[seriesId] || {};
+            const monthChange = chartData.monthChange;
+            const yearChange = chartData.yearChange;
+            
+            const monthChangeClass = monthChange > 0 ? 'positive' : monthChange < 0 ? 'negative' : 'neutral';
+            const yearChangeClass = yearChange > 0 ? 'positive' : yearChange < 0 ? 'negative' : 'neutral';
+            
+            card.innerHTML = `
+                <div class="metric-title">${getIndicatorName(seriesId, data.title)}</div>
+                <div class="metric-value ${value > 5 ? 'negative' : 'positive'}">${formatValue(value, data.units)}</div>
+                <div class="metric-changes">
+                    <div class="change-item">
+                        <div class="change-label">Month</div>
+                        <div class="change-value ${monthChangeClass}">
+                            ${monthChange !== null ? (monthChange > 0 ? '↑' : '↓') : ''} 
+                            ${monthChange !== null ? Math.abs(monthChange).toFixed(2) + '%' : 'N/A'}
+                        </div>
+                    </div>
+                    <div class="change-item">
+                        <div class="change-label">Year</div>
+                        <div class="change-value ${yearChangeClass}">
+                            ${yearChange !== null ? (yearChange > 0 ? '↑' : '↓') : ''} 
+                            ${yearChange !== null ? Math.abs(yearChange).toFixed(2) + '%' : 'N/A'}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            return card;
+        }
+        
+        // Update data grids with enhanced information
+        function updateDataGrids() {
+            Object.keys(blsData.current).forEach(mode => {
+                const gridId = mode === 'core' ? 'overviewGrid' : mode + 'Grid';
+                const grid = document.getElementById(gridId);
+                if (!grid) return;
+                
+                grid.innerHTML = '';
+                
+                Object.entries(blsData.current[mode] || {}).forEach(([seriesId, data]) => {
+                    const card = createEnhancedDataCard(seriesId, data);
+                    grid.appendChild(card);
+                });
+            });
+        }
+        
+        // Create enhanced data card
+        function createEnhancedDataCard(seriesId, data) {
+            const card = document.createElement('div');
+            card.className = 'data-card';
+            
+            const value = data.current || data.value || 0;
+            const chartData = blsData.chartData[seriesId] || {};
+            const monthChange = chartData.monthChange;
+            const yearChange = chartData.yearChange;
+            
+            const displayName = getIndicatorName(seriesId, data.title);
+            
+            card.innerHTML = `
+                <button class="edit-btn" onclick="openEditModal('${seriesId}', '${displayName}')">✏️ Edit</button>
+                <div class="data-card-header">
+                    <div class="data-title editable">${displayName}</div>
+                    <div class="data-source">${data.category || 'BLS'}</div>
+                </div>
+                <div class="data-value ${value > 5 ? 'negative' : 'positive'}">
+                    ${formatValue(value, data.units)}
+                </div>
+                <div class="data-changes">
+                    <div class="data-change">
+                        <div class="change-label">Month Change</div>
+                        <div class="change-value ${monthChange > 0 ? 'positive' : monthChange < 0 ? 'negative' : 'neutral'}">
+                            ${monthChange !== null ? (monthChange > 0 ? '↑' : '↓') + ' ' + Math.abs(monthChange).toFixed(2) + '%' : 'N/A'}
+                        </div>
+                    </div>
+                    <div class="data-change">
+                        <div class="change-label">Year Change</div>
+                        <div class="change-value ${yearChange > 0 ? 'positive' : yearChange < 0 ? 'negative' : 'neutral'}">
+                            ${yearChange !== null ? (yearChange > 0 ? '↑' : '↓') + ' ' + Math.abs(yearChange).toFixed(2) + '%' : 'N/A'}
+                        </div>
+                    </div>
+                </div>
+                <div class="series-id">Series: ${seriesId}</div>
+            `;
+            
+            return card;
+        }
+        
+        // Update charts with better visualization
+        function updateCharts() {
+            updateMainChart();
+            updateCategoryCharts();
+        }
+        
+        // Update main chart with Plotly
+        function updateMainChart() {
+            const chartDiv = document.getElementById('mainChart');
+            if (!chartDiv) return;
+            
+            const traces = [];
+            const allHistoricalData = {};
+            
+            Object.values(blsData.historical).forEach(modeData => {
+                Object.assign(allHistoricalData, modeData);
+            });
+            
+            Object.entries(allHistoricalData).slice(0, 5).forEach(([seriesId, data], index) => {
+                if (data.labels && data.values) {
+                    traces.push({
+                        x: data.labels,
+                        y: data.values,
+                        type: blsData.chartType === 'bar' ? 'bar' : 'scatter',
+                        mode: blsData.chartType === 'area' ? 'lines' : 'lines+markers',
+                        fill: blsData.chartType === 'area' ? 'tozeroy' : 'none',
+                        name: getIndicatorName(seriesId, data.title),
+                        line: { width: 2 },
+                        marker: { size: 4 }
+                    });
+                }
+            });
+            
+            const layout = {
+                title: 'Employment Indicators - Historical Trends',
+                paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
+                font: { color: '#fff' },
+                xaxis: {
+                    title: 'Date',
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' }
+                },
+                yaxis: {
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' }
+                },
+                legend: {
+                    font: { color: '#fff' },
+                    bgcolor: 'rgba(0, 0, 0, 0.5)',
+                    bordercolor: 'rgba(255, 255, 255, 0.2)',
+                    borderwidth: 1
+                },
+                hovermode: 'x unified'
+            };
+            
+            Plotly.newPlot('mainChart', traces, layout, {responsive: true});
+        }
+        
+        // Update category-specific charts with Chart.js
+        function updateCategoryCharts() {
+            // Update JOLTS chart
+            updateChartJS('joltsChart', 'jolts', 'JOLTS Indicators');
+            updateChartJS('payrollChart', 'payroll', 'Payroll & Earnings');
+            updateChartJS('sectorsChart', 'sectors', 'Employment by Sector');
+            updateChartJS('costsChart', 'costs', 'Employment Costs');
+            updateChartJS('alternativeChart', 'alternative', 'Alternative Measures');
+            updateChartJS('inflationChart', 'inflation', 'Inflation Indicators');
+        }
+        
+        // Update Chart.js charts
+        function updateChartJS(canvasId, category, title) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            const data = blsData.historical[category] || {};
+            
+            const datasets = [];
+            const labels = [];
+            
+            Object.entries(data).slice(0, 10).forEach(([seriesId, seriesData], index) => {
+                if (seriesData.labels && seriesData.values) {
+                    if (labels.length === 0) {
+                        labels.push(...seriesData.labels.slice(-24)); // Last 24 months
+                    }
+                    
+                    datasets.push({
+                        label: getIndicatorName(seriesId, seriesData.title),
+                        data: seriesData.values.slice(-24),
+                        borderColor: getChartColor(index),
+                        backgroundColor: getChartColor(index, 0.2),
+                        tension: 0.4
+                    });
+                }
+            });
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#fff' }
+                        },
+                        title: {
+                            display: true,
+                            text: title,
+                            color: '#00ff88',
+                            font: { size: 16 }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            ticks: { color: '#888' }
+                        },
+                        y: {
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            ticks: { color: '#888' }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Get chart color
+        function getChartColor(index, alpha = 1) {
+            const colors = [
+                `rgba(0, 255, 136, ${alpha})`,
+                `rgba(0, 204, 255, ${alpha})`,
+                `rgba(255, 170, 0, ${alpha})`,
+                `rgba(255, 68, 68, ${alpha})`,
+                `rgba(255, 0, 255, ${alpha})`,
+                `rgba(255, 255, 0, ${alpha})`,
+                `rgba(0, 255, 255, ${alpha})`,
+                `rgba(255, 128, 0, ${alpha})`,
+                `rgba(128, 0, 255, ${alpha})`,
+                `rgba(0, 128, 255, ${alpha})`
+            ];
+            return colors[index % colors.length];
+        }
+        
+        // Update summary statistics
+        function updateSummaryStatistics() {
+            const categories = ['jolts', 'payroll', 'sectors', 'costs', 'alternative', 'inflation'];
+            
+            categories.forEach(category => {
+                const summaryDiv = document.getElementById(category + 'Summary');
+                if (!summaryDiv) return;
+                
+                const data = blsData.current[category] || {};
+                const values = Object.values(data).map(d => d.current || d.value || 0);
+                
+                if (values.length > 0) {
+                    const avg = values.reduce((a, b) => a + b, 0) / values.length;
+                    const max = Math.max(...values);
+                    const min = Math.min(...values);
+                    const volatility = Math.sqrt(values.reduce((sum, val) => sum + Math.pow(val - avg, 2), 0) / values.length);
+                    
+                    summaryDiv.innerHTML = `
+                        <div class="summary-stat">
+                            <div class="summary-stat-value">${avg.toFixed(2)}</div>
+                            <div class="summary-stat-label">Average</div>
+                        </div>
+                        <div class="summary-stat">
+                            <div class="summary-stat-value">${max.toFixed(2)}</div>
+                            <div class="summary-stat-label">Maximum</div>
+                        </div>
+                        <div class="summary-stat">
+                            <div class="summary-stat-value">${min.toFixed(2)}</div>
+                            <div class="summary-stat-label">Minimum</div>
+                        </div>
+                        <div class="summary-stat">
+                            <div class="summary-stat-value">${volatility.toFixed(2)}</div>
+                            <div class="summary-stat-label">Std Dev</div>
+                        </div>
+                    `;
+                }
+            });
+        }
+        
+        // Format value
+        function formatValue(value, units) {
+            if (value === null || value === undefined) return 'N/A';
+            
+            const numValue = parseFloat(value);
+            if (isNaN(numValue)) return value;
+            
+            if (units === 'Thousands') {
+                return numValue >= 1000 ? (numValue / 1000).toFixed(1) + 'M' : numValue.toFixed(1) + 'K';
+            } else if (units === 'Percent' || units === '%') {
+                return numValue.toFixed(2) + '%';
+            } else if (units === 'Dollars') {
+                return '$' + numValue.toFixed(2);
+            } else if (units === 'Index') {
+                return numValue.toFixed(1);
+            } else {
+                return numValue.toFixed(2);
+            }
+        }
+        
+        // Update crisis display
+        function updateCrisisDisplay(crisis) {
+            if (!crisis) return;
+            
+            const crisisLevel = document.getElementById('crisisLevel');
+            const level = crisis.crisis_level || 'UNKNOWN';
+            
+            crisisLevel.textContent = level.toUpperCase();
+            crisisLevel.className = `crisis-level ${
+                level.includes('Severe') ? 'crisis-severe' :
+                level.includes('Crisis') ? 'crisis-warning' :
+                level.includes('Elevated') ? 'crisis-elevated' :
+                'crisis-normal'
+            }`;
+            
+            if (crisis.current_unemployment_rate !== undefined) {
+                document.getElementById('unemploymentRate').textContent = 
+                    crisis.current_unemployment_rate.toFixed(1) + '%';
+            }
+        }
+        
+        // Update statistics
+        function updateStatistics(stats) {
+            if (stats.series_fetched !== undefined) {
+                document.getElementById('totalIndicators').textContent = stats.series_fetched;
+            }
+            if (stats.total_data_points !== undefined) {
+                document.getElementById('dataPoints').textContent = stats.total_data_points;
+            }
+        }
+        
+        // Update last update time
+        function updateLastUpdateTime() {
+            const lastUpdateEl = document.getElementById('lastUpdate');
+            if (lastUpdateEl) {
+                lastUpdateEl.textContent = new Date().toLocaleTimeString('en-US', { 
+                    hour: 'numeric', 
+                    minute: '2-digit'
+                });
+            }
+        }
+        
+        // Change chart type
+        window.changeChartType = function(type) {
+            blsData.chartType = type;
+            updateMainChart();
+        };
+        
+        // Update chart period
+        window.updateChartPeriod = function(period) {
+            // Implementation for period change
+            loadAllData();
+        };
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    const tabId = e.target.dataset.tab;
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+            
+            // Modal overlay click to close
+            document.getElementById('modalOverlay').addEventListener('click', closeEditModal);
+        }
+        
+        // Start auto-update
+        function startAutoUpdate() {
+            setInterval(() => {
+                console.log('🔄 Auto-updating data...');
+                loadAllData();
+            }, BLS_CONFIG.UPDATE_INTERVAL);
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('=====================================');
+            console.log('BLS Advanced Analytics Dashboard v3.0');
+            console.log('=====================================');
+            
+            initializePlatform();
+        });
+    </script>
+</body>
+</html>
