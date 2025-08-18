@@ -626,40 +626,40 @@
         <!-- Mode Selector -->
         <div class="mode-selector">
             <div class="mode-title">📊 Select Employment Data Category</div>
-            <div class="mode-buttons">
-                <button class="mode-btn active" data-mode="core">
-                    <div class="mode-btn-title">Core Employment</div>
-                    <div class="mode-btn-desc">Key unemployment & employment metrics</div>
-                </button>
-                <button class="mode-btn" data-mode="demographics">
-                    <div class="mode-btn-title">Demographics</div>
-                    <div class="mode-btn-desc">Unemployment by age, race, education</div>
-                </button>
-                <button class="mode-btn" data-mode="payroll">
-                    <div class="mode-btn-title">Payroll & Earnings</div>
-                    <div class="mode-btn-desc">Jobs, hours, wages data</div>
-                </button>
-                <button class="mode-btn" data-mode="jolts">
-                    <div class="mode-btn-title">JOLTS Data</div>
-                    <div class="mode-btn-desc">Job openings, hires, quits</div>
-                </button>
-                <button class="mode-btn" data-mode="states">
-                    <div class="mode-btn-title">State Data</div>
-                    <div class="mode-btn-desc">All 50 states unemployment</div>
-                </button>
-                <button class="mode-btn" data-mode="sectors">
-                    <div class="mode-btn-title">Sector Employment</div>
-                    <div class="mode-btn-desc">Jobs by industry sector</div>
-                </button>
-                <button class="mode-btn" data-mode="costs">
-                    <div class="mode-btn-title">Costs & Productivity</div>
-                    <div class="mode-btn-desc">Labor costs, productivity</div>
-                </button>
-                <button class="mode-btn" data-mode="inflation">
-                    <div class="mode-btn-title">Inflation Data</div>
-                    <div class="mode-btn-desc">CPI, PPI indicators</div>
-                </button>
-            </div>
+                                <div class="mode-buttons">
+                        <button class="mode-btn active" data-mode="core" onclick="switchMode('core')">
+                            <div class="mode-btn-title">Core Employment</div>
+                            <div class="mode-btn-desc">Key unemployment & employment metrics</div>
+                        </button>
+                        <button class="mode-btn" data-mode="demographics" onclick="switchMode('demographics')">
+                            <div class="mode-btn-title">Demographics</div>
+                            <div class="mode-btn-desc">Unemployment by age, race, education</div>
+                        </button>
+                        <button class="mode-btn" data-mode="payroll" onclick="switchMode('payroll')">
+                            <div class="mode-btn-title">Payroll & Earnings</div>
+                            <div class="mode-btn-desc">Jobs, hours, wages data</div>
+                        </button>
+                        <button class="mode-btn" data-mode="jolts" onclick="switchMode('jolts')">
+                            <div class="mode-btn-title">JOLTS Data</div>
+                            <div class="mode-btn-desc">Job openings, hires, quits</div>
+                        </button>
+                        <button class="mode-btn" data-mode="states" onclick="switchMode('states')">
+                            <div class="mode-btn-title">State Data</div>
+                            <div class="mode-btn-desc">All 50 states unemployment</div>
+                        </button>
+                        <button class="mode-btn" data-mode="sectors" onclick="switchMode('sectors')">
+                            <div class="mode-btn-title">Sector Employment</div>
+                            <div class="mode-btn-desc">Jobs by industry sector</div>
+                        </button>
+                        <button class="mode-btn" data-mode="costs" onclick="switchMode('costs')">
+                            <div class="mode-btn-title">Costs & Productivity</div>
+                            <div class="mode-btn-desc">Labor costs, productivity</div>
+                        </button>
+                        <button class="mode-btn" data-mode="inflation" onclick="switchMode('inflation')">
+                            <div class="mode-btn-title">Inflation Data</div>
+                            <div class="mode-btn-desc">CPI, PPI indicators</div>
+                        </button>
+                    </div>
         </div>
         
         <!-- Navigation Tabs -->
@@ -790,20 +790,24 @@
         async function initializePlatform() {
             console.log('🚀 Initializing BLS Employment Intelligence Platform...');
             
-            // Test BLS API connection
-            await testBLSConnection();
-            
-            // Load initial data
-            await loadBLSData('core');
-            
-            // Set up event listeners
+            // Set up event listeners FIRST
             setupEventListeners();
             
-            // Initialize charts
-            initializeCharts();
+            // Test BLS API connection
+            const connected = await testBLSConnection();
             
-            // Start auto-refresh
-            startAutoRefresh();
+            if (connected) {
+                // Load initial data
+                await loadBLSData('core');
+                
+                // Initialize charts
+                initializeCharts();
+                
+                // Start auto-refresh
+                startAutoRefresh();
+            } else {
+                console.error('Failed to connect to BLS API, skipping data load');
+            }
             
             console.log('✅ Platform initialized successfully');
         }
@@ -983,16 +987,20 @@
             lastUpdate.textContent = updateTime;
         }
         
-        // Update employment phase banner
+        // Update employment phase banner with mode context
         function updateEmploymentPhase(crisisAnalysis) {
             const banner = document.getElementById('employmentPhaseBanner');
             const crisisLevelElement = document.getElementById('crisisLevel');
             
-            if (!crisisAnalysis) return;
+            if (!crisisAnalysis) {
+                banner.textContent = `📊 ${currentData.currentMode?.toUpperCase() || 'CORE'} EMPLOYMENT DATA - ANALYZING...`;
+                return;
+            }
             
             const level = crisisAnalysis.crisis_level || 'Normal';
             const rate = crisisAnalysis.current_unemployment_rate || 0;
             const trend = crisisAnalysis.trend || 'stable';
+            const mode = currentData.currentMode?.toUpperCase() || 'CORE';
             
             let bannerText = '';
             let bannerClass = '';
@@ -1000,27 +1008,27 @@
             
             switch (level.toLowerCase()) {
                 case 'normal':
-                    bannerText = `📈 EMPLOYMENT STATUS: NORMAL CONDITIONS (${rate}% unemployment, ${trend})`;
+                    bannerText = `📈 ${mode} DATA: NORMAL CONDITIONS (${rate}% unemployment, ${trend})`;
                     bannerClass = 'full-employment';
                     levelClass = 'crisis-normal';
                     break;
                 case 'elevated':
-                    bannerText = `⚠️ EMPLOYMENT STATUS: ELEVATED UNEMPLOYMENT (${rate}% - ${trend})`;
+                    bannerText = `⚠️ ${mode} DATA: ELEVATED UNEMPLOYMENT (${rate}% - ${trend})`;
                     bannerClass = 'elevated';
                     levelClass = 'crisis-elevated';
                     break;
                 case 'crisis':
-                    bannerText = `🚨 EMPLOYMENT CRISIS: HIGH UNEMPLOYMENT (${rate}% - ${trend})`;
+                    bannerText = `🚨 ${mode} DATA: EMPLOYMENT CRISIS (${rate}% - ${trend})`;
                     bannerClass = 'crisis';
                     levelClass = 'crisis-crisis';
                     break;
                 case 'severe crisis':
-                    bannerText = `🔴 SEVERE EMPLOYMENT CRISIS: EXTREME UNEMPLOYMENT (${rate}% - ${trend})`;
+                    bannerText = `🔴 ${mode} DATA: SEVERE CRISIS (${rate}% - ${trend})`;
                     bannerClass = 'crisis';
                     levelClass = 'crisis-severe';
                     break;
                 default:
-                    bannerText = '📊 EMPLOYMENT STATUS: ANALYZING...';
+                    bannerText = `📊 ${mode} EMPLOYMENT DATA - ANALYZING...`;
                     bannerClass = '';
                     levelClass = 'crisis-normal';
             }
@@ -1028,8 +1036,10 @@
             banner.textContent = bannerText;
             banner.className = `employment-phase-banner ${bannerClass}`;
             
-            crisisLevelElement.textContent = level.toUpperCase();
-            crisisLevelElement.className = `crisis-level ${levelClass}`;
+            if (crisisLevelElement) {
+                crisisLevelElement.textContent = level.toUpperCase();
+                crisisLevelElement.className = `crisis-level ${levelClass}`;
+            }
         }
         
         // Update key metrics
@@ -1458,26 +1468,49 @@
         
         // Setup event listeners
         function setupEventListeners() {
+            console.log('Setting up event listeners...');
+            
             // Tab navigation
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
+                    console.log('Tab clicked:', e.target.dataset.tab);
                     switchTab(e.target.dataset.tab);
                 });
             });
             
-            // Mode selection
+            // Mode selection - Fixed to handle button clicks properly
             document.querySelectorAll('.mode-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
-                    switchMode(e.target.dataset.mode);
+                    console.log('Mode button clicked:', e.target);
+                    
+                    // Handle clicks on the button or its child elements
+                    let target = e.target;
+                    let mode = target.dataset.mode;
+                    
+                    // If clicked on child element, get parent button
+                    if (!mode && target.parentElement.classList.contains('mode-btn')) {
+                        target = target.parentElement;
+                        mode = target.dataset.mode;
+                    }
+                    
+                    if (mode) {
+                        console.log('Switching to mode:', mode);
+                        switchMode(mode);
+                    } else {
+                        console.log('No mode found for target:', target);
+                    }
                 });
             });
             
             // Chart controls
             document.querySelectorAll('.chart-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
+                    console.log('Chart button clicked:', e.target.dataset.period);
                     updateChartPeriod(e.target.dataset.period);
                 });
             });
+            
+            console.log('Event listeners set up successfully');
         }
         
         // Switch tab
@@ -1500,10 +1533,38 @@
         
         // Switch mode
         function switchMode(mode) {
-            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
+            console.log('switchMode called with:', mode);
             
+            if (!mode) {
+                console.error('No mode provided to switchMode');
+                return;
+            }
+            
+            // Update active button
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.mode === mode) {
+                    btn.classList.add('active');
+                    console.log('Set active mode button:', mode);
+                }
+            });
+            
+            // Update current mode
             currentData.currentMode = mode;
+            
+            // Show loading state
+            showLoading('keyMetrics');
+            showLoading('overviewGrid');
+            
+            // Update header to show current mode
+            const banner = document.getElementById('employmentPhaseBanner');
+            if (banner) {
+                banner.textContent = `📊 LOADING ${mode.toUpperCase()} EMPLOYMENT DATA...`;
+                banner.className = 'employment-phase-banner';
+            }
+            
+            // Load new data for the selected mode
+            console.log('Loading BLS data for mode:', mode);
             loadBLSData(mode);
         }
         
