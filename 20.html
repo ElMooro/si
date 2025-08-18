@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpenBB Financial Intelligence Platform - BLS Employment Data Enhanced</title>
+    <title>BLS Employment Crisis Detection Platform - Real Federal Data</title>
     
     <!-- Required Libraries -->
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
     
     <style>
-        /* Keep all original styles and add BLS-specific enhancements */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
@@ -77,7 +76,7 @@
             text-transform: uppercase;
         }
         
-        /* BLS Crisis Level Indicator */
+        /* Crisis Level Indicator */
         .crisis-indicator {
             display: flex;
             align-items: center;
@@ -104,20 +103,20 @@
             color: #ffaa00;
         }
         
-        .crisis-crisis {
+        .crisis-warning {
             background: rgba(255, 68, 68, 0.2);
             color: #ff4444;
         }
         
         .crisis-severe {
-            background: rgba(139, 0, 0, 0.5);
-            color: #ffffff;
-            animation: severeCrisis 1s ease-in-out infinite;
+            background: rgba(255, 0, 0, 0.3);
+            color: #ff0000;
+            animation: criticalPulse 1s ease-in-out infinite;
         }
         
-        @keyframes severeCrisis {
-            0%, 100% { opacity: 0.8; }
-            50% { opacity: 1; }
+        @keyframes criticalPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
         }
         
         /* API Status Indicators */
@@ -214,7 +213,7 @@
         /* Key Metrics Grid */
         .metrics-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1rem;
             margin-bottom: 2rem;
         }
@@ -258,8 +257,8 @@
         .negative { color: #ff4444; }
         .neutral { color: #888; }
         
-        /* Employment Phase Banner */
-        .employment-phase-banner {
+        /* Crisis Phase Banner */
+        .crisis-phase-banner {
             background: linear-gradient(90deg, #00ff88, #00ccff);
             color: #000;
             padding: 12px;
@@ -275,75 +274,6 @@
         @keyframes phaseGlow {
             0%, 100% { opacity: 0.9; }
             50% { opacity: 1; }
-        }
-        
-        .employment-phase-banner.full-employment {
-            background: linear-gradient(90deg, #00ff44, #00ff88);
-            animation: fullEmploymentPulse 1s ease-in-out infinite;
-        }
-        
-        .employment-phase-banner.elevated {
-            background: linear-gradient(90deg, #ff8800, #ffaa00);
-            animation: elevatedWarning 1.5s ease-in-out infinite;
-        }
-        
-        .employment-phase-banner.crisis {
-            background: linear-gradient(90deg, #ff0000, #ff4444);
-            animation: crisisAlert 0.8s ease-in-out infinite;
-        }
-        
-        @keyframes fullEmploymentPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-        }
-        
-        @keyframes elevatedWarning {
-            0%, 100% { opacity: 0.8; }
-            50% { opacity: 1; }
-        }
-        
-        @keyframes crisisAlert {
-            0%, 100% { opacity: 0.7; }
-            50% { opacity: 1; }
-        }
-        
-        /* BLS Insights Box */
-        .bls-insights {
-            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(0, 204, 255, 0.1) 100%);
-            border: 1px solid rgba(0, 255, 136, 0.3);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        
-        .insights-header {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-        }
-        
-        .insights-title {
-            font-size: 1.125rem;
-            font-weight: bold;
-        }
-        
-        .insights-list {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-        }
-        
-        .insights-list li {
-            padding: 0.5rem 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .insights-list li:last-child {
-            border-bottom: none;
         }
         
         /* Data Grid */
@@ -429,10 +359,9 @@
         .chart-controls {
             display: flex;
             gap: 0.5rem;
-            flex-wrap: wrap;
         }
         
-        .chart-btn {
+        .chart-control-btn {
             padding: 0.5rem 1rem;
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
@@ -443,72 +372,17 @@
             transition: all 0.3s;
         }
         
-        .chart-btn:hover {
+        .chart-control-btn:hover {
             background: rgba(0, 255, 136, 0.2);
             border-color: #00ff88;
         }
         
-        .chart-btn.active {
+        .chart-control-btn.active {
             background: #00ff88;
             color: #000;
         }
         
-        /* Mode Selector */
-        .mode-selector {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 1rem;
-            margin-bottom: 2rem;
-        }
-        
-        .mode-title {
-            font-size: 1rem;
-            font-weight: bold;
-            margin-bottom: 1rem;
-            color: #00ff88;
-        }
-        
-        .mode-buttons {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 0.5rem;
-        }
-        
-        .mode-btn {
-            padding: 0.75rem 1rem;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            color: #fff;
-            cursor: pointer;
-            font-size: 0.875rem;
-            transition: all 0.3s;
-            text-align: left;
-        }
-        
-        .mode-btn:hover {
-            background: rgba(0, 255, 136, 0.1);
-            border-color: #00ff88;
-        }
-        
-        .mode-btn.active {
-            background: #00ff88;
-            color: #000;
-            font-weight: bold;
-        }
-        
-        .mode-btn-title {
-            font-weight: bold;
-            margin-bottom: 0.25rem;
-        }
-        
-        .mode-btn-desc {
-            font-size: 0.75rem;
-            opacity: 0.8;
-        }
-        
-        /* Historical Chart */
-        #unemploymentChart, #payrollChart, #demographicsChart, #joltsChart, #statesChart {
+        #mainChart, #historicalChart, .category-chart {
             height: 500px;
             border-radius: 8px;
             background: rgba(0, 0, 0, 0.3);
@@ -535,7 +409,7 @@
             to { transform: rotate(360deg); }
         }
         
-        /* Error/Success Messages */
+        /* Messages */
         .message {
             padding: 1rem;
             border-radius: 8px;
@@ -552,6 +426,49 @@
             background: rgba(0, 255, 136, 0.1);
             border: 1px solid #00ff88;
             color: #00ff88;
+        }
+
+        /* Crisis Alert Styles */
+        .crisis-alert {
+            background: rgba(255, 0, 0, 0.15);
+            border: 2px solid #ff0000;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            animation: criticalPulse 1s ease-in-out infinite;
+        }
+        
+        /* State Grid */
+        .state-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+        
+        .state-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .state-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.1);
+        }
+        
+        .state-name {
+            font-size: 0.75rem;
+            color: #888;
+            margin-bottom: 0.25rem;
+        }
+        
+        .state-value {
+            font-size: 1.25rem;
+            font-weight: bold;
         }
         
         /* Responsive Design */
@@ -571,33 +488,37 @@
             .tabs-nav {
                 overflow-x: auto;
             }
+            
+            .state-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Employment Phase Banner -->
-    <div class="employment-phase-banner" id="employmentPhaseBanner">
-        📊 EMPLOYMENT STATUS: ANALYZING...
+    <!-- Crisis Phase Banner -->
+    <div class="crisis-phase-banner" id="crisisPhaseBanner">
+        📊 BLS EMPLOYMENT STATUS: ANALYZING FEDERAL DATA...
     </div>
     
     <header class="header">
         <div class="logo">
-            🏛️ BLS Employment Intelligence
+            🏛️ BLS Employment Platform
             <span style="font-size: 0.875rem; color: #888;">Real Federal Data</span>
         </div>
         
         <div class="header-stats">
             <div class="stat-item">
-                <div class="stat-value" id="totalIndicators">200+</div>
-                <div class="stat-label">BLS Indicators</div>
-            </div>
-            <div class="stat-item">
                 <div class="stat-value" id="unemploymentRate">--</div>
-                <div class="stat-label">Unemployment Rate</div>
+                <div class="stat-label">Unemployment</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value" id="totalJobs">--</div>
-                <div class="stat-label">Total Jobs (M)</div>
+                <div class="stat-value" id="totalIndicators">200+</div>
+                <div class="stat-label">Indicators</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="dataPoints">--</div>
+                <div class="stat-label">Data Points</div>
             </div>
             <div class="stat-item">
                 <div class="stat-value" id="lastUpdate">--</div>
@@ -607,7 +528,7 @@
         
         <div class="crisis-indicator">
             <span>Crisis Level:</span>
-            <span class="crisis-level crisis-normal" id="crisisLevel">NORMAL</span>
+            <span class="crisis-level crisis-normal" id="crisisLevel">LOADING...</span>
         </div>
         
         <div class="api-status">
@@ -616,82 +537,61 @@
                 <span>BLS API</span>
             </div>
             <div class="api-indicator">
-                <div class="status-dot loading" id="dataStatus"></div>
-                <span>Real Data</span>
+                <div class="status-dot loading" id="lambdaStatus"></div>
+                <span>Lambda</span>
+            </div>
+            <div class="api-indicator">
+                <div class="status-dot loading" id="autoUpdate"></div>
+                <span>Auto-Update</span>
             </div>
         </div>
     </header>
     
     <div class="container">
-        <!-- Mode Selector -->
-        <div class="mode-selector">
-            <div class="mode-title">📊 Select Employment Data Category</div>
-                                <div class="mode-buttons">
-                        <button class="mode-btn active" data-mode="core" onclick="switchMode('core')">
-                            <div class="mode-btn-title">Core Employment</div>
-                            <div class="mode-btn-desc">Key unemployment & employment metrics</div>
-                        </button>
-                        <button class="mode-btn" data-mode="demographics" onclick="switchMode('demographics')">
-                            <div class="mode-btn-title">Demographics</div>
-                            <div class="mode-btn-desc">Unemployment by age, race, education</div>
-                        </button>
-                        <button class="mode-btn" data-mode="payroll" onclick="switchMode('payroll')">
-                            <div class="mode-btn-title">Payroll & Earnings</div>
-                            <div class="mode-btn-desc">Jobs, hours, wages data</div>
-                        </button>
-                        <button class="mode-btn" data-mode="jolts" onclick="switchMode('jolts')">
-                            <div class="mode-btn-title">JOLTS Data</div>
-                            <div class="mode-btn-desc">Job openings, hires, quits</div>
-                        </button>
-                        <button class="mode-btn" data-mode="states" onclick="switchMode('states')">
-                            <div class="mode-btn-title">State Data</div>
-                            <div class="mode-btn-desc">All 50 states unemployment</div>
-                        </button>
-                        <button class="mode-btn" data-mode="sectors" onclick="switchMode('sectors')">
-                            <div class="mode-btn-title">Sector Employment</div>
-                            <div class="mode-btn-desc">Jobs by industry sector</div>
-                        </button>
-                        <button class="mode-btn" data-mode="costs" onclick="switchMode('costs')">
-                            <div class="mode-btn-title">Costs & Productivity</div>
-                            <div class="mode-btn-desc">Labor costs, productivity</div>
-                        </button>
-                        <button class="mode-btn" data-mode="inflation" onclick="switchMode('inflation')">
-                            <div class="mode-btn-title">Inflation Data</div>
-                            <div class="mode-btn-desc">CPI, PPI indicators</div>
-                        </button>
-                    </div>
-        </div>
-        
         <!-- Navigation Tabs -->
         <div class="tabs-nav">
-            <button class="tab-btn active" data-tab="overview">📈 Overview</button>
-            <button class="tab-btn" data-tab="historical">📊 Historical Charts</button>
-            <button class="tab-btn" data-tab="crisis">⚠️ Crisis Analysis</button>
-            <button class="tab-btn" data-tab="insights">🤖 AI Insights</button>
-            <button class="tab-btn" data-tab="raw">📋 Raw Data</button>
+            <button class="tab-btn active" data-tab="overview">📊 Overview</button>
+            <button class="tab-btn" data-tab="core">💼 Core Employment</button>
+            <button class="tab-btn" data-tab="demographics">👥 Demographics</button>
+            <button class="tab-btn" data-tab="states">🗺️ State Data</button>
+            <button class="tab-btn" data-tab="jolts">📈 JOLTS</button>
+            <button class="tab-btn" data-tab="payroll">💰 Payroll</button>
+            <button class="tab-btn" data-tab="sectors">🏭 Sectors</button>
+            <button class="tab-btn" data-tab="costs">💵 Costs</button>
+            <button class="tab-btn" data-tab="alternative">📉 Alternative</button>
+            <button class="tab-btn" data-tab="inflation">📈 Inflation</button>
+            <button class="tab-btn" data-tab="crisis">🚨 Crisis Analysis</button>
         </div>
         
         <!-- Overview Tab -->
         <div class="tab-content active" id="overview">
-            <!-- Key Metrics Grid -->
+            <!-- Key Metrics -->
             <div class="metrics-grid" id="keyMetrics">
-                <div class="loading">
-                    <div class="spinner"></div>
-                </div>
+                <!-- Will be populated with real BLS data -->
             </div>
             
-            <!-- BLS Insights -->
-            <div class="bls-insights" id="blsInsights">
-                <div class="insights-header">
-                    <span>🤖</span>
-                    <span class="insights-title">Real-Time Employment Analysis</span>
+            <!-- Main Historical Chart -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">Historical Employment Trends (Auto-Updates)</h2>
+                    <div class="chart-controls">
+                        <button class="chart-control-btn active" onclick="updateChartPeriod('1y')">1Y</button>
+                        <button class="chart-control-btn" onclick="updateChartPeriod('5y')">5Y</button>
+                        <button class="chart-control-btn" onclick="updateChartPeriod('10y')">10Y</button>
+                        <button class="chart-control-btn" onclick="updateChartPeriod('all')">All</button>
+                    </div>
                 </div>
-                <ul class="insights-list" id="insightsList">
-                    <li>Loading insights...</li>
-                </ul>
+                <div id="mainChart"></div>
             </div>
             
-            <!-- Data Grid -->
+            <!-- Crisis Analysis Summary -->
+            <div class="crisis-alert" id="crisisAlertSummary" style="display: none;">
+                <h3 style="color: #ff0000; margin-bottom: 1rem;">🚨 EMPLOYMENT CRISIS DETECTED</h3>
+                <div id="crisisMessage"></div>
+            </div>
+            
+            <!-- All Core Indicators -->
+            <h3 style="margin: 2rem 0 1rem 0; color: #00ff88;">Core Employment Indicators</h3>
             <div class="data-grid" id="overviewGrid">
                 <div class="loading">
                     <div class="spinner"></div>
@@ -699,61 +599,161 @@
             </div>
         </div>
         
-        <!-- Historical Charts Tab -->
-        <div class="tab-content" id="historical">
-            <!-- Unemployment Rate Chart -->
+        <!-- Core Employment Tab -->
+        <div class="tab-content" id="core">
             <div class="chart-container">
                 <div class="chart-header">
-                    <h2 class="chart-title">Unemployment Rate Historical Data</h2>
-                    <div class="chart-controls">
-                        <button class="chart-btn active" data-period="1Y">1Y</button>
-                        <button class="chart-btn" data-period="5Y">5Y</button>
-                        <button class="chart-btn" data-period="10Y">10Y</button>
-                        <button class="chart-btn" data-period="ALL">ALL</button>
-                    </div>
+                    <h2 class="chart-title">Core Employment Historical Data</h2>
                 </div>
-                <div id="unemploymentChart"></div>
+                <div id="coreChart" class="category-chart"></div>
             </div>
-            
-            <!-- Payroll Employment Chart -->
-            <div class="chart-container">
-                <div class="chart-header">
-                    <h2 class="chart-title">Total Nonfarm Payrolls</h2>
+            <div class="data-grid" id="coreGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
                 </div>
-                <div id="payrollChart"></div>
             </div>
-            
-            <!-- JOLTS Chart -->
+        </div>
+        
+        <!-- Demographics Tab -->
+        <div class="tab-content" id="demographics">
             <div class="chart-container">
                 <div class="chart-header">
-                    <h2 class="chart-title">JOLTS Job Market Dynamics</h2>
+                    <h2 class="chart-title">Demographic Unemployment Breakdown</h2>
                 </div>
-                <div id="joltsChart"></div>
+                <div id="demographicsChart" class="category-chart"></div>
+            </div>
+            <div class="data-grid" id="demographicsGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- States Tab -->
+        <div class="tab-content" id="states">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">State Unemployment Map</h2>
+                </div>
+                <div id="statesChart" class="category-chart"></div>
+            </div>
+            <h3 style="margin: 2rem 0 1rem 0; color: #00ff88;">All 50 States + DC</h3>
+            <div class="state-grid" id="statesGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- JOLTS Tab -->
+        <div class="tab-content" id="jolts">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">JOLTS - Job Openings and Labor Turnover</h2>
+                </div>
+                <div id="joltsChart" class="category-chart"></div>
+            </div>
+            <div class="data-grid" id="joltsGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Payroll Tab -->
+        <div class="tab-content" id="payroll">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">Payroll Employment & Earnings</h2>
+                </div>
+                <div id="payrollChart" class="category-chart"></div>
+            </div>
+            <div class="data-grid" id="payrollGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sectors Tab -->
+        <div class="tab-content" id="sectors">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">Employment by Major Sectors</h2>
+                </div>
+                <div id="sectorsChart" class="category-chart"></div>
+            </div>
+            <div class="data-grid" id="sectorsGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Costs Tab -->
+        <div class="tab-content" id="costs">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">Employment Costs & Productivity</h2>
+                </div>
+                <div id="costsChart" class="category-chart"></div>
+            </div>
+            <div class="data-grid" id="costsGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Alternative Tab -->
+        <div class="tab-content" id="alternative">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">Alternative Employment Measures</h2>
+                </div>
+                <div id="alternativeChart" class="category-chart"></div>
+            </div>
+            <div class="data-grid" id="alternativeGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Inflation Tab -->
+        <div class="tab-content" id="inflation">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">Inflation & Price Indicators</h2>
+                </div>
+                <div id="inflationChart" class="category-chart"></div>
+            </div>
+            <div class="data-grid" id="inflationGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
             </div>
         </div>
         
         <!-- Crisis Analysis Tab -->
         <div class="tab-content" id="crisis">
+            <div class="crisis-alert" id="crisisDetailAlert" style="display: none;">
+                <h3 style="color: #ff0000; margin-bottom: 1rem;">🚨 DETAILED CRISIS ANALYSIS</h3>
+                <div id="crisisDetailMessage"></div>
+            </div>
+            
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">Crisis Detection Dashboard</h2>
+                </div>
+                <div id="crisisChart" class="category-chart"></div>
+            </div>
+            
+            <h3 style="margin: 2rem 0 1rem 0; color: #00ff88;">Crisis Indicators & Thresholds</h3>
             <div class="data-grid" id="crisisGrid">
                 <div class="loading">
                     <div class="spinner"></div>
                 </div>
-            </div>
-        </div>
-        
-        <!-- AI Insights Tab -->
-        <div class="tab-content" id="insights">
-            <div class="data-grid" id="insightsGrid">
-                <div class="loading">
-                    <div class="spinner"></div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Raw Data Tab -->
-        <div class="tab-content" id="raw">
-            <div style="background: rgba(0, 0, 0, 0.5); border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
-                <pre id="rawDataDisplay" style="color: #00ff88; font-family: monospace; white-space: pre-wrap; max-height: 500px; overflow-y: auto;">Loading raw data...</pre>
             </div>
         </div>
     </div>
@@ -762,568 +762,559 @@
         // BLS API Configuration
         const BLS_CONFIG = {
             API_URL: 'https://tajry2f7v3.execute-api.us-east-1.amazonaws.com/prod/data',
-            UPDATE_INTERVAL: 30000, // 30 seconds
-            CHART_COLORS: {
-                primary: '#00ff88',
-                secondary: '#00ccff',
-                tertiary: '#ffaa00',
-                danger: '#ff4444',
-                warning: '#ff8800'
-            }
+            UPDATE_INTERVAL: 30000, // 30 seconds for auto-refresh
+            CHART_UPDATE_INTERVAL: 60000 // 60 seconds for chart updates
         };
         
-        // Global state
-        let currentData = {
-            overview: {},
+        // Global state for BLS data
+        let blsData = {
+            current: {},
+            historical: {},
             crisis: {},
-            insights: {},
-            rawData: {},
-            currentMode: 'core',
-            lastUpdate: null
+            stats: {},
+            lastUpdate: null,
+            chartPeriod: '1y'
         };
         
-        let charts = {};
-        let activeTab = 'overview';
-        let updateInterval = null;
+        let autoUpdateInterval = null;
+        let chartUpdateInterval = null;
         
-        // Initialize the platform
+        // Initialize the BLS platform
         async function initializePlatform() {
-            console.log('🚀 Initializing BLS Employment Intelligence Platform...');
-            
-            // Set up event listeners FIRST
-            setupEventListeners();
+            console.log('🚀 Initializing BLS Employment Platform...');
             
             // Test BLS API connection
-            const connected = await testBLSConnection();
+            await testBLSConnection();
             
-            if (connected) {
-                // Load initial data
-                await loadBLSData('core');
+            // Load all BLS data
+            await loadBLSData('core'); // Start with core data
+            
+            // Setup event listeners
+            setupEventListeners();
+            
+            // Start auto-update
+            startAutoUpdate();
+            
+            // Setup additional features
+            setupKeyboardShortcuts();
+            addExportButton();
+            monitorAPIHealth();
+            
+            console.log('✅ BLS Platform initialized with real federal data');
+        }
+        
+        // Start auto-update
+        function startAutoUpdate() {
+            console.log('🔄 Starting auto-update (every 30 seconds)...');
+            
+            // Initial update
+            updateLastUpdateTime();
+            
+            // Auto-refresh data
+            autoUpdateInterval = setInterval(() => {
+                console.log('🔄 Auto-updating BLS data...');
                 
-                // Initialize charts
-                initializeCharts();
+                const activeTab = document.querySelector('.tab-btn.active').dataset.tab;
+                const mode = getModeFromTab(activeTab);
                 
-                // Start auto-refresh
-                startAutoRefresh();
+                // Silently update in background
+                loadBLSData(mode).then(() => {
+                    console.log('✅ Auto-update complete');
+                    updateLastUpdateTime();
+                });
+                
+            }, BLS_CONFIG.UPDATE_INTERVAL);
+            
+            // Auto-refresh charts
+            chartUpdateInterval = setInterval(() => {
+                console.log('📊 Refreshing charts...');
+                
+                const activeTab = document.querySelector('.tab-btn.active').dataset.tab;
+                const mode = getModeFromTab(activeTab);
+                updateCharts(mode);
+                
+            }, BLS_CONFIG.CHART_UPDATE_INTERVAL);
+        }
+        
+        // Update last update time
+        function updateLastUpdateTime() {
+            const lastUpdateEl = document.getElementById('lastUpdate');
+            if (!lastUpdateEl) return;
+            
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { 
+                hour: 'numeric', 
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            
+            lastUpdateEl.textContent = timeStr;
+        }
+        
+        // Format value based on units
+        function formatValue(value, units) {
+            if (typeof value !== 'number') return 'N/A';
+            
+            if (units === 'Thousands' || value >= 10000) {
+                return (value / 1000).toFixed(1) + 'K';
+            } else if (units === 'Millions' || value >= 1000000) {
+                return (value / 1000000).toFixed(2) + 'M';
+            } else if (units === 'Percent' || units === '%') {
+                return value.toFixed(2) + '%';
+            } else if (units === 'Dollars') {
+                return '$' + value.toFixed(2);
+            } else if (units === 'Hours') {
+                return value.toFixed(1) + ' hrs';
+            } else if (units === 'Index') {
+                return value.toFixed(1);
             } else {
-                console.error('Failed to connect to BLS API, skipping data load');
+                return value.toFixed(2);
             }
-            
-            console.log('✅ Platform initialized successfully');
         }
         
         // Test BLS API connection
         async function testBLSConnection() {
             const blsStatus = document.getElementById('blsApiStatus');
-            const dataStatus = document.getElementById('dataStatus');
+            const lambdaStatus = document.getElementById('lambdaStatus');
+            const autoUpdateStatus = document.getElementById('autoUpdate');
             
             try {
                 console.log('Testing BLS API connection...');
+                const response = await axios.get(BLS_CONFIG.API_URL);
                 
-                // Test with a simple GET request first
-                const response = await fetch(BLS_CONFIG.API_URL, {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
+                if (response.data && response.data.success) {
+                    blsStatus.className = 'status-dot connected';
+                    lambdaStatus.className = 'status-dot connected';
+                    autoUpdateStatus.className = 'status-dot connected';
+                    
+                    console.log('✅ BLS API connected successfully');
+                    console.log(`📊 ${response.data.results?.series_fetched || 0} indicators available`);
+                    
+                    // Update header with real data
+                    if (response.data.crisis_analysis) {
+                        const unemployment = response.data.crisis_analysis.current_unemployment_rate;
+                        if (unemployment !== null) {
+                            document.getElementById('unemploymentRate').textContent = `${unemployment}%`;
+                        }
                     }
+                    
+                    if (response.data.results) {
+                        document.getElementById('dataPoints').textContent = 
+                            response.data.results.total_data_points || '--';
+                    }
+                    
+                    // Update last update time
+                    updateLastUpdateTime();
+                    
+                } else {
+                    throw new Error('Invalid response from BLS API');
+                }
+            } catch (error) {
+                console.error('BLS API connection error:', error);
+                blsStatus.className = 'status-dot error';
+                lambdaStatus.className = 'status-dot error';
+                autoUpdateStatus.className = 'status-dot error';
+            }
+        }
+        
+        // Load BLS data for specific mode
+        async function loadBLSData(mode = 'core', startYear = 2000) {
+            try {
+                console.log(`📊 Loading BLS ${mode} data...`);
+                
+                const response = await axios.post(BLS_CONFIG.API_URL, {
+                    mode: mode,
+                    startYear: startYear,
+                    endYear: new Date().getFullYear()
                 });
                 
-                console.log('Test response status:', response.status);
-                console.log('Test response headers:', [...response.headers.entries()]);
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('Test response data:', data);
+                if (response.data && response.data.success) {
+                    const data = response.data;
                     
-                    blsStatus.className = 'status-dot connected';
-                    dataStatus.className = 'status-dot connected';
-                    console.log('✅ BLS API connected successfully');
-                    return true;
-                } else {
-                    const errorText = await response.text();
-                    console.log('Test response error:', errorText);
-                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                    // Store data
+                    blsData.current[mode] = data.current_metrics || {};
+                    blsData.historical[mode] = data.chart_data || {};
+                    blsData.crisis = data.crisis_analysis || {};
+                    blsData.stats = data.results || {};
+                    blsData.lastUpdate = new Date();
+                    
+                    console.log(`✅ Loaded ${Object.keys(blsData.current[mode]).length} ${mode} indicators`);
+                    
+                    // Update displays based on active tab
+                    updateDisplays(mode);
+                    updateCharts(mode);
+                    updateCrisisAnalysis();
+                    updateCrisisBanner();
+                    
+                    return data;
                 }
             } catch (error) {
-                console.error('❌ BLS API connection failed:', error);
-                blsStatus.className = 'status-dot error';
-                dataStatus.className = 'status-dot error';
+                console.error(`Error loading BLS ${mode} data:`, error);
+                showError(`Failed to load ${mode} data. Retrying...`);
                 
-                // Show detailed error in UI
-                const errorDiv = document.createElement('div');
-                errorDiv.className = 'message error-message';
-                errorDiv.innerHTML = `
-                    <strong>API Connection Failed</strong><br>
-                    Error: ${error.message}<br>
-                    URL: ${BLS_CONFIG.API_URL}<br>
-                    <small>Check browser console for details</small>
-                `;
-                
-                const container = document.getElementById('overviewGrid');
-                if (container) {
-                    container.innerHTML = '';
-                    container.appendChild(errorDiv);
-                }
-                
-                return false;
+                // Retry after 5 seconds
+                setTimeout(() => loadBLSData(mode, startYear), 5000);
             }
         }
         
-        // Load BLS data
-        async function loadBLSData(mode = 'core') {
-            try {
-                console.log(`📊 Loading BLS data for mode: ${mode}`);
-                
-                // Show loading states
-                showLoading('keyMetrics');
-                showLoading('overviewGrid');
-                
-                // Try GET request first (simpler)
-                let response;
-                try {
-                    response = await fetch(`${BLS_CONFIG.API_URL}?mode=${mode}`);
-                } catch (getError) {
-                    console.log('GET failed, trying POST:', getError.message);
-                    
-                    // Fallback to POST request
-                    const requestBody = {
-                        mode: mode,
-                        startYear: 2000,
-                        endYear: new Date().getFullYear()
-                    };
-                    
-                    response = await fetch(BLS_CONFIG.API_URL, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(requestBody)
-                    });
-                }
-                
-                console.log('Response status:', response.status);
-                console.log('Response headers:', [...response.headers.entries()]);
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Response error text:', errorText);
-                    throw new Error(`HTTP ${response.status}: ${errorText}`);
-                }
-                
-                const data = await response.json();
-                console.log('📊 Full API Response:', data);
-                
-                // Store the complete response
-                currentData.overview = data;
-                currentData.crisis = data.crisis_analysis || {};
-                currentData.insights = data.insights || [];
-                currentData.rawData = data;
-                currentData.lastUpdate = new Date().toISOString();
-                
-                // Update UI with detailed logging
-                console.log('Updating header stats...');
-                updateHeaderStats(data);
-                
-                console.log('Updating employment phase...');
-                updateEmploymentPhase(data.crisis_analysis);
-                
-                console.log('Updating key metrics...', data.current_metrics);
-                updateKeyMetrics(data.current_metrics || {});
-                
-                console.log('Updating overview grid...', data.chart_data);
-                updateOverviewGrid(data.chart_data || {});
-                
-                console.log('Updating insights...', data.insights);
-                updateInsights(data.insights || []);
-                
-                console.log('Updating crisis analysis...', data.crisis_analysis);
-                updateCrisisAnalysis(data.crisis_analysis || {});
-                
-                console.log('Updating raw data...');
-                updateRawData(data);
-                
-                // Update charts if on historical tab
-                if (activeTab === 'historical') {
-                    console.log('Updating historical charts...');
-                    updateHistoricalCharts(data.chart_data || {});
-                }
-                
-                console.log('✅ BLS data loaded successfully');
-                
-            } catch (error) {
-                console.error('❌ Error loading BLS data:', error);
-                console.error('Error stack:', error.stack);
-                showError('overviewGrid', `Failed to load BLS data: ${error.message}`);
-                showError('keyMetrics', `API Error: ${error.message}`);
+        // Update all displays with real BLS data
+        function updateDisplays(mode) {
+            // Update key metrics
+            updateKeyMetrics(mode);
+            
+            // Update grids based on mode
+            switch(mode) {
+                case 'core':
+                    updateGrid('overviewGrid', blsData.current[mode]);
+                    updateGrid('coreGrid', blsData.current[mode]);
+                    break;
+                case 'demographics':
+                    updateGrid('demographicsGrid', blsData.current[mode]);
+                    break;
+                case 'states':
+                    updateStatesGrid(blsData.current[mode]);
+                    break;
+                case 'jolts':
+                    updateGrid('joltsGrid', blsData.current[mode]);
+                    break;
+                case 'payroll':
+                    updateGrid('payrollGrid', blsData.current[mode]);
+                    break;
+                case 'sectors':
+                    updateGrid('sectorsGrid', blsData.current[mode]);
+                    break;
+                case 'costs':
+                    updateGrid('costsGrid', blsData.current[mode]);
+                    break;
+                case 'alternative':
+                    updateGrid('alternativeGrid', blsData.current[mode]);
+                    break;
+                case 'inflation':
+                    updateGrid('inflationGrid', blsData.current[mode]);
+                    break;
+                case 'all':
+                    updateGrid('overviewGrid', blsData.current[mode]);
+                    break;
             }
         }
         
-        // Update header stats
-        function updateHeaderStats(data) {
-            const totalIndicators = document.getElementById('totalIndicators');
-            const unemploymentRate = document.getElementById('unemploymentRate');
-            const totalJobs = document.getElementById('totalJobs');
-            const lastUpdate = document.getElementById('lastUpdate');
-            
-            // Update total indicators
-            totalIndicators.textContent = data.api_info?.total_indicators_available || '200+';
-            
-            // Update unemployment rate
-            const unempRate = data.crisis_analysis?.current_unemployment_rate;
-            if (unempRate) {
-                unemploymentRate.textContent = `${unempRate}%`;
-            }
-            
-            // Update total jobs (from NFP data)
-            const nfpData = data.current_metrics?.['CES0000000001'];
-            if (nfpData) {
-                const jobsInMillions = (nfpData.current / 1000).toFixed(1);
-                totalJobs.textContent = `${jobsInMillions}M`;
-            }
-            
-            // Update last update time
-            const updateTime = new Date().toLocaleTimeString();
-            lastUpdate.textContent = updateTime;
-        }
-        
-        // Update employment phase banner with mode context
-        function updateEmploymentPhase(crisisAnalysis) {
-            const banner = document.getElementById('employmentPhaseBanner');
-            const crisisLevelElement = document.getElementById('crisisLevel');
-            
-            if (!crisisAnalysis) {
-                banner.textContent = `📊 ${currentData.currentMode?.toUpperCase() || 'CORE'} EMPLOYMENT DATA - ANALYZING...`;
-                return;
-            }
-            
-            const level = crisisAnalysis.crisis_level || 'Normal';
-            const rate = crisisAnalysis.current_unemployment_rate || 0;
-            const trend = crisisAnalysis.trend || 'stable';
-            const mode = currentData.currentMode?.toUpperCase() || 'CORE';
-            
-            let bannerText = '';
-            let bannerClass = '';
-            let levelClass = '';
-            
-            switch (level.toLowerCase()) {
-                case 'normal':
-                    bannerText = `📈 ${mode} DATA: NORMAL CONDITIONS (${rate}% unemployment, ${trend})`;
-                    bannerClass = 'full-employment';
-                    levelClass = 'crisis-normal';
-                    break;
-                case 'elevated':
-                    bannerText = `⚠️ ${mode} DATA: ELEVATED UNEMPLOYMENT (${rate}% - ${trend})`;
-                    bannerClass = 'elevated';
-                    levelClass = 'crisis-elevated';
-                    break;
-                case 'crisis':
-                    bannerText = `🚨 ${mode} DATA: EMPLOYMENT CRISIS (${rate}% - ${trend})`;
-                    bannerClass = 'crisis';
-                    levelClass = 'crisis-crisis';
-                    break;
-                case 'severe crisis':
-                    bannerText = `🔴 ${mode} DATA: SEVERE CRISIS (${rate}% - ${trend})`;
-                    bannerClass = 'crisis';
-                    levelClass = 'crisis-severe';
-                    break;
-                default:
-                    bannerText = `📊 ${mode} EMPLOYMENT DATA - ANALYZING...`;
-                    bannerClass = '';
-                    levelClass = 'crisis-normal';
-            }
-            
-            banner.textContent = bannerText;
-            banner.className = `employment-phase-banner ${bannerClass}`;
-            
-            if (crisisLevelElement) {
-                crisisLevelElement.textContent = level.toUpperCase();
-                crisisLevelElement.className = `crisis-level ${levelClass}`;
-            }
-        }
-        
-        // Update key metrics
-        function updateKeyMetrics(currentMetrics) {
+        // Update key metrics cards
+        function updateKeyMetrics(mode) {
             const metricsGrid = document.getElementById('keyMetrics');
-            
-            console.log('updateKeyMetrics called with:', currentMetrics);
-            
-            if (!currentMetrics || Object.keys(currentMetrics).length === 0) {
-                console.log('No metrics data available');
-                metricsGrid.innerHTML = '<div class="message error-message">No metrics data available. Check API response.</div>';
-                return;
-            }
+            if (!metricsGrid) return;
             
             metricsGrid.innerHTML = '';
             
-            // Get all available metrics from the response
-            const availableMetrics = Object.keys(currentMetrics);
-            console.log('Available metrics:', availableMetrics);
-            
-            // Priority metrics to display (use what's available)
-            const priorityMetrics = [
-                'LNS14000000', // Unemployment Rate (U-3)
-                'LNS13008396', // Unemployment Rate (U-6)
-                'LNS11300000', // Labor Force Participation Rate
-                'LNS12300000', // Employment-Population Ratio
+            // Select key indicators to display
+            const keyIndicators = [
+                'LNS14000000', // Unemployment Rate
                 'CES0000000001', // Total Nonfarm Payrolls
-                'CES0500000008', // Average Hourly Earnings
+                'LNS11300000', // Labor Force Participation
                 'JTS00000000JOL', // Job Openings
-                'JTS00000000QUR'  // Quits
+                'CES0500000008', // Average Hourly Earnings
+                'CUUR0000SA0' // CPI
             ];
             
-            // If priority metrics aren't available, use first 8 available metrics
-            let metricsToShow = priorityMetrics.filter(id => currentMetrics[id]);
-            if (metricsToShow.length === 0) {
-                metricsToShow = availableMetrics.slice(0, 8);
-            }
+            const currentData = blsData.current[mode] || {};
             
-            console.log('Metrics to show:', metricsToShow);
-            
-            metricsToShow.forEach(metricId => {
-                const metric = currentMetrics[metricId];
-                if (!metric) {
-                    console.log(`Metric ${metricId} not found in data`);
-                    return;
+            keyIndicators.forEach(seriesId => {
+                if (currentData[seriesId]) {
+                    const metric = currentData[seriesId];
+                    const card = createMetricCard(seriesId, metric);
+                    metricsGrid.appendChild(card);
                 }
-                
-                console.log(`Processing metric ${metricId}:`, metric);
-                
-                const card = document.createElement('div');
-                card.className = 'metric-card';
-                
-                // Format value based on metric type
-                let formattedValue = metric.current;
-                
-                if (typeof formattedValue === 'number') {
-                    if (metricId === 'CES0000000001') {
-                        // Payrolls in thousands, convert to millions
-                        formattedValue = `${(formattedValue / 1000).toFixed(1)}M`;
-                    } else if (metricId.includes('JTS')) {
-                        // JOLTS data in thousands, convert to millions
-                        formattedValue = `${(formattedValue / 1000).toFixed(1)}M`;
-                    } else if (metricId.includes('LNS14') || metricId.includes('LNS11') || metricId.includes('LNS12')) {
-                        // Rates as percentages
-                        formattedValue = `${formattedValue.toFixed(1)}%`;
-                    } else if (metricId === 'CES0500000008') {
-                        // Earnings in dollars
-                        formattedValue = `${formattedValue.toFixed(2)}`;
-                    } else {
-                        formattedValue = formattedValue.toFixed(2);
-                    }
-                }
-                
-                // Calculate mock change for demo (in real app, this would come from API)
-                const mockChange = (Math.random() * 2 - 1).toFixed(2);
-                const changeClass = mockChange >= 0 ? 'positive' : 'negative';
-                const changeSymbol = mockChange >= 0 ? '▲' : '▼';
-                
-                const title = metric.title || metricId;
-                const category = metric.category || 'Employment';
-                const lastUpdated = metric.last_updated || 'Recent';
-                
-                card.innerHTML = `
-                    <div class="metric-title">${title}</div>
-                    <div class="metric-value ${changeClass}">${formattedValue}</div>
-                    <div class="metric-change ${changeClass}">
-                        <span>${changeSymbol}</span> ${Math.abs(mockChange)}%
-                    </div>
-                    <div style="font-size: 0.75rem; color: #888; margin-top: 0.5rem;">
-                        ${category} • ${lastUpdated}
-                    </div>
-                `;
-                
-                card.onclick = () => showMetricDetails(metricId, metric);
-                metricsGrid.appendChild(card);
-            });
-            
-            console.log(`Added ${metricsToShow.length} metric cards to grid`);
-        }
-        
-        // Update overview grid
-        function updateOverviewGrid(chartData) {
-            const grid = document.getElementById('overviewGrid');
-            
-            console.log('updateOverviewGrid called with:', chartData);
-            
-            if (!chartData || Object.keys(chartData).length === 0) {
-                console.log('No chart data available');
-                grid.innerHTML = '<div class="message error-message">No chart data available. Trying different data source...</div>';
-                
-                // Try to use current_metrics as fallback
-                if (currentData.overview && currentData.overview.current_metrics) {
-                    console.log('Using current_metrics as fallback...');
-                    updateOverviewGridFromMetrics(currentData.overview.current_metrics);
-                }
-                return;
-            }
-            
-            grid.innerHTML = '';
-            
-            console.log('Chart data keys:', Object.keys(chartData));
-            
-            Object.entries(chartData).forEach(([seriesId, data]) => {
-                console.log(`Processing series ${seriesId}:`, data);
-                
-                const card = document.createElement('div');
-                card.className = 'data-card';
-                
-                const latest = data.latest || {};
-                const change = (Math.random() * 2 - 1).toFixed(2); // Mock change
-                const changeClass = change >= 0 ? 'positive' : 'negative';
-                const changeSymbol = change >= 0 ? '▲' : '▼';
-                
-                const title = data.title || seriesId;
-                const category = data.category || 'Employment';
-                const dataPoints = data.count || 0;
-                const value = latest.value || data.values?.[data.values.length - 1] || '--';
-                
-                card.innerHTML = `
-                    <div class="data-card-header">
-                        <div class="data-title">${title}</div>
-                        <div class="data-source">BLS</div>
-                    </div>
-                    <div class="data-value ${changeClass}">${value}</div>
-                    <div class="data-change ${changeClass}">
-                        <span>${changeSymbol}</span> ${Math.abs(change)}%
-                    </div>
-                    <div style="font-size: 0.75rem; color: #888; margin-top: 0.5rem;">
-                        ${category} • ${dataPoints} data points
-                    </div>
-                `;
-                
-                card.onclick = () => showSeriesChart(seriesId, data);
-                grid.appendChild(card);
-            });
-            
-            console.log(`Added ${Object.keys(chartData).length} data cards to overview grid`);
-        }
-        
-        // Fallback function to use current_metrics data
-        function updateOverviewGridFromMetrics(currentMetrics) {
-            const grid = document.getElementById('overviewGrid');
-            grid.innerHTML = '';
-            
-            console.log('Using current metrics for overview grid:', currentMetrics);
-            
-            Object.entries(currentMetrics).forEach(([metricId, metric]) => {
-                const card = document.createElement('div');
-                card.className = 'data-card';
-                
-                const change = (Math.random() * 2 - 1).toFixed(2);
-                const changeClass = change >= 0 ? 'positive' : 'negative';
-                const changeSymbol = change >= 0 ? '▲' : '▼';
-                
-                const title = metric.title || metricId;
-                const category = metric.category || 'Employment';
-                const value = metric.current || '--';
-                
-                card.innerHTML = `
-                    <div class="data-card-header">
-                        <div class="data-title">${title}</div>
-                        <div class="data-source">BLS</div>
-                    </div>
-                    <div class="data-value ${changeClass}">${value}</div>
-                    <div class="data-change ${changeClass}">
-                        <span>${changeSymbol}</span> ${Math.abs(change)}%
-                    </div>
-                    <div style="font-size: 0.75rem; color: #888; margin-top: 0.5rem;">
-                        ${category} • Real-time data
-                    </div>
-                `;
-                
-                grid.appendChild(card);
             });
         }
         
-        // Update insights
-        function updateInsights(insights) {
-            const insightsList = document.getElementById('insightsList');
-            insightsList.innerHTML = '';
+        // Create metric card with real data
+        function createMetricCard(seriesId, metric) {
+            const card = document.createElement('div');
+            card.className = 'metric-card';
             
-            if (!insights || insights.length === 0) {
-                insightsList.innerHTML = '<li>No insights available</li>';
-                return;
-            }
+            const value = metric.current || 0;
+            const changeClass = value > 5 ? 'negative' : value < 3 ? 'positive' : 'neutral';
             
-            insights.forEach(insight => {
-                const li = document.createElement('li');
-                li.textContent = insight;
-                insightsList.appendChild(li);
-            });
-        }
-        
-        // Update crisis analysis
-        function updateCrisisAnalysis(crisisAnalysis) {
-            const grid = document.getElementById('crisisGrid');
-            grid.innerHTML = '';
-            
-            if (!crisisAnalysis) {
-                grid.innerHTML = '<div class="message error-message">No crisis analysis data available</div>';
-                return;
-            }
-            
-            // Crisis overview card
-            const overviewCard = document.createElement('div');
-            overviewCard.className = 'data-card';
-            overviewCard.innerHTML = `
-                <div class="data-card-header">
-                    <div class="data-title">Crisis Assessment</div>
-                    <div class="data-source">Analysis</div>
+            card.innerHTML = `
+                <div class="metric-title">${metric.title || seriesId}</div>
+                <div class="metric-value ${changeClass}">${formatValue(value, metric.units)}</div>
+                <div class="metric-change">
+                    <span>Last: ${metric.last_updated || 'N/A'}</span>
                 </div>
-                <div class="data-value">${crisisAnalysis.crisis_level || 'Normal'}</div>
-                <div style="margin-top: 1rem;">
-                    <strong>Current Unemployment:</strong> ${crisisAnalysis.current_unemployment_rate || '--'}%<br>
-                    <strong>Trend:</strong> ${crisisAnalysis.trend || 'stable'}<br>
-                    <strong>Labor Market Health:</strong> ${crisisAnalysis.labor_market_health?.overall_rating || 'Good'}
+                <div style="margin-top: 0.5rem; font-size: 0.75rem; opacity: 0.7;">
+                    ${metric.category || 'Employment Indicator'}
                 </div>
             `;
-            grid.appendChild(overviewCard);
             
-            // Risk factors
-            if (crisisAnalysis.risk_factors && crisisAnalysis.risk_factors.length > 0) {
-                const riskCard = document.createElement('div');
-                riskCard.className = 'data-card';
-                riskCard.innerHTML = `
+            return card;
+        }
+        
+        // Update data grid with real BLS data
+        function updateGrid(gridId, data) {
+            const grid = document.getElementById(gridId);
+            if (!grid || !data) return;
+            
+            grid.innerHTML = '';
+            
+            Object.entries(data).forEach(([seriesId, indicator]) => {
+                const card = document.createElement('div');
+                card.className = 'data-card';
+                
+                const value = indicator.current || 0;
+                const units = indicator.units || '';
+                const changeClass = value > 5 ? 'negative' : value < 3 ? 'positive' : 'neutral';
+                
+                card.innerHTML = `
                     <div class="data-card-header">
-                        <div class="data-title">Risk Factors</div>
-                        <div class="data-source">Alert</div>
+                        <div class="data-title">${indicator.title || seriesId}</div>
+                        <div class="data-source">${indicator.category || 'BLS'}</div>
                     </div>
-                    <div style="margin-top: 1rem;">
-                        ${crisisAnalysis.risk_factors.map(factor => `<div style="margin-bottom: 0.5rem;">⚠️ ${factor}</div>`).join('')}
+                    <div class="data-value ${changeClass}">
+                        ${formatValue(value, units)}
+                    </div>
+                    <div class="data-change">
+                        <span>Updated: ${indicator.last_updated || 'N/A'}</span>
                     </div>
                 `;
-                grid.appendChild(riskCard);
-            }
+                
+                grid.appendChild(card);
+            });
             
-            // Historical comparison
-            if (crisisAnalysis.historical_comparison) {
-                const histCard = document.createElement('div');
-                histCard.className = 'data-card';
-                histCard.innerHTML = `
-                    <div class="data-card-header">
-                        <div class="data-title">Historical Context</div>
-                        <div class="data-source">Comparison</div>
-                    </div>
-                    <div style="margin-top: 1rem;">
-                        <strong>2008 Financial Crisis Peak:</strong> ${crisisAnalysis.historical_comparison['2008_financial_crisis_peak']}<br>
-                        <strong>2020 COVID Peak:</strong> ${crisisAnalysis.historical_comparison['2020_covid_peak']}<br>
-                        <strong>Current Assessment:</strong> ${crisisAnalysis.historical_comparison.current_assessment}
-                    </div>
-                `;
-                grid.appendChild(histCard);
+            if (Object.keys(data).length === 0) {
+                grid.innerHTML = '<div class="message">Loading real BLS data...</div>';
             }
         }
         
-        // Update raw data display
-        function updateRawData(data) {
-            const rawDisplay = document.getElementById('rawDataDisplay');
-            rawDisplay.textContent = JSON.stringify(data, null, 2);
+        // Update states grid with special formatting
+        function updateStatesGrid(data) {
+            const grid = document.getElementById('statesGrid');
+            if (!grid || !data) return;
+            
+            grid.innerHTML = '';
+            grid.className = 'state-grid';
+            
+            // State names mapping
+            const stateNames = {
+                'LASST010000000000003': 'Alabama',
+                'LASST020000000000003': 'Alaska',
+                'LASST040000000000003': 'Arizona',
+                'LASST050000000000003': 'Arkansas',
+                'LASST060000000000003': 'California',
+                'LASST080000000000003': 'Colorado',
+                'LASST090000000000003': 'Connecticut',
+                'LASST100000000000003': 'Delaware',
+                'LASST110000000000003': 'DC',
+                'LASST120000000000003': 'Florida',
+                'LASST130000000000003': 'Georgia',
+                'LASST150000000000003': 'Hawaii',
+                'LASST160000000000003': 'Idaho',
+                'LASST170000000000003': 'Illinois',
+                'LASST180000000000003': 'Indiana',
+                'LASST190000000000003': 'Iowa',
+                'LASST200000000000003': 'Kansas',
+                'LASST210000000000003': 'Kentucky',
+                'LASST220000000000003': 'Louisiana',
+                'LASST230000000000003': 'Maine',
+                'LASST240000000000003': 'Maryland',
+                'LASST250000000000003': 'Massachusetts',
+                'LASST260000000000003': 'Michigan',
+                'LASST270000000000003': 'Minnesota',
+                'LASST280000000000003': 'Mississippi',
+                'LASST290000000000003': 'Missouri',
+                'LASST300000000000003': 'Montana',
+                'LASST310000000000003': 'Nebraska',
+                'LASST320000000000003': 'Nevada',
+                'LASST330000000000003': 'New Hampshire',
+                'LASST340000000000003': 'New Jersey',
+                'LASST350000000000003': 'New Mexico',
+                'LASST360000000000003': 'New York',
+                'LASST370000000000003': 'North Carolina',
+                'LASST380000000000003': 'North Dakota',
+                'LASST390000000000003': 'Ohio',
+                'LASST400000000000003': 'Oklahoma',
+                'LASST410000000000003': 'Oregon',
+                'LASST420000000000003': 'Pennsylvania',
+                'LASST440000000000003': 'Rhode Island',
+                'LASST450000000000003': 'South Carolina',
+                'LASST460000000000003': 'South Dakota',
+                'LASST470000000000003': 'Tennessee',
+                'LASST480000000000003': 'Texas',
+                'LASST490000000000003': 'Utah',
+                'LASST500000000000003': 'Vermont',
+                'LASST510000000000003': 'Virginia',
+                'LASST530000000000003': 'Washington',
+                'LASST540000000000003': 'West Virginia',
+                'LASST550000000000003': 'Wisconsin',
+                'LASST560000000000003': 'Wyoming'
+            };
+            
+            Object.entries(data).forEach(([seriesId, indicator]) => {
+                const card = document.createElement('div');
+                card.className = 'state-card';
+                
+                const value = indicator.current || 0;
+                const stateName = stateNames[seriesId] || indicator.title || seriesId;
+                const colorClass = value > 5 ? 'negative' : value < 3 ? 'positive' : 'neutral';
+                
+                card.innerHTML = `
+                    <div class="state-name">${stateName}</div>
+                    <div class="state-value ${colorClass}">${value.toFixed(1)}%</div>
+                `;
+                
+                grid.appendChild(card);
+            });
         }
         
-        // Initialize charts
-        function initializeCharts() {
-            const chartConfig = {
+        // Update charts with real historical data
+        function updateCharts(mode) {
+            const historicalData = blsData.historical[mode] || {};
+            
+            // Update main chart
+            updateMainHistoricalChart(historicalData);
+            
+            // Update category-specific charts
+            switch(mode) {
+                case 'core':
+                    updateCategoryChart('coreChart', historicalData, 'Core Employment');
+                    break;
+                case 'demographics':
+                    updateCategoryChart('demographicsChart', historicalData, 'Demographics');
+                    break;
+                case 'states':
+                    updateStatesMapChart(historicalData);
+                    break;
+                case 'jolts':
+                    updateCategoryChart('joltsChart', historicalData, 'JOLTS');
+                    break;
+                case 'payroll':
+                    updateCategoryChart('payrollChart', historicalData, 'Payroll');
+                    break;
+                case 'sectors':
+                    updateSectorsChart(historicalData);
+                    break;
+                case 'costs':
+                    updateCategoryChart('costsChart', historicalData, 'Costs');
+                    break;
+                case 'alternative':
+                    updateCategoryChart('alternativeChart', historicalData, 'Alternative');
+                    break;
+                case 'inflation':
+                    updateCategoryChart('inflationChart', historicalData, 'Inflation');
+                    break;
+            }
+            
+            // Always update crisis chart
+            updateCrisisChart();
+        }
+        
+        // Update main historical chart with real data
+        function updateMainHistoricalChart(data) {
+            const chartDiv = document.getElementById('mainChart');
+            if (!chartDiv) return;
+            
+            const traces = [];
+            
+            // Add unemployment rate as primary trace
+            if (data['LNS14000000']) {
+                const unemploymentData = data['LNS14000000'];
+                traces.push({
+                    x: unemploymentData.labels || [],
+                    y: unemploymentData.values || [],
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'Unemployment Rate (U-3)',
+                    line: { color: '#ff4444', width: 3 },
+                    yaxis: 'y'
+                });
+            }
+            
+            // Add nonfarm payrolls as secondary trace
+            if (data['CES0000000001']) {
+                const payrollData = data['CES0000000001'];
+                traces.push({
+                    x: payrollData.labels || [],
+                    y: payrollData.values ? payrollData.values.map(v => v/1000) : [],
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'Nonfarm Payrolls (Millions)',
+                    line: { color: '#00ff88', width: 2 },
+                    yaxis: 'y2'
+                });
+            }
+            
+            // Add labor force participation
+            if (data['LNS11300000']) {
+                const participationData = data['LNS11300000'];
+                traces.push({
+                    x: participationData.labels || [],
+                    y: participationData.values || [],
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'Labor Force Participation Rate',
+                    line: { color: '#00ccff', width: 2, dash: 'dot' },
+                    yaxis: 'y'
+                });
+            }
+            
+            const layout = {
+                title: 'U.S. Employment Indicators - Historical Trends (Real BLS Data)',
+                paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
+                font: { color: '#fff' },
+                xaxis: {
+                    title: 'Date',
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' }
+                },
+                yaxis: {
+                    title: 'Percentage (%)',
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' },
+                    side: 'left'
+                },
+                yaxis2: {
+                    title: 'Payrolls (Millions)',
+                    overlaying: 'y',
+                    side: 'right',
+                    gridcolor: 'rgba(255, 255, 255, 0.05)',
+                    tickfont: { color: '#00ff88' }
+                },
+                legend: {
+                    font: { color: '#fff' },
+                    bgcolor: 'rgba(0, 0, 0, 0.5)',
+                    bordercolor: 'rgba(255, 255, 255, 0.2)',
+                    borderwidth: 1
+                },
+                hovermode: 'x unified'
+            };
+            
+            Plotly.newPlot('mainChart', traces, layout, {responsive: true});
+        }
+        
+        // Update category chart
+        function updateCategoryChart(chartId, data, category) {
+            const chartDiv = document.getElementById(chartId);
+            if (!chartDiv) return;
+            
+            const traces = [];
+            let count = 0;
+            const maxSeries = 5; // Limit to 5 series for readability
+            
+            Object.entries(data).forEach(([seriesId, seriesData]) => {
+                if (count < maxSeries && seriesData.labels && seriesData.values) {
+                    traces.push({
+                        x: seriesData.labels,
+                        y: seriesData.values,
+                        type: 'scatter',
+                        mode: 'lines',
+                        name: seriesData.title || seriesId,
+                        line: { width: 2 }
+                    });
+                    count++;
+                }
+            });
+            
+            const layout = {
+                title: `${category} - Historical Data (Real BLS)`,
                 paper_bgcolor: 'rgba(0, 0, 0, 0)',
                 plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
                 font: { color: '#fff' },
@@ -1335,281 +1326,746 @@
                     gridcolor: 'rgba(255, 255, 255, 0.1)',
                     tickfont: { color: '#888' }
                 },
-                showlegend: true,
-                legend: {
-                    orientation: 'h',
-                    y: -0.15
+                legend: { font: { color: '#fff' } },
+                hovermode: 'x unified'
+            };
+            
+            Plotly.newPlot(chartId, traces, layout, {responsive: true});
+        }
+        
+        // Update sectors chart with bar chart
+        function updateSectorsChart(data) {
+            const chartDiv = document.getElementById('sectorsChart');
+            if (!chartDiv) return;
+            
+            const sectorNames = [];
+            const currentValues = [];
+            
+            Object.entries(data).forEach(([seriesId, seriesData]) => {
+                if (seriesData.latest) {
+                    sectorNames.push(seriesData.title || seriesId);
+                    currentValues.push(seriesData.latest.value / 1000); // Convert to thousands
+                }
+            });
+            
+            const trace = {
+                x: sectorNames,
+                y: currentValues,
+                type: 'bar',
+                marker: {
+                    color: currentValues.map((v, i) => {
+                        const colors = ['#00ff88', '#00ccff', '#ffaa00', '#ff4444', '#ff00ff'];
+                        return colors[i % colors.length];
+                    })
+                },
+                text: currentValues.map(v => `${v.toFixed(1)}K`),
+                textposition: 'outside'
+            };
+            
+            const layout = {
+                title: 'Employment by Sector (Thousands)',
+                paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
+                font: { color: '#fff' },
+                xaxis: {
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888', size: 10 },
+                    tickangle: -45
+                },
+                yaxis: {
+                    title: 'Employment (Thousands)',
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' }
+                },
+                showlegend: false
+            };
+            
+            Plotly.newPlot('sectorsChart', [trace], layout, {responsive: true});
+        }
+        
+        // Update states map chart
+        function updateStatesMapChart(data) {
+            const chartDiv = document.getElementById('statesChart');
+            if (!chartDiv) return;
+            
+            // For now, show top/bottom states as bar chart
+            const stateData = [];
+            Object.entries(data).forEach(([seriesId, seriesData]) => {
+                if (seriesData.latest) {
+                    stateData.push({
+                        name: seriesData.title || seriesId,
+                        value: seriesData.latest.value
+                    });
+                }
+            });
+            
+            // Sort and get top 10 and bottom 10
+            stateData.sort((a, b) => a.value - b.value);
+            const displayData = [...stateData.slice(0, 10), ...stateData.slice(-10)];
+            
+            const trace = {
+                x: displayData.map(d => d.name),
+                y: displayData.map(d => d.value),
+                type: 'bar',
+                marker: {
+                    color: displayData.map(d => d.value > 5 ? '#ff4444' : d.value > 3 ? '#ffaa00' : '#00ff88')
                 }
             };
             
-            const config = {
-                responsive: true,
-                displayModeBar: true
+            const layout = {
+                title: 'State Unemployment Rates - Top & Bottom 10',
+                paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
+                font: { color: '#fff' },
+                xaxis: {
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888', size: 9 },
+                    tickangle: -45
+                },
+                yaxis: {
+                    title: 'Unemployment Rate (%)',
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' }
+                }
             };
             
-            // Initialize placeholder charts
-            ['unemploymentChart', 'payrollChart', 'joltsChart'].forEach(chartId => {
-                if (document.getElementById(chartId)) {
-                    Plotly.newPlot(chartId, [], chartConfig, config);
+            Plotly.newPlot('statesChart', [trace], layout, {responsive: true});
+        }
+        
+        // Update crisis chart
+        function updateCrisisChart() {
+            const chartDiv = document.getElementById('crisisChart');
+            if (!chartDiv || !blsData.crisis) return;
+            
+            // Create crisis indicator visualization
+            const crisisData = blsData.crisis;
+            const currentRate = crisisData.current_unemployment_rate || 0;
+            
+            // Historical comparison data
+            const trace = {
+                x: ['Current', '2008 Crisis', '2020 COVID', 'Normal'],
+                y: [currentRate, 10.0, 14.7, 4.0],
+                type: 'bar',
+                marker: {
+                    color: [
+                        currentRate >= 7 ? '#ff0000' : currentRate >= 5 ? '#ffaa00' : '#00ff88',
+                        '#ff0000',
+                        '#ff0000',
+                        '#00ff88'
+                    ]
+                },
+                text: [
+                    `${currentRate}%`,
+                    '10.0%',
+                    '14.7%',
+                    '4.0%'
+                ],
+                textposition: 'outside'
+            };
+            
+            const layout = {
+                title: 'Crisis Level Comparison',
+                paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
+                font: { color: '#fff' },
+                xaxis: {
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' }
+                },
+                yaxis: {
+                    title: 'Unemployment Rate (%)',
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' },
+                    range: [0, 16]
+                },
+                showlegend: false
+            };
+            
+            Plotly.newPlot('crisisChart', [trace], layout, {responsive: true});
+        }
+        
+        // Update crisis analysis
+        function updateCrisisAnalysis() {
+            const crisis = blsData.crisis;
+            if (!crisis) return;
+            
+            // Update crisis level indicator
+            const crisisLevel = document.getElementById('crisisLevel');
+            const level = crisis.crisis_level || 'UNKNOWN';
+            
+            crisisLevel.textContent = level.toUpperCase();
+            crisisLevel.className = `crisis-level ${
+                level === 'Severe Crisis' ? 'crisis-severe' :
+                level === 'Crisis' ? 'crisis-warning' :
+                level === 'Elevated' ? 'crisis-elevated' :
+                'crisis-normal'
+            }`;
+            
+            // Update crisis alerts
+            const alertSummary = document.getElementById('crisisAlertSummary');
+            const alertDetail = document.getElementById('crisisDetailAlert');
+            
+            if (crisis.current_unemployment_rate >= 7) {
+                if (alertSummary) {
+                    alertSummary.style.display = 'block';
+                    document.getElementById('crisisMessage').innerHTML = `
+                        <p>Unemployment Rate: ${crisis.current_unemployment_rate}%</p>
+                        <p>Crisis Level: ${crisis.crisis_level}</p>
+                        <p>Trend: ${crisis.trend || 'Unknown'}</p>
+                        ${crisis.risk_factors ? `<p>Risk Factors: ${crisis.risk_factors.join(', ')}</p>` : ''}
+                    `;
                 }
+                
+                if (alertDetail) {
+                    alertDetail.style.display = 'block';
+                    document.getElementById('crisisDetailMessage').innerHTML = `
+                        <p><strong>Current Rate:</strong> ${crisis.current_unemployment_rate}%</p>
+                        <p><strong>Crisis Thresholds:</strong></p>
+                        <ul>
+                            <li>Normal: < 5%</li>
+                            <li>Elevated: 5-7%</li>
+                            <li>Crisis: 7-10%</li>
+                            <li>Severe: ≥ 10%</li>
+                        </ul>
+                        <p><strong>Historical Context:</strong></p>
+                        <ul>
+                            <li>2008 Financial Crisis Peak: 10.0%</li>
+                            <li>2020 COVID Peak: 14.7%</li>
+                        </ul>
+                    `;
+                }
+            } else {
+                if (alertSummary) alertSummary.style.display = 'none';
+                if (alertDetail) alertDetail.style.display = 'none';
+            }
+            
+            // Update crisis grid
+            updateCrisisGrid();
+        }
+        
+        // Update crisis indicators grid
+        function updateCrisisGrid() {
+            const grid = document.getElementById('crisisGrid');
+            if (!grid || !blsData.crisis) return;
+            
+            grid.innerHTML = '';
+            
+            const crisis = blsData.crisis;
+            const indicators = [
+                {
+                    name: 'Current Unemployment',
+                    value: crisis.current_unemployment_rate,
+                    threshold: 5,
+                    units: '%'
+                },
+                {
+                    name: 'Crisis Level',
+                    value: crisis.crisis_level,
+                    threshold: 'Normal',
+                    units: ''
+                },
+                {
+                    name: 'Trend Direction',
+                    value: crisis.trend,
+                    threshold: 'stable',
+                    units: ''
+                },
+                {
+                    name: 'Labor Market Health',
+                    value: crisis.labor_market_health?.overall_rating,
+                    threshold: 'Good',
+                    units: ''
+                }
+            ];
+            
+            indicators.forEach(indicator => {
+                const card = document.createElement('div');
+                card.className = 'data-card';
+                
+                const isAlert = (typeof indicator.value === 'number' && indicator.value > indicator.threshold) ||
+                               (indicator.value === 'increasing' || indicator.value === 'Poor');
+                
+                card.innerHTML = `
+                    <div class="data-card-header">
+                        <div class="data-title">${indicator.name}</div>
+                        <div class="data-source">${isAlert ? '⚠️ ALERT' : '✅ OK'}</div>
+                    </div>
+                    <div class="data-value ${isAlert ? 'negative' : 'positive'}">
+                        ${indicator.value}${indicator.units}
+                    </div>
+                    <div class="data-change">
+                        <span>Threshold: ${indicator.threshold}${indicator.units}</span>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
             });
         }
         
-        // Update historical charts
-        function updateHistoricalCharts(chartData) {
-            if (!chartData) return;
+        // Update crisis banner
+        function updateCrisisBanner() {
+            const banner = document.getElementById('crisisPhaseBanner');
+            if (!banner || !blsData.crisis) return;
             
-            // Unemployment Rate Chart
-            const unemploymentData = chartData['LNS14000000'];
-            if (unemploymentData) {
-                const trace = {
-                    x: unemploymentData.labels,
-                    y: unemploymentData.values,
-                    type: 'scatter',
-                    mode: 'lines',
-                    name: 'Unemployment Rate (%)',
-                    line: { color: BLS_CONFIG.CHART_COLORS.danger, width: 2 }
-                };
-                
-                Plotly.newPlot('unemploymentChart', [trace], {
-                    title: 'U.S. Unemployment Rate - Historical Data',
-                    paper_bgcolor: 'rgba(0, 0, 0, 0)',
-                    plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
-                    font: { color: '#fff' },
-                    xaxis: { gridcolor: 'rgba(255, 255, 255, 0.1)' },
-                    yaxis: { 
-                        gridcolor: 'rgba(255, 255, 255, 0.1)',
-                        title: 'Unemployment Rate (%)'
-                    }
-                });
+            const rate = blsData.crisis.current_unemployment_rate || 0;
+            let message = '';
+            
+            if (rate >= 10) {
+                message = '🚨 SEVERE CRISIS: UNEMPLOYMENT CRITICAL';
+            } else if (rate >= 7) {
+                message = '🔴 CRISIS MODE: ELEVATED UNEMPLOYMENT';
+            } else if (rate >= 5) {
+                message = '🟡 WARNING: UNEMPLOYMENT RISING';
+            } else if (rate >= 0) {
+                message = `🟢 NORMAL: UNEMPLOYMENT AT ${rate.toFixed(1)}%`;
+            } else {
+                message = '📊 BLS EMPLOYMENT STATUS: LOADING...';
             }
             
-            // Payroll Chart
-            const payrollData = chartData['CES0000000001'];
-            if (payrollData) {
-                const trace = {
-                    x: payrollData.labels,
-                    y: payrollData.values.map(v => v / 1000), // Convert to millions
-                    type: 'scatter',
-                    mode: 'lines',
-                    name: 'Total Nonfarm Payrolls (Millions)',
-                    line: { color: BLS_CONFIG.CHART_COLORS.primary, width: 2 }
-                };
-                
-                Plotly.newPlot('payrollChart', [trace], {
-                    title: 'Total Nonfarm Payrolls - Historical Data',
-                    paper_bgcolor: 'rgba(0, 0, 0, 0)',
-                    plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
-                    font: { color: '#fff' },
-                    xaxis: { gridcolor: 'rgba(255, 255, 255, 0.1)' },
-                    yaxis: { 
-                        gridcolor: 'rgba(255, 255, 255, 0.1)',
-                        title: 'Jobs (Millions)'
-                    }
-                });
-            }
-            
-            // JOLTS Chart
-            const joltsOpenings = chartData['JTS00000000JOL'];
-            const joltsQuits = chartData['JTS00000000QUR'];
-            
-            if (joltsOpenings || joltsQuits) {
-                const traces = [];
-                
-                if (joltsOpenings) {
-                    traces.push({
-                        x: joltsOpenings.labels,
-                        y: joltsOpenings.values.map(v => v / 1000),
-                        type: 'scatter',
-                        mode: 'lines',
-                        name: 'Job Openings (Millions)',
-                        line: { color: BLS_CONFIG.CHART_COLORS.secondary, width: 2 }
-                    });
-                }
-                
-                if (joltsQuits) {
-                    traces.push({
-                        x: joltsQuits.labels,
-                        y: joltsQuits.values.map(v => v / 1000),
-                        type: 'scatter',
-                        mode: 'lines',
-                        name: 'Quits (Millions)',
-                        line: { color: BLS_CONFIG.CHART_COLORS.tertiary, width: 2 }
-                    });
-                }
-                
-                Plotly.newPlot('joltsChart', traces, {
-                    title: 'JOLTS - Job Market Dynamics',
-                    paper_bgcolor: 'rgba(0, 0, 0, 0)',
-                    plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
-                    font: { color: '#fff' },
-                    xaxis: { gridcolor: 'rgba(255, 255, 255, 0.1)' },
-                    yaxis: { 
-                        gridcolor: 'rgba(255, 255, 255, 0.1)',
-                        title: 'Number (Millions)'
-                    }
-                });
-            }
+            banner.textContent = message;
         }
         
-        // Show metric details
-        function showMetricDetails(metricId, metric) {
-            alert(`${metric.title}\n\nCurrent Value: ${metric.current}\nCategory: ${metric.category}\nLast Updated: ${metric.last_updated}`);
-        }
-        
-        // Show series chart
-        function showSeriesChart(seriesId, data) {
-            // Switch to historical tab and highlight this series
-            switchTab('historical');
+        // Update chart period
+        window.updateChartPeriod = function(period) {
+            blsData.chartPeriod = period;
             
-            // Could implement a modal or dedicated view here
-            console.log('Showing chart for:', seriesId, data);
+            // Update button states
+            document.querySelectorAll('.chart-control-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Determine start year based on period
+            let startYear = new Date().getFullYear();
+            switch(period) {
+                case '1y':
+                    startYear = new Date().getFullYear() - 1;
+                    break;
+                case '5y':
+                    startYear = new Date().getFullYear() - 5;
+                    break;
+                case '10y':
+                    startYear = new Date().getFullYear() - 10;
+                    break;
+                case 'all':
+                    startYear = 2000;
+                    break;
+            }
+            
+            // Reload data with new period
+            const activeTab = document.querySelector('.tab-btn.active').dataset.tab;
+            const mode = getModeFromTab(activeTab);
+            loadBLSData(mode, startYear);
+        };
+        
+        // Get mode from tab
+        function getModeFromTab(tabId) {
+            const modeMap = {
+                'overview': 'core',
+                'core': 'core',
+                'demographics': 'demographics',
+                'states': 'states',
+                'jolts': 'jolts',
+                'payroll': 'payroll',
+                'sectors': 'sectors',
+                'costs': 'costs',
+                'alternative': 'alternative',
+                'inflation': 'inflation',
+                'crisis': 'core' // Use core data for crisis analysis
+            };
+            
+            return modeMap[tabId] || 'core';
         }
         
         // Setup event listeners
         function setupEventListeners() {
-            console.log('Setting up event listeners...');
-            
             // Tab navigation
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
-                    console.log('Tab clicked:', e.target.dataset.tab);
-                    switchTab(e.target.dataset.tab);
+                    // Update active tab
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    
+                    // Show corresponding content
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    const tabId = e.target.dataset.tab;
+                    document.getElementById(tabId).classList.add('active');
+                    
+                    // Load data for this tab
+                    const mode = getModeFromTab(tabId);
+                    loadBLSData(mode);
                 });
             });
             
-            // Mode selection - Fixed to handle button clicks properly
-            document.querySelectorAll('.mode-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    console.log('Mode button clicked:', e.target);
-                    
-                    // Handle clicks on the button or its child elements
-                    let target = e.target;
-                    let mode = target.dataset.mode;
-                    
-                    // If clicked on child element, get parent button
-                    if (!mode && target.parentElement.classList.contains('mode-btn')) {
-                        target = target.parentElement;
-                        mode = target.dataset.mode;
-                    }
-                    
-                    if (mode) {
-                        console.log('Switching to mode:', mode);
-                        switchMode(mode);
-                    } else {
-                        console.log('No mode found for target:', target);
-                    }
+            // Add refresh button
+            const refreshBtn = document.createElement('button');
+            refreshBtn.textContent = '🔄 Refresh Data';
+            refreshBtn.style.cssText = 'position: fixed; bottom: 20px; right: 20px; padding: 10px 20px; background: #00ff88; color: #000; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; z-index: 1000;';
+            refreshBtn.onclick = () => {
+                refreshBtn.disabled = true;
+                refreshBtn.textContent = 'Updating...';
+                
+                const activeTab = document.querySelector('.tab-btn.active').dataset.tab;
+                const mode = getModeFromTab(activeTab);
+                
+                loadBLSData(mode).then(() => {
+                    refreshBtn.textContent = '✅ Updated!';
+                    setTimeout(() => {
+                        refreshBtn.textContent = '🔄 Refresh Data';
+                        refreshBtn.disabled = false;
+                    }, 2000);
+                }).catch(() => {
+                    refreshBtn.textContent = '❌ Error';
+                    setTimeout(() => {
+                        refreshBtn.textContent = '🔄 Refresh Data';
+                        refreshBtn.disabled = false;
+                    }, 2000);
                 });
-            });
-            
-            // Chart controls
-            document.querySelectorAll('.chart-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    console.log('Chart button clicked:', e.target.dataset.period);
-                    updateChartPeriod(e.target.dataset.period);
-                });
-            });
-            
-            console.log('Event listeners set up successfully');
-        }
-        
-        // Switch tab
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
-            
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            document.getElementById(tabId).classList.add('active');
-            
-            activeTab = tabId;
-            
-            // Load tab-specific data
-            if (tabId === 'historical') {
-                updateHistoricalCharts(currentData.overview.chart_data || {});
-            }
-        }
-        
-        // Switch mode
-        function switchMode(mode) {
-            console.log('switchMode called with:', mode);
-            
-            if (!mode) {
-                console.error('No mode provided to switchMode');
-                return;
-            }
-            
-            // Update active button
-            document.querySelectorAll('.mode-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.dataset.mode === mode) {
-                    btn.classList.add('active');
-                    console.log('Set active mode button:', mode);
-                }
-            });
-            
-            // Update current mode
-            currentData.currentMode = mode;
-            
-            // Show loading state
-            showLoading('keyMetrics');
-            showLoading('overviewGrid');
-            
-            // Update header to show current mode
-            const banner = document.getElementById('employmentPhaseBanner');
-            if (banner) {
-                banner.textContent = `📊 LOADING ${mode.toUpperCase()} EMPLOYMENT DATA...`;
-                banner.className = 'employment-phase-banner';
-            }
-            
-            // Load new data for the selected mode
-            console.log('Loading BLS data for mode:', mode);
-            loadBLSData(mode);
-        }
-        
-        // Update chart period
-        function updateChartPeriod(period) {
-            document.querySelectorAll('.chart-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`[data-period="${period}"]`).classList.add('active');
-            
-            // Implement period filtering logic here
-            console.log('Updating chart period to:', period);
-        }
-        
-        // Start auto-refresh
-        function startAutoRefresh() {
-            updateInterval = setInterval(() => {
-                console.log('🔄 Auto-refreshing BLS data...');
-                loadBLSData(currentData.currentMode);
-            }, BLS_CONFIG.UPDATE_INTERVAL);
-        }
-        
-        // Show loading state
-        function showLoading(elementId) {
-            const element = document.getElementById(elementId);
-            if (element) {
-                element.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
-            }
+            };
+            document.body.appendChild(refreshBtn);
         }
         
         // Show error message
-        function showError(elementId, message) {
-            const element = document.getElementById(elementId);
-            if (element) {
-                element.innerHTML = `<div class="message error-message">${message}</div>`;
+        function showError(message) {
+            console.error('❌ Error:', message);
+            
+            // Create error notification
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.style.cssText = 'position: fixed; top: 100px; right: 20px; z-index: 9999; max-width: 300px;';
+            errorDiv.textContent = message;
+            
+            document.body.appendChild(errorDiv);
+            
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 5000);
+        }
+        
+        // Handle data loading states
+        function setLoadingState(gridId, loading = true) {
+            const grid = document.getElementById(gridId);
+            if (!grid) return;
+            
+            if (loading) {
+                grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
             }
         }
         
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', initializePlatform);
+        // Fetch all available modes on startup
+        async function fetchAllModes() {
+            console.log('📊 Fetching all BLS data modes...');
+            
+            const modes = ['core', 'demographics', 'states', 'jolts', 'payroll', 'sectors', 'costs', 'alternative', 'inflation'];
+            
+            for (const mode of modes) {
+                try {
+                    console.log(`Loading ${mode} data...`);
+                    await loadBLSData(mode);
+                    
+                    // Small delay between requests to avoid overwhelming the API
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                } catch (error) {
+                    console.error(`Failed to load ${mode} data:`, error);
+                }
+            }
+            
+            console.log('✅ All BLS data modes loaded');
+        }
+        
+        // Enhanced error handling and retry logic
+        async function fetchWithRetry(url, options = {}, maxRetries = 3) {
+            let lastError;
+            
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await axios.request({
+                        url,
+                        ...options,
+                        timeout: 30000 // 30 second timeout
+                    });
+                    
+                    return response;
+                } catch (error) {
+                    lastError = error;
+                    console.warn(`Retry ${i + 1}/${maxRetries} for ${url}`);
+                    
+                    // Wait before retrying (exponential backoff)
+                    await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+                }
+            }
+            
+            throw lastError;
+        }
+        
+        // Monitor API health
+        async function monitorAPIHealth() {
+            setInterval(async () => {
+                try {
+                    const response = await axios.get(BLS_CONFIG.API_URL, { timeout: 5000 });
+                    
+                    if (response.data && response.data.success) {
+                        document.getElementById('blsApiStatus').className = 'status-dot connected';
+                    } else {
+                        document.getElementById('blsApiStatus').className = 'status-dot error';
+                    }
+                } catch (error) {
+                    document.getElementById('blsApiStatus').className = 'status-dot error';
+                }
+            }, 30000); // Check every 30 seconds
+        }
+        
+        // Add keyboard shortcuts
+        function setupKeyboardShortcuts() {
+            document.addEventListener('keydown', (e) => {
+                // Ctrl/Cmd + R to refresh
+                if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+                    e.preventDefault();
+                    const activeTab = document.querySelector('.tab-btn.active').dataset.tab;
+                    const mode = getModeFromTab(activeTab);
+                    loadBLSData(mode);
+                }
+                
+                // Number keys 1-9 to switch tabs
+                if (e.key >= '1' && e.key <= '9' && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
+                    const tabIndex = parseInt(e.key) - 1;
+                    const tabs = document.querySelectorAll('.tab-btn');
+                    if (tabs[tabIndex]) {
+                        tabs[tabIndex].click();
+                    }
+                }
+                
+                // Arrow keys to navigate tabs
+                if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                    const tabs = Array.from(document.querySelectorAll('.tab-btn'));
+                    const currentIndex = tabs.findIndex(tab => tab.classList.contains('active'));
+                    let newIndex;
+                    
+                    if (e.key === 'ArrowLeft') {
+                        newIndex = currentIndex > 0 ? currentIndex - 1 : tabs.length - 1;
+                    } else {
+                        newIndex = currentIndex < tabs.length - 1 ? currentIndex + 1 : 0;
+                    }
+                    
+                    if (tabs[newIndex]) {
+                        tabs[newIndex].click();
+                    }
+                }
+            });
+        }
+        
+        // Export data functionality
+        function exportData() {
+            const dataToExport = {
+                timestamp: new Date().toISOString(),
+                crisis_analysis: blsData.crisis,
+                current_metrics: blsData.current,
+                statistics: blsData.stats,
+                source: 'U.S. Bureau of Labor Statistics',
+                api_endpoint: BLS_CONFIG.API_URL,
+                export_info: {
+                    format: 'JSON',
+                    version: '2.0',
+                    includes: ['current_values', 'historical_data', 'crisis_analysis']
+                }
+            };
+            
+            const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `bls-data-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            // Show success message
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success-message';
+            successDiv.style.cssText = 'position: fixed; bottom: 70px; left: 20px; z-index: 9999;';
+            successDiv.textContent = '✅ Data exported successfully!';
+            document.body.appendChild(successDiv);
+            
+            setTimeout(() => {
+                successDiv.remove();
+            }, 3000);
+        }
+        
+        // Add export button
+        function addExportButton() {
+            const exportBtn = document.createElement('button');
+            exportBtn.textContent = '📥 Export Data';
+            exportBtn.style.cssText = 'position: fixed; bottom: 20px; left: 20px; padding: 10px 20px; background: #00ccff; color: #000; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; z-index: 1000;';
+            exportBtn.onclick = exportData;
+            document.body.appendChild(exportBtn);
+        }
+        
+        // Add fullscreen button
+        function addFullscreenButton() {
+            const fullscreenBtn = document.createElement('button');
+            fullscreenBtn.textContent = '⛶ Fullscreen';
+            fullscreenBtn.style.cssText = 'position: fixed; top: 20px; right: 20px; padding: 10px 20px; background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; cursor: pointer; font-weight: bold; z-index: 1000;';
+            
+            fullscreenBtn.onclick = () => {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                    fullscreenBtn.textContent = '✕ Exit Fullscreen';
+                } else {
+                    document.exitFullscreen();
+                    fullscreenBtn.textContent = '⛶ Fullscreen';
+                }
+            };
+            
+            document.body.appendChild(fullscreenBtn);
+        }
+        
+        // Create demo mode for testing
+        function createDemoData() {
+            // Generate demo data if API is unavailable
+            const demoData = {
+                current: {
+                    core: {
+                        'LNS14000000': {
+                            title: 'Unemployment Rate (U-3)',
+                            current: 4.2,
+                            units: 'Percent',
+                            category: 'Core Employment',
+                            last_updated: '2025-08-01'
+                        },
+                        'CES0000000001': {
+                            title: 'Total Nonfarm Payrolls',
+                            current: 159000,
+                            units: 'Thousands',
+                            category: 'Employment',
+                            last_updated: '2025-08-01'
+                        },
+                        'LNS11300000': {
+                            title: 'Labor Force Participation Rate',
+                            current: 63.5,
+                            units: 'Percent',
+                            category: 'Core Employment',
+                            last_updated: '2025-08-01'
+                        }
+                    }
+                },
+                historical: {
+                    core: {
+                        'LNS14000000': {
+                            labels: ['2024-01', '2024-02', '2024-03', '2024-04', '2024-05', '2024-06'],
+                            values: [3.9, 3.8, 3.9, 4.0, 4.1, 4.2],
+                            title: 'Unemployment Rate (U-3)'
+                        }
+                    }
+                },
+                crisis: {
+                    current_unemployment_rate: 4.2,
+                    crisis_level: 'Normal',
+                    trend: 'stable',
+                    risk_factors: [],
+                    labor_market_health: {
+                        overall_rating: 'Good',
+                        trend: 'stable'
+                    }
+                },
+                stats: {
+                    series_fetched: 11,
+                    total_data_points: 614,
+                    success_rate: '100%'
+                }
+            };
+            
+            return demoData;
+        }
+        
+        // Initialize everything on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🚀 BLS Employment Crisis Detection Platform Starting...');
+            console.log('📡 API Endpoint:', BLS_CONFIG.API_URL);
+            console.log('⏱️ Auto-Update Interval:', BLS_CONFIG.UPDATE_INTERVAL / 1000, 'seconds');
+            console.log('📊 Chart Update Interval:', BLS_CONFIG.CHART_UPDATE_INTERVAL / 1000, 'seconds');
+            
+            try {
+                // Initialize platform
+                await initializePlatform();
+                
+                console.log('✅ BLS Platform fully initialized and displaying real federal data');
+                console.log('📊 Data Source: U.S. Bureau of Labor Statistics (BLS)');
+                console.log('🔄 Auto-updates enabled - Data refreshes every 30 seconds');
+                
+                // Show welcome message
+                const welcomeDiv = document.createElement('div');
+                welcomeDiv.className = 'success-message';
+                welcomeDiv.style.cssText = 'position: fixed; top: 100px; left: 50%; transform: translateX(-50%); z-index: 9999; padding: 20px; font-size: 1.1rem;';
+                welcomeDiv.textContent = '✅ Connected to BLS API - Real Federal Data Loading...';
+                document.body.appendChild(welcomeDiv);
+                
+                setTimeout(() => {
+                    welcomeDiv.remove();
+                }, 3000);
+                
+            } catch (error) {
+                console.error('❌ Failed to initialize platform:', error);
+                
+                // Load demo data as fallback
+                console.log('📊 Loading demo data as fallback...');
+                blsData = createDemoData();
+                updateDisplays('core');
+                updateCharts('core');
+                updateCrisisAnalysis();
+                updateCrisisBanner();
+                
+                showError('Unable to connect to BLS API. Showing demo data.');
+            }
+            
+            // Add fullscreen button
+            addFullscreenButton();
+        });
         
         // Cleanup on page unload
         window.addEventListener('beforeunload', () => {
-            if (updateInterval) {
-                clearInterval(updateInterval);
+            if (autoUpdateInterval) {
+                clearInterval(autoUpdateInterval);
+                console.log('🛑 Auto-update stopped');
+            }
+            if (chartUpdateInterval) {
+                clearInterval(chartUpdateInterval);
+                console.log('🛑 Chart update stopped');
             }
         });
+        
+        // Handle visibility change
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                // Pause updates when tab is not visible
+                if (autoUpdateInterval) {
+                    clearInterval(autoUpdateInterval);
+                    autoUpdateInterval = null;
+                }
+                if (chartUpdateInterval) {
+                    clearInterval(chartUpdateInterval);
+                    chartUpdateInterval = null;
+                }
+                console.log('⏸️ Updates paused (tab hidden)');
+            } else {
+                // Resume updates when tab becomes visible
+                if (!autoUpdateInterval && !chartUpdateInterval) {
+                    startAutoUpdate();
+                    console.log('▶️ Updates resumed (tab visible)');
+                }
+            }
+        });
+        
+        // Log platform info
+        console.log('=====================================');
+        console.log('BLS Employment Crisis Detection v2.0');
+        console.log('Real-time Federal Employment Data');
+        console.log('200+ Economic Indicators');
+        console.log('Crisis Detection System Active');
+        console.log('=====================================');
     </script>
 </body>
 </html>
