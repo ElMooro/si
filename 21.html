@@ -899,8 +899,37 @@
         </div>
         
         <div class="tab-content" id="analysis">
-            <h3 style="color: #00ff88;">Comparative Analysis</h3>
-            <div id="analysisContent"></div>
+            <h3 style="color: #00ff88; margin-bottom: 1.5rem;">Comprehensive Economic Analysis</h3>
+            
+            <!-- Analysis Summary -->
+            <div class="chart-container" style="margin-bottom: 2rem;">
+                <h4 style="color: #00ff88; margin-bottom: 1rem;">Executive Summary</h4>
+                <div id="executiveSummary" style="color: #fff; line-height: 1.8; font-size: 1rem;">
+                    Analyzing data...
+                </div>
+            </div>
+            
+            <!-- Crisis Comparison Chart -->
+            <div class="chart-container">
+                <h4 style="color: #00ff88; margin-bottom: 1rem;">Current vs Historical & Crisis Levels</h4>
+                <canvas id="comparisonChart" style="height: 400px;"></canvas>
+            </div>
+            
+            <!-- Detailed Analysis Grid -->
+            <div style="margin-top: 2rem;">
+                <h4 style="color: #00ff88; margin-bottom: 1rem;">Detailed Indicator Analysis</h4>
+                <div id="analysisGrid" class="data-grid">
+                    <div class="loading"><div class="spinner"></div></div>
+                </div>
+            </div>
+            
+            <!-- Risk Assessment -->
+            <div class="chart-container" style="margin-top: 2rem;">
+                <h4 style="color: #00ff88; margin-bottom: 1rem;">Risk Assessment</h4>
+                <div id="riskAssessment" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                    <!-- Will be populated with risk metrics -->
+                </div>
+            </div>
         </div>
     </div>
     
@@ -1127,6 +1156,406 @@
             updateDataGrids();
             updateCharts();
             updateSummaryStatistics();
+            performComprehensiveAnalysis();
+        }
+        
+        // Perform comprehensive analysis
+        function performComprehensiveAnalysis() {
+            const allData = {};
+            const historicalMeans = {};
+            const currentValues = {};
+            
+            // Collect all current data
+            Object.values(blsData.current).forEach(modeData => {
+                Object.entries(modeData).forEach(([seriesId, data]) => {
+                    currentValues[seriesId] = {
+                        value: data.current || data.value || 0,
+                        title: getIndicatorName(seriesId, data.title),
+                        units: data.units || '',
+                        category: data.category || 'Unknown'
+                    };
+                });
+            });
+            
+            // Calculate historical means
+            Object.values(blsData.historical).forEach(modeData => {
+                Object.entries(modeData).forEach(([seriesId, data]) => {
+                    if (data.values && data.values.length > 0) {
+                        const mean = data.values.reduce((a, b) => a + b, 0) / data.values.length;
+                        const std = Math.sqrt(data.values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / data.values.length);
+                        
+                        historicalMeans[seriesId] = {
+                            mean: mean,
+                            std: std,
+                            max: Math.max(...data.values),
+                            min: Math.min(...data.values),
+                            latest: data.values[data.values.length - 1]
+                        };
+                    }
+                });
+            });
+            
+            // Define crisis thresholds
+            const crisisThresholds = {
+                'LNS14000000': { normal: 4.5, elevated: 5.5, crisis: 7.0, severe: 10.0 }, // Unemployment Rate
+                'CES0000000001': { normal: 150000, elevated: 145000, crisis: 140000, severe: 130000 }, // Nonfarm Payrolls
+                'LNS11300000': { normal: 63.0, elevated: 62.5, crisis: 62.0, severe: 60.0 }, // Labor Force Participation
+                'JTS00000000JOL': { normal: 7000, elevated: 6000, crisis: 5000, severe: 4000 }, // Job Openings
+                'CUUR0000SA0': { normal: 250, elevated: 270, crisis: 290, severe: 310 } // CPI
+            };
+            
+            // Generate executive summary
+            generateExecutiveSummary(currentValues, historicalMeans, crisisThresholds);
+            
+            // Create comparison chart
+            createComparisonChart(currentValues, historicalMeans, crisisThresholds);
+            
+            // Create detailed analysis grid
+            createAnalysisGrid(currentValues, historicalMeans, crisisThresholds);
+            
+            // Perform risk assessment
+            performRiskAssessment(currentValues, historicalMeans, crisisThresholds);
+        }
+        
+        // Generate executive summary
+        function generateExecutiveSummary(current, historical, thresholds) {
+            const summaryDiv = document.getElementById('executiveSummary');
+            if (!summaryDiv) return;
+            
+            let summary = '<div style="padding: 1rem; background: rgba(0, 0, 0, 0.3); border-radius: 8px;">';
+            
+            // Unemployment analysis
+            const unemploymentId = 'LNS14000000';
+            if (current[unemploymentId] && historical[unemploymentId]) {
+                const currentRate = current[unemploymentId].value;
+                const historicalMean = historical[unemploymentId].mean;
+                const deviation = ((currentRate - historicalMean) / historicalMean * 100).toFixed(1);
+                const threshold = thresholds[unemploymentId];
+                
+                let status = 'normal';
+                if (currentRate >= threshold.severe) status = 'severe crisis';
+                else if (currentRate >= threshold.crisis) status = 'crisis';
+                else if (currentRate >= threshold.elevated) status = 'elevated';
+                
+                summary += `<p><strong>Unemployment Rate:</strong> Currently at ${currentRate.toFixed(2)}%, which is ${Math.abs(deviation)}% ${deviation > 0 ? 'above' : 'below'} the historical mean of ${historicalMean.toFixed(2)}%. `;
+                summary += `Status: <span style="color: ${status === 'normal' ? '#00ff88' : status === 'elevated' ? '#ffaa00' : '#ff4444'}">${status.toUpperCase()}</span></p>`;
+            }
+            
+            // Employment analysis
+            const payrollId = 'CES0000000001';
+            if (current[payrollId] && historical[payrollId]) {
+                const currentPayroll = current[payrollId].value;
+                const historicalMean = historical[payrollId].mean;
+                const deviation = ((currentPayroll - historicalMean) / historicalMean * 100).toFixed(1);
+                
+                summary += `<p><strong>Nonfarm Payrolls:</strong> ${(currentPayroll/1000).toFixed(1)} million jobs, ${Math.abs(deviation)}% ${deviation > 0 ? 'above' : 'below'} historical average of ${(historicalMean/1000).toFixed(1)} million.</p>`;
+            }
+            
+            // Overall assessment
+            let overallRisk = 0;
+            let riskFactors = [];
+            
+            Object.keys(thresholds).forEach(seriesId => {
+                if (current[seriesId] && historical[seriesId]) {
+                    const value = current[seriesId].value;
+                    const mean = historical[seriesId].mean;
+                    const std = historical[seriesId].std;
+                    const threshold = thresholds[seriesId];
+                    
+                    // Check if value is outside 2 standard deviations
+                    if (Math.abs(value - mean) > 2 * std) {
+                        riskFactors.push(`${current[seriesId].title} is ${Math.abs((value - mean) / std).toFixed(1)} standard deviations from mean`);
+                        overallRisk++;
+                    }
+                    
+                    // Check crisis levels
+                    if (seriesId === unemploymentId && value >= threshold.elevated) {
+                        overallRisk += 2;
+                    }
+                }
+            });
+            
+            summary += '<p><strong>Overall Economic Assessment:</strong> ';
+            if (overallRisk === 0) {
+                summary += '<span style="color: #00ff88">STABLE - All indicators within normal ranges</span>';
+            } else if (overallRisk <= 2) {
+                summary += '<span style="color: #ffaa00">CAUTION - Some indicators showing stress</span>';
+            } else {
+                summary += '<span style="color: #ff4444">WARNING - Multiple indicators outside normal ranges</span>';
+            }
+            summary += '</p>';
+            
+            if (riskFactors.length > 0) {
+                summary += '<p><strong>Risk Factors:</strong></p><ul>';
+                riskFactors.forEach(factor => {
+                    summary += `<li>${factor}</li>`;
+                });
+                summary += '</ul>';
+            }
+            
+            // Historical context
+            summary += '<p><strong>Historical Context:</strong> ';
+            summary += 'For comparison, during the 2008 financial crisis, unemployment peaked at 10.0%. ';
+            summary += 'During the 2020 COVID crisis, it reached 14.7%. ';
+            summary += 'The long-term average unemployment rate is approximately 5.7%.</p>';
+            
+            summary += '</div>';
+            
+            summaryDiv.innerHTML = summary;
+        }
+        
+        // Create comparison chart
+        function createComparisonChart(current, historical, thresholds) {
+            const canvas = document.getElementById('comparisonChart');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            
+            // Destroy existing chart
+            if (window.chartInstances && window.chartInstances['comparisonChart']) {
+                window.chartInstances['comparisonChart'].destroy();
+            }
+            
+            // Prepare data for key indicators
+            const indicators = ['LNS14000000', 'CES0000000001', 'LNS11300000', 'JTS00000000JOL', 'CUUR0000SA0'];
+            const labels = [];
+            const currentData = [];
+            const meanData = [];
+            const crisisData = [];
+            
+            indicators.forEach(seriesId => {
+                if (current[seriesId] && historical[seriesId]) {
+                    labels.push(current[seriesId].title);
+                    
+                    // Normalize values to percentage of mean for comparison
+                    const currentVal = current[seriesId].value;
+                    const mean = historical[seriesId].mean;
+                    const crisis = thresholds[seriesId]?.crisis || mean * 1.5;
+                    
+                    currentData.push((currentVal / mean * 100).toFixed(2));
+                    meanData.push(100); // Mean is always 100%
+                    crisisData.push((crisis / mean * 100).toFixed(2));
+                }
+            });
+            
+            if (!window.chartInstances) window.chartInstances = {};
+            
+            window.chartInstances['comparisonChart'] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Current Value (% of mean)',
+                            data: currentData,
+                            backgroundColor: 'rgba(0, 255, 136, 0.6)',
+                            borderColor: 'rgba(0, 255, 136, 1)',
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Historical Mean (100%)',
+                            data: meanData,
+                            backgroundColor: 'rgba(0, 204, 255, 0.6)',
+                            borderColor: 'rgba(0, 204, 255, 1)',
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Crisis Level (% of mean)',
+                            data: crisisData,
+                            backgroundColor: 'rgba(255, 68, 68, 0.6)',
+                            borderColor: 'rgba(255, 68, 68, 1)',
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#fff' }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Current vs Historical Mean vs Crisis Levels (Normalized)',
+                            color: '#00ff88',
+                            font: { size: 14 }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            ticks: { color: '#888', maxRotation: 45, minRotation: 45 }
+                        },
+                        y: {
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            ticks: { color: '#888' },
+                            title: {
+                                display: true,
+                                text: 'Percentage of Historical Mean',
+                                color: '#888'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Create analysis grid
+        function createAnalysisGrid(current, historical, thresholds) {
+            const grid = document.getElementById('analysisGrid');
+            if (!grid) return;
+            
+            grid.innerHTML = '';
+            
+            Object.entries(current).slice(0, 20).forEach(([seriesId, data]) => {
+                const hist = historical[seriesId];
+                const threshold = thresholds[seriesId];
+                
+                if (hist) {
+                    const card = document.createElement('div');
+                    card.className = 'data-card';
+                    
+                    const deviationFromMean = ((data.value - hist.mean) / hist.mean * 100).toFixed(1);
+                    const stdDevs = ((data.value - hist.mean) / hist.std).toFixed(2);
+                    
+                    let status = 'normal';
+                    let statusColor = '#00ff88';
+                    
+                    if (Math.abs(parseFloat(stdDevs)) > 2) {
+                        status = 'abnormal';
+                        statusColor = '#ffaa00';
+                    }
+                    
+                    if (threshold) {
+                        if (data.value >= threshold.severe || data.value <= threshold.severe) {
+                            status = 'severe';
+                            statusColor = '#ff0000';
+                        } else if (data.value >= threshold.crisis || data.value <= threshold.crisis) {
+                            status = 'crisis';
+                            statusColor = '#ff4444';
+                        } else if (data.value >= threshold.elevated || data.value <= threshold.elevated) {
+                            status = 'elevated';
+                            statusColor = '#ffaa00';
+                        }
+                    }
+                    
+                    card.innerHTML = `
+                        <div class="data-card-header">
+                            <div class="data-title">${data.title}</div>
+                            <div class="data-source" style="background: ${statusColor}20; color: ${statusColor}">
+                                ${status.toUpperCase()}
+                            </div>
+                        </div>
+                        <div class="data-value">${formatValue(data.value, data.units)}</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 1rem;">
+                            <div style="background: rgba(0, 0, 0, 0.3); padding: 0.5rem; border-radius: 4px;">
+                                <div style="font-size: 0.75rem; color: #888;">Historical Mean</div>
+                                <div style="font-weight: bold;">${formatValue(hist.mean, data.units)}</div>
+                            </div>
+                            <div style="background: rgba(0, 0, 0, 0.3); padding: 0.5rem; border-radius: 4px;">
+                                <div style="font-size: 0.75rem; color: #888;">Deviation</div>
+                                <div style="font-weight: bold; color: ${deviationFromMean > 0 ? '#ff4444' : '#00ff88'}">
+                                    ${deviationFromMean > 0 ? '+' : ''}${deviationFromMean}%
+                                </div>
+                            </div>
+                            <div style="background: rgba(0, 0, 0, 0.3); padding: 0.5rem; border-radius: 4px;">
+                                <div style="font-size: 0.75rem; color: #888;">Std Devs</div>
+                                <div style="font-weight: bold;">${stdDevs}σ</div>
+                            </div>
+                            <div style="background: rgba(0, 0, 0, 0.3); padding: 0.5rem; border-radius: 4px;">
+                                <div style="font-size: 0.75rem; color: #888;">Historical Range</div>
+                                <div style="font-weight: bold; font-size: 0.75rem;">
+                                    ${formatValue(hist.min, data.units)} - ${formatValue(hist.max, data.units)}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    grid.appendChild(card);
+                }
+            });
+        }
+        
+        // Perform risk assessment
+        function performRiskAssessment(current, historical, thresholds) {
+            const riskDiv = document.getElementById('riskAssessment');
+            if (!riskDiv) return;
+            
+            riskDiv.innerHTML = '';
+            
+            // Calculate risk scores
+            const risks = {
+                unemployment: { score: 0, factors: [] },
+                employment: { score: 0, factors: [] },
+                inflation: { score: 0, factors: [] },
+                overall: { score: 0, factors: [] }
+            };
+            
+            // Unemployment risk
+            if (current['LNS14000000']) {
+                const rate = current['LNS14000000'].value;
+                if (rate >= 7) {
+                    risks.unemployment.score = 3;
+                    risks.unemployment.factors.push('Unemployment at crisis level');
+                } else if (rate >= 5.5) {
+                    risks.unemployment.score = 2;
+                    risks.unemployment.factors.push('Unemployment elevated');
+                } else if (rate >= 4.5) {
+                    risks.unemployment.score = 1;
+                    risks.unemployment.factors.push('Unemployment slightly elevated');
+                }
+            }
+            
+            // Employment risk
+            if (current['CES0000000001'] && historical['CES0000000001']) {
+                const payrolls = current['CES0000000001'].value;
+                const mean = historical['CES0000000001'].mean;
+                if (payrolls < mean * 0.95) {
+                    risks.employment.score = 2;
+                    risks.employment.factors.push('Payrolls below historical average');
+                }
+            }
+            
+            // Inflation risk
+            if (current['CUUR0000SA0'] && historical['CUUR0000SA0']) {
+                const cpi = current['CUUR0000SA0'].value;
+                const mean = historical['CUUR0000SA0'].mean;
+                const change = (cpi - mean) / mean * 100;
+                if (change > 10) {
+                    risks.inflation.score = 3;
+                    risks.inflation.factors.push('High inflation pressure');
+                } else if (change > 5) {
+                    risks.inflation.score = 2;
+                    risks.inflation.factors.push('Moderate inflation pressure');
+                }
+            }
+            
+            // Overall risk
+            risks.overall.score = Math.max(risks.unemployment.score, risks.employment.score, risks.inflation.score);
+            
+            // Create risk cards
+            Object.entries(risks).forEach(([category, risk]) => {
+                const card = document.createElement('div');
+                card.style.cssText = 'background: rgba(255, 255, 255, 0.05); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1);';
+                
+                const color = risk.score === 0 ? '#00ff88' : risk.score === 1 ? '#00ccff' : risk.score === 2 ? '#ffaa00' : '#ff4444';
+                const level = risk.score === 0 ? 'Low' : risk.score === 1 ? 'Moderate' : risk.score === 2 ? 'High' : 'Critical';
+                
+                card.innerHTML = `
+                    <h5 style="color: ${color}; margin-bottom: 0.5rem; text-transform: capitalize;">
+                        ${category} Risk: ${level}
+                    </h5>
+                    <div style="font-size: 2rem; font-weight: bold; color: ${color}; margin: 0.5rem 0;">
+                        ${risk.score}/3
+                    </div>
+                    <div style="font-size: 0.875rem; color: #888;">
+                        ${risk.factors.length > 0 ? risk.factors.join('<br>') : 'No significant risks detected'}
+                    </div>
+                `;
+                
+                riskDiv.appendChild(card);
+            });
         }
         
         // Update key metrics with percentage changes
@@ -1321,6 +1750,12 @@
             if (!canvas) return;
             
             const ctx = canvas.getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (window.chartInstances && window.chartInstances[canvasId]) {
+                window.chartInstances[canvasId].destroy();
+            }
+            
             const data = blsData.historical[category] || {};
             
             const datasets = [];
@@ -1337,12 +1772,16 @@
                         data: seriesData.values.slice(-24),
                         borderColor: getChartColor(index),
                         backgroundColor: getChartColor(index, 0.2),
-                        tension: 0.4
+                        tension: 0.4,
+                        fill: false
                     });
                 }
             });
             
-            new Chart(ctx, {
+            // Store chart instance globally
+            if (!window.chartInstances) window.chartInstances = {};
+            
+            window.chartInstances[canvasId] = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
@@ -1351,15 +1790,25 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
                     plugins: {
                         legend: {
-                            labels: { color: '#fff' }
+                            labels: { color: '#fff' },
+                            display: true,
+                            position: 'top'
                         },
                         title: {
                             display: true,
                             text: title,
                             color: '#00ff88',
                             font: { size: 16 }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
                         }
                     },
                     scales: {
