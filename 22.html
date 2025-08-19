@@ -1,1 +1,1453 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLS Employment Crisis Detection Platform</title>
+    
+    <!-- External Libraries -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.3.0/build/global/luxon.min.js"></script>
+    
+    <style>
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
+        
+        :root {
+            --primary: #00ff88;
+            --danger: #ff4444;
+            --warning: #ffaa00;
+            --info: #00aeef;
+            --bg-dark: #0a0a0a;
+            --bg-panel: #131313;
+            --bg-header: #121212;
+            --border: #282828;
+            --text-primary: #e0e0e0;
+            --text-secondary: #888;
+            --chart-bg: #0a0a0a;
+            --chart-grid: #22222250;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        
+        /* Header */
+        .header {
+            background: var(--bg-header);
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .logo {
+            font-size: 22px;
+            font-weight: bold;
+            background: linear-gradient(45deg, var(--primary), var(--info));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .header-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--danger);
+            animation: pulse 2s infinite;
+        }
+        
+        .status-dot.connected { 
+            background: var(--primary); 
+        }
+        
+        .status-dot.warning { 
+            background: var(--warning); 
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Main Container */
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            min-height: calc(100vh - 71px);
+        }
+        
+        /* Alert Bar */
+        .alert-bar {
+            background: linear-gradient(90deg, var(--danger), var(--warning));
+            color: white;
+            padding: 10px 20px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+        }
+        
+        .alert-bar.active {
+            display: flex;
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from { transform: translateY(-100%); }
+            to { transform: translateY(0); }
+        }
+        
+        /* Dashboard Grid */
+        .dashboard-content {
+            display: grid;
+            grid-template-columns: 1fr 3fr;
+            gap: 20px;
+            padding: 20px;
+            flex: 1;
+        }
+        
+        /* Control Panel */
+        .control-panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-height: calc(100vh - 111px);
+            overflow-y: auto;
+        }
+        
+        .control-section {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 15px;
+        }
+        
+        .control-section:last-child {
+            border-bottom: none;
+        }
+        
+        .control-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .control-input {
+            background: #222;
+            border: 1px solid #333;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+        
+        .control-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(0, 255, 136, 0.2);
+        }
+        
+        .control-btn {
+            background: linear-gradient(135deg, var(--primary), #00cc6a);
+            border: none;
+            color: black;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 13px;
+        }
+        
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.4);
+        }
+        
+        .control-btn:active {
+            transform: translateY(0);
+        }
+        
+        .control-btn.secondary {
+            background: #333;
+            color: white;
+        }
+        
+        .control-btn.danger {
+            background: linear-gradient(135deg, var(--danger), #ff6666);
+            color: white;
+        }
+        
+        /* Charts Area */
+        .charts-area {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+            max-height: calc(100vh - 111px);
+        }
+        
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 20px;
+        }
+        
+        /* Enhanced Chart Window */
+        .chart-window {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s;
+            min-height: 500px;
+        }
+        
+        .chart-window:hover {
+            border-color: #444;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.1);
+        }
+        
+        .chart-window.active-chart {
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+        }
+        
+        .chart-window.fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 10000;
+            border-radius: 0;
+            padding: 10px;
+            background: var(--bg-dark);
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .chart-title-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex-grow: 1;
+        }
+        
+        .chart-title {
+            font-size: 18px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .chart-symbols {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .chart-symbol-tag {
+            background: #252525;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid #333;
+        }
+        
+        .symbol-color-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        
+        .remove-symbol {
+            cursor: pointer;
+            color: var(--danger);
+            font-weight: bold;
+            margin-left: 5px;
+            opacity: 0.7;
+            font-size: 14px;
+        }
+        
+        .remove-symbol:hover { 
+            opacity: 1; 
+        }
+        
+        .chart-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        /* Chart Display Controls */
+        .chart-display-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        
+        .display-toggle {
+            background: #252525;
+            border: 1px solid #383838;
+            color: #ccc;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s;
+        }
+        
+        .display-toggle:hover {
+            background: #333;
+            border-color: #555;
+        }
+        
+        .display-toggle.active {
+            background: var(--primary);
+            color: black;
+            border-color: var(--primary);
+        }
+        
+        /* Timeframe Controls */
+        .timeframe-buttons {
+            display: flex;
+            gap: 2px;
+            background: #080808;
+            padding: 3px;
+            border-radius: 6px;
+            border: 1px solid #252525;
+        }
+        
+        .timeframe-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 12px;
+            border-radius: 4px;
+        }
+        
+        .timeframe-btn:hover {
+            background: #2e2e2e;
+            color: white;
+        }
+        
+        .timeframe-btn.active {
+            background: var(--primary);
+            color: black;
+            font-weight: bold;
+        }
+        
+        /* Chart Canvas */
+        .chart-canvas {
+            background: var(--chart-bg);
+            border-radius: 6px;
+            height: 500px;
+            flex-grow: 1;
+            min-height: 450px;
+            position: relative;
+        }
+        
+        .chart-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #555;
+            font-size: 16px;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        /* Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, #1a1a1a, #252525);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
+            transition: all 0.3s;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .metric-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 5px;
+        }
+        
+        .metric-change {
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .metric-change.positive {
+            color: var(--primary);
+        }
+        
+        .metric-change.negative {
+            color: var(--danger);
+        }
+        
+        /* Loading States */
+        .loading-pulse {
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+        
+        .spinner {
+            border: 3px solid #333;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Message Popup */
+        .message-popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #222;
+            border: 1px solid #333;
+            padding: 15px 20px;
+            border-radius: 6px;
+            z-index: 2000;
+            animation: slideInAndOut 3s ease-in-out forwards;
+        }
+        
+        .message-popup.info { 
+            border-color: var(--primary); 
+        }
+        
+        .message-popup.error { 
+            border-color: var(--danger); 
+            color: #ff6666; 
+        }
+        
+        @keyframes slideInAndOut {
+            0% { transform: translateX(120%); opacity: 0; }
+            15%, 85% { transform: translateX(0); opacity: 1; }
+            100% { transform: translateX(120%); opacity: 0; }
+        }
+        
+        /* Threshold Indicators */
+        .threshold-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #1a1a1a;
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+        
+        .threshold-bar {
+            flex: 1;
+            height: 30px;
+            background: linear-gradient(90deg, 
+                var(--primary) 0%, 
+                var(--primary) 33%, 
+                var(--warning) 33%, 
+                var(--warning) 66%, 
+                var(--danger) 66%, 
+                var(--danger) 100%);
+            border-radius: 4px;
+            position: relative;
+        }
+        
+        .threshold-marker {
+            position: absolute;
+            top: -5px;
+            width: 4px;
+            height: 40px;
+            background: white;
+            border-radius: 2px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+            transition: left 0.3s ease;
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { 
+            width: 8px; 
+            height: 8px; 
+        }
+        
+        ::-webkit-scrollbar-track { 
+            background: #0f0f0f; 
+        }
+        
+        ::-webkit-scrollbar-thumb { 
+            background: #333; 
+            border-radius: 4px; 
+        }
+        
+        ::-webkit-scrollbar-thumb:hover { 
+            background: #444; 
+        }
+        
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .dashboard-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-panel {
+                max-height: none;
+            }
+            
+            .chart-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Theme Toggle */
+        .theme-toggle {
+            background: #252525;
+            border: 1px solid #383838;
+            color: #ccc;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        
+        .theme-toggle:hover {
+            background: #333;
+            border-color: #555;
+        }
+        
+        /* Fullscreen button */
+        .fullscreen-btn {
+            background: #252525;
+            border: 1px solid #383838;
+            color: #ccc;
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            line-height: 1;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .fullscreen-btn:hover {
+            background: #333;
+            border-color: #555;
+        }
+        
+        .close-btn {
+            background: var(--danger);
+            border: none;
+            color: white;
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            line-height: 1;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .close-btn:hover { 
+            background: #ff5555; 
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            📊 BLS Employment Crisis Detection Platform
+        </div>
+        <div class="header-controls">
+            <div class="status-indicator">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="statusText">Initializing...</span>
+            </div>
+            <button class="control-btn" onclick="addNewChart()">+ New Chart</button>
+            <span id="clock" style="color: var(--text-secondary); font-size: 14px;"></span>
+        </div>
+    </div>
+    
+    <div class="alert-bar" id="alertBar">
+        ⚠️ <span id="alertText">Crisis conditions detected</span>
+    </div>
+    
+    <div class="main-container">
+        <div class="dashboard-content">
+            <div class="control-panel">
+                <div class="control-section">
+                    <div class="control-title">📈 Data Configuration</div>
+                    <div class="control-group">
+                        <input type="text" class="control-input" id="apiKey" placeholder="BLS API Key (optional)">
+                        <select class="control-input" id="seriesSelect">
+                            <option value="LNS14000000">Unemployment Rate</option>
+                            <option value="CES0000000001">Total Nonfarm Employment</option>
+                            <option value="CES0500000003">Average Hourly Earnings</option>
+                            <option value="CIVPART">Labor Force Participation Rate</option>
+                            <option value="LNS12300000">Employment-Population Ratio</option>
+                            <option value="CES3000000001">Manufacturing Employment</option>
+                        </select>
+                        <input type="number" class="control-input" id="yearStart" placeholder="Start Year" value="2019">
+                        <input type="number" class="control-input" id="yearEnd" placeholder="End Year" value="2024">
+                        <button class="control-btn" onclick="fetchBLSData()">Fetch Data</button>
+                    </div>
+                </div>
+                
+                <div class="control-section">
+                    <div class="control-title">⚡ Crisis Detection</div>
+                    <div class="control-group">
+                        <label style="font-size: 12px; color: var(--text-secondary);">Unemployment Threshold (%)</label>
+                        <input type="number" class="control-input" id="unemploymentThreshold" value="7" step="0.1">
+                        
+                        <label style="font-size: 12px; color: var(--text-secondary);">Job Loss Threshold (thousands)</label>
+                        <input type="number" class="control-input" id="jobLossThreshold" value="500" step="50">
+                        
+                        <label style="font-size: 12px; color: var(--text-secondary);">Consecutive Months</label>
+                        <input type="number" class="control-input" id="consecutiveMonths" value="2" step="1">
+                        
+                        <button class="control-btn secondary" onclick="runCrisisDetection()">Run Detection</button>
+                    </div>
+                </div>
+                
+                <div class="control-section">
+                    <div class="control-title">🎯 Analysis Tools</div>
+                    <div class="control-group">
+                        <button class="control-btn secondary" onclick="analyzeRecessionPatterns()">Recession Patterns</button>
+                        <button class="control-btn secondary" onclick="runSectorAnalysis()">Sector Analysis</button>
+                        <button class="control-btn secondary" onclick="generateForecast()">Generate Forecast</button>
+                        <button class="control-btn danger" onclick="exportAnalysis()">Export Report</button>
+                    </div>
+                </div>
+                
+                <div class="control-section">
+                    <div class="control-title">📊 Current Metrics</div>
+                    <div id="metricsContainer" class="metrics-grid"></div>
+                </div>
+                
+                <div class="control-section">
+                    <div class="control-title">🔔 Alert Status</div>
+                    <div class="threshold-indicator">
+                        <span style="font-size: 11px;">Risk Level:</span>
+                        <div class="threshold-bar">
+                            <div class="threshold-marker" id="riskMarker" style="left: 10%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="charts-area">
+                <div class="chart-grid" id="chartGrid"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Global state management
+        const state = {
+            apiKey: '',
+            currentData: {},
+            charts: {},
+            chartIdCounter: 0,
+            activeChartId: null,
+            crisisStatus: 'normal',
+            historicalData: {},
+            sectorData: {},
+            forecastData: {},
+            theme: 'dark'
+        };
+        
+        // Color palette for charts
+        const colorPalette = [
+            '#00AEEF', '#FF4444', '#F4D03F', '#58D68D', '#FF7043',
+            '#AF7AC5', '#48C9B0', '#EC7063', '#5DADE2', '#F5B041'
+        ];
+        
+        // Initialize dashboard
+        async function init() {
+            console.log('Initializing BLS Dashboard...');
+            updateClock();
+            setInterval(updateClock, 1000);
+            
+            // Load saved settings
+            loadSettings();
+            
+            // Add initial chart
+            addNewChart();
+            
+            // Update status
+            updateStatus('connected', 'Ready');
+            
+            // Initialize with sample data
+            initializeSampleData();
+            
+            console.log('Dashboard initialized successfully');
+        }
+        
+        // Update clock
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').textContent = now.toLocaleTimeString('en-US', { hour12: false });
+        }
+        
+        // Update status indicator
+        function updateStatus(status, text) {
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+            
+            statusDot.className = `status-dot ${status}`;
+            statusText.textContent = text;
+        }
+        
+        // Load saved settings
+        function loadSettings() {
+            // Note: Not using localStorage as per requirements
+            console.log('Settings loaded (in-memory only)');
+        }
+        
+        // Initialize with sample data
+        function initializeSampleData() {
+            const sampleData = generateSampleEmploymentData();
+            state.currentData = sampleData;
+            updateMetrics(sampleData);
+            
+            if (state.activeChartId) {
+                updateChartWithData(state.activeChartId, sampleData);
+            }
+        }
+        
+        // Generate sample employment data
+        function generateSampleEmploymentData() {
+            const data = [];
+            const startDate = new Date('2019-01-01');
+            const endDate = new Date('2024-12-31');
+            
+            let currentDate = new Date(startDate);
+            let unemploymentRate = 3.5;
+            let totalEmployment = 152000;
+            let avgHourlyEarnings = 27.5;
+            
+            while (currentDate <= endDate) {
+                // Simulate COVID impact
+                const monthsSinceStart = (currentDate - startDate) / (1000 * 60 * 60 * 24 * 30);
+                
+                if (monthsSinceStart > 14 && monthsSinceStart < 18) {
+                    // COVID spike
+                    unemploymentRate = Math.min(14.7, unemploymentRate + Math.random() * 3);
+                    totalEmployment = Math.max(130000, totalEmployment - Math.random() * 5000);
+                } else if (monthsSinceStart > 18 && monthsSinceStart < 36) {
+                    // Recovery
+                    unemploymentRate = Math.max(3.5, unemploymentRate - Math.random() * 0.5);
+                    totalEmployment = Math.min(155000, totalEmployment + Math.random() * 1000);
+                } else {
+                    // Normal variation
+                    unemploymentRate += (Math.random() - 0.5) * 0.2;
+                    unemploymentRate = Math.max(3, Math.min(5, unemploymentRate));
+                    totalEmployment += (Math.random() - 0.5) * 500;
+                    avgHourlyEarnings += Math.random() * 0.1;
+                }
+                
+                data.push({
+                    date: currentDate.toISOString().split('T')[0],
+                    unemploymentRate: unemploymentRate,
+                    totalEmployment: totalEmployment,
+                    avgHourlyEarnings: avgHourlyEarnings,
+                    monthlyChange: totalEmployment - (data[data.length - 1]?.totalEmployment || totalEmployment)
+                });
+                
+                currentDate.setMonth(currentDate.getMonth() + 1);
+            }
+            
+            return data;
+        }
+        
+        // Add new chart
+        function addNewChart() {
+            const chartId = `chart_${state.chartIdCounter++}`;
+            
+            const chartHtml = `
+                <div class="chart-window" id="${chartId}" onclick="setActiveChart('${chartId}')">
+                    <div class="chart-header">
+                        <div class="chart-title-section">
+                            <div class="chart-title" id="${chartId}_title">Employment Metrics</div>
+                            <div class="chart-symbols" id="${chartId}_symbols"></div>
+                            <div class="chart-display-controls">
+                                <button class="display-toggle active" onclick="toggleChartDisplay(event, '${chartId}', 'line')" data-display="line">📈 Line</button>
+                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'bar')" data-display="bar">📊 Bar</button>
+                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'area')" data-display="area">🏔️ Area</button>
+                                <button class="display-toggle" onclick="toggleChartDisplay(event, '${chartId}', 'comparison')" data-display="comparison">🔄 Comparison</button>
+                            </div>
+                        </div>
+                        <div class="chart-controls">
+                            <div class="timeframe-buttons" id="${chartId}_timeframe_buttons">
+                                ${['1M','3M','6M','1Y','2Y','5Y','ALL'].map(tf =>
+                                    `<button class="timeframe-btn ${tf === '1Y' ? 'active' : ''}"
+                                             onclick="changeTimeframe(event, '${chartId}', '${tf}')">${tf}</button>`
+                                ).join('')}
+                            </div>
+                            <button class="theme-toggle" onclick="toggleTheme('${chartId}')">🌓</button>
+                            <button class="fullscreen-btn" onclick="toggleFullscreen('${chartId}')" title="Fullscreen">⛶</button>
+                            <button class="close-btn" onclick="removeChart(event, '${chartId}')">×</button>
+                        </div>
+                    </div>
+                    <div class="chart-canvas" id="${chartId}_canvas">
+                        <div class="chart-message">Loading employment data...</div>
+                    </div>
+                </div>`;
+            
+            document.getElementById('chartGrid').insertAdjacentHTML('beforeend', chartHtml);
+            
+            state.charts[chartId] = {
+                data: {},
+                timeframe: '1Y',
+                displayMode: 'line',
+                theme: 'dark',
+                isFullscreen: false,
+                indicators: []
+            };
+            
+            setActiveChart(chartId);
+            
+            // Initialize with sample data
+            if (state.currentData.length > 0) {
+                updateChartWithData(chartId, state.currentData);
+            }
+        }
+        
+        // Set active chart
+        function setActiveChart(chartId) {
+            if (state.activeChartId === chartId) return;
+            
+            state.activeChartId = chartId;
+            document.querySelectorAll('.chart-window').forEach(c => c.classList.remove('active-chart'));
+            const chartElement = document.getElementById(chartId);
+            if (chartElement) {
+                chartElement.classList.add('active-chart');
+            }
+        }
+        
+        // Remove chart
+        function removeChart(event, chartId) {
+            event.stopPropagation();
+            
+            if (state.charts[chartId]) {
+                const canvas = document.getElementById(`${chartId}_canvas`);
+                if (canvas) {
+                    Plotly.purge(canvas);
+                }
+                delete state.charts[chartId];
+            }
+            
+            document.getElementById(chartId)?.remove();
+            
+            if (state.activeChartId === chartId) {
+                const chartKeys = Object.keys(state.charts);
+                state.activeChartId = chartKeys.length > 0 ? chartKeys[chartKeys.length - 1] : null;
+                if (state.activeChartId) setActiveChart(state.activeChartId);
+            }
+            
+            if (Object.keys(state.charts).length === 0) {
+                addNewChart();
+            }
+        }
+        
+        // Toggle chart display mode
+        function toggleChartDisplay(event, chartId, displayMode) {
+            event.stopPropagation();
+            
+            const chart = state.charts[chartId];
+            if (!chart) return;
+            
+            chart.displayMode = displayMode;
+            
+            const controlsDiv = event.target.parentElement;
+            controlsDiv.querySelectorAll('.display-toggle').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            updateChartWithData(chartId, state.currentData);
+        }
+        
+        // Change timeframe
+        function changeTimeframe(event, chartId, timeframe) {
+            event.stopPropagation();
+            
+            const chart = state.charts[chartId];
+            if (!chart) return;
+            
+            chart.timeframe = timeframe;
+            
+            const buttonContainer = document.getElementById(`${chartId}_timeframe_buttons`);
+            if (buttonContainer) {
+                buttonContainer.querySelectorAll('.timeframe-btn').forEach(btn => btn.classList.remove('active'));
+                event.target.classList.add('active');
+            }
+            
+            updateChartWithData(chartId, state.currentData);
+        }
+        
+        // Toggle theme
+        function toggleTheme(chartId) {
+            const chart = state.charts[chartId];
+            if (!chart) return;
+            
+            chart.theme = chart.theme === 'dark' ? 'light' : 'dark';
+            updateChartWithData(chartId, state.currentData);
+        }
+        
+        // Toggle fullscreen
+        function toggleFullscreen(chartId) {
+            const chart = state.charts[chartId];
+            const chartWindow = document.getElementById(chartId);
+            if (!chart || !chartWindow) return;
+            
+            chart.isFullscreen = !chart.isFullscreen;
+            
+            if (chart.isFullscreen) {
+                chartWindow.classList.add('fullscreen');
+                document.body.style.overflow = 'hidden';
+            } else {
+                chartWindow.classList.remove('fullscreen');
+                document.body.style.overflow = 'auto';
+            }
+            
+            setTimeout(() => {
+                updateChartWithData(chartId, state.currentData);
+            }, 100);
+        }
+        
+        // Filter data by timeframe
+        function filterDataByTimeframe(data, timeframe) {
+            if (!data || data.length === 0) return data;
+            
+            const now = new Date();
+            let cutoffDate = new Date();
+            
+            switch(timeframe) {
+                case '1M':
+                    cutoffDate.setMonth(now.getMonth() - 1);
+                    break;
+                case '3M':
+                    cutoffDate.setMonth(now.getMonth() - 3);
+                    break;
+                case '6M':
+                    cutoffDate.setMonth(now.getMonth() - 6);
+                    break;
+                case '1Y':
+                    cutoffDate.setFullYear(now.getFullYear() - 1);
+                    break;
+                case '2Y':
+                    cutoffDate.setFullYear(now.getFullYear() - 2);
+                    break;
+                case '5Y':
+                    cutoffDate.setFullYear(now.getFullYear() - 5);
+                    break;
+                case 'ALL':
+                    return data;
+            }
+            
+            return data.filter(item => new Date(item.date) >= cutoffDate);
+        }
+        
+        // Update chart with data - Enhanced with Plotly
+        function updateChartWithData(chartId, data) {
+            const chart = state.charts[chartId];
+            const canvasElement = document.getElementById(`${chartId}_canvas`);
+            
+            if (!chart || !canvasElement || !data || data.length === 0) {
+                if (canvasElement) {
+                    canvasElement.innerHTML = '<div class="chart-message">No data available</div>';
+                }
+                return;
+            }
+            
+            const filteredData = filterDataByTimeframe(data, chart.timeframe);
+            if (filteredData.length === 0) {
+                canvasElement.innerHTML = '<div class="chart-message">No data for selected timeframe</div>';
+                return;
+            }
+            
+            const traces = [];
+            const displayMode = chart.displayMode;
+            
+            // Prepare traces based on display mode
+            if (displayMode === 'line' || displayMode === 'area') {
+                // Unemployment Rate
+                traces.push({
+                    x: filteredData.map(d => d.date),
+                    y: filteredData.map(d => d.unemploymentRate),
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'Unemployment Rate (%)',
+                    line: { color: colorPalette[0], width: 2 },
+                    fill: displayMode === 'area' ? 'tozeroy' : 'none',
+                    fillcolor: displayMode === 'area' ? `${colorPalette[0]}40` : undefined,
+                    yaxis: 'y'
+                });
+                
+                // Total Employment (scaled)
+                traces.push({
+                    x: filteredData.map(d => d.date),
+                    y: filteredData.map(d => d.totalEmployment / 1000),
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'Total Employment (millions)',
+                    line: { color: colorPalette[1], width: 2 },
+                    fill: displayMode === 'area' ? 'tozeroy' : 'none',
+                    fillcolor: displayMode === 'area' ? `${colorPalette[1]}40` : undefined,
+                    yaxis: 'y2'
+                });
+            } else if (displayMode === 'bar') {
+                // Monthly Changes
+                traces.push({
+                    x: filteredData.map(d => d.date),
+                    y: filteredData.map(d => d.monthlyChange),
+                    type: 'bar',
+                    name: 'Monthly Change (thousands)',
+                    marker: {
+                        color: filteredData.map(d => d.monthlyChange > 0 ? '#00ff88' : '#ff4444')
+                    }
+                });
+            } else if (displayMode === 'comparison') {
+                // Year-over-year comparison
+                const currentYear = filteredData.filter(d => new Date(d.date).getFullYear() === new Date().getFullYear());
+                const lastYear = filteredData.filter(d => new Date(d.date).getFullYear() === new Date().getFullYear() - 1);
+                
+                if (currentYear.length > 0) {
+                    traces.push({
+                        x: currentYear.map(d => new Date(d.date).getMonth() + 1),
+                        y: currentYear.map(d => d.unemploymentRate),
+                        type: 'scatter',
+                        mode: 'lines+markers',
+                        name: 'Current Year',
+                        line: { color: colorPalette[2], width: 2 }
+                    });
+                }
+                
+                if (lastYear.length > 0) {
+                    traces.push({
+                        x: lastYear.map(d => new Date(d.date).getMonth() + 1),
+                        y: lastYear.map(d => d.unemploymentRate),
+                        type: 'scatter',
+                        mode: 'lines+markers',
+                        name: 'Previous Year',
+                        line: { color: colorPalette[3], width: 2, dash: 'dash' }
+                    });
+                }
+            }
+            
+            // Add crisis threshold lines
+            if (displayMode === 'line' || displayMode === 'area') {
+                const threshold = parseFloat(document.getElementById('unemploymentThreshold').value) || 7;
+                traces.push({
+                    x: filteredData.map(d => d.date),
+                    y: filteredData.map(() => threshold),
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'Crisis Threshold',
+                    line: { color: '#ff4444', width: 2, dash: 'dash' },
+                    showlegend: false,
+                    hoverinfo: 'skip'
+                });
+            }
+            
+            // Layout configuration
+            const layout = {
+                title: {
+                    text: getChartTitle(displayMode),
+                    font: { color: chart.theme === 'light' ? '#333' : '#fff', size: 14 }
+                },
+                paper_bgcolor: chart.theme === 'light' ? '#ffffff' : '#0a0a0a',
+                plot_bgcolor: chart.theme === 'light' ? '#ffffff' : '#0a0a0a',
+                font: { color: chart.theme === 'light' ? '#333' : '#aaa', size: 12 },
+                margin: { t: 60, r: 80, b: 60, l: 80 },
+                xaxis: {
+                    type: displayMode === 'comparison' ? 'linear' : 'date',
+                    title: displayMode === 'comparison' ? 'Month' : '',
+                    gridcolor: chart.theme === 'light' ? '#f0f0f0' : '#22222250',
+                    tickfont: { color: chart.theme === 'light' ? '#666' : '#888' }
+                },
+                yaxis: {
+                    title: getYAxisTitle(displayMode),
+                    gridcolor: chart.theme === 'light' ? '#f0f0f0' : '#22222250',
+                    tickfont: { color: chart.theme === 'light' ? '#666' : '#888' }
+                },
+                hovermode: 'x unified',
+                showlegend: true,
+                legend: {
+                    orientation: 'h',
+                    yanchor: 'bottom',
+                    y: 1.02,
+                    xanchor: 'right',
+                    x: 1,
+                    bgcolor: chart.theme === 'light' ? 'rgba(255,255,255,0.9)' : 'rgba(10,10,10,0.8)',
+                    bordercolor: chart.theme === 'light' ? '#ddd' : '#333',
+                    borderwidth: 1
+                },
+                height: chart.isFullscreen ? window.innerHeight - 120 : 500,
+                autosize: true
+            };
+            
+            // Add second y-axis for dual-axis charts
+            if ((displayMode === 'line' || displayMode === 'area') && traces.length > 1) {
+                layout.yaxis2 = {
+                    title: 'Total Employment (millions)',
+                    overlaying: 'y',
+                    side: 'right',
+                    gridcolor: chart.theme === 'light' ? '#f0f0f0' : '#22222250',
+                    tickfont: { color: chart.theme === 'light' ? '#666' : '#888' }
+                };
+            }
+            
+            const config = {
+                responsive: true,
+                displaylogo: false,
+                modeBarButtonsToRemove: ['select2d', 'lasso2d'],
+                displayModeBar: true
+            };
+            
+            // Clear any existing content
+            if (canvasElement.querySelector('.chart-message')) {
+                canvasElement.innerHTML = '';
+            }
+            
+            // Render with Plotly
+            Plotly.react(canvasElement, traces, layout, config)
+                .then(() => {
+                    console.log(`Chart ${chartId} rendered successfully`);
+                })
+                .catch(err => {
+                    console.error("Plotly rendering error:", err);
+                    canvasElement.innerHTML = `<div class="chart-message" style="color: #ff4444;">Chart rendering error</div>`;
+                });
+        }
+        
+        // Get chart title based on display mode
+        function getChartTitle(displayMode) {
+            const titles = {
+                'line': 'Employment Trends',
+                'bar': 'Monthly Employment Changes',
+                'area': 'Employment Overview',
+                'comparison': 'Year-over-Year Comparison'
+            };
+            return titles[displayMode] || 'Employment Data';
+        }
+        
+        // Get Y-axis title based on display mode
+        function getYAxisTitle(displayMode) {
+            const titles = {
+                'line': 'Unemployment Rate (%)',
+                'bar': 'Change (thousands)',
+                'area': 'Rate / Value',
+                'comparison': 'Unemployment Rate (%)'
+            };
+            return titles[displayMode] || 'Value';
+        }
+        
+        // Fetch BLS data
+        async function fetchBLSData() {
+            updateStatus('warning', 'Fetching data...');
+            showMessage('Fetching BLS data...', 'info');
+            
+            const seriesId = document.getElementById('seriesSelect').value;
+            const startYear = document.getElementById('yearStart').value;
+            const endYear = document.getElementById('yearEnd').value;
+            const apiKey = document.getElementById('apiKey').value;
+            
+            // Simulate API call with enhanced sample data
+            setTimeout(() => {
+                const data = generateSampleEmploymentData();
+                state.currentData = data;
+                
+                // Update all charts
+                Object.keys(state.charts).forEach(chartId => {
+                    updateChartWithData(chartId, data);
+                });
+                
+                updateMetrics(data);
+                updateStatus('connected', 'Data updated');
+                showMessage('Data fetched successfully', 'info');
+            }, 1000);
+        }
+        
+        // Update metrics display
+        function updateMetrics(data) {
+            if (!data || data.length === 0) return;
+            
+            const latest = data[data.length - 1];
+            const previous = data[data.length - 2];
+            const yearAgo = data[Math.max(0, data.length - 13)];
+            
+            const metricsHtml = `
+                <div class="metric-card">
+                    <div class="metric-label">Unemployment Rate</div>
+                    <div class="metric-value">${latest.unemploymentRate.toFixed(1)}%</div>
+                    <div class="metric-change ${latest.unemploymentRate > previous?.unemploymentRate ? 'negative' : 'positive'}">
+                        ${latest.unemploymentRate > previous?.unemploymentRate ? '↑' : '↓'} 
+                        ${Math.abs(latest.unemploymentRate - (previous?.unemploymentRate || 0)).toFixed(1)}%
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Total Employment</div>
+                    <div class="metric-value">${(latest.totalEmployment / 1000).toFixed(1)}M</div>
+                    <div class="metric-change ${latest.totalEmployment < previous?.totalEmployment ? 'negative' : 'positive'}">
+                        ${latest.totalEmployment < previous?.totalEmployment ? '↓' : '↑'} 
+                        ${Math.abs(latest.monthlyChange).toFixed(0)}K
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">YoY Change</div>
+                    <div class="metric-value">${((latest.unemploymentRate - yearAgo.unemploymentRate) / yearAgo.unemploymentRate * 100).toFixed(1)}%</div>
+                    <div class="metric-change ${latest.unemploymentRate > yearAgo.unemploymentRate ? 'negative' : 'positive'}">
+                        vs ${yearAgo.unemploymentRate.toFixed(1)}% last year
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('metricsContainer').innerHTML = metricsHtml;
+        }
+        
+        // Run crisis detection
+        function runCrisisDetection() {
+            const unemploymentThreshold = parseFloat(document.getElementById('unemploymentThreshold').value);
+            const jobLossThreshold = parseFloat(document.getElementById('jobLossThreshold').value);
+            const consecutiveMonths = parseInt(document.getElementById('consecutiveMonths').value);
+            
+            let crisisDetected = false;
+            let consecutiveCount = 0;
+            
+            state.currentData.forEach(item => {
+                if (item.unemploymentRate > unemploymentThreshold || 
+                    Math.abs(item.monthlyChange) > jobLossThreshold) {
+                    consecutiveCount++;
+                    if (consecutiveCount >= consecutiveMonths) {
+                        crisisDetected = true;
+                    }
+                } else {
+                    consecutiveCount = 0;
+                }
+            });
+            
+            if (crisisDetected) {
+                document.getElementById('alertBar').classList.add('active');
+                document.getElementById('alertText').textContent = 
+                    `Crisis conditions detected: Unemployment > ${unemploymentThreshold}% for ${consecutiveMonths}+ months`;
+                document.getElementById('riskMarker').style.left = '80%';
+                showMessage('⚠️ Crisis conditions detected!', 'error');
+            } else {
+                document.getElementById('alertBar').classList.remove('active');
+                document.getElementById('riskMarker').style.left = '20%';
+                showMessage('✅ No crisis conditions detected', 'info');
+            }
+        }
+        
+        // Analyze recession patterns
+        function analyzeRecessionPatterns() {
+            showMessage('Analyzing recession patterns...', 'info');
+            
+            // Add recession shading to charts
+            Object.keys(state.charts).forEach(chartId => {
+                const chart = state.charts[chartId];
+                chart.showRecessions = !chart.showRecessions;
+                updateChartWithData(chartId, state.currentData);
+            });
+        }
+        
+        // Run sector analysis
+        function runSectorAnalysis() {
+            showMessage('Running sector analysis...', 'info');
+            
+            // Generate sector comparison data
+            const sectors = ['Manufacturing', 'Services', 'Construction', 'Retail', 'Technology'];
+            const sectorData = sectors.map(sector => ({
+                sector: sector,
+                change: (Math.random() - 0.5) * 10,
+                employment: Math.random() * 20000 + 10000
+            }));
+            
+            // Create new chart for sector analysis
+            addNewChart();
+            
+            setTimeout(() => {
+                showMessage('Sector analysis complete', 'info');
+            }, 1500);
+        }
+        
+        // Generate forecast
+        function generateForecast() {
+            showMessage('Generating forecast...', 'info');
+            
+            // Simple linear forecast
+            const lastPoints = state.currentData.slice(-12);
+            const forecast = [];
+            
+            for (let i = 1; i <= 6; i++) {
+                const trend = (lastPoints[lastPoints.length - 1].unemploymentRate - lastPoints[0].unemploymentRate) / 12;
+                const forecastDate = new Date(lastPoints[lastPoints.length - 1].date);
+                forecastDate.setMonth(forecastDate.getMonth() + i);
+                
+                forecast.push({
+                    date: forecastDate.toISOString().split('T')[0],
+                    unemploymentRate: lastPoints[lastPoints.length - 1].unemploymentRate + (trend * i),
+                    isForecast: true
+                });
+            }
+            
+            // Add forecast to data
+            const combinedData = [...state.currentData, ...forecast];
+            
+            Object.keys(state.charts).forEach(chartId => {
+                updateChartWithData(chartId, combinedData);
+            });
+            
+            showMessage('Forecast generated for next 6 months', 'info');
+        }
+        
+        // Export analysis
+        function exportAnalysis() {
+            const report = {
+                timestamp: new Date().toISOString(),
+                metrics: {
+                    currentUnemployment: state.currentData[state.currentData.length - 1]?.unemploymentRate,
+                    monthlyChange: state.currentData[state.currentData.length - 1]?.monthlyChange,
+                    crisisStatus: state.crisisStatus
+                },
+                data: state.currentData
+            };
+            
+            const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `bls-analysis-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            
+            showMessage('Report exported successfully', 'info');
+        }
+        
+        // Show temporary message
+        function showMessage(text, type = 'info') {
+            const popup = document.createElement('div');
+            popup.className = `message-popup ${type}`;
+            popup.textContent = text;
+            document.body.appendChild(popup);
+            
+            setTimeout(() => popup.remove(), 3000);
+        }
+        
+        // Handle escape key for fullscreen
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                Object.keys(state.charts).forEach(chartId => {
+                    if (state.charts[chartId].isFullscreen) {
+                        toggleFullscreen(chartId);
+                    }
+                });
+            }
+        });
+        
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
