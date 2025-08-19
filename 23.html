@@ -1,1 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLS Employment Crisis Detection Platform</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .metric-card {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+            border-color: rgba(59, 130, 246, 0.6);
+        }
+        
+        .metric-card.selected {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+        }
+        
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .metric-title {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            font-weight: 600;
+        }
+        
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin-bottom: 15px;
+        }
+        
+        .change-indicators {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .change-item {
+            background: rgba(15, 23, 42, 0.6);
+            padding: 8px;
+            border-radius: 6px;
+        }
+        
+        .change-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+        
+        .change-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .positive {
+            color: #10b981;
+        }
+        
+        .negative {
+            color: #ef4444;
+        }
+        
+        .neutral {
+            color: #94a3b8;
+        }
+        
+        .crisis-indicator {
+            background: rgba(15, 23, 42, 0.6);
+            padding: 8px;
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+        
+        .crisis-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+        
+        .crisis-value {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        
+        .crisis-level {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-left: 8px;
+        }
+        
+        .crisis-safe {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+        
+        .crisis-warning {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+        }
+        
+        .crisis-danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+        
+        .chart-container {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            height: 500px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.4);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2rem;
+            color: #64748b;
+        }
+        
+        .error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>BLS Employment Crisis Detection Platform</h1>
+        
+        <div class="controls">
+            <button class="btn" onclick="fetchAllData()">📊 Fetch All Data</button>
+            <button class="btn" onclick="runCrisisDetection()">⚠️ Run Crisis Detection</button>
+            <button class="btn" onclick="exportReport()">📄 Export Report</button>
+        </div>
+        
+        <div id="metricsGrid" class="metrics-grid">
+            <!-- Metrics will be populated here -->
+        </div>
+        
+        <div class="chart-container">
+            <canvas id="mainChart"></canvas>
+        </div>
+        
+        <div id="loading" class="loading" style="display: none;">
+            Loading data...
+        </div>
+        
+        <div id="error" class="error" style="display: none;"></div>
+    </div>
 
+    <script>
+        // BLS API configuration
+        const BLS_API_BASE = 'https://api.bls.gov/publicAPI/v2/timeseries/data/';
+        
+        // Series IDs for various metrics
+        const SERIES_CONFIG = {
+            'Unemployment Rate': {
+                id: 'LNS14000000',
+                unit: '%',
+                crisisThreshold: 5.0,
+                inverseGood: true // Higher is worse
+            },
+            'Total Nonfarm Employment': {
+                id: 'CES0000000001',
+                unit: 'thousands',
+                crisisThreshold: -200,
+                inverseGood: false // Higher is better
+            },
+            'Average Hourly Earnings': {
+                id: 'CES0500000003',
+                unit: '$',
+                crisisThreshold: 0,
+                inverseGood: false
+            },
+            'Labor Force Participation Rate': {
+                id: 'LNS11300000',
+                unit: '%',
+                crisisThreshold: 62.5,
+                inverseGood: false
+            },
+            'Employment-Population Ratio': {
+                id: 'LNS12300000',
+                unit: '%',
+                crisisThreshold: 58.0,
+                inverseGood: false
+            },
+            'Manufacturing Employment': {
+                id: 'CES3000000001',
+                unit: 'thousands',
+                crisisThreshold: -50,
+                inverseGood: false
+            }
+        };
+        
+        let allData = {};
+        let chart = null;
+        let selectedMetrics = [];
+        
+        // Initialize the chart
+        function initChart() {
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: []
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                color: '#e2e8f0'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            titleColor: '#e2e8f0',
+                            bodyColor: '#cbd5e1',
+                            borderColor: 'rgba(59, 130, 246, 0.3)',
+                            borderWidth: 1
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.1)'
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.1)'
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Fetch data from BLS API
+        async function fetchSeriesData(seriesId, startYear = 2000) {
+            const currentYear = new Date().getFullYear();
+            const allSeriesData = [];
+            
+            // BLS API allows max 20 years per request
+            for (let year = startYear; year <= currentYear; year += 20) {
+                const endYear = Math.min(year + 19, currentYear);
+                const url = `${BLS_API_BASE}?seriesid=${seriesId}&startyear=${year}&endyear=${endYear}`;
+                
+                try {
+                    const response = await fetch(url);
+                    const data = await response.json();
+                    
+                    if (data.status === 'REQUEST_SUCCEEDED' && data.Results?.series?.[0]?.data) {
+                        allSeriesData.push(...data.Results.series[0].data);
+                    }
+                } catch (error) {
+                    console.error(`Error fetching data for ${seriesId}:`, error);
+                }
+            }
+            
+            // Sort by date (year and period)
+            return allSeriesData.sort((a, b) => {
+                if (a.year !== b.year) return a.year - b.year;
+                return parseInt(a.period.replace('M', '')) - parseInt(b.period.replace('M', ''));
+            });
+        }
+        
+        // Calculate percentage changes
+        function calculateChanges(data) {
+            if (!data || data.length === 0) return {};
+            
+            const latest = parseFloat(data[0].value);
+            const monthAgo = data.length > 1 ? parseFloat(data[1].value) : latest;
+            const yearAgo = data.length > 12 ? parseFloat(data[12].value) : latest;
+            
+            const monthChange = ((latest - monthAgo) / monthAgo * 100).toFixed(2);
+            const yearChange = ((latest - yearAgo) / yearAgo * 100).toFixed(2);
+            
+            return {
+                current: latest,
+                monthChange: isNaN(monthChange) ? 0 : parseFloat(monthChange),
+                yearChange: isNaN(yearChange) ? 0 : parseFloat(yearChange)
+            };
+        }
+        
+        // Calculate crisis level
+        function calculateCrisisLevel(metric, value, config) {
+            const threshold = config.crisisThreshold;
+            let distanceFromCrisis;
+            
+            if (config.inverseGood) {
+                // For metrics where higher is worse (like unemployment)
+                distanceFromCrisis = ((threshold - value) / threshold * 100).toFixed(1);
+            } else {
+                // For metrics where higher is better
+                distanceFromCrisis = ((value - threshold) / Math.abs(threshold) * 100).toFixed(1);
+            }
+            
+            return {
+                distance: parseFloat(distanceFromCrisis),
+                status: Math.abs(distanceFromCrisis) < 10 ? 'warning' : (distanceFromCrisis > 0 ? 'safe' : 'danger')
+            };
+        }
+        
+        // Create metric card
+        function createMetricCard(name, data, config) {
+            const changes = calculateChanges(data);
+            const crisis = calculateCrisisLevel(name, changes.current, config);
+            
+            return `
+                <div class="metric-card" onclick="toggleMetric('${name}')" data-metric="${name}">
+                    <div class="metric-header">
+                        <div class="metric-title">${name}</div>
+                    </div>
+                    <div class="metric-value">${changes.current.toFixed(2)}${config.unit === '%' ? '%' : ''}</div>
+                    
+                    <div class="change-indicators">
+                        <div class="change-item">
+                            <div class="change-label">Month-to-Month</div>
+                            <div class="change-value ${changes.monthChange > 0 ? 'positive' : changes.monthChange < 0 ? 'negative' : 'neutral'}">
+                                ${changes.monthChange > 0 ? '+' : ''}${changes.monthChange}%
+                            </div>
+                        </div>
+                        <div class="change-item">
+                            <div class="change-label">Year-over-Year</div>
+                            <div class="change-value ${changes.yearChange > 0 ? 'positive' : changes.yearChange < 0 ? 'negative' : 'neutral'}">
+                                ${changes.yearChange > 0 ? '+' : ''}${changes.yearChange}%
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="crisis-indicator">
+                        <div class="crisis-label">Distance from Crisis Level</div>
+                        <div class="crisis-value ${crisis.status === 'safe' ? 'positive' : crisis.status === 'warning' ? 'neutral' : 'negative'}">
+                            ${crisis.distance > 0 ? '+' : ''}${crisis.distance}%
+                            <span class="crisis-level crisis-${crisis.status}">${crisis.status.toUpperCase()}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Toggle metric selection and update chart
+        function toggleMetric(metricName) {
+            const card = document.querySelector(`[data-metric="${metricName}"]`);
+            
+            if (selectedMetrics.includes(metricName)) {
+                selectedMetrics = selectedMetrics.filter(m => m !== metricName);
+                card.classList.remove('selected');
+            } else {
+                selectedMetrics.push(metricName);
+                card.classList.add('selected');
+            }
+            
+            updateChart();
+        }
+        
+        // Update chart with selected metrics
+        function updateChart() {
+            if (!chart || selectedMetrics.length === 0) return;
+            
+            const datasets = [];
+            let allLabels = new Set();
+            
+            selectedMetrics.forEach((metric, index) => {
+                const data = allData[metric];
+                if (!data) return;
+                
+                const chartData = data.map(d => {
+                    const label = `${d.year}-${d.period.replace('M', '').padStart(2, '0')}`;
+                    allLabels.add(label);
+                    return {
+                        x: label,
+                        y: parseFloat(d.value)
+                    };
+                }).reverse();
+                
+                const colors = [
+                    'rgb(59, 130, 246)',
+                    'rgb(139, 92, 246)',
+                    'rgb(16, 185, 129)',
+                    'rgb(251, 191, 36)',
+                    'rgb(239, 68, 68)',
+                    'rgb(236, 72, 153)'
+                ];
+                
+                datasets.push({
+                    label: metric,
+                    data: chartData,
+                    borderColor: colors[index % colors.length],
+                    backgroundColor: colors[index % colors.length] + '20',
+                    borderWidth: 2,
+                    tension: 0.1,
+                    pointRadius: 0,
+                    pointHoverRadius: 5
+                });
+            });
+            
+            chart.data.labels = Array.from(allLabels).sort();
+            chart.data.datasets = datasets;
+            chart.update();
+        }
+        
+        // Fetch all data
+        async function fetchAllData() {
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const metricsGrid = document.getElementById('metricsGrid');
+            
+            loading.style.display = 'block';
+            error.style.display = 'none';
+            metricsGrid.innerHTML = '';
+            
+            try {
+                for (const [name, config] of Object.entries(SERIES_CONFIG)) {
+                    const data = await fetchSeriesData(config.id);
+                    allData[name] = data;
+                    
+                    if (data.length > 0) {
+                        const card = createMetricCard(name, data, config);
+                        metricsGrid.innerHTML += card;
+                    }
+                }
+                
+                // Auto-select first metric
+                if (Object.keys(allData).length > 0) {
+                    toggleMetric(Object.keys(allData)[0]);
+                }
+                
+            } catch (err) {
+                error.style.display = 'block';
+                error.textContent = `Error fetching data: ${err.message}`;
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+        
+        // Run crisis detection
+        function runCrisisDetection() {
+            const results = [];
+            
+            for (const [name, data] of Object.entries(allData)) {
+                if (!data || data.length === 0) continue;
+                
+                const config = SERIES_CONFIG[name];
+                const changes = calculateChanges(data);
+                const crisis = calculateCrisisLevel(name, changes.current, config);
+                
+                if (crisis.status === 'danger' || crisis.status === 'warning') {
+                    results.push({
+                        metric: name,
+                        value: changes.current,
+                        status: crisis.status,
+                        distance: crisis.distance
+                    });
+                }
+            }
+            
+            if (results.length > 0) {
+                alert(`⚠️ Crisis Detection Results:\n\n${results.map(r => 
+                    `${r.metric}: ${r.status.toUpperCase()} (${r.distance}% from threshold)`
+                ).join('\n')}`);
+            } else {
+                alert('✅ No crisis indicators detected. All metrics within safe ranges.');
+            }
+        }
+        
+        // Export report
+        function exportReport() {
+            let report = 'BLS Employment Crisis Detection Report\n';
+            report += `Generated: ${new Date().toLocaleString()}\n\n`;
+            
+            for (const [name, data] of Object.entries(allData)) {
+                if (!data || data.length === 0) continue;
+                
+                const config = SERIES_CONFIG[name];
+                const changes = calculateChanges(data);
+                const crisis = calculateCrisisLevel(name, changes.current, config);
+                
+                report += `${name}\n`;
+                report += `  Current Value: ${changes.current}${config.unit}\n`;
+                report += `  Month-to-Month Change: ${changes.monthChange}%\n`;
+                report += `  Year-over-Year Change: ${changes.yearChange}%\n`;
+                report += `  Crisis Status: ${crisis.status.toUpperCase()} (${crisis.distance}% from threshold)\n\n`;
+            }
+            
+            const blob = new Blob([report], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `bls-report-${new Date().toISOString().split('T')[0]}.txt`;
+            a.click();
+        }
+        
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            initChart();
+            // Auto-fetch data on load
+            fetchAllData();
+        });
+    </script>
+</body>
+</html>
