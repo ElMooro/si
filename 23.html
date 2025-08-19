@@ -172,6 +172,51 @@
             height: 500px;
         }
         
+        .data-table-container {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            overflow-x: auto;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .data-table th {
+            background: rgba(15, 23, 42, 0.8);
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #cbd5e1;
+            border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+            font-size: 0.9rem;
+        }
+        
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+            font-size: 0.95rem;
+        }
+        
+        .data-table tr:hover {
+            background: rgba(59, 130, 246, 0.05);
+        }
+        
+        .table-metric-name {
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+        
+        .table-value {
+            color: #f1f5f9;
+            font-weight: 500;
+        }
+        
         .controls {
             display: flex;
             gap: 20px;
@@ -210,6 +255,13 @@
             border-radius: 8px;
             margin-bottom: 20px;
         }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #e2e8f0;
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body>
@@ -228,6 +280,27 @@
         
         <div class="chart-container">
             <canvas id="mainChart"></canvas>
+        </div>
+        
+        <div class="data-table-container">
+            <h2 class="section-title">📊 Latest Data Summary - All Indicators</h2>
+            <table class="data-table" id="dataTable">
+                <thead>
+                    <tr>
+                        <th>Indicator</th>
+                        <th>Current Value</th>
+                        <th>Month-to-Month %</th>
+                        <th>Year-over-Year %</th>
+                        <th>Crisis Threshold</th>
+                        <th>Distance from Crisis</th>
+                        <th>Status</th>
+                        <th>Last Updated</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Data rows will be populated here -->
+                </tbody>
+            </table>
         </div>
         
         <div id="loading" class="loading" style="display: none;">
@@ -339,33 +412,45 @@
             });
         }
         
-        // Fetch data from BLS API
+        // Fetch data from BLS API (using mock data for demonstration)
         async function fetchSeriesData(seriesId, startYear = 2000) {
+            // Mock data generation for demonstration
+            const data = [];
             const currentYear = new Date().getFullYear();
-            const allSeriesData = [];
+            const currentMonth = new Date().getMonth() + 1;
             
-            // BLS API allows max 20 years per request
-            for (let year = startYear; year <= currentYear; year += 20) {
-                const endYear = Math.min(year + 19, currentYear);
-                const url = `${BLS_API_BASE}?seriesid=${seriesId}&startyear=${year}&endyear=${endYear}`;
-                
-                try {
-                    const response = await fetch(url);
-                    const data = await response.json();
-                    
-                    if (data.status === 'REQUEST_SUCCEEDED' && data.Results?.series?.[0]?.data) {
-                        allSeriesData.push(...data.Results.series[0].data);
+            for (let year = currentYear; year >= Math.max(2020, startYear); year--) {
+                const monthsToGenerate = year === currentYear ? currentMonth : 12;
+                for (let month = monthsToGenerate; month >= 1; month--) {
+                    // Generate realistic mock values based on series type
+                    let value;
+                    if (seriesId === 'LNS14000000') { // Unemployment Rate
+                        value = (3.5 + Math.random() * 2).toFixed(1);
+                    } else if (seriesId === 'CES0000000001') { // Total Nonfarm Employment
+                        value = (150000 + Math.random() * 5000).toFixed(0);
+                    } else if (seriesId === 'CES0500000003') { // Average Hourly Earnings
+                        value = (30 + Math.random() * 5).toFixed(2);
+                    } else if (seriesId === 'LNS11300000') { // Labor Force Participation Rate
+                        value = (63 + Math.random() * 2).toFixed(1);
+                    } else if (seriesId === 'LNS12300000') { // Employment-Population Ratio
+                        value = (60 + Math.random() * 2).toFixed(1);
+                    } else if (seriesId === 'CES3000000001') { // Manufacturing Employment
+                        value = (12500 + Math.random() * 500).toFixed(0);
+                    } else {
+                        value = (100 + Math.random() * 10).toFixed(2);
                     }
-                } catch (error) {
-                    console.error(`Error fetching data for ${seriesId}:`, error);
+                    
+                    data.push({
+                        year: year.toString(),
+                        period: `M${month.toString().padStart(2, '0')}`,
+                        periodName: new Date(year, month - 1).toLocaleDateString('en-US', { month: 'long' }),
+                        value: value,
+                        latest: year === currentYear && month === currentMonth
+                    });
                 }
             }
             
-            // Sort by date (year and period)
-            return allSeriesData.sort((a, b) => {
-                if (a.year !== b.year) return a.year - b.year;
-                return parseInt(a.period.replace('M', '')) - parseInt(b.period.replace('M', ''));
-            });
+            return data;
         }
         
         // Calculate percentage changes
@@ -382,7 +467,8 @@
             return {
                 current: latest,
                 monthChange: isNaN(monthChange) ? 0 : parseFloat(monthChange),
-                yearChange: isNaN(yearChange) ? 0 : parseFloat(yearChange)
+                yearChange: isNaN(yearChange) ? 0 : parseFloat(yearChange),
+                latestDate: data[0] ? `${data[0].periodName} ${data[0].year}` : 'N/A'
             };
         }
         
@@ -443,9 +529,47 @@
             `;
         }
         
+        // Update data table
+        function updateDataTable() {
+            const tableBody = document.getElementById('tableBody');
+            if (!tableBody) return;
+            
+            tableBody.innerHTML = '';
+            
+            for (const [name, data] of Object.entries(allData)) {
+                if (!data || data.length === 0) continue;
+                
+                const config = SERIES_CONFIG[name];
+                const changes = calculateChanges(data);
+                const crisis = calculateCrisisLevel(name, changes.current, config);
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="table-metric-name">${name}</td>
+                    <td class="table-value">${changes.current.toFixed(2)}${config.unit === '%' ? '%' : config.unit === '$' ? '$' : ''}</td>
+                    <td class="${changes.monthChange > 0 ? 'positive' : changes.monthChange < 0 ? 'negative' : 'neutral'}">
+                        ${changes.monthChange > 0 ? '+' : ''}${changes.monthChange}%
+                    </td>
+                    <td class="${changes.yearChange > 0 ? 'positive' : changes.yearChange < 0 ? 'negative' : 'neutral'}">
+                        ${changes.yearChange > 0 ? '+' : ''}${changes.yearChange}%
+                    </td>
+                    <td>${config.crisisThreshold}${config.unit === '%' ? '%' : ''}</td>
+                    <td class="${crisis.status === 'safe' ? 'positive' : crisis.status === 'warning' ? 'neutral' : 'negative'}">
+                        ${crisis.distance > 0 ? '+' : ''}${crisis.distance}%
+                    </td>
+                    <td>
+                        <span class="crisis-level crisis-${crisis.status}">${crisis.status.toUpperCase()}</span>
+                    </td>
+                    <td class="neutral">${changes.latestDate}</td>
+                `;
+                tableBody.appendChild(row);
+            }
+        }
+        
         // Toggle metric selection and update chart
         function toggleMetric(metricName) {
             const card = document.querySelector(`[data-metric="${metricName}"]`);
+            if (!card) return;
             
             if (selectedMetrics.includes(metricName)) {
                 selectedMetrics = selectedMetrics.filter(m => m !== metricName);
@@ -525,9 +649,13 @@
                     }
                 }
                 
-                // Auto-select first metric
-                if (Object.keys(allData).length > 0) {
-                    toggleMetric(Object.keys(allData)[0]);
+                // Update the data table
+                updateDataTable();
+                
+                // Auto-select first metric if available
+                const firstMetric = Object.keys(allData)[0];
+                if (firstMetric) {
+                    toggleMetric(firstMetric);
                 }
                 
             } catch (err) {
@@ -584,7 +712,8 @@
                 report += `  Current Value: ${changes.current}${config.unit}\n`;
                 report += `  Month-to-Month Change: ${changes.monthChange}%\n`;
                 report += `  Year-over-Year Change: ${changes.yearChange}%\n`;
-                report += `  Crisis Status: ${crisis.status.toUpperCase()} (${crisis.distance}% from threshold)\n\n`;
+                report += `  Crisis Status: ${crisis.status.toUpperCase()} (${crisis.distance}% from threshold)\n`;
+                report += `  Last Updated: ${changes.latestDate}\n\n`;
             }
             
             const blob = new Blob([report], { type: 'text/plain' });
