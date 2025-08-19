@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BLS Employment Crisis Detection Platform - Comprehensive</title>
+    <title>BLS Employment Crisis Detection Platform - Real Data</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         * {
@@ -79,6 +79,10 @@
             border-color: #3b82f6;
             background: rgba(59, 130, 246, 0.15);
             box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+        }
+        
+        .metric-card.loading {
+            opacity: 0.6;
         }
         
         .metric-title {
@@ -242,6 +246,11 @@
             box-shadow: 0 10px 20px rgba(59, 130, 246, 0.4);
         }
         
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
         .loading {
             text-align: center;
             padding: 40px;
@@ -291,17 +300,57 @@
             background: #3b82f6;
             color: white;
         }
+        
+        .progress-bar {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .progress-bar.active {
+            display: block;
+        }
+        
+        .progress-text {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-bottom: 10px;
+        }
+        
+        .progress-track {
+            background: rgba(15, 23, 42, 0.6);
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>📊 BLS Employment Crisis Detection Platform - Comprehensive</h1>
+        <h1>📊 BLS Employment Crisis Detection Platform - Real Data</h1>
         
         <div class="controls">
-            <button class="btn" onclick="fetchAllData()">📊 Fetch All Data</button>
+            <button class="btn" id="fetchBtn" onclick="fetchAllData()">📊 Fetch Real Data</button>
             <button class="btn" onclick="runCrisisDetection()">⚠️ Run Crisis Detection</button>
             <button class="btn" onclick="exportReport()">📄 Export Report</button>
             <button class="btn" onclick="clearSelection()">🔄 Clear Selection</button>
+        </div>
+        
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-text" id="progressText">Loading data...</div>
+            <div class="progress-track">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
         </div>
         
         <div class="filter-controls">
@@ -374,17 +423,16 @@
         </div>
         
         <div id="loading" class="loading" style="display: none;">
-            Loading real BLS data...
-        </div>
+            Loading comprehensive employment data from BLS API...</div>
         
         <div id="error" class="error" style="display: none;"></div>
-        
-        <div class="error" style="background: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.3); color: #3b82f6; margin-top: 20px;">
-            <strong>ℹ️ API Status:</strong> Check the browser console (F12) to see detailed API responses and any error messages.
-        </div>
     </div>
 
     <script>
+        // BLS API Configuration
+        const BLS_API_KEY = 'a759447531f04f1f861f29a381aab863';
+        const BLS_API_URL = 'https://api.bls.gov/publicAPI/v2/timeseries/data/';
+        
         // Comprehensive BLS Series Configuration
         const SERIES_CONFIG = {
             // Core Employment Indicators
@@ -430,21 +478,15 @@
             // Alternative Unemployment Measures
             alternative: {
                 'U-1 (15+ weeks unemployed)': {
-                    id: 'LNS13008396',
+                    id: 'LNS13025670',
                     unit: '%',
                     crisisThreshold: 2.0,
                     inverseGood: true
                 },
                 'U-2 (Job losers)': {
-                    id: 'LNS13008397',
+                    id: 'LNS13025678',
                     unit: '%',
                     crisisThreshold: 3.0,
-                    inverseGood: true
-                },
-                'U-3 (Official unemployment)': {
-                    id: 'LNS14000000',
-                    unit: '%',
-                    crisisThreshold: 5.0,
                     inverseGood: true
                 },
                 'U-4 (+ Discouraged workers)': {
@@ -668,6 +710,8 @@
         let chart = null;
         let selectedMetrics = [];
         let activeCategory = 'all';
+        let fetchProgress = 0;
+        let totalSeries = 0;
         
         // Initialize chart
         function initChart() {
@@ -728,28 +772,72 @@
             });
         }
         
-} else if (metricName.includes('Rate') || metricName.includes('U-')) {
-                        value = (4 + Math.random() * 4).toFixed(1);
-                    } else if (metricName.includes('Earnings')) {
-                        value = (25 + Math.random() * 10).toFixed(2);
-                    } else if (metricName.includes('Hours')) {
-                        value = (35 + Math.random() * 5).toFixed(1);
-                    } else if (metricName.includes('JOLTS') || metricName.includes('Job Opening')) {
-                        value = (5000 + Math.random() * 3000).toFixed(0);
-                    } else {
-                        value = (100 + Math.random() * 20).toFixed(1);
-                    }
-                    
-                    data.push({
-                        year: year.toString(),
-                        period: `M${month.toString().padStart(2, '0')}`,
-                        periodName: new Date(year, month - 1).toLocaleDateString('en-US', { month: 'short' }),
-                        value: value
-                    });
-                }
+        // Update progress bar
+        function updateProgress(current, total, message) {
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            
+            if (current === 0) {
+                progressBar.classList.add('active');
             }
             
-            return data;
+            const percent = (current / total * 100).toFixed(0);
+            progressFill.style.width = percent + '%';
+            progressText.textContent = `${message} (${current}/${total})`;
+            
+            if (current === total) {
+                setTimeout(() => {
+                    progressBar.classList.remove('active');
+                }, 1000);
+            }
+        }
+        
+        // Fetch data from BLS API
+        async function fetchSeriesData(seriesId, metricName) {
+            const currentYear = new Date().getFullYear();
+            const startYear = currentYear - 4; // Get 5 years of data
+            
+            try {
+                const response = await fetch(BLS_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        seriesid: [seriesId],
+                        startyear: startYear.toString(),
+                        endyear: currentYear.toString(),
+                        registrationkey: BLS_API_KEY,
+                        calculations: true,
+                        annualaverage: false
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.status === 'REQUEST_SUCCEEDED' && data.Results && data.Results.series && data.Results.series.length > 0) {
+                    const series = data.Results.series[0];
+                    if (series.data && series.data.length > 0) {
+                        // Sort data by date (newest first)
+                        return series.data.sort((a, b) => {
+                            const dateA = new Date(a.year, a.period.replace('M', '') - 1);
+                            const dateB = new Date(b.year, b.period.replace('M', '') - 1);
+                            return dateB - dateA;
+                        });
+                    }
+                }
+                
+                return [];
+                
+            } catch (error) {
+                console.error(`Error fetching ${metricName} (${seriesId}):`, error);
+                return [];
+            }
         }
         
         // Calculate changes
@@ -760,13 +848,13 @@
             const monthAgo = data.length > 1 ? parseFloat(data[1].value) : latest;
             const yearAgo = data.length > 12 ? parseFloat(data[12].value) : latest;
             
-            const monthChange = ((latest - monthAgo) / monthAgo * 100).toFixed(2);
-            const yearChange = ((latest - yearAgo) / yearAgo * 100).toFixed(2);
+            const monthChange = ((latest - monthAgo) / monthAgo * 100);
+            const yearChange = ((latest - yearAgo) / yearAgo * 100);
             
             return {
                 current: latest,
-                monthChange: isNaN(monthChange) ? 0 : parseFloat(monthChange),
-                yearChange: isNaN(yearChange) ? 0 : parseFloat(yearChange),
+                monthChange: isNaN(monthChange) ? 0 : monthChange,
+                yearChange: isNaN(yearChange) ? 0 : yearChange,
                 latestDate: data[0] ? `${data[0].periodName} ${data[0].year}` : 'N/A'
             };
         }
@@ -777,19 +865,33 @@
             let distanceFromCrisis;
             
             if (config.inverseGood) {
-                distanceFromCrisis = ((threshold - value) / threshold * 100).toFixed(1);
+                distanceFromCrisis = ((threshold - value) / threshold * 100);
             } else {
-                distanceFromCrisis = ((value - threshold) / Math.abs(threshold) * 100).toFixed(1);
+                distanceFromCrisis = ((value - threshold) / Math.abs(threshold) * 100);
             }
             
             return {
-                distance: parseFloat(distanceFromCrisis),
+                distance: distanceFromCrisis,
                 status: Math.abs(distanceFromCrisis) < 10 ? 'warning' : (distanceFromCrisis > 0 ? 'safe' : 'danger')
             };
         }
         
         // Create metric card
         function createMetricCard(name, data, config, category) {
+            if (!data || data.length === 0) {
+                return `
+                    <div class="metric-card loading" data-metric="${category}_${name}">
+                        <div class="metric-title">${name}</div>
+                        <div class="metric-value">--</div>
+                        <div class="change-indicators">
+                            <div class="change-item">
+                                <div class="change-label">No data</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
             const changes = calculateChanges(data);
             const crisis = calculateCrisisLevel(changes.current, config);
             
@@ -802,20 +904,20 @@
                         <div class="change-item">
                             <div class="change-label">MoM</div>
                             <div class="change-value ${changes.monthChange > 0 ? (config.inverseGood ? 'negative' : 'positive') : changes.monthChange < 0 ? (config.inverseGood ? 'positive' : 'negative') : 'neutral'}">
-                                ${changes.monthChange > 0 ? '+' : ''}${changes.monthChange}%
+                                ${changes.monthChange > 0 ? '+' : ''}${changes.monthChange.toFixed(2)}%
                             </div>
                         </div>
                         <div class="change-item">
                             <div class="change-label">YoY</div>
                             <div class="change-value ${changes.yearChange > 0 ? (config.inverseGood ? 'negative' : 'positive') : changes.yearChange < 0 ? (config.inverseGood ? 'positive' : 'negative') : 'neutral'}">
-                                ${changes.yearChange > 0 ? '+' : ''}${changes.yearChange}%
+                                ${changes.yearChange > 0 ? '+' : ''}${changes.yearChange.toFixed(2)}%
                             </div>
                         </div>
                     </div>
                     
                     <div class="crisis-indicator">
                         <div class="crisis-value ${crisis.status === 'safe' ? 'positive' : crisis.status === 'warning' ? 'neutral' : 'negative'}">
-                            ${crisis.distance > 0 ? '+' : ''}${crisis.distance}%
+                            ${crisis.distance > 0 ? '+' : ''}${crisis.distance.toFixed(1)}%
                             <span class="crisis-level crisis-${crisis.status}">${crisis.status.toUpperCase()}</span>
                         </div>
                     </div>
@@ -826,7 +928,7 @@
         // Toggle metric selection
         function toggleMetric(metricKey) {
             const card = document.querySelector(`[data-metric="${metricKey}"]`);
-            if (!card) return;
+            if (!card || card.classList.contains('loading')) return;
             
             if (selectedMetrics.includes(metricKey)) {
                 selectedMetrics = selectedMetrics.filter(m => m !== metricKey);
@@ -848,7 +950,7 @@
             
             selectedMetrics.forEach((metricKey, index) => {
                 const data = allData[metricKey];
-                if (!data) return;
+                if (!data || data.length === 0) return;
                 
                 const chartData = data.map(d => {
                     const label = `${d.year}-${d.period.replace('M', '')}`;
@@ -917,14 +1019,14 @@
                         <td class="table-metric-name">${name}</td>
                         <td>${changes.current.toFixed(config.unit === '%' ? 1 : 0)}${config.unit === '%' ? '%' : config.unit === '$' ? '$' : ''}</td>
                         <td class="${changes.monthChange > 0 ? (config.inverseGood ? 'negative' : 'positive') : changes.monthChange < 0 ? (config.inverseGood ? 'positive' : 'negative') : 'neutral'}">
-                            ${changes.monthChange > 0 ? '+' : ''}${changes.monthChange}%
+                            ${changes.monthChange > 0 ? '+' : ''}${changes.monthChange.toFixed(2)}%
                         </td>
                         <td class="${changes.yearChange > 0 ? (config.inverseGood ? 'negative' : 'positive') : changes.yearChange < 0 ? (config.inverseGood ? 'positive' : 'negative') : 'neutral'}">
-                            ${changes.yearChange > 0 ? '+' : ''}${changes.yearChange}%
+                            ${changes.yearChange > 0 ? '+' : ''}${changes.yearChange.toFixed(2)}%
                         </td>
                         <td>${config.crisisThreshold}${config.unit === '%' ? '%' : ''}</td>
                         <td class="${crisis.status === 'safe' ? 'positive' : crisis.status === 'warning' ? 'neutral' : 'negative'}">
-                            ${crisis.distance > 0 ? '+' : ''}${crisis.distance}%
+                            ${crisis.distance > 0 ? '+' : ''}${crisis.distance.toFixed(1)}%
                         </td>
                         <td>
                             <span class="crisis-level crisis-${crisis.status}">${crisis.status.toUpperCase()}</span>
@@ -936,13 +1038,42 @@
             }
         }
         
-        // Fetch all data with rate limiting
+        // Batch fetch with rate limiting
+        async function batchFetchSeries(seriesBatch) {
+            const results = [];
+            const BATCH_SIZE = 10; // Process 10 series at a time
+            
+            for (let i = 0; i < seriesBatch.length; i += BATCH_SIZE) {
+                const batch = seriesBatch.slice(i, i + BATCH_SIZE);
+                const promises = batch.map(item => 
+                    fetchSeriesData(item.config.id, item.name)
+                        .then(data => ({ key: item.key, data }))
+                );
+                
+                const batchResults = await Promise.all(promises);
+                results.push(...batchResults);
+                
+                fetchProgress += batch.length;
+                updateProgress(fetchProgress, totalSeries, `Fetching employment data from BLS`);
+                
+                // Add a small delay between batches to avoid rate limiting
+                if (i + BATCH_SIZE < seriesBatch.length) {
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+            }
+            
+            return results;
+        }
+        
+        // Fetch all data
         async function fetchAllData() {
             const loading = document.getElementById('loading');
             const error = document.getElementById('error');
+            const fetchBtn = document.getElementById('fetchBtn');
             
             loading.style.display = 'block';
             error.style.display = 'none';
+            fetchBtn.disabled = true;
             
             try {
                 // Clear existing metric cards
@@ -953,64 +1084,64 @@
                 document.getElementById('industryMetrics').innerHTML = '';
                 document.getElementById('hoursMetrics').innerHTML = '';
                 
-                let fetchCount = 0;
-                const maxRequestsPerBatch = 25; // BLS API limit is 25 series per request with API key
-                
-                // Collect all series to fetch
-                const allSeriesToFetch = [];
+                // Prepare all series for fetching
+                const allSeries = [];
                 for (const [category, metrics] of Object.entries(SERIES_CONFIG)) {
                     for (const [name, config] of Object.entries(metrics)) {
-                        allSeriesToFetch.push({ category, name, config });
+                        allSeries.push({
+                            key: `${category}_${name}`,
+                            name,
+                            config,
+                            category
+                        });
                     }
                 }
                 
-                // Update loading message
-                loading.innerHTML = `Loading real BLS data... (0/${allSeriesToFetch.length} indicators)`;
+                totalSeries = allSeries.length;
+                fetchProgress = 0;
+                updateProgress(0, totalSeries, 'Starting data fetch');
                 
-                // Fetch in batches to respect rate limits
-                for (let i = 0; i < allSeriesToFetch.length; i++) {
-                    const { category, name, config } = allSeriesToFetch[i];
+                // Fetch all data with rate limiting
+                const results = await batchFetchSeries(allSeries);
+                
+                // Process results and create cards
+                for (const result of results) {
+                    allData[result.key] = result.data;
                     
-                    // Add delay between requests to avoid rate limiting
-                    if (i > 0 && i % 10 === 0) {
-                        await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second delay every 10 requests
-                    }
+                    const [category, ...nameParts] = result.key.split('_');
+                    const name = nameParts.join('_');
+                    const config = SERIES_CONFIG[category][name];
                     
-                    const data = await fetchSeriesData(config.id, name);
-                    const key = `${category}_${name}`;
-                    allData[key] = data;
-                    
-                    fetchCount++;
-                    loading.innerHTML = `Loading real BLS data... (${fetchCount}/${allSeriesToFetch.length} indicators)`;
-                    
-                    if (data.length > 0) {
-                        const card = createMetricCard(name, data, config, category);
+                    if (config) {
+                        const card = createMetricCard(name, result.data, config, category);
                         const containerId = category === 'alternative' ? 'altMetrics' : 
                                           category === 'demographic' ? 'demographicMetrics' :
                                           category === 'jolts' ? 'joltsMetrics' :
                                           category === 'industry' ? 'industryMetrics' :
                                           category === 'hours' ? 'hoursMetrics' : 'coreMetrics';
-                        document.getElementById(containerId).innerHTML += card;
+                        
+                        const container = document.getElementById(containerId);
+                        if (container) {
+                            container.innerHTML += card;
+                        }
                     }
                 }
                 
                 updateDataTable();
                 
-                // Auto-select first metric with data
-                const firstKey = Object.keys(allData).find(key => allData[key].length > 0);
-                if (firstKey) {
-                    toggleMetric(firstKey);
+                // Auto-select unemployment rate if available
+                const unemploymentKey = 'core_Unemployment Rate';
+                if (allData[unemploymentKey]) {
+                    toggleMetric(unemploymentKey);
                 }
-                
-                // Show summary of loaded data
-                const loadedCount = Object.values(allData).filter(d => d.length > 0).length;
-                console.log(`Successfully loaded ${loadedCount} out of ${allSeriesToFetch.length} indicators with real data`);
                 
             } catch (err) {
                 error.style.display = 'block';
                 error.textContent = `Error fetching data: ${err.message}. Please check your API key and try again.`;
+                console.error('Fetch error:', err);
             } finally {
                 loading.style.display = 'none';
+                fetchBtn.disabled = false;
             }
         }
         
@@ -1053,7 +1184,7 @@
                 
                 const [category, ...nameParts] = key.split('_');
                 const name = nameParts.join(' ');
-                const config = SERIES_CONFIG[category][name];
+                const config = SERIES_CONFIG[category][name.replace(/ /g, ' ')];
                 
                 if (!config) continue;
                 
@@ -1082,7 +1213,7 @@
                 for (const [cat, items] of Object.entries(grouped)) {
                     message += `${cat.toUpperCase()}:\n`;
                     items.forEach(r => {
-                        message += `  • ${r.metric}: ${r.status.toUpperCase()} (${r.distance}% from threshold)\n`;
+                        message += `  • ${r.metric}: ${r.status.toUpperCase()} (${r.distance.toFixed(1)}% from threshold)\n`;
                     });
                     message += '\n';
                 }
@@ -1094,7 +1225,7 @@
         
         // Export report
         function exportReport() {
-            let report = 'BLS Employment Crisis Detection Report - Comprehensive\n';
+            let report = 'BLS Employment Crisis Detection Report - Real Data\n';
             report += `Generated: ${new Date().toLocaleString()}\n`;
             report += '='.repeat(60) + '\n\n';
             
@@ -1110,10 +1241,11 @@
                     const crisis = calculateCrisisLevel(changes.current, config);
                     
                     report += `\n${name}\n`;
-                    report += `  Current: ${changes.current}${config.unit}\n`;
-                    report += `  MoM Change: ${changes.monthChange}%\n`;
-                    report += `  YoY Change: ${changes.yearChange}%\n`;
-                    report += `  Crisis Status: ${crisis.status.toUpperCase()} (${crisis.distance}% from threshold)\n`;
+                    report += `  Series ID: ${config.id}\n`;
+                    report += `  Current: ${changes.current.toFixed(config.unit === '%' ? 1 : 0)}${config.unit}\n`;
+                    report += `  MoM Change: ${changes.monthChange.toFixed(2)}%\n`;
+                    report += `  YoY Change: ${changes.yearChange.toFixed(2)}%\n`;
+                    report += `  Crisis Status: ${crisis.status.toUpperCase()} (${crisis.distance.toFixed(1)}% from threshold)\n`;
                     report += `  Updated: ${changes.latestDate}\n`;
                 }
             }
@@ -1122,14 +1254,17 @@
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `bls-comprehensive-report-${new Date().toISOString().split('T')[0]}.txt`;
+            a.download = `bls-real-data-report-${new Date().toISOString().split('T')[0]}.txt`;
             a.click();
         }
         
         // Initialize
         window.addEventListener('DOMContentLoaded', () => {
             initChart();
-            fetchAllData();
+            // Auto-fetch data on load
+            setTimeout(() => {
+                fetchAllData();
+            }, 500);
         });
     </script>
 </body>
