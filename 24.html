@@ -856,39 +856,55 @@
                 
                 const requestBody = {
                     seriesid: [testSeriesId],
-                    startyear: startYear,
-                    endyear: currentYear,
-                    registrationkey: BLS_API_KEY
+                    startyear: startYear.toString(),
+                    endyear: currentYear.toString(),
+                    registrationkey: BLS_API_KEY,
+                    catalog: false,
+                    calculations: true,
+                    annualaverage: false
                 };
                 
-                console.log('Request body:', requestBody);
+                console.log('Request URL:', BLS_API_URL);
+                console.log('Request body:', JSON.stringify(requestBody, null, 2));
                 
                 const response = await fetch(BLS_API_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     },
                     body: JSON.stringify(requestBody)
                 });
                 
                 console.log('Response status:', response.status);
-                const data = await response.json();
-                console.log('Response data:', data);
+                console.log('Response headers:', response.headers);
+                
+                const text = await response.text();
+                console.log('Raw response:', text);
+                
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch (e) {
+                    console.error('Failed to parse JSON:', e);
+                    throw new Error('Invalid JSON response from API');
+                }
+                
+                console.log('Parsed data:', data);
                 
                 if (data.status === 'REQUEST_SUCCEEDED') {
-                    alert(`Success! Retrieved ${data.Results.series[0].data.length} data points for Unemployment Rate`);
+                    const series = data.Results.series[0];
+                    alert(`✅ Success! Retrieved ${series.data.length} data points for Unemployment Rate\nLatest value: ${series.data[0].value}% (${series.data[0].periodName} ${series.data[0].year})`);
                 } else {
-                    alert(`API Error: ${data.message || 'Unknown error'}`);
+                    alert(`⚠️ API returned status: ${data.status}\nMessage: ${data.message || 'No error message'}`);
                 }
                 
             } catch (err) {
                 console.error('Fetch error:', err);
                 error.style.display = 'block';
                 error.innerHTML = `Error: ${err.message}<br>
-                    Note: If you're seeing CORS errors, you need to either:<br>
-                    1. Use a CORS proxy service<br>
-                    2. Run this from a local server with proper headers<br>
-                    3. Create a backend API endpoint to fetch BLS data`;
+                    Check the browser console for detailed error information.<br>
+                    Make sure your API key is valid and the BLS API is accessible.`;
             } finally {
                 loading.style.display = 'none';
             }
@@ -900,18 +916,25 @@
             const startYear = currentYear - 4; // Get 5 years of data
             
             try {
+                // Build the request URL with parameters
                 const requestBody = {
                     seriesid: [seriesId],
-                    startyear: startYear,
-                    endyear: currentYear,
-                    registrationkey: BLS_API_KEY
+                    startyear: startYear.toString(),
+                    endyear: currentYear.toString(),
+                    registrationkey: BLS_API_KEY,
+                    catalog: false,
+                    calculations: true,
+                    annualaverage: false
                 };
                 
-                // Direct API call (will fail with CORS in browser)
+                console.log(`Fetching ${metricName} (${seriesId})...`);
+                
+                // Make the API call
                 const response = await fetch(BLS_API_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     },
                     body: JSON.stringify(requestBody)
                 });
@@ -922,10 +945,12 @@
                 }
                 
                 const data = await response.json();
+                console.log(`Response for ${metricName}:`, data.status);
                 
                 if (data.status === 'REQUEST_SUCCEEDED' && data.Results && data.Results.series && data.Results.series.length > 0) {
                     const series = data.Results.series[0];
                     if (series.data && series.data.length > 0) {
+                        console.log(`Got ${series.data.length} data points for ${metricName}`);
                         // Sort data by date (newest first)
                         return series.data.sort((a, b) => {
                             const dateA = new Date(a.year, parseInt(a.period.replace('M', '')) - 1);
@@ -933,12 +958,14 @@
                             return dateB - dateA;
                         });
                     }
+                } else if (data.message) {
+                    console.error(`BLS API Error for ${metricName}: ${data.message}`);
                 }
                 
                 return [];
                 
             } catch (error) {
-                console.error(`Error fetching ${metricName} (${seriesId}):`, error.message);
+                console.error(`Error fetching ${metricName} (${seriesId}):`, error);
                 // Return empty array instead of throwing to allow other series to continue
                 return [];
             }
