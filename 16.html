@@ -1012,16 +1012,7 @@
             `;
         }
         
-        // Function to update title when edited
-        function updateTitle(seriesId, newTitle) {
-            if (SERIES_MAPPING[seriesId]) {
-                SERIES_MAPPING[seriesId].name = newTitle;
-            }
-            if (allData[seriesId]) {
-                allData[seriesId].title = newTitle;
-            }
-            updateDataTable();
-        }
+
         
         // Toggle metric selection
         function toggleMetric(metricKey) {
