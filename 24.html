@@ -295,10 +295,10 @@
 </head>
 <body>
     <div class="container">
-        <h1>📊 BLS Employment Crisis Detection Platform - Comprehensive</h1>
+        <h1>📊 BLS Employment Crisis Detection Platform - Real Federal Data</h1>
         
         <div class="controls">
-            <button class="btn" onclick="fetchAllData()">📊 Fetch All Data</button>
+            <button class="btn" onclick="fetchAllData()">📊 Fetch Latest BLS Data</button>
             <button class="btn" onclick="runCrisisDetection()">⚠️ Run Crisis Detection</button>
             <button class="btn" onclick="exportReport()">📄 Export Report</button>
             <button class="btn" onclick="clearSelection()">🔄 Clear Selection</button>
@@ -374,299 +374,60 @@
         </div>
         
         <div id="loading" class="loading" style="display: none;">
-            Loading comprehensive employment data from BLS API...</div>
+            Loading real-time BLS employment data...</div>
         
         <div id="error" class="error" style="display: none;"></div>
     </div>
 
     <script>
-        // BLS API Configuration
+        // BLS API Configuration - Your actual API endpoint
         const BLS_API_URL = 'https://tajry2f7v3.execute-api.us-east-1.amazonaws.com/prod/data';
         
-        // Comprehensive BLS Series Configuration (matching your API series)
-        const SERIES_CONFIG = {
-            // Core Employment Indicators
-            core: {
-                'Unemployment Rate': {
-                    id: 'LNS14000000',
-                    unit: '%',
-                    crisisThreshold: 5.0,
-                    inverseGood: true
-                },
-                'Total Nonfarm Employment': {
-                    id: 'CES0000000001',
-                    unit: 'thousands',
-                    crisisThreshold: -200,
-                    inverseGood: false
-                },
-                'Labor Force Participation Rate': {
-                    id: 'LNS11300000',
-                    unit: '%',
-                    crisisThreshold: 62.5,
-                    inverseGood: false
-                },
-                'Employment-Population Ratio': {
-                    id: 'LNS12300000',
-                    unit: '%',
-                    crisisThreshold: 58.0,
-                    inverseGood: false
-                },
-                'Civilian Labor Force': {
-                    id: 'LNS11000000',
-                    unit: 'thousands',
-                    crisisThreshold: 160000,
-                    inverseGood: false
-                },
-                'Not in Labor Force': {
-                    id: 'LNS15000000',
-                    unit: 'thousands',
-                    crisisThreshold: 100000,
-                    inverseGood: true
-                }
-            },
-            
-            // Alternative Unemployment Measures
-            alternative: {
-                'U-1 (15+ weeks unemployed)': {
-                    id: 'LNS13025670',
-                    unit: '%',
-                    crisisThreshold: 2.0,
-                    inverseGood: true
-                },
-                'U-2 (Job losers)': {
-                    id: 'LNS13025678',
-                    unit: '%',
-                    crisisThreshold: 3.0,
-                    inverseGood: true
-                },
-                'U-3 (Official unemployment)': {
-                    id: 'LNS14000000',
-                    unit: '%',
-                    crisisThreshold: 5.0,
-                    inverseGood: true
-                },
-                'U-4 (+ Discouraged workers)': {
-                    id: 'LNS13327707',
-                    unit: '%',
-                    crisisThreshold: 5.5,
-                    inverseGood: true
-                },
-                'U-5 (+ Marginally attached)': {
-                    id: 'LNS13327708',
-                    unit: '%',
-                    crisisThreshold: 6.0,
-                    inverseGood: true
-                },
-                'U-6 (+ Part-time for economic)': {
-                    id: 'LNS13327709',
-                    unit: '%',
-                    crisisThreshold: 8.0,
-                    inverseGood: true
-                }
-            },
-            
-            // Demographic Unemployment
-            demographic: {
-                'White Unemployment': {
-                    id: 'LNS14000003',
-                    unit: '%',
-                    crisisThreshold: 4.5,
-                    inverseGood: true
-                },
-                'Black/African American Unemployment': {
-                    id: 'LNS14000006',
-                    unit: '%',
-                    crisisThreshold: 9.0,
-                    inverseGood: true
-                },
-                'Hispanic/Latino Unemployment': {
-                    id: 'LNS14000009',
-                    unit: '%',
-                    crisisThreshold: 6.5,
-                    inverseGood: true
-                },
-                'Asian Unemployment': {
-                    id: 'LNS14032183',
-                    unit: '%',
-                    crisisThreshold: 4.0,
-                    inverseGood: true
-                },
-                'Women Unemployment': {
-                    id: 'LNS14000002',
-                    unit: '%',
-                    crisisThreshold: 5.0,
-                    inverseGood: true
-                },
-                'Men Unemployment': {
-                    id: 'LNS14000001',
-                    unit: '%',
-                    crisisThreshold: 5.0,
-                    inverseGood: true
-                },
-                'Youth (16-19) Unemployment': {
-                    id: 'LNS14000012',
-                    unit: '%',
-                    crisisThreshold: 15.0,
-                    inverseGood: true
-                },
-                'Prime Age (25-54) Unemployment': {
-                    id: 'LNS14000060',
-                    unit: '%',
-                    crisisThreshold: 4.0,
-                    inverseGood: true
-                }
-            },
-            
-            // JOLTS Data
-            jolts: {
-                'Job Openings (Total)': {
-                    id: 'JTS00000000JOL',
-                    unit: 'thousands',
-                    crisisThreshold: 7000,
-                    inverseGood: false
-                },
-                'Hires (Total)': {
-                    id: 'JTS00000000HIL',
-                    unit: 'thousands',
-                    crisisThreshold: 5000,
-                    inverseGood: false
-                },
-                'Quits (Total)': {
-                    id: 'JTS00000000QUL',
-                    unit: 'thousands',
-                    crisisThreshold: 3000,
-                    inverseGood: false
-                },
-                'Layoffs and Discharges': {
-                    id: 'JTS00000000LDL',
-                    unit: 'thousands',
-                    crisisThreshold: 2000,
-                    inverseGood: true
-                },
-                'Job Openings Rate': {
-                    id: 'JTS00000000JOR',
-                    unit: '%',
-                    crisisThreshold: 4.0,
-                    inverseGood: false
-                },
-                'Quits Rate': {
-                    id: 'JTS00000000QUR',
-                    unit: '%',
-                    crisisThreshold: 2.0,
-                    inverseGood: false
-                },
-                'Hires Rate': {
-                    id: 'JTS00000000HIR',
-                    unit: '%',
-                    crisisThreshold: 3.5,
-                    inverseGood: false
-                },
-                'Separations Rate': {
-                    id: 'JTS00000000TSR',
-                    unit: '%',
-                    crisisThreshold: 4.0,
-                    inverseGood: true
-                }
-            },
-            
-            // Industry Employment
-            industry: {
-                'Manufacturing Employment': {
-                    id: 'CES3000000001',
-                    unit: 'thousands',
-                    crisisThreshold: 12000,
-                    inverseGood: false
-                },
-                'Construction Employment': {
-                    id: 'CES2000000001',
-                    unit: 'thousands',
-                    crisisThreshold: 7000,
-                    inverseGood: false
-                },
-                'Retail Trade Employment': {
-                    id: 'CES4200000001',
-                    unit: 'thousands',
-                    crisisThreshold: 15000,
-                    inverseGood: false
-                },
-                'Professional Services Employment': {
-                    id: 'CES6054000001',
-                    unit: 'thousands',
-                    crisisThreshold: 20000,
-                    inverseGood: false
-                },
-                'Healthcare Employment': {
-                    id: 'CES6562000001',
-                    unit: 'thousands',
-                    crisisThreshold: 16000,
-                    inverseGood: false
-                },
-                'Leisure and Hospitality Employment': {
-                    id: 'CES7000000001',
-                    unit: 'thousands',
-                    crisisThreshold: 14000,
-                    inverseGood: false
-                },
-                'Government Employment': {
-                    id: 'CES9000000001',
-                    unit: 'thousands',
-                    crisisThreshold: 22000,
-                    inverseGood: false
-                },
-                'Financial Activities Employment': {
-                    id: 'CES5500000001',
-                    unit: 'thousands',
-                    crisisThreshold: 8500,
-                    inverseGood: false
-                }
-            },
-            
-            // Hours and Earnings
-            hours: {
-                'Average Weekly Hours (All)': {
-                    id: 'CES0500000002',
-                    unit: 'hours',
-                    crisisThreshold: 33.0,
-                    inverseGood: false
-                },
-                'Average Weekly Hours (Manufacturing)': {
-                    id: 'CES3000000002',
-                    unit: 'hours',
-                    crisisThreshold: 39.0,
-                    inverseGood: false
-                },
-                'Average Hourly Earnings (All)': {
-                    id: 'CES0500000003',
-                    unit: '$',
-                    crisisThreshold: 25.0,
-                    inverseGood: false
-                },
-                'Average Weekly Earnings': {
-                    id: 'CES0500000011',
-                    unit: '$',
-                    crisisThreshold: 900,
-                    inverseGood: false
-                },
-                'Overtime Hours (Manufacturing)': {
-                    id: 'CES3000000004',
-                    unit: 'hours',
-                    crisisThreshold: 2.5,
-                    inverseGood: false
-                },
-                'Part-time for Economic Reasons': {
-                    id: 'LNS12032194',
-                    unit: 'thousands',
-                    crisisThreshold: 5000,
-                    inverseGood: true
-                }
-            }
-        };
-        
+        // Store all data
         let allData = {};
         let apiResponseData = {};
         let chart = null;
         let selectedMetrics = [];
         let activeCategory = 'all';
+        
+        // Series mapping for your BLS API
+        const SERIES_MAPPING = {
+            'LNS14000000': { name: 'Unemployment Rate', category: 'core', unit: '%', threshold: 5.0, inverseGood: true },
+            'CES0000000001': { name: 'Total Nonfarm Employment', category: 'core', unit: 'thousands', threshold: -200, inverseGood: false },
+            'LNS11300000': { name: 'Labor Force Participation Rate', category: 'core', unit: '%', threshold: 62.5, inverseGood: false },
+            'LNS12300000': { name: 'Employment-Population Ratio', category: 'core', unit: '%', threshold: 58.0, inverseGood: false },
+            'LNS11000000': { name: 'Civilian Labor Force', category: 'core', unit: 'thousands', threshold: 160000, inverseGood: false },
+            'LNS15000000': { name: 'Not in Labor Force', category: 'core', unit: 'thousands', threshold: 100000, inverseGood: true },
+            
+            // Demographics
+            'LNS14000001': { name: 'Men Unemployment', category: 'demographic', unit: '%', threshold: 5.0, inverseGood: true },
+            'LNS14000002': { name: 'Women Unemployment', category: 'demographic', unit: '%', threshold: 5.0, inverseGood: true },
+            'LNS14000003': { name: 'White Unemployment', category: 'demographic', unit: '%', threshold: 4.5, inverseGood: true },
+            'LNS14000006': { name: 'Black/African American Unemployment', category: 'demographic', unit: '%', threshold: 9.0, inverseGood: true },
+            'LNS14000009': { name: 'Hispanic/Latino Unemployment', category: 'demographic', unit: '%', threshold: 6.5, inverseGood: true },
+            'LNS14000012': { name: 'Youth (16-19) Unemployment', category: 'demographic', unit: '%', threshold: 15.0, inverseGood: true },
+            'LNS14000060': { name: 'Prime Age (25-54) Unemployment', category: 'demographic', unit: '%', threshold: 4.0, inverseGood: true },
+            
+            // JOLTS
+            'JTS00000000JOL': { name: 'Job Openings (Total)', category: 'jolts', unit: 'thousands', threshold: 7000, inverseGood: false },
+            'JTS00000000HIL': { name: 'Hires (Total)', category: 'jolts', unit: 'thousands', threshold: 5000, inverseGood: false },
+            'JTS00000000QUL': { name: 'Quits (Total)', category: 'jolts', unit: 'thousands', threshold: 3000, inverseGood: false },
+            'JTS00000000LDL': { name: 'Layoffs and Discharges', category: 'jolts', unit: 'thousands', threshold: 2000, inverseGood: true },
+            
+            // Industry
+            'CES3000000001': { name: 'Manufacturing Employment', category: 'industry', unit: 'thousands', threshold: 12000, inverseGood: false },
+            'CES2000000001': { name: 'Construction Employment', category: 'industry', unit: 'thousands', threshold: 7000, inverseGood: false },
+            'CES4200000001': { name: 'Retail Trade Employment', category: 'industry', unit: 'thousands', threshold: 15000, inverseGood: false },
+            'CES7000000001': { name: 'Leisure and Hospitality Employment', category: 'industry', unit: 'thousands', threshold: 14000, inverseGood: false },
+            'CES9000000001': { name: 'Government Employment', category: 'industry', unit: 'thousands', threshold: 22000, inverseGood: false },
+            
+            // Hours and Earnings
+            'CES0500000002': { name: 'Average Weekly Hours', category: 'industry', unit: 'hours', threshold: 33.0, inverseGood: false },
+            'CES0500000003': { name: 'Average Hourly Earnings', category: 'industry', unit: '$', threshold: 25.0, inverseGood: false },
+            
+            // Alternative measures
+            'LNS13327709': { name: 'U-6 (+ Part-time for economic)', category: 'alternative', unit: '%', threshold: 8.0, inverseGood: true }
+        };
         
         // Initialize chart
         function initChart() {
@@ -727,68 +488,131 @@
             });
         }
         
-        // Fetch real data from BLS API
-        async function fetchSeriesData(seriesId, metricName) {
-            // Check if we have the data in our API response
-            if (apiResponseData.chart_data && apiResponseData.chart_data[seriesId]) {
-                const chartData = apiResponseData.chart_data[seriesId];
-                if (chartData.data && Array.isArray(chartData.data)) {
-                    return chartData.data.map(item => ({
-                        year: item.year.toString(),
-                        period: `M${item.month.toString().padStart(2, '0')}`,
-                        periodName: new Date(item.year, item.month - 1).toLocaleDateString('en-US', { month: 'short' }),
-                        value: item.value.toString()
-                    })).reverse(); // Reverse to get most recent first
-                }
+        // Process BLS API data format
+        function processBLSData(apiData) {
+            const processedData = {};
+            
+            // Process chart_data if available
+            if (apiData.chart_data) {
+                Object.entries(apiData.chart_data).forEach(([seriesId, seriesData]) => {
+                    if (seriesData && seriesData.data && Array.isArray(seriesData.data)) {
+                        processedData[seriesId] = {
+                            title: seriesData.title || SERIES_MAPPING[seriesId]?.name || seriesId,
+                            category: seriesData.category || SERIES_MAPPING[seriesId]?.category || 'other',
+                            units: seriesData.units || SERIES_MAPPING[seriesId]?.unit || 'value',
+                            data: seriesData.data.map(point => ({
+                                date: point.date,
+                                value: point.value,
+                                year: point.year,
+                                month: point.month
+                            })),
+                            latest: seriesData.latest || (seriesData.data.length > 0 ? seriesData.data[seriesData.data.length - 1] : null)
+                        };
+                    }
+                });
             }
-            return [];
+            
+            // Fallback to current_metrics if chart_data is not available
+            if (Object.keys(processedData).length === 0 && apiData.current_metrics) {
+                Object.entries(apiData.current_metrics).forEach(([seriesId, metricData]) => {
+                    processedData[seriesId] = {
+                        title: metricData.title || SERIES_MAPPING[seriesId]?.name || seriesId,
+                        category: metricData.category || SERIES_MAPPING[seriesId]?.category || 'other',
+                        units: metricData.units || SERIES_MAPPING[seriesId]?.unit || 'value',
+                        data: [{
+                            date: metricData.last_updated || new Date().toISOString().split('T')[0],
+                            value: metricData.current || 0,
+                            year: new Date().getFullYear(),
+                            month: new Date().getMonth() + 1
+                        }],
+                        latest: {
+                            date: metricData.last_updated || new Date().toISOString().split('T')[0],
+                            value: metricData.current || 0
+                        }
+                    };
+                });
+            }
+            
+            return processedData;
         }
         
         // Calculate changes
         function calculateChanges(data) {
-            if (!data || data.length === 0) return {};
+            if (!data || data.length === 0) return { current: 0, monthChange: 0, yearChange: 0, latestDate: 'N/A' };
             
-            const latest = parseFloat(data[0].value);
-            const monthAgo = data.length > 1 ? parseFloat(data[1].value) : latest;
-            const yearAgo = data.length > 12 ? parseFloat(data[12].value) : latest;
+            // Sort data by date
+            const sortedData = [...data].sort((a, b) => new Date(b.date) - new Date(a.date));
             
-            const monthChange = ((latest - monthAgo) / monthAgo * 100).toFixed(2);
-            const yearChange = ((latest - yearAgo) / yearAgo * 100).toFixed(2);
+            const latest = sortedData[0].value;
+            const latestDate = new Date(sortedData[0].date);
+            
+            // Find month-ago value
+            let monthAgo = latest;
+            const monthAgoDate = new Date(latestDate);
+            monthAgoDate.setMonth(monthAgoDate.getMonth() - 1);
+            
+            for (let i = 1; i < sortedData.length; i++) {
+                const pointDate = new Date(sortedData[i].date);
+                if (pointDate <= monthAgoDate) {
+                    monthAgo = sortedData[i].value;
+                    break;
+                }
+            }
+            
+            // Find year-ago value
+            let yearAgo = latest;
+            const yearAgoDate = new Date(latestDate);
+            yearAgoDate.setFullYear(yearAgoDate.getFullYear() - 1);
+            
+            for (let i = 1; i < sortedData.length; i++) {
+                const pointDate = new Date(sortedData[i].date);
+                if (pointDate <= yearAgoDate) {
+                    yearAgo = sortedData[i].value;
+                    break;
+                }
+            }
+            
+            const monthChange = monthAgo !== 0 ? ((latest - monthAgo) / monthAgo * 100) : 0;
+            const yearChange = yearAgo !== 0 ? ((latest - yearAgo) / yearAgo * 100) : 0;
             
             return {
                 current: latest,
-                monthChange: isNaN(monthChange) ? 0 : parseFloat(monthChange),
-                yearChange: isNaN(yearChange) ? 0 : parseFloat(yearChange),
-                latestDate: data[0] ? `${data[0].periodName} ${data[0].year}` : 'N/A'
+                monthChange: parseFloat(monthChange.toFixed(2)),
+                yearChange: parseFloat(yearChange.toFixed(2)),
+                latestDate: latestDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
             };
         }
         
         // Calculate crisis level
-        function calculateCrisisLevel(value, config) {
-            const threshold = config.crisisThreshold;
+        function calculateCrisisLevel(value, seriesId) {
+            const config = SERIES_MAPPING[seriesId];
+            if (!config) return { distance: 0, status: 'unknown' };
+            
+            const threshold = config.threshold;
             let distanceFromCrisis;
             
             if (config.inverseGood) {
-                distanceFromCrisis = ((threshold - value) / threshold * 100).toFixed(1);
+                distanceFromCrisis = ((threshold - value) / Math.abs(threshold) * 100);
             } else {
-                distanceFromCrisis = ((value - threshold) / Math.abs(threshold) * 100).toFixed(1);
+                distanceFromCrisis = ((value - threshold) / Math.abs(threshold) * 100);
             }
             
             return {
-                distance: parseFloat(distanceFromCrisis),
+                distance: parseFloat(distanceFromCrisis.toFixed(1)),
                 status: Math.abs(distanceFromCrisis) < 10 ? 'warning' : (distanceFromCrisis > 0 ? 'safe' : 'danger')
             };
         }
         
         // Create metric card
-        function createMetricCard(name, data, config, category) {
-            const changes = calculateChanges(data);
-            const crisis = calculateCrisisLevel(changes.current, config);
+        function createMetricCard(seriesId, seriesData, changes, crisis) {
+            const config = SERIES_MAPPING[seriesId] || {};
+            const title = seriesData.title || config.name || seriesId;
+            const unit = seriesData.units || config.unit || '';
             
             return `
-                <div class="metric-card" onclick="toggleMetric('${category}_${name}')" data-metric="${category}_${name}">
-                    <div class="metric-title">${name}</div>
-                    <div class="metric-value">${changes.current.toFixed(config.unit === '%' ? 1 : 0)}${config.unit === '%' ? '%' : ''}</div>
+                <div class="metric-card" onclick="toggleMetric('${seriesId}')" data-metric="${seriesId}">
+                    <div class="metric-title">${title}</div>
+                    <div class="metric-value">${changes.current.toFixed(unit === '%' ? 1 : 0)}${unit === '%' ? '%' : ''}</div>
                     
                     <div class="change-indicators">
                         <div class="change-item">
@@ -831,39 +655,34 @@
             updateChart();
         }
         
-        // Update chart
+        // Update chart with selected metrics
         function updateChart() {
             if (!chart || selectedMetrics.length === 0) return;
             
             const datasets = [];
-            let allLabels = new Set();
+            const colors = [
+                'rgb(59, 130, 246)',
+                'rgb(139, 92, 246)',
+                'rgb(16, 185, 129)',
+                'rgb(251, 191, 36)',
+                'rgb(239, 68, 68)',
+                'rgb(236, 72, 153)',
+                'rgb(34, 197, 94)',
+                'rgb(168, 85, 247)'
+            ];
             
-            selectedMetrics.forEach((metricKey, index) => {
-                const data = allData[metricKey];
-                if (!data) return;
+            selectedMetrics.forEach((seriesId, index) => {
+                const seriesData = allData[seriesId];
+                if (!seriesData || !seriesData.data) return;
                 
-                const chartData = data.map(d => {
-                    const label = `${d.year}-${d.period.replace('M', '')}`;
-                    allLabels.add(label);
-                    return {
-                        x: label,
-                        y: parseFloat(d.value)
-                    };
-                }).reverse();
-                
-                const colors = [
-                    'rgb(59, 130, 246)',
-                    'rgb(139, 92, 246)',
-                    'rgb(16, 185, 129)',
-                    'rgb(251, 191, 36)',
-                    'rgb(239, 68, 68)',
-                    'rgb(236, 72, 153)',
-                    'rgb(34, 197, 94)',
-                    'rgb(168, 85, 247)'
-                ];
+                // Create chart data points
+                const chartData = seriesData.data.map(point => ({
+                    x: point.date,
+                    y: point.value
+                })).sort((a, b) => new Date(a.x) - new Date(b.x));
                 
                 datasets.push({
-                    label: metricKey.split('_').slice(1).join(' '),
+                    label: seriesData.title || seriesId,
                     data: chartData,
                     borderColor: colors[index % colors.length],
                     backgroundColor: colors[index % colors.length] + '20',
@@ -874,9 +693,13 @@
                 });
             });
             
-            chart.data.labels = Array.from(allLabels).sort();
-            chart.data.datasets = datasets;
-            chart.update();
+            // Update chart with new data
+            if (datasets.length > 0) {
+                const allDates = [...new Set(datasets.flatMap(d => d.data.map(p => p.x)))].sort();
+                chart.data.labels = allDates;
+                chart.data.datasets = datasets;
+                chart.update();
+            }
         }
         
         // Update data table
@@ -886,46 +709,35 @@
             
             tableBody.innerHTML = '';
             
-            const categoryNames = {
-                'core': 'Core',
-                'alternative': 'Alt. Measures',
-                'demographic': 'Demographics',
-                'jolts': 'JOLTS',
-                'industry': 'Industry',
-                'hours': 'Hours/Earnings'
-            };
-            
-            for (const [category, metrics] of Object.entries(SERIES_CONFIG)) {
-                for (const [name, config] of Object.entries(metrics)) {
-                    const data = allData[`${category}_${name}`];
-                    if (!data || data.length === 0) continue;
-                    
-                    const changes = calculateChanges(data);
-                    const crisis = calculateCrisisLevel(changes.current, config);
-                    
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td style="color: #3b82f6; font-weight: 600;">${categoryNames[category]}</td>
-                        <td class="table-metric-name">${name}</td>
-                        <td>${changes.current.toFixed(config.unit === '%' ? 1 : 0)}${config.unit === '%' ? '%' : config.unit === '$' ? '$' : ''}</td>
-                        <td class="${changes.monthChange > 0 ? (config.inverseGood ? 'negative' : 'positive') : changes.monthChange < 0 ? (config.inverseGood ? 'positive' : 'negative') : 'neutral'}">
-                            ${changes.monthChange > 0 ? '+' : ''}${changes.monthChange}%
-                        </td>
-                        <td class="${changes.yearChange > 0 ? (config.inverseGood ? 'negative' : 'positive') : changes.yearChange < 0 ? (config.inverseGood ? 'positive' : 'negative') : 'neutral'}">
-                            ${changes.yearChange > 0 ? '+' : ''}${changes.yearChange}%
-                        </td>
-                        <td>${config.crisisThreshold}${config.unit === '%' ? '%' : ''}</td>
-                        <td class="${crisis.status === 'safe' ? 'positive' : crisis.status === 'warning' ? 'neutral' : 'negative'}">
-                            ${crisis.distance > 0 ? '+' : ''}${crisis.distance}%
-                        </td>
-                        <td>
-                            <span class="crisis-level crisis-${crisis.status}">${crisis.status.toUpperCase()}</span>
-                        </td>
-                        <td class="neutral">${changes.latestDate}</td>
-                    `;
-                    tableBody.appendChild(row);
-                }
-            }
+            Object.entries(allData).forEach(([seriesId, seriesData]) => {
+                if (!seriesData || !seriesData.data || seriesData.data.length === 0) return;
+                
+                const config = SERIES_MAPPING[seriesId] || {};
+                const changes = calculateChanges(seriesData.data);
+                const crisis = calculateCrisisLevel(changes.current, seriesId);
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="color: #3b82f6; font-weight: 600;">${seriesData.category || config.category || 'Other'}</td>
+                    <td class="table-metric-name">${seriesData.title || config.name || seriesId}</td>
+                    <td>${changes.current.toFixed(seriesData.units === '%' ? 1 : 0)}${seriesData.units === '%' ? '%' : ''}</td>
+                    <td class="${changes.monthChange > 0 ? (config.inverseGood ? 'negative' : 'positive') : changes.monthChange < 0 ? (config.inverseGood ? 'positive' : 'negative') : 'neutral'}">
+                        ${changes.monthChange > 0 ? '+' : ''}${changes.monthChange}%
+                    </td>
+                    <td class="${changes.yearChange > 0 ? (config.inverseGood ? 'negative' : 'positive') : changes.yearChange < 0 ? (config.inverseGood ? 'positive' : 'negative') : 'neutral'}">
+                        ${changes.yearChange > 0 ? '+' : ''}${changes.yearChange}%
+                    </td>
+                    <td>${config.threshold || 'N/A'}${seriesData.units === '%' ? '%' : ''}</td>
+                    <td class="${crisis.status === 'safe' ? 'positive' : crisis.status === 'warning' ? 'neutral' : 'negative'}">
+                        ${crisis.distance > 0 ? '+' : ''}${crisis.distance}%
+                    </td>
+                    <td>
+                        <span class="crisis-level crisis-${crisis.status}">${crisis.status.toUpperCase()}</span>
+                    </td>
+                    <td class="neutral">${changes.latestDate}</td>
+                `;
+                tableBody.appendChild(row);
+            });
         }
         
         // Fetch all data from BLS API
@@ -936,116 +748,201 @@
             loading.style.display = 'block';
             error.style.display = 'none';
             
+            // Clear existing cards
+            document.getElementById('coreMetrics').innerHTML = '';
+            document.getElementById('altMetrics').innerHTML = '';
+            document.getElementById('demographicMetrics').innerHTML = '';
+            document.getElementById('joltsMetrics').innerHTML = '';
+            document.getElementById('industryMetrics').innerHTML = '';
+            document.getElementById('hoursMetrics').innerHTML = '';
+            
             try {
-                // Clear existing metric cards
-                document.getElementById('coreMetrics').innerHTML = '';
-                document.getElementById('altMetrics').innerHTML = '';
-                document.getElementById('demographicMetrics').innerHTML = '';
-                document.getElementById('joltsMetrics').innerHTML = '';
-                document.getElementById('industryMetrics').innerHTML = '';
-                document.getElementById('hoursMetrics').innerHTML = '';
+                console.log('Fetching data from BLS API...');
                 
-                // Fetch data from BLS API for different modes
-                const modes = ['core', 'demographics', 'jolts', 'payroll', 'sectors', 'alternative'];
+                // Fetch data from your BLS API
+                const response = await fetch(BLS_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        mode: 'all',
+                        startYear: 2020,
+                        endYear: new Date().getFullYear()
+                    })
+                });
                 
-                for (const mode of modes) {
-                    console.log(`Fetching ${mode} data from BLS API...`);
-                    
-                    const response = await fetch(BLS_API_URL, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            mode: mode,
-                            startYear: 2020,  // Get recent data for better performance
-                            endYear: new Date().getFullYear()
-                        })
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    
-                    const apiData = await response.json();
-                    
-                    if (apiData.success && apiData.chart_data) {
-                        // Store the API response data
-                        Object.assign(apiResponseData, {
-                            chart_data: { ...apiResponseData.chart_data, ...apiData.chart_data },
-                            current_metrics: { ...apiResponseData.current_metrics, ...apiData.current_metrics },
-                            crisis_analysis: apiData.crisis_analysis || apiResponseData.crisis_analysis
-                        });
-                        
-                        // Process each series in the response
-                        for (const [seriesId, seriesData] of Object.entries(apiData.chart_data)) {
-                            // Find which category and metric this series belongs to
-                            for (const [category, metrics] of Object.entries(SERIES_CONFIG)) {
-                                for (const [name, config] of Object.entries(metrics)) {
-                                    if (config.id === seriesId) {
-                                        const key = `${category}_${name}`;
-                                        
-                                        // Convert API data format to our format - with proper error checking
-                                        if (seriesData && seriesData.data && Array.isArray(seriesData.data)) {
-                                            const formattedData = seriesData.data.map(item => ({
-                                                year: (item.year || 0).toString(),
-                                                period: `M${(item.month || 1).toString().padStart(2, '0')}`,
-                                                periodName: new Date(item.year || 2024, (item.month || 1) - 1).toLocaleDateString('en-US', { month: 'short' }),
-                                                value: (item.value || 0).toString()
-                                            })).reverse();
-                                            
-                                            allData[key] = formattedData;
-                                            
-                                            if (formattedData.length > 0) {
-                                                const card = createMetricCard(name, formattedData, config, category);
-                                                const containerId = category === 'alternative' ? 'altMetrics' : 
-                                                                  category === 'demographic' ? 'demographicMetrics' :
-                                                                  category === 'jolts' ? 'joltsMetrics' :
-                                                                  category === 'industry' ? 'industryMetrics' :
-                                                                  category === 'hours' ? 'hoursMetrics' : 'coreMetrics';
-                                                
-                                                const container = document.getElementById(containerId);
-                                                if (container) {
-                                                    container.innerHTML += card;
-                                                }
-                                            }
-                                        }
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
+                const apiData = await response.json();
+                console.log('API Response:', apiData);
+                
+                // Store the raw API response
+                apiResponseData = apiData;
+                
+                // Process the data
+                allData = processBLSData(apiData);
+                console.log('Processed data:', allData);
+                
+                // Create metric cards for each series
+                Object.entries(allData).forEach(([seriesId, seriesData]) => {
+                    const config = SERIES_MAPPING[seriesId] || {};
+                    const changes = calculateChanges(seriesData.data);
+                    const crisis = calculateCrisisLevel(changes.current, seriesId);
+                    
+                    const card = createMetricCard(seriesId, seriesData, changes, crisis);
+                    
+                    // Determine which container to add the card to
+                    let containerId = 'coreMetrics';
+                    const category = config.category || seriesData.category || 'core';
+                    
+                    switch(category) {
+                        case 'demographic':
+                            containerId = 'demographicMetrics';
+                            break;
+                        case 'jolts':
+                            containerId = 'joltsMetrics';
+                            break;
+                        case 'industry':
+                            containerId = 'industryMetrics';
+                            break;
+                        case 'alternative':
+                            containerId = 'altMetrics';
+                            break;
+                        case 'hours':
+                            containerId = 'hoursMetrics';
+                            break;
+                        default:
+                            containerId = 'coreMetrics';
+                    }
+                    
+                    const container = document.getElementById(containerId);
+                    if (container) {
+                        container.innerHTML += card;
+                    }
+                });
+                
+                // Update the data table
                 updateDataTable();
                 
-                // Auto-select first metric
-                const firstKey = Object.keys(allData)[0];
-                if (firstKey) {
-                    toggleMetric(firstKey);
+                // Auto-select first metric if available
+                const firstSeriesId = Object.keys(allData)[0];
+                if (firstSeriesId) {
+                    toggleMetric(firstSeriesId);
                 }
                 
-                console.log('✅ Successfully loaded real BLS data');
+                if (Object.keys(allData).length === 0) {
+                    error.style.display = 'block';
+                    error.textContent = 'No data received from BLS API. Please check the API configuration.';
+                } else {
+                    console.log(`✅ Successfully loaded ${Object.keys(allData).length} indicators from BLS API`);
+                }
                 
             } catch (err) {
                 console.error('Error fetching BLS data:', err);
                 error.style.display = 'block';
-                error.textContent = `Error fetching data: ${err.message}. Please check your internet connection and try again.`;
+                error.textContent = `Error: ${err.message}. Please check the console for details.`;
             } finally {
                 loading.style.display = 'none';
             }
         }
         
+        // Run crisis detection
+        function runCrisisDetection() {
+            if (apiResponseData.crisis_analysis) {
+                const crisis = apiResponseData.crisis_analysis;
+                let message = '⚠️ BLS Crisis Detection Analysis:\n\n';
+                
+                message += `📊 Current Unemployment Rate: ${crisis.current_unemployment_rate || 'N/A'}%\n`;
+                message += `📈 Crisis Level: ${crisis.crisis_level || 'Unknown'}\n`;
+                message += `📉 Trend: ${crisis.trend || 'Unknown'}\n\n`;
+                
+                if (crisis.risk_factors && crisis.risk_factors.length > 0) {
+                    message += 'Risk Factors:\n';
+                    crisis.risk_factors.forEach(factor => {
+                        message += `  • ${factor}\n`;
+                    });
+                    message += '\n';
+                }
+                
+                message += 'Historical Comparison:\n';
+                message += `  • 2008 Financial Crisis Peak: ${crisis.historical_comparison?.['2008_financial_crisis_peak'] || 'N/A'}\n`;
+                message += `  • 2020 COVID Peak: ${crisis.historical_comparison?.['2020_covid_peak'] || 'N/A'}\n`;
+                message += `  • Current Assessment: ${crisis.historical_comparison?.current_assessment || 'N/A'}\n\n`;
+                
+                message += `Labor Market Health: ${crisis.labor_market_health?.overall_rating || 'N/A'}\n`;
+                
+                alert(message);
+            } else {
+                alert('Crisis analysis data not available. Please fetch data first.');
+            }
+        }
+        
+        // Export report
+        function exportReport() {
+            let report = 'BLS Employment Crisis Detection Report\n';
+            report += `Generated: ${new Date().toLocaleString()}\n`;
+            report += `Data Source: U.S. Bureau of Labor Statistics API\n`;
+            report += '='.repeat(60) + '\n\n';
+            
+            if (apiResponseData.crisis_analysis) {
+                report += 'CRISIS ANALYSIS\n';
+                report += '-'.repeat(40) + '\n';
+                const crisis = apiResponseData.crisis_analysis;
+                report += `Current Unemployment Rate: ${crisis.current_unemployment_rate || 'N/A'}%\n`;
+                report += `Crisis Level: ${crisis.crisis_level || 'Unknown'}\n`;
+                report += `Trend: ${crisis.trend || 'Unknown'}\n\n`;
+            }
+            
+            report += 'EMPLOYMENT INDICATORS\n';
+            report += '-'.repeat(40) + '\n';
+            
+            Object.entries(allData).forEach(([seriesId, seriesData]) => {
+                if (!seriesData || !seriesData.data) return;
+                
+                const changes = calculateChanges(seriesData.data);
+                const crisis = calculateCrisisLevel(changes.current, seriesId);
+                
+                report += `\n${seriesData.title || seriesId}\n`;
+                report += `  Current: ${changes.current}${seriesData.units || ''}\n`;
+                report += `  MoM Change: ${changes.monthChange}%\n`;
+                report += `  YoY Change: ${changes.yearChange}%\n`;
+                report += `  Crisis Status: ${crisis.status.toUpperCase()}\n`;
+                report += `  Updated: ${changes.latestDate}\n`;
+            });
+            
+            report += '\n\nData Source: BLS API - Real Federal Data\n';
+            report += 'API Endpoint: ' + BLS_API_URL + '\n';
+            
+            const blob = new Blob([report], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `bls-employment-report-${new Date().toISOString().split('T')[0]}.txt`;
+            a.click();
+        }
+        
+        // Clear selection
+        function clearSelection() {
+            selectedMetrics = [];
+            document.querySelectorAll('.metric-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            if (chart) {
+                chart.data.datasets = [];
+                chart.update();
+            }
+        }
+        
         // Filter by category
         function filterCategory(category) {
-            // Update button states
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
             event.target.classList.add('active');
             
-            // Show/hide category sections
             document.querySelectorAll('.category-section').forEach(section => {
                 if (category === 'all') {
                     section.style.display = 'block';
@@ -1057,143 +954,10 @@
             activeCategory = category;
         }
         
-        // Clear selection
-        function clearSelection() {
-            selectedMetrics = [];
-            document.querySelectorAll('.metric-card').forEach(card => {
-                card.classList.remove('selected');
-            });
-            chart.data.datasets = [];
-            chart.update();
-        }
-        
-        // Run crisis detection
-        function runCrisisDetection() {
-            // Check if we have crisis analysis from API
-            if (apiResponseData.crisis_analysis) {
-                const crisis = apiResponseData.crisis_analysis;
-                let message = '⚠️ Crisis Detection Results (Real BLS Data):\n\n';
-                
-                message += `📊 Current Unemployment Rate: ${crisis.current_unemployment_rate}%\n`;
-                message += `📈 Crisis Level: ${crisis.crisis_level}\n`;
-                message += `📉 Trend: ${crisis.trend}\n\n`;
-                
-                if (crisis.risk_factors && crisis.risk_factors.length > 0) {
-                    message += 'Risk Factors:\n';
-                    crisis.risk_factors.forEach(factor => {
-                        message += `  • ${factor}\n`;
-                    });
-                    message += '\n';
-                }
-                
-                message += 'Crisis Thresholds:\n';
-                message += `  • Normal: ${crisis.crisis_thresholds.normal}\n`;
-                message += `  • Elevated: ${crisis.crisis_thresholds.elevated}\n`;
-                message += `  • Crisis: ${crisis.crisis_thresholds.crisis}\n`;
-                message += `  • Severe Crisis: ${crisis.crisis_thresholds.severe_crisis}\n\n`;
-                
-                message += `Labor Market Health: ${crisis.labor_market_health.overall_rating}\n`;
-                
-                alert(message);
-            } else {
-                // Fallback to local analysis
-                const results = [];
-                
-                for (const [key, data] of Object.entries(allData)) {
-                    if (!data || data.length === 0) continue;
-                    
-                    const [category, ...nameParts] = key.split('_');
-                    const name = nameParts.join(' ');
-                    const config = SERIES_CONFIG[category][name];
-                    
-                    if (!config) continue;
-                    
-                    const changes = calculateChanges(data);
-                    const crisis = calculateCrisisLevel(changes.current, config);
-                    
-                    if (crisis.status === 'danger' || crisis.status === 'warning') {
-                        results.push({
-                            category: category,
-                            metric: name,
-                            value: changes.current,
-                            status: crisis.status,
-                            distance: crisis.distance
-                        });
-                    }
-                }
-                
-                if (results.length > 0) {
-                    const grouped = results.reduce((acc, r) => {
-                        if (!acc[r.category]) acc[r.category] = [];
-                        acc[r.category].push(r);
-                        return acc;
-                    }, {});
-                    
-                    let message = '⚠️ Crisis Detection Results (Real BLS Data):\n\n';
-                    for (const [cat, items] of Object.entries(grouped)) {
-                        message += `${cat.toUpperCase()}:\n`;
-                        items.forEach(r => {
-                            message += `  • ${r.metric}: ${r.status.toUpperCase()} (${r.distance}% from threshold)\n`;
-                        });
-                        message += '\n';
-                    }
-                    alert(message);
-                } else {
-                    alert('✅ No crisis indicators detected. All metrics within safe ranges. (Based on real BLS data)');
-                }
-            }
-        }
-        
-        // Export report
-        function exportReport() {
-            let report = 'BLS Employment Crisis Detection Report - Real Data\n';
-            report += `Generated: ${new Date().toLocaleString()}\n`;
-            report += `Data Source: U.S. Bureau of Labor Statistics (BLS) API\n`;
-            report += '='.repeat(60) + '\n\n';
-            
-            // Add API info if available
-            if (apiResponseData.crisis_analysis) {
-                report += 'CRISIS ANALYSIS (Real-time BLS Data)\n';
-                report += '-'.repeat(40) + '\n';
-                report += `Current Unemployment Rate: ${apiResponseData.crisis_analysis.current_unemployment_rate}%\n`;
-                report += `Crisis Level: ${apiResponseData.crisis_analysis.crisis_level}\n`;
-                report += `Trend: ${apiResponseData.crisis_analysis.trend}\n\n`;
-            }
-            
-            for (const [category, metrics] of Object.entries(SERIES_CONFIG)) {
-                report += `\n${category.toUpperCase()} METRICS\n`;
-                report += '-'.repeat(40) + '\n';
-                
-                for (const [name, config] of Object.entries(metrics)) {
-                    const data = allData[`${category}_${name}`];
-                    if (!data || data.length === 0) continue;
-                    
-                    const changes = calculateChanges(data);
-                    const crisis = calculateCrisisLevel(changes.current, config);
-                    
-                    report += `\n${name}\n`;
-                    report += `  Current: ${changes.current}${config.unit}\n`;
-                    report += `  MoM Change: ${changes.monthChange}%\n`;
-                    report += `  YoY Change: ${changes.yearChange}%\n`;
-                    report += `  Crisis Status: ${crisis.status.toUpperCase()} (${crisis.distance}% from threshold)\n`;
-                    report += `  Updated: ${changes.latestDate}\n`;
-                }
-            }
-            
-            report += '\n\nData authenticity: 100% Real Federal Data from BLS API\n';
-            report += 'API Endpoint: ' + BLS_API_URL + '\n';
-            
-            const blob = new Blob([report], { type: 'text/plain' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `bls-real-data-report-${new Date().toISOString().split('T')[0]}.txt`;
-            a.click();
-        }
-        
-        // Initialize
+        // Initialize on page load
         window.addEventListener('DOMContentLoaded', () => {
             initChart();
+            // Auto-fetch data on load
             fetchAllData();
         });
     </script>
