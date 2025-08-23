@@ -732,12 +732,14 @@
             // Check if we have the data in our API response
             if (apiResponseData.chart_data && apiResponseData.chart_data[seriesId]) {
                 const chartData = apiResponseData.chart_data[seriesId];
-                return chartData.data.map(item => ({
-                    year: item.year.toString(),
-                    period: `M${item.month.toString().padStart(2, '0')}`,
-                    periodName: new Date(item.year, item.month - 1).toLocaleDateString('en-US', { month: 'short' }),
-                    value: item.value.toString()
-                })).reverse(); // Reverse to get most recent first
+                if (chartData.data && Array.isArray(chartData.data)) {
+                    return chartData.data.map(item => ({
+                        year: item.year.toString(),
+                        period: `M${item.month.toString().padStart(2, '0')}`,
+                        periodName: new Date(item.year, item.month - 1).toLocaleDateString('en-US', { month: 'short' }),
+                        value: item.value.toString()
+                    })).reverse(); // Reverse to get most recent first
+                }
             }
             return [];
         }
@@ -983,27 +985,29 @@
                                     if (config.id === seriesId) {
                                         const key = `${category}_${name}`;
                                         
-                                        // Convert API data format to our format
-                                        const formattedData = seriesData.data.map(item => ({
-                                            year: item.year.toString(),
-                                            period: `M${item.month.toString().padStart(2, '0')}`,
-                                            periodName: new Date(item.year, item.month - 1).toLocaleDateString('en-US', { month: 'short' }),
-                                            value: item.value.toString()
-                                        })).reverse();
-                                        
-                                        allData[key] = formattedData;
-                                        
-                                        if (formattedData.length > 0) {
-                                            const card = createMetricCard(name, formattedData, config, category);
-                                            const containerId = category === 'alternative' ? 'altMetrics' : 
-                                                              category === 'demographic' ? 'demographicMetrics' :
-                                                              category === 'jolts' ? 'joltsMetrics' :
-                                                              category === 'industry' ? 'industryMetrics' :
-                                                              category === 'hours' ? 'hoursMetrics' : 'coreMetrics';
+                                        // Convert API data format to our format - with proper error checking
+                                        if (seriesData && seriesData.data && Array.isArray(seriesData.data)) {
+                                            const formattedData = seriesData.data.map(item => ({
+                                                year: (item.year || 0).toString(),
+                                                period: `M${(item.month || 1).toString().padStart(2, '0')}`,
+                                                periodName: new Date(item.year || 2024, (item.month || 1) - 1).toLocaleDateString('en-US', { month: 'short' }),
+                                                value: (item.value || 0).toString()
+                                            })).reverse();
                                             
-                                            const container = document.getElementById(containerId);
-                                            if (container) {
-                                                container.innerHTML += card;
+                                            allData[key] = formattedData;
+                                            
+                                            if (formattedData.length > 0) {
+                                                const card = createMetricCard(name, formattedData, config, category);
+                                                const containerId = category === 'alternative' ? 'altMetrics' : 
+                                                                  category === 'demographic' ? 'demographicMetrics' :
+                                                                  category === 'jolts' ? 'joltsMetrics' :
+                                                                  category === 'industry' ? 'industryMetrics' :
+                                                                  category === 'hours' ? 'hoursMetrics' : 'coreMetrics';
+                                                
+                                                const container = document.getElementById(containerId);
+                                                if (container) {
+                                                    container.innerHTML += card;
+                                                }
                                             }
                                         }
                                         break;
