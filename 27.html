@@ -860,40 +860,108 @@
            searchResults.classList.add('active');
        }
        
-       // Fetch latest value
+       // Fetch latest value - REAL DATA ONLY
        async function fetchLatestValue(symbol, source) {
            try {
                let value = null;
                
                if (source === 'FRED') {
-                   const response = await fetch(
-                       `${API_CONFIG.FRED.directUrl}/series/observations?series_id=${symbol}&api_key=${API_CONFIG.FRED.apiKey}&file_type=json&limit=1&sort_order=desc`
-                   );
+                   // Try your API first
+                   try {
+                       const yourApiResponse = await fetch(
+                           `${API_CONFIG.FRED.baseUrl}/fred/series/observations?series_id=${symbol}&limit=1`
+                       );
+                       if (yourApiResponse.ok) {
+                           const yourData = await yourApiResponse.json();
+                           if (yourData.observations && yourData.observations.length > 0) {
+                               value = parseFloat(yourData.observations[0].value);
+                           }
+                       }
+                   } catch (e) {
+                       console.log('Your API failed for latest value, trying FRED directly...');
+                   }
                    
+                   // If your API didn't work, try FRED directly
+                   if (value === null) {
+                       const response = await fetch(
+                           `${API_CONFIG.FRED.directUrl}/series/observations?series_id=${symbol}&api_key=${API_CONFIG.FRED.apiKey}&file_type=json&limit=1&sort_order=desc`
+                       );
+                       
+                       if (response.ok) {
+                           const data = await response.json();
+                           if (data.observations && data.observations.length > 0 && data.observations[0].value !== '.') {
+                               value = parseFloat(data.observations[0].value);
+                           }
+                       }
+                   }
+               } else if (source === 'NYFED') {
+                   const response = await fetch(`${API_CONFIG.NYFED.baseUrl}/cmdi`);
                    if (response.ok) {
                        const data = await response.json();
-                       if (data.observations && data.observations.length > 0) {
-                           value = parseFloat(data.observations[0].value);
+                       if (data.indicators && data.indicators[symbol]) {
+                           value = parseFloat(data.indicators[symbol].value);
+                       }
+                   }
+               } else if (source === 'ECB') {
+                   const response = await fetch(`${API_CONFIG.ECB.baseUrl}/data?indicator=${symbol}&limit=1`);
+                   if (response.ok) {
+                       const data = await response.json();
+                       if (data.value) {
+                           value = parseFloat(data.value);
                        }
                    }
                }
                
                const element = document.getElementById(`value-${symbol}`);
                if (element) {
-                   element.textContent = value ? formatValue(value) : 'N/A';
+                   element.textContent = value !== null ? formatValue(value) : 'N/A';
                }
            } catch (error) {
-               console.error(`Error fetching ${symbol}:`, error);
+               console.error(`Error fetching latest value for ${symbol}:`, error);
+               const element = document.getElementById(`value-${symbol}`);
+               if (element) {
+                   element.textContent = 'Error';
+               }
            }
        }
        
-       // Fetch historical data
+       // Fetch historical data - REAL DATA ONLY
        async function fetchHistoricalData(symbol, source) {
+           console.log(`Fetching real data for ${symbol} from ${source}...`);
+           
            try {
                if (source === 'FRED') {
+                   // Method 1: Try your OpenBB API first
+                   try {
+                       const yourApiUrl = `${API_CONFIG.FRED.baseUrl}/fred/series/observations?series_id=${symbol}&limit=5000`;
+                       console.log('Trying your API:', yourApiUrl);
+                       const response = await fetch(yourApiUrl);
+                       
+                       if (response.ok) {
+                           const data = await response.json();
+                           if (data.observations && data.observations.length > 0) {
+                               const validData = data.observations
+                                   .filter(obs => obs.value !== '.' && obs.value !== '')
+                                   .map(obs => ({
+                                       date: obs.date,
+                                       value: parseFloat(obs.value)
+                                   }))
+                                   .filter(obs => !isNaN(obs.value));
+                               
+                               if (validData.length > 0) {
+                                   console.log(`Got ${validData.length} real data points from your API`);
+                                   return validData;
+                               }
+                           }
+                       }
+                   } catch (error) {
+                       console.log('Your API failed, trying FRED directly...');
+                   }
+                   
+                   // Method 2: Try FRED API directly
                    const endDate = new Date();
                    const startDate = new Date();
-                   startDate.setFullYear(startDate.getFullYear() - 20); // Get 20 years of data
+                   startDate.setFullYear(startDate.getFullYear() - 20);
                    
                    const params = new URLSearchParams({
                        series_id: symbol,
@@ -904,64 +972,116 @@
                        sort_order: 'asc'
                    });
                    
-                   const response = await fetch(`${API_CONFIG.FRED.directUrl}/series/observations?${params}`);
+                   const fredUrl = `${API_CONFIG.FRED.directUrl}/series/observations?${params}`;
+                   console.log('Trying FRED directly:', fredUrl);
+                   const response = await fetch(fredUrl);
                    
                    if (response.ok) {
                        const data = await response.json();
                        const observations = data.observations || [];
                        
-                       return observations
-                           .filter(obs => obs.value !== '.')
+                       const validData = observations
+                           .filter(obs => obs.value !== '.' && obs.value !== '')
                            .map(obs => ({
                                date: obs.date,
                                value: parseFloat(obs.value)
-                           }));
+                           }))
+                           .filter(obs => !isNaN(obs.value));
+                       
+                       if (validData.length > 0) {
+                           console.log(`Got ${validData.length} real data points from FRED`);
+                           return validData;
+                       }
                    }
+                   
+                   // Method 3: Try with CORS proxy if direct fails
+                   const corsProxies = [
+                       'https://corsproxy.io/?',
+                       'https://api.allorigins.win/raw?url='
+                   ];
+                   
+                   for (const proxy of corsProxies) {
+                       try {
+                           const proxyUrl = proxy + encodeURIComponent(fredUrl);
+                           console.log('Trying with proxy:', proxy);
+                           const proxyResponse = await fetch(proxyUrl);
+                           
+                           if (proxyResponse.ok) {
+                               const data = await proxyResponse.json();
+                               if (data.observations && data.observations.length > 0) {
+                                   const validData = data.observations
+                                       .filter(obs => obs.value !== '.' && obs.value !== '')
+                                       .map(obs => ({
+                                           date: obs.date,
+                                           value: parseFloat(obs.value)
+                                       }))
+                                       .filter(obs => !isNaN(obs.value));
+                                   
+                                   if (validData.length > 0) {
+                                       console.log(`Got ${validData.length} real data points via proxy`);
+                                       return validData;
+                                   }
+                               }
+                           }
+                       } catch (error) {
+                           console.log(`Proxy ${proxy} failed:`, error);
+                       }
+                   }
+                   
                } else if (source === 'NYFED') {
-                   // Fetch NY Fed CMDI data
+                   // Fetch NY Fed CMDI data with historical
                    const response = await fetch(`${API_CONFIG.NYFED.baseUrl}/cmdi?history=true`);
                    if (response.ok) {
                        const data = await response.json();
                        if (data.indicators && data.indicators[symbol]) {
                            const indicator = data.indicators[symbol];
                            if (indicator.historical_data && indicator.historical_data.chart_data) {
-                               return indicator.historical_data.chart_data;
+                               console.log(`Got ${indicator.historical_data.chart_data.length} real data points from NY Fed`);
+                               return indicator.historical_data.chart_data.map(point => ({
+                                   date: point.date,
+                                   value: parseFloat(point.value)
+                               }));
                            }
+                       }
+                   }
+               } else if (source === 'ECB') {
+                   // Try ECB API
+                   const response = await fetch(`${API_CONFIG.ECB.baseUrl}/data?indicator=${symbol}`);
+                   if (response.ok) {
+                       const data = await response.json();
+                       if (data.data && Array.isArray(data.data)) {
+                           console.log(`Got ${data.data.length} real data points from ECB`);
+                           return data.data.map(point => ({
+                               date: point.date,
+                               value: parseFloat(point.value)
+                           }));
+                       }
+                   }
+               } else if (source === 'TREASURY') {
+                   // Try Treasury API
+                   const response = await fetch(`${API_CONFIG.TREASURY.baseUrl}/auctions/historical`);
+                   if (response.ok) {
+                       const data = await response.json();
+                       if (data.data && Array.isArray(data.data)) {
+                           console.log(`Got ${data.data.length} real data points from Treasury`);
+                           return data.data.map(point => ({
+                               date: point.date,
+                               value: parseFloat(point.yield || point.rate || point.value)
+                           }));
                        }
                    }
                }
                
-               // Fallback to sample data
-               return generateSampleData(symbol);
+               console.error(`Failed to fetch real data for ${symbol} from ${source}`);
+               return null; // Return null if no real data available
+               
            } catch (error) {
-               console.error(`Error fetching historical data for ${symbol}:`, error);
-               return generateSampleData(symbol);
+               console.error(`Error fetching data for ${symbol}:`, error);
+               return null; // Return null on error
            }
        }
        
-       // Generate sample data
-       function generateSampleData(symbol) {
-           const data = [];
-           const endDate = new Date();
-           const startDate = new Date();
-           startDate.setFullYear(startDate.getFullYear() - 10);
-           
-           let currentValue = 100;
-           let currentDate = new Date(startDate);
-           
-           while (currentDate <= endDate) {
-               currentValue = currentValue * (1 + (Math.random() - 0.5) * 0.05);
-               data.push({
-                   date: currentDate.toISOString().split('T')[0],
-                   value: parseFloat(currentValue.toFixed(2))
-               });
-               currentDate.setMonth(currentDate.getMonth() + 1);
-           }
-           
-           return data;
-       }
-       
-       // Add to watchlist
+       // Add to watchlist - ONLY WITH REAL DATA
        async function addToWatchlist(symbol, name, source) {
            if (watchlist.find(item => item.symbol === symbol)) {
                selectIndicator(symbol);
@@ -970,28 +1090,40 @@
                return;
            }
            
+           // Show loading state
+           const searchResults = document.getElementById('searchResults');
+           searchResults.innerHTML = `<div class="search-result-item">Loading real data for ${symbol}...</div>`;
+           
            const historicalData = await fetchHistoricalData(symbol, source);
            
-           if (historicalData && historicalData.length > 0) {
-               const item = {
-                   symbol: symbol,
-                   name: name,
-                   customName: name,
-                   source: source,
-                   data: historicalData,
-                   latestValue: historicalData[historicalData.length - 1].value,
-                   latestDate: historicalData[historicalData.length - 1].date,
-                   changes: calculateChanges(historicalData),
-                   flashing: false
-               };
-               
-               watchlist.push(item);
-               chartData[symbol] = historicalData;
-               
-               updateWatchlistDisplay();
-               saveWatchlistToStorage();
-               selectIndicator(symbol);
+           if (!historicalData || historicalData.length === 0) {
+               // Don't add if no real data available
+               searchResults.innerHTML = `<div class="search-result-item">No real data available for ${symbol}. Try another indicator.</div>`;
+               setTimeout(() => {
+                   searchResults.classList.remove('active');
+               }, 3000);
+               return;
            }
+           
+           // Only add if we have real data
+           const item = {
+               symbol: symbol,
+               name: name,
+               customName: name,
+               source: source,
+               data: historicalData,
+               latestValue: historicalData[historicalData.length - 1].value,
+               latestDate: historicalData[historicalData.length - 1].date,
+               changes: calculateChanges(historicalData),
+               flashing: false
+           };
+           
+           watchlist.push(item);
+           chartData[symbol] = historicalData;
+           
+           updateWatchlistDisplay();
+           saveWatchlistToStorage();
+           selectIndicator(symbol);
            
            document.getElementById('searchResults').classList.remove('active');
            document.getElementById('searchInput').value = '';
@@ -1448,16 +1580,22 @@
            }
        }
        
-       // Refresh watchlist
+       // Refresh watchlist - REAL DATA ONLY
        async function refreshWatchlist() {
+           console.log('Refreshing watchlist with real data...');
+           
            for (let item of watchlist) {
                const newData = await fetchHistoricalData(item.symbol, item.source);
                if (newData && newData.length > 0) {
+                   // Only update if we got real data
                    item.data = newData;
                    item.latestValue = newData[newData.length - 1].value;
                    item.latestDate = newData[newData.length - 1].date;
                    item.changes = calculateChanges(newData);
                    chartData[item.symbol] = newData;
+                   console.log(`Updated ${item.symbol} with ${newData.length} real data points`);
+               } else {
+                   console.warn(`Could not refresh ${item.symbol} - no real data available`);
                }
            }
            
