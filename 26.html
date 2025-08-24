@@ -6,8 +6,7 @@
    <title>OpenBB Financial Dashboard - Real Data</title>
    
    <!-- Required Libraries -->
-   <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-   <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+   <script src="https://cdn.plot.ly/plotly-latest.min.js" charset="utf-8"></script>
    
    <style>
        * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -507,12 +506,33 @@
        
        // Initialize
        document.addEventListener('DOMContentLoaded', function() {
+           // Wait for Plotly to load
+           if (typeof Plotly === 'undefined') {
+               console.error('Plotly not loaded, loading fallback...');
+               // Load Plotly from alternative CDN
+               const script = document.createElement('script');
+               script.src = 'https://unpkg.com/plotly.js@2.27.0/dist/plotly.min.js';
+               script.onload = function() {
+                   console.log('Plotly loaded successfully');
+                   initializeApp();
+               };
+               script.onerror = function() {
+                   console.error('Failed to load Plotly');
+                   showError('Failed to load charting library. Please refresh the page.');
+               };
+               document.head.appendChild(script);
+           } else {
+               initializeApp();
+           }
+       });
+       
+       function initializeApp() {
            initializeAPIs();
            setupSearch();
            setupChartControls();
            loadWatchlistFromStorage();
            initializeChart();
-       });
+       }
        
        // Initialize APIs
        async function initializeAPIs() {
@@ -630,6 +650,8 @@
        // Fetch historical data
        async function fetchHistoricalData(symbol, startDate = null) {
            try {
+               showError(''); // Clear any previous errors
+               
                // Calculate date range
                const endDate = new Date();
                let start = new Date();
@@ -650,26 +672,43 @@
                    sort_order: 'asc'
                });
                
+               console.log(`Fetching data for ${symbol}...`);
                const response = await fetch(`${FRED_BASE_URL}/series/observations?${params}`);
                
-               if (response.ok) {
-                   const data = await response.json();
-                   const observations = data.observations || [];
-                   
-                   // Filter out invalid values and convert to numbers
-                   return observations
-                       .filter(obs => obs.value !== '.')
-                       .map(obs => ({
-                           date: obs.date,
-                           value: parseFloat(obs.value)
-                       }));
+               if (!response.ok) {
+                   throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                }
+               
+               const data = await response.json();
+               console.log(`Received data for ${symbol}:`, data);
+               
+               if (data.error_message) {
+                   throw new Error(data.error_message);
+               }
+               
+               const observations = data.observations || [];
+               
+               // Filter out invalid values and convert to numbers
+               const validData = observations
+                   .filter(obs => obs.value !== '.' && obs.value !== '')
+                   .map(obs => ({
+                       date: obs.date,
+                       value: parseFloat(obs.value)
+                   }))
+                   .filter(obs => !isNaN(obs.value));
+               
+               if (validData.length === 0) {
+                   throw new Error(`No valid data found for ${symbol}`);
+               }
+               
+               console.log(`Processed ${validData.length} data points for ${symbol}`);
+               return validData;
+               
            } catch (error) {
                console.error(`Error fetching historical data for ${symbol}:`, error);
-               showError(`Failed to fetch data for ${symbol}`);
+               showError(`Failed to fetch data for ${symbol}: ${error.message}`);
+               return [];
            }
-           
-           return [];
        }
        
        // Add to watchlist
@@ -789,10 +828,26 @@
        
        // Plot chart (FRED style)
        function plotChart(data, range) {
-           if (!data || data.length === 0) return;
+           if (!data || data.length === 0) {
+               console.error('No data to plot');
+               return;
+           }
+           
+           if (typeof Plotly === 'undefined') {
+               console.error('Plotly not available for plotting');
+               showError('Charting library not loaded. Please refresh the page.');
+               return;
+           }
            
            // Filter data based on range
            let filteredData = filterDataByRange(data, range);
+           
+           if (filteredData.length === 0) {
+               console.error('No data after filtering');
+               return;
+           }
+           
+           console.log(`Plotting ${filteredData.length} data points`);
            
            // Create FRED-style chart
            const trace = {
@@ -974,6 +1029,11 @@
        
        // Initialize chart
        function initializeChart() {
+           if (typeof Plotly === 'undefined') {
+               console.error('Plotly not available for chart initialization');
+               return;
+           }
+           
            const layout = {
                paper_bgcolor: '#fff',
                plot_bgcolor: '#fff',
@@ -1076,6 +1136,10 @@
        // Show error message
        function showError(message) {
            const errorDiv = document.getElementById('errorMessage');
+           if (!message) {
+               errorDiv.classList.remove('active');
+               return;
+           }
            errorDiv.textContent = message;
            errorDiv.classList.add('active');
            
