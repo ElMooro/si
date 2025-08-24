@@ -462,13 +462,21 @@
        const FRED_API_KEY = '2f057499936072679d8843d7fce99989'; // Your FRED API key
        const FRED_BASE_URL = 'https://api.stlouisfed.org/fred';
        
-       // Your API endpoints
+       // CORS proxy options (use if direct FRED API fails)
+       const CORS_PROXIES = [
+           'https://corsproxy.io/?',
+           'https://api.allorigins.win/raw?url=',
+           'https://cors-anywhere.herokuapp.com/'
+       ];
+       
+       // Your API endpoints (as backup)
        const API_CONFIG = {
            FRED: {
                baseUrl: 'https://i70jxru6md.execute-api.us-east-1.amazonaws.com/prod/api/v1',
                endpoints: {
                    overview: '/dashboard/overview',
-                   iceBofA: '/ice_bofa'
+                   iceBofA: '/ice_bofa',
+                   series: '/fred/series/observations'
                }
            }
        };
@@ -678,9 +686,30 @@
        // Fetch latest value for a series
        async function fetchLatestValue(symbol) {
            try {
-               const response = await fetch(
-                   `${FRED_BASE_URL}/series/observations?series_id=${symbol}&api_key=${FRED_API_KEY}&file_type=json&limit=1&sort_order=desc`
-               );
+               // Try your API first
+               const yourApiUrl = `${API_CONFIG.FRED.baseUrl}/fred/series/observations?series_id=${symbol}&limit=1`;
+               
+               try {
+                   const response = await fetch(yourApiUrl);
+                   if (response.ok) {
+                       const data = await response.json();
+                       if (data.observations && data.observations.length > 0) {
+                           const value = parseFloat(data.observations[0].value);
+                           const element = document.getElementById(`value-${symbol}`);
+                           if (element) {
+                               element.textContent = formatValue(value);
+                           }
+                           return;
+                       }
+                   }
+               } catch (e) {
+                   console.log('Your API failed, trying FRED directly...');
+               }
+               
+               // Try FRED API directly
+               const fredUrl = `${FRED_BASE_URL}/series/observations?series_id=${symbol}&api_key=${FRED_API_KEY}&file_type=json&limit=1&sort_order=desc`;
+               
+               const response = await fetch(fredUrl);
                
                if (response.ok) {
                    const data = await response.json();
@@ -696,71 +725,195 @@
                }
            } catch (error) {
                console.error(`Error fetching ${symbol}:`, error);
+               // Show placeholder
+               const element = document.getElementById(`value-${symbol}`);
+               if (element) {
+                   element.textContent = 'N/A';
+               }
            }
        }
        
        // Fetch historical data
        async function fetchHistoricalData(symbol, startDate = null) {
+           showError(''); // Clear any previous errors
+           
+           // Calculate date range
+           const endDate = new Date();
+           let start = new Date();
+           
+           if (startDate) {
+               start = new Date(startDate);
+           } else {
+               // Default to 10 years of data
+               start.setFullYear(start.getFullYear() - 10);
+           }
+           
+           const startStr = start.toISOString().split('T')[0];
+           const endStr = endDate.toISOString().split('T')[0];
+           
+           console.log(`Fetching data for ${symbol} from ${startStr} to ${endStr}...`);
+           
+           // Method 1: Try your API endpoint first
            try {
-               showError(''); // Clear any previous errors
+               const yourApiUrl = `${API_CONFIG.FRED.baseUrl}/fred/series/observations?series_id=${symbol}&observation_start=${startStr}&observation_end=${endStr}&sort_order=asc`;
                
-               // Calculate date range
-               const endDate = new Date();
-               let start = new Date();
+               console.log('Trying your API:', yourApiUrl);
+               const response = await fetch(yourApiUrl);
                
-               if (startDate) {
-                   start = new Date(startDate);
-               } else {
-                   // Default to 10 years of data
-                   start.setFullYear(start.getFullYear() - 10);
+               if (response.ok) {
+                   const data = await response.json();
+                   console.log('Your API response:', data);
+                   
+                   if (data.observations && data.observations.length > 0) {
+                       const validData = data.observations
+                           .filter(obs => obs.value !== '.' && obs.value !== '')
+                           .map(obs => ({
+                               date: obs.date,
+                               value: parseFloat(obs.value)
+                           }))
+                           .filter(obs => !isNaN(obs.value));
+                       
+                       if (validData.length > 0) {
+                           console.log(`Successfully fetched ${validData.length} data points from your API`);
+                           return validData;
+                       }
+                   }
                }
-               
+           } catch (error) {
+               console.log('Your API failed:', error);
+           }
+           
+           // Method 2: Try FRED API directly
+           try {
                const params = new URLSearchParams({
                    series_id: symbol,
                    api_key: FRED_API_KEY,
                    file_type: 'json',
-                   observation_start: start.toISOString().split('T')[0],
-                   observation_end: endDate.toISOString().split('T')[0],
+                   observation_start: startStr,
+                   observation_end: endStr,
                    sort_order: 'asc'
                });
                
-               console.log(`Fetching data for ${symbol}...`);
-               const response = await fetch(`${FRED_BASE_URL}/series/observations?${params}`);
+               const fredUrl = `${FRED_BASE_URL}/series/observations?${params}`;
+               console.log('Trying FRED API directly:', fredUrl);
                
-               if (!response.ok) {
-                   throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+               const response = await fetch(fredUrl);
+               
+               if (response.ok) {
+                   const data = await response.json();
+                   console.log('FRED API response:', data);
+                   
+                   if (data.error_message) {
+                       throw new Error(data.error_message);
+                   }
+                   
+                   const observations = data.observations || [];
+                   
+                   // Filter out invalid values and convert to numbers
+                   const validData = observations
+                       .filter(obs => obs.value !== '.' && obs.value !== '')
+                       .map(obs => ({
+                           date: obs.date,
+                           value: parseFloat(obs.value)
+                       }))
+                       .filter(obs => !isNaN(obs.value));
+                   
+                   if (validData.length > 0) {
+                       console.log(`Successfully fetched ${validData.length} data points from FRED`);
+                       return validData;
+                   }
                }
-               
-               const data = await response.json();
-               console.log(`Received data for ${symbol}:`, data);
-               
-               if (data.error_message) {
-                   throw new Error(data.error_message);
-               }
-               
-               const observations = data.observations || [];
-               
-               // Filter out invalid values and convert to numbers
-               const validData = observations
-                   .filter(obs => obs.value !== '.' && obs.value !== '')
-                   .map(obs => ({
-                       date: obs.date,
-                       value: parseFloat(obs.value)
-                   }))
-                   .filter(obs => !isNaN(obs.value));
-               
-               if (validData.length === 0) {
-                   throw new Error(`No valid data found for ${symbol}`);
-               }
-               
-               console.log(`Processed ${validData.length} data points for ${symbol}`);
-               return validData;
-               
            } catch (error) {
-               console.error(`Error fetching historical data for ${symbol}:`, error);
-               showError(`Failed to fetch data for ${symbol}: ${error.message}`);
-               return [];
+               console.error('FRED API failed:', error);
            }
+           
+           // Method 3: Try with CORS proxy
+           for (const proxy of CORS_PROXIES) {
+               try {
+                   const params = new URLSearchParams({
+                       series_id: symbol,
+                       api_key: FRED_API_KEY,
+                       file_type: 'json',
+                       observation_start: startStr,
+                       observation_end: endStr,
+                       sort_order: 'asc'
+                   });
+                   
+                   const fredUrl = `${FRED_BASE_URL}/series/observations?${params}`;
+                   const proxyUrl = proxy + encodeURIComponent(fredUrl);
+                   
+                   console.log('Trying with CORS proxy:', proxy);
+                   const response = await fetch(proxyUrl);
+                   
+                   if (response.ok) {
+                       const data = await response.json();
+                       
+                       if (data.observations && data.observations.length > 0) {
+                           const validData = data.observations
+                               .filter(obs => obs.value !== '.' && obs.value !== '')
+                               .map(obs => ({
+                                   date: obs.date,
+                                   value: parseFloat(obs.value)
+                               }))
+                               .filter(obs => !isNaN(obs.value));
+                           
+                           if (validData.length > 0) {
+                               console.log(`Successfully fetched ${validData.length} data points via proxy`);
+                               return validData;
+                           }
+                       }
+                   }
+               } catch (error) {
+                   console.log(`Proxy ${proxy} failed:`, error);
+               }
+           }
+           
+           // Method 4: Generate sample data as last resort
+           console.log('All API methods failed, generating sample data...');
+           showError(`Unable to fetch live data for ${symbol}. Showing sample data.`);
+           
+           return generateSampleData(symbol, startStr, endStr);
+       }
+       
+       // Generate sample data as fallback
+       function generateSampleData(symbol, startDate, endDate) {
+           const data = [];
+           const start = new Date(startDate);
+           const end = new Date(endDate);
+           
+           // Base values for different series
+           const baseValues = {
+               'BAMLH0A2HYB': 7.5,
+               'BAMLH0A2HYBEY': 8.2,
+               'DGS10': 4.5,
+               'DGS2': 4.8,
+               'VIXCLS': 15,
+               'SP500': 4500,
+               'DTWEXBGS': 105,
+               'SOFR': 5.3,
+               'default': 100
+           };
+           
+           let baseValue = baseValues[symbol] || baseValues['default'];
+           let currentValue = baseValue;
+           
+           // Generate monthly data points
+           let currentDate = new Date(start);
+           while (currentDate <= end) {
+               // Add some realistic variation
+               const change = (Math.random() - 0.5) * 0.1;
+               currentValue = currentValue * (1 + change);
+               
+               data.push({
+                   date: currentDate.toISOString().split('T')[0],
+                   value: parseFloat(currentValue.toFixed(2))
+               });
+               
+               // Move to next month
+               currentDate.setMonth(currentDate.getMonth() + 1);
+           }
+           
+           return data;
        }
        
        // Add to watchlist
