@@ -6,7 +6,14 @@
    <title>OpenBB Financial Dashboard - Real Data</title>
    
    <!-- Required Libraries -->
-   <script src="https://cdn.plot.ly/plotly-latest.min.js" charset="utf-8"></script>
+   <script src="https://cdn.jsdelivr.net/npm/plotly.js@2.27.1/dist/plotly.min.js"></script>
+   <script>
+       // Verify Plotly loaded
+       if (typeof Plotly === 'undefined') {
+           console.log('Primary CDN failed, loading from backup...');
+           document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.1/plotly.min.js"><\/script>');
+       }
+   </script>
    
    <style>
        * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -506,27 +513,72 @@
        
        // Initialize
        document.addEventListener('DOMContentLoaded', function() {
-           // Wait for Plotly to load
-           if (typeof Plotly === 'undefined') {
-               console.error('Plotly not loaded, loading fallback...');
-               // Load Plotly from alternative CDN
-               const script = document.createElement('script');
-               script.src = 'https://unpkg.com/plotly.js@2.27.0/dist/plotly.min.js';
-               script.onload = function() {
+           // Multiple attempts to ensure Plotly loads
+           let attempts = 0;
+           const maxAttempts = 3;
+           
+           function tryLoadPlotly() {
+               attempts++;
+               
+               if (typeof Plotly !== 'undefined') {
                    console.log('Plotly loaded successfully');
                    initializeApp();
+                   return;
+               }
+               
+               if (attempts >= maxAttempts) {
+                   console.error('Failed to load Plotly after multiple attempts');
+                   // Try using Chart.js as fallback
+                   loadChartJS();
+                   return;
+               }
+               
+               console.log(`Attempt ${attempts} to load Plotly...`);
+               
+               const cdns = [
+                   'https://cdn.jsdelivr.net/npm/plotly.js-dist@2.27.1/plotly.js',
+                   'https://unpkg.com/plotly.js-dist@2.27.1/plotly.js',
+                   'https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.1/plotly.min.js'
+               ];
+               
+               const script = document.createElement('script');
+               script.src = cdns[attempts - 1];
+               script.onload = function() {
+                   if (typeof Plotly !== 'undefined') {
+                       console.log('Plotly loaded from:', cdns[attempts - 1]);
+                       initializeApp();
+                   } else {
+                       setTimeout(tryLoadPlotly, 1000);
+                   }
                };
                script.onerror = function() {
-                   console.error('Failed to load Plotly');
-                   showError('Failed to load charting library. Please refresh the page.');
+                   console.error('Failed to load from:', cdns[attempts - 1]);
+                   setTimeout(tryLoadPlotly, 1000);
                };
                document.head.appendChild(script);
-           } else {
-               initializeApp();
            }
+           
+           // Try loading Plotly
+           tryLoadPlotly();
        });
        
+       function loadChartJS() {
+           console.log('Loading Chart.js as fallback...');
+           const script = document.createElement('script');
+           script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+           script.onload = function() {
+               console.log('Chart.js loaded, using alternative charting');
+               window.useChartJS = true;
+               initializeApp();
+           };
+           script.onerror = function() {
+               showError('Unable to load any charting library. Please check your internet connection and refresh.');
+           };
+           document.head.appendChild(script);
+       }
+       
        function initializeApp() {
+           console.log('Initializing application...');
            initializeAPIs();
            setupSearch();
            setupChartControls();
@@ -833,12 +885,6 @@
                return;
            }
            
-           if (typeof Plotly === 'undefined') {
-               console.error('Plotly not available for plotting');
-               showError('Charting library not loaded. Please refresh the page.');
-               return;
-           }
-           
            // Filter data based on range
            let filteredData = filterDataByRange(data, range);
            
@@ -849,7 +895,23 @@
            
            console.log(`Plotting ${filteredData.length} data points`);
            
-           // Create FRED-style chart
+           // Use Chart.js if Plotly not available
+           if (window.useChartJS && typeof Chart !== 'undefined') {
+               plotWithChartJS(filteredData);
+               return;
+           }
+           
+           // Use Plotly if available
+           if (typeof Plotly !== 'undefined') {
+               plotWithPlotly(filteredData);
+               return;
+           }
+           
+           // Fallback: Create a simple table
+           createDataTable(filteredData);
+       }
+       
+       function plotWithPlotly(filteredData) {
            const trace = {
                x: filteredData.map(d => d.date),
                y: filteredData.map(d => d.value),
@@ -896,6 +958,103 @@
            };
            
            Plotly.newPlot('mainChart', [trace], layout, config);
+       }
+       
+       function plotWithChartJS(filteredData) {
+           const canvas = document.getElementById('chartCanvas');
+           if (!canvas) {
+               document.getElementById('mainChart').innerHTML = '<canvas id="chartCanvas" style="width: 100%; height: 500px;"></canvas>';
+           }
+           
+           const ctx = document.getElementById('chartCanvas').getContext('2d');
+           
+           // Destroy existing chart if it exists
+           if (window.currentChart) {
+               window.currentChart.destroy();
+           }
+           
+           window.currentChart = new Chart(ctx, {
+               type: 'line',
+               data: {
+                   labels: filteredData.map(d => d.date),
+                   datasets: [{
+                       label: 'Value',
+                       data: filteredData.map(d => d.value),
+                       borderColor: '#1565c0',
+                       backgroundColor: 'rgba(21, 101, 192, 0.1)',
+                       borderWidth: 2,
+                       fill: false,
+                       tension: 0
+                   }]
+               },
+               options: {
+                   responsive: true,
+                   maintainAspectRatio: false,
+                   plugins: {
+                       legend: {
+                           display: false
+                       },
+                       tooltip: {
+                           mode: 'index',
+                           intersect: false
+                       }
+                   },
+                   scales: {
+                       x: {
+                           grid: {
+                               color: '#e0e0e0'
+                           },
+                           ticks: {
+                               color: '#666',
+                               maxTicksLimit: 10
+                           }
+                       },
+                       y: {
+                           grid: {
+                               color: '#e0e0e0'
+                           },
+                           ticks: {
+                               color: '#666'
+                           }
+                       }
+                   }
+               }
+           });
+       }
+       
+       function createDataTable(filteredData) {
+           // Fallback: show data in a table
+           const chartDiv = document.getElementById('mainChart');
+           const latest10 = filteredData.slice(-10).reverse();
+           
+           let tableHTML = `
+               <div style="padding: 20px; height: 500px; overflow-y: auto;">
+                   <h3 style="color: #333; margin-bottom: 10px;">Recent Data Points</h3>
+                   <table style="width: 100%; border-collapse: collapse;">
+                       <thead>
+                           <tr style="background: #f8f9fa;">
+                               <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Date</th>
+                               <th style="padding: 10px; text-align: right; border-bottom: 2px solid #dee2e6;">Value</th>
+                           </tr>
+                       </thead>
+                       <tbody>`;
+           
+           latest10.forEach(point => {
+               tableHTML += `
+                   <tr>
+                       <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">${point.date}</td>
+                       <td style="padding: 10px; text-align: right; border-bottom: 1px solid #dee2e6; font-weight: bold;">
+                           ${formatValue(point.value)}
+                       </td>
+                   </tr>`;
+           });
+           
+           tableHTML += `
+                       </tbody>
+                   </table>
+               </div>`;
+           
+           chartDiv.innerHTML = tableHTML;
        }
        
        // Filter data by range
@@ -1029,8 +1188,17 @@
        
        // Initialize chart
        function initializeChart() {
+           if (window.useChartJS) {
+               // Chart.js initialization
+               const ctx = document.getElementById('mainChart');
+               ctx.innerHTML = '<canvas id="chartCanvas" style="width: 100%; height: 500px;"></canvas>';
+               return;
+           }
+           
            if (typeof Plotly === 'undefined') {
                console.error('Plotly not available for chart initialization');
+               // Create a simple message
+               document.getElementById('mainChart').innerHTML = '<div style="text-align: center; padding: 100px 20px; color: #666;">Chart will appear here when you select an indicator</div>';
                return;
            }
            
