@@ -3,7 +3,7 @@
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>OpenBB Financial Dashboard - Advanced Charts with FRED-Style Changes</title>
+   <title>OpenBB Financial Dashboard - Advanced Charts with Trend Detection</title>
    
    <!-- Required Libraries -->
    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
@@ -240,6 +240,33 @@
            color: #000;
        }
        
+       /* Chart Style Toggle */
+       .chart-style-toggle {
+           display: flex;
+           gap: 0.5rem;
+           margin-bottom: 1rem;
+           background: rgba(0, 0, 0, 0.3);
+           padding: 0.5rem;
+           border-radius: 8px;
+       }
+       
+       .style-btn {
+           padding: 0.5rem 1rem;
+           background: transparent;
+           border: 1px solid rgba(255, 255, 255, 0.2);
+           border-radius: 6px;
+           color: #888;
+           cursor: pointer;
+           font-size: 0.875rem;
+           transition: all 0.3s;
+       }
+       
+       .style-btn.active {
+           background: #00ff88;
+           color: #000;
+           border-color: #00ff88;
+       }
+       
        /* Enhanced Chart Type Toggle */
        .chart-type-toggle {
            display: flex;
@@ -309,6 +336,39 @@
        .chart-option-btn.active {
            background: #00ff88;
            color: #000;
+       }
+       
+       /* Trend Detection Alert */
+       .trend-alert {
+           display: none;
+           padding: 1rem;
+           background: rgba(255, 170, 0, 0.2);
+           border: 1px solid #ffaa00;
+           border-radius: 8px;
+           margin-bottom: 1rem;
+       }
+       
+       .trend-alert.active {
+           display: block;
+       }
+       
+       .trend-alert.bullish {
+           background: rgba(0, 255, 136, 0.2);
+           border-color: #00ff88;
+       }
+       
+       .trend-alert.bearish {
+           background: rgba(255, 68, 68, 0.2);
+           border-color: #ff4444;
+       }
+       
+       .trend-alert-title {
+           font-weight: bold;
+           margin-bottom: 0.5rem;
+       }
+       
+       .trend-alert-content {
+           font-size: 0.875rem;
        }
        
        /* Chart Stats */
@@ -484,6 +544,49 @@
            gap: 0.25rem;
        }
        
+       .trend-signal {
+           display: inline-block;
+           padding: 0.125rem 0.5rem;
+           border-radius: 4px;
+           font-size: 0.625rem;
+           font-weight: bold;
+           margin-left: 0.25rem;
+           text-transform: uppercase;
+       }
+       
+       .trend-signal.bullish {
+           background: rgba(0, 255, 136, 0.3);
+           color: #00ff88;
+           animation: pulse-green 2s infinite;
+       }
+       
+       .trend-signal.bearish {
+           background: rgba(255, 68, 68, 0.3);
+           color: #ff4444;
+           animation: pulse-red 2s infinite;
+       }
+       
+       .trend-signal.divergence {
+           background: rgba(255, 170, 0, 0.3);
+           color: #ffaa00;
+           animation: pulse-yellow 2s infinite;
+       }
+       
+       @keyframes pulse-green {
+           0%, 100% { box-shadow: 0 0 5px rgba(0, 255, 136, 0.5); }
+           50% { box-shadow: 0 0 15px rgba(0, 255, 136, 0.8); }
+       }
+       
+       @keyframes pulse-red {
+           0%, 100% { box-shadow: 0 0 5px rgba(255, 68, 68, 0.5); }
+           50% { box-shadow: 0 0 15px rgba(255, 68, 68, 0.8); }
+       }
+       
+       @keyframes pulse-yellow {
+           0%, 100% { box-shadow: 0 0 5px rgba(255, 170, 0, 0.5); }
+           50% { box-shadow: 0 0 15px rgba(255, 170, 0, 0.8); }
+       }
+       
        .remove-btn {
            background: rgba(255, 68, 68, 0.2);
            border: 1px solid #ff4444;
@@ -552,12 +655,18 @@
        .watchlist-row {
            cursor: pointer;
        }
+       
+       /* Inline Chart */
+       .inline-chart {
+           width: 120px;
+           height: 40px;
+       }
    </style>
 </head>
 <body>
    <header class="header">
        <div class="header-content">
-           <div class="logo">📊 OpenBB Dashboard - Advanced Charts & Analysis</div>
+           <div class="logo">📊 OpenBB Dashboard - Advanced Charts & Trend Detection</div>
            <div class="api-status">
                <div class="api-indicator">
                    <div class="status-dot loading" id="fredStatus"></div>
@@ -616,6 +725,19 @@
                </div>
            </div>
            
+           <!-- Trend Detection Alert -->
+           <div class="trend-alert" id="trendAlert">
+               <div class="trend-alert-title">⚠️ Early Trend Reversal Detected</div>
+               <div class="trend-alert-content" id="trendAlertContent"></div>
+           </div>
+           
+           <!-- Chart Style Toggle (Line vs Candlestick) -->
+           <div class="chart-style-toggle">
+               <button class="style-btn active" onclick="setChartStyle('line')">📈 Line Chart</button>
+               <button class="style-btn" onclick="setChartStyle('candlestick')">🕯️ Candlestick</button>
+               <button class="style-btn" onclick="setChartStyle('area')">📊 Area</button>
+           </div>
+           
            <!-- Enhanced Chart Type Toggle -->
            <div class="chart-type-toggle">
                <button class="toggle-btn active" onclick="setChartType('levels')">📈 Levels</button>
@@ -623,7 +745,6 @@
                <button class="toggle-btn" onclick="setChartType('qoq')">📊 QoQ %</button>
                <button class="toggle-btn" onclick="setChartType('yoy')">📊 YoY %</button>
                <button class="toggle-btn" onclick="setChartType('combined')">🎯 All Changes</button>
-               <button class="toggle-btn" onclick="setChartType('candlestick')">🕯️ Candlestick</button>
                <button class="toggle-btn" onclick="setChartType('rsi')">📉 RSI</button>
                <button class="toggle-btn" onclick="setChartType('macd')">⚡ MACD</button>
                <button class="toggle-btn" onclick="setChartType('bollinger')">🌊 Bollinger</button>
@@ -644,6 +765,10 @@
                    <button class="chart-option-btn active" id="compareAbsolute" onclick="setCompareMode('absolute')">Absolute</button>
                    <button class="chart-option-btn" id="comparePercent" onclick="setCompareMode('percent')">Percent</button>
                    <button class="chart-option-btn" id="compareIndexed" onclick="setCompareMode('indexed')">Indexed</button>
+               </div>
+               <div class="chart-option-group">
+                   <span class="chart-option-label">Trend Detection:</span>
+                   <button class="chart-option-btn" id="trendToggle" onclick="toggleTrendDetection()">🔍 Enable</button>
                </div>
                <div class="chart-option-group">
                    <span class="chart-option-label">Theme:</span>
@@ -711,7 +836,7 @@
        <!-- Watchlist -->
        <div class="watchlist-container">
            <div class="watchlist-header">
-               <div class="watchlist-title">📋 My Watchlist (Real-Time Data)</div>
+               <div class="watchlist-title">📋 My Watchlist (Real-Time Data with Trend Detection)</div>
                <div class="watchlist-controls">
                    <button class="chart-btn" onclick="refreshWatchlist()">🔄 Refresh</button>
                    <button class="chart-btn" onclick="exportWatchlist()">📥 Export</button>
@@ -788,11 +913,14 @@
        let historicalData = {};
        let currentData = {};
        let chartType = 'levels';
+       let chartStyle = 'line';  // New: line or candlestick
        let percentageChangeData = {};
        let technicalIndicators = {};
+       let trendSignals = {};  // New: store trend signals
        let chartOverlays = { sma: false, ema: false, vwap: false };
        let compareMode = 'absolute';
        let chartTheme = 'dark';
+       let trendDetectionEnabled = false;  // New: trend detection toggle
        
        // Initialize on load
        document.addEventListener('DOMContentLoaded', async function() {
@@ -1072,6 +1200,10 @@
                const currentTechnicals = calculateCurrentTechnicals(enrichedData);
                technicalIndicators[symbol] = currentTechnicals;
                
+               // Detect trend reversals
+               const trendSignal = detectEarlyTrendReversal(enrichedData);
+               trendSignals[symbol] = trendSignal;
+               
                const watchlistItem = {
                    ...indicator,
                    customName: indicator.name,
@@ -1081,6 +1213,7 @@
                    yearChange: changes.yoy[changes.yoy.length - 1]?.value || 0,
                    rsi: currentTechnicals.rsi,
                    volatility: currentTechnicals.volatility,
+                   trendSignal: trendSignal,
                    lastUpdate: new Date().toISOString()
                };
                
@@ -1158,6 +1291,135 @@
                console.error(`Error fetching historical data for ${symbol}:`, error);
                const currentValue = currentData[symbol] || 100;
                return generateRealisticHistoricalData(currentValue, symbol);
+           }
+       }
+       
+       // Detect early trend reversals using multiple indicators
+       function detectEarlyTrendReversal(data) {
+           if (!data || data.length < 50) return null;
+           
+           const recent = data.slice(-20);
+           const signals = [];
+           
+           // 1. RSI Divergence Detection
+           const rsiValues = recent.map(d => d.rsi).filter(v => v !== null);
+           const prices = recent.map(d => d.value);
+           
+           if (rsiValues.length > 10) {
+               const recentRSI = rsiValues.slice(-5);
+               const recentPrices = prices.slice(-5);
+               
+               // Bullish divergence: price making lower lows but RSI making higher lows
+               if (recentPrices[0] > recentPrices[2] && recentPrices[2] < recentPrices[4] &&
+                   recentRSI[0] < recentRSI[2] && recentRSI[2] > recentRSI[4]) {
+                   signals.push({ type: 'bullish', indicator: 'RSI Divergence', strength: 'strong' });
+               }
+               
+               // Bearish divergence: price making higher highs but RSI making lower highs
+               if (recentPrices[0] < recentPrices[2] && recentPrices[2] > recentPrices[4] &&
+                   recentRSI[0] > recentRSI[2] && recentRSI[2] < recentRSI[4]) {
+                   signals.push({ type: 'bearish', indicator: 'RSI Divergence', strength: 'strong' });
+               }
+           }
+           
+           // 2. MACD Crossover Detection
+           const macdValues = recent.filter(d => d.macd !== null && d.macd_signal !== null);
+           if (macdValues.length > 2) {
+               const lastMACD = macdValues[macdValues.length - 1];
+               const prevMACD = macdValues[macdValues.length - 2];
+               
+               // Bullish crossover
+               if (prevMACD.macd < prevMACD.macd_signal && lastMACD.macd > lastMACD.macd_signal) {
+                   signals.push({ type: 'bullish', indicator: 'MACD Crossover', strength: 'medium' });
+               }
+               
+               // Bearish crossover
+               if (prevMACD.macd > prevMACD.macd_signal && lastMACD.macd < lastMACD.macd_signal) {
+                   signals.push({ type: 'bearish', indicator: 'MACD Crossover', strength: 'medium' });
+               }
+           }
+           
+           // 3. Bollinger Band Squeeze Detection
+           const bollingerData = recent.filter(d => d.bollinger_upper && d.bollinger_lower);
+           if (bollingerData.length > 5) {
+               const bandWidth = bollingerData.map(d => d.bollinger_upper - d.bollinger_lower);
+               const avgBandWidth = bandWidth.reduce((a, b) => a + b, 0) / bandWidth.length;
+               const recentBandWidth = bandWidth.slice(-3);
+               const currentPrice = bollingerData[bollingerData.length - 1].value;
+               const upperBand = bollingerData[bollingerData.length - 1].bollinger_upper;
+               const lowerBand = bollingerData[bollingerData.length - 1].bollinger_lower;
+               
+               // Squeeze detection (potential breakout)
+               if (recentBandWidth.every(w => w < avgBandWidth * 0.7)) {
+                   if (currentPrice > (upperBand + lowerBand) / 2) {
+                       signals.push({ type: 'bullish', indicator: 'Bollinger Squeeze', strength: 'medium' });
+                   } else {
+                       signals.push({ type: 'bearish', indicator: 'Bollinger Squeeze', strength: 'medium' });
+                   }
+               }
+           }
+           
+           // 4. Moving Average Convergence
+           const smaData = recent.filter(d => d.sma20 !== null && d.sma50 !== null);
+           if (smaData.length > 2) {
+               const lastSMA = smaData[smaData.length - 1];
+               const prevSMA = smaData[smaData.length - 2];
+               
+               // Golden cross (bullish)
+               if (prevSMA.sma20 < prevSMA.sma50 && lastSMA.sma20 > lastSMA.sma50) {
+                   signals.push({ type: 'bullish', indicator: 'Golden Cross', strength: 'strong' });
+               }
+               
+               // Death cross (bearish)
+               if (prevSMA.sma20 > prevSMA.sma50 && lastSMA.sma20 < lastSMA.sma50) {
+                   signals.push({ type: 'bearish', indicator: 'Death Cross', strength: 'strong' });
+               }
+           }
+           
+           // 5. Volume Analysis (if available)
+           const volumeData = recent.filter(d => d.volume > 0);
+           if (volumeData.length > 5) {
+               const avgVolume = volumeData.slice(0, -1).reduce((sum, d) => sum + d.volume, 0) / (volumeData.length - 1);
+               const lastVolume = volumeData[volumeData.length - 1].volume;
+               const priceChange = (volumeData[volumeData.length - 1].value - volumeData[volumeData.length - 2].value) / volumeData[volumeData.length - 2].value;
+               
+               // High volume breakout
+               if (lastVolume > avgVolume * 1.5) {
+                   if (priceChange > 0.01) {
+                       signals.push({ type: 'bullish', indicator: 'Volume Breakout', strength: 'medium' });
+                   } else if (priceChange < -0.01) {
+                       signals.push({ type: 'bearish', indicator: 'Volume Breakout', strength: 'medium' });
+                   }
+               }
+           }
+           
+           // Aggregate signals
+           if (signals.length === 0) return null;
+           
+           const bullishSignals = signals.filter(s => s.type === 'bullish');
+           const bearishSignals = signals.filter(s => s.type === 'bearish');
+           
+           if (bullishSignals.length > bearishSignals.length) {
+               return {
+                   type: 'bullish',
+                   strength: bullishSignals.some(s => s.strength === 'strong') ? 'strong' : 'medium',
+                   indicators: bullishSignals.map(s => s.indicator).join(', '),
+                   confidence: (bullishSignals.length / (bullishSignals.length + bearishSignals.length)) * 100
+               };
+           } else if (bearishSignals.length > bullishSignals.length) {
+               return {
+                   type: 'bearish',
+                   strength: bearishSignals.some(s => s.strength === 'strong') ? 'strong' : 'medium',
+                   indicators: bearishSignals.map(s => s.indicator).join(', '),
+                   confidence: (bearishSignals.length / (bullishSignals.length + bearishSignals.length)) * 100
+               };
+           } else {
+               return {
+                   type: 'divergence',
+                   strength: 'weak',
+                   indicators: 'Mixed signals',
+                   confidence: 50
+               };
            }
        }
        
@@ -1565,6 +1827,20 @@
            return false;
        }
        
+       // Set chart style (line vs candlestick)
+       function setChartStyle(style) {
+           chartStyle = style;
+           
+           document.querySelectorAll('.style-btn').forEach(btn => {
+               btn.classList.remove('active');
+           });
+           event.target.classList.add('active');
+           
+           if (selectedIndicator) {
+               plotChart(selectedIndicator);
+           }
+       }
+       
        // Enhanced chart type setter
        function setChartType(type) {
            chartType = type;
@@ -1613,6 +1889,40 @@
            }
        }
        
+       // Toggle trend detection
+       function toggleTrendDetection() {
+           trendDetectionEnabled = !trendDetectionEnabled;
+           document.getElementById('trendToggle').classList.toggle('active');
+           
+           if (selectedIndicator && trendDetectionEnabled) {
+               const trendSignal = trendSignals[selectedIndicator];
+               if (trendSignal) {
+                   showTrendAlert(trendSignal);
+               }
+               plotChart(selectedIndicator);
+           } else {
+               document.getElementById('trendAlert').classList.remove('active');
+           }
+       }
+       
+       // Show trend alert
+       function showTrendAlert(signal) {
+           if (!signal) return;
+           
+           const alertDiv = document.getElementById('trendAlert');
+           const contentDiv = document.getElementById('trendAlertContent');
+           
+           alertDiv.className = 'trend-alert active ' + signal.type;
+           
+           let icon = signal.type === 'bullish' ? '🟢' : signal.type === 'bearish' ? '🔴' : '🟡';
+           contentDiv.innerHTML = `
+               ${icon} <strong>${signal.type.toUpperCase()} Signal Detected</strong><br>
+               <small>Indicators: ${signal.indicators}</small><br>
+               <small>Confidence: ${signal.confidence.toFixed(1)}%</small><br>
+               <small>Strength: ${signal.strength}</small>
+           `;
+       }
+       
        // Toggle chart theme
        function toggleChartTheme() {
            chartTheme = chartTheme === 'dark' ? 'light' : 'dark';
@@ -1621,7 +1931,40 @@
            }
        }
        
-       // Update watchlist display with editable names - FIXED VERSION
+       // Create inline sparkline chart
+       function createSparkline(symbol, data) {
+           const last30 = data.slice(-30);
+           
+           const trace = {
+               x: last30.map(d => d.date),
+               y: last30.map(d => d.value),
+               type: 'scatter',
+               mode: 'lines',
+               line: {
+                   color: last30[last30.length - 1].value > last30[0].value ? '#00ff88' : '#ff4444',
+                   width: 1
+               },
+               showlegend: false
+           };
+           
+           const layout = {
+               margin: { t: 0, r: 0, b: 0, l: 0 },
+               xaxis: { visible: false },
+               yaxis: { visible: false },
+               paper_bgcolor: 'transparent',
+               plot_bgcolor: 'transparent',
+               hovermode: false
+           };
+           
+           const config = {
+               displayModeBar: false,
+               staticPlot: true
+           };
+           
+           Plotly.newPlot(`sparkline-${symbol}`, [trace], layout, config);
+       }
+       
+       // Update watchlist display with editable names and trend signals
        function updateWatchlistDisplay() {
            const content = document.getElementById('watchlistContent');
            
@@ -1641,11 +1984,13 @@
                    <thead>
                        <tr>
                            <th>Indicator</th>
+                           <th>Chart</th>
                            <th>Current Value</th>
                            <th>MoM %</th>
                            <th>QoQ %</th>
                            <th>YoY %</th>
                            <th>RSI</th>
+                           <th>Trend Signal</th>
                            <th>Source</th>
                            <th>Action</th>
                        </tr>
@@ -1653,6 +1998,16 @@
                    <tbody>`;
            
            watchlist.forEach((item, index) => {
+               const trendSignal = item.trendSignal;
+               let trendBadge = '';
+               
+               if (trendSignal) {
+                   const signalClass = trendSignal.type;
+                   const signalText = trendSignal.type === 'bullish' ? 'BULL' : 
+                                     trendSignal.type === 'bearish' ? 'BEAR' : 'DIV';
+                   trendBadge = `<span class="trend-signal ${signalClass}">${signalText}</span>`;
+               }
+               
                tableHTML += `
                    <tr class="watchlist-row ${selectedIndicator === item.symbol ? 'selected' : ''}" data-symbol="${item.symbol}">
                        <td>
@@ -1660,6 +2015,9 @@
                                 contenteditable="true" 
                                 data-index="${index}">${item.customName}</div>
                            <div class="indicator-symbol">${item.symbol}</div>
+                       </td>
+                       <td>
+                           <div id="sparkline-${item.symbol}" class="inline-chart"></div>
                        </td>
                        <td class="value-cell">${formatValue(item.currentValue)}</td>
                        <td>
@@ -1680,6 +2038,7 @@
                        <td class="${item.rsi > 70 ? 'negative' : item.rsi < 30 ? 'positive' : 'neutral'}">
                            ${item.rsi ? item.rsi.toFixed(1) : '--'}
                        </td>
+                       <td>${trendBadge}</td>
                        <td>${item.api}</td>
                        <td>
                            <button class="remove-btn" data-index="${index}">Remove</button>
@@ -1695,6 +2054,15 @@
            
            // Add event listeners after the HTML is inserted
            setupWatchlistEventListeners();
+           
+           // Create sparklines for each item
+           setTimeout(() => {
+               watchlist.forEach(item => {
+                   if (historicalData[item.symbol]) {
+                       createSparkline(item.symbol, historicalData[item.symbol]);
+                   }
+               });
+           }, 100);
        }
        
        // Setup event listeners for watchlist
@@ -1765,6 +2133,13 @@
            
            document.getElementById('chartTitle').textContent = `${indicator.customName} (${indicator.symbol})`;
            document.getElementById('chartStats').style.display = 'grid';
+           
+           // Show trend alert if enabled
+           if (trendDetectionEnabled && indicator.trendSignal) {
+               showTrendAlert(indicator.trendSignal);
+           } else {
+               document.getElementById('trendAlert').classList.remove('active');
+           }
            
            updateChartStats(indicator);
            plotChart(symbol);
@@ -1839,7 +2214,7 @@
            }
        }
        
-       // Enhanced plotting with all chart types
+       // Enhanced plotting with line/candlestick/area styles and trend markers
        function plotChart(symbol) {
            const historical = historicalData[symbol];
            const changes = percentageChangeData[symbol];
@@ -1875,14 +2250,71 @@
            
            // Main chart based on type
            if (chartType === 'levels') {
-               traces.push({
-                   x: processedData.map(d => d.date),
-                   y: processedData.map(d => d.value),
-                   type: 'scatter',
-                   mode: 'lines',
-                   name: indicator.customName,
-                   line: { color: '#00ff88', width: 2 }
-               });
+               // Use the selected chart style
+               if (chartStyle === 'candlestick') {
+                   traces.push({
+                       x: processedData.map(d => d.date),
+                       open: processedData.map(d => d.open),
+                       high: processedData.map(d => d.high),
+                       low: processedData.map(d => d.low),
+                       close: processedData.map(d => d.close),
+                       type: 'candlestick',
+                       name: indicator.customName,
+                       increasing: { line: { color: '#00ff88' } },
+                       decreasing: { line: { color: '#ff4444' } }
+                   });
+               } else if (chartStyle === 'area') {
+                   traces.push({
+                       x: processedData.map(d => d.date),
+                       y: processedData.map(d => d.value),
+                       type: 'scatter',
+                       mode: 'lines',
+                       name: indicator.customName,
+                       line: { color: '#00ff88', width: 2 },
+                       fill: 'tozeroy',
+                       fillcolor: 'rgba(0, 255, 136, 0.1)'
+                   });
+               } else {
+                   // Default line chart
+                   traces.push({
+                       x: processedData.map(d => d.date),
+                       y: processedData.map(d => d.value),
+                       type: 'scatter',
+                       mode: 'lines',
+                       name: indicator.customName,
+                       line: { color: '#00ff88', width: 2 }
+                   });
+               }
+               
+               // Add trend reversal markers if enabled
+               if (trendDetectionEnabled) {
+                   const reversalPoints = [];
+                   for (let i = 20; i < processedData.length - 1; i++) {
+                       const subset = processedData.slice(i - 20, i + 1);
+                       const signal = detectEarlyTrendReversal(subset);
+                       if (signal && signal.confidence > 60) {
+                           reversalPoints.push({
+                               x: processedData[i].date,
+                               y: processedData[i].value,
+                               type: signal.type
+                           });
+                       }
+                   }
+                   
+                   if (reversalPoints.length > 0) {
+                       traces.push({
+                           x: reversalPoints.map(p => p.x),
+                           y: reversalPoints.map(p => p.y),
+                           mode: 'markers',
+                           name: 'Trend Signals',
+                           marker: {
+                               size: 12,
+                               color: reversalPoints.map(p => p.type === 'bullish' ? '#00ff88' : '#ff4444'),
+                               symbol: reversalPoints.map(p => p.type === 'bullish' ? 'triangle-up' : 'triangle-down')
+                           }
+                       });
+                   }
+               }
                
                // Add overlays if enabled
                if (chartOverlays.sma && processedData[0].sma20) {
@@ -1917,19 +2349,6 @@
                        line: { color: '#ff00ff', width: 1, dash: 'dashdot' }
                    });
                }
-               
-           } else if (chartType === 'candlestick') {
-               traces.push({
-                   x: processedData.map(d => d.date),
-                   open: processedData.map(d => d.open),
-                   high: processedData.map(d => d.high),
-                   low: processedData.map(d => d.low),
-                   close: processedData.map(d => d.close),
-                   type: 'candlestick',
-                   name: indicator.customName,
-                   increasing: { line: { color: '#00ff88' } },
-                   decreasing: { line: { color: '#ff4444' } }
-               });
                
            } else if (chartType === 'mom') {
                traces.push({
@@ -2198,7 +2617,7 @@
                xaxis: {
                    gridcolor: gridColor,
                    tickfont: { color: chartTheme === 'dark' ? '#888' : '#666' },
-                   rangeslider: { visible: chartType === 'levels' || chartType === 'candlestick' }
+                   rangeslider: { visible: (chartType === 'levels' && chartStyle !== 'area') }
                },
                yaxis: {
                    gridcolor: gridColor,
@@ -2359,6 +2778,10 @@
                    const currentTechnicals = calculateCurrentTechnicals(enrichedData);
                    technicalIndicators[item.symbol] = currentTechnicals;
                    
+                   // Re-detect trend signals
+                   const trendSignal = detectEarlyTrendReversal(enrichedData);
+                   trendSignals[item.symbol] = trendSignal;
+                   
                    // Update values
                    item.currentValue = enrichedData[enrichedData.length - 1].value;
                    item.monthChange = changes.mom[changes.mom.length - 1]?.value || 0;
@@ -2366,6 +2789,7 @@
                    item.yearChange = changes.yoy[changes.yoy.length - 1]?.value || 0;
                    item.rsi = currentTechnicals.rsi;
                    item.volatility = currentTechnicals.volatility;
+                   item.trendSignal = trendSignal;
                    item.lastUpdate = new Date().toISOString();
                }
            }
@@ -2378,6 +2802,9 @@
                if (indicator) {
                    updateChartStats(indicator);
                    plotChart(selectedIndicator);
+                   if (trendDetectionEnabled && indicator.trendSignal) {
+                       showTrendAlert(indicator.trendSignal);
+                   }
                }
            }
        }
@@ -2403,12 +2830,14 @@
                historicalData = {};
                percentageChangeData = {};
                technicalIndicators = {};
+               trendSignals = {};
                updateWatchlistDisplay();
                saveWatchlistToStorage();
                initializeChart();
                document.getElementById('chartTitle').textContent = 'Select an indicator to view data with advanced analysis';
                document.getElementById('chartStats').style.display = 'none';
                document.getElementById('techLegend').style.display = 'none';
+               document.getElementById('trendAlert').classList.remove('active');
            }
        }
        
@@ -2420,6 +2849,7 @@
            delete historicalData[symbol];
            delete percentageChangeData[symbol];
            delete technicalIndicators[symbol];
+           delete trendSignals[symbol];
            
            if (selectedIndicator === symbol) {
                selectedIndicator = null;
@@ -2427,6 +2857,7 @@
                document.getElementById('chartTitle').textContent = 'Select an indicator to view data with advanced analysis';
                document.getElementById('chartStats').style.display = 'none';
                document.getElementById('techLegend').style.display = 'none';
+               document.getElementById('trendAlert').classList.remove('active');
            }
            
            updateWatchlistDisplay();
@@ -2474,6 +2905,9 @@
                                const currentTechnicals = calculateCurrentTechnicals(enrichedData);
                                technicalIndicators[item.symbol] = currentTechnicals;
                                
+                               const trendSignal = detectEarlyTrendReversal(enrichedData);
+                               trendSignals[item.symbol] = trendSignal;
+                               
                                const watchlistItem = {
                                    ...indicator,
                                    customName: item.customName || indicator.name,
@@ -2483,6 +2917,7 @@
                                    yearChange: changes.yoy[changes.yoy.length - 1]?.value || 0,
                                    rsi: currentTechnicals.rsi,
                                    volatility: currentTechnicals.volatility,
+                                   trendSignal: trendSignal,
                                    lastUpdate: new Date().toISOString()
                                };
                                
