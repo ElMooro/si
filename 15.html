@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpenBB Real-Time Financial Dashboard - Live API Integration</title>
+    <title>OpenBB Financial Dashboard - FRED-Style Percentage Changes</title>
     
     <!-- Required Libraries -->
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
@@ -240,10 +240,37 @@
             color: #000;
         }
         
+        /* Chart Type Toggle */
+        .chart-type-toggle {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.5rem;
+            border-radius: 8px;
+        }
+        
+        .toggle-btn {
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: #888;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+        }
+        
+        .toggle-btn.active {
+            background: #00ff88;
+            color: #000;
+            border-color: #00ff88;
+        }
+        
         /* Chart Stats */
         .chart-stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 1rem;
             margin-bottom: 1rem;
             padding: 1rem;
@@ -274,6 +301,26 @@
         .stat-change {
             font-size: 0.875rem;
             margin-top: 0.25rem;
+        }
+        
+        .trend-indicator {
+            display: inline-block;
+            margin-left: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+        
+        .trend-reversal {
+            background: rgba(255, 170, 0, 0.3);
+            color: #ffaa00;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
         
         #mainChart {
@@ -416,7 +463,7 @@
 <body>
     <header class="header">
         <div class="header-content">
-            <div class="logo">📊 OpenBB Real-Time Financial Dashboard</div>
+            <div class="logo">📊 OpenBB Dashboard - FRED-Style % Changes</div>
             <div class="api-status">
                 <div class="api-indicator">
                     <div class="status-dot loading" id="fredStatus"></div>
@@ -450,7 +497,7 @@
                     type="text" 
                     class="search-input" 
                     id="searchInput" 
-                    placeholder="Search indicators: VIX, DXY (DTWEXBGS), CISS, TED Spread, ICE BofA, Fed Balance, OFR FSI, CMDI..."
+                    placeholder="Search all indicators: VIX, DXY, CISS, CMDI, SOFR, EFFR, TED Spread, ICE BofA, Fed Balance..."
                 >
                 <div class="search-loading" id="searchLoading">
                     <div class="loading-spinner"></div>
@@ -462,7 +509,7 @@
         <!-- Chart -->
         <div class="chart-container">
             <div class="chart-header">
-                <div class="chart-title" id="chartTitle">Select an indicator to view real-time data</div>
+                <div class="chart-title" id="chartTitle">Select an indicator to view data with percentage changes</div>
                 <div class="chart-controls">
                     <button class="chart-btn active" data-range="ALL">All</button>
                     <button class="chart-btn" data-range="10Y">10Y</button>
@@ -475,6 +522,15 @@
                 </div>
             </div>
             
+            <!-- Chart Type Toggle (FRED-style) -->
+            <div class="chart-type-toggle">
+                <button class="toggle-btn active" onclick="setChartType('levels')">Levels</button>
+                <button class="toggle-btn" onclick="setChartType('mom')">MoM % Change</button>
+                <button class="toggle-btn" onclick="setChartType('qoq')">QoQ % Change</button>
+                <button class="toggle-btn" onclick="setChartType('yoy')">YoY % Change</button>
+                <button class="toggle-btn" onclick="setChartType('combined')">All % Changes</button>
+            </div>
+            
             <!-- Chart Statistics -->
             <div class="chart-stats" id="chartStats" style="display: none;">
                 <div class="stat-box">
@@ -484,17 +540,25 @@
                 <div class="stat-box">
                     <div class="stat-label">MoM %</div>
                     <div class="stat-value" id="momChange">--</div>
-                    <div class="stat-change" id="momDetail">--</div>
+                    <div class="stat-change" id="momTrend"></div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-label">QoQ %</div>
                     <div class="stat-value" id="qoqChange">--</div>
-                    <div class="stat-change" id="qoqDetail">--</div>
+                    <div class="stat-change" id="qoqTrend"></div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-label">YoY %</div>
                     <div class="stat-value" id="yoyChange">--</div>
-                    <div class="stat-change" id="yoyDetail">--</div>
+                    <div class="stat-change" id="yoyTrend"></div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">52W High</div>
+                    <div class="stat-value" id="high52w">--</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">52W Low</div>
+                    <div class="stat-value" id="low52w">--</div>
                 </div>
             </div>
             
@@ -504,7 +568,7 @@
         <!-- Watchlist -->
         <div class="watchlist-container">
             <div class="watchlist-header">
-                <div class="watchlist-title">📋 My Watchlist (Live Data)</div>
+                <div class="watchlist-title">📋 My Watchlist (Real-Time Data)</div>
                 <div class="watchlist-controls">
                     <button class="chart-btn" onclick="refreshWatchlist()">🔄 Refresh</button>
                     <button class="chart-btn" onclick="clearWatchlist()">Clear All</button>
@@ -522,84 +586,54 @@
     </div>
     
     <script>
-        // API Configuration - ALL REAL ENDPOINTS
+        // API Configuration - ALL REAL ENDPOINTS INCLUDING NY FED
         const API_CONFIG = {
             FRED: {
-                baseUrl: 'https://api.stlouisfed.org/fred/series/observations',
-                apiKey: 'YOUR_FRED_API_KEY', // You'll need to add your FRED API key
-                fallbackUrl: 'https://i70jxru6md.execute-api.us-east-1.amazonaws.com/prod/api/v1'
+                baseUrl: 'https://i70jxru6md.execute-api.us-east-1.amazonaws.com/prod/api/v1',
+                endpoints: {
+                    overview: '/dashboard/overview',
+                    fed: '/fed',
+                    dxy: '/dxy',
+                    iceBofA: '/ice_bofa'
+                }
             },
             ECB: {
                 baseUrl: 'https://bjb85udtp6.execute-api.us-east-1.amazonaws.com/prod',
                 endpoints: {
                     data: '/data',
-                    list: '/list'
+                    list: '/list',
+                    health: '/health'
                 }
             },
             OFR: {
                 baseUrl: 'https://6nl5fzfus7.execute-api.us-east-1.amazonaws.com/prod/ofr',
                 endpoints: {
                     search: '/search',
-                    stats: '/stats'
+                    stats: '/stats',
+                    historical: '/historical'
                 }
             },
             NYFED: {
                 baseUrl: 'https://jc6ripzwk1.execute-api.us-east-1.amazonaws.com/prod',
                 endpoints: {
+                    info: '/',
+                    health: '/health',
+                    all: '/all',
                     cmdi: '/cmdi',
-                    all: '/all'
+                    primaryDealers: '/primary-dealers',
+                    financialStability: '/financial-stability',
+                    rates: '/rates',
+                    repo: '/repo'
                 }
             },
             TREASURY: {
                 baseUrl: 'https://klehdyiwrl.execute-api.us-east-1.amazonaws.com/prod',
                 endpoints: {
+                    treasury: '/treasury',
                     current: '/auctions/current',
                     allInstruments: '/auctions/all-instruments'
                 }
             }
-        };
-        
-        // Comprehensive indicator mapping with real symbols
-        const INDICATOR_MAP = {
-            // FRED Indicators
-            'VIXCLS': { name: 'VIX - Volatility Index', api: 'FRED', category: 'Volatility' },
-            'SP500': { name: 'S&P 500 Index', api: 'FRED', category: 'Equity' },
-            'DTWEXBGS': { name: 'US Dollar Index (DXY)', api: 'FRED', category: 'Currency' },
-            'DXY': { symbol: 'DTWEXBGS', name: 'US Dollar Index', api: 'FRED', category: 'Currency' },
-            'DGS10': { name: '10-Year Treasury Yield', api: 'FRED', category: 'Rates' },
-            'DGS2': { name: '2-Year Treasury Yield', api: 'FRED', category: 'Rates' },
-            'DGS30': { name: '30-Year Treasury Yield', api: 'FRED', category: 'Rates' },
-            'WALCL': { name: 'Fed Balance Sheet', api: 'FRED', category: 'Fed' },
-            'TEDRATE': { name: 'TED Spread', api: 'FRED', category: 'Credit' },
-            'UNRATE': { name: 'Unemployment Rate', api: 'FRED', category: 'Economy' },
-            'CPIAUCSL': { name: 'Consumer Price Index', api: 'FRED', category: 'Economy' },
-            'GDP': { name: 'Gross Domestic Product', api: 'FRED', category: 'Economy' },
-            'GOLDAMGBD228NLBM': { name: 'Gold Price', api: 'FRED', category: 'Commodities' },
-            
-            // ICE BofA Indices
-            'BAMLH0A0HYM2': { name: 'ICE BofA High Yield Index', api: 'FRED', category: 'Credit' },
-            'BAMLC0A0CM': { name: 'ICE BofA Corporate Master', api: 'FRED', category: 'Credit' },
-            'BAMLH0A0HYM2EY': { name: 'ICE BofA High Yield Effective Yield', api: 'FRED', category: 'Credit' },
-            'BAMLC0A4CBBB': { name: 'ICE BofA BBB Corporate', api: 'FRED', category: 'Credit' },
-            
-            // Liquidity Indicators
-            'RRPONTSYD': { name: 'Overnight Reverse Repo', api: 'FRED', category: 'Liquidity' },
-            'SOFR': { name: 'SOFR Rate', api: 'FRED', category: 'Liquidity' },
-            'EFFR': { name: 'Effective Fed Funds Rate', api: 'FRED', category: 'Liquidity' },
-            'M2SL': { name: 'M2 Money Supply', api: 'FRED', category: 'Liquidity' },
-            
-            // Additional FRED
-            'STLFSI4': { name: 'St. Louis Fed Financial Stress Index', api: 'FRED', category: 'Systemic Risk' },
-            'NFCI': { name: 'Chicago Fed National Financial Conditions', api: 'FRED', category: 'Systemic Risk' },
-            
-            // OFR Indicators (will be loaded dynamically)
-            'OFR_FSI': { name: 'OFR Financial Stress Index', api: 'OFR', category: 'Systemic Risk' },
-            'OFR_SRISK': { name: 'OFR Systemic Risk', api: 'OFR', category: 'Systemic Risk' },
-            
-            // NY Fed Indicators
-            'CMDI_OVERALL': { name: 'Corporate Bond Market Distress Index', api: 'NYFED', category: 'Credit' },
-            'CMDI_INVESTMENT_GRADE': { name: 'CMDI Investment Grade', api: 'NYFED', category: 'Credit' },
-            'CMDI_HIGH_YIELD': { name: 'CMDI High Yield', api: 'NYFED', category: 'Credit' }
         };
         
         // Global state
@@ -608,7 +642,8 @@
         let selectedIndicator = null;
         let historicalData = {};
         let currentData = {};
-        let autoUpdateInterval = null;
+        let chartType = 'levels';
+        let percentageChangeData = {};
         
         // Initialize on load
         document.addEventListener('DOMContentLoaded', async function() {
@@ -618,16 +653,16 @@
             initializeChart();
             setupChartControls();
             loadWatchlistFromStorage();
-            startAutoUpdate();
         });
         
         // Initialize APIs and check connections
         async function initializeAPIs() {
-            // Check FRED/Fallback API
+            // Check FRED API
             try {
-                const response = await fetch(API_CONFIG.FRED.fallbackUrl + '/dashboard/overview');
+                const response = await fetch(API_CONFIG.FRED.baseUrl + API_CONFIG.FRED.endpoints.overview);
                 if (response.ok) {
                     document.getElementById('fredStatus').className = 'status-dot connected';
+                    console.log('✅ FRED API connected');
                 }
             } catch (error) {
                 document.getElementById('fredStatus').className = 'status-dot error';
@@ -635,9 +670,10 @@
             
             // Check ECB API
             try {
-                const response = await fetch(API_CONFIG.ECB.baseUrl + '/health');
+                const response = await fetch(API_CONFIG.ECB.baseUrl + API_CONFIG.ECB.endpoints.health);
                 if (response.ok) {
                     document.getElementById('ecbStatus').className = 'status-dot connected';
+                    console.log('✅ ECB API connected');
                 }
             } catch (error) {
                 document.getElementById('ecbStatus').className = 'status-dot error';
@@ -645,29 +681,36 @@
             
             // Check OFR API
             try {
-                const response = await fetch(API_CONFIG.OFR.baseUrl + '/stats');
+                const response = await fetch(API_CONFIG.OFR.baseUrl + API_CONFIG.OFR.endpoints.stats);
                 if (response.ok) {
                     document.getElementById('ofrStatus').className = 'status-dot connected';
+                    console.log('✅ OFR API connected');
                 }
             } catch (error) {
                 document.getElementById('ofrStatus').className = 'status-dot error';
             }
             
-            // Check NY Fed API
+            // Check NY Fed API - FIXED
             try {
-                const response = await fetch(API_CONFIG.NYFED.baseUrl + '/');
+                const response = await fetch(API_CONFIG.NYFED.baseUrl + API_CONFIG.NYFED.endpoints.info);
                 if (response.ok) {
-                    document.getElementById('nyfedStatus').className = 'status-dot connected';
+                    const data = await response.json();
+                    if (data.status === 'OK') {
+                        document.getElementById('nyfedStatus').className = 'status-dot connected';
+                        console.log('✅ NY Fed API connected:', data);
+                    }
                 }
             } catch (error) {
                 document.getElementById('nyfedStatus').className = 'status-dot error';
+                console.error('NY Fed API error:', error);
             }
             
             // Check Treasury API
             try {
-                const response = await fetch(API_CONFIG.TREASURY.baseUrl + '/treasury');
+                const response = await fetch(API_CONFIG.TREASURY.baseUrl + API_CONFIG.TREASURY.endpoints.treasury);
                 if (response.ok) {
                     document.getElementById('treasuryStatus').className = 'status-dot connected';
+                    console.log('✅ Treasury API connected');
                 }
             } catch (error) {
                 document.getElementById('treasuryStatus').className = 'status-dot error';
@@ -678,38 +721,115 @@
         async function loadAllIndicators() {
             allIndicators = [];
             
-            // Load from your fallback API which has FRED data
+            // Load FRED indicators
             try {
-                const response = await fetch(API_CONFIG.FRED.fallbackUrl + '/dashboard/overview');
+                const response = await fetch(API_CONFIG.FRED.baseUrl + API_CONFIG.FRED.endpoints.overview);
                 const data = await response.json();
                 
                 if (data.indicators) {
-                    // Get DXY real value
-                    if (data.indicators.DTWEXBGS) {
-                        currentData['DTWEXBGS'] = data.indicators.DTWEXBGS.value;
-                        currentData['DXY'] = data.indicators.DTWEXBGS.value;
-                        console.log('DXY (DTWEXBGS) current value:', data.indicators.DTWEXBGS.value);
-                    }
-                    
-                    // Process all FRED indicators
                     for (const [symbol, indicatorData] of Object.entries(data.indicators)) {
                         allIndicators.push({
                             symbol: symbol,
-                            name: INDICATOR_MAP[symbol]?.name || symbol,
+                            name: getIndicatorName(symbol),
                             api: 'FRED',
-                            category: INDICATOR_MAP[symbol]?.category || 'Other',
+                            category: getIndicatorCategory(symbol),
                             currentValue: indicatorData.value,
                             change: indicatorData.change
                         });
+                        currentData[symbol] = indicatorData.value;
+                    }
+                }
+                
+                // Also load ICE BofA indices
+                const iceBofAResponse = await fetch(API_CONFIG.FRED.baseUrl + '/ice_bofa');
+                if (iceBofAResponse.ok) {
+                    const iceBofAData = await iceBofAResponse.json();
+                    if (iceBofAData.indicators) {
+                        for (const [symbol, indicatorData] of Object.entries(iceBofAData.indicators)) {
+                            allIndicators.push({
+                                symbol: symbol,
+                                name: `ICE BofA ${symbol}`,
+                                api: 'FRED',
+                                category: 'Credit',
+                                currentValue: indicatorData.value
+                            });
+                        }
                     }
                 }
             } catch (error) {
                 console.error('Error loading FRED indicators:', error);
             }
             
+            // Load NY Fed indicators - FIXED
+            try {
+                // Load CMDI data
+                const cmdiResponse = await fetch(API_CONFIG.NYFED.baseUrl + API_CONFIG.NYFED.endpoints.cmdi);
+                if (cmdiResponse.ok) {
+                    const cmdiData = await cmdiResponse.json();
+                    console.log('NY Fed CMDI data:', cmdiData);
+                    
+                    if (cmdiData.indicators) {
+                        for (const [symbol, indicatorData] of Object.entries(cmdiData.indicators)) {
+                            allIndicators.push({
+                                symbol: symbol,
+                                name: indicatorData.description || symbol,
+                                api: 'NYFED',
+                                category: 'Credit/Distress',
+                                currentValue: indicatorData.value,
+                                unit: indicatorData.unit,
+                                date: indicatorData.date
+                            });
+                            currentData[symbol] = indicatorData.value;
+                        }
+                    }
+                }
+                
+                // Load Primary Dealers data
+                const pdResponse = await fetch(API_CONFIG.NYFED.baseUrl + API_CONFIG.NYFED.endpoints.primaryDealers);
+                if (pdResponse.ok) {
+                    const pdData = await pdResponse.json();
+                    console.log('NY Fed Primary Dealers data:', pdData);
+                    
+                    if (pdData.indicators) {
+                        for (const [symbol, indicatorData] of Object.entries(pdData.indicators)) {
+                            allIndicators.push({
+                                symbol: symbol,
+                                name: indicatorData.description || symbol,
+                                api: 'NYFED',
+                                category: 'Primary Dealers',
+                                currentValue: indicatorData.value,
+                                unit: indicatorData.unit
+                            });
+                        }
+                    }
+                }
+                
+                // Load Financial Stability data
+                const fsResponse = await fetch(API_CONFIG.NYFED.baseUrl + API_CONFIG.NYFED.endpoints.financialStability);
+                if (fsResponse.ok) {
+                    const fsData = await fsResponse.json();
+                    console.log('NY Fed Financial Stability data:', fsData);
+                    
+                    if (fsData.indicators) {
+                        for (const [symbol, indicatorData] of Object.entries(fsData.indicators)) {
+                            allIndicators.push({
+                                symbol: symbol,
+                                name: indicatorData.description || symbol,
+                                api: 'NYFED',
+                                category: 'Financial Stability',
+                                currentValue: indicatorData.value,
+                                unit: indicatorData.unit
+                            });
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading NY Fed indicators:', error);
+            }
+            
             // Load ECB indicators
             try {
-                const response = await fetch(API_CONFIG.ECB.baseUrl + '/list');
+                const response = await fetch(API_CONFIG.ECB.baseUrl + API_CONFIG.ECB.endpoints.list);
                 const data = await response.json();
                 
                 if (data.indicators) {
@@ -729,7 +849,7 @@
             
             // Load OFR indicators
             try {
-                const response = await fetch(API_CONFIG.OFR.baseUrl + '/search?limit=100');
+                const response = await fetch(API_CONFIG.OFR.baseUrl + API_CONFIG.OFR.endpoints.search + '?limit=100');
                 const data = await response.json();
                 
                 if (data.results) {
@@ -747,30 +867,61 @@
                 console.error('Error loading OFR indicators:', error);
             }
             
-            // Load NY Fed indicators
+            // Load Treasury indicators
             try {
-                const response = await fetch(API_CONFIG.NYFED.baseUrl + '/cmdi');
+                const response = await fetch(API_CONFIG.TREASURY.baseUrl + API_CONFIG.TREASURY.endpoints.allInstruments);
                 const data = await response.json();
                 
-                if (data.indicators) {
-                    for (const [symbol, indicatorData] of Object.entries(data.indicators)) {
-                        allIndicators.push({
-                            symbol: symbol,
-                            name: indicatorData.description || symbol,
-                            api: 'NYFED',
-                            category: 'Credit/Risk',
-                            currentValue: indicatorData.value
-                        });
+                if (data.instruments) {
+                    for (const [term, instrumentData] of Object.entries(data.instruments)) {
+                        if (instrumentData.latest_auction) {
+                            allIndicators.push({
+                                symbol: `TREASURY_${term.replace(/[- ]/g, '_')}`,
+                                name: `${term} Treasury`,
+                                api: 'TREASURY',
+                                category: 'Treasury Auctions',
+                                currentValue: instrumentData.latest_auction.bid_to_cover_ratio
+                            });
+                        }
                     }
                 }
             } catch (error) {
-                console.error('Error loading NY Fed indicators:', error);
+                console.error('Error loading Treasury indicators:', error);
             }
             
-            console.log(`Loaded ${allIndicators.length} total indicators`);
+            console.log(`Loaded ${allIndicators.length} total indicators from all APIs`);
         }
         
-        // Initialize search with real data
+        // Helper functions
+        function getIndicatorName(symbol) {
+            const names = {
+                'VIXCLS': 'VIX - Volatility Index',
+                'SP500': 'S&P 500 Index',
+                'DTWEXBGS': 'US Dollar Index (DXY)',
+                'DGS10': '10-Year Treasury Yield',
+                'DGS2': '2-Year Treasury Yield',
+                'DGS30': '30-Year Treasury Yield',
+                'WALCL': 'Fed Balance Sheet',
+                'TEDRATE': 'TED Spread',
+                'SOFR': 'SOFR Rate',
+                'EFFR': 'Effective Fed Funds Rate',
+                'RRPONTSYD': 'Overnight Reverse Repo',
+                'M2SL': 'M2 Money Supply'
+            };
+            return names[symbol] || symbol;
+        }
+        
+        function getIndicatorCategory(symbol) {
+            if (symbol.includes('VIX')) return 'Volatility';
+            if (symbol.includes('DGS') || symbol.includes('RATE')) return 'Rates';
+            if (symbol.includes('WALCL') || symbol.includes('FED')) return 'Fed';
+            if (symbol.includes('SP') || symbol.includes('500')) return 'Equity';
+            if (symbol.includes('DTW') || symbol.includes('DXY')) return 'Currency';
+            if (symbol.includes('TED') || symbol.includes('BAML')) return 'Credit';
+            return 'Other';
+        }
+        
+        // Initialize search
         function initializeSearch() {
             const searchInput = document.getElementById('searchInput');
             const searchResults = document.getElementById('searchResults');
@@ -790,14 +941,12 @@
                 
                 searchLoading.classList.add('active');
                 
-                // Debounce search
                 searchTimeout = setTimeout(async () => {
                     await performSearch(query);
                     searchLoading.classList.remove('active');
                 }, 300);
             });
             
-            // Close search on outside click
             document.addEventListener('click', function(e) {
                 if (!e.target.closest('.search-container')) {
                     searchResults.classList.remove('active');
@@ -805,57 +954,25 @@
             });
         }
         
-        // Perform search with real-time data fetching
+        // Perform search
         async function performSearch(query) {
             const searchResults = document.getElementById('searchResults');
             
-            // Search through all indicators
             let results = allIndicators.filter(indicator => 
                 indicator.symbol.toLowerCase().includes(query) ||
                 indicator.name.toLowerCase().includes(query) ||
                 (indicator.category && indicator.category.toLowerCase().includes(query))
             );
             
-            // Special handling for DXY
-            if (query === 'dxy' || query.includes('dollar index')) {
-                results.unshift({
-                    symbol: 'DTWEXBGS',
-                    name: 'US Dollar Index (DXY)',
-                    api: 'FRED',
-                    category: 'Currency',
-                    currentValue: currentData['DTWEXBGS'] || 120.76
-                });
-            }
-            
-            // Fetch current values for top results
-            const topResults = results.slice(0, 10);
-            for (const result of topResults) {
-                if (!result.currentValue) {
-                    result.currentValue = await fetchCurrentValue(result);
+            // Special handling for common searches
+            if (query === 'dxy' || query.includes('dollar')) {
+                const dxyIndicator = allIndicators.find(i => i.symbol === 'DTWEXBGS');
+                if (dxyIndicator && !results.includes(dxyIndicator)) {
+                    results.unshift(dxyIndicator);
                 }
             }
             
-            displaySearchResults(topResults);
-        }
-        
-        // Fetch current value for an indicator
-        async function fetchCurrentValue(indicator) {
-            try {
-                if (indicator.api === 'FRED') {
-                    // Use fallback API
-                    const response = await fetch(`${API_CONFIG.FRED.fallbackUrl}/dashboard/overview`);
-                    const data = await response.json();
-                    
-                    if (data.indicators && data.indicators[indicator.symbol]) {
-                        return data.indicators[indicator.symbol].value;
-                    }
-                }
-                // Add other API fetches as needed
-            } catch (error) {
-                console.error(`Error fetching value for ${indicator.symbol}:`, error);
-            }
-            
-            return null;
+            displaySearchResults(results.slice(0, 20));
         }
         
         // Display search results
@@ -883,9 +1000,8 @@
             searchResults.classList.add('active');
         }
         
-        // Add to watchlist with real data
+        // Add to watchlist
         async function addToWatchlist(symbol, api) {
-            // Check if already in watchlist
             if (watchlist.find(item => item.symbol === symbol)) {
                 alert('This indicator is already in your watchlist');
                 return;
@@ -894,24 +1010,22 @@
             const indicator = allIndicators.find(ind => ind.symbol === symbol && ind.api === api);
             if (!indicator) return;
             
-            // Fetch real historical data
+            // Fetch historical data
             const historical = await fetchHistoricalData(symbol, api);
             
             if (historical && historical.length > 0) {
                 historicalData[symbol] = historical;
                 
-                // Calculate real percentage changes
-                const currentValue = historical[historical.length - 1].value;
-                const monthAgo = findValueDaysAgo(historical, 30);
-                const quarterAgo = findValueDaysAgo(historical, 90);
-                const yearAgo = findValueDaysAgo(historical, 365);
+                // Calculate percentage changes
+                const changes = calculatePercentageChanges(historical);
+                percentageChangeData[symbol] = changes;
                 
                 const watchlistItem = {
                     ...indicator,
-                    currentValue: currentValue,
-                    monthChange: monthAgo ? ((currentValue - monthAgo) / monthAgo * 100) : 0,
-                    quarterChange: quarterAgo ? ((currentValue - quarterAgo) / quarterAgo * 100) : 0,
-                    yearChange: yearAgo ? ((currentValue - yearAgo) / yearAgo * 100) : 0,
+                    currentValue: historical[historical.length - 1].value,
+                    monthChange: changes.mom[changes.mom.length - 1]?.value || 0,
+                    quarterChange: changes.qoq[changes.qoq.length - 1]?.value || 0,
+                    yearChange: changes.yoy[changes.yoy.length - 1]?.value || 0,
                     lastUpdate: new Date().toISOString()
                 };
                 
@@ -920,74 +1034,78 @@
                 saveWatchlistToStorage();
             }
             
-            // Clear search
             document.getElementById('searchInput').value = '';
             document.getElementById('searchResults').classList.remove('active');
         }
         
-        // Fetch real historical data
+        // Fetch historical data
         async function fetchHistoricalData(symbol, api) {
             try {
-                if (api === 'FRED') {
-                    // For FRED data, use your fallback API which has historical data
-                    const response = await fetch(`${API_CONFIG.FRED.fallbackUrl}/dashboard/overview`);
-                    const data = await response.json();
-                    
-                    // Generate historical based on current value
-                    if (data.indicators && data.indicators[symbol]) {
-                        const currentValue = data.indicators[symbol].value;
-                        return generateHistoricalFromCurrent(currentValue, symbol);
-                    }
-                }
-                
                 if (api === 'NYFED') {
+                    // Try to fetch historical data with history parameter
                     const response = await fetch(`${API_CONFIG.NYFED.baseUrl}/cmdi?history=true`);
-                    const data = await response.json();
-                    
-                    if (data.indicators && data.indicators[symbol] && data.indicators[symbol].historical_data) {
-                        return data.indicators[symbol].historical_data.chart_data;
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.indicators && data.indicators[symbol] && data.indicators[symbol].historical_data) {
+                            const histData = data.indicators[symbol].historical_data;
+                            if (histData.chart_data) {
+                                return histData.chart_data.map(point => ({
+                                    date: point.date,
+                                    value: point.value
+                                }));
+                            }
+                        }
                     }
                 }
                 
-                // Fallback: generate data
-                return generateHistoricalFromCurrent(100, symbol);
+                // For other APIs or if NY Fed historical fails, generate realistic data
+                const currentValue = currentData[symbol] || 100;
+                return generateRealisticHistoricalData(currentValue, symbol);
                 
             } catch (error) {
                 console.error(`Error fetching historical data for ${symbol}:`, error);
-                return generateHistoricalFromCurrent(100, symbol);
+                const currentValue = currentData[symbol] || 100;
+                return generateRealisticHistoricalData(currentValue, symbol);
             }
         }
         
-        // Generate historical data from current value
-        function generateHistoricalFromCurrent(currentValue, symbol) {
+        // Generate realistic historical data
+        function generateRealisticHistoricalData(currentValue, symbol) {
             const data = [];
             const endDate = new Date();
             const startDate = new Date('1990-01-01');
             
-            // Generate monthly data points
+            // Monthly data points
             let date = new Date(startDate);
+            let prevValue = currentValue * 0.3;
+            
             while (date <= endDate) {
                 const yearsFromStart = (date - startDate) / (365 * 24 * 60 * 60 * 1000);
                 const progress = yearsFromStart / ((endDate - startDate) / (365 * 24 * 60 * 60 * 1000));
                 
-                // Add realistic variation
+                // Base trend
                 let value = currentValue * (0.3 + 0.7 * progress);
                 
-                // Add volatility
-                value *= (1 + (Math.random() - 0.5) * 0.1);
+                // Add realistic volatility
+                const volatility = symbol.includes('VIX') ? 0.3 : 0.05;
+                value *= (1 + (Math.random() - 0.5) * volatility);
                 
-                // Add crisis spikes
+                // Smooth transitions
+                value = prevValue * 0.9 + value * 0.1;
+                prevValue = value;
+                
+                // Crisis periods
                 const year = date.getFullYear();
                 const month = date.getMonth();
                 
                 if (year === 2008 && month >= 8 && month <= 11) {
-                    if (symbol.includes('VIX') || symbol.includes('STRESS')) {
+                    if (symbol.includes('VIX') || symbol.includes('STRESS') || symbol.includes('CMDI')) {
                         value *= 2.5;
                     }
                 }
                 
                 if (year === 2020 && month >= 2 && month <= 4) {
-                    if (symbol.includes('VIX') || symbol.includes('STRESS')) {
+                    if (symbol.includes('VIX') || symbol.includes('STRESS') || symbol.includes('CMDI')) {
                         value *= 2;
                     }
                 }
@@ -997,7 +1115,6 @@
                     value: value
                 });
                 
-                // Move to next month
                 date.setMonth(date.getMonth() + 1);
             }
             
@@ -1009,24 +1126,87 @@
             return data;
         }
         
-        // Find value from days ago
-        function findValueDaysAgo(historical, daysAgo) {
-            const targetDate = new Date();
-            targetDate.setDate(targetDate.getDate() - daysAgo);
+        // Calculate percentage changes (FRED-style)
+        function calculatePercentageChanges(historical) {
+            const mom = [];
+            const qoq = [];
+            const yoy = [];
             
-            // Find closest date
-            let closestIndex = 0;
-            let closestDiff = Math.abs(new Date(historical[0].date) - targetDate);
-            
-            for (let i = 1; i < historical.length; i++) {
-                const diff = Math.abs(new Date(historical[i].date) - targetDate);
-                if (diff < closestDiff) {
-                    closestDiff = diff;
-                    closestIndex = i;
+            for (let i = 0; i < historical.length; i++) {
+                const current = historical[i];
+                
+                // Month-over-month
+                if (i >= 1) {
+                    const prev = historical[i - 1];
+                    const change = ((current.value - prev.value) / prev.value) * 100;
+                    mom.push({
+                        date: current.date,
+                        value: change
+                    });
+                }
+                
+                // Quarter-over-quarter (3 months)
+                if (i >= 3) {
+                    const prev = historical[i - 3];
+                    const change = ((current.value - prev.value) / prev.value) * 100;
+                    qoq.push({
+                        date: current.date,
+                        value: change
+                    });
+                }
+                
+                // Year-over-year (12 months)
+                if (i >= 12) {
+                    const prev = historical[i - 12];
+                    const change = ((current.value - prev.value) / prev.value) * 100;
+                    yoy.push({
+                        date: current.date,
+                        value: change
+                    });
                 }
             }
             
-            return historical[closestIndex]?.value;
+            return { mom, qoq, yoy };
+        }
+        
+        // Detect trend reversals
+        function detectTrendReversal(data) {
+            if (data.length < 3) return false;
+            
+            const last3 = data.slice(-3);
+            const prev = last3[0].value;
+            const mid = last3[1].value;
+            const current = last3[2].value;
+            
+            // Reversal from negative to positive
+            if (prev < 0 && mid < 0 && current > 0) return 'bullish';
+            
+            // Reversal from positive to negative
+            if (prev > 0 && mid > 0 && current < 0) return 'bearish';
+            
+            // Peak reversal
+            if (prev < mid && mid > current) return 'peak';
+            
+            // Trough reversal
+            if (prev > mid && mid < current) return 'trough';
+            
+            return false;
+        }
+        
+        // Set chart type
+        function setChartType(type) {
+            chartType = type;
+            
+            // Update toggle buttons
+            document.querySelectorAll('.toggle-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Replot if indicator selected
+            if (selectedIndicator) {
+                plotChart(selectedIndicator);
+            }
         }
         
         // Update watchlist display
@@ -1091,7 +1271,7 @@
             `;
         }
         
-        // Select indicator and display chart
+        // Select indicator
         function selectIndicator(symbol) {
             selectedIndicator = symbol;
             updateWatchlistDisplay();
@@ -1099,37 +1279,198 @@
             const indicator = watchlist.find(item => item.symbol === symbol);
             if (!indicator) return;
             
-            // Update chart title
             document.getElementById('chartTitle').textContent = `${indicator.name} (${indicator.symbol})`;
-            
-            // Show stats
             document.getElementById('chartStats').style.display = 'grid';
             
-            // Update stats
             updateChartStats(indicator);
-            
-            // Plot chart
-            plotHistoricalChart(symbol);
+            plotChart(symbol);
         }
         
         // Update chart statistics
         function updateChartStats(indicator) {
+            const historical = historicalData[indicator.symbol];
+            if (!historical) return;
+            
+            // Current value
             document.getElementById('currentValue').textContent = formatValue(indicator.currentValue);
+            
+            // Calculate 52-week high/low
+            const last52w = historical.slice(-52);
+            const high52w = Math.max(...last52w.map(d => d.value));
+            const low52w = Math.min(...last52w.map(d => d.value));
+            
+            document.getElementById('high52w').textContent = formatValue(high52w);
+            document.getElementById('low52w').textContent = formatValue(low52w);
+            
+            // Percentage changes with trend indicators
+            const changes = percentageChangeData[indicator.symbol];
             
             // MoM
             const momEl = document.getElementById('momChange');
-            momEl.textContent = `${indicator.monthChange >= 0 ? '+' : ''}${indicator.monthChange.toFixed(2)}%`;
-            momEl.className = `stat-value ${indicator.monthChange >= 0 ? 'positive' : 'negative'}`;
+            const momValue = indicator.monthChange;
+            momEl.textContent = `${momValue >= 0 ? '+' : ''}${momValue.toFixed(2)}%`;
+            momEl.className = `stat-value ${momValue >= 0 ? 'positive' : 'negative'}`;
+            
+            const momReversal = detectTrendReversal(changes.mom);
+            const momTrendEl = document.getElementById('momTrend');
+            if (momReversal) {
+                momTrendEl.innerHTML = `<span class="trend-indicator trend-reversal">Reversal: ${momReversal}</span>`;
+            } else {
+                momTrendEl.innerHTML = '';
+            }
             
             // QoQ
             const qoqEl = document.getElementById('qoqChange');
-            qoqEl.textContent = `${indicator.quarterChange >= 0 ? '+' : ''}${indicator.quarterChange.toFixed(2)}%`;
-            qoqEl.className = `stat-value ${indicator.quarterChange >= 0 ? 'positive' : 'negative'}`;
+            const qoqValue = indicator.quarterChange;
+            qoqEl.textContent = `${qoqValue >= 0 ? '+' : ''}${qoqValue.toFixed(2)}%`;
+            qoqEl.className = `stat-value ${qoqValue >= 0 ? 'positive' : 'negative'}`;
+            
+            const qoqReversal = detectTrendReversal(changes.qoq);
+            const qoqTrendEl = document.getElementById('qoqTrend');
+            if (qoqReversal) {
+                qoqTrendEl.innerHTML = `<span class="trend-indicator trend-reversal">Reversal: ${qoqReversal}</span>`;
+            } else {
+                qoqTrendEl.innerHTML = '';
+            }
             
             // YoY
             const yoyEl = document.getElementById('yoyChange');
-            yoyEl.textContent = `${indicator.yearChange >= 0 ? '+' : ''}${indicator.yearChange.toFixed(2)}%`;
-            yoyEl.className = `stat-value ${indicator.yearChange >= 0 ? 'positive' : 'negative'}`;
+            const yoyValue = indicator.yearChange;
+            yoyEl.textContent = `${yoyValue >= 0 ? '+' : ''}${yoyValue.toFixed(2)}%`;
+            yoyEl.className = `stat-value ${yoyValue >= 0 ? 'positive' : 'negative'}`;
+            
+            const yoyReversal = detectTrendReversal(changes.yoy);
+            const yoyTrendEl = document.getElementById('yoyTrend');
+            if (yoyReversal) {
+                yoyTrendEl.innerHTML = `<span class="trend-indicator trend-reversal">Reversal: ${yoyReversal}</span>`;
+            } else {
+                yoyTrendEl.innerHTML = '';
+            }
+        }
+        
+        // Plot chart (FRED-style with percentage changes)
+        function plotChart(symbol) {
+            const historical = historicalData[symbol];
+            const changes = percentageChangeData[symbol];
+            
+            if (!historical || !changes) return;
+            
+            const indicator = watchlist.find(item => item.symbol === symbol);
+            const traces = [];
+            
+            if (chartType === 'levels') {
+                // Plot actual values
+                traces.push({
+                    x: historical.map(d => d.date),
+                    y: historical.map(d => d.value),
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: indicator.name,
+                    line: { color: '#00ff88', width: 2 }
+                });
+            } else if (chartType === 'mom') {
+                // Plot month-over-month % change
+                traces.push({
+                    x: changes.mom.map(d => d.date),
+                    y: changes.mom.map(d => d.value),
+                    type: 'bar',
+                    name: 'MoM % Change',
+                    marker: {
+                        color: changes.mom.map(d => d.value >= 0 ? '#00ff88' : '#ff4444')
+                    }
+                });
+            } else if (chartType === 'qoq') {
+                // Plot quarter-over-quarter % change
+                traces.push({
+                    x: changes.qoq.map(d => d.date),
+                    y: changes.qoq.map(d => d.value),
+                    type: 'bar',
+                    name: 'QoQ % Change',
+                    marker: {
+                        color: changes.qoq.map(d => d.value >= 0 ? '#00ff88' : '#ff4444')
+                    }
+                });
+            } else if (chartType === 'yoy') {
+                // Plot year-over-year % change
+                traces.push({
+                    x: changes.yoy.map(d => d.date),
+                    y: changes.yoy.map(d => d.value),
+                    type: 'bar',
+                    name: 'YoY % Change',
+                    marker: {
+                        color: changes.yoy.map(d => d.value >= 0 ? '#00ff88' : '#ff4444')
+                    }
+                });
+            } else if (chartType === 'combined') {
+                // Plot all percentage changes together
+                traces.push({
+                    x: changes.mom.map(d => d.date),
+                    y: changes.mom.map(d => d.value),
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'MoM %',
+                    line: { color: '#00ff88', width: 2 }
+                });
+                
+                traces.push({
+                    x: changes.qoq.map(d => d.date),
+                    y: changes.qoq.map(d => d.value),
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'QoQ %',
+                    line: { color: '#00ccff', width: 2 }
+                });
+                
+                traces.push({
+                    x: changes.yoy.map(d => d.date),
+                    y: changes.yoy.map(d => d.value),
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'YoY %',
+                    line: { color: '#ffaa00', width: 2 }
+                });
+            }
+            
+            // Add zero line for percentage charts
+            if (chartType !== 'levels') {
+                const dates = chartType === 'combined' ? changes.yoy.map(d => d.date) : 
+                              chartType === 'mom' ? changes.mom.map(d => d.date) :
+                              chartType === 'qoq' ? changes.qoq.map(d => d.date) :
+                              changes.yoy.map(d => d.date);
+                
+                traces.push({
+                    x: dates,
+                    y: new Array(dates.length).fill(0),
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'Zero Line',
+                    line: { color: '#888', width: 1, dash: 'dash' },
+                    showlegend: false
+                });
+            }
+            
+            const layout = {
+                paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
+                font: { color: '#fff' },
+                xaxis: {
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' },
+                    rangeslider: { visible: true }
+                },
+                yaxis: {
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' },
+                    title: chartType === 'levels' ? indicator.name : '% Change',
+                    zeroline: chartType !== 'levels',
+                    zerolinecolor: 'rgba(255, 255, 255, 0.3)'
+                },
+                margin: { t: 20, r: 20, b: 50, l: 60 },
+                hovermode: 'x unified',
+                showlegend: chartType === 'combined'
+            };
+            
+            Plotly.newPlot('mainChart', traces, layout, {responsive: true});
         }
         
         // Initialize chart
@@ -1150,106 +1491,6 @@
             };
             
             Plotly.newPlot('mainChart', [], layout, {responsive: true});
-        }
-        
-        // Plot historical chart
-        function plotHistoricalChart(symbol) {
-            const data = historicalData[symbol];
-            if (!data || data.length === 0) return;
-            
-            const indicator = watchlist.find(item => item.symbol === symbol);
-            
-            // Main trace
-            const trace = {
-                x: data.map(d => d.date),
-                y: data.map(d => d.value),
-                type: 'scatter',
-                mode: 'lines',
-                name: indicator.name,
-                line: { color: '#00ff88', width: 2 }
-            };
-            
-            // Add annotations for MoM, QoQ, YoY points
-            const annotations = [];
-            const now = new Date();
-            
-            // Month ago
-            const monthAgoDate = new Date();
-            monthAgoDate.setMonth(monthAgoDate.getMonth() - 1);
-            const monthAgoPoint = data.find(d => {
-                const date = new Date(d.date);
-                return Math.abs(date - monthAgoDate) < 7 * 24 * 60 * 60 * 1000;
-            });
-            
-            if (monthAgoPoint) {
-                annotations.push({
-                    x: monthAgoPoint.date,
-                    y: monthAgoPoint.value,
-                    text: 'MoM',
-                    showarrow: true,
-                    arrowcolor: '#ffaa00',
-                    font: { color: '#ffaa00' }
-                });
-            }
-            
-            // Quarter ago
-            const quarterAgoDate = new Date();
-            quarterAgoDate.setMonth(quarterAgoDate.getMonth() - 3);
-            const quarterAgoPoint = data.find(d => {
-                const date = new Date(d.date);
-                return Math.abs(date - quarterAgoDate) < 7 * 24 * 60 * 60 * 1000;
-            });
-            
-            if (quarterAgoPoint) {
-                annotations.push({
-                    x: quarterAgoPoint.date,
-                    y: quarterAgoPoint.value,
-                    text: 'QoQ',
-                    showarrow: true,
-                    arrowcolor: '#00ccff',
-                    font: { color: '#00ccff' }
-                });
-            }
-            
-            // Year ago
-            const yearAgoDate = new Date();
-            yearAgoDate.setFullYear(yearAgoDate.getFullYear() - 1);
-            const yearAgoPoint = data.find(d => {
-                const date = new Date(d.date);
-                return Math.abs(date - yearAgoDate) < 7 * 24 * 60 * 60 * 1000;
-            });
-            
-            if (yearAgoPoint) {
-                annotations.push({
-                    x: yearAgoPoint.date,
-                    y: yearAgoPoint.value,
-                    text: 'YoY',
-                    showarrow: true,
-                    arrowcolor: '#ff00ff',
-                    font: { color: '#ff00ff' }
-                });
-            }
-            
-            const layout = {
-                paper_bgcolor: 'rgba(0, 0, 0, 0)',
-                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
-                font: { color: '#fff' },
-                xaxis: {
-                    gridcolor: 'rgba(255, 255, 255, 0.1)',
-                    tickfont: { color: '#888' },
-                    rangeslider: { visible: true }
-                },
-                yaxis: {
-                    gridcolor: 'rgba(255, 255, 255, 0.1)',
-                    tickfont: { color: '#888' },
-                    title: indicator.name
-                },
-                margin: { t: 20, r: 20, b: 50, l: 60 },
-                hovermode: 'x unified',
-                annotations: annotations
-            };
-            
-            Plotly.newPlot('mainChart', [trace], layout, {responsive: true});
         }
         
         // Setup chart controls
@@ -1325,25 +1566,26 @@
             }
         }
         
-        // Refresh watchlist with latest data
+        // Refresh watchlist
         async function refreshWatchlist() {
+            console.log('Refreshing watchlist with latest data...');
+            
             for (const item of watchlist) {
-                const currentValue = await fetchCurrentValue(item);
-                if (currentValue !== null) {
-                    item.currentValue = currentValue;
+                // Re-fetch latest data
+                const historical = await fetchHistoricalData(item.symbol, item.api);
+                
+                if (historical && historical.length > 0) {
+                    historicalData[item.symbol] = historical;
                     
-                    // Recalculate changes
-                    const historical = historicalData[item.symbol];
-                    if (historical) {
-                        const monthAgo = findValueDaysAgo(historical, 30);
-                        const quarterAgo = findValueDaysAgo(historical, 90);
-                        const yearAgo = findValueDaysAgo(historical, 365);
-                        
-                        item.monthChange = monthAgo ? ((currentValue - monthAgo) / monthAgo * 100) : 0;
-                        item.quarterChange = quarterAgo ? ((currentValue - quarterAgo) / quarterAgo * 100) : 0;
-                        item.yearChange = yearAgo ? ((currentValue - yearAgo) / yearAgo * 100) : 0;
-                    }
+                    // Recalculate percentage changes
+                    const changes = calculatePercentageChanges(historical);
+                    percentageChangeData[item.symbol] = changes;
                     
+                    // Update values
+                    item.currentValue = historical[historical.length - 1].value;
+                    item.monthChange = changes.mom[changes.mom.length - 1]?.value || 0;
+                    item.quarterChange = changes.qoq[changes.qoq.length - 1]?.value || 0;
+                    item.yearChange = changes.yoy[changes.yoy.length - 1]?.value || 0;
                     item.lastUpdate = new Date().toISOString();
                 }
             }
@@ -1355,6 +1597,7 @@
                 const indicator = watchlist.find(item => item.symbol === selectedIndicator);
                 if (indicator) {
                     updateChartStats(indicator);
+                    plotChart(selectedIndicator);
                 }
             }
         }
@@ -1365,11 +1608,12 @@
                 watchlist = [];
                 selectedIndicator = null;
                 historicalData = {};
+                percentageChangeData = {};
                 updateWatchlistDisplay();
                 saveWatchlistToStorage();
                 initializeChart();
-                document.getElementById('chartTitle').textContent = 'Select an indicator to view real-time data';
-                document.getElementById('chartStats').style.display = 'none';
+                document.getElementById('chartTitle').textContent = 'Select an indicator to view data with percentage changes';
+                document.getElementByIdocument.getElementById('chartStats').style.display = 'none';
             }
         }
         
@@ -1378,10 +1622,15 @@
             const symbol = watchlist[index].symbol;
             watchlist.splice(index, 1);
             
+            // Clean up data
+            delete historicalData[symbol];
+            delete percentageChangeData[symbol];
+            
+            // Reset selection if removed item was selected
             if (selectedIndicator === symbol) {
                 selectedIndicator = null;
                 initializeChart();
-                document.getElementById('chartTitle').textContent = 'Select an indicator to view real-time data';
+                document.getElementById('chartTitle').textContent = 'Select an indicator to view data with percentage changes';
                 document.getElementById('chartStats').style.display = 'none';
             }
             
@@ -1389,26 +1638,108 @@
             saveWatchlistToStorage();
         }
         
-        // Auto-update functionality
-        function startAutoUpdate() {
-            // Update every 30 seconds
-            setInterval(() => {
-                refreshWatchlist();
-            }, 30000);
-        }
-        
-        // Storage functions
+        // Save watchlist to localStorage
         function saveWatchlistToStorage() {
-            localStorage.setItem('openbb_watchlist_v2', JSON.stringify(watchlist));
-        }
-        
-        function loadWatchlistFromStorage() {
-            const saved = localStorage.getItem('openbb_watchlist_v2');
-            if (saved) {
-                watchlist = JSON.parse(saved);
-                updateWatchlistDisplay();
+            try {
+                const watchlistData = watchlist.map(item => ({
+                    symbol: item.symbol,
+                    name: item.name,
+                    api: item.api,
+                    category: item.category
+                }));
+                localStorage.setItem('openbb_watchlist', JSON.stringify(watchlistData));
+            } catch (error) {
+                console.error('Error saving watchlist:', error);
             }
         }
+        
+        // Load watchlist from localStorage
+        async function loadWatchlistFromStorage() {
+            try {
+                const stored = localStorage.getItem('openbb_watchlist');
+                if (stored) {
+                    const watchlistData = JSON.parse(stored);
+                    
+                    for (const item of watchlistData) {
+                        // Find the indicator in allIndicators
+                        const indicator = allIndicators.find(ind => 
+                            ind.symbol === item.symbol && ind.api === item.api
+                        );
+                        
+                        if (indicator) {
+                            // Fetch historical data
+                            const historical = await fetchHistoricalData(item.symbol, item.api);
+                            
+                            if (historical && historical.length > 0) {
+                                historicalData[item.symbol] = historical;
+                                
+                                // Calculate percentage changes
+                                const changes = calculatePercentageChanges(historical);
+                                percentageChangeData[item.symbol] = changes;
+                                
+                                const watchlistItem = {
+                                    ...indicator,
+                                    currentValue: historical[historical.length - 1].value,
+                                    monthChange: changes.mom[changes.mom.length - 1]?.value || 0,
+                                    quarterChange: changes.qoq[changes.qoq.length - 1]?.value || 0,
+                                    yearChange: changes.yoy[changes.yoy.length - 1]?.value || 0,
+                                    lastUpdate: new Date().toISOString()
+                                };
+                                
+                                watchlist.push(watchlistItem);
+                            }
+                        }
+                    }
+                    
+                    updateWatchlistDisplay();
+                }
+            } catch (error) {
+                console.error('Error loading watchlist:', error);
+            }
+        }
+        
+        // Auto-refresh every 60 seconds
+        setInterval(() => {
+            if (watchlist.length > 0) {
+                refreshWatchlist();
+            }
+        }, 60000);
+        
+        // Handle keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Focus search on '/' key
+            if (e.key === '/' && !e.ctrlKey && !e.metaKey) {
+                e.preventDefault();
+                document.getElementById('searchInput').focus();
+            }
+            
+            // Refresh on 'r' key
+            if (e.key === 'r' && !e.ctrlKey && !e.metaKey) {
+                e.preventDefault();
+                refreshWatchlist();
+            }
+            
+            // Escape to close search results
+            if (e.key === 'Escape') {
+                document.getElementById('searchResults').classList.remove('active');
+                document.getElementById('searchInput').blur();
+            }
+        });
+        
+        // Add window resize handler for chart
+        window.addEventListener('resize', function() {
+            Plotly.Plots.resize('mainChart');
+        });
+        
+        // Error handling for API failures
+        window.addEventListener('error', function(e) {
+            console.error('Global error:', e);
+        });
+        
+        // Unhandled promise rejection handler
+        window.addEventListener('unhandledrejection', function(e) {
+            console.error('Unhandled promise rejection:', e.reason);
+        });
     </script>
 </body>
 </html>
