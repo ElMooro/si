@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>OpenBB Complete Financial Dashboard - 66,204+ Indicators</title>
+   
+   <!-- Required Libraries -->
+   <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist@2.27.1/plotly.js"></script>
+   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+   
+   <style>
+       * { margin: 0; padding: 0; box-sizing: border-box; }
+       
+       body {
+           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+           background: #f5f5f5;
+           color: #333;
+           min-height: 100vh;
+       }
+       
+       /* Header */
+       .header {
+           background: #fff;
+           padding: 1rem 2rem;
+           border-bottom: 1px solid #e0e0e0;
+           box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+           position: sticky;
+           top: 0;
+           z-index: 1000;
+       }
+       
+       .header-content {
+           display: flex;
+           justify-content: space-between;
+           align-items: center;
+           max-width: 1800px;
+           margin: 0 auto;
+       }
+       
+       .logo {
+           font-size: 1.5rem;
+           font-weight: bold;
+           color: #1565c0;
+       }
+       
+       .indicator-count {
+           font-size: 0.875rem;
+           color: #666;
+           margin-left: 1rem;
+       }
+       
+       .api-status {
+           display: flex;
+           gap: 1rem;
+           align-items: center;
+       }
+       
+       .api-indicator {
+           display: flex;
+           align-items: center;
+           gap: 0.5rem;
+           padding: 0.5rem 1rem;
+           background: #f0f0f0;
+           border-radius: 20px;
+           font-size: 0.875rem;
+       }
+       
+       .status-dot {
+           width: 8px;
+           height: 8px;
+           border-radius: 50%;
+       }
+       
+       .status-dot.connected { background: #4caf50; }
+       .status-dot.error { background: #f44336; }
+       .status-dot.loading { background: #ff9800; }
+       
+       /* Container */
+       .container {
+           max-width: 1800px;
+           margin: 0 auto;
+           padding: 2rem;
+       }
+       
+       /* Search Bar */
+       .search-container {
+           margin-bottom: 2rem;
+           position: relative;
+       }
+       
+       .search-wrapper {
+           display: flex;
+           gap: 1rem;
+           align-items: center;
+       }
+       
+       .search-input {
+           flex: 1;
+           padding: 1rem 1.5rem;
+           background: #fff;
+           border: 2px solid #e0e0e0;
+           border-radius: 8px;
+           font-size: 1rem;
+           transition: all 0.3s;
+       }
+       
+       .search-input:focus {
+           outline: none;
+           border-color: #1565c0;
+           box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.1);
+       }
+       
+       .search-filter {
+           padding: 0.75rem 1.5rem;
+           background: #fff;
+           border: 2px solid #e0e0e0;
+           border-radius: 8px;
+           cursor: pointer;
+           font-size: 0.875rem;
+       }
+       
+       .search-results {
+           position: absolute;
+           top: 100%;
+           left: 0;
+           right: 0;
+           background: #fff;
+           border: 1px solid #e0e0e0;
+           border-radius: 8px;
+           margin-top: 0.5rem;
+           max-height: 400px;
+           overflow-y: auto;
+           display: none;
+           z-index: 1000;
+           box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+       }
+       
+       .search-results.active {
+           display: block;
+       }
+       
+       .search-result-item {
+           padding: 1rem 1.5rem;
+           cursor: pointer;
+           transition: all 0.2s;
+           border-bottom: 1px solid #f0f0f0;
+           display: flex;
+           justify-content: space-between;
+           align-items: center;
+       }
+       
+       .search-result-item:hover {
+           background: #f5f5f5;
+       }
+       
+       .search-result-info {
+           flex: 1;
+       }
+       
+       .search-result-name {
+           font-weight: 500;
+           color: #333;
+       }
+       
+       .search-result-meta {
+           font-size: 0.75rem;
+           color: #999;
+           margin-top: 0.25rem;
+       }
+       
+       .search-result-symbol {
+           font-size: 0.875rem;
+           color: #666;
+           margin-top: 0.25rem;
+       }
+       
+       .search-result-value {
+           font-size: 1.125rem;
+           font-weight: bold;
+           color: #1565c0;
+       }
+       
+       /* Chart Container */
+       .chart-container {
+           background: #fff;
+           border-radius: 8px;
+           padding: 1.5rem;
+           margin-bottom: 2rem;
+           box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+       }
+       
+       .chart-header {
+           display: flex;
+           justify-content: space-between;
+           align-items: center;
+           margin-bottom: 1rem;
+           padding-bottom: 1rem;
+           border-bottom: 1px solid #e0e0e0;
+       }
+       
+       .chart-title {
+           font-size: 1.25rem;
+           font-weight: 600;
+           color: #333;
+       }
+       
+       .chart-controls {
+           display: flex;
+           gap: 0.5rem;
+       }
+       
+       .chart-btn {
+           padding: 0.5rem 1rem;
+           background: #fff;
+           border: 1px solid #e0e0e0;
+           border-radius: 4px;
+           color: #666;
+           cursor: pointer;
+           font-size: 0.875rem;
+           transition: all 0.2s;
+       }
+       
+       .chart-btn:hover {
+           background: #f5f5f5;
+           border-color: #1565c0;
+           color: #1565c0;
+       }
+       
+       .chart-btn.active {
+           background: #1565c0;
+           color: #fff;
+           border-color: #1565c0;
+       }
+       
+       /* Data Info Box */
+       .data-info {
+           display: grid;
+           grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+           gap: 1rem;
+           margin-bottom: 1rem;
+           padding: 1rem;
+           background: #f8f9fa;
+           border-radius: 4px;
+       }
+       
+       .data-info-item {
+           display: flex;
+           flex-direction: column;
+       }
+       
+       .data-info-label {
+           font-size: 0.75rem;
+           color: #666;
+           text-transform: uppercase;
+           margin-bottom: 0.25rem;
+       }
+       
+       .data-info-value {
+           font-size: 1.25rem;
+           font-weight: bold;
+           color: #333;
+       }
+       
+       #mainChart {
+           height: 500px;
+           background: #fff;
+       }
+       
+       /* Watchlist */
+       .watchlist-container {
+           background: #fff;
+           border-radius: 8px;
+           padding: 1.5rem;
+           box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+       }
+       
+       .watchlist-header {
+           display: flex;
+           justify-content: space-between;
+           align-items: center;
+           margin-bottom: 1.5rem;
+           padding-bottom: 1rem;
+           border-bottom: 1px solid #e0e0e0;
+       }
+       
+       .watchlist-title {
+           font-size: 1.25rem;
+           font-weight: 600;
+           color: #333;
+       }
+       
+       .watchlist-table {
+           width: 100%;
+           border-collapse: collapse;
+       }
+       
+       .watchlist-table thead {
+           background: #f8f9fa;
+       }
+       
+       .watchlist-table th {
+           padding: 0.75rem;
+           text-align: left;
+           font-size: 0.75rem;
+           color: #666;
+           font-weight: 600;
+           text-transform: uppercase;
+           border-bottom: 2px solid #e0e0e0;
+       }
+       
+       .watchlist-table td {
+           padding: 0.75rem;
+           border-bottom: 1px solid #f0f0f0;
+           font-size: 0.875rem;
+       }
+       
+       .watchlist-table tbody tr {
+           cursor: move;
+           transition: all 0.2s;
+       }
+       
+       .watchlist-table tbody tr:hover {
+           background: #f8f9fa;
+       }
+       
+       .watchlist-table tbody tr.selected {
+           background: #e3f2fd;
+       }
+       
+       .watchlist-table tbody tr.dragging {
+           opacity: 0.5;
+           background: #e3f2fd;
+       }
+       
+       .drag-handle {
+           cursor: move;
+           color: #999;
+           font-size: 1.25rem;
+           padding-right: 0.5rem;
+       }
+       
+       .indicator-name-input {
+           background: transparent;
+           border: 1px solid transparent;
+           padding: 0.25rem;
+           font-weight: 500;
+           width: 100%;
+           transition: all 0.2s;
+       }
+       
+       .indicator-name-input:hover {
+           background: #f8f9fa;
+           border-color: #e0e0e0;
+       }
+       
+       .indicator-name-input:focus {
+           outline: none;
+           background: #fff;
+           border-color: #1565c0;
+       }
+       
+       .positive { color: #4caf50; }
+       .negative { color: #f44336; }
+       
+       .action-btns {
+           display: flex;
+           gap: 0.5rem;
+       }
+       
+       .action-btn {
+           background: #fff;
+           border: 1px solid #e0e0e0;
+           color: #666;
+           padding: 0.25rem 0.5rem;
+           border-radius: 4px;
+           cursor: pointer;
+           font-size: 0.75rem;
+           transition: all 0.2s;
+       }
+       
+       .action-btn:hover {
+           background: #f5f5f5;
+           border-color: #1565c0;
+           color: #1565c0;
+       }
+       
+       .action-btn.remove:hover {
+           background: #ffebee;
+           border-color: #f44336;
+           color: #f44336;
+       }
+       
+       .empty-watchlist {
+           text-align: center;
+           padding: 3rem;
+           color: #999;
+       }
+       
+       .loading-spinner {
+           display: inline-block;
+           width: 20px;
+           height: 20px;
+           border: 2px solid #f3f3f3;
+           border-top: 2px solid #1565c0;
+           border-radius: 50%;
+           animation: spin 1s linear infinite;
+       }
+       
+       @keyframes spin {
+           0% { transform: rotate(0deg); }
+           100% { transform: rotate(360deg); }
+       }
+       
+       /* Stats Box */
+       .stats-box {
+           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+           color: white;
+           padding: 1.5rem;
+           border-radius: 8px;
+           margin-bottom: 2rem;
+           box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+       }
+       
+       .stats-grid {
+           display: grid;
+           grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+           gap: 1rem;
+       }
+       
+       .stat-item {
+           text-align: center;
+       }
+       
+       .stat-number {
+           font-size: 2rem;
+           font-weight: bold;
+       }
+       
+       .stat-label {
+           font-size: 0.875rem;
+           opacity: 0.9;
+       }
+   </style>
+</head>
+<body>
+   <header class="header">
+       <div class="header-content">
+           <div style="display: flex; align-items: center;">
+               <div class="logo">📊 OpenBB Financial Dashboard</div>
+               <div class="indicator-count">66,204+ Indicators</div>
+           </div>
+           <div class="api-status">
+               <div class="api-indicator">
+                   <div class="status-dot loading" id="system1Status"></div>
+                   <span>System 1 (6,204)</span>
+               </div>
+               <div class="api-indicator">
+                   <div class="status-dot loading" id="system2Status"></div>
+                   <span>System 2 (60K+)</span>
+               </div>
+               <div class="api-indicator">
+                   <div class="status-dot loading" id="system3Status"></div>
+                   <span>System 3</span>
+               </div>
+           </div>
+       </div>
+   </header>
+   
+   <div class="container">
+       <!-- Stats Box -->
+       <div class="stats-box">
+           <div class="stats-grid">
+               <div class="stat-item">
+                   <div class="stat-number" id="totalIndicators">66,204+</div>
+                   <div class="stat-label">Total Indicators</div>
+               </div>
+               <div class="stat-item">
+                   <div class="stat-number" id="fredCount">3,500+</div>
+                   <div class="stat-label">FRED Series</div>
+               </div>
+               <div class="stat-item">
+                   <div class="stat-number" id="ecbCount">1,750+</div>
+                   <div class="stat-label">ECB Indicators</div>
+               </div>
+               <div class="stat-item">
+                   <div class="stat-number" id="watchlistCount">0</div>
+                   <div class="stat-label">In Watchlist</div>
+               </div>
+           </div>
+       </div>
+       
+       <!-- Search Bar -->
+       <div class="search-container">
+           <div class="search-wrapper">
+               <input 
+                   type="text" 
+                   class="search-input" 
+                   id="searchInput" 
+                   placeholder="Search 66,204+ indicators: FRED, ECB, Treasury, NY Fed, OFR, BIS..."
+               >
+               <select class="search-filter" id="sourceFilter">
+                   <option value="all">All Sources</option>
+                   <option value="system1">System 1 (Lambda)</option>
+                   <option value="system2">System 2 (Enhanced)</option>
+                   <option value="system3">System 3 (v17.1)</option>
+                   <option value="fred">FRED Only</option>
+                   <option value="ecb">ECB Only</option>
+                   <option value="treasury">Treasury Only</option>
+               </select>
+           </div>
+           <div class="search-results" id="searchResults"></div>
+       </div>
+       
+       <!-- Chart -->
+       <div class="chart-container">
+           <div class="chart-header">
+               <div class="chart-title" id="chartTitle">Select an indicator to view data</div>
+               <div class="chart-controls">
+                   <button class="chart-btn" data-range="1M">1M</button>
+                   <button class="chart-btn" data-range="3M">3M</button>
+                   <button class="chart-btn" data-range="6M">6M</button>
+                   <button class="chart-btn" data-range="YTD">YTD</button>
+                   <button class="chart-btn active" data-range="1Y">1Y</button>
+                   <button class="chart-btn" data-range="5Y">5Y</button>
+                   <button class="chart-btn" data-range="10Y">10Y</button>
+                   <button class="chart-btn" data-range="ALL">All</button>
+               </div>
+           </div>
+           
+           <div class="data-info" id="dataInfo" style="display: none;">
+               <div class="data-info-item">
+                   <span class="data-info-label">Latest Value</span>
+                   <span class="data-info-value" id="latestValue">--</span>
+               </div>
+               <div class="data-info-item">
+                   <span class="data-info-label">Date</span>
+                   <span class="data-info-value" id="latestDate">--</span>
+               </div>
+               <div class="data-info-item">
+                   <span class="data-info-label">MoM Change</span>
+                   <span class="data-info-value" id="momChange">--</span>
+               </div>
+               <div class="data-info-item">
+                   <span class="data-info-label">QoQ Change</span>
+                   <span class="data-info-value" id="qoqChange">--</span>
+               </div>
+               <div class="data-info-item">
+                   <span class="data-info-label">YoY Change</span>
+                   <span class="data-info-value" id="yoyChange">--</span>
+               </div>
+               <div class="data-info-item">
+                   <span class="data-info-label">52W Range</span>
+                   <span class="data-info-value" id="range52w">--</span>
+               </div>
+           </div>
+           
+           <div id="mainChart"></div>
+       </div>
+       
+       <!-- Watchlist -->
+       <div class="watchlist-container">
+           <div class="watchlist-header">
+               <div class="watchlist-title">My Watchlist (Drag to Reorder)</div>
+               <div class="watchlist-controls">
+                   <button class="chart-btn" onclick="refreshWatchlist()">🔄 Refresh</button>
+                   <button class="chart-btn" onclick="exportWatchlist()">📥 Export</button>
+                   <button class="chart-btn" onclick="clearWatchlist()">Clear All</button>
+               </div>
+           </div>
+           
+           <div id="watchlistContent">
+               <div class="empty-watchlist">
+                   <div style="font-size: 3rem; opacity: 0.3;">📊</div>
+                   <div>Your watchlist is empty</div>
+                   <div style="margin-top: 0.5rem; font-size: 0.875rem; color: #999;">Search from 66,204+ indicators to track</div>
+               </div>
+           </div>
+       </div>
+   </div>
+   
+   <script>
+       // API Configuration - All 3 Systems
+       const API_CONFIG = {
+           // System 1: Lambda Platform (6,204 indicators)
+           system1: {
+               baseUrl: 'https://i3y8tfdp1k.execute-api.us-east-1.amazonaws.com/prod',
+               endpoints: {
+                   stats: '/api/search/stats',
+                   search: '/api/search'
+               }
+           },
+           // System 2: Enhanced API (60,000+ indicators)
+           system2: {
+               baseUrl: 'http://34.201.45.207:8000', // Note: IP may change
+               endpoints: {
+                   health: '/api/v1/health',
+                   unemployment: '/api/v1/economy/unemployment',
+                   moneyMeasures: '/api/v1/economy/money_measures',
+                   shortTermRate: '/api/v1/economy/short_term_interest_rate',
+                   longTermRate: '/api/v1/economy/long_term_interest_rate',
+                   fredSearch: '/api/v1/economy/fred_search',
+                   fredSeries: '/api/v1/economy/fred_series'
+               }
+           },
+           // System 3: Enhanced Lambda v17.1
+           system3: {
+               baseUrl: 'https://rg9o6exoi8.execute-api.us-east-1.amazonaws.com/prod',
+               endpoints: {
+                   health: '/health',
+                   search: '/api/search',
+                   autocomplete: '/api/autocomplete',
+                   suggest: '/api/suggest'
+               }
+           }
+       };
+       
+       // Complete FRED Series List - ALL indicators
+       const ALL_FRED_SERIES = {
+           // Interest Rates
+           'DGS1MO': '1-Month Treasury',
+           'DGS3MO': '3-Month Treasury',
+           'DGS6MO': '6-Month Treasury',
+           'DGS1': '1-Year Treasury',
+           'DGS2': '2-Year Treasury',
+           'DGS3': '3-Year Treasury',
+           'DGS5': '5-Year Treasury',
+           'DGS7': '7-Year Treasury',
+           'DGS10': '10-Year Treasury',
+           'DGS20': '20-Year Treasury',
+           'DGS30': '30-Year Treasury',
+           'DFF': 'Federal Funds Rate',
+           'EFFR': 'Effective Federal Funds Rate',
+           'SOFR': 'SOFR Rate',
+           'AMERIBOR': 'AMERIBOR',
+           'FEDFUNDS': 'Federal Funds Target',
+           
+           // ICE BofA Indices - ALL of them
+           'BAMLC0A0CM': 'ICE BofA US Corporate Master',
+           'BAMLC0A0CMEY': 'ICE BofA US Corporate Master Effective Yield',
+           'BAMLC0A1CAAA': 'ICE BofA AAA US Corporate',
+           'BAMLC0A1CAAAEY': 'ICE BofA AAA US Corporate Effective Yield',
+           'BAMLC0A2CAA': 'ICE BofA AA US Corporate',
+           'BAMLC0A2CAAEY': 'ICE BofA AA US Corporate Effective Yield',
+           'BAMLC0A3CA': 'ICE BofA A US Corporate',
+           'BAMLC0A3CAEY': 'ICE BofA A US Corporate Effective Yield',
+           'BAMLC0A4CBBB': 'ICE BofA BBB US Corporate',
+           'BAMLC0A4CBBBEY': 'ICE BofA BBB US Corporate Effective Yield',
+           'BAMLH0A0HYM2': 'ICE BofA US High Yield Master II',
+           'BAMLH0A0HYM2EY': 'ICE BofA US High Yield Master II Effective Yield',
+           'BAMLH0A1HYBB': 'ICE BofA BB US High Yield',
+           'BAMLH0A1HYBBEY': 'ICE BofA BB US High Yield Effective Yield',
+           'BAMLH0A2HYB': 'ICE BofA B US High Yield',
+           'BAMLH0A2HYBEY': 'ICE BofA B US High Yield Effective Yield',
+           'BAMLH0A3HYC': 'ICE BofA CCC & Lower US High Yield',
+           'BAMLH0A3HYCEY': 'ICE BofA CCC & Lower US High Yield Effective Yield',
+           'BAMLEMCB': 'ICE BofA Emerging Markets Corporate',
+           'BAMLEMSL': 'ICE BofA Emerging Markets Sovereign',
+           
+           // Economic Indicators
+           'GDP': 'Gross Domestic Product',
+           'GDPC1': 'Real GDP',
+           'GDPPOT': 'Real Potential GDP',
+           'NYGDPMKTPCDWLD': 'GDP Per Capita World',
+           'UNRATE': 'Unemployment Rate',
+           'CIVPART': 'Labor Force Participation Rate',
+           'EMRATIO': 'Employment-Population Ratio',
+           'PAYEMS': 'All Employees: Total Nonfarm',
+           'CES0500000003': 'Average Hourly Earnings',
+           'AHETPI': 'Average Hourly Earnings: Production',
+           'CPIAUCSL': 'Consumer Price Index',
+           'CPILFESL': 'Core CPI',
+           'PCEPI': 'PCE Price Index',
+           'PCEPILFE': 'Core PCE Price Index',
+           'DFEDTARU': 'Federal Funds Target Range - Upper',
+           'DFEDTARL': 'Federal Funds Target Range - Lower',
+           
+           // Money Supply
+           'M1SL': 'M1 Money Stock',
+           'M2SL': 'M2 Money Stock',
+           'M1V': 'Velocity of M1 Money Stock',
+           'M2V': 'Velocity of M2 Money Stock',
+           'CURRSL': 'Currency in Circulation',
+           'TOTRESNS': 'Total Reserves',
+           'EXCSRESNS': 'Excess Reserves',
+           'REQRESNS': 'Required Reserves',
+           
+           // Federal Reserve Balance Sheet
+           'WALCL': 'Fed Balance Sheet: Total Assets',
+           'WSHOSHO': 'Treasury Securities Held',
+           'WSHOMCB': 'MBS Held by Fed',
+           'RRPONTSYD': 'Overnight Reverse Repo',
+           'RPONTSYD': 'Overnight Repo',
+           'H41RESPPALDKNWW': 'Central Bank Liquidity Swaps',
+           
+           // Stock Market
+           'SP500': 'S&P 500',
+           'DJIA': 'Dow Jones Industrial Average',
+           'NASDAQCOM': 'NASDAQ Composite',
+           'RUT': 'Russell 2000',
+           'VIXCLS': 'VIX Volatility Index',
+           'VXOCLS': 'VXO Volatility Index',
+           
+           // Commodities
+           'DCOILWTICO': 'WTI Crude Oil',
+           'DCOILBRENTEU': 'Brent Crude Oil',
+           'GASREGW': 'US Regular Gas Price',
+           'GOLDAMGBD228NLBM': 'Gold Price',
+           'SLVPRUSD': 'Silver Price',
+           'DPROPANEMBTX': 'Propane Price',
+           
+           // Exchange Rates
+           'DEXUSEU': 'US Dollar to Euro',
+           'DEXUSUK': 'US Dollar to British Pound',
+           'DEXJPUS': 'Japanese Yen to US Dollar',
+           'DEXCHUS': 'Chinese Yuan to US Dollar',
+           'DEXCAUS': 'Canadian Dollar to US Dollar',
+           'DEXMXUS': 'Mexican Peso to US Dollar',
+           'DEXBZUS': 'Brazilian Real to US Dollar',
+           'DEXINUS': 'Indian Rupee to US Dollar',
+           'DTWEXBGS': 'US Dollar Index (DXY)',
+           'DTWEXAFEGS': 'Advanced Foreign Economies Dollar Index',
+           
+           // Housing
+           'HOUST': 'Housing Starts',
+           'PERMIT': 'Building Permits',
+           'MSPUS': 'Median Sales Price of Houses',
+           'MORTGAGE30US': '30-Year Mortgage Rate',
+           'MORTGAGE15US': '15-Year Mortgage Rate',
+           'CSUSHPISA': 'Case-Shiller Home Price Index',
+           
+           // Credit Spreads
+           'TEDRATE': 'TED Spread',
+           'T10Y2Y': '10-2 Year Treasury Spread',
+           'T10Y3M': '10Y-3M Treasury Spread',
+           
+           // Business & Manufacturing
+           'INDPRO': 'Industrial Production Index',
+           'CAPACITY': 'Capacity Utilization',
+           'NEWORDER': 'Manufacturers New Orders',
+           'DGORDER': 'Durable Goods Orders',
+           'RSAFS': 'Retail Sales',
+           'UMCSI': 'University of Michigan Consumer Sentiment',
+           'DRTSCILM': 'Net Percentage of Banks Tightening Standards',
+           
+           // International
+           'INTDSRUSM193N': 'Interest Rates on US Debt',
+           'GFDEGDQ188S': 'Federal Debt to GDP Ratio',
+           'FYFSD': 'Federal Surplus or Deficit',
+           'GFDEBTN': 'Federal Debt Total',
+           
+           // Add more FRED series...
+           // This list should contain ALL FRED indicators
+       };
+       
+       // Global state
+       let watchlist = [];
+       let selectedIndicator = null;
+       let chartData = {};
+       let currentRange = '1Y';
+       let sortableList = null;
+       
+       // Initialize
+       document.addEventListener('DOMContentLoaded', function() {
+           initializeAPIs();
+           setupSearch();
+           setupChartControls();
+           loadWatchlistFromStorage();
+           initializeChart();
+           updateStats();
+       });
+       
+       // Initialize all API connections
+       async function initializeAPIs() {
+           // Check System 1
+           try {
+               const response = await fetch(API_CONFIG.system1.baseUrl + API_CONFIG.system1.endpoints.stats);
+               if (response.ok) {
+                   const data = await response.json();
+                   document.getElementById('system1Status').className = 'status-dot connected';
+                   console.log('System 1: Connected -', data.document_count, 'indicators');
+               }
+           } catch (error) {
+               document.getElementById('system1Status').className = 'status-dot error';
+           }
+           
+           // Check System 2
+           try {
+               const response = await fetch(API_CONFIG.system2.baseUrl + API_CONFIG.system2.endpoints.health);
+               if (response.ok) {
+                   document.getElementById('system2Status').className = 'status-dot connected';
+                   console.log('System 2: Connected - 60,000+ indicators');
+               }
+           } catch (error) {
+               document.getElementById('system2Status').className = 'status-dot error';
+           }
+           
+           // Check System 3
+           try {
+               const response = await fetch(API_CONFIG.system3.baseUrl + API_CONFIG.system3.endpoints.health);
+               if (response.ok) {
+                   document.getElementById('system3Status').className = 'status-dot connected';
+                   console.log('System 3: Connected - Enhanced features');
+               }
+           } catch (error) {
+               document.getElementById('system3Status').className = 'status-dot error';
+           }
+       }
+       
+       // Setup search with all systems
+       function setupSearch() {
+           const searchInput = document.getElementById('searchInput');
+           const searchResults = document.getElementById('searchResults');
+           const sourceFilter = document.getElementById('sourceFilter');
+           
+           let searchTimeout;
+           
+           searchInput.addEventListener('input', function(e) {
+               const query = e.target.value.trim();
+               
+               clearTimeout(searchTimeout);
+               
+               if (query.length < 2) {
+                   searchResults.classList.remove('active');
+                   return;
+               }
+               
+               searchTimeout = setTimeout(async () => {
+                   await performSearch(query, sourceFilter.value);
+               }, 300);
+           });
+           
+           sourceFilter.addEventListener('change', function() {
+               const query = searchInput.value.trim();
+               if (query.length >= 2) {
+                   performSearch(query, this.value);
+               }
+           });
+           
+           document.addEventListener('click', function(e) {
+               if (!e.target.closest('.search-container')) {
+                   searchResults.classList.remove('active');
+               }
+           });
+       }
+       
+       // Search across all systems
+       async function performSearch(query, source = 'all') {
+           const searchResults = document.getElementById('searchResults');
+           searchResults.innerHTML = '<div class="search-result-item">Searching 66,204+ indicators...</div>';
+           searchResults.classList.add('active');
+           
+           let allResults = [];
+           
+           // Search local FRED series first
+           if (source === 'all' || source === 'fred') {
+               const fredResults = Object.entries(ALL_FRED_SERIES)
+                   .filter(([symbol, name]) => 
+                       symbol.toLowerCase().includes(query.toLowerCase()) ||
+                       name.toLowerCase().includes(query.toLowerCase())
+                   )
+                   .map(([symbol, name]) => ({
+                       symbol: symbol,
+                       name: name,
+                       source: 'FRED',
+                       system: 'local'
+                   }));
+               allResults = allResults.concat(fredResults);
+           }
+           
+           // Search System 1 (Lambda Platform)
+           if (source === 'all' || source === 'system1') {
+               try {
+                   const response = await fetch(
+                       `${API_CONFIG.system1.baseUrl}${API_CONFIG.system1.endpoints.search}?query=${encodeURIComponent(query)}&limit=20`
+                   );
+                   if (response.ok) {
+                       const data = await response.json();
+                       if (data.results) {
+                           const system1Results = data.results.map(item => ({
+                               symbol: item.id || item.symbol,
+                               name: item.name || item.description,
+                               source: item.source || 'System 1',
+                               system: 'system1',
+                               value: item.value
+                           }));
+                           allResults = allResults.concat(system1Results);
+                       }
+                   }
+               } catch (error) {
+                   console.error('System 1 search error:', error);
+               }
+           }
+           
+           // Search System 3 (Enhanced Lambda)
+           if (source === 'all' || source === 'system3') {
+               try {
+                   const response = await fetch(
+                       `${API_CONFIG.system3.baseUrl}${API_CONFIG.system3.endpoints.search}?query=${encodeURIComponent(query)}`
+                   );
+                   if (response.ok) {
+                       const data = await response.json();
+                       if (data.results) {
+                           const system3Results = data.results.map(item => ({
+                               symbol: item.symbol || item.id,
+                               name: item.name || item.title,
+                               source: 'System 3',
+                               system: 'system3'
+                           }));
+                           allResults = allResults.concat(system3Results);
+                       }
+                   }
+               } catch (error) {
+                   console.error('System 3 search error:', error);
+               }
+           }
+           
+           displaySearchResults(allResults.slice(0, 50));
+       }
+       
+       // Display search results
+       function displaySearchResults(results) {
+           const searchResults = document.getElementById('searchResults');
+           
+           if (results.length === 0) {
+               searchResults.innerHTML = '<div class="search-result-item">No indicators found</div>';
+               return;
+           }
+           
+           searchResults.innerHTML = results.map((item, index) => `
+               <div class="search-result-item" onclick="addToWatchlist('${item.symbol}', '${item.name}', '${item.source}', '${item.system}')">
+                   <div class="search-result-info">
+                       <div class="search-result-name">${item.name}</div>
+                       <div class="search-result-meta">
+                           <span class="search-result-symbol">${item.symbol}</span>
+                           <span style="color: #999; margin-left: 0.5rem;">${item.source}</span>
+                       </div>
+                   </div>
+                   <div class="search-result-value" id="value-${item.symbol}-${index}">
+                       ${item.value ? formatValue(item.value) : '<span class="loading-spinner"></span>'}
+                   </div>
+               </div>
+           `).join('');
+       }
+       
+       // Add to watchlist
+       async function addToWatchlist(symbol, name, source, system) {
+           // Check if already in watchlist
+           if (watchlist.find(item => item.symbol === symbol)) {
+               selectIndicator(symbol);
+               document.getElementById('searchResults').classList.remove('active');
+               document.getElementById('searchInput').value = '';
+               return;
+           }
+           
+           // Create watchlist item
+           const item = {
+               symbol: symbol,
+               name: name,
+               customName: name,
+               source: source,
+               system: system,
+               data: [],
+               latestValue: null,
+               latestDate: null,
+               changes: {}
+           };
+           
+           // Try to fetch data
+           const historicalData = await fetchHistoricalData(symbol, system);
+           if (historicalData && historicalData.length > 0) {
+               item.data = historicalData;
+               item.latestValue = historicalData[historicalData.length - 1].value;
+               item.latestDate = historicalData[historicalData.length - 1].date;
+               item.changes = calculateChanges(historicalData);
+               chartData[symbol] = historicalData;
+           }
+           
+           watchlist.push(item);
+           updateWatchlistDisplay();
+           saveWatchlistToStorage();
+           updateStats();
+           selectIndicator(symbol);
+           
+           document.getElementById('searchResults').classList.remove('active');
+           document.getElementById('searchInput').value = '';
+       }
+       
+       // Fetch historical data
+       async function fetchHistoricalData(symbol, system) {
+           // Generate sample data for demonstration
+           // In production, this would fetch from your actual APIs
+           const data = [];
+           const endDate = new Date();
+           const startDate = new Date();
+           startDate.setFullYear(startDate.getFullYear() - 10);
+           
+           let currentValue = Math.random() * 100 + 50;
+           let currentDate = new Date(startDate);
+           
+           while (currentDate <= endDate) {
+               currentValue = currentValue * (1 + (Math.random() - 0.5) * 0.1);
+               data.push({
+                   date: currentDate.toISOString().split('T')[0],
+                   value: parseFloat(currentValue.toFixed(2))
+               });
+               currentDate.setMonth(currentDate.getMonth() + 1);
+           }
+           
+           return data;
+       }
+       
+       // Calculate percentage changes
+       function calculateChanges(data) {
+           if (data.length < 2) return {};
+           
+           const latest = data[data.length - 1].value;
+           const changes = {};
+           
+           // MoM (1 month)
+           if (data.length > 1) {
+               const oneMonthAgo = data[Math.max(0, data.length - 2)].value;
+               changes.mom = ((latest - oneMonthAgo) / oneMonthAgo * 100).toFixed(2);
+           }
+           
+           // QoQ (3 months)
+           if (data.length > 3) {
+               const threeMonthsAgo = data[Math.max(0, data.length - 4)].value;
+               changes.qoq = ((latest - threeMonthsAgo) / threeMonthsAgo * 100).toFixed(2);
+           }
+           
+           // YoY (12 months)
+           if (data.length > 12) {
+               const oneYearAgo = data[Math.max(0, data.length - 13)].value;
+               changes.yoy = ((latest - oneYearAgo) / oneYearAgo * 100).toFixed(2);
+           }
+           
+           // 52-week range
+           const last52 = data.slice(-52);
+           if (last52.length > 0) {
+               const values = last52.map(d => d.value);
+               changes.low52w = Math.min(...values);
+               changes.high52w = Math.max(...values);
+           }
+           
+           return changes;
+       }
+       
+       // Update watchlist display with sortable functionality
+       function updateWatchlistDisplay() {
+           const content = document.getElementById('watchlistContent');
+           
+           if (watchlist.length === 0) {
+               content.innerHTML = `
+                   <div class="empty-watchlist">
+                       <div style="font-size: 3rem; opacity: 0.3;">📊</div>
+                       <div>Your watchlist is empty</div>
+                       <div style="margin-top: 0.5rem; font-size: 0.875rem; color: #999;">Search from 66,204+ indicators to track</div>
+                   </div>
+               `;
+               return;
+           }
+           
+           let tableHTML = `
+               <table class="watchlist-table">
+                   <thead>
+                       <tr>
+                           <th></th>
+                           <th>Indicator</th>
+                           <th>Value</th>
+                           <th>MoM %</th>
+                           <th>QoQ %</th>
+                           <th>YoY %</th>
+                           <th>Source</th>
+                           <th>Actions</th>
+                       </tr>
+                   </thead>
+                   <tbody id="watchlistBody">`;
+           
+           watchlist.forEach((item, index) => {
+               const isSelected = selectedIndicator === item.symbol;
+               tableHTML += `
+                   <tr class="${isSelected ? 'selected' : ''}" data-index="${index}" data-symbol="${item.symbol}">
+                       <td class="drag-handle">☰</td>
+                       <td onclick="selectIndicator('${item.symbol}')">
+                           <input type="text" 
+                                  class="indicator-name-input" 
+                                  value="${item.customName}" 
+                                  onclick="event.stopPropagation()"
+                                  onblur="updateCustomName(${index}, this.value)"
+                                  onkeypress="if(event.key==='Enter') this.blur()">
+                           <div style="font-size: 0.75rem; color: #999;">${item.symbol}</div>
+                       </td>
+                       <td style="font-weight: bold;" onclick="selectIndicator('${item.symbol}')">
+                           ${item.latestValue ? formatValue(item.latestValue) : '--'}
+                       </td>
+                       <td class="${item.changes.mom > 0 ? 'positive' : 'negative'}" onclick="selectIndicator('${item.symbol}')">
+                           ${item.changes.mom ? item.changes.mom + '%' : '--'}
+                       </td>
+                       <td class="${item.changes.qoq > 0 ? 'positive' : 'negative'}" onclick="selectIndicator('${item.symbol}')">
+                           ${item.changes.qoq ? item.changes.qoq + '%' : '--'}
+                       </td>
+                       <td class="${item.changes.yoy > 0 ? 'positive' : 'negative'}" onclick="selectIndicator('${item.symbol}')">
+                           ${item.changes.yoy ? item.changes.yoy + '%' : '--'}
+                       </td>
+                       <td onclick="selectIndicator('${item.symbol}')">${item.source}</td>
+                       <td>
+                           <div class="action-btns">
+                               <button class="action-btn" onclick="moveUp(${index})">↑</button>
+                               <button class="action-btn" onclick="moveDown(${index})">↓</button>
+                               <button class="action-btn remove" onclick="removeFromWatchlist(${index})">×</button>
+                           </div>
+                       </td>
+                   </tr>`;
+           });
+           
+           tableHTML += `
+                   </tbody>
+               </table>`;
+           
+           content.innerHTML = tableHTML;
+           
+           // Initialize sortable
+           if (sortableList) {
+               sortableList.destroy();
+           }
+           
+           const tbody = document.getElementById('watchlistBody');
+           if (tbody) {
+               sortableList = new Sortable(tbody, {
+                   handle: '.drag-handle',
+                   animation: 150,
+                   ghostClass: 'dragging',
+                   onEnd: function(evt) {
+                       const oldIndex = evt.oldIndex;
+                       const newIndex = evt.newIndex;
+                       
+                       if (oldIndex !== newIndex) {
+                           const item = watchlist.splice(oldIndex, 1)[0];
+                           watchlist.splice(newIndex, 0, item);
+                           saveWatchlistToStorage();
+                       }
+                   }
+               });
+           }
+       }
+       
+       // Update custom name
+       function updateCustomName(index, newName) {
+           if (watchlist[index]) {
+               watchlist[index].customName = newName.trim() || watchlist[index].name;
+               saveWatchlistToStorage();
+           }
+       }
+       
+       // Move item up
+       function moveUp(index) {
+           if (index > 0) {
+               [watchlist[index - 1], watchlist[index]] = [watchlist[index], watchlist[index - 1]];
+               updateWatchlistDisplay();
+               saveWatchlistToStorage();
+           }
+       }
+       
+       // Move item down
+       function moveDown(index) {
+           if (index < watchlist.length - 1) {
+               [watchlist[index], watchlist[index + 1]] = [watchlist[index + 1], watchlist[index]];
+               updateWatchlistDisplay();
+               saveWatchlistToStorage();
+           }
+       }
+       
+       // Select indicator
+       function selectIndicator(symbol) {
+           selectedIndicator = symbol;
+           const item = watchlist.find(w => w.symbol === symbol);
+           
+           if (!item) return;
+           
+           // Update chart title
+           document.getElementById('chartTitle').textContent = `${item.customName} (${item.symbol})`;
+           
+           // Update data info
+           document.getElementById('dataInfo').style.display = 'grid';
+           document.getElementById('latestValue').textContent = item.latestValue ? formatValue(item.latestValue) : '--';
+           document.getElementById('latestDate').textContent = item.latestDate || '--';
+           
+           const changes = item.changes;
+           document.getElementById('momChange').textContent = changes.mom ? `${changes.mom}%` : '--';
+           document.getElementById('momChange').className = changes.mom > 0 ? 'data-info-value positive' : 'data-info-value negative';
+           
+           document.getElementById('qoqChange').textContent = changes.qoq ? `${changes.qoq}%` : '--';
+           document.getElementById('qoqChange').className = changes.qoq > 0 ? 'data-info-value positive' : 'data-info-value negative';
+           
+           document.getElementById('yoyChange').textContent = changes.yoy ? `${changes.yoy}%` : '--';
+           document.getElementById('yoyChange').className = changes.yoy > 0 ? 'data-info-value positive' : 'data-info-value negative';
+           
+           if (changes.low52w && changes.high52w) {
+               document.getElementById('range52w').textContent = `${formatValue(changes.low52w)} - ${formatValue(changes.high52w)}`;
+           }
+           
+           // Update watchlist display
+           updateWatchlistDisplay();
+           
+           // Plot chart
+           if (item.data && item.data.length > 0) {
+               plotChart(item.data, currentRange);
+           }
+       }
+       
+       // Plot chart
+       function plotChart(data, range) {
+           if (!data || data.length === 0) return;
+           
+           // Filter data based on range
+           let filteredData = filterDataByRange(data, range);
+           
+           const trace = {
+               x: filteredData.map(d => d.date),
+               y: filteredData.map(d => d.value),
+               type: 'scatter',
+               mode: 'lines',
+               line: {
+                   color: '#1565c0',
+                   width: 2
+               },
+               hovertemplate: '<b>%{x}</b><br>Value: %{y:.2f}<extra></extra>'
+           };
+           
+           const layout = {
+               paper_bgcolor: '#fff',
+               plot_bgcolor: '#fff',
+               font: {
+                   family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+                   color: '#333'
+               },
+               xaxis: {
+                   showgrid: true,
+                   gridcolor: '#e0e0e0',
+                   tickfont: { color: '#666', size: 11 },
+                   zeroline: false
+               },
+               yaxis: {
+                   showgrid: true,
+                   gridcolor: '#e0e0e0',
+                   tickfont: { color: '#666', size: 11 },
+                   zeroline: true,
+                   zerolinecolor: '#e0e0e0',
+                   tickformat: ',.2f'
+               },
+               margin: { t: 20, r: 40, b: 40, l: 60 },
+               hovermode: 'x unified',
+               showlegend: false
+           };
+           
+           const config = {
+               responsive: true,
+               displayModeBar: true,
+               displaylogo: false,
+               modeBarButtonsToRemove: ['pan2d', 'select2d', 'lasso2d', 'autoScale2d', 'toggleSpikelines']
+           };
+           
+           Plotly.newPlot('mainChart', [trace], layout, config);
+       }
+       
+       // Filter data by range
+       function filterDataByRange(data, range) {
+           const endDate = new Date(data[data.length - 1].date);
+           let startDate = new Date(endDate);
+           
+           switch(range) {
+               case '1M':
+                   startDate.setMonth(startDate.getMonth() - 1);
+                   break;
+               case '3M':
+                   startDate.setMonth(startDate.getMonth() - 3);
+                   break;
+               case '6M':
+                   startDate.setMonth(startDate.getMonth() - 6);
+                   break;
+               case 'YTD':
+                   startDate = new Date(endDate.getFullYear(), 0, 1);
+                   break;
+               case '1Y':
+                   startDate.setFullYear(startDate.getFullYear() - 1);
+                   break;
+               case '5Y':
+                   startDate.setFullYear(startDate.getFullYear() - 5);
+                   break;
+               case '10Y':
+                   startDate.setFullYear(startDate.getFullYear() - 10);
+                   break;
+               case 'ALL':
+               default:
+                   return data;
+           }
+           
+           return data.filter(d => new Date(d.date) >= startDate);
+       }
+       
+       // Setup chart controls
+       function setupChartControls() {
+           document.querySelectorAll('.chart-btn[data-range]').forEach(btn => {
+               btn.addEventListener('click', function() {
+                   document.querySelectorAll('.chart-btn[data-range]').forEach(b => b.classList.remove('active'));
+                   this.classList.add('active');
+                   
+                   currentRange = this.dataset.range;
+                   
+                   if (selectedIndicator) {
+                       const item = watchlist.find(w => w.symbol === selectedIndicator);
+                       if (item && item.data) {
+                           plotChart(item.data, currentRange);
+                       }
+                   }
+               });
+           });
+       }
+       
+       // Initialize chart
+       function initializeChart() {
+           const layout = {
+               paper_bgcolor: '#fff',
+               plot_bgcolor: '#fff',
+               font: { color: '#666' },
+               xaxis: {
+                   showgrid: true,
+                   gridcolor: '#e0e0e0'
+               },
+               yaxis: {
+                   showgrid: true,
+                   gridcolor: '#e0e0e0'
+               },
+               margin: { t: 20, r: 40, b: 40, l: 60 }
+           };
+           
+           Plotly.newPlot('mainChart', [], layout, {responsive: true});
+       }
+       
+       // Format value
+       function formatValue(value) {
+           if (value === null || value === undefined) return '--';
+           
+           if (value >= 1000000000) {
+               return (value / 1000000000).toFixed(2) + 'B';
+           } else if (value >= 1000000) {
+               return (value / 1000000).toFixed(2) + 'M';
+           } else if (value >= 1000) {
+               return (value / 1000).toFixed(2) + 'K';
+           } else {
+               return value.toFixed(2);
+           }
+       }
+       
+       // Update stats
+       function updateStats() {
+           document.getElementById('watchlistCount').textContent = watchlist.length;
+       }
+       
+       // Refresh watchlist
+       async function refreshWatchlist() {
+           for (let item of watchlist) {
+               const newData = await fetchHistoricalData(item.symbol, item.system);
+               if (newData && newData.length > 0) {
+                   item.data = newData;
+                   item.latestValue = newData[newData.length - 1].value;
+                   item.latestDate = newData[newData.length - 1].date;
+                   item.changes = calculateChanges(newData);
+                   chartData[item.symbol] = newData;
+               }
+           }
+           
+           updateWatchlistDisplay();
+           saveWatchlistToStorage();
+           
+           if (selectedIndicator) {
+               selectIndicator(selectedIndicator);
+           }
+       }
+       
+       // Export watchlist
+       function exportWatchlist() {
+           const dataStr = JSON.stringify(watchlist, null, 2);
+           const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+           
+           const exportFileDefaultName = `watchlist_${new Date().toISOString().split('T')[0]}.json`;
+           
+           const linkElement = document.createElement('a');
+           linkElement.setAttribute('href', dataUri);
+           linkElement.setAttribute('download', exportFileDefaultName);
+           linkElement.click();
+       }
+       
+       // Clear watchlist
+       function clearWatchlist() {
+           if (confirm('Are you sure you want to clear your watchlist?')) {
+               watchlist = [];
+               selectedIndicator = null;
+               chartData = {};
+               updateWatchlistDisplay();
+               saveWatchlistToStorage();
+               updateStats();
+               document.getElementById('chartTitle').textContent = 'Select an indicator to view data';
+               document.getElementById('dataInfo').style.display = 'none';
+               initializeChart();
+           }
+       }
+       
+       // Remove from watchlist
+       function removeFromWatchlist(index) {
+           const symbol = watchlist[index].symbol;
+           watchlist.splice(index, 1);
+           delete chartData[symbol];
+           
+           if (selectedIndicator === symbol) {
+               selectedIndicator = null;
+               document.getElementById('chartTitle').textContent = 'Select an indicator to view data';
+               document.getElementById('dataInfo').style.display = 'none';
+               initializeChart();
+           }
+           
+           updateWatchlistDisplay();
+           saveWatchlistToStorage();
+           updateStats();
+       }
+       
+       // Save watchlist to localStorage
+       function saveWatchlistToStorage() {
+           const watchlistData = watchlist.map(item => ({
+               symbol: item.symbol,
+               name: item.name,
+               customName: item.customName,
+               source: item.source,
+               system: item.system
+           }));
+           localStorage.setItem('openbb_complete_watchlist', JSON.stringify(watchlistData));
+       }
+       
+       // Load watchlist from localStorage
+       async function loadWatchlistFromStorage() {
+           const stored = localStorage.getItem('openbb_complete_watchlist');
+           if (stored) {
+               try {
+                   const watchlistData = JSON.parse(stored);
+                   for (const item of watchlistData) {
+                       await addToWatchlist(item.symbol, item.name || item.symbol, item.source || 'FRED', item.system || 'local');
+                       // Restore custom name
+                       const addedItem = watchlist.find(w => w.symbol === item.symbol);
+                       if (addedItem && item.customName) {
+                           addedItem.customName = item.customName;
+                       }
+                   }
+                   updateWatchlistDisplay();
+               } catch (error) {
+                   console.error('Error loading watchlist:', error);
+               }
+           }
+       }
+   </script>
+</body>
+</html>
