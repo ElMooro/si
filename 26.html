@@ -3,7 +3,7 @@
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>OpenBB Financial Dashboard - Advanced Trend Detection</title>
+   <title>OpenBB Financial Dashboard - Real Data</title>
    
    <!-- Required Libraries -->
    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
@@ -14,17 +14,17 @@
        
        body {
            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-           background: linear-gradient(135deg, #0a0e27 0%, #151932 100%);
-           color: #e0e0e0;
+           background: #f5f5f5;
+           color: #333;
            min-height: 100vh;
        }
        
        /* Header */
        .header {
-           background: rgba(20, 24, 44, 0.95);
-           backdrop-filter: blur(10px);
+           background: #fff;
            padding: 1rem 2rem;
-           border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+           border-bottom: 1px solid #e0e0e0;
+           box-shadow: 0 2px 4px rgba(0,0,0,0.1);
            position: sticky;
            top: 0;
            z-index: 1000;
@@ -34,16 +34,14 @@
            display: flex;
            justify-content: space-between;
            align-items: center;
-           flex-wrap: wrap;
-           gap: 1rem;
+           max-width: 1800px;
+           margin: 0 auto;
        }
        
        .logo {
            font-size: 1.5rem;
            font-weight: bold;
-           background: linear-gradient(45deg, #00ff88, #00ccff);
-           -webkit-background-clip: text;
-           -webkit-text-fill-color: transparent;
+           color: #1565c0;
        }
        
        .api-status {
@@ -57,7 +55,7 @@
            align-items: center;
            gap: 0.5rem;
            padding: 0.5rem 1rem;
-           background: rgba(255, 255, 255, 0.05);
+           background: #f0f0f0;
            border-radius: 20px;
            font-size: 0.875rem;
        }
@@ -66,25 +64,11 @@
            width: 8px;
            height: 8px;
            border-radius: 50%;
-           animation: pulse 2s infinite;
        }
        
-       .status-dot.connected {
-           background: #00ff88;
-       }
-       
-       .status-dot.error {
-           background: #ff4444;
-       }
-       
-       .status-dot.loading {
-           background: #ffaa00;
-       }
-       
-       @keyframes pulse {
-           0%, 100% { opacity: 1; }
-           50% { opacity: 0.3; }
-       }
+       .status-dot.connected { background: #4caf50; }
+       .status-dot.error { background: #f44336; }
+       .status-dot.loading { background: #ff9800; }
        
        /* Container */
        .container {
@@ -99,38 +83,20 @@
            position: relative;
        }
        
-       .search-wrapper {
-           position: relative;
-       }
-       
        .search-input {
            width: 100%;
-           padding: 1rem 3rem 1rem 1.5rem;
-           background: rgba(255, 255, 255, 0.05);
-           border: 2px solid rgba(0, 255, 136, 0.3);
-           border-radius: 12px;
-           color: #fff;
+           padding: 1rem 1.5rem;
+           background: #fff;
+           border: 2px solid #e0e0e0;
+           border-radius: 8px;
            font-size: 1rem;
            transition: all 0.3s;
        }
        
        .search-input:focus {
            outline: none;
-           border-color: #00ff88;
-           background: rgba(0, 255, 136, 0.05);
-           box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
-       }
-       
-       .search-loading {
-           position: absolute;
-           right: 1rem;
-           top: 50%;
-           transform: translateY(-50%);
-           display: none;
-       }
-       
-       .search-loading.active {
-           display: block;
+           border-color: #1565c0;
+           box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.1);
        }
        
        .search-results {
@@ -138,14 +104,15 @@
            top: 100%;
            left: 0;
            right: 0;
-           background: rgba(20, 24, 44, 0.98);
-           border: 1px solid rgba(0, 255, 136, 0.3);
-           border-radius: 12px;
+           background: #fff;
+           border: 1px solid #e0e0e0;
+           border-radius: 8px;
            margin-top: 0.5rem;
            max-height: 400px;
            overflow-y: auto;
            display: none;
            z-index: 1000;
+           box-shadow: 0 4px 12px rgba(0,0,0,0.1);
        }
        
        .search-results.active {
@@ -155,47 +122,41 @@
        .search-result-item {
            padding: 1rem 1.5rem;
            cursor: pointer;
-           transition: all 0.3s;
-           border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+           transition: all 0.2s;
+           border-bottom: 1px solid #f0f0f0;
            display: flex;
            justify-content: space-between;
            align-items: center;
        }
        
        .search-result-item:hover {
-           background: rgba(0, 255, 136, 0.1);
-           padding-left: 2rem;
-       }
-       
-       .search-result-info {
-           flex: 1;
-       }
-       
-       .search-result-category {
-           font-size: 0.75rem;
-           color: #00ff88;
-           margin-bottom: 0.25rem;
+           background: #f5f5f5;
        }
        
        .search-result-name {
-           font-size: 1rem;
-           color: #fff;
-           margin-bottom: 0.25rem;
+           font-weight: 500;
+           color: #333;
+       }
+       
+       .search-result-symbol {
+           font-size: 0.875rem;
+           color: #666;
+           margin-top: 0.25rem;
        }
        
        .search-result-value {
-           font-size: 1.25rem;
+           font-size: 1.125rem;
            font-weight: bold;
-           color: #00ff88;
+           color: #1565c0;
        }
        
        /* Chart Container */
        .chart-container {
-           background: rgba(255, 255, 255, 0.05);
-           border-radius: 12px;
+           background: #fff;
+           border-radius: 8px;
            padding: 1.5rem;
            margin-bottom: 2rem;
-           border: 1px solid rgba(255, 255, 255, 0.1);
+           box-shadow: 0 2px 8px rgba(0,0,0,0.1);
        }
        
        .chart-header {
@@ -203,189 +164,84 @@
            justify-content: space-between;
            align-items: center;
            margin-bottom: 1rem;
-           flex-wrap: wrap;
-           gap: 1rem;
+           padding-bottom: 1rem;
+           border-bottom: 1px solid #e0e0e0;
        }
        
        .chart-title {
            font-size: 1.25rem;
-           font-weight: bold;
-           color: #00ff88;
+           font-weight: 600;
+           color: #333;
        }
        
        .chart-controls {
            display: flex;
            gap: 0.5rem;
-           flex-wrap: wrap;
        }
        
        .chart-btn {
            padding: 0.5rem 1rem;
-           background: rgba(255, 255, 255, 0.1);
-           border: 1px solid rgba(255, 255, 255, 0.2);
-           border-radius: 6px;
-           color: #fff;
+           background: #fff;
+           border: 1px solid #e0e0e0;
+           border-radius: 4px;
+           color: #666;
            cursor: pointer;
            font-size: 0.875rem;
-           transition: all 0.3s;
+           transition: all 0.2s;
        }
        
        .chart-btn:hover {
-           background: rgba(0, 255, 136, 0.2);
-           border-color: #00ff88;
+           background: #f5f5f5;
+           border-color: #1565c0;
+           color: #1565c0;
        }
        
        .chart-btn.active {
-           background: #00ff88;
-           color: #000;
+           background: #1565c0;
+           color: #fff;
+           border-color: #1565c0;
        }
        
-       /* Trend Alert Box */
-       .trend-alert-box {
-           background: rgba(255, 170, 0, 0.1);
-           border: 2px solid #ffaa00;
-           border-radius: 8px;
-           padding: 1rem;
-           margin-bottom: 1rem;
-           display: none;
-       }
-       
-       .trend-alert-box.active {
-           display: block;
-       }
-       
-       .trend-alert-box.bullish {
-           background: rgba(0, 255, 136, 0.1);
-           border-color: #00ff88;
-       }
-       
-       .trend-alert-box.bearish {
-           background: rgba(255, 68, 68, 0.1);
-           border-color: #ff4444;
-       }
-       
-       .trend-alert-title {
-           font-size: 1.125rem;
-           font-weight: bold;
-           margin-bottom: 0.5rem;
-       }
-       
-       .trend-signals {
+       /* Data Info Box */
+       .data-info {
            display: grid;
            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-           gap: 0.5rem;
-           margin-top: 0.5rem;
-       }
-       
-       .trend-signal-item {
-           padding: 0.5rem;
-           background: rgba(0, 0, 0, 0.3);
-           border-radius: 4px;
-           font-size: 0.875rem;
-       }
-       
-       /* Chart Style Toggle */
-       .chart-style-toggle {
-           display: flex;
-           gap: 0.5rem;
-           margin-bottom: 1rem;
-           background: rgba(0, 0, 0, 0.3);
-           padding: 0.5rem;
-           border-radius: 8px;
-       }
-       
-       .style-btn {
-           padding: 0.5rem 1rem;
-           background: transparent;
-           border: 1px solid rgba(255, 255, 255, 0.2);
-           border-radius: 6px;
-           color: #888;
-           cursor: pointer;
-           font-size: 0.875rem;
-           transition: all 0.3s;
-       }
-       
-       .style-btn.active {
-           background: #00ff88;
-           color: #000;
-           border-color: #00ff88;
-       }
-       
-       /* Chart Type Toggle */
-       .chart-type-toggle {
-           display: flex;
-           gap: 0.5rem;
-           margin-bottom: 1rem;
-           background: rgba(0, 0, 0, 0.3);
-           padding: 0.5rem;
-           border-radius: 8px;
-           flex-wrap: wrap;
-       }
-       
-       .toggle-btn {
-           padding: 0.5rem 1rem;
-           background: transparent;
-           border: 1px solid rgba(255, 255, 255, 0.2);
-           border-radius: 6px;
-           color: #888;
-           cursor: pointer;
-           font-size: 0.875rem;
-           transition: all 0.3s;
-       }
-       
-       .toggle-btn.active {
-           background: #00ff88;
-           color: #000;
-           border-color: #00ff88;
-       }
-       
-       /* Chart Statistics */
-       .chart-stats {
-           display: grid;
-           grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
            gap: 1rem;
            margin-bottom: 1rem;
            padding: 1rem;
-           background: rgba(0, 0, 0, 0.3);
-           border-radius: 8px;
+           background: #f8f9fa;
+           border-radius: 4px;
        }
        
-       .stat-box {
-           text-align: center;
-           padding: 0.75rem;
-           background: rgba(255, 255, 255, 0.05);
-           border-radius: 6px;
-           border: 1px solid rgba(255, 255, 255, 0.1);
+       .data-info-item {
+           display: flex;
+           flex-direction: column;
        }
        
-       .stat-label {
+       .data-info-label {
            font-size: 0.75rem;
-           color: #888;
+           color: #666;
            text-transform: uppercase;
-           margin-bottom: 0.5rem;
+           margin-bottom: 0.25rem;
        }
        
-       .stat-value {
-           font-size: 1.5rem;
+       .data-info-value {
+           font-size: 1.25rem;
            font-weight: bold;
+           color: #333;
        }
-       
-       .positive { color: #00ff88; }
-       .negative { color: #ff4444; }
-       .neutral { color: #ffaa00; }
        
        #mainChart {
            height: 500px;
-           border-radius: 8px;
-           background: rgba(0, 0, 0, 0.3);
+           background: #fff;
        }
        
-       /* Watchlist Container */
+       /* Watchlist */
        .watchlist-container {
-           background: rgba(255, 255, 255, 0.05);
-           border-radius: 12px;
+           background: #fff;
+           border-radius: 8px;
            padding: 1.5rem;
-           border: 1px solid rgba(255, 255, 255, 0.1);
+           box-shadow: 0 2px 8px rgba(0,0,0,0.1);
        }
        
        .watchlist-header {
@@ -394,13 +250,13 @@
            align-items: center;
            margin-bottom: 1.5rem;
            padding-bottom: 1rem;
-           border-bottom: 2px solid rgba(0, 255, 136, 0.3);
+           border-bottom: 1px solid #e0e0e0;
        }
        
        .watchlist-title {
            font-size: 1.25rem;
-           font-weight: bold;
-           color: #00ff88;
+           font-weight: 600;
+           color: #333;
        }
        
        .watchlist-table {
@@ -409,177 +265,123 @@
        }
        
        .watchlist-table thead {
-           background: rgba(0, 255, 136, 0.1);
+           background: #f8f9fa;
        }
        
        .watchlist-table th {
-           padding: 1rem;
+           padding: 0.75rem;
            text-align: left;
-           font-size: 0.875rem;
-           color: #00ff88;
-           font-weight: bold;
-           border-bottom: 2px solid rgba(0, 255, 136, 0.3);
+           font-size: 0.75rem;
+           color: #666;
+           font-weight: 600;
+           text-transform: uppercase;
+           border-bottom: 2px solid #e0e0e0;
        }
        
        .watchlist-table td {
-           padding: 1rem;
-           border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+           padding: 0.75rem;
+           border-bottom: 1px solid #f0f0f0;
            font-size: 0.875rem;
        }
        
        .watchlist-table tbody tr {
            cursor: pointer;
-           transition: all 0.3s;
+           transition: all 0.2s;
        }
        
        .watchlist-table tbody tr:hover {
-           background: rgba(0, 255, 136, 0.05);
+           background: #f8f9fa;
        }
        
        .watchlist-table tbody tr.selected {
-           background: rgba(0, 255, 136, 0.15);
-           border-left: 3px solid #00ff88;
+           background: #e3f2fd;
        }
        
-       .indicator-name {
-           font-weight: bold;
-           color: #fff;
-       }
-       
-       .indicator-symbol {
-           font-size: 0.75rem;
-           color: #888;
-           margin-top: 0.25rem;
-       }
-       
-       .value-cell {
-           font-weight: bold;
-           color: #fff;
-       }
-       
-       .change-value {
-           display: flex;
-           align-items: center;
-           gap: 0.25rem;
-       }
-       
-       .trend-badge {
-           display: inline-block;
-           padding: 0.25rem 0.5rem;
-           border-radius: 4px;
-           font-size: 0.625rem;
-           font-weight: bold;
-           text-transform: uppercase;
-       }
-       
-       .trend-badge.reversal {
-           background: rgba(255, 170, 0, 0.3);
-           color: #ffaa00;
-           animation: blink 1s infinite;
-       }
-       
-       .trend-badge.acceleration {
-           background: rgba(0, 255, 136, 0.3);
-           color: #00ff88;
-       }
-       
-       .trend-badge.deceleration {
-           background: rgba(255, 68, 68, 0.3);
-           color: #ff4444;
-       }
-       
-       @keyframes blink {
-           0%, 100% { opacity: 1; }
-           50% { opacity: 0.5; }
-       }
+       .positive { color: #4caf50; }
+       .negative { color: #f44336; }
        
        .remove-btn {
-           background: rgba(255, 68, 68, 0.2);
-           border: 1px solid #ff4444;
-           color: #ff4444;
+           background: #fff;
+           border: 1px solid #e0e0e0;
+           color: #666;
            padding: 0.25rem 0.75rem;
            border-radius: 4px;
            cursor: pointer;
            font-size: 0.75rem;
-           transition: all 0.3s;
+           transition: all 0.2s;
        }
        
        .remove-btn:hover {
-           background: rgba(255, 68, 68, 0.3);
-           transform: scale(1.05);
+           background: #ffebee;
+           border-color: #f44336;
+           color: #f44336;
        }
        
-       /* Loading spinner */
+       .empty-watchlist {
+           text-align: center;
+           padding: 3rem;
+           color: #999;
+       }
+       
        .loading-spinner {
+           display: inline-block;
            width: 20px;
            height: 20px;
-           border: 2px solid rgba(0, 255, 136, 0.3);
-           border-top-color: #00ff88;
+           border: 2px solid #f3f3f3;
+           border-top: 2px solid #1565c0;
            border-radius: 50%;
            animation: spin 1s linear infinite;
        }
        
        @keyframes spin {
-           to { transform: rotate(360deg); }
+           0% { transform: rotate(0deg); }
+           100% { transform: rotate(360deg); }
        }
        
-       /* Empty state */
-       .empty-watchlist {
-           text-align: center;
-           padding: 3rem;
-           color: #888;
-       }
-       
-       .empty-watchlist-icon {
-           font-size: 3rem;
+       /* Error message */
+       .error-message {
+           background: #ffebee;
+           color: #c62828;
+           padding: 1rem;
+           border-radius: 4px;
            margin-bottom: 1rem;
-           opacity: 0.5;
+           display: none;
+       }
+       
+       .error-message.active {
+           display: block;
        }
    </style>
 </head>
 <body>
    <header class="header">
        <div class="header-content">
-           <div class="logo">📊 OpenBB Dashboard - Advanced Trend Detection</div>
+           <div class="logo">📊 OpenBB Financial Dashboard</div>
            <div class="api-status">
                <div class="api-indicator">
                    <div class="status-dot loading" id="fredStatus"></div>
-                   <span>FRED/ICE</span>
+                   <span>FRED</span>
                </div>
                <div class="api-indicator">
-                   <div class="status-dot loading" id="ecbStatus"></div>
-                   <span>ECB</span>
-               </div>
-               <div class="api-indicator">
-                   <div class="status-dot loading" id="ofrStatus"></div>
-                   <span>OFR</span>
-               </div>
-               <div class="api-indicator">
-                   <div class="status-dot loading" id="nyfedStatus"></div>
-                   <span>NY Fed</span>
-               </div>
-               <div class="api-indicator">
-                   <div class="status-dot loading" id="treasuryStatus"></div>
-                   <span>Treasury</span>
+                   <div class="status-dot loading" id="dataStatus"></div>
+                   <span>Data API</span>
                </div>
            </div>
        </div>
    </header>
    
    <div class="container">
+       <!-- Error Message -->
+       <div class="error-message" id="errorMessage"></div>
+       
        <!-- Search Bar -->
        <div class="search-container">
-           <div class="search-wrapper">
-               <input 
-                   type="text" 
-                   class="search-input" 
-                   id="searchInput" 
-                   placeholder="Search: VIX, DXY, CISS, CMDI, SOFR, EFFR, ICE BofA, Fed Balance Sheet, Treasury yields..."
-               >
-               <div class="search-loading" id="searchLoading">
-                   <div class="loading-spinner"></div>
-               </div>
-           </div>
+           <input 
+               type="text" 
+               class="search-input" 
+               id="searchInput" 
+               placeholder="Search indicators: Try BAMLH0A2HYB, DXY, VIX, SOFR, DGS10, SP500..."
+           >
            <div class="search-results" id="searchResults"></div>
        </div>
        
@@ -588,64 +390,41 @@
            <div class="chart-header">
                <div class="chart-title" id="chartTitle">Select an indicator to view data</div>
                <div class="chart-controls">
-                   <button class="chart-btn active" data-range="ALL">All</button>
-                   <button class="chart-btn" data-range="10Y">10Y</button>
-                   <button class="chart-btn" data-range="5Y">5Y</button>
-                   <button class="chart-btn" data-range="1Y">1Y</button>
-                   <button class="chart-btn" data-range="YTD">YTD</button>
-                   <button class="chart-btn" data-range="6M">6M</button>
-                   <button class="chart-btn" data-range="3M">3M</button>
                    <button class="chart-btn" data-range="1M">1M</button>
+                   <button class="chart-btn" data-range="3M">3M</button>
+                   <button class="chart-btn" data-range="6M">6M</button>
+                   <button class="chart-btn" data-range="YTD">YTD</button>
+                   <button class="chart-btn active" data-range="1Y">1Y</button>
+                   <button class="chart-btn" data-range="5Y">5Y</button>
+                   <button class="chart-btn" data-range="10Y">10Y</button>
+                   <button class="chart-btn" data-range="ALL">All</button>
                </div>
            </div>
            
-           <!-- Trend Alert Box -->
-           <div class="trend-alert-box" id="trendAlertBox">
-               <div class="trend-alert-title" id="trendAlertTitle">📊 Trend Analysis</div>
-               <div class="trend-signals" id="trendSignals"></div>
-           </div>
-           
-           <!-- Chart Style Toggle -->
-           <div class="chart-style-toggle">
-               <button class="style-btn active" onclick="setChartStyle('line')">📈 Line Chart</button>
-               <button class="style-btn" onclick="setChartStyle('candlestick')">🕯️ Candlestick</button>
-               <button class="style-btn" onclick="setChartStyle('area')">📊 Area</button>
-           </div>
-           
-           <!-- Chart Type Toggle - Only percentage changes -->
-           <div class="chart-type-toggle">
-               <button class="toggle-btn active" onclick="setChartType('levels')">📈 Price Levels</button>
-               <button class="toggle-btn" onclick="setChartType('mom')">📊 MoM %</button>
-               <button class="toggle-btn" onclick="setChartType('qoq')">📊 QoQ %</button>
-               <button class="toggle-btn" onclick="setChartType('yoy')">📊 YoY %</button>
-               <button class="toggle-btn" onclick="setChartType('all_changes')">🎯 All Changes</button>
-           </div>
-           
-           <!-- Chart Statistics -->
-           <div class="chart-stats" id="chartStats" style="display: none;">
-               <div class="stat-box">
-                   <div class="stat-label">Current Value</div>
-                   <div class="stat-value" id="currentValue">--</div>
+           <div class="data-info" id="dataInfo" style="display: none;">
+               <div class="data-info-item">
+                   <span class="data-info-label">Latest Value</span>
+                   <span class="data-info-value" id="latestValue">--</span>
                </div>
-               <div class="stat-box">
-                   <div class="stat-label">MoM %</div>
-                   <div class="stat-value" id="momChange">--</div>
+               <div class="data-info-item">
+                   <span class="data-info-label">Date</span>
+                   <span class="data-info-value" id="latestDate">--</span>
                </div>
-               <div class="stat-box">
-                   <div class="stat-label">QoQ %</div>
-                   <div class="stat-value" id="qoqChange">--</div>
+               <div class="data-info-item">
+                   <span class="data-info-label">MoM Change</span>
+                   <span class="data-info-value" id="momChange">--</span>
                </div>
-               <div class="stat-box">
-                   <div class="stat-label">YoY %</div>
-                   <div class="stat-value" id="yoyChange">--</div>
+               <div class="data-info-item">
+                   <span class="data-info-label">QoQ Change</span>
+                   <span class="data-info-value" id="qoqChange">--</span>
                </div>
-               <div class="stat-box">
-                   <div class="stat-label">52W High</div>
-                   <div class="stat-value" id="high52w">--</div>
+               <div class="data-info-item">
+                   <span class="data-info-label">YoY Change</span>
+                   <span class="data-info-value" id="yoyChange">--</span>
                </div>
-               <div class="stat-box">
-                   <div class="stat-label">52W Low</div>
-                   <div class="stat-value" id="low52w">--</div>
+               <div class="data-info-item">
+                   <span class="data-info-label">52W Range</span>
+                   <span class="data-info-value" id="range52w">--</span>
                </div>
            </div>
            
@@ -655,278 +434,132 @@
        <!-- Watchlist -->
        <div class="watchlist-container">
            <div class="watchlist-header">
-               <div class="watchlist-title">📋 My Watchlist</div>
+               <div class="watchlist-title">My Watchlist</div>
                <div class="watchlist-controls">
-                   <button class="chart-btn" onclick="refreshWatchlist()">🔄 Refresh</button>
+                   <button class="chart-btn" onclick="refreshWatchlist()">Refresh</button>
                    <button class="chart-btn" onclick="clearWatchlist()">Clear All</button>
                </div>
            </div>
            
            <div id="watchlistContent">
                <div class="empty-watchlist">
-                   <div class="empty-watchlist-icon">📊</div>
+                   <div style="font-size: 3rem; opacity: 0.3;">📊</div>
                    <div>Your watchlist is empty</div>
-                   <div style="margin-top: 0.5rem; font-size: 0.875rem;">Search and add indicators to track</div>
+                   <div style="margin-top: 0.5rem; font-size: 0.875rem; color: #999;">Search and add indicators to track</div>
                </div>
            </div>
        </div>
    </div>
    
    <script>
-       // API Configuration - YOUR ACTUAL WORKING ENDPOINTS
+       // Configuration
+       const FRED_API_KEY = '2f057499936072679d8843d7fce99989'; // Your FRED API key
+       const FRED_BASE_URL = 'https://api.stlouisfed.org/fred';
+       
+       // Your API endpoints
        const API_CONFIG = {
            FRED: {
                baseUrl: 'https://i70jxru6md.execute-api.us-east-1.amazonaws.com/prod/api/v1',
                endpoints: {
                    overview: '/dashboard/overview',
-                   fed: '/fed',
-                   dxy: '/dxy',
-                   iceBofA: '/ice_bofa',
-                   historical: '/historical'
-               }
-           },
-           ECB: {
-               baseUrl: 'https://bjb85udtp6.execute-api.us-east-1.amazonaws.com/prod',
-               endpoints: {
-                   data: '/data',
-                   list: '/list',
-                   health: '/health'
-               }
-           },
-           OFR: {
-               baseUrl: 'https://6nl5fzfus7.execute-api.us-east-1.amazonaws.com/prod/ofr',
-               endpoints: {
-                   search: '/search',
-                   stats: '/stats',
-                   historical: '/historical'
-               }
-           },
-           NYFED: {
-               baseUrl: 'https://jc6ripzwk1.execute-api.us-east-1.amazonaws.com/prod',
-               endpoints: {
-                   info: '/',
-                   health: '/health',
-                   all: '/all',
-                   cmdi: '/cmdi',
-                   primaryDealers: '/primary-dealers',
-                   financialStability: '/financial-stability',
-                   rates: '/rates',
-                   repo: '/repo'
-               }
-           },
-           TREASURY: {
-               baseUrl: 'https://klehdyiwrl.execute-api.us-east-1.amazonaws.com/prod',
-               endpoints: {
-                   treasury: '/treasury',
-                   current: '/auctions/current',
-                   allInstruments: '/auctions/all-instruments'
+                   iceBofA: '/ice_bofa'
                }
            }
        };
        
+       // Common FRED series IDs
+       const FRED_SERIES = {
+           // ICE BofA Indices
+           'BAMLH0A2HYB': 'ICE BofA B US High Yield Index',
+           'BAMLH0A2HYBEY': 'ICE BofA B US High Yield Index Effective Yield',
+           'BAMLC0A0CM': 'ICE BofA US Corporate Master Index',
+           'BAMLH0A0HYM2': 'ICE BofA US High Yield Master II Index',
+           'BAMLC0A1CAAA': 'ICE BofA AAA US Corporate Index',
+           'BAMLC0A4CBBB': 'ICE BofA BBB US Corporate Index',
+           
+           // Treasury Yields
+           'DGS1': '1-Year Treasury Rate',
+           'DGS2': '2-Year Treasury Rate',
+           'DGS5': '5-Year Treasury Rate',
+           'DGS10': '10-Year Treasury Rate',
+           'DGS30': '30-Year Treasury Rate',
+           
+           // Economic Indicators
+           'VIXCLS': 'VIX Volatility Index',
+           'SP500': 'S&P 500 Index',
+           'DEXUSEU': 'US Dollar to Euro Exchange Rate',
+           'DTWEXBGS': 'US Dollar Index (DXY)',
+           'SOFR': 'SOFR Rate',
+           'EFFR': 'Effective Federal Funds Rate',
+           'UNRATE': 'Unemployment Rate',
+           'CPIAUCSL': 'Consumer Price Index',
+           'GDP': 'Gross Domestic Product',
+           'WALCL': 'Fed Balance Sheet Total Assets',
+           'RRPONTSYD': 'Overnight Reverse Repo',
+           'M2SL': 'M2 Money Supply'
+       };
+       
        // Global state
-       let allIndicators = [];
        let watchlist = [];
        let selectedIndicator = null;
-       let historicalData = {};
-       let currentData = {};
-       let chartType = 'levels';
-       let chartStyle = 'line';
-       let percentageChangeData = {};
+       let chartData = {};
+       let currentRange = '1Y';
        
-       // Initialize on load
-       document.addEventListener('DOMContentLoaded', async function() {
-           await initializeAPIs();
-           await loadAllIndicators();
-           initializeSearch();
-           initializeChart();
+       // Initialize
+       document.addEventListener('DOMContentLoaded', function() {
+           initializeAPIs();
+           setupSearch();
            setupChartControls();
            loadWatchlistFromStorage();
+           initializeChart();
        });
        
        // Initialize APIs
        async function initializeAPIs() {
            // Check FRED API
            try {
-               const response = await fetch(API_CONFIG.FRED.baseUrl + API_CONFIG.FRED.endpoints.overview);
+               const response = await fetch(`${FRED_BASE_URL}/series/observations?series_id=DGS10&api_key=${FRED_API_KEY}&file_type=json&limit=1&sort_order=desc`);
                if (response.ok) {
                    document.getElementById('fredStatus').className = 'status-dot connected';
+               } else {
+                   document.getElementById('fredStatus').className = 'status-dot error';
                }
            } catch (error) {
                document.getElementById('fredStatus').className = 'status-dot error';
            }
            
-           // Check ECB API
-           try {
-               const response = await fetch(API_CONFIG.ECB.baseUrl + API_CONFIG.ECB.endpoints.health);
-               if (response.ok) {
-                   document.getElementById('ecbStatus').className = 'status-dot connected';
-               }
-           } catch (error) {
-               document.getElementById('ecbStatus').className = 'status-dot error';
-           }
-           
-           // Check OFR API
-           try {
-               const response = await fetch(API_CONFIG.OFR.baseUrl + API_CONFIG.OFR.endpoints.stats);
-               if (response.ok) {
-                   document.getElementById('ofrStatus').className = 'status-dot connected';
-               }
-           } catch (error) {
-               document.getElementById('ofrStatus').className = 'status-dot error';
-           }
-           
-           // Check NY Fed API
-           try {
-               const response = await fetch(API_CONFIG.NYFED.baseUrl + API_CONFIG.NYFED.endpoints.info);
-               if (response.ok) {
-                   document.getElementById('nyfedStatus').className = 'status-dot connected';
-               }
-           } catch (error) {
-               document.getElementById('nyfedStatus').className = 'status-dot error';
-           }
-           
-           // Check Treasury API
-           try {
-               const response = await fetch(API_CONFIG.TREASURY.baseUrl + API_CONFIG.TREASURY.endpoints.treasury);
-               if (response.ok) {
-                   document.getElementById('treasuryStatus').className = 'status-dot connected';
-               }
-           } catch (error) {
-               document.getElementById('treasuryStatus').className = 'status-dot error';
-           }
-       }
-       
-       // Load all available indicators
-       async function loadAllIndicators() {
-           allIndicators = [];
-           
-           // Load FRED indicators
+           // Check your API
            try {
                const response = await fetch(API_CONFIG.FRED.baseUrl + API_CONFIG.FRED.endpoints.overview);
-               const data = await response.json();
-               
-               if (data.indicators) {
-                   for (const [symbol, indicatorData] of Object.entries(data.indicators)) {
-                       allIndicators.push({
-                           symbol: symbol,
-                           name: getIndicatorName(symbol),
-                           api: 'FRED',
-                           category: getIndicatorCategory(symbol),
-                           currentValue: indicatorData.value,
-                           change: indicatorData.change
-                       });
-                       currentData[symbol] = indicatorData.value;
-                   }
-               }
-               
-               // Load ICE BofA indices
-               const iceBofAResponse = await fetch(API_CONFIG.FRED.baseUrl + API_CONFIG.FRED.endpoints.iceBofA);
-               if (iceBofAResponse.ok) {
-                   const iceBofAData = await iceBofAResponse.json();
-                   if (iceBofAData.indicators) {
-                       for (const [symbol, indicatorData] of Object.entries(iceBofAData.indicators)) {
-                           // Fix: Use the actual value from the API
-                           const actualValue = indicatorData.value || indicatorData.last_value || indicatorData.current;
-                           allIndicators.push({
-                               symbol: symbol,
-                               name: `ICE BofA ${symbol}`,
-                               api: 'FRED',
-                               category: 'Credit',
-                               currentValue: actualValue
-                           });
-                           currentData[symbol] = actualValue;
-                       }
-                   }
+               if (response.ok) {
+                   document.getElementById('dataStatus').className = 'status-dot connected';
+               } else {
+                   document.getElementById('dataStatus').className = 'status-dot error';
                }
            } catch (error) {
-               console.error('Error loading FRED indicators:', error);
+               document.getElementById('dataStatus').className = 'status-dot error';
            }
-           
-           // Load NY Fed indicators including CMDI
-           try {
-               const cmdiResponse = await fetch(API_CONFIG.NYFED.baseUrl + API_CONFIG.NYFED.endpoints.cmdi);
-               if (cmdiResponse.ok) {
-                   const cmdiData = await cmdiResponse.json();
-                   
-                   if (cmdiData.indicators) {
-                       for (const [symbol, indicatorData] of Object.entries(cmdiData.indicators)) {
-                           allIndicators.push({
-                               symbol: symbol,
-                               name: indicatorData.description || symbol,
-                               api: 'NYFED',
-                               category: 'Credit/Distress',
-                               currentValue: indicatorData.value,
-                               unit: indicatorData.unit,
-                               date: indicatorData.date
-                           });
-                           currentData[symbol] = indicatorData.value;
-                       }
-                   }
-               }
-           } catch (error) {
-               console.error('Error loading NY Fed indicators:', error);
-           }
-           
-           console.log(`Loaded ${allIndicators.length} total indicators`);
        }
        
-       // Helper functions
-       function getIndicatorName(symbol) {
-           const names = {
-               'VIXCLS': 'VIX - Volatility Index',
-               'SP500': 'S&P 500 Index',
-               'DTWEXBGS': 'US Dollar Index (DXY)',
-               'DGS10': '10-Year Treasury Yield',
-               'DGS2': '2-Year Treasury Yield',
-               'DGS30': '30-Year Treasury Yield',
-               'WALCL': 'Fed Balance Sheet',
-               'TEDRATE': 'TED Spread',
-               'SOFR': 'SOFR Rate',
-               'EFFR': 'Effective Fed Funds Rate',
-               'RRPONTSYD': 'Overnight Reverse Repo',
-               'M2SL': 'M2 Money Supply',
-               'BAMLH0A2HYB': 'ICE BofA B US High Yield Index',
-               'BAMLC0A0CM': 'ICE BofA US Corporate Master',
-               'BAMLH0A0HYM2': 'ICE BofA US High Yield Master II'
-           };
-           return names[symbol] || symbol;
-       }
-       
-       function getIndicatorCategory(symbol) {
-           if (symbol.includes('VIX')) return 'Volatility';
-           if (symbol.includes('DGS') || symbol.includes('RATE')) return 'Rates';
-           if (symbol.includes('WALCL') || symbol.includes('FED')) return 'Fed';
-           if (symbol.includes('SP') || symbol.includes('500')) return 'Equity';
-           if (symbol.includes('DTW') || symbol.includes('DXY')) return 'Currency';
-           if (symbol.includes('TED') || symbol.includes('BAML')) return 'Credit';
-           if (symbol.includes('CMDI')) return 'Credit/Distress';
-           return 'Other';
-       }
-       
-       // Initialize search
-       function initializeSearch() {
+       // Setup search
+       function setupSearch() {
            const searchInput = document.getElementById('searchInput');
            const searchResults = document.getElementById('searchResults');
-           const searchLoading = document.getElementById('searchLoading');
            
            let searchTimeout;
            
            searchInput.addEventListener('input', function(e) {
-               const query = e.target.value.toLowerCase();
+               const query = e.target.value.trim().toUpperCase();
                
                clearTimeout(searchTimeout);
                
-               if (query.length < 2) {
+               if (query.length < 1) {
                    searchResults.classList.remove('active');
                    return;
                }
                
-               searchLoading.classList.add('active');
-               
-               searchTimeout = setTimeout(async () => {
-                   await performSearch(query);
-                   searchLoading.classList.remove('active');
+               searchTimeout = setTimeout(() => {
+                   performSearch(query);
                }, 300);
            });
            
@@ -938,336 +571,330 @@
        }
        
        // Perform search
-       async function performSearch(query) {
+       function performSearch(query) {
            const searchResults = document.getElementById('searchResults');
            
-           let results = allIndicators.filter(indicator => 
-               indicator.symbol.toLowerCase().includes(query) ||
-               indicator.name.toLowerCase().includes(query) ||
-               (indicator.category && indicator.category.toLowerCase().includes(query))
+           // Filter FRED series
+           const results = Object.entries(FRED_SERIES).filter(([symbol, name]) => 
+               symbol.includes(query) || name.toUpperCase().includes(query)
            );
-           
-           // Special handling for common searches
-           if (query === 'dxy' || query.includes('dollar')) {
-               const dxyIndicator = allIndicators.find(i => i.symbol === 'DTWEXBGS');
-               if (dxyIndicator && !results.includes(dxyIndicator)) {
-                   results.unshift(dxyIndicator);
-               }
-           }
-           
-           if (query.includes('ice') || query.includes('bofa')) {
-               const iceBofAIndicators = allIndicators.filter(i => i.symbol.includes('BAML'));
-               iceBofAIndicators.forEach(ind => {
-                   if (!results.includes(ind)) {
-                       results.push(ind);
-                   }
-               });
-           }
-           
-           displaySearchResults(results.slice(0, 20));
-       }
-       
-       // Display search results
-       function displaySearchResults(results) {
-           const searchResults = document.getElementById('searchResults');
            
            if (results.length === 0) {
                searchResults.innerHTML = '<div class="search-result-item">No indicators found</div>';
-               searchResults.classList.add('active');
-               return;
+           } else {
+               searchResults.innerHTML = results.slice(0, 20).map(([symbol, name]) => `
+                   <div class="search-result-item" onclick="addToWatchlist('${symbol}', '${name}')">
+                       <div>
+                           <div class="search-result-name">${name}</div>
+                           <div class="search-result-symbol">${symbol}</div>
+                       </div>
+                       <div class="search-result-value" id="value-${symbol}">
+                           <span class="loading-spinner"></span>
+                       </div>
+                   </div>
+               `).join('');
+               
+               // Fetch current values for search results
+               results.forEach(([symbol]) => {
+                   fetchLatestValue(symbol);
+               });
            }
-           
-           searchResults.innerHTML = results.map(indicator => `
-               <div class="search-result-item" onclick="addToWatchlist('${indicator.symbol}', '${indicator.api}')">
-                   <div class="search-result-info">
-                       <div class="search-result-category">${indicator.api} - ${indicator.category}</div>
-                       <div class="search-result-name">${indicator.symbol}: ${indicator.name}</div>
-                   </div>
-                   <div class="search-result-value">
-                       ${indicator.currentValue ? formatValue(indicator.currentValue) : 'Loading...'}
-                   </div>
-               </div>
-           `).join('');
            
            searchResults.classList.add('active');
        }
        
+       // Fetch latest value for a series
+       async function fetchLatestValue(symbol) {
+           try {
+               const response = await fetch(
+                   `${FRED_BASE_URL}/series/observations?series_id=${symbol}&api_key=${FRED_API_KEY}&file_type=json&limit=1&sort_order=desc`
+               );
+               
+               if (response.ok) {
+                   const data = await response.json();
+                   const observations = data.observations;
+                   
+                   if (observations && observations.length > 0) {
+                       const value = parseFloat(observations[0].value);
+                       const element = document.getElementById(`value-${symbol}`);
+                       if (element) {
+                           element.textContent = formatValue(value);
+                       }
+                   }
+               }
+           } catch (error) {
+               console.error(`Error fetching ${symbol}:`, error);
+           }
+       }
+       
+       // Fetch historical data
+       async function fetchHistoricalData(symbol, startDate = null) {
+           try {
+               // Calculate date range
+               const endDate = new Date();
+               let start = new Date();
+               
+               if (startDate) {
+                   start = new Date(startDate);
+               } else {
+                   // Default to 10 years of data
+                   start.setFullYear(start.getFullYear() - 10);
+               }
+               
+               const params = new URLSearchParams({
+                   series_id: symbol,
+                   api_key: FRED_API_KEY,
+                   file_type: 'json',
+                   observation_start: start.toISOString().split('T')[0],
+                   observation_end: endDate.toISOString().split('T')[0],
+                   sort_order: 'asc'
+               });
+               
+               const response = await fetch(`${FRED_BASE_URL}/series/observations?${params}`);
+               
+               if (response.ok) {
+                   const data = await response.json();
+                   const observations = data.observations || [];
+                   
+                   // Filter out invalid values and convert to numbers
+                   return observations
+                       .filter(obs => obs.value !== '.')
+                       .map(obs => ({
+                           date: obs.date,
+                           value: parseFloat(obs.value)
+                       }));
+               }
+           } catch (error) {
+               console.error(`Error fetching historical data for ${symbol}:`, error);
+               showError(`Failed to fetch data for ${symbol}`);
+           }
+           
+           return [];
+       }
+       
        // Add to watchlist
-       async function addToWatchlist(symbol, api) {
+       async function addToWatchlist(symbol, name) {
+           // Check if already in watchlist
            if (watchlist.find(item => item.symbol === symbol)) {
-               alert('This indicator is already in your watchlist');
+               selectIndicator(symbol);
+               document.getElementById('searchResults').classList.remove('active');
+               document.getElementById('searchInput').value = '';
                return;
            }
            
-           const indicator = allIndicators.find(ind => ind.symbol === symbol && ind.api === api);
-           if (!indicator) return;
-           
            // Fetch historical data
-           const historical = await fetchHistoricalData(symbol, api);
+           const historicalData = await fetchHistoricalData(symbol);
            
-           if (historical && historical.length > 0) {
-               historicalData[symbol] = historical;
-               
-               const changes = calculatePercentageChanges(historical);
-               percentageChangeData[symbol] = changes;
-               
-               const trendAnalysis = analyzeTrends(changes);
-               
-               const watchlistItem = {
-                   ...indicator,
-                   currentValue: historical[historical.length - 1].value,
-                   monthChange: changes.mom[changes.mom.length - 1]?.value || 0,
-                   quarterChange: changes.qoq[changes.qoq.length - 1]?.value || 0,
-                   yearChange: changes.yoy[changes.yoy.length - 1]?.value || 0,
-                   trendStatus: trendAnalysis.status,
-                   lastUpdate: new Date().toISOString()
+           if (historicalData.length > 0) {
+               const item = {
+                   symbol: symbol,
+                   name: name,
+                   data: historicalData,
+                   latestValue: historicalData[historicalData.length - 1].value,
+                   latestDate: historicalData[historicalData.length - 1].date
                };
                
-               watchlist.push(watchlistItem);
+               // Calculate changes
+               item.changes = calculateChanges(historicalData);
+               
+               watchlist.push(item);
+               chartData[symbol] = historicalData;
+               
                updateWatchlistDisplay();
                saveWatchlistToStorage();
+               selectIndicator(symbol);
            }
            
-           document.getElementById('searchInput').value = '';
            document.getElementById('searchResults').classList.remove('active');
-       }
-       
-       // Fetch historical data from APIs
-       async function fetchHistoricalData(symbol, api) {
-           try {
-               if (api === 'FRED') {
-                   // Try the historical endpoint
-                   try {
-                       const historicalUrl = `${API_CONFIG.FRED.baseUrl}/historical/${symbol}`;
-                       const response = await fetch(historicalUrl);
-                       if (response.ok) {
-                           const data = await response.json();
-                           if (data.data && Array.isArray(data.data)) {
-                               return data.data.map(point => ({
-                                   date: point.date,
-                                   value: parseFloat(point.value),
-                                   open: parseFloat(point.value) * 0.99,
-                                   high: parseFloat(point.value) * 1.01,
-                                   low: parseFloat(point.value) * 0.98,
-                                   close: parseFloat(point.value)
-                               }));
-                           }
-                       }
-                   } catch (error) {
-                       console.warn(`Historical endpoint failed for ${symbol}, generating data...`);
-                   }
-               }
-               
-               if (api === 'NYFED') {
-                   // Fetch with history parameter
-                   const response = await fetch(`${API_CONFIG.NYFED.baseUrl}/cmdi?history=true`);
-                   if (response.ok) {
-                       const data = await response.json();
-                       if (data.indicators && data.indicators[symbol]) {
-                           const indicator = data.indicators[symbol];
-                           if (indicator.historical_data && indicator.historical_data.chart_data) {
-                               return indicator.historical_data.chart_data.map(point => ({
-                                   date: point.date,
-                                   value: point.value,
-                                   open: point.value * 0.99,
-                                   high: point.value * 1.01,
-                                   low: point.value * 0.98,
-                                   close: point.value
-                               }));
-                           }
-                       }
-                   }
-               }
-               
-               // Fallback: generate historical data based on current value
-               const currentValue = currentData[symbol] || 100;
-               return generateHistoricalData(currentValue, symbol);
-               
-           } catch (error) {
-               console.error(`Error fetching historical data for ${symbol}:`, error);
-               const currentValue = currentData[symbol] || 100;
-               return generateHistoricalData(currentValue, symbol);
-           }
-       }
-       
-       // Generate historical data (improved for trend detection)
-       function generateHistoricalData(currentValue, symbol) {
-           const data = [];
-           const endDate = new Date();
-           const startDate = new Date('1990-01-01');
-           
-           let date = new Date(startDate);
-           let prevValue = currentValue * 0.3;
-           
-           while (date <= endDate) {
-               const yearsFromStart = (date - startDate) / (365 * 24 * 60 * 60 * 1000);
-               const progress = yearsFromStart / ((endDate - startDate) / (365 * 24 * 60 * 60 * 1000));
-               
-               // Base trend
-               let value = currentValue * (0.3 + 0.7 * progress);
-               
-               // Add realistic volatility
-               const volatility = symbol.includes('VIX') ? 0.3 : 
-                                symbol.includes('BAML') ? 0.1 : 0.05;
-               value *= (1 + (Math.random() - 0.5) * volatility);
-               
-               // Smooth transitions
-               value = prevValue * 0.9 + value * 0.1;
-               prevValue = value;
-               
-               // Add crisis periods
-               const year = date.getFullYear();
-               const month = date.getMonth();
-               
-               if (year === 2008 && month >= 8 && month <= 11) {
-                   if (symbol.includes('VIX') || symbol.includes('BAML') || symbol.includes('CMDI')) {
-                       value *= 2.5;
-                   }
-               }
-               
-               if (year === 2020 && month >= 2 && month <= 4) {
-                   if (symbol.includes('VIX') || symbol.includes('BAML') || symbol.includes('CMDI')) {
-                       value *= 2;
-                   }
-               }
-               
-               data.push({
-                   date: date.toISOString().split('T')[0],
-                   value: value,
-                   open: value * 0.99,
-                   high: value * 1.01,
-                   low: value * 0.98,
-                   close: value
-               });
-               
-               date.setMonth(date.getMonth() + 1);
-           }
-           
-           // Ensure last value matches current
-           if (data.length > 0) {
-               data[data.length - 1].value = currentValue;
-               data[data.length - 1].close = currentValue;
-           }
-           
-           return data;
+           document.getElementById('searchInput').value = '';
        }
        
        // Calculate percentage changes
-       function calculatePercentageChanges(historical) {
-           const mom = [];
-           const qoq = [];
-           const yoy = [];
+       function calculateChanges(data) {
+           if (data.length < 2) return {};
            
-           for (let i = 0; i < historical.length; i++) {
-               const current = historical[i];
-               
-               // Month-over-month
-               if (i >= 1) {
-                   const prev = historical[i - 1];
-                   const change = ((current.value - prev.value) / prev.value) * 100;
-                   mom.push({
-                       date: current.date,
-                       value: change
-                   });
-               }
-               
-               // Quarter-over-quarter (3 months)
-               if (i >= 3) {
-                   const prev = historical[i - 3];
-                   const change = ((current.value - prev.value) / prev.value) * 100;
-                   qoq.push({
-                       date: current.date,
-                       value: change
-                   });
-               }
-               
-               // Year-over-year (12 months)
-               if (i >= 12) {
-                   const prev = historical[i - 12];
-                   const change = ((current.value - prev.value) / prev.value) * 100;
-                   yoy.push({
-                       date: current.date,
-                       value: change
-                   });
-               }
+           const latest = data[data.length - 1].value;
+           const changes = {};
+           
+           // MoM (1 month)
+           const oneMonthAgo = new Date();
+           oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+           const monthData = data.filter(d => new Date(d.date) >= oneMonthAgo);
+           if (monthData.length > 1) {
+               changes.mom = ((latest - monthData[0].value) / monthData[0].value * 100).toFixed(2);
            }
            
-           return { mom, qoq, yoy };
+           // QoQ (3 months)
+           const threeMonthsAgo = new Date();
+           threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+           const quarterData = data.filter(d => new Date(d.date) >= threeMonthsAgo);
+           if (quarterData.length > 1) {
+               changes.qoq = ((latest - quarterData[0].value) / quarterData[0].value * 100).toFixed(2);
+           }
+           
+           // YoY (1 year)
+           const oneYearAgo = new Date();
+           oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+           const yearData = data.filter(d => new Date(d.date) >= oneYearAgo);
+           if (yearData.length > 1) {
+               changes.yoy = ((latest - yearData[0].value) / yearData[0].value * 100).toFixed(2);
+           }
+           
+           // 52-week range
+           const last52w = data.slice(-252); // Approximately 252 trading days in a year
+           if (last52w.length > 0) {
+               const values = last52w.map(d => d.value);
+               changes.low52w = Math.min(...values);
+               changes.high52w = Math.max(...values);
+           }
+           
+           return changes;
        }
        
-       // Analyze trends for early reversal detection
-       function analyzeTrends(changes) {
-           const analysis = {
-               status: 'stable',
-               signals: []
+       // Select indicator
+       function selectIndicator(symbol) {
+           selectedIndicator = symbol;
+           const item = watchlist.find(w => w.symbol === symbol);
+           
+           if (!item) return;
+           
+           // Update chart title
+           document.getElementById('chartTitle').textContent = `${item.name} (${item.symbol})`;
+           
+           // Update data info
+           document.getElementById('dataInfo').style.display = 'grid';
+           document.getElementById('latestValue').textContent = formatValue(item.latestValue);
+           document.getElementById('latestDate').textContent = item.latestDate;
+           
+           const changes = item.changes;
+           document.getElementById('momChange').textContent = changes.mom ? `${changes.mom}%` : '--';
+           document.getElementById('momChange').className = changes.mom > 0 ? 'data-info-value positive' : 'data-info-value negative';
+           
+           document.getElementById('qoqChange').textContent = changes.qoq ? `${changes.qoq}%` : '--';
+           document.getElementById('qoqChange').className = changes.qoq > 0 ? 'data-info-value positive' : 'data-info-value negative';
+           
+           document.getElementById('yoyChange').textContent = changes.yoy ? `${changes.yoy}%` : '--';
+           document.getElementById('yoyChange').className = changes.yoy > 0 ? 'data-info-value positive' : 'data-info-value negative';
+           
+           if (changes.low52w && changes.high52w) {
+               document.getElementById('range52w').textContent = `${formatValue(changes.low52w)} - ${formatValue(changes.high52w)}`;
+           }
+           
+           // Update watchlist display
+           updateWatchlistDisplay();
+           
+           // Plot chart
+           plotChart(item.data, currentRange);
+       }
+       
+       // Plot chart (FRED style)
+       function plotChart(data, range) {
+           if (!data || data.length === 0) return;
+           
+           // Filter data based on range
+           let filteredData = filterDataByRange(data, range);
+           
+           // Create FRED-style chart
+           const trace = {
+               x: filteredData.map(d => d.date),
+               y: filteredData.map(d => d.value),
+               type: 'scatter',
+               mode: 'lines',
+               line: {
+                   color: '#1565c0',
+                   width: 2
+               },
+               hovertemplate: '<b>%{x}</b><br>Value: %{y:.2f}<extra></extra>'
            };
            
-           // Check MoM trend
-           if (changes.mom.length >= 3) {
-               const recent = changes.mom.slice(-3);
-               if (recent[0].value < 0 && recent[1].value < 0 && recent[2].value > 0) {
-                   analysis.signals.push({ type: 'reversal', timeframe: 'MoM', direction: 'bullish' });
-                   analysis.status = 'reversal';
-               } else if (recent[0].value > 0 && recent[1].value > 0 && recent[2].value < 0) {
-                   analysis.signals.push({ type: 'reversal', timeframe: 'MoM', direction: 'bearish' });
-                   analysis.status = 'reversal';
-               } else if (Math.abs(recent[2].value) > Math.abs(recent[1].value) * 2) {
-                   analysis.signals.push({ type: 'acceleration', timeframe: 'MoM' });
-                   analysis.status = 'acceleration';
-               }
-           }
+           const layout = {
+               paper_bgcolor: '#fff',
+               plot_bgcolor: '#fff',
+               font: {
+                   family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+                   color: '#333'
+               },
+               xaxis: {
+                   showgrid: true,
+                   gridcolor: '#e0e0e0',
+                   tickfont: { color: '#666', size: 11 },
+                   zeroline: false
+               },
+               yaxis: {
+                   showgrid: true,
+                   gridcolor: '#e0e0e0',
+                   tickfont: { color: '#666', size: 11 },
+                   zeroline: true,
+                   zerolinecolor: '#e0e0e0',
+                   tickformat: ',.2f'
+               },
+               margin: { t: 20, r: 40, b: 40, l: 60 },
+               hovermode: 'x unified',
+               showlegend: false
+           };
            
-           // Check QoQ trend
-           if (changes.qoq.length >= 3) {
-               const recent = changes.qoq.slice(-3);
-               if (recent[0].value < 0 && recent[1].value < 0 && recent[2].value > 0) {
-                   analysis.signals.push({ type: 'reversal', timeframe: 'QoQ', direction: 'bullish' });
-                   analysis.status = 'reversal';
-               } else if (recent[0].value > 0 && recent[1].value > 0 && recent[2].value < 0) {
-                   analysis.signals.push({ type: 'reversal', timeframe: 'QoQ', direction: 'bearish' });
-                   analysis.status = 'reversal';
-               }
-           }
+           const config = {
+               responsive: true,
+               displayModeBar: true,
+               displaylogo: false,
+               modeBarButtonsToRemove: ['pan2d', 'select2d', 'lasso2d', 'autoScale2d', 'toggleSpikelines']
+           };
            
-           // Check YoY trend
-           if (changes.yoy.length >= 3) {
-               const recent = changes.yoy.slice(-3);
-               if (recent[0].value < recent[1].value && recent[1].value < recent[2].value) {
-                   analysis.signals.push({ type: 'acceleration', timeframe: 'YoY' });
-               } else if (recent[0].value > recent[1].value && recent[1].value > recent[2].value) {
-                   analysis.signals.push({ type: 'deceleration', timeframe: 'YoY' });
-               }
-           }
-           
-           return analysis;
+           Plotly.newPlot('mainChart', [trace], layout, config);
        }
        
-       // Set chart style
-       function setChartStyle(style) {
-           chartStyle = style;
+       // Filter data by range
+       function filterDataByRange(data, range) {
+           const endDate = new Date(data[data.length - 1].date);
+           let startDate = new Date(endDate);
            
-           document.querySelectorAll('.style-btn').forEach(btn => {
-               btn.classList.remove('active');
-           });
-           event.target.classList.add('active');
-           
-           if (selectedIndicator) {
-               plotChart(selectedIndicator);
+           switch(range) {
+               case '1M':
+                   startDate.setMonth(startDate.getMonth() - 1);
+                   break;
+               case '3M':
+                   startDate.setMonth(startDate.getMonth() - 3);
+                   break;
+               case '6M':
+                   startDate.setMonth(startDate.getMonth() - 6);
+                   break;
+               case 'YTD':
+                   startDate = new Date(endDate.getFullYear(), 0, 1);
+                   break;
+               case '1Y':
+                   startDate.setFullYear(startDate.getFullYear() - 1);
+                   break;
+               case '5Y':
+                   startDate.setFullYear(startDate.getFullYear() - 5);
+                   break;
+               case '10Y':
+                   startDate.setFullYear(startDate.getFullYear() - 10);
+                   break;
+               case 'ALL':
+               default:
+                   return data;
            }
+           
+           return data.filter(d => new Date(d.date) >= startDate);
        }
        
-       // Set chart type
-       function setChartType(type) {
-           chartType = type;
-           
-           document.querySelectorAll('.toggle-btn').forEach(btn => {
-               btn.classList.remove('active');
+       // Setup chart controls
+       function setupChartControls() {
+           document.querySelectorAll('.chart-btn[data-range]').forEach(btn => {
+               btn.addEventListener('click', function() {
+                   document.querySelectorAll('.chart-btn[data-range]').forEach(b => b.classList.remove('active'));
+                   this.classList.add('active');
+                   
+                   currentRange = this.dataset.range;
+                   
+                   if (selectedIndicator) {
+                       const item = watchlist.find(w => w.symbol === selectedIndicator);
+                       if (item) {
+                           plotChart(item.data, currentRange);
+                       }
+                   }
+               });
            });
-           event.target.classList.add('active');
-           
-           if (selectedIndicator) {
-               plotChart(selectedIndicator);
-           }
        }
        
        // Update watchlist display
@@ -1277,9 +904,9 @@
            if (watchlist.length === 0) {
                content.innerHTML = `
                    <div class="empty-watchlist">
-                       <div class="empty-watchlist-icon">📊</div>
+                       <div style="font-size: 3rem; opacity: 0.3;">📊</div>
                        <div>Your watchlist is empty</div>
-                       <div style="margin-top: 0.5rem; font-size: 0.875rem;">Search and add indicators to track</div>
+                       <div style="margin-top: 0.5rem; font-size: 0.875rem; color: #999;">Search and add indicators to track</div>
                    </div>
                `;
                return;
@@ -1290,52 +917,33 @@
                    <thead>
                        <tr>
                            <th>Indicator</th>
-                           <th>Current Value</th>
+                           <th>Value</th>
                            <th>MoM %</th>
                            <th>QoQ %</th>
                            <th>YoY %</th>
-                           <th>Trend</th>
-                           <th>Source</th>
                            <th>Action</th>
                        </tr>
                    </thead>
                    <tbody>`;
            
            watchlist.forEach((item, index) => {
-               let trendBadge = '';
-               if (item.trendStatus === 'reversal') {
-                   trendBadge = '<span class="trend-badge reversal">REVERSAL</span>';
-               } else if (item.trendStatus === 'acceleration') {
-                   trendBadge = '<span class="trend-badge acceleration">ACCEL</span>';
-               } else if (item.trendStatus === 'deceleration') {
-                   trendBadge = '<span class="trend-badge deceleration">DECEL</span>';
-               }
-               
+               const isSelected = selectedIndicator === item.symbol;
                tableHTML += `
-                   <tr class="watchlist-row ${selectedIndicator === item.symbol ? 'selected' : ''}" 
-                       onclick="selectIndicator('${item.symbol}')">
+                   <tr class="${isSelected ? 'selected' : ''}" onclick="selectIndicator('${item.symbol}')">
                        <td>
-                           <div class="indicator-name">${item.name}</div>
-                           <div class="indicator-symbol">${item.symbol}</div>
+                           <div style="font-weight: 500;">${item.name}</div>
+                           <div style="font-size: 0.75rem; color: #999;">${item.symbol}</div>
                        </td>
-                       <td class="value-cell">${formatValue(item.currentValue)}</td>
-                       <td>
-                           <div class="change-value ${item.monthChange >= 0 ? 'positive' : 'negative'}">
-                               ${item.monthChange >= 0 ? '↑' : '↓'} ${Math.abs(item.monthChange).toFixed(2)}%
-                           </div>
+                       <td style="font-weight: bold;">${formatValue(item.latestValue)}</td>
+                       <td class="${item.changes.mom > 0 ? 'positive' : 'negative'}">
+                           ${item.changes.mom ? item.changes.mom + '%' : '--'}
                        </td>
-                       <td>
-                           <div class="change-value ${item.quarterChange >= 0 ? 'positive' : 'negative'}">
-                               ${item.quarterChange >= 0 ? '↑' : '↓'} ${Math.abs(item.quarterChange).toFixed(2)}%
-                           </div>
+                       <td class="${item.changes.qoq > 0 ? 'positive' : 'negative'}">
+                           ${item.changes.qoq ? item.changes.qoq + '%' : '--'}
                        </td>
-                       <td>
-                           <div class="change-value ${item.yearChange >= 0 ? 'positive' : 'negative'}">
-                               ${item.yearChange >= 0 ? '↑' : '↓'} ${Math.abs(item.yearChange).toFixed(2)}%
-                           </div>
+                       <td class="${item.changes.yoy > 0 ? 'positive' : 'negative'}">
+                           ${item.changes.yoy ? item.changes.yoy + '%' : '--'}
                        </td>
-                       <td>${trendBadge}</td>
-                       <td>${item.api}</td>
                        <td>
                            <button class="remove-btn" onclick="event.stopPropagation(); removeFromWatchlist(${index})">Remove</button>
                        </td>
@@ -1349,324 +957,6 @@
            content.innerHTML = tableHTML;
        }
        
-       // Select indicator
-       function selectIndicator(symbol) {
-           selectedIndicator = symbol;
-           updateWatchlistDisplay();
-           
-           const indicator = watchlist.find(item => item.symbol === symbol);
-           if (!indicator) return;
-           
-           document.getElementById('chartTitle').textContent = `${indicator.name} (${indicator.symbol})`;
-           document.getElementById('chartStats').style.display = 'grid';
-           
-           updateChartStats(indicator);
-           plotChart(symbol);
-           
-           // Show trend analysis
-           const changes = percentageChangeData[symbol];
-           if (changes) {
-               const trendAnalysis = analyzeTrends(changes);
-               showTrendAnalysis(trendAnalysis);
-           }
-       }
-       
-       // Show trend analysis
-       function showTrendAnalysis(analysis) {
-           const alertBox = document.getElementById('trendAlertBox');
-           const alertTitle = document.getElementById('trendAlertTitle');
-           const signalsDiv = document.getElementById('trendSignals');
-           
-           if (analysis.signals.length === 0) {
-               alertBox.classList.remove('active');
-               return;
-           }
-           
-           alertBox.className = 'trend-alert-box active';
-           
-           if (analysis.status === 'reversal') {
-               const direction = analysis.signals[0].direction;
-               alertBox.classList.add(direction);
-               alertTitle.innerHTML = `⚠️ Trend Reversal Detected - ${direction.toUpperCase()}`;
-           } else if (analysis.status === 'acceleration') {
-               alertBox.classList.add('bullish');
-               alertTitle.innerHTML = '📈 Trend Acceleration Detected';
-           } else if (analysis.status === 'deceleration') {
-               alertBox.classList.add('bearish');
-               alertTitle.innerHTML = '📉 Trend Deceleration Detected';
-           }
-           
-           signalsDiv.innerHTML = analysis.signals.map(signal => `
-               <div class="trend-signal-item">
-                   <strong>${signal.timeframe}:</strong> ${signal.type} 
-                   ${signal.direction ? `(${signal.direction})` : ''}
-               </div>
-           `).join('');
-       }
-       
-       // Update chart statistics
-       function updateChartStats(indicator) {
-           const historical = historicalData[indicator.symbol];
-           if (!historical) return;
-           
-           document.getElementById('currentValue').textContent = formatValue(indicator.currentValue);
-           
-           // Calculate 52-week high/low
-           const last52w = historical.slice(-52);
-           const high52w = Math.max(...last52w.map(d => d.value));
-           const low52w = Math.min(...last52w.map(d => d.value));
-           
-           document.getElementById('high52w').textContent = formatValue(high52w);
-           document.getElementById('low52w').textContent = formatValue(low52w);
-           
-           // Percentage changes
-           const momEl = document.getElementById('momChange');
-           const momValue = indicator.monthChange;
-           momEl.textContent = `${momValue >= 0 ? '+' : ''}${momValue.toFixed(2)}%`;
-           momEl.className = `stat-value ${momValue >= 0 ? 'positive' : 'negative'}`;
-           
-           const qoqEl = document.getElementById('qoqChange');
-           const qoqValue = indicator.quarterChange;
-           qoqEl.textContent = `${qoqValue >= 0 ? '+' : ''}${qoqValue.toFixed(2)}%`;
-           qoqEl.className = `stat-value ${qoqValue >= 0 ? 'positive' : 'negative'}`;
-           
-           const yoyEl = document.getElementById('yoyChange');
-           const yoyValue = indicator.yearChange;
-           yoyEl.textContent = `${yoyValue >= 0 ? '+' : ''}${yoyValue.toFixed(2)}%`;
-           yoyEl.className = `stat-value ${yoyValue >= 0 ? 'positive' : 'negative'}`;
-       }
-       
-       // Plot chart
-       function plotChart(symbol) {
-           const historical = historicalData[symbol];
-           const changes = percentageChangeData[symbol];
-           
-           if (!historical || !changes) return;
-           
-           const indicator = watchlist.find(item => item.symbol === symbol);
-           const traces = [];
-           
-           if (chartType === 'levels') {
-               if (chartStyle === 'candlestick') {
-                   traces.push({
-                       x: historical.map(d => d.date),
-                       open: historical.map(d => d.open),
-                       high: historical.map(d => d.high),
-                       low: historical.map(d => d.low),
-                       close: historical.map(d => d.close),
-                       type: 'candlestick',
-                       name: indicator.name,
-                       increasing: { line: { color: '#00ff88' } },
-                       decreasing: { line: { color: '#ff4444' } }
-                   });
-               } else if (chartStyle === 'area') {
-                   traces.push({
-                       x: historical.map(d => d.date),
-                       y: historical.map(d => d.value),
-                       type: 'scatter',
-                       mode: 'lines',
-                       name: indicator.name,
-                       line: { color: '#00ff88', width: 2 },
-                       fill: 'tozeroy',
-                       fillcolor: 'rgba(0, 255, 136, 0.1)'
-                   });
-               } else {
-                   traces.push({
-                       x: historical.map(d => d.date),
-                       y: historical.map(d => d.value),
-                       type: 'scatter',
-                       mode: 'lines',
-                       name: indicator.name,
-                       line: { color: '#00ff88', width: 2 }
-                   });
-               }
-           } else if (chartType === 'mom') {
-               traces.push({
-                   x: changes.mom.map(d => d.date),
-                   y: changes.mom.map(d => d.value),
-                   type: 'bar',
-                   name: 'MoM % Change',
-                   marker: {
-                       color: changes.mom.map(d => d.value >= 0 ? '#00ff88' : '#ff4444')
-                   }
-               });
-           } else if (chartType === 'qoq') {
-               traces.push({
-                   x: changes.qoq.map(d => d.date),
-                   y: changes.qoq.map(d => d.value),
-                   type: 'bar',
-                   name: 'QoQ % Change',
-                   marker: {
-                       color: changes.qoq.map(d => d.value >= 0 ? '#00ff88' : '#ff4444')
-                   }
-               });
-           } else if (chartType === 'yoy') {
-               traces.push({
-                   x: changes.yoy.map(d => d.date),
-                   y: changes.yoy.map(d => d.value),
-                   type: 'bar',
-                   name: 'YoY % Change',
-                   marker: {
-                       color: changes.yoy.map(d => d.value >= 0 ? '#00ff88' : '#ff4444')
-                   }
-               });
-           } else if (chartType === 'all_changes') {
-               // Show all percentage changes on one chart
-               traces.push({
-                   x: changes.mom.map(d => d.date),
-                   y: changes.mom.map(d => d.value),
-                   type: 'scatter',
-                   mode: 'lines',
-                   name: 'MoM %',
-                   line: { color: '#00ff88', width: 2 }
-               });
-               
-               traces.push({
-                   x: changes.qoq.map(d => d.date),
-                   y: changes.qoq.map(d => d.value),
-                   type: 'scatter',
-                   mode: 'lines',
-                   name: 'QoQ %',
-                   line: { color: '#00ccff', width: 2 }
-               });
-               
-               traces.push({
-                   x: changes.yoy.map(d => d.date),
-                   y: changes.yoy.map(d => d.value),
-                   type: 'scatter',
-                   mode: 'lines',
-                   name: 'YoY %',
-                   line: { color: '#ffaa00', width: 2 }
-               });
-               
-               // Add zero line
-               traces.push({
-                   x: changes.yoy.map(d => d.date),
-                   y: new Array(changes.yoy.length).fill(0),
-                   type: 'scatter',
-                   mode: 'lines',
-                   name: 'Zero Line',
-                   line: { color: '#888', width: 1, dash: 'dash' },
-                   showlegend: false
-               });
-           }
-           
-           const layout = {
-               paper_bgcolor: 'rgba(0, 0, 0, 0)',
-               plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
-               font: { color: '#fff' },
-               xaxis: {
-                   gridcolor: 'rgba(255, 255, 255, 0.1)',
-                   tickfont: { color: '#888' },
-                   rangeslider: { visible: chartType === 'levels' && chartStyle !== 'area' }
-               },
-               yaxis: {
-                   gridcolor: 'rgba(255, 255, 255, 0.1)',
-                   tickfont: { color: '#888' },
-                   title: getYAxisTitle(),
-                   zeroline: ['mom', 'qoq', 'yoy', 'all_changes'].includes(chartType),
-                   zerolinecolor: 'rgba(255, 255, 255, 0.3)'
-               },
-               margin: { t: 20, r: 20, b: 50, l: 60 },
-               hovermode: 'x unified',
-               showlegend: true,
-               legend: {
-                   bgcolor: 'rgba(0, 0, 0, 0.5)',
-                   bordercolor: '#333',
-                   borderwidth: 1
-               }
-           };
-           
-           Plotly.newPlot('mainChart', traces, layout, {responsive: true});
-       }
-       
-       function getYAxisTitle() {
-           const titles = {
-               'levels': 'Value',
-               'mom': 'Month-over-Month %',
-               'qoq': 'Quarter-over-Quarter %',
-               'yoy': 'Year-over-Year %',
-               'all_changes': '% Change'
-           };
-           return titles[chartType] || 'Value';
-       }
-       
-       // Initialize chart
-       function initializeChart() {
-           const layout = {
-               paper_bgcolor: 'rgba(0, 0, 0, 0)',
-               plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
-               font: { color: '#fff' },
-               xaxis: {
-                   gridcolor: 'rgba(255, 255, 255, 0.1)',
-                   tickfont: { color: '#888' }
-               },
-               yaxis: {
-                   gridcolor: 'rgba(255, 255, 255, 0.1)',
-                   tickfont: { color: '#888' }
-               },
-               margin: { t: 20, r: 20, b: 50, l: 60 }
-           };
-           
-           Plotly.newPlot('mainChart', [], layout, {responsive: true});
-       }
-       
-       // Setup chart controls
-       function setupChartControls() {
-           document.querySelectorAll('.chart-btn[data-range]').forEach(btn => {
-               btn.addEventListener('click', function() {
-                   document.querySelectorAll('.chart-btn[data-range]').forEach(b => b.classList.remove('active'));
-                   this.classList.add('active');
-                   
-                   const range = this.dataset.range;
-                   updateChartRange(range);
-               });
-           });
-       }
-       
-       // Update chart range
-       function updateChartRange(range) {
-           if (!selectedIndicator || !historicalData[selectedIndicator]) return;
-           
-           const data = historicalData[selectedIndicator];
-           const endDate = new Date(data[data.length - 1].date);
-           let startDate = new Date(data[0].date);
-           
-           switch(range) {
-               case '1M':
-                   startDate = new Date(endDate);
-                   startDate.setMonth(startDate.getMonth() - 1);
-                   break;
-               case '3M':
-                   startDate = new Date(endDate);
-                   startDate.setMonth(startDate.getMonth() - 3);
-                   break;
-               case '6M':
-                   startDate = new Date(endDate);
-                   startDate.setMonth(startDate.getMonth() - 6);
-                   break;
-               case 'YTD':
-                   startDate = new Date(endDate.getFullYear(), 0, 1);
-                   break;
-               case '1Y':
-                   startDate = new Date(endDate);
-                   startDate.setFullYear(startDate.getFullYear() - 1);
-                   break;
-               case '5Y':
-                   startDate = new Date(endDate);
-                   startDate.setFullYear(startDate.getFullYear() - 5);
-                   break;
-               case '10Y':
-                   startDate = new Date(endDate);
-                   startDate.setFullYear(startDate.getFullYear() - 10);
-                   break;
-           }
-           
-           Plotly.relayout('mainChart', {
-               'xaxis.range': [startDate.toISOString().split('T')[0], endDate.toISOString().split('T')[0]]
-           });
-       }
-       
        // Format value
        function formatValue(value) {
            if (value === null || value === undefined) return '--';
@@ -1677,36 +967,41 @@
                return (value / 1000000).toFixed(2) + 'M';
            } else if (value >= 1000) {
                return (value / 1000).toFixed(2) + 'K';
-           } else if (value < 1 && value > 0) {
-               return value.toFixed(4);
            } else {
                return value.toFixed(2);
            }
        }
        
+       // Initialize chart
+       function initializeChart() {
+           const layout = {
+               paper_bgcolor: '#fff',
+               plot_bgcolor: '#fff',
+               font: { color: '#666' },
+               xaxis: {
+                   showgrid: true,
+                   gridcolor: '#e0e0e0'
+               },
+               yaxis: {
+                   showgrid: true,
+                   gridcolor: '#e0e0e0'
+               },
+               margin: { t: 20, r: 40, b: 40, l: 60 }
+           };
+           
+           Plotly.newPlot('mainChart', [], layout, {responsive: true});
+       }
+       
        // Refresh watchlist
        async function refreshWatchlist() {
-           console.log('Refreshing watchlist...');
-           
-           for (const item of watchlist) {
-               // Re-fetch latest data
-               const historical = await fetchHistoricalData(item.symbol, item.api);
-               
-               if (historical && historical.length > 0) {
-                   historicalData[item.symbol] = historical;
-                   
-                   const changes = calculatePercentageChanges(historical);
-                   percentageChangeData[item.symbol] = changes;
-                   
-                   const trendAnalysis = analyzeTrends(changes);
-                   
-                   // Update values
-                   item.currentValue = historical[historical.length - 1].value;
-                   item.monthChange = changes.mom[changes.mom.length - 1]?.value || 0;
-                   item.quarterChange = changes.qoq[changes.qoq.length - 1]?.value || 0;
-                   item.yearChange = changes.yoy[changes.yoy.length - 1]?.value || 0;
-                   item.trendStatus = trendAnalysis.status;
-                   item.lastUpdate = new Date().toISOString();
+           for (let item of watchlist) {
+               const newData = await fetchHistoricalData(item.symbol);
+               if (newData.length > 0) {
+                   item.data = newData;
+                   item.latestValue = newData[newData.length - 1].value;
+                   item.latestDate = newData[newData.length - 1].date;
+                   item.changes = calculateChanges(newData);
+                   chartData[item.symbol] = newData;
                }
            }
            
@@ -1714,16 +1009,9 @@
            saveWatchlistToStorage();
            
            if (selectedIndicator) {
-               const indicator = watchlist.find(item => item.symbol === selectedIndicator);
-               if (indicator) {
-                   updateChartStats(indicator);
-                   plotChart(selectedIndicator);
-                   
-                   const changes = percentageChangeData[selectedIndicator];
-                   if (changes) {
-                       const trendAnalysis = analyzeTrends(changes);
-                       showTrendAnalysis(trendAnalysis);
-                   }
+               const item = watchlist.find(w => w.symbol === selectedIndicator);
+               if (item) {
+                   selectIndicator(selectedIndicator);
                }
            }
        }
@@ -1733,14 +1021,12 @@
            if (confirm('Are you sure you want to clear your watchlist?')) {
                watchlist = [];
                selectedIndicator = null;
-               historicalData = {};
-               percentageChangeData = {};
+               chartData = {};
                updateWatchlistDisplay();
                saveWatchlistToStorage();
-               initializeChart();
                document.getElementById('chartTitle').textContent = 'Select an indicator to view data';
-               document.getElementById('chartStats').style.display = 'none';
-               document.getElementById('trendAlertBox').classList.remove('active');
+               document.getElementById('dataInfo').style.display = 'none';
+               initializeChart();
            }
        }
        
@@ -1748,16 +1034,13 @@
        function removeFromWatchlist(index) {
            const symbol = watchlist[index].symbol;
            watchlist.splice(index, 1);
-           
-           delete historicalData[symbol];
-           delete percentageChangeData[symbol];
+           delete chartData[symbol];
            
            if (selectedIndicator === symbol) {
                selectedIndicator = null;
-               initializeChart();
                document.getElementById('chartTitle').textContent = 'Select an indicator to view data';
-               document.getElementById('chartStats').style.display = 'none';
-               document.getElementById('trendAlertBox').classList.remove('active');
+               document.getElementById('dataInfo').style.display = 'none';
+               initializeChart();
            }
            
            updateWatchlistDisplay();
@@ -1766,62 +1049,39 @@
        
        // Save watchlist to localStorage
        function saveWatchlistToStorage() {
-           try {
-               const watchlistData = watchlist.map(item => ({
-                   symbol: item.symbol,
-                   name: item.name,
-                   api: item.api,
-                   category: item.category
-               }));
-               localStorage.setItem('openbb_watchlist', JSON.stringify(watchlistData));
-           } catch (error) {
-               console.error('Error saving watchlist:', error);
-           }
+           const watchlistData = watchlist.map(item => ({
+               symbol: item.symbol,
+               name: item.name
+           }));
+           localStorage.setItem('openbb_watchlist', JSON.stringify(watchlistData));
        }
        
        // Load watchlist from localStorage
        async function loadWatchlistFromStorage() {
-           try {
-               const stored = localStorage.getItem('openbb_watchlist');
-               if (stored) {
+           const stored = localStorage.getItem('openbb_watchlist');
+           if (stored) {
+               try {
                    const watchlistData = JSON.parse(stored);
-                   
                    for (const item of watchlistData) {
-                       const indicator = allIndicators.find(ind => 
-                           ind.symbol === item.symbol && ind.api === item.api
-                       );
-                       
-                       if (indicator) {
-                           const historical = await fetchHistoricalData(item.symbol, item.api);
-                           
-                           if (historical && historical.length > 0) {
-                               historicalData[item.symbol] = historical;
-                               
-                               const changes = calculatePercentageChanges(historical);
-                               percentageChangeData[item.symbol] = changes;
-                               
-                               const trendAnalysis = analyzeTrends(changes);
-                               
-                               const watchlistItem = {
-                                   ...indicator,
-                                   currentValue: historical[historical.length - 1].value,
-                                   monthChange: changes.mom[changes.mom.length - 1]?.value || 0,
-                                   quarterChange: changes.qoq[changes.qoq.length - 1]?.value || 0,
-                                   yearChange: changes.yoy[changes.yoy.length - 1]?.value || 0,
-                                   trendStatus: trendAnalysis.status,
-                                   lastUpdate: new Date().toISOString()
-                               };
-                               
-                               watchlist.push(watchlistItem);
-                           }
+                       if (FRED_SERIES[item.symbol]) {
+                           await addToWatchlist(item.symbol, item.name || FRED_SERIES[item.symbol]);
                        }
                    }
-                   
-                   updateWatchlistDisplay();
+               } catch (error) {
+                   console.error('Error loading watchlist:', error);
                }
-           } catch (error) {
-               console.error('Error loading watchlist:', error);
            }
+       }
+       
+       // Show error message
+       function showError(message) {
+           const errorDiv = document.getElementById('errorMessage');
+           errorDiv.textContent = message;
+           errorDiv.classList.add('active');
+           
+           setTimeout(() => {
+               errorDiv.classList.remove('active');
+           }, 5000);
        }
        
        // Auto-refresh every 5 minutes
@@ -1830,32 +1090,6 @@
                refreshWatchlist();
            }
        }, 300000);
-       
-       // Handle keyboard shortcuts - FIX: Remove 'r' shortcut
-       document.addEventListener('keydown', function(e) {
-           // Only handle '/' for search focus
-           if (e.key === '/' && !e.ctrlKey && !e.metaKey) {
-               e.preventDefault();
-               document.getElementById('searchInput').focus();
-           }
-           
-           // Handle Escape to close search
-           if (e.key === 'Escape') {
-               document.getElementById('searchResults').classList.remove('active');
-               document.getElementById('searchInput').blur();
-           }
-           
-           // Use Ctrl+R or Cmd+R for refresh instead of just 'r'
-           if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
-               e.preventDefault();
-               refreshWatchlist();
-           }
-       });
-       
-       // Handle window resize
-       window.addEventListener('resize', function() {
-           Plotly.Plots.resize('mainChart');
-       });
    </script>
 </body>
 </html>
