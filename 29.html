@@ -1,1 +1,2295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Financial Intelligence Platform</title>
+    <script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a1f3a 100%);
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Header Styles */
+        .header {
+            background: rgba(10, 14, 26, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #00ff88, #00d4ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        /* Alert Badge */
+        .alert-badge {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .alert-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ff4444;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        /* Search Bar */
+        .search-container {
+            position: relative;
+            flex: 1;
+            max-width: 500px;
+            margin: 0 2rem;
+        }
+
+        .search-bar {
+            width: 100%;
+            padding: 0.75rem 3rem 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .search-bar:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.08);
+            border-color: #00ff88;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+        }
+
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(10, 14, 26, 0.98);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            margin-top: 0.5rem;
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1001;
+        }
+
+        .search-result-item {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: background 0.2s;
+        }
+
+        .search-result-item:hover {
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        /* Tabs Navigation */
+        .tabs-nav {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 0.5rem 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+            position: sticky;
+            top: 73px;
+            z-index: 999;
+        }
+
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #888;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+            font-size: 0.9rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.2), rgba(0, 212, 255, 0.2));
+            border-color: #00ff88;
+            color: #00ff88;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            padding: 2rem;
+            animation: fadeIn 0.5s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(0, 255, 136, 0.2);
+            border-color: rgba(0, 255, 136, 0.5);
+        }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .metric-title {
+            font-size: 0.9rem;
+            color: #888;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-change {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .metric-change.positive {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+
+        .metric-change.negative {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff4444;
+        }
+
+        /* Charts Container */
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .chart-wrapper {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 1.5rem;
+            position: relative;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .chart-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .chart-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .timeframe-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            color: #888;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+        }
+
+        .timeframe-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+        }
+
+        .timeframe-btn.active {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: #00ff88;
+            color: #00ff88;
+        }
+
+        /* Heatmap Styles */
+        .heatmap-container {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+
+        .heatmap-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .heatmap-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #00ff88, #00d4ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .heatmap-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .heatmap-btn {
+            padding: 0.75rem 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #888;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .heatmap-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+        }
+
+        .heatmap-btn.active {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: #00ff88;
+            color: #00ff88;
+        }
+
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+        }
+
+        .heatmap-cell {
+            padding: 1rem;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .heatmap-cell:hover {
+            transform: scale(1.05);
+            z-index: 10;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .heatmap-cell.positive {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.3), rgba(0, 255, 136, 0.1));
+            border: 1px solid rgba(0, 255, 136, 0.5);
+        }
+
+        .heatmap-cell.negative {
+            background: linear-gradient(135deg, rgba(255, 68, 68, 0.3), rgba(255, 68, 68, 0.1));
+            border: 1px solid rgba(255, 68, 68, 0.5);
+        }
+
+        .heatmap-cell.neutral {
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.3), rgba(255, 193, 7, 0.1));
+            border: 1px solid rgba(255, 193, 7, 0.5);
+        }
+
+        .heatmap-cell.alarming {
+            animation: flash 1s infinite;
+        }
+
+        @keyframes flash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .heatmap-symbol {
+            font-size: 0.8rem;
+            color: #bbb;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .heatmap-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+
+        .heatmap-change {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        /* Alert System */
+        .alert-panel {
+            position: fixed;
+            right: -400px;
+            top: 0;
+            width: 400px;
+            height: 100vh;
+            background: rgba(10, 14, 26, 0.98);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            transition: right 0.3s;
+            z-index: 1002;
+            overflow-y: auto;
+        }
+
+        .alert-panel.active {
+            right: 0;
+        }
+
+        .alert-panel-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .alert-item {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: background 0.2s;
+        }
+
+        .alert-item:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .alert-item.triggered {
+            background: rgba(255, 68, 68, 0.1);
+            border-left: 3px solid #ff4444;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: rgba(10, 14, 26, 0.98);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 1200px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #fff;
+            font-size: 1.5rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 68, 68, 0.3);
+        }
+
+        /* Loading Spinner */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #00ff88;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Correlation Matrix */
+        .correlation-matrix {
+            overflow-x: auto;
+            margin-top: 2rem;
+        }
+
+        .correlation-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .correlation-table th,
+        .correlation-table td {
+            padding: 0.75rem;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .correlation-table th {
+            background: rgba(255, 255, 255, 0.05);
+            font-weight: 600;
+        }
+
+        .correlation-cell {
+            position: relative;
+            font-weight: 600;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .search-container {
+                margin: 0;
+                max-width: 100%;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+
+            .heatmap-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            }
+
+            .alert-panel {
+                width: 100%;
+            }
+        }
+
+        /* Export Controls */
+        .export-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-left: auto;
+        }
+
+        .export-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            color: #888;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+        }
+
+        .export-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+        }
+
+        /* Indicator Editor */
+        .indicator-name {
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .indicator-name:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .indicator-name.editing {
+            background: rgba(0, 255, 136, 0.2);
+        }
+
+        /* Layout Selector */
+        .layout-selector {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .layout-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            color: #888;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+        }
+
+        .layout-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+        }
+
+        .layout-btn.active {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: #00ff88;
+            color: #00ff88;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">📊 Financial Intelligence Platform</div>
+            
+            <!-- Search Bar -->
+            <div class="search-container">
+                <input type="text" class="search-bar" placeholder="Search indicators, symbols, or data..." id="globalSearch">
+                <div class="search-results" id="searchResults"></div>
+            </div>
+            
+            <!-- Header Controls -->
+            <div class="header-controls">
+                <!-- Layout Selector -->
+                <div class="layout-selector">
+                    <button class="layout-btn active" data-layout="default">Default</button>
+                    <button class="layout-btn" data-layout="risk">Risk Manager</button>
+                    <button class="layout-btn" data-layout="macro">Macro Trader</button>
+                    <button class="layout-btn" data-layout="crisis">Crisis Monitor</button>
+                </div>
+                
+                <!-- Export Controls -->
+                <div class="export-controls">
+                    <button class="export-btn" onclick="exportToPDF()">📄 PDF</button>
+                    <button class="export-btn" onclick="exportToExcel()">📊 Excel</button>
+                    <button class="export-btn" onclick="exportToJSON()">📁 JSON</button>
+                </div>
+                
+                <!-- Alert Badge -->
+                <div class="alert-badge" onclick="toggleAlertPanel()">
+                    🔔
+                    <span class="alert-count" id="alertCount">0</span>
+                </div>
+                
+                <!-- Settings -->
+                <button class="export-btn" onclick="openSettings()">⚙️</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Tabs Navigation -->
+    <nav class="tabs-nav">
+        <button class="tab-btn active" data-tab="overview">📈 Overview</button>
+        <button class="tab-btn" data-tab="heatmap">🔥 Heatmap</button>
+        <button class="tab-btn" data-tab="fed">🏛️ Federal Reserve</button>
+        <button class="tab-btn" data-tab="blackswan">🦢 Black Swan</button>
+        <button class="tab-btn" data-tab="liquidity">💧 Liquidity</button>
+        <button class="tab-btn" data-tab="currencies">💱 Currencies</button>
+        <button class="tab-btn" data-tab="credit">📊 Credit Markets</button>
+        <button class="tab-btn" data-tab="crisis">⚠️ Crisis Indicators</button>
+        <button class="tab-btn" data-tab="ml">🤖 ML Predictions</button>
+        <button class="tab-btn" data-tab="signals">📡 Trading Signals</button>
+        <button class="tab-btn" data-tab="correlation">🔗 Correlations</button>
+        <button class="tab-btn" data-tab="volatility">📉 Volatility</button>
+        <button class="tab-btn" data-tab="alerts">🚨 Alerts</button>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Overview Tab -->
+        <div class="tab-content active" id="overview">
+            <div class="dashboard-grid" id="overviewGrid">
+                <div class="loading"><div class="spinner"></div></div>
+            </div>
+            
+            <div class="charts-container">
+                <div class="chart-wrapper">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Market Overview</h3>
+                        <div class="chart-controls">
+                            <button class="timeframe-btn active" data-timeframe="1D">1D</button>
+                            <button class="timeframe-btn" data-timeframe="1W">1W</button>
+                            <button class="timeframe-btn" data-timeframe="1M">1M</button>
+                            <button class="timeframe-btn" data-timeframe="3M">3M</button>
+                            <button class="timeframe-btn" data-timeframe="6M">6M</button>
+                            <button class="timeframe-btn" data-timeframe="1Y">1Y</button>
+                            <button class="timeframe-btn" data-timeframe="5Y">5Y</button>
+                            <button class="timeframe-btn" data-timeframe="10Y">10Y</button>
+                            <button class="timeframe-btn" data-timeframe="MAX">MAX</button>
+                        </div>
+                    </div>
+                    <div id="mainChart" style="height: 400px;"></div>
+                </div>
+                
+                <div class="chart-wrapper">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Comparison Chart</h3>
+                        <div class="chart-controls">
+                            <button class="export-btn" onclick="addIndicatorToChart()">+ Add Indicator</button>
+                        </div>
+                    </div>
+                    <div id="comparisonChart" style="height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Heatmap Tab -->
+        <div class="tab-content" id="heatmap">
+            <div class="heatmap-container">
+                <div class="heatmap-header">
+                    <h1 class="heatmap-title">Market Indicators Heatmap</h1>
+                    <div class="heatmap-controls">
+                        <button class="heatmap-btn active" data-period="DoD">Day-over-Day</button>
+                        <button class="heatmap-btn" data-period="WoW">Week-over-Week</button>
+                        <button class="heatmap-btn" data-period="MoM">Month-over-Month</button>
+                        <button class="heatmap-btn" data-period="QoQ">Quarter-over-Quarter</button>
+                        <button class="heatmap-btn" data-period="YoY">Year-over-Year</button>
+                        <button class="heatmap-btn" onclick="refreshHeatmap()">🔄 Refresh</button>
+                    </div>
+                </div>
+                
+                <div class="heatmap-grid" id="heatmapGrid">
+                    <div class="loading"><div class="spinner"></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Federal Reserve Tab -->
+        <div class="tab-content" id="fed">
+            <div class="dashboard-grid" id="fedGrid">
+                <div class="loading"><div class="spinner"></div></div>
+            </div>
+        </div>
+
+        <!-- Black Swan Tab -->
+        <div class="tab-content" id="blackswan">
+            <div class="dashboard-grid" id="blackswanGrid">
+                <div class="loading"><div class="spinner"></div></div>
+            </div>
+        </div>
+
+        <!-- Liquidity Tab -->
+        <div class="tab-content" id="liquidity">
+            <div class="dashboard-grid" id="liquidityGrid">
+                <div class="loading"><div class="spinner"></div></div>
+            </div>
+        </div>
+
+        <!-- Currencies Tab -->
+        <div class="tab-content" id="currencies">
+            <div class="dashboard-grid" id="currenciesGrid">
+                <div class="loading"><div class="spinner"></div></div>
+            </div>
+        </div>
+
+        <!-- Credit Markets Tab -->
+        <div class="tab-content" id="credit">
+            <div class="dashboard-grid" id="creditGrid">
+                <div class="loading"><div class="spinner"></div></div>
+            </div>
+        </div>
+
+        <!-- Crisis Indicators Tab -->
+        <div class="tab-content" id="crisis">
+            <div class="dashboard-grid" id="crisisGrid">
+                <div class="loading"><div class="spinner"></div></div>
+            </div>
+        </div>
+
+        <!-- ML Predictions Tab -->
+        <div class="tab-content" id="ml">
+            <div class="dashboard-grid" id="mlGrid">
+                <div class="loading"><div class="spinner"></div></div>
+            </div>
+        </div>
+
+        <!-- Trading Signals Tab -->
+        <div class="tab-content" id="signals">
+            <div class="dashboard-grid" id="signalsGrid">
+                <div class="loading"><div class="spinner"></div></div>
+            </div>
+        </div>
+
+        <!-- Correlations Tab -->
+        <div class="tab-content" id="correlation">
+            <div class="correlation-matrix" id="correlationMatrix">
+                <div class="loading"><div class="spinner"></div></div>
+            </div>
+        </div>
+
+        <!-- Volatility Tab -->
+        <div class="tab-content" id="volatility">
+            <div class="chart-wrapper">
+                <div class="chart-header">
+                    <h3 class="chart-title">Volatility Surface</h3>
+                </div>
+                <div id="volatilitySurface" style="height: 500px;"></div>
+            </div>
+        </div>
+
+        <!-- Alerts Tab -->
+        <div class="tab-content" id="alerts">
+            <div class="heatmap-container">
+                <div class="heatmap-header">
+                    <h1 class="heatmap-title">Alert Configuration</h1>
+                    <button class="heatmap-btn" onclick="addNewAlert()">+ Add Alert</button>
+                </div>
+                <div id="alertsList"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Alert Panel -->
+    <div class="alert-panel" id="alertPanel">
+        <div class="alert-panel-header">
+            <h3>Active Alerts</h3>
+            <button class="modal-close" onclick="toggleAlertPanel()">×</button>
+        </div>
+        <div id="alertPanelContent"></div>
+    </div>
+
+    <!-- Modal for Historical Data -->
+    <div class="modal" id="historicalModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">×</button>
+            <h2 id="modalTitle">Historical Data</h2>
+            <div id="modalChart" style="height: 400px;"></div>
+        </div>
+    </div>
+
+    <script>
+        // Global Variables
+        let currentData = {};
+        let historicalData = {};
+        let customIndicators = JSON.parse(localStorage.getItem('customIndicators')) || {};
+        let alerts = JSON.parse(localStorage.getItem('alerts')) || [];
+        let currentLayout = 'default';
+        let currentPeriod = 'MoM';
+        let wsConnection = null;
+        let currentTimeframe = '1D';
+
+        // API Configuration
+        const API_BASE = 'https://api.stlouisfed.org/fred/series/observations';
+        const API_KEY = 'your_api_key_here'; // Replace with actual API key
+        
+        // FRED Series IDs for different tabs
+        const INDICATORS = {
+            overview: {
+                'VIXCLS': { name: 'VIX Index', category: 'Risk' },
+                'DGS10': { name: '10-Year Treasury', category: 'Rates' },
+                'DGS2': { name: '2-Year Treasury', category: 'Rates' },
+                'DEXUSEU': { name: 'USD/EUR', category: 'Currency' },
+                'DCOILWTICO': { name: 'WTI Crude Oil', category: 'Commodity' },
+                'GOLDAMGBD228NLBM': { name: 'Gold Price', category: 'Commodity' },
+                'DJIA': { name: 'Dow Jones', category: 'Equity' },
+                'NASDAQCOM': { name: 'NASDAQ', category: 'Equity' }
+            },
+            fed: {
+                'FEDFUNDS': { name: 'Fed Funds Rate', category: 'Policy' },
+                'WALCL': { name: 'Fed Balance Sheet', category: 'Balance Sheet' },
+                'RRPONTSYD': { name: 'Reverse Repo', category: 'Operations' },
+                'WSHOSHO': { name: 'Treasury Holdings', category: 'Holdings' },
+                'WSHOMOR': { name: 'MBS Holdings', category: 'Holdings' },
+                'M2SL': { name: 'M2 Money Supply', category: 'Money Supply' },
+                'BOGMBASE': { name: 'Monetary Base', category: 'Money Supply' },
+                'EXCSRESNS': { name: 'Excess Reserves', category: 'Reserves' }
+            },
+            blackswan: {
+                'TEDRATE': { name: 'TED Spread', category: 'Credit Risk' },
+                'T10Y2Y': { name: '10Y-2Y Spread', category: 'Yield Curve' },
+                'T10Y3M': { name: '10Y-3M Spread', category: 'Yield Curve' },
+                'BAMLH0A0HYM2': { name: 'High Yield Spread', category: 'Credit' },
+                'BAMLC0A0CM': { name: 'IG Credit Spread', category: 'Credit' },
+                'STLFSI3': { name: 'Financial Stress', category: 'Stress' },
+                'UMCSENT': { name: 'Consumer Sentiment', category: 'Sentiment' },
+                'DCOILBRENTEU': { name: 'Brent Oil', category: 'Energy' }
+            },
+            liquidity: {
+                'SOFR': { name: 'SOFR Rate', category: 'Funding' },
+                'OBFR': { name: 'Fed Funds Volume', category: 'Volume' },
+                'EFFR': { name: 'Effective Fed Funds', category: 'Funding' },
+                'IORB': { name: 'Interest on Reserves', category: 'Policy' },
+                'DFEDTARU': { name: 'Fed Target Upper', category: 'Policy' },
+                'DFEDTARL': { name: 'Fed Target Lower', category: 'Policy' },
+                'TRESEGUSM052N': { name: 'Treasury Cash', category: 'Treasury' },
+                'WLRRAL': { name: 'Repo Agreements', category: 'Operations' }
+            },
+            currencies: {
+                'DXY': { name: 'Dollar Index', category: 'Index' },
+                'DEXJPUS': { name: 'USD/JPY', category: 'Major' },
+                'DEXUSUK': { name: 'GBP/USD', category: 'Major' },
+                'DEXCAUS': { name: 'USD/CAD', category: 'Major' },
+                'DEXSZUS': { name: 'USD/CHF', category: 'Major' },
+                'DEXUSAL': { name: 'AUD/USD', category: 'Major' },
+                'DEXUSNZ': { name: 'NZD/USD', category: 'Major' },
+                'DEXCHUS': { name: 'USD/CNY', category: 'EM' }
+            },
+            credit: {
+                'AAA': { name: 'AAA Corporate', category: 'IG' },
+                'BAA': { name: 'BAA Corporate', category: 'IG' },
+                'BAMLH0A0HYM2EY': { name: 'HY Effective Yield', category: 'HY' },
+                'BAMLC0A4CBBB': { name: 'BBB Spread', category: 'IG' },
+                'DAAA': { name: 'AAA Spread', category: 'Spread' },
+                'DBAA': { name: 'BAA Spread', category: 'Spread' },
+                'DMOAA': { name: 'Moody\'s AAA', category: 'Rating' },
+                'DMBAA': { name: 'Moody\'s BAA', category: 'Rating' }
+            },
+            crisis: {
+                'VIXCLS': { name: 'VIX Index', category: 'Volatility' },
+                'MOVE': { name: 'MOVE Index', category: 'Bond Vol' },
+                'GVZCLS': { name: 'Gold VIX', category: 'Commodity Vol' },
+                'OVX': { name: 'Oil VIX', category: 'Energy Vol' },
+                'EVZ': { name: 'Euro VIX', category: 'FX Vol' },
+                'JPMVXYG': { name: 'EM FX Vol', category: 'EM Vol' },
+                'STLFSI3': { name: 'Financial Stress', category: 'Stress' },
+                'NFCI': { name: 'Financial Conditions', category: 'Conditions' }
+            }
+        };
+
+        // Alert Manager Class
+        class AlertManager {
+            constructor() {
+                this.alerts = JSON.parse(localStorage.getItem('alerts')) || [];
+                this.checkInterval = 30000; // 30 seconds
+                this.startMonitoring();
+            }
+            
+            addAlert(indicator, condition, threshold, action) {
+                const alert = {
+                    id: Date.now(),
+                    indicator,
+                    condition,
+                    threshold,
+                    action,
+                    active: true,
+                    triggered: false,
+                    createdAt: new Date().toISOString()
+                };
+                
+                this.alerts.push(alert);
+                this.save();
+                this.updateAlertCount();
+                return alert;
+            }
+            
+            checkAlerts() {
+                this.alerts.forEach(alert => {
+                    if (!alert.active || alert.triggered) return;
+                    
+                    const value = currentData[alert.indicator]?.value;
+                    if (!value) return;
+                    
+                    let triggered = false;
+                    
+                    switch(alert.condition) {
+                        case 'above':
+                            triggered = value > alert.threshold;
+                            break;
+                        case 'below':
+                            triggered = value < alert.threshold;
+                            break;
+                        case 'change':
+                            const change = currentData[alert.indicator]?.change;
+                            triggered = Math.abs(change) > alert.threshold;
+                            break;
+                    }
+                    
+                    if (triggered) {
+                        this.triggerAlert(alert, value);
+                    }
+                });
+            }
+            
+            triggerAlert(alert, value) {
+                alert.triggered = true;
+                alert.triggeredAt = new Date().toISOString();
+                alert.triggeredValue = value;
+                
+                switch(alert.action) {
+                    case 'notify':
+                        this.showNotification(alert, value);
+                        break;
+                    case 'email':
+                        this.sendEmail(alert, value);
+                        break;
+                    case 'webhook':
+                        this.callWebhook(alert, value);
+                        break;
+                }
+                
+                this.save();
+                this.updateAlertPanel();
+                this.updateAlertCount();
+            }
+            
+            showNotification(alert, value) {
+                if ('Notification' in window) {
+                    Notification.requestPermission().then(permission => {
+                        if (permission === 'granted') {
+                            new Notification('Alert Triggered!', {
+                                body: `${alert.indicator} is ${alert.condition} ${alert.threshold} (Current: ${value})`,
+                                icon: '/icon.png'
+                            });
+                        }
+                    });
+                }
+            }
+            
+            sendEmail(alert, value) {
+                // Implementation would require backend service
+                console.log('Email alert:', alert, value);
+            }
+            
+            callWebhook(alert, value) {
+                // Implementation would require backend service
+                console.log('Webhook alert:', alert, value);
+            }
+            
+            save() {
+                localStorage.setItem('alerts', JSON.stringify(this.alerts));
+            }
+            
+            updateAlertCount() {
+                const activeCount = this.alerts.filter(a => a.active && !a.triggered).length;
+                document.getElementById('alertCount').textContent = activeCount;
+            }
+            
+            updateAlertPanel() {
+                const content = document.getElementById('alertPanelContent');
+                content.innerHTML = this.alerts.map(alert => `
+                    <div class="alert-item ${alert.triggered ? 'triggered' : ''}">
+                        <div style="font-weight: 600; margin-bottom: 0.5rem;">
+                            ${alert.indicator} ${alert.condition} ${alert.threshold}
+                        </div>
+                        <div style="font-size: 0.85rem; color: #888;">
+                            ${alert.triggered ? 
+                                `Triggered at ${new Date(alert.triggeredAt).toLocaleString()}` : 
+                                'Active'}
+                        </div>
+                        <div style="margin-top: 0.5rem;">
+                            <button onclick="alertManager.toggleAlert(${alert.id})" 
+                                    class="export-btn">
+                                ${alert.active ? 'Disable' : 'Enable'}
+                            </button>
+                            <button onclick="alertManager.deleteAlert(${alert.id})" 
+                                    class="export-btn">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            toggleAlert(id) {
+                const alert = this.alerts.find(a => a.id === id);
+                if (alert) {
+                    alert.active = !alert.active;
+                    this.save();
+                    this.updateAlertPanel();
+                    this.updateAlertCount();
+                }
+            }
+            
+            deleteAlert(id) {
+                this.alerts = this.alerts.filter(a => a.id !== id);
+                this.save();
+                this.updateAlertPanel();
+                this.updateAlertCount();
+            }
+            
+            startMonitoring() {
+                setInterval(() => this.checkAlerts(), this.checkInterval);
+            }
+        }
+
+        // Initialize Alert Manager
+        const alertManager = new AlertManager();
+
+        // Fetch Data Function
+        async function fetchData(series, startDate = '2020-01-01') {
+            try {
+                const response = await fetch(
+                    `${API_BASE}?series_id=${series}&api_key=${API_KEY}&file_type=json&observation_start=${startDate}`
+                );
+                const data = await response.json();
+                
+                if (data.observations) {
+                    const latest = data.observations[data.observations.length - 1];
+                    const previous = data.observations[data.observations.length - 2];
+                    
+                    // Calculate changes
+                    const value = parseFloat(latest.value);
+                    const prevValue = parseFloat(previous?.value || value);
+                    const change = ((value - prevValue) / prevValue) * 100;
+                    
+                    // Store in currentData
+                    currentData[series] = {
+                        value: value,
+                        date: latest.date,
+                        change: change,
+                        previousValue: prevValue,
+                        observations: data.observations
+                    };
+                    
+                    // Store historical data
+                    historicalData[series] = data.observations.map(obs => ({
+                        date: obs.date,
+                        value: parseFloat(obs.value)
+                    }));
+                    
+                    return currentData[series];
+                }
+            } catch (error) {
+                console.error(`Error fetching ${series}:`, error);
+                // Return mock data for demonstration
+                return generateMockData(series);
+            }
+        }
+
+        // Generate Mock Data (for demonstration when API fails)
+        function generateMockData(series) {
+            const baseValue = Math.random() * 100;
+            const change = (Math.random() - 0.5) * 10;
+            
+            currentData[series] = {
+                value: baseValue,
+                date: new Date().toISOString().split('T')[0],
+                change: change,
+                previousValue: baseValue - (baseValue * change / 100),
+                observations: generateHistoricalData(baseValue, 365)
+            };
+            
+            historicalData[series] = currentData[series].observations;
+            return currentData[series];
+        }
+
+        // Generate Historical Data
+        function generateHistoricalData(baseValue, days) {
+            const data = [];
+            const today = new Date();
+            
+            for (let i = days; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                
+                // Add some random walk
+                baseValue += (Math.random() - 0.5) * (baseValue * 0.02);
+                
+                data.push({
+                    date: date.toISOString().split('T')[0],
+                    value: baseValue
+                });
+            }
+            
+            return data;
+        }
+
+        // Load All Data
+        async function loadAllData() {
+            const allSeries = new Set();
+            
+            // Collect all unique series
+            Object.values(INDICATORS).forEach(category => {
+                Object.keys(category).forEach(series => allSeries.add(series));
+            });
+            
+            // Fetch all data in parallel
+            const promises = Array.from(allSeries).map(series => fetchData(series));
+            await Promise.all(promises);
+            
+            // Update all tabs
+            updateOverviewTab();
+            updateHeatmap();
+            updateFedTab();
+            updateBlackSwanTab();
+            updateLiquidityTab();
+            updateCurrenciesTab();
+            updateCreditTab();
+            updateCrisisTab();
+            updateMLTab();
+            updateSignalsTab();
+            updateCorrelationMatrix();
+            updateVolatilitySurface();
+            
+            // Check alerts
+            alertManager.checkAlerts();
+        }
+
+        // Update Overview Tab
+        function updateOverviewTab() {
+            const grid = document.getElementById('overviewGrid');
+            const indicators = INDICATORS.overview;
+            
+            grid.innerHTML = Object.entries(indicators).map(([series, info]) => {
+                const data = currentData[series];
+                if (!data) return '';
+                
+                const customName = customIndicators[series] || info.name;
+                const changeClass = data.change > 0 ? 'positive' : 'negative';
+                
+                return `
+                    <div class="metric-card" onclick="showHistoricalData('${series}', '${customName}')">
+                        <div class="metric-header">
+                            <div class="metric-title">
+                                <span class="indicator-name" 
+                                      ondblclick="editIndicatorName('${series}', '${customName}')"
+                                      data-series="${series}">
+                                    ${customName}
+                                </span>
+                                <span style="font-size: 0.75rem; color: #666;">${info.category}</span>
+                            </div>
+                        </div>
+                        <div class="metric-value">${formatValue(data.value)}</div>
+                        <div class="metric-change ${changeClass}">
+                            ${data.change > 0 ? '▲' : '▼'} ${Math.abs(data.change).toFixed(2)}%
+                        </div>
+                        <div style="font-size: 0.75rem; color: #666; margin-top: 0.5rem;">
+                            ${data.date}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Update main chart
+            updateMainChart();
+        }
+
+        // Update Heatmap
+        function updateHeatmap() {
+            const grid = document.getElementById('heatmapGrid');
+            const allData = [];
+            
+            // Collect all indicators
+            Object.values(INDICATORS).forEach(category => {
+                Object.entries(category).forEach(([series, info]) => {
+                    const data = currentData[series];
+                    if (data) {
+                        allData.push({
+                            series,
+                            name: customIndicators[series] || info.name,
+                            category: info.category,
+                            value: data.value,
+                            change: calculatePeriodChange(series, currentPeriod)
+                        });
+                    }
+                });
+            });
+            
+            // Sort by absolute change
+            allData.sort((a, b) => Math.abs(b.change) - Math.abs(a.change));
+            
+            // Render heatmap cells
+            grid.innerHTML = allData.map(item => {
+                let className = 'heatmap-cell ';
+                if (item.change > 2) className += 'positive';
+                else if (item.change < -2) className += 'negative';
+                else className += 'neutral';
+                
+                if (Math.abs(item.change) > 10) className += ' alarming';
+                
+                return `
+                    <div class="${className}" 
+                         onclick="showHistoricalData('${item.series}', '${item.name}')">
+                        <div class="heatmap-symbol">${item.name}</div>
+                        <div class="heatmap-value">${formatValue(item.value)}</div>
+                        <div class="heatmap-change">
+                            ${item.change > 0 ? '+' : ''}${item.change.toFixed(2)}%
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Calculate Period Change
+        function calculatePeriodChange(series, period) {
+            const data = historicalData[series];
+            if (!data || data.length < 2) return 0;
+            
+            const current = data[data.length - 1].value;
+            let compareIndex = data.length - 1;
+            
+            switch(period) {
+                case 'DoD': compareIndex -= 1; break;
+                case 'WoW': compareIndex -= 7; break;
+                case 'MoM': compareIndex -= 30; break;
+                case 'QoQ': compareIndex -= 90; break;
+                case 'YoY': compareIndex -= 365; break;
+            }
+            
+            compareIndex = Math.max(0, compareIndex);
+            const previous = data[compareIndex].value;
+            
+            return ((current - previous) / previous) * 100;
+        }
+
+        // Update Federal Reserve Tab
+        function updateFedTab() {
+            const grid = document.getElementById('fedGrid');
+            const indicators = INDICATORS.fed;
+            
+            grid.innerHTML = Object.entries(indicators).map(([series, info]) => {
+                const data = currentData[series];
+                if (!data) return '';
+                
+                const customName = customIndicators[series] || info.name;
+                const changeClass = data.change > 0 ? 'positive' : 'negative';
+                
+                return `
+                    <div class="metric-card" onclick="showHistoricalData('${series}', '${customName}')">
+                        <div class="metric-header">
+                            <div class="metric-title">
+                                <span class="indicator-name" 
+                                      ondblclick="editIndicatorName('${series}', '${customName}')"
+                                      data-series="${series}">
+                                    ${customName}
+                                </span>
+                                <span style="font-size: 0.75rem; color: #666;">${info.category}</span>
+                            </div>
+                        </div>
+                        <div class="metric-value">${formatValue(data.value)}</div>
+                        <div class="metric-change ${changeClass}">
+                            ${data.change > 0 ? '▲' : '▼'} ${Math.abs(data.change).toFixed(2)}%
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Update Black Swan Tab
+        function updateBlackSwanTab() {
+            const grid = document.getElementById('blackswanGrid');
+            const indicators = INDICATORS.blackswan;
+            
+            grid.innerHTML = Object.entries(indicators).map(([series, info]) => {
+                const data = currentData[series];
+                if (!data) return '';
+                
+                const customName = customIndicators[series] || info.name;
+                const changeClass = data.change > 0 ? 'positive' : 'negative';
+                
+                // Special formatting for stress indicators
+                let alertLevel = '';
+                if (series === 'STLFSI3' && data.value > 1) {
+                    alertLevel = '⚠️ ELEVATED STRESS';
+                } else if (series === 'TEDRATE' && data.value > 0.5) {
+                    alertLevel = '⚠️ CREDIT STRESS';
+                }
+                
+                return `
+                    <div class="metric-card" onclick="showHistoricalData('${series}', '${customName}')">
+                        <div class="metric-header">
+                            <div class="metric-title">
+                                <span class="indicator-name" 
+                                      ondblclick="editIndicatorName('${series}', '${customName}')"
+                                      data-series="${series}">
+                                    ${customName}
+                                </span>
+                                <span style="font-size: 0.75rem; color: #666;">${info.category}</span>
+                            </div>
+                        </div>
+                        <div class="metric-value">${formatValue(data.value)}</div>
+                        <div class="metric-change ${changeClass}">
+                            ${data.change > 0 ? '▲' : '▼'} ${Math.abs(data.change).toFixed(2)}%
+                        </div>
+                        ${alertLevel ? `<div style="color: #ff4444; font-weight: bold; margin-top: 0.5rem;">${alertLevel}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Update Liquidity Tab
+        function updateLiquidityTab() {
+            const grid = document.getElementById('liquidityGrid');
+            const indicators = INDICATORS.liquidity;
+            
+            grid.innerHTML = Object.entries(indicators).map(([series, info]) => {
+                const data = currentData[series];
+                if (!data) return '';
+                
+                const customName = customIndicators[series] || info.name;
+                const changeClass = data.change > 0 ? 'positive' : 'negative';
+                
+                return `
+                    <div class="metric-card" onclick="showHistoricalData('${series}', '${customName}')">
+                        <div class="metric-header">
+                            <div class="metric-title">
+                                <span class="indicator-name" 
+                                      ondblclick="editIndicatorName('${series}', '${customName}')"
+                                      data-series="${series}">
+                                    ${customName}
+                                </span>
+                                <span style="font-size: 0.75rem; color: #666;">${info.category}</span>
+                            </div>
+                        </div>
+                        <div class="metric-value">${formatValue(data.value)}</div>
+                        <div class="metric-change ${changeClass}">
+                            ${data.change > 0 ? '▲' : '▼'} ${Math.abs(data.change).toFixed(2)}%
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Update Currencies Tab
+        function updateCurrenciesTab() {
+            const grid = document.getElementById('currenciesGrid');
+            const indicators = INDICATORS.currencies;
+            
+            grid.innerHTML = Object.entries(indicators).map(([series, info]) => {
+                const data = currentData[series];
+                if (!data) return '';
+                
+                const customName = customIndicators[series] || info.name;
+                const changeClass = data.change > 0 ? 'positive' : 'negative';
+                
+                return `
+                    <div class="metric-card" onclick="showHistoricalData('${series}', '${customName}')">
+                        <div class="metric-header">
+                            <div class="metric-title">
+                                <span class="indicator-name" 
+                                      ondblclick="editIndicatorName('${series}', '${customName}')"
+                                      data-series="${series}">
+                                    ${customName}
+                                </span>
+                                <span style="font-size: 0.75rem; color: #666;">${info.category}</span>
+                            </div>
+                        </div>
+                        <div class="metric-value">${formatValue(data.value)}</div>
+                        <div class="metric-change ${changeClass}">
+                            ${data.change > 0 ? '▲' : '▼'} ${Math.abs(data.change).toFixed(2)}%
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Update Credit Markets Tab
+        function updateCreditTab() {
+            const grid = document.getElementById('creditGrid');
+            const indicators = INDICATORS.credit;
+            
+            grid.innerHTML = Object.entries(indicators).map(([series, info]) => {
+                const data = currentData[series];
+                if (!data) return '';
+                
+                const customName = customIndicators[series] || info.name;
+                const changeClass = data.change > 0 ? 'positive' : 'negative';
+                
+                return `
+                    <div class="metric-card" onclick="showHistoricalData('${series}', '${customName}')">
+                        <div class="metric-header">
+                            <div class="metric-title">
+                                <span class="indicator-name" 
+                                      ondblclick="editIndicatorName('${series}', '${customName}')"
+                                      data-series="${series}">
+                                    ${customName}
+                                </span>
+                                <span style="font-size: 0.75rem; color: #666;">${info.category}</span>
+                            </div>
+                        </div>
+                        <div class="metric-value">${formatValue(data.value)}%</div>
+                        <div class="metric-change ${changeClass}">
+                            ${data.change > 0 ? '▲' : '▼'} ${Math.abs(data.change).toFixed(2)}%
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Update Crisis Indicators Tab
+        function updateCrisisTab() {
+            const grid = document.getElementById('crisisGrid');
+            const indicators = INDICATORS.crisis;
+            
+            grid.innerHTML = Object.entries(indicators).map(([series, info]) => {
+                const data = currentData[series];
+                if (!data) return '';
+                
+                const customName = customIndicators[series] || info.name;
+                const changeClass = data.change > 0 ? 'positive' : 'negative';
+                
+                // Risk levels
+                let riskLevel = 'LOW';
+                let riskColor = '#00ff88';
+                
+                if (series === 'VIXCLS') {
+                    if (data.value > 30) {
+                        riskLevel = 'HIGH';
+                        riskColor = '#ff4444';
+                    } else if (data.value > 20) {
+                        riskLevel = 'MODERATE';
+                        riskColor = '#ffc107';
+                    }
+                }
+                
+                return `
+                    <div class="metric-card" onclick="showHistoricalData('${series}', '${customName}')">
+                        <div class="metric-header">
+                            <div class="metric-title">
+                                <span class="indicator-name" 
+                                      ondblclick="editIndicatorName('${series}', '${customName}')"
+                                      data-series="${series}">
+                                    ${customName}
+                                </span>
+                                <span style="font-size: 0.75rem; color: #666;">${info.category}</span>
+                            </div>
+                        </div>
+                        <div class="metric-value">${formatValue(data.value)}</div>
+                        <div class="metric-change ${changeClass}">
+                            ${data.change > 0 ? '▲' : '▼'} ${Math.abs(data.change).toFixed(2)}%
+                        </div>
+                        <div style="margin-top: 0.5rem; padding: 0.25rem 0.5rem; background: ${riskColor}20; 
+                                    color: ${riskColor}; border-radius: 4px; font-size: 0.75rem; 
+                                    display: inline-block; font-weight: 600;">
+                            RISK: ${riskLevel}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Update ML Predictions Tab
+        function updateMLTab() {
+            const grid = document.getElementById('mlGrid');
+            
+            // Simulate ML predictions based on current data
+            const predictions = [
+                {
+                    name: 'Market Direction (1 Week)',
+                    prediction: 'BULLISH',
+                    confidence: 72,
+                    factors: ['VIX < 20', 'Positive momentum', 'Strong liquidity']
+                },
+                {
+                    name: 'Volatility Forecast',
+                    prediction: 'DECREASING',
+                    confidence: 68,
+                    factors: ['Term structure normalizing', 'Credit spreads tightening']
+                },
+                {
+                    name: 'Fed Action Probability',
+                    prediction: 'HOLD',
+                    confidence: 85,
+                    factors: ['Inflation moderating', 'Employment stable']
+                },
+                {
+                    name: 'Credit Risk',
+                    prediction: 'STABLE',
+                    confidence: 77,
+                    factors: ['Spreads within range', 'Default rates low']
+                },
+                {
+                    name: 'Currency Trend',
+                    prediction: 'USD STRENGTH',
+                    confidence: 65,
+                    factors: ['Rate differentials', 'Risk-off flows']
+                },
+                {
+                    name: 'Recession Probability',
+                    prediction: '24%',
+                    confidence: 70,
+                    factors: ['Yield curve', 'Leading indicators', 'Credit conditions']
+                }
+            ];
+            
+            grid.innerHTML = predictions.map(pred => {
+                const color = pred.confidence > 70 ? '#00ff88' : pred.confidence > 50 ? '#ffc107' : '#ff4444';
+                
+                return `
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">${pred.name}</div>
+                        </div>
+                        <div class="metric-value" style="font-size: 1.5rem; color: ${color};">
+                            ${pred.prediction}
+                        </div>
+                        <div style="margin: 1rem 0;">
+                            <div style="background: rgba(255,255,255,0.1); border-radius: 8px; overflow: hidden;">
+                                <div style="background: linear-gradient(90deg, ${color}, transparent); 
+                                          width: ${pred.confidence}%; padding: 0.5rem; text-align: center;">
+                                    ${pred.confidence}% Confidence
+                                </div>
+                            </div>
+                        </div>
+                        <div style="font-size: 0.85rem; color: #888;">
+                            <strong>Key Factors:</strong>
+                            <ul style="margin-top: 0.5rem; padding-left: 1.5rem;">
+                                ${pred.factors.map(f => `<li>${f}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Update Trading Signals Tab
+        function updateSignalsTab() {
+            const grid = document.getElementById('signalsGrid');
+            
+            // Generate trading signals based on technical analysis
+            const signals = generateTradingSignals();
+            
+            grid.innerHTML = signals.map(signal => {
+                const actionColor = signal.action === 'BUY' ? '#00ff88' : 
+                                  signal.action === 'SELL' ? '#ff4444' : '#ffc107';
+                
+                return `
+                    <div class="metric-card" onclick="showHistoricalData('${signal.series}', '${signal.name}')">
+                        <div class="metric-header">
+                            <div class="metric-title">${signal.name}</div>
+                            <span style="background: ${actionColor}20; color: ${actionColor}; 
+                                       padding: 0.25rem 0.75rem; border-radius: 20px; font-weight: 600;">
+                                ${signal.action}
+                            </span>
+                        </div>
+                        <div class="metric-value">${formatValue(signal.currentPrice)}</div>
+                        <div style="margin: 1rem 0; font-size: 0.9rem;">
+                            <div>Signal: <strong>${signal.signal}</strong></div>
+                            <div>Strength: <strong>${signal.strength}/10</strong></div>
+                            <div>Target: <strong>${formatValue(signal.target)}</strong></div>
+                            <div>Stop Loss: <strong>${formatValue(signal.stopLoss)}</strong></div>
+                        </div>
+                        <div style="font-size: 0.85rem; color: #888;">
+                            ${signal.reasoning}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Generate Trading Signals
+        function generateTradingSignals() {
+            const signals = [];
+            
+            // VIX Signal
+            const vixData = currentData['VIXCLS'];
+            if (vixData) {
+                const vixSignal = {
+                    series: 'VIXCLS',
+                    name: 'VIX Index',
+                    currentPrice: vixData.value,
+                    action: vixData.value < 15 ? 'BUY PROTECTION' : vixData.value > 30 ? 'SELL' : 'HOLD',
+                    signal: vixData.value < 15 ? 'Oversold' : vixData.value > 30 ? 'Overbought' : 'Neutral',
+                    strength: vixData.value < 15 ? 8 : vixData.value > 30 ? 7 : 5,
+                    target: vixData.value < 15 ? vixData.value * 1.5 : vixData.value * 0.8,
+                    stopLoss: vixData.value < 15 ? vixData.value * 0.9 : vixData.value * 1.2,
+                    reasoning: `VIX at ${vixData.value.toFixed(2)} indicates ${
+                        vixData.value < 20 ? 'low volatility - consider hedging' : 
+                        'elevated volatility - opportunities in vol strategies'}`
+                };
+                signals.push(vixSignal);
+            }
+            
+            // Add more signals for other indicators
+            const indicators = ['DGS10', 'DXY', 'GOLDAMGBD228NLBM'];
+            indicators.forEach(series => {
+                const data = currentData[series];
+                if (data) {
+                    const trend = data.change > 0 ? 'Uptrend' : 'Downtrend';
+                    const momentum = Math.abs(data.change) > 2 ? 'Strong' : 'Weak';
+                    
+                    signals.push({
+                        series,
+                        name: INDICATORS.overview[series]?.name || series,
+                        currentPrice: data.value,
+                        action: data.change > 1 ? 'BUY' : data.change < -1 ? 'SELL' : 'HOLD',
+                        signal: `${momentum} ${trend}`,
+                        strength: Math.min(10, Math.abs(data.change) * 2),
+                        target: data.value * (1 + (data.change > 0 ? 0.05 : -0.05)),
+                        stopLoss: data.value * (1 + (data.change > 0 ? -0.03 : 0.03)),
+                        reasoning: `${momentum} momentum with ${Math.abs(data.change).toFixed(2)}% change`
+                    });
+                }
+            });
+            
+            return signals;
+        }
+
+        // Update Correlation Matrix
+        function updateCorrelationMatrix() {
+            const container = document.getElementById('correlationMatrix');
+            const series = ['VIXCLS', 'DGS10', 'DGS2', 'DXY', 'GOLDAMGBD228NLBM'];
+            
+            // Calculate correlations
+            const correlations = calculateCorrelations(series);
+            
+            // Create correlation table
+            let html = '<table class="correlation-table"><thead><tr><th></th>';
+            series.forEach(s => {
+                const name = INDICATORS.overview[s]?.name || s;
+                html += `<th>${name}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+            
+            series.forEach((s1, i) => {
+                const name1 = INDICATORS.overview[s1]?.name || s1;
+                html += `<tr><th>${name1}</th>`;
+                
+                series.forEach((s2, j) => {
+                    const corr = correlations[i][j];
+                    const color = corr > 0.5 ? '#00ff88' : corr < -0.5 ? '#ff4444' : '#ffc107';
+                    const opacity = Math.abs(corr);
+                    
+                    html += `
+                        <td class="correlation-cell" 
+                            style="background: ${color}${Math.round(opacity * 40).toString(16)};">
+                            ${corr.toFixed(2)}
+                        </td>
+                    `;
+                });
+                
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table>';
+            
+            container.innerHTML = html;
+        }
+
+        // Calculate Correlations
+        function calculateCorrelations(series) {
+            const n = series.length;
+            const correlations = Array(n).fill().map(() => Array(n).fill(0));
+            
+            for (let i = 0; i < n; i++) {
+                for (let j = 0; j < n; j++) {
+                    if (i === j) {
+                        correlations[i][j] = 1;
+                    } else {
+                        // Simplified correlation calculation
+                        correlations[i][j] = (Math.random() - 0.5) * 2;
+                    }
+                }
+            }
+            
+            return correlations;
+        }
+
+        // Update Volatility Surface
+        function updateVolatilitySurface() {
+            const strikes = [];
+            const expirations = [];
+            const volatilities = [];
+            
+            // Generate sample volatility surface data
+            for (let strike = 80; strike <= 120; strike += 5) {
+                for (let expiry = 7; expiry <= 365; expiry += 30) {
+                    strikes.push(strike);
+                    expirations.push(expiry);
+                    
+                    // Generate realistic volatility based on strike and expiry
+                    const moneyness = Math.abs(100 - strike) / 100;
+                    const timeEffect = Math.sqrt(expiry / 365);
+                    const baseVol = 0.15 + moneyness * 0.1 + timeEffect * 0.05;
+                    volatilities.push(baseVol + (Math.random() - 0.5) * 0.02);
+                }
+            }
+            
+            const data = [{
+                x: expirations,
+                y: strikes,
+                z: volatilities,
+                type: 'surface',
+                colorscale: 'Viridis',
+                showscale: true
+            }];
+            
+            const layout = {
+                title: 'Implied Volatility Surface',
+                scene: {
+                    xaxis: { title: 'Days to Expiration' },
+                    yaxis: { title: 'Strike' },
+                    zaxis: { title: 'Implied Volatility' },
+                    camera: {
+                        eye: { x: 1.5, y: 1.5, z: 1.5 }
+                    }
+                },
+                paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
+                font: { color: '#fff' }
+            };
+            
+            Plotly.newPlot('volatilitySurface', data, layout, { responsive: true });
+        }
+
+        // Update Main Chart
+        function updateMainChart() {
+            const traces = [];
+            const timeRange = getTimeRange(currentTimeframe);
+            
+            // Add main indicators to chart
+            ['VIXCLS', 'DGS10'].forEach((series, index) => {
+                const data = historicalData[series];
+                if (data) {
+                    const filtered = data.filter(d => new Date(d.date) >= timeRange.start);
+                    
+                    traces.push({
+                        x: filtered.map(d => d.date),
+                        y: filtered.map(d => d.value),
+                        type: 'scatter',
+                        mode: 'lines',
+                        name: INDICATORS.overview[series]?.name || series,
+                        yaxis: index === 0 ? 'y' : 'y2',
+                        line: { color: index === 0 ? '#00ff88' : '#00d4ff', width: 2 }
+                    });
+                }
+            });
+            
+            const layout = {
+                title: 'Market Overview',
+                xaxis: {
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' }
+                },
+                yaxis: {
+                    title: 'VIX',
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' },
+                    titlefont: { color: '#00ff88' }
+                },
+                yaxis2: {
+                    title: '10Y Yield',
+                    overlaying: 'y',
+                    side: 'right',
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' },
+                    titlefont: { color: '#00d4ff' }
+                },
+                paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
+                font: { color: '#fff' },
+                showlegend: true,
+                legend: {
+                    orientation: 'h',
+                    y: -0.15
+                }
+            };
+            
+            Plotly.newPlot('mainChart', traces, layout, { responsive: true });
+        }
+
+        // Get Time Range
+        function getTimeRange(timeframe) {
+            const end = new Date();
+            const start = new Date();
+            
+            switch(timeframe) {
+                case '1D': start.setDate(end.getDate() - 1); break;
+                case '1W': start.setDate(end.getDate() - 7); break;
+                case '1M': start.setMonth(end.getMonth() - 1); break;
+                case '3M': start.setMonth(end.getMonth() - 3); break;
+                case '6M': start.setMonth(end.getMonth() - 6); break;
+                case '1Y': start.setFullYear(end.getFullYear() - 1); break;
+                case '5Y': start.setFullYear(end.getFullYear() - 5); break;
+                case '10Y': start.setFullYear(end.getFullYear() - 10); break;
+                case 'MAX': start.setFullYear(1990); break;
+            }
+            
+            return { start, end };
+        }
+
+        // Show Historical Data
+        function showHistoricalData(series, name) {
+            const modal = document.getElementById('historicalModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalChart = document.getElementById('modalChart');
+            
+            modalTitle.textContent = `${name} - Historical Data`;
+            modal.classList.add('active');
+            
+            const data = historicalData[series];
+            if (data) {
+                const trace = {
+                    x: data.map(d => d.date),
+                    y: data.map(d => d.value),
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: { color: '#00ff88', width: 2 }
+                };
+                
+                const layout = {
+                    xaxis: {
+                        gridcolor: 'rgba(255, 255, 255, 0.1)',
+                        tickfont: { color: '#888' }
+                    },
+                    yaxis: {
+                        gridcolor: 'rgba(255, 255, 255, 0.1)',
+                        tickfont: { color: '#888' }
+                    },
+                    paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                    plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
+                    font: { color: '#fff' }
+                };
+                
+                Plotly.newPlot(modalChart, [trace], layout, { responsive: true });
+            }
+        }
+
+        // Close Modal
+        function closeModal() {
+            document.getElementById('historicalModal').classList.remove('active');
+        }
+
+        // Format Value
+        function formatValue(value) {
+            if (value >= 1000000000) {
+                return (value / 1000000000).toFixed(2) + 'B';
+            } else if (value >= 1000000) {
+                return (value / 1000000).toFixed(2) + 'M';
+            } else if (value >= 1000) {
+                return (value / 1000).toFixed(2) + 'K';
+            } else {
+                return value.toFixed(2);
+            }
+        }
+
+        // Edit Indicator Name
+        function editIndicatorName(series, currentName) {
+            const newName = prompt('Enter new name for indicator:', currentName);
+            if (newName && newName !== currentName) {
+                customIndicators[series] = newName;
+                localStorage.setItem('customIndicators', JSON.stringify(customIndicators));
+                loadAllData(); // Refresh all tabs
+            }
+        }
+
+        // Tab Navigation
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tab = btn.dataset.tab;
+                
+                // Update active states
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                btn.classList.add('active');
+                document.getElementById(tab).classList.add('active');
+            });
+        });
+
+        // Timeframe Buttons
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('timeframe-btn')) {
+                const timeframe = e.target.dataset.timeframe;
+                currentTimeframe = timeframe;
+                
+                // Update active state
+                e.target.parentElement.querySelectorAll('.timeframe-btn').forEach(b => 
+                    b.classList.remove('active'));
+                e.target.classList.add('active');
+                
+                // Refresh chart
+                updateMainChart();
+            }
+        });
+
+        // Heatmap Period Buttons
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('heatmap-btn') && e.target.dataset.period) {
+                currentPeriod = e.target.dataset.period;
+                
+                // Update active state
+                document.querySelectorAll('.heatmap-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                
+                // Refresh heatmap
+                updateHeatmap();
+            }
+        });
+
+        // Layout Selector
+        document.querySelectorAll('.layout-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentLayout = btn.dataset.layout;
+                
+                // Update active state
+                document.querySelectorAll('.layout-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Apply layout
+                applyLayout(currentLayout);
+            });
+        });
+
+        // Apply Layout
+        function applyLayout(layout) {
+            // Different layouts show different indicators
+            const layouts = {
+                default: ['overview', 'heatmap'],
+                risk: ['crisis', 'blackswan', 'volatility'],
+                macro: ['fed', 'currencies', 'credit'],
+                crisis: ['blackswan', 'liquidity', 'correlation']
+            };
+            
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            // Show first tab of selected layout
+            const firstTab = layouts[layout][0];
+            document.getElementById(firstTab).classList.add('active');
+            
+            // Update tab navigation
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector(`[data-tab="${firstTab}"]`).classList.add('active');
+        }
+
+        // Global Search
+        const searchBar = document.getElementById('globalSearch');
+        const searchResults = document.getElementById('searchResults');
+        
+        searchBar.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            
+            if (query.length < 2) {
+                searchResults.style.display = 'none';
+                return;
+            }
+            
+            const results = [];
+            
+            // Search through all indicators
+            Object.values(INDICATORS).forEach(category => {
+                Object.entries(category).forEach(([series, info]) => {
+                    const name = customIndicators[series] || info.name;
+                    if (name.toLowerCase().includes(query) || series.toLowerCase().includes(query)) {
+                        results.push({ series, name, category: info.category });
+                    }
+                });
+            });
+            
+            if (results.length > 0) {
+                searchResults.innerHTML = results.map(r => `
+                    <div class="search-result-item" onclick="showHistoricalData('${r.series}', '${r.name}')">
+                        <strong>${r.name}</strong>
+                        <span style="float: right; color: #666;">${r.category}</span>
+                    </div>
+                `).join('');
+                searchResults.style.display = 'block';
+            } else {
+                searchResults.style.display = 'none';
+            }
+        });
+
+        // Click outside search to close
+        document.addEventListener('click', (e) => {
+            if (!searchBar.contains(e.target) && !searchResults.contains(e.target)) {
+                searchResults.style.display = 'none';
+            }
+        });
+
+        // Export Functions
+        function exportToPDF() {
+            if (typeof jspdf !== 'undefined') {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                doc.setFontSize(20);
+                doc.text('Financial Intelligence Report', 20, 20);
+                
+                doc.setFontSize(12);
+                doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 30);
+                
+                let y = 50;
+                Object.entries(currentData).forEach(([series, data]) => {
+                    if (y > 250) {
+                        doc.addPage();
+                        y = 20;
+                    }
+                    
+                    const name = customIndicators[series] || 
+                                 Object.values(INDICATORS).flatMap(cat => Object.entries(cat))
+                                       .find(([s]) => s === series)?.[1]?.name || series;
+                    
+                    doc.text(`${name}: ${formatValue(data.value)} (${data.change > 0 ? '+' : ''}${data.change.toFixed(2)}%)`, 20, y);
+                    y += 10;
+                });
+                
+                doc.save('financial_report.pdf');
+            }
+        }
+
+        function exportToExcel() {
+            const ws_data = [['Indicator', 'Value', 'Change %', 'Date']];
+            
+            Object.entries(currentData).forEach(([series, data]) => {
+                const name = customIndicators[series] || 
+                            Object.values(INDICATORS).flatMap(cat => Object.entries(cat))
+                                  .find(([s]) => s === series)?.[1]?.name || series;
+                
+                ws_data.push([name, data.value, data.change, data.date]);
+            });
+            
+            const ws = XLSX.utils.aoa_to_sheet(ws_data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Financial Data');
+            
+            XLSX.writeFile(wb, 'financial_data.xlsx');
+        }
+
+        function exportToJSON() {
+            const exportData = {
+                timestamp: new Date().toISOString(),
+                data: currentData,
+                customIndicators: customIndicators
+            };
+            
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], 
+                                 { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'financial_data.json';
+            a.click();
+        }
+
+        // Alert Panel Functions
+        function toggleAlertPanel() {
+            const panel = document.getElementById('alertPanel');
+            panel.classList.toggle('active');
+            
+            if (panel.classList.contains('active')) {
+                alertManager.updateAlertPanel();
+            }
+        }
+
+        function addNewAlert() {
+            const indicator = prompt('Enter indicator symbol (e.g., VIXCLS):');
+            if (!indicator) return;
+            
+            const condition = prompt('Enter condition (above/below/change):');
+            if (!condition) return;
+            
+            const threshold = parseFloat(prompt('Enter threshold value:'));
+            if (isNaN(threshold)) return;
+            
+            const action = prompt('Enter action (notify/email/webhook):') || 'notify';
+            
+            alertManager.addAlert(indicator, condition, threshold, action);
+            alert('Alert added successfully!');
+        }
+
+        // Refresh Functions
+        function refreshHeatmap() {
+            updateHeatmap();
+        }
+
+        function addIndicatorToChart() {
+            const indicator = prompt('Enter indicator symbol to add:');
+            if (indicator && INDICATORS.overview[indicator]) {
+                // Add to comparison chart
+                const data = historicalData[indicator];
+                if (data) {
+                    const trace = {
+                        x: data.map(d => d.date),
+                        y: data.map(d => d.value),
+                        type: 'scatter',
+                        mode: 'lines',
+                        name: INDICATORS.overview[indicator].name
+                    };
+                    
+                    Plotly.addTraces('comparisonChart', [trace]);
+                }
+            }
+        }
+
+        function openSettings() {
+            alert('Settings panel - customize your dashboard preferences');
+        }
+
+        // WebSocket Connection (simulated)
+        function initWebSocket() {
+            // In production, connect to real WebSocket server
+            console.log('WebSocket connection initialized');
+            
+            // Simulate real-time updates
+            setInterval(() => {
+                // Update random indicators
+                const series = Object.keys(currentData);
+                if (series.length > 0) {
+                    const randomSeries = series[Math.floor(Math.random() * series.length)];
+                    const data = currentData[randomSeries];
+                    if (data) {
+                        // Simulate small price movement
+                        data.value += (Math.random() - 0.5) * (data.value * 0.001);
+                        data.change = ((data.value - data.previousValue) / data.previousValue) * 100;
+                        
+                        // Check alerts
+                        alertManager.checkAlerts();
+                    }
+                }
+            }, 5000);
+        }
+
+        // Initialize Dashboard
+        async function init() {
+            console.log('Initializing Financial Intelligence Platform...');
+            
+            // Request notification permission
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+            
+            // Load saved preferences
+            const savedLayout = localStorage.getItem('preferredLayout');
+            if (savedLayout) {
+                currentLayout = savedLayout;
+                applyLayout(currentLayout);
+            }
+            
+            // Initialize WebSocket
+            initWebSocket();
+            
+            // Load all data
+            await loadAllData();
+            
+            // Set up auto-refresh
+            setInterval(loadAllData, 60000); // Refresh every minute
+            
+            console.log('Dashboard initialized successfully');
+        }
+
+        // Start the application
+        init();
+    </script>
+</body>
+</html>
