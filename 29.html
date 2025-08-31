@@ -3,465 +3,526 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FRED Real-Time Financial Dashboard</title>
-    <script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <title>Ultimate FRED Financial Intelligence Platform v10.0</title>
+    
+    <!-- Required Libraries -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary-green: #00ff88;
+            --primary-blue: #00ccff;
+            --danger-red: #ff4444;
+            --warning-orange: #ffaa00;
+            --bg-dark: #0a0e27;
+            --bg-light: #151932;
+            --text-primary: #e0e0e0;
+            --text-secondary: #888;
         }
-
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #0a0e1a 0%, #1a1f3a 100%);
-            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-light) 100%);
+            color: var(--text-primary);
             min-height: 100vh;
-            overflow-x: hidden;
         }
-
+        
         /* Header Styles */
         .header {
-            background: rgba(10, 14, 26, 0.95);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(20, 24, 44, 0.95);
+            backdrop-filter: blur(10px);
             padding: 1rem 2rem;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-
-        .header-content {
+            border-bottom: 1px solid rgba(0, 255, 136, 0.2);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            max-width: 1800px;
-            margin: 0 auto;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
-
+        
         .logo {
             font-size: 1.5rem;
             font-weight: bold;
-            background: linear-gradient(135deg, #00ff88, #00d4ff);
+            background: linear-gradient(45deg, var(--primary-green), var(--primary-blue));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-        }
-
-        .header-controls {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-        }
-
-        /* Alert Badge */
-        .alert-badge {
-            position: relative;
-            cursor: pointer;
-        }
-
-        .alert-count {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background: #ff4444;
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
-            font-weight: bold;
+            gap: 0.5rem;
         }
-
-        /* Search Bar */
-        .search-container {
-            position: relative;
-            flex: 1;
-            max-width: 500px;
-            margin: 0 2rem;
-        }
-
-        .search-bar {
-            width: 100%;
-            padding: 0.75rem 3rem 0.75rem 1rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            color: #fff;
-            font-size: 0.9rem;
-            transition: all 0.3s;
-        }
-
-        .search-bar:focus {
-            outline: none;
-            background: rgba(255, 255, 255, 0.08);
-            border-color: #00ff88;
-            box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
-        }
-
-        .search-results {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: rgba(10, 14, 26, 0.98);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            margin-top: 0.5rem;
-            max-height: 400px;
+        
+        /* Alert System */
+        .alert-manager {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            width: 350px;
+            max-height: 500px;
             overflow-y: auto;
+            background: rgba(20, 24, 44, 0.95);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 12px;
+            padding: 1rem;
             display: none;
-            z-index: 1001;
+            z-index: 2000;
         }
-
-        .search-result-item {
-            padding: 0.75rem 1rem;
-            cursor: pointer;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            transition: background 0.2s;
+        
+        .alert-manager.active {
+            display: block;
         }
-
-        .search-result-item:hover {
-            background: rgba(0, 255, 136, 0.1);
+        
+        .alert-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-
+        
+        .alert-triggered {
+            background: rgba(255, 68, 68, 0.2);
+            border: 1px solid var(--danger-red);
+        }
+        
         /* Tabs Navigation */
         .tabs-nav {
-            background: rgba(255, 255, 255, 0.02);
-            padding: 0.5rem 2rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             display: flex;
             gap: 0.5rem;
+            margin-bottom: 2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 0.5rem;
             overflow-x: auto;
-            position: sticky;
-            top: 73px;
-            z-index: 999;
+            position: relative;
         }
-
+        
         .tab-btn {
             padding: 0.75rem 1.5rem;
             background: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: none;
             border-radius: 8px;
-            color: #888;
+            color: var(--text-secondary);
             cursor: pointer;
+            font-size: 0.95rem;
             transition: all 0.3s;
             white-space: nowrap;
-            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
-
+        
         .tab-btn:hover {
             background: rgba(255, 255, 255, 0.05);
             color: #fff;
         }
-
+        
         .tab-btn.active {
-            background: linear-gradient(135deg, rgba(0, 255, 136, 0.2), rgba(0, 212, 255, 0.2));
-            border-color: #00ff88;
-            color: #00ff88;
+            background: var(--primary-green);
+            color: #000;
+            font-weight: bold;
         }
-
+        
+        .tab-btn .edit-tab {
+            margin-left: 0.5rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .tab-btn:hover .edit-tab {
+            opacity: 1;
+        }
+        
+        /* Container */
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
         /* Tab Content */
         .tab-content {
             display: none;
-            padding: 2rem;
-            animation: fadeIn 0.5s;
         }
-
+        
         .tab-content.active {
             display: block;
         }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        
+        /* Indicator Management Panel */
+        .indicator-manager {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
-
-        /* Dashboard Grid */
-        .dashboard-grid {
+        
+        .indicator-search {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #fff;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+        
+        .indicator-list {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 0.75rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .indicator-item {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .indicator-item:hover {
+            background: rgba(0, 255, 136, 0.1);
+        }
+        
+        .indicator-item.selected {
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid var(--primary-green);
+        }
+        
+        /* Advanced Chart Container */
+        .advanced-chart-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .chart-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .timeframe-selector {
+            display: flex;
+            gap: 0.25rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 0.25rem;
+        }
+        
+        .timeframe-btn {
+            padding: 0.5rem 0.75rem;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+        }
+        
+        .timeframe-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+        
+        .timeframe-btn.active {
+            background: var(--primary-green);
+            color: #000;
+        }
+        
+        /* Chart Tools */
+        .chart-tools {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .tool-btn {
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .tool-btn:hover {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: var(--primary-green);
+        }
+        
+        .tool-btn.active {
+            background: var(--primary-green);
+            color: #000;
+        }
+        
+        /* Comparison Panel */
+        .comparison-panel {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+        
+        .comparison-metric {
+            text-align: center;
+        }
+        
+        .comparison-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-bottom: 0.25rem;
+        }
+        
+        .comparison-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .comparison-change {
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+        
+        /* Data Grid */
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
-
-        .metric-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
+        
+        .data-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
             padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
             transition: all 0.3s;
             cursor: pointer;
             position: relative;
-            overflow: hidden;
         }
-
-        .metric-card:hover {
+        
+        .data-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 40px rgba(0, 255, 136, 0.2);
-            border-color: rgba(0, 255, 136, 0.5);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.2);
+            border-color: var(--primary-green);
         }
-
-        .metric-header {
+        
+        .card-actions {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
+            gap: 0.25rem;
+            opacity: 0;
+            transition: opacity 0.3s;
         }
-
-        .metric-title {
-            font-size: 0.9rem;
-            color: #888;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+        
+        .data-card:hover .card-actions {
+            opacity: 1;
         }
-
-        .metric-value {
-            font-size: 2rem;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-        }
-
-        .metric-change {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-
-        .metric-change.positive {
-            background: rgba(0, 255, 136, 0.2);
-            color: #00ff88;
-        }
-
-        .metric-change.negative {
-            background: rgba(255, 68, 68, 0.2);
-            color: #ff4444;
-        }
-
-        /* Charts Container */
-        .charts-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
-            gap: 2rem;
-            margin-top: 2rem;
-        }
-
-        .chart-wrapper {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 1.5rem;
-            position: relative;
-        }
-
-        .chart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .chart-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-
-        .chart-controls {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .timeframe-btn {
-            padding: 0.5rem 1rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 6px;
-            color: #888;
+        
+        .action-btn {
+            padding: 0.25rem 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 4px;
+            color: var(--text-secondary);
             cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.85rem;
-        }
-
-        .timeframe-btn:hover {
-            background: rgba(255, 255, 255, 0.08);
-            color: #fff;
-        }
-
-        .timeframe-btn.active {
-            background: rgba(0, 255, 136, 0.2);
-            border-color: #00ff88;
-            color: #00ff88;
-        }
-
-        /* Heatmap Styles */
-        .heatmap-container {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 2rem;
-        }
-
-        .heatmap-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-        }
-
-        .heatmap-title {
-            font-size: 1.5rem;
-            font-weight: bold;
-            background: linear-gradient(135deg, #00ff88, #00d4ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .heatmap-controls {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .heatmap-btn {
-            padding: 0.75rem 1.5rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            color: #888;
-            cursor: pointer;
+            font-size: 0.75rem;
             transition: all 0.3s;
-            font-size: 0.9rem;
         }
-
-        .heatmap-btn:hover {
-            background: rgba(255, 255, 255, 0.08);
-            color: #fff;
-        }
-
-        .heatmap-btn.active {
+        
+        .action-btn:hover {
             background: rgba(0, 255, 136, 0.2);
-            border-color: #00ff88;
-            color: #00ff88;
+            color: var(--primary-green);
         }
-
+        
+        /* Heatmap Grid */
         .heatmap-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 0.75rem;
-            margin-bottom: 2rem;
+            grid-template-columns: minmax(200px, 1fr) repeat(7, minmax(100px, 1fr));
+            gap: 2px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2px;
+            border-radius: 8px;
+            overflow-x: auto;
         }
-
+        
         .heatmap-cell {
             padding: 1rem;
-            border-radius: 12px;
             text-align: center;
-            cursor: pointer;
+            font-size: 0.875rem;
             transition: all 0.3s;
+            border-radius: 4px;
             position: relative;
-            overflow: hidden;
-            min-height: 120px;
+            min-height: 60px;
             display: flex;
             flex-direction: column;
             justify-content: center;
-        }
-
-        .heatmap-cell:hover {
-            transform: scale(1.05);
-            z-index: 10;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        }
-
-        .heatmap-cell.positive {
-            background: linear-gradient(135deg, rgba(0, 255, 136, 0.3), rgba(0, 255, 136, 0.1));
-            border: 1px solid rgba(0, 255, 136, 0.5);
-        }
-
-        .heatmap-cell.negative {
-            background: linear-gradient(135deg, rgba(255, 68, 68, 0.3), rgba(255, 68, 68, 0.1));
-            border: 1px solid rgba(255, 68, 68, 0.5);
-        }
-
-        .heatmap-cell.neutral {
-            background: linear-gradient(135deg, rgba(255, 193, 7, 0.3), rgba(255, 193, 7, 0.1));
-            border: 1px solid rgba(255, 193, 7, 0.5);
-        }
-
-        .heatmap-cell.alarming {
-            animation: flash 1s infinite;
-        }
-
-        @keyframes flash {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .heatmap-symbol {
-            font-size: 0.8rem;
-            color: #bbb;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-        }
-
-        .heatmap-value {
-            font-size: 1.2rem;
-            font-weight: bold;
-            margin-bottom: 0.25rem;
-        }
-
-        .heatmap-change {
-            font-size: 1rem;
-            font-weight: 600;
-        }
-
-        /* Alert System */
-        .alert-panel {
-            position: fixed;
-            right: -400px;
-            top: 0;
-            width: 400px;
-            height: 100vh;
-            background: rgba(10, 14, 26, 0.98);
-            border-left: 1px solid rgba(255, 255, 255, 0.1);
-            transition: right 0.3s;
-            z-index: 1002;
-            overflow-y: auto;
-        }
-
-        .alert-panel.active {
-            right: 0;
-        }
-
-        .alert-panel-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            justify-content: space-between;
             align-items: center;
         }
-
-        .alert-item {
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            transition: background 0.2s;
+        
+        .heatmap-cell.header {
+            background: rgba(0, 255, 136, 0.1);
+            font-weight: bold;
+            color: var(--primary-green);
+            text-transform: uppercase;
+            font-size: 0.75rem;
         }
-
-        .alert-item:hover {
-            background: rgba(255, 255, 255, 0.02);
+        
+        /* Heatmap color gradients */
+        .heat-extreme-negative { background: linear-gradient(135deg, #8B0000, #DC143C); color: #fff; }
+        .heat-high-negative { background: linear-gradient(135deg, #DC143C, #FF4444); color: #fff; }
+        .heat-moderate-negative { background: linear-gradient(135deg, #FF4444, #FF6666); color: #fff; }
+        .heat-low-negative { background: linear-gradient(135deg, #FF6666, #FF8888); color: #fff; }
+        .heat-neutral { background: rgba(255, 255, 255, 0.05); color: var(--text-secondary); }
+        .heat-low-positive { background: linear-gradient(135deg, #88FF88, #66FF66); color: #000; }
+        .heat-moderate-positive { background: linear-gradient(135deg, #66FF66, #44FF44); color: #000; }
+        .heat-high-positive { background: linear-gradient(135deg, #44FF44, #00FF44); color: #000; }
+        .heat-extreme-positive { background: linear-gradient(135deg, #00FF44, #00CC33); color: #000; }
+        
+        /* Export Panel */
+        .export-panel {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(20, 24, 44, 0.95);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 12px;
+            padding: 1rem;
+            display: none;
+            z-index: 1000;
         }
-
-        .alert-item.triggered {
-            background: rgba(255, 68, 68, 0.1);
-            border-left: 3px solid #ff4444;
+        
+        .export-panel.active {
+            display: block;
         }
-
-        /* Modal Styles */
+        
+        .export-btn {
+            display: block;
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .export-btn:hover {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: var(--primary-green);
+        }
+        
+        /* Correlation Matrix */
+        .correlation-matrix {
+            overflow-x: auto;
+            margin: 2rem 0;
+        }
+        
+        .correlation-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .correlation-table th,
+        .correlation-table td {
+            padding: 0.5rem;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.875rem;
+        }
+        
+        .correlation-table th {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--primary-green);
+        }
+        
+        .correlation-cell {
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .correlation-positive-high { background: rgba(0, 255, 136, 0.3); }
+        .correlation-positive-medium { background: rgba(0, 255, 136, 0.15); }
+        .correlation-positive-low { background: rgba(0, 255, 136, 0.05); }
+        .correlation-negative-low { background: rgba(255, 68, 68, 0.05); }
+        .correlation-negative-medium { background: rgba(255, 68, 68, 0.15); }
+        .correlation-negative-high { background: rgba(255, 68, 68, 0.3); }
+        
+        /* Anomaly Detection */
+        .anomaly-badge {
+            position: absolute;
+            top: 0.5rem;
+            left: 0.5rem;
+            background: var(--danger-red);
+            color: #fff;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+        }
+        
+        /* Loading Spinner */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(0, 255, 136, 0.3);
+            border-top-color: var(--primary-green);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -470,539 +531,540 @@
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.8);
-            z-index: 2000;
+            z-index: 3000;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal.active {
+            display: flex;
             align-items: center;
             justify-content: center;
         }
-
-        .modal.active {
-            display: flex;
-        }
-
+        
         .modal-content {
-            background: rgba(10, 14, 26, 0.98);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: linear-gradient(135deg, var(--bg-light) 0%, var(--bg-dark) 100%);
             border-radius: 16px;
             padding: 2rem;
             width: 90%;
-            max-width: 1200px;
+            max-width: 800px;
             max-height: 90vh;
             overflow-y: auto;
-            position: relative;
+            border: 1px solid rgba(0, 255, 136, 0.3);
         }
-
-        .modal-close {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, var(--primary-green), var(--primary-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .close-modal {
             background: rgba(255, 255, 255, 0.1);
             border: none;
             color: #fff;
-            font-size: 1.5rem;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s;
         }
-
-        .modal-close:hover {
-            background: rgba(255, 68, 68, 0.3);
+        
+        .close-modal:hover {
+            background: rgba(255, 68, 68, 0.2);
+            color: var(--danger-red);
         }
-
-        /* Loading Spinner */
-        .loading {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 3rem;
-        }
-
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid rgba(255, 255, 255, 0.1);
-            border-top-color: #00ff88;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Export Controls */
-        .export-controls {
-            display: flex;
-            gap: 0.5rem;
-            margin-left: auto;
-        }
-
-        .export-btn {
-            padding: 0.5rem 1rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 6px;
-            color: #888;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.85rem;
-        }
-
-        .export-btn:hover {
-            background: rgba(255, 255, 255, 0.08);
-            color: #fff;
-        }
-
-        /* Indicator Editor */
-        .indicator-name {
-            cursor: pointer;
-            padding: 2px 4px;
-            border-radius: 4px;
-            transition: background 0.2s;
-        }
-
-        .indicator-name:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .indicator-name.editing {
-            background: rgba(0, 255, 136, 0.2);
-        }
-
-        /* Layout Selector */
-        .layout-selector {
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-        }
-
-        .layout-btn {
-            padding: 0.5rem 1rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 6px;
-            color: #888;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.85rem;
-        }
-
-        .layout-btn:hover {
-            background: rgba(255, 255, 255, 0.08);
-            color: #fff;
-        }
-
-        .layout-btn.active {
-            background: rgba(0, 255, 136, 0.2);
-            border-color: #00ff88;
-            color: #00ff88;
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 10px;
-            height: 10px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 5px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
+        
         /* Responsive Design */
         @media (max-width: 768px) {
-            .header-content {
-                flex-direction: column;
-                gap: 1rem;
-            }
-
-            .search-container {
-                margin: 0;
-                max-width: 100%;
-            }
-
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .charts-container {
-                grid-template-columns: 1fr;
-            }
-
-            .heatmap-grid {
-                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            }
-
-            .alert-panel {
-                width: 100%;
-            }
-        }
-
-        .api-status {
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            background: rgba(0, 255, 136, 0.2);
-            color: #00ff88;
-        }
-
-        .api-status.error {
-            background: rgba(255, 68, 68, 0.2);
-            color: #ff4444;
+            .header { padding: 1rem; }
+            .data-grid { grid-template-columns: 1fr; }
+            .heatmap-grid { grid-template-columns: minmax(120px, 1fr) repeat(3, minmax(80px, 1fr)); }
+            .tabs-nav { overflow-x: auto; }
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
     <header class="header">
-        <div class="header-content">
-            <div class="logo">📊 FRED Financial Dashboard</div>
-            
-            <!-- Search Bar -->
-            <div class="search-container">
-                <input type="text" class="search-bar" placeholder="Search FRED indicators..." id="globalSearch">
-                <div class="search-results" id="searchResults"></div>
-            </div>
-            
-            <!-- Header Controls -->
-            <div class="header-controls">
-                <!-- API Status -->
-                <div class="api-status" id="apiStatus">API: Connected</div>
-                
-                <!-- Layout Selector -->
-                <div class="layout-selector">
-                    <button class="layout-btn active" data-layout="default">Default</button>
-                    <button class="layout-btn" data-layout="risk">Risk</button>
-                    <button class="layout-btn" data-layout="macro">Macro</button>
-                </div>
-                
-                <!-- Export Controls -->
-                <div class="export-controls">
-                    <button class="export-btn" onclick="exportToPDF()">📄 PDF</button>
-                    <button class="export-btn" onclick="exportToExcel()">📊 Excel</button>
-                    <button class="export-btn" onclick="exportToJSON()">📁 JSON</button>
-                </div>
-                
-                <!-- Alert Badge -->
-                <div class="alert-badge" onclick="toggleAlertPanel()">
-                    🔔
-                    <span class="alert-count" id="alertCount">0</span>
-                </div>
-            </div>
+        <div class="logo">
+            📊 Ultimate FRED Platform
+            <span style="font-size: 0.875rem; color: var(--text-secondary);">v10.0</span>
+        </div>
+        
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <button class="tool-btn" onclick="toggleAlertManager()">
+                🔔 Alerts <span id="alertCount" style="background: var(--danger-red); padding: 0.125rem 0.25rem; border-radius: 4px; margin-left: 0.25rem;">0</span>
+            </button>
+            <button class="tool-btn" onclick="toggleExportPanel()">
+                📥 Export
+            </button>
+            <button class="tool-btn" onclick="openCustomizeDashboard()">
+                ⚙️ Customize
+            </button>
+            <button class="tool-btn" onclick="forceRefreshAllData()">
+                🔄 Refresh
+            </button>
         </div>
     </header>
-
-    <!-- Tabs Navigation -->
-    <nav class="tabs-nav">
-        <button class="tab-btn active" data-tab="overview">📈 Overview</button>
-        <button class="tab-btn" data-tab="heatmap">🔥 Heatmap</button>
-        <button class="tab-btn" data-tab="fed">🏛️ Federal Reserve</button>
-        <button class="tab-btn" data-tab="blackswan">🦢 Black Swan</button>
-        <button class="tab-btn" data-tab="liquidity">💧 Liquidity</button>
-        <button class="tab-btn" data-tab="currencies">💱 Currencies</button>
-        <button class="tab-btn" data-tab="credit">📊 Credit Markets</button>
-        <button class="tab-btn" data-tab="crisis">⚠️ Crisis Indicators</button>
-        <button class="tab-btn" data-tab="ml">🤖 ML Predictions</button>
-        <button class="tab-btn" data-tab="signals">📡 Trading Signals</button>
-        <button class="tab-btn" data-tab="alerts">🚨 Alerts</button>
-    </nav>
-
-    <!-- Main Content -->
-    <main>
-        <!-- Overview Tab -->
-        <div class="tab-content active" id="overview">
-            <div class="dashboard-grid" id="overviewGrid">
-                <div class="loading"><div class="spinner"></div></div>
-            </div>
-            
-            <div class="charts-container">
-                <div class="chart-wrapper">
-                    <div class="chart-header">
-                        <h3 class="chart-title">Market Overview</h3>
-                        <div class="chart-controls">
-                            <button class="timeframe-btn" data-timeframe="1M">1M</button>
-                            <button class="timeframe-btn" data-timeframe="3M">3M</button>
-                            <button class="timeframe-btn" data-timeframe="6M">6M</button>
-                            <button class="timeframe-btn active" data-timeframe="1Y">1Y</button>
-                            <button class="timeframe-btn" data-timeframe="5Y">5Y</button>
-                            <button class="timeframe-btn" data-timeframe="10Y">10Y</button>
-                            <button class="timeframe-btn" data-timeframe="20Y">20Y</button>
-                            <button class="timeframe-btn" data-timeframe="MAX">MAX</button>
-                        </div>
-                    </div>
-                    <div id="mainChart" style="height: 400px;"></div>
-                </div>
-                
-                <div class="chart-wrapper">
-                    <div class="chart-header">
-                        <h3 class="chart-title">Comparison Chart</h3>
-                        <div class="chart-controls">
-                            <button class="export-btn" onclick="addIndicatorToChart()">+ Add Indicator</button>
-                        </div>
-                    </div>
-                    <div id="comparisonChart" style="height: 400px;"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Heatmap Tab -->
-        <div class="tab-content" id="heatmap">
-            <div class="heatmap-container">
-                <div class="heatmap-header">
-                    <h1 class="heatmap-title">Market Indicators Heatmap</h1>
-                    <div class="heatmap-controls">
-                        <button class="heatmap-btn active" data-period="DoD">Day-over-Day</button>
-                        <button class="heatmap-btn" data-period="WoW">Week-over-Week</button>
-                        <button class="heatmap-btn" data-period="MoM">Month-over-Month</button>
-                        <button class="heatmap-btn" data-period="QoQ">Quarter-over-Quarter</button>
-                        <button class="heatmap-btn" data-period="YoY">Year-over-Year</button>
-                        <button class="heatmap-btn" onclick="refreshHeatmap()">🔄 Refresh</button>
-                    </div>
-                </div>
-                
-                <div class="heatmap-grid" id="heatmapGrid">
-                    <div class="loading"><div class="spinner"></div></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Federal Reserve Tab -->
-        <div class="tab-content" id="fed">
-            <div class="dashboard-grid" id="fedGrid">
-                <div class="loading"><div class="spinner"></div></div>
-            </div>
-        </div>
-
-        <!-- Black Swan Tab -->
-        <div class="tab-content" id="blackswan">
-            <div class="dashboard-grid" id="blackswanGrid">
-                <div class="loading"><div class="spinner"></div></div>
-            </div>
-        </div>
-
-        <!-- Liquidity Tab -->
-        <div class="tab-content" id="liquidity">
-            <div class="dashboard-grid" id="liquidityGrid">
-                <div class="loading"><div class="spinner"></div></div>
-            </div>
-        </div>
-
-        <!-- Currencies Tab -->
-        <div class="tab-content" id="currencies">
-            <div class="dashboard-grid" id="currenciesGrid">
-                <div class="loading"><div class="spinner"></div></div>
-            </div>
-        </div>
-
-        <!-- Credit Markets Tab -->
-        <div class="tab-content" id="credit">
-            <div class="dashboard-grid" id="creditGrid">
-                <div class="loading"><div class="spinner"></div></div>
-            </div>
-        </div>
-
-        <!-- Crisis Indicators Tab -->
-        <div class="tab-content" id="crisis">
-            <div class="dashboard-grid" id="crisisGrid">
-                <div class="loading"><div class="spinner"></div></div>
-            </div>
-        </div>
-
-        <!-- ML Predictions Tab -->
-        <div class="tab-content" id="ml">
-            <div class="dashboard-grid" id="mlGrid">
-                <div class="loading"><div class="spinner"></div></div>
-            </div>
-        </div>
-
-        <!-- Trading Signals Tab -->
-        <div class="tab-content" id="signals">
-            <div class="dashboard-grid" id="signalsGrid">
-                <div class="loading"><div class="spinner"></div></div>
-            </div>
-        </div>
-
-        <!-- Alerts Tab -->
-        <div class="tab-content" id="alerts">
-            <div class="heatmap-container">
-                <div class="heatmap-header">
-                    <h1 class="heatmap-title">Alert Configuration</h1>
-                    <button class="heatmap-btn" onclick="addNewAlert()">+ Add Alert</button>
-                </div>
-                <div id="alertsList"></div>
-            </div>
-        </div>
-    </main>
-
-    <!-- Alert Panel -->
-    <div class="alert-panel" id="alertPanel">
-        <div class="alert-panel-header">
-            <h3>Active Alerts</h3>
-            <button class="modal-close" onclick="toggleAlertPanel()">×</button>
-        </div>
-        <div id="alertPanelContent"></div>
+    
+    <!-- Alert Manager -->
+    <div class="alert-manager" id="alertManager">
+        <h3 style="margin-bottom: 1rem;">Alert Manager</h3>
+        <div id="alertsList"></div>
+        <button class="export-btn" onclick="createNewAlert()">+ New Alert</button>
     </div>
-
-    <!-- Modal for Historical Data -->
-    <div class="modal" id="historicalModal">
+    
+    <!-- Export Panel -->
+    <div class="export-panel" id="exportPanel">
+        <h3 style="margin-bottom: 1rem;">Export Data</h3>
+        <button class="export-btn" onclick="exportToPDF()">📄 Export to PDF</button>
+        <button class="export-btn" onclick="exportToExcel()">📊 Export to Excel</button>
+        <button class="export-btn" onclick="exportToCSV()">📁 Export to CSV</button>
+        <button class="export-btn" onclick="exportToJSON()">{ } Export to JSON</button>
+    </div>
+    
+    <div class="container">
+        <!-- Dynamic Tabs Navigation -->
+        <div class="tabs-nav" id="tabsNav">
+            <!-- Tabs will be dynamically generated -->
+        </div>
+        
+        <!-- Dynamic Tab Contents -->
+        <div id="tabContents">
+            <!-- Tab contents will be dynamically generated -->
+        </div>
+    </div>
+    
+    <!-- Customize Dashboard Modal -->
+    <div class="modal" id="customizeModal">
         <div class="modal-content">
-            <button class="modal-close" onclick="closeModal()">×</button>
-            <h2 id="modalTitle">Historical Data</h2>
-            <div id="modalChart" style="height: 400px;"></div>
+            <div class="modal-header">
+                <h2 class="modal-title">Customize Dashboard</h2>
+                <button class="close-modal" onclick="closeCustomizeModal()">✕</button>
+            </div>
+            <div id="customizeContent">
+                <!-- Customization options will be loaded here -->
+            </div>
         </div>
     </div>
-
+    
     <script>
-        // Global Variables
-        let currentData = {};
-        let historicalData = {};
-        let customIndicators = JSON.parse(localStorage.getItem('customIndicators')) || {};
-        let alerts = JSON.parse(localStorage.getItem('alerts')) || [];
-        let currentLayout = 'default';
-        let currentPeriod = 'DoD';
-        let currentTimeframe = '1Y';
-
-        // IMPORTANT: Add your FRED API key here
-        const FRED_API_KEY = 'YOUR_FRED_API_KEY_HERE'; // Get from https://fred.stlouisfed.org/docs/api/api_key.html
-        
-        // FRED API Configuration
-        const FRED_BASE_URL = 'https://api.stlouisfed.org/fred/series/observations';
-        
-        // FRED Series IDs - These are real FRED series
-        const INDICATORS = {
-            overview: {
-                'VIXCLS': { name: 'CBOE Volatility Index: VIX', category: 'Volatility', units: 'Index' },
-                'DGS10': { name: '10-Year Treasury Rate', category: 'Rates', units: 'Percent' },
-                'DGS2': { name: '2-Year Treasury Rate', category: 'Rates', units: 'Percent' },
-                'DEXUSEU': { name: 'US/Euro Exchange Rate', category: 'Currency', units: 'US$/Euro' },
-                'DCOILWTICO': { name: 'WTI Crude Oil Price', category: 'Commodity', units: '$/Barrel' },
-                'GOLDAMGBD228NLBM': { name: 'Gold Price (London Fixing)', category: 'Commodity', units: '$/Ounce' },
-                'SP500': { name: 'S&P 500 Index', category: 'Equity', units: 'Index' },
-                'NASDAQCOM': { name: 'NASDAQ Composite Index', category: 'Equity', units: 'Index' }
+        // ====================================
+        // CONFIGURATION
+        // ====================================
+        const CONFIG = {
+            FRED_API_KEY: '2f057499936072679d8843d7fce99989',
+            FRED_BASE_URL: 'https://api.stlouisfed.org/fred',
+            
+            // OpenBB API endpoints (from your original config)
+            OPENBB_API: {
+                baseUrl: 'https://i70jxru6md.execute-api.us-east-1.amazonaws.com/prod/api/v1',
+                endpoints: {
+                    health: '/health',
+                    overview: '/dashboard/overview',
+                    mega: '/dashboard/mega',
+                    dxy: '/dxy',
+                    ice_bofa: '/ice_bofa',
+                    fed: '/fed',
+                    blackswan: '/blackswan',
+                    liquidity: '/liquidity',
+                    crisis: '/crisis'
+                }
             },
-            fed: {
-                'DFF': { name: 'Federal Funds Effective Rate', category: 'Policy', units: 'Percent' },
-                'WALCL': { name: 'Fed Total Assets', category: 'Balance Sheet', units: 'Millions of $' },
-                'RRPONTSYD': { name: 'Overnight Reverse Repo', category: 'Operations', units: 'Billions of $' },
-                'WSHOSHO': { name: 'Treasury Securities Held', category: 'Holdings', units: 'Millions of $' },
-                'WSHOMOR': { name: 'MBS Holdings', category: 'Holdings', units: 'Millions of $' },
-                'M2SL': { name: 'M2 Money Supply', category: 'Money Supply', units: 'Billions of $' },
-                'BOGMBASE': { name: 'Monetary Base', category: 'Money Supply', units: 'Billions of $' },
-                'EXCSRESNS': { name: 'Excess Reserves', category: 'Reserves', units: 'Billions of $' }
-            },
-            blackswan: {
-                'TEDRATE': { name: 'TED Spread', category: 'Credit Risk', units: 'Percent' },
-                'T10Y2Y': { name: '10-Year/2-Year Treasury Spread', category: 'Yield Curve', units: 'Percent' },
-                'T10Y3M': { name: '10-Year/3-Month Treasury Spread', category: 'Yield Curve', units: 'Percent' },
-                'BAMLH0A0HYM2': { name: 'US High Yield Spread', category: 'Credit', units: 'Percent' },
-                'BAMLC0A0CM': { name: 'US IG Corporate Spread', category: 'Credit', units: 'Percent' },
-                'STLFSI3': { name: 'St. Louis Fed Financial Stress Index', category: 'Stress', units: 'Index' },
-                'UMCSENT': { name: 'Consumer Sentiment', category: 'Sentiment', units: 'Index' },
-                'DCOILBRENTEU': { name: 'Brent Crude Oil Price', category: 'Energy', units: '$/Barrel' }
-            },
-            liquidity: {
-                'SOFR': { name: 'SOFR Rate', category: 'Funding', units: 'Percent' },
-                'EFFR': { name: 'Effective Fed Funds Rate', category: 'Funding', units: 'Percent' },
-                'IORB': { name: 'Interest on Reserve Balances', category: 'Policy', units: 'Percent' },
-                'DFEDTARU': { name: 'Fed Funds Target Upper', category: 'Policy', units: 'Percent' },
-                'DFEDTARL': { name: 'Fed Funds Target Lower', category: 'Policy', units: 'Percent' },
-                'DPCREDIT': { name: 'Primary Credit Rate', category: 'Discount Window', units: 'Percent' },
-                'TRESEGUSM052N': { name: 'Treasury General Account', category: 'Treasury', units: 'Millions of $' },
-                'WLRRAL': { name: 'Repo Agreements', category: 'Operations', units: 'Millions of $' }
-            },
-            currencies: {
-                'DTWEXBGS': { name: 'Trade Weighted US Dollar Index', category: 'Index', units: 'Index' },
-                'DEXJPUS': { name: 'Japanese Yen/US Dollar', category: 'Major', units: 'Yen/$' },
-                'DEXUSUK': { name: 'US Dollar/British Pound', category: 'Major', units: '$/Pound' },
-                'DEXCAUS': { name: 'Canadian Dollar/US Dollar', category: 'Major', units: 'CAD/$' },
-                'DEXSZUS': { name: 'Swiss Franc/US Dollar', category: 'Major', units: 'CHF/$' },
-                'DEXUSAL': { name: 'US Dollar/Australian Dollar', category: 'Major', units: '$/AUD' },
-                'DEXUSNZ': { name: 'US Dollar/New Zealand Dollar', category: 'Major', units: '$/NZD' },
-                'DEXCHUS': { name: 'Chinese Yuan/US Dollar', category: 'EM', units: 'Yuan/$' }
-            },
-            credit: {
-                'AAA': { name: 'Moody\'s AAA Corporate Yield', category: 'IG', units: 'Percent' },
-                'BAA': { name: 'Moody\'s BAA Corporate Yield', category: 'IG', units: 'Percent' },
-                'BAMLH0A0HYM2EY': { name: 'US High Yield Effective Yield', category: 'HY', units: 'Percent' },
-                'BAMLC0A4CBBB': { name: 'US BBB Corporate Spread', category: 'IG', units: 'Percent' },
-                'DAAA': { name: 'AAA Corporate Spread', category: 'Spread', units: 'Percent' },
-                'DBAA': { name: 'BAA Corporate Spread', category: 'Spread', units: 'Percent' },
-                'DCOMP': { name: 'Commercial Paper Rate', category: 'Short Term', units: 'Percent' },
-                'TB3MS': { name: '3-Month Treasury Bill', category: 'Treasury', units: 'Percent' }
-            },
-            crisis: {
-                'VIXCLS': { name: 'CBOE Volatility Index', category: 'Volatility', units: 'Index' },
-                'EVZCLS': { name: 'Euro Currency Volatility', category: 'FX Vol', units: 'Index' },
-                'GVZCLS': { name: 'Gold Volatility', category: 'Commodity Vol', units: 'Index' },
-                'OVXCLS': { name: 'Oil Volatility', category: 'Energy Vol', units: 'Index' },
-                'RVXCLS': { name: 'Russell 2000 Volatility', category: 'Equity Vol', units: 'Index' },
-                'VXNCLS': { name: 'NASDAQ Volatility', category: 'Tech Vol', units: 'Index' },
-                'STLFSI3': { name: 'Financial Stress Index', category: 'Stress', units: 'Index' },
-                'NFCI': { name: 'National Financial Conditions', category: 'Conditions', units: 'Index' }
+            
+            // Auto-update settings (twice weekly: Wednesday and Sunday)
+            AUTO_UPDATE_DAYS: [0, 3], // 0 = Sunday, 3 = Wednesday
+            AUTO_UPDATE_HOUR: 9, // 9 AM
+            
+            // Chart timeframes
+            TIMEFRAMES: {
+                '1D': { days: 1, interval: '5min' },
+                '5D': { days: 5, interval: '15min' },
+                '1M': { days: 30, interval: '1h' },
+                '3M': { days: 90, interval: '4h' },
+                '6M': { days: 180, interval: '1d' },
+                'YTD': { days: 'ytd', interval: '1d' },
+                '1Y': { days: 365, interval: '1d' },
+                '2Y': { days: 730, interval: '1w' },
+                '5Y': { days: 1825, interval: '1w' },
+                '10Y': { days: 3650, interval: '1m' },
+                'ALL': { days: 'all', interval: '1m' }
             }
         };
-
-        // Alert Manager Class
-        class AlertManager {
+        
+        // ====================================
+        // GLOBAL STATE
+        // ====================================
+        class GlobalState {
             constructor() {
-                this.alerts = JSON.parse(localStorage.getItem('alerts')) || [];
-                this.checkInterval = 30000; // 30 seconds
-                this.startMonitoring();
+                this.data = {};
+                this.indicators = this.loadIndicators();
+                this.tabs = this.loadTabs();
+                this.alerts = this.loadAlerts();
+                this.correlations = {};
+                this.anomalies = {};
+                this.customLayouts = this.loadLayouts();
+                this.activeTab = 'overview';
+                this.selectedTimeframe = '1Y';
+                this.chartType = 'line';
+                this.comparisonMode = false;
+                this.selectedIndicators = new Set();
+                this.historicalCache = new Map();
             }
             
-            addAlert(indicator, condition, threshold, action) {
+            loadIndicators() {
+                const saved = localStorage.getItem('fredIndicators');
+                if (saved) return JSON.parse(saved);
+                
+                // Default indicators with categories
+                return {
+                    'VIXCLS': { name: 'VIX Volatility', category: 'risk', enabled: true },
+                    'SP500': { name: 'S&P 500', category: 'equity', enabled: true },
+                    'DGS10': { name: '10-Year Treasury', category: 'rates', enabled: true },
+                    'DGS2': { name: '2-Year Treasury', category: 'rates', enabled: true },
+                    'T10Y2Y': { name: '10Y-2Y Spread', category: 'rates', enabled: true },
+                    'DTWEXBGS': { name: 'US Dollar Index', category: 'fx', enabled: true },
+                    'WALCL': { name: 'Fed Balance Sheet', category: 'fed', enabled: true },
+                    'DFF': { name: 'Fed Funds Rate', category: 'fed', enabled: true },
+                    'TEDRATE': { name: 'TED Spread', category: 'credit', enabled: true },
+                    'BAMLH0A0HYM2': { name: 'HY Credit Spread', category: 'credit', enabled: true },
+                    'UNRATE': { name: 'Unemployment Rate', category: 'macro', enabled: true },
+                    'CPIAUCSL': { name: 'CPI', category: 'macro', enabled: true },
+                    'GDP': { name: 'GDP', category: 'macro', enabled: true },
+                    'GOLDAMGBD228NLBM': { name: 'Gold Price', category: 'commodity', enabled: true },
+                    'DCOILWTICO': { name: 'WTI Crude Oil', category: 'commodity', enabled: true },
+                    'MORTGAGE30US': { name: '30Y Mortgage Rate', category: 'rates', enabled: true },
+                    'DJIA': { name: 'Dow Jones', category: 'equity', enabled: true },
+                    'NASDAQCOM': { name: 'NASDAQ', category: 'equity', enabled: true },
+                    'RUSSELL2000': { name: 'Russell 2000', category: 'equity', enabled: true },
+                    'DEXUSEU': { name: 'USD/EUR', category: 'fx', enabled: true },
+                    'DEXJPUS': { name: 'USD/JPY', category: 'fx', enabled: true },
+                    'DEXUSUK': { name: 'USD/GBP', category: 'fx', enabled: true },
+                    'DEXCHUS': { name: 'USD/CNY', category: 'fx', enabled: true },
+                    'SOFR': { name: 'SOFR Rate', category: 'rates', enabled: true },
+                    'RRPONTSYD': { name: 'Reverse Repo', category: 'fed', enabled: true }
+                };
+            }
+            
+            loadTabs() {
+                const saved = localStorage.getItem('fredTabs');
+                if (saved) return JSON.parse(saved);
+                
+                // Default tabs with their indicators
+                return [
+                    { id: 'overview', name: '📈 Overview', indicators: ['VIXCLS', 'SP500', 'DGS10', 'DTWEXBGS', 'WALCL', 'DFF'] },
+                    { id: 'heatmap', name: '🔥 Heatmap', indicators: 'all' },
+                    { id: 'rates', name: '📊 Rates', indicators: ['DGS10', 'DGS2', 'T10Y2Y', 'DFF', 'SOFR', 'MORTGAGE30US'] },
+                    { id: 'equity', name: '📈 Equity', indicators: ['SP500', 'DJIA', 'NASDAQCOM', 'RUSSELL2000', 'VIXCLS'] },
+                    { id: 'fx', name: '💱 FX', indicators: ['DTWEXBGS', 'DEXUSEU', 'DEXJPUS', 'DEXUSUK', 'DEXCHUS'] },
+                    { id: 'fed', name: '🏛️ Fed', indicators: ['WALCL', 'DFF', 'RRPONTSYD'] },
+                    { id: 'credit', name: '💳 Credit', indicators: ['TEDRATE', 'BAMLH0A0HYM2'] },
+                    { id: 'macro', name: '🌍 Macro', indicators: ['GDP', 'UNRATE', 'CPIAUCSL'] },
+                    { id: 'commodity', name: '🛢️ Commodity', indicators: ['GOLDAMGBD228NLBM', 'DCOILWTICO'] },
+                    { id: 'correlations', name: '🔗 Correlations', indicators: 'special' },
+                    { id: 'anomalies', name: '⚠️ Anomalies', indicators: 'special' }
+                ];
+            }
+            
+            loadAlerts() {
+                const saved = localStorage.getItem('fredAlerts');
+                return saved ? JSON.parse(saved) : [];
+            }
+            
+            loadLayouts() {
+                const saved = localStorage.getItem('fredLayouts');
+                if (saved) return JSON.parse(saved);
+                
+                return {
+                    'Risk Manager': { tabs: ['overview', 'heatmap', 'rates', 'credit', 'anomalies'] },
+                    'Macro Trader': { tabs: ['macro', 'fx', 'rates', 'commodity'] },
+                    'Fed Watcher': { tabs: ['fed', 'rates', 'credit'] }
+                };
+            }
+            
+            saveState() {
+                localStorage.setItem('fredIndicators', JSON.stringify(this.indicators));
+                localStorage.setItem('fredTabs', JSON.stringify(this.tabs));
+                localStorage.setItem('fredAlerts', JSON.stringify(this.alerts));
+                localStorage.setItem('fredLayouts', JSON.stringify(this.customLayouts));
+            }
+        }
+        
+        const state = new GlobalState();
+        
+        // ====================================
+        // FRED API FUNCTIONS
+        // ====================================
+        class FREDDataFetcher {
+            constructor(apiKey) {
+                this.apiKey = apiKey;
+                this.baseUrl = CONFIG.FRED_BASE_URL;
+                this.cache = new Map();
+                this.cacheExpiry = 5 * 60 * 1000; // 5 minutes
+            }
+            
+            async fetchSeries(seriesId, options = {}) {
+                const cacheKey = `${seriesId}_${JSON.stringify(options)}`;
+                const cached = this.cache.get(cacheKey);
+                
+                if (cached && Date.now() - cached.timestamp < this.cacheExpiry) {
+                    return cached.data;
+                }
+                
+                const params = new URLSearchParams({
+                    series_id: seriesId,
+                    api_key: this.apiKey,
+                    file_type: 'json',
+                    observation_start: options.start || '1990-01-01',
+                    observation_end: options.end || new Date().toISOString().split('T')[0],
+                    ...options
+                });
+                
+                try {
+                    const response = await fetch(`${this.baseUrl}/series/observations?${params}`);
+                    const data = await response.json();
+                    
+                    if (data.observations) {
+                        const result = {
+                            seriesId,
+                            observations: data.observations.map(obs => ({
+                                date: obs.date,
+                                value: parseFloat(obs.value)
+                            })).filter(obs => !isNaN(obs.value))
+                        };
+                        
+                        this.cache.set(cacheKey, {
+                            data: result,
+                            timestamp: Date.now()
+                        });
+                        
+                        return result;
+                    }
+                } catch (error) {
+                    console.error(`Error fetching ${seriesId}:`, error);
+                }
+                
+                return null;
+            }
+            
+            async fetchMultipleSeries(seriesIds, options = {}) {
+                const promises = seriesIds.map(id => this.fetchSeries(id, options));
+                const results = await Promise.all(promises);
+                return results.filter(r => r !== null);
+            }
+            
+            calculateChanges(observations) {
+                if (!observations || observations.length < 2) return {};
+                
+                const latest = observations[observations.length - 1];
+                const latestValue = latest.value;
+                const latestDate = new Date(latest.date);
+                
+                // Find comparison points
+                const dayAgo = new Date(latestDate);
+                dayAgo.setDate(dayAgo.getDate() - 1);
+                
+                const weekAgo = new Date(latestDate);
+                weekAgo.setDate(weekAgo.getDate() - 7);
+                
+                const monthAgo = new Date(latestDate);
+                monthAgo.setMonth(monthAgo.getMonth() - 1);
+                
+                const quarterAgo = new Date(latestDate);
+                quarterAgo.setMonth(quarterAgo.getMonth() - 3);
+                
+                const yearAgo = new Date(latestDate);
+                yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+                
+                // Find closest observations
+                const findClosest = (targetDate) => {
+                    return observations.reduce((prev, curr) => {
+                        const currDate = new Date(curr.date);
+                        const prevDate = new Date(prev.date);
+                        return Math.abs(currDate - targetDate) < Math.abs(prevDate - targetDate) ? curr : prev;
+                    });
+                };
+                
+                const dayAgoObs = findClosest(dayAgo);
+                const weekAgoObs = findClosest(weekAgo);
+                const monthAgoObs = findClosest(monthAgo);
+                const quarterAgoObs = findClosest(quarterAgo);
+                const yearAgoObs = findClosest(yearAgo);
+                
+                return {
+                    current: latestValue,
+                    date: latest.date,
+                    DoD: ((latestValue - dayAgoObs.value) / dayAgoObs.value * 100),
+                    WoW: ((latestValue - weekAgoObs.value) / weekAgoObs.value * 100),
+                    MoM: ((latestValue - monthAgoObs.value) / monthAgoObs.value * 100),
+                    QoQ: ((latestValue - quarterAgoObs.value) / quarterAgoObs.value * 100),
+                    YoY: ((latestValue - yearAgoObs.value) / yearAgoObs.value * 100)
+                };
+            }
+            
+            detectTrendReversal(observations, window = 20) {
+                if (!observations || observations.length < window * 2) return null;
+                
+                const recent = observations.slice(-window);
+                const previous = observations.slice(-window * 2, -window);
+                
+                const recentTrend = this.calculateTrend(recent);
+                const previousTrend = this.calculateTrend(previous);
+                
+                if (previousTrend.slope > 0 && recentTrend.slope < 0) {
+                    return { type: 'bearish', strength: Math.abs(recentTrend.slope) };
+                } else if (previousTrend.slope < 0 && recentTrend.slope > 0) {
+                    return { type: 'bullish', strength: Math.abs(recentTrend.slope) };
+                }
+                
+                return null;
+            }
+            
+            calculateTrend(observations) {
+                const n = observations.length;
+                let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+                
+                observations.forEach((obs, i) => {
+                    sumX += i;
+                    sumY += obs.value;
+                    sumXY += i * obs.value;
+                    sumX2 += i * i;
+                });
+                
+                const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+                const intercept = (sumY - slope * sumX) / n;
+                
+                return { slope, intercept };
+            }
+            
+            calculateMomentum(observations, period = 14) {
+                if (!observations || observations.length < period + 1) return null;
+                
+                const recent = observations.slice(-period - 1);
+                const gains = [];
+                const losses = [];
+                
+                for (let i = 1; i < recent.length; i++) {
+                    const change = recent[i].value - recent[i - 1].value;
+                    if (change > 0) {
+                        gains.push(change);
+                        losses.push(0);
+                    } else {
+                        gains.push(0);
+                        losses.push(Math.abs(change));
+                    }
+                }
+                
+                const avgGain = gains.reduce((a, b) => a + b, 0) / period;
+                const avgLoss = losses.reduce((a, b) => a + b, 0) / period;
+                
+                if (avgLoss === 0) return 100;
+                
+                const rs = avgGain / avgLoss;
+                const rsi = 100 - (100 / (1 + rs));
+                
+                return {
+                    rsi,
+                    momentum: recent[recent.length - 1].value - recent[0].value,
+                    interpretation: rsi > 70 ? 'overbought' : rsi < 30 ? 'oversold' : 'neutral'
+                };
+            }
+        }
+        
+        const fredAPI = new FREDDataFetcher(CONFIG.FRED_API_KEY);
+        
+        // ====================================
+        // ALERT SYSTEM
+        // ====================================
+        class AlertSystem {
+            constructor() {
+                this.alerts = state.alerts;
+                this.checkInterval = 60000; // Check every minute
+                this.notificationPermission = false;
+                this.requestNotificationPermission();
+            }
+            
+            requestNotificationPermission() {
+                if ('Notification' in window && Notification.permission === 'default') {
+                    Notification.requestPermission().then(permission => {
+                        this.notificationPermission = permission === 'granted';
+                    });
+                }
+            }
+            
+            addAlert(indicator, condition, threshold, action = 'notify') {
                 const alert = {
                     id: Date.now(),
                     indicator,
-                    condition,
+                    condition, // 'above', 'below', 'change', 'crossover'
                     threshold,
-                    action,
+                    action, // 'notify', 'email', 'webhook'
                     active: true,
                     triggered: false,
                     createdAt: new Date().toISOString()
                 };
                 
                 this.alerts.push(alert);
-                this.save();
-                this.updateAlertCount();
+                state.alerts = this.alerts;
+                state.saveState();
+                this.updateAlertDisplay();
+                
                 return alert;
             }
             
-            checkAlerts() {
+            checkAlerts(data) {
+                let triggeredCount = 0;
+                
                 this.alerts.forEach(alert => {
                     if (!alert.active || alert.triggered) return;
                     
-                    const value = currentData[alert.indicator]?.value;
-                    if (!value) return;
+                    const indicatorData = data[alert.indicator];
+                    if (!indicatorData) return;
                     
                     let triggered = false;
                     
-                    switch(alert.condition) {
+                    switch (alert.condition) {
                         case 'above':
-                            triggered = value > alert.threshold;
+                            triggered = indicatorData.current > alert.threshold;
                             break;
                         case 'below':
-                            triggered = value < alert.threshold;
+                            triggered = indicatorData.current < alert.threshold;
                             break;
                         case 'change':
-                            const change = currentData[alert.indicator]?.dayChange;
-                            triggered = Math.abs(change) > alert.threshold;
+                            triggered = Math.abs(indicatorData.DoD || 0) > alert.threshold;
+                            break;
+                        case 'crossover':
+                            // Check if indicator crossed threshold since last check
+                            const prev = this.previousValues[alert.indicator];
+                            if (prev) {
+                                triggered = (prev < alert.threshold && indicatorData.current > alert.threshold) ||
+                                          (prev > alert.threshold && indicatorData.current < alert.threshold);
+                            }
                             break;
                     }
                     
                     if (triggered) {
-                        this.triggerAlert(alert, value);
+                        this.triggerAlert(alert, indicatorData.current);
+                        triggeredCount++;
                     }
                 });
+                
+                // Store current values for crossover detection
+                this.previousValues = {};
+                Object.keys(data).forEach(key => {
+                    this.previousValues[key] = data[key].current;
+                });
+                
+                if (triggeredCount > 0) {
+                    this.updateAlertDisplay();
+                }
             }
             
             triggerAlert(alert, value) {
@@ -1010,984 +1072,1103 @@
                 alert.triggeredAt = new Date().toISOString();
                 alert.triggeredValue = value;
                 
-                this.showNotification(alert, value);
-                this.save();
-                this.updateAlertPanel();
-                this.updateAlertCount();
+                const indicatorName = state.indicators[alert.indicator]?.name || alert.indicator;
+                const message = `${indicatorName} is ${alert.condition} ${alert.threshold} (Current: ${value.toFixed(2)})`;
+                
+                switch (alert.action) {
+                    case 'notify':
+                        this.showNotification('Alert Triggered!', message);
+                        break;
+                    case 'email':
+                        this.sendEmail(alert, message);
+                        break;
+                    case 'webhook':
+                        this.callWebhook(alert, message);
+                        break;
+                }
+                
+                state.saveState();
             }
             
-            showNotification(alert, value) {
-                if ('Notification' in window) {
-                    Notification.requestPermission().then(permission => {
-                        if (permission === 'granted') {
-                            new Notification('FRED Alert Triggered!', {
-                                body: `${alert.indicator} is ${alert.condition} ${alert.threshold} (Current: ${value})`,
-                                icon: '/icon.png'
-                            });
-                        }
+            showNotification(title, body) {
+                if (this.notificationPermission && 'Notification' in window) {
+                    new Notification(title, {
+                        body,
+                        icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">📊</text></svg>',
+                        badge: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🔔</text></svg>'
                     });
                 }
+                
+                // Also show in-app notification
+                this.showInAppNotification(title, body);
             }
             
-            save() {
-                localStorage.setItem('alerts', JSON.stringify(this.alerts));
-            }
-            
-            updateAlertCount() {
-                const activeCount = this.alerts.filter(a => a.active && !a.triggered).length;
-                document.getElementById('alertCount').textContent = activeCount;
-            }
-            
-            updateAlertPanel() {
-                const content = document.getElementById('alertPanelContent');
-                content.innerHTML = this.alerts.map(alert => `
-                    <div class="alert-item ${alert.triggered ? 'triggered' : ''}">
-                        <div style="font-weight: 600; margin-bottom: 0.5rem;">
-                            ${alert.indicator} ${alert.condition} ${alert.threshold}
-                        </div>
-                        <div style="font-size: 0.85rem; color: #888;">
-                            ${alert.triggered ? 
-                                `Triggered at ${new Date(alert.triggeredAt).toLocaleString()}` : 
-                                'Active'}
-                        </div>
-                        <div style="margin-top: 0.5rem;">
-                            <button onclick="alertManager.toggleAlert(${alert.id})" 
-                                    class="export-btn">
-                                ${alert.active ? 'Disable' : 'Enable'}
-                            </button>
-                            <button onclick="alertManager.deleteAlert(${alert.id})" 
-                                    class="export-btn">
-                                Delete
-                            </button>
-                        </div>
-                    </div>
-                `).join('');
-            }
-            
-            toggleAlert(id) {
-                const alert = this.alerts.find(a => a.id === id);
-                if (alert) {
-                    alert.active = !alert.active;
-                    this.save();
-                    this.updateAlertPanel();
-                    this.updateAlertCount();
-                }
-            }
-            
-            deleteAlert(id) {
-                this.alerts = this.alerts.filter(a => a.id !== id);
-                this.save();
-                this.updateAlertPanel();
-                this.updateAlertCount();
-            }
-            
-            startMonitoring() {
-                setInterval(() => this.checkAlerts(), this.checkInterval);
-            }
-        }
-
-        // Initialize Alert Manager
-        const alertManager = new AlertManager();
-
-        // Fetch FRED Data
-        async function fetchFREDData(seriesId, startDate = null, endDate = null) {
-            try {
-                // Build the API URL
-                let url = `${FRED_BASE_URL}?series_id=${seriesId}&api_key=${FRED_API_KEY}&file_type=json&sort_order=desc&limit=1000`;
-                
-                if (startDate) {
-                    url += `&observation_start=${startDate}`;
-                }
-                if (endDate) {
-                    url += `&observation_end=${endDate}`;
-                }
-                
-                const response = await fetch(url);
-                
-                if (!response.ok) {
-                    throw new Error(`API Error: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                
-                if (data.observations && data.observations.length > 0) {
-                    // Sort observations by date (newest first)
-                    data.observations.sort((a, b) => new Date(b.date) - new Date(a.date));
-                    
-                    // Get the latest value
-                    const latest = data.observations[0];
-                    const value = parseFloat(latest.value);
-                    
-                    // Calculate percentage changes
-                    const dayAgo = data.observations[1] ? parseFloat(data.observations[1].value) : value;
-                    const weekAgo = data.observations[5] ? parseFloat(data.observations[5].value) : value;
-                    const monthAgo = data.observations[22] ? parseFloat(data.observations[22].value) : value;
-                    const quarterAgo = data.observations[66] ? parseFloat(data.observations[66].value) : value;
-                    const yearAgo = data.observations[252] ? parseFloat(data.observations[252].value) : value;
-                    
-                    // Store in currentData
-                    currentData[seriesId] = {
-                        value: value,
-                        date: latest.date,
-                        dayChange: ((value - dayAgo) / dayAgo) * 100,
-                        weekChange: ((value - weekAgo) / weekAgo) * 100,
-                        monthChange: ((value - monthAgo) / monthAgo) * 100,
-                        quarterChange: ((value - quarterAgo) / quarterAgo) * 100,
-                        yearChange: ((value - yearAgo) / yearAgo) * 100,
-                        previousValue: dayAgo
-                    };
-                    
-                    // Store historical data (reverse for chronological order)
-                    historicalData[seriesId] = data.observations.reverse().map(obs => ({
-                        date: obs.date,
-                        value: parseFloat(obs.value)
-                    }));
-                    
-                    return currentData[seriesId];
-                }
-                
-                throw new Error('No data available');
-                
-            } catch (error) {
-                console.error(`Error fetching ${seriesId}:`, error);
-                
-                // Update API status
-                const apiStatus = document.getElementById('apiStatus');
-                apiStatus.textContent = 'API: Error';
-                apiStatus.classList.add('error');
-                
-                // Return null to indicate error
-                return null;
-            }
-        }
-
-        // Load All Data
-        async function loadAllData() {
-            console.log('Loading FRED data...');
-            
-            // Update API status
-            const apiStatus = document.getElementById('apiStatus');
-            apiStatus.textContent = 'API: Loading...';
-            apiStatus.classList.remove('error');
-            
-            // Collect all unique series
-            const allSeries = new Set();
-            Object.values(INDICATORS).forEach(category => {
-                Object.keys(category).forEach(series => allSeries.add(series));
-            });
-            
-            // Calculate date range (last 5 years for initial load)
-            const endDate = new Date().toISOString().split('T')[0];
-            const startDate = new Date();
-            startDate.setFullYear(startDate.getFullYear() - 5);
-            const startDateStr = startDate.toISOString().split('T')[0];
-            
-            // Fetch all data with rate limiting
-            const seriesArray = Array.from(allSeries);
-            const batchSize = 5; // Process 5 series at a time to avoid rate limiting
-            
-            for (let i = 0; i < seriesArray.length; i += batchSize) {
-                const batch = seriesArray.slice(i, i + batchSize);
-                const promises = batch.map(series => fetchFREDData(series, startDateStr, endDate));
-                await Promise.all(promises);
-                
-                // Small delay to avoid rate limiting
-                if (i + batchSize < seriesArray.length) {
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                }
-            }
-            
-            // Update API status
-            apiStatus.textContent = 'API: Connected';
-            apiStatus.classList.remove('error');
-            
-            // Update all tabs
-            updateOverviewTab();
-            updateHeatmap();
-            updateFedTab();
-            updateBlackSwanTab();
-            updateLiquidityTab();
-            updateCurrenciesTab();
-            updateCreditTab();
-            updateCrisisTab();
-            updateMLPredictions();
-            updateTradingSignals();
-            
-            // Check alerts
-            alertManager.checkAlerts();
-            
-            console.log('Data loaded successfully');
-        }
-
-        // Update Overview Tab
-        function updateOverviewTab() {
-            const grid = document.getElementById('overviewGrid');
-            const indicators = INDICATORS.overview;
-            
-            grid.innerHTML = Object.entries(indicators).map(([series, info]) => {
-                const data = currentData[series];
-                if (!data) return '';
-                
-                const customName = customIndicators[series] || info.name;
-                const changeClass = data.dayChange > 0 ? 'positive' : 'negative';
-                
-                return `
-                    <div class="metric-card" onclick="showHistoricalData('${series}', '${customName}')">
-                        <div class="metric-header">
-                            <div class="metric-title">
-                                <span class="indicator-name" 
-                                      ondblclick="editIndicatorName('${series}', '${customName}')"
-                                      data-series="${series}">
-                                    ${customName}
-                                </span>
-                                <span style="font-size: 0.75rem; color: #666;">${info.units}</span>
-                            </div>
-                        </div>
-                        <div class="metric-value">${formatValue(data.value, info.units)}</div>
-                        <div class="metric-change ${changeClass}">
-                            ${data.dayChange > 0 ? '▲' : '▼'} ${Math.abs(data.dayChange).toFixed(2)}%
-                        </div>
-                        <div style="font-size: 0.75rem; color: #666; margin-top: 0.5rem;">
-                            ${data.date}
-                        </div>
-                    </div>
+            showInAppNotification(title, body) {
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 100px;
+                    right: 20px;
+                    background: linear-gradient(135deg, rgba(0, 255, 136, 0.2), rgba(0, 204, 255, 0.2));
+                    border: 1px solid var(--primary-green);
+                    border-radius: 12px;
+                    padding: 1rem;
+                    max-width: 300px;
+                    z-index: 5000;
+                    animation: slideIn 0.3s ease;
                 `;
-            }).join('');
+                
+                notification.innerHTML = `
+                    <h4 style="margin-bottom: 0.5rem;">${title}</h4>
+                    <p style="font-size: 0.875rem;">${body}</p>
+                `;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.animation = 'slideOut 0.3s ease';
+                    setTimeout(() => notification.remove(), 300);
+                }, 5000);
+            }
             
-            // Update main chart
-            updateMainChart();
-        }
-
-        // Update Heatmap
-        function updateHeatmap() {
-            const grid = document.getElementById('heatmapGrid');
-            const allData = [];
-            
-            // Collect all indicators
-            Object.values(INDICATORS).forEach(category => {
-                Object.entries(category).forEach(([series, info]) => {
-                    const data = currentData[series];
-                    if (data) {
-                        let change = 0;
-                        switch(currentPeriod) {
-                            case 'DoD': change = data.dayChange || 0; break;
-                            case 'WoW': change = data.weekChange || 0; break;
-                            case 'MoM': change = data.monthChange || 0; break;
-                            case 'QoQ': change = data.quarterChange || 0; break;
-                            case 'YoY': change = data.yearChange || 0; break;
-                        }
+            updateAlertDisplay() {
+                const alertsList = document.getElementById('alertsList');
+                const alertCount = document.getElementById('alertCount');
+                
+                if (alertsList) {
+                    alertsList.innerHTML = '';
+                    
+                    this.alerts.forEach(alert => {
+                        const indicatorName = state.indicators[alert.indicator]?.name || alert.indicator;
+                        const alertDiv = document.createElement('div');
+                        alertDiv.className = `alert-item ${alert.triggered ? 'alert-triggered' : ''}`;
                         
-                        allData.push({
-                            series,
-                            name: customIndicators[series] || info.name,
-                            category: info.category,
-                            value: data.value,
-                            change: change,
-                            units: info.units
-                        });
-                    }
-                });
-            });
-            
-            // Sort by absolute change
-            allData.sort((a, b) => Math.abs(b.change) - Math.abs(a.change));
-            
-            // Render heatmap cells
-            grid.innerHTML = allData.map(item => {
-                let className = 'heatmap-cell ';
-                if (item.change > 2) className += 'positive';
-                else if (item.change < -2) className += 'negative';
-                else className += 'neutral';
-                
-                if (Math.abs(item.change) > 10) className += ' alarming';
-                
-                return `
-                    <div class="${className}" 
-                         onclick="showHistoricalData('${item.series}', '${item.name}')">
-                        <div class="heatmap-symbol">${item.name}</div>
-                        <div class="heatmap-value">${formatValue(item.value, item.units)}</div>
-                        <div class="heatmap-change">
-                            ${item.change > 0 ? '+' : ''}${item.change.toFixed(2)}%
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // Update other tabs with real data
-        function updateFedTab() {
-            updateTabGrid('fedGrid', INDICATORS.fed);
-        }
-
-        function updateBlackSwanTab() {
-            updateTabGrid('blackswanGrid', INDICATORS.blackswan);
-        }
-
-        function updateLiquidityTab() {
-            updateTabGrid('liquidityGrid', INDICATORS.liquidity);
-        }
-
-        function updateCurrenciesTab() {
-            updateTabGrid('currenciesGrid', INDICATORS.currencies);
-        }
-
-        function updateCreditTab() {
-            updateTabGrid('creditGrid', INDICATORS.credit);
-        }
-
-        function updateCrisisTab() {
-            updateTabGrid('crisisGrid', INDICATORS.crisis);
-        }
-
-        // Generic function to update tab grids
-        function updateTabGrid(gridId, indicators) {
-            const grid = document.getElementById(gridId);
-            
-            grid.innerHTML = Object.entries(indicators).map(([series, info]) => {
-                const data = currentData[series];
-                if (!data) return '';
-                
-                const customName = customIndicators[series] || info.name;
-                const changeClass = data.dayChange > 0 ? 'positive' : 'negative';
-                
-                return `
-                    <div class="metric-card" onclick="showHistoricalData('${series}', '${customName}')">
-                        <div class="metric-header">
-                            <div class="metric-title">
-                                <span class="indicator-name" 
-                                      ondblclick="editIndicatorName('${series}', '${customName}')"
-                                      data-series="${series}">
-                                    ${customName}
-                                </span>
-                                <span style="font-size: 0.75rem; color: #666;">${info.units}</span>
+                        alertDiv.innerHTML = `
+                            <div>
+                                <strong>${indicatorName}</strong><br>
+                                <small>${alert.condition} ${alert.threshold}</small>
+                                ${alert.triggered ? `<br><small>Triggered: ${new Date(alert.triggeredAt).toLocaleString()}</small>` : ''}
                             </div>
-                        </div>
-                        <div class="metric-value">${formatValue(data.value, info.units)}</div>
-                        <div class="metric-change ${changeClass}">
-                            ${data.dayChange > 0 ? '▲' : '▼'} ${Math.abs(data.dayChange).toFixed(2)}%
-                        </div>
-                        <div style="font-size: 0.75rem; color: #666; margin-top: 0.5rem;">
-                            Updated: ${data.date}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // Update ML Predictions based on real data
-        function updateMLPredictions() {
-            const grid = document.getElementById('mlGrid');
-            
-            // Generate predictions based on actual data
-            const vix = currentData['VIXCLS']?.value || 20;
-            const yieldCurve = (currentData['DGS10']?.value || 4) - (currentData['DGS2']?.value || 4);
-            const tedSpread = currentData['TEDRATE']?.value || 0.3;
-            
-            const predictions = [
-                {
-                    name: 'Market Direction (1 Week)',
-                    prediction: vix < 20 ? 'BULLISH' : vix > 30 ? 'BEARISH' : 'NEUTRAL',
-                    confidence: Math.min(90, 50 + Math.abs(20 - vix) * 2),
-                    factors: [`VIX at ${vix?.toFixed(2)}`, `Yield curve: ${yieldCurve?.toFixed(2)}%`]
-                },
-                {
-                    name: 'Volatility Forecast',
-                    prediction: vix > 25 ? 'INCREASING' : 'DECREASING',
-                    confidence: 65 + Math.random() * 20,
-                    factors: ['Historical patterns', 'Current VIX level']
-                },
-                {
-                    name: 'Recession Probability',
-                    prediction: `${Math.max(0, Math.min(100, yieldCurve < 0 ? 45 : 15)).toFixed(0)}%`,
-                    confidence: 70,
-                    factors: ['Yield curve', 'Financial stress', 'Credit spreads']
+                            <button class="action-btn" onclick="alertSystem.removeAlert(${alert.id})">×</button>
+                        `;
+                        
+                        alertsList.appendChild(alertDiv);
+                    });
                 }
-            ];
-            
-            grid.innerHTML = predictions.map(pred => {
-                const color = pred.confidence > 70 ? '#00ff88' : pred.confidence > 50 ? '#ffc107' : '#ff4444';
                 
-                return `
-                    <div class="metric-card">
-                        <div class="metric-header">
-                            <div class="metric-title">${pred.name}</div>
-                        </div>
-                        <div class="metric-value" style="font-size: 1.5rem; color: ${color};">
-                            ${pred.prediction}
-                        </div>
-                        <div style="margin: 1rem 0;">
-                            <div style="background: rgba(255,255,255,0.1); border-radius: 8px; overflow: hidden;">
-                                <div style="background: linear-gradient(90deg, ${color}, transparent); 
-                                          width: ${pred.confidence}%; padding: 0.5rem; text-align: center;">
-                                    ${pred.confidence.toFixed(0)}% Confidence
-                                </div>
-                            </div>
-                        </div>
-                        <div style="font-size: 0.85rem; color: #888;">
-                            <strong>Key Factors:</strong>
-                            <ul style="margin-top: 0.5rem; padding-left: 1.5rem;">
-                                ${pred.factors.map(f => `<li>${f}</li>`).join('')}
-                            </ul>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // Update Trading Signals based on real data
-        function updateTradingSignals() {
-            const grid = document.getElementById('signalsGrid');
-            const signals = [];
-            
-            // VIX Signal
-            const vixData = currentData['VIXCLS'];
-            if (vixData) {
-                signals.push({
-                    name: 'VIX Index',
-                    currentValue: vixData.value,
-                    action: vixData.value < 15 ? 'BUY PROTECTION' : vixData.value > 30 ? 'SELL' : 'HOLD',
-                    signal: vixData.value < 15 ? 'Low Volatility' : vixData.value > 30 ? 'High Fear' : 'Normal',
-                    target: vixData.value < 15 ? 20 : vixData.value > 30 ? 20 : vixData.value
-                });
-            }
-            
-            // Add more signals based on available data
-            if (currentData['DGS10']) {
-                const yieldData = currentData['DGS10'];
-                signals.push({
-                    name: '10-Year Treasury',
-                    currentValue: yieldData.value,
-                    action: yieldData.dayChange > 5 ? 'SELL BONDS' : yieldData.dayChange < -5 ? 'BUY BONDS' : 'HOLD',
-                    signal: `${yieldData.dayChange > 0 ? 'Rising' : 'Falling'} Yields`,
-                    target: yieldData.value
-                });
-            }
-            
-            grid.innerHTML = signals.map(signal => {
-                const actionColor = signal.action.includes('BUY') ? '#00ff88' : 
-                                  signal.action.includes('SELL') ? '#ff4444' : '#ffc107';
-                
-                return `
-                    <div class="metric-card">
-                        <div class="metric-header">
-                            <div class="metric-title">${signal.name}</div>
-                            <span style="background: ${actionColor}20; color: ${actionColor}; 
-                                       padding: 0.25rem 0.75rem; border-radius: 20px; font-weight: 600;">
-                                ${signal.action}
-                            </span>
-                        </div>
-                        <div class="metric-value">${signal.currentValue.toFixed(2)}</div>
-                        <div style="margin: 1rem 0; font-size: 0.9rem;">
-                            <div>Signal: <strong>${signal.signal}</strong></div>
-                            <div>Target: <strong>${signal.target.toFixed(2)}</strong></div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // Update Main Chart
-        function updateMainChart() {
-            const traces = [];
-            
-            // Add VIX to chart
-            if (historicalData['VIXCLS']) {
-                const data = filterDataByTimeframe(historicalData['VIXCLS'], currentTimeframe);
-                traces.push({
-                    x: data.map(d => d.date),
-                    y: data.map(d => d.value),
-                    type: 'scatter',
-                    mode: 'lines',
-                    name: 'VIX',
-                    yaxis: 'y',
-                    line: { color: '#00ff88', width: 2 }
-                });
-            }
-            
-            // Add 10Y Treasury to chart
-            if (historicalData['DGS10']) {
-                const data = filterDataByTimeframe(historicalData['DGS10'], currentTimeframe);
-                traces.push({
-                    x: data.map(d => d.date),
-                    y: data.map(d => d.value),
-                    type: 'scatter',
-                    mode: 'lines',
-                    name: '10Y Treasury',
-                    yaxis: 'y2',
-                    line: { color: '#00d4ff', width: 2 }
-                });
-            }
-            
-            const layout = {
-                title: 'Market Overview - Real FRED Data',
-                xaxis: {
-                    gridcolor: 'rgba(255, 255, 255, 0.1)',
-                    tickfont: { color: '#888' }
-                },
-                yaxis: {
-                    title: 'VIX Index',
-                    gridcolor: 'rgba(255, 255, 255, 0.1)',
-                    tickfont: { color: '#888' },
-                    titlefont: { color: '#00ff88' }
-                },
-                yaxis2: {
-                    title: '10Y Treasury Yield (%)',
-                    overlaying: 'y',
-                    side: 'right',
-                    gridcolor: 'rgba(255, 255, 255, 0.1)',
-                    tickfont: { color: '#888' },
-                    titlefont: { color: '#00d4ff' }
-                },
-                paper_bgcolor: 'rgba(0, 0, 0, 0)',
-                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
-                font: { color: '#fff' },
-                showlegend: true,
-                legend: {
-                    orientation: 'h',
-                    y: -0.15
-                }
-            };
-            
-            Plotly.newPlot('mainChart', traces, layout, { responsive: true });
-        }
-
-        // Filter data by timeframe
-        function filterDataByTimeframe(data, timeframe) {
-            if (!data || data.length === 0) return [];
-            
-            const now = new Date();
-            const cutoffDate = new Date();
-            
-            switch(timeframe) {
-                case '1M': cutoffDate.setMonth(now.getMonth() - 1); break;
-                case '3M': cutoffDate.setMonth(now.getMonth() - 3); break;
-                case '6M': cutoffDate.setMonth(now.getMonth() - 6); break;
-                case '1Y': cutoffDate.setFullYear(now.getFullYear() - 1); break;
-                case '5Y': cutoffDate.setFullYear(now.getFullYear() - 5); break;
-                case '10Y': cutoffDate.setFullYear(now.getFullYear() - 10); break;
-                case '20Y': cutoffDate.setFullYear(now.getFullYear() - 20); break;
-                case 'MAX': return data;
-            }
-            
-            return data.filter(d => new Date(d.date) >= cutoffDate);
-        }
-
-        // Show Historical Data
-        function showHistoricalData(series, name) {
-            const modal = document.getElementById('historicalModal');
-            const modalTitle = document.getElementById('modalTitle');
-            const modalChart = document.getElementById('modalChart');
-            
-            modalTitle.textContent = `${name} - Historical Data (Since 1990)`;
-            modal.classList.add('active');
-            
-            // Fetch more historical data if needed
-            fetchExtendedHistory(series).then(() => {
-                const data = historicalData[series];
-                if (data && data.length > 0) {
-                    const trace = {
-                        x: data.map(d => d.date),
-                        y: data.map(d => d.value),
-                        type: 'scatter',
-                        mode: 'lines',
-                        line: { color: '#00ff88', width: 2 }
-                    };
-                    
-                    const layout = {
-                        xaxis: {
-                            gridcolor: 'rgba(255, 255, 255, 0.1)',
-                            tickfont: { color: '#888' },
-                            rangeslider: { visible: true }
-                        },
-                        yaxis: {
-                            gridcolor: 'rgba(255, 255, 255, 0.1)',
-                            tickfont: { color: '#888' },
-                            title: INDICATORS[getIndicatorCategory(series)][series].units
-                        },
-                        paper_bgcolor: 'rgba(0, 0, 0, 0)',
-                        plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
-                        font: { color: '#fff' }
-                    };
-                    
-                    Plotly.newPlot(modalChart, [trace], layout, { responsive: true });
-                }
-            });
-        }
-
-        // Fetch extended history (from 1990)
-        async function fetchExtendedHistory(series) {
-            const startDate = '1990-01-01';
-            const endDate = new Date().toISOString().split('T')[0];
-            
-            const data = await fetchFREDData(series, startDate, endDate);
-            return data;
-        }
-
-        // Get indicator category
-        function getIndicatorCategory(series) {
-            for (const [category, indicators] of Object.entries(INDICATORS)) {
-                if (indicators[series]) return category;
-            }
-            return 'overview';
-        }
-
-        // Close Modal
-        function closeModal() {
-            document.getElementById('historicalModal').classList.remove('active');
-        }
-
-        // Format Value based on units
-        function formatValue(value, units) {
-            if (!value && value !== 0) return 'N/A';
-            
-            if (units.includes('Billions')) {
-                return (value / 1000).toFixed(2) + 'T';
-            } else if (units.includes('Millions')) {
-                return (value / 1000000).toFixed(2) + 'T';
-            } else if (units.includes('Percent')) {
-                return value.toFixed(3) + '%';
-            } else if (units.includes('$/')) {
-                return '  + value.toFixed(2);
-            } else if (units.includes('Index')) {
-                return value.toFixed(2);
-            } else {
-                return value.toFixed(2);
-            }
-        }
-
-        // Edit Indicator Name
-        function editIndicatorName(series, currentName) {
-            const newName = prompt('Enter new name for indicator:', currentName);
-            if (newName && newName !== currentName) {
-                customIndicators[series] = newName;
-                localStorage.setItem('customIndicators', JSON.stringify(customIndicators));
-                
-                // Refresh current tab
-                const activeTab = document.querySelector('.tab-content.active').id;
-                switch(activeTab) {
-                    case 'overview': updateOverviewTab(); break;
-                    case 'heatmap': updateHeatmap(); break;
-                    case 'fed': updateFedTab(); break;
-                    case 'blackswan': updateBlackSwanTab(); break;
-                    case 'liquidity': updateLiquidityTab(); break;
-                    case 'currencies': updateCurrenciesTab(); break;
-                    case 'credit': updateCreditTab(); break;
-                    case 'crisis': updateCrisisTab(); break;
+                if (alertCount) {
+                    const activeAlerts = this.alerts.filter(a => a.active && !a.triggered).length;
+                    alertCount.textContent = activeAlerts;
+                    alertCount.style.display = activeAlerts > 0 ? 'inline-block' : 'none';
                 }
             }
-        }
-
-        // Tab Navigation
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const tab = btn.dataset.tab;
-                
-                // Update active states
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                
-                btn.classList.add('active');
-                document.getElementById(tab).classList.add('active');
-            });
-        });
-
-        // Timeframe Buttons
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('timeframe-btn')) {
-                const timeframe = e.target.dataset.timeframe;
-                currentTimeframe = timeframe;
-                
-                // Update active state
-                e.target.parentElement.querySelectorAll('.timeframe-btn').forEach(b => 
-                    b.classList.remove('active'));
-                e.target.classList.add('active');
-                
-                // Refresh chart
-                updateMainChart();
-            }
-        });
-
-        // Heatmap Period Buttons
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('heatmap-btn') && e.target.dataset.period) {
-                currentPeriod = e.target.dataset.period;
-                
-                // Update active state
-                document.querySelectorAll('.heatmap-btn').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
-                
-                // Refresh heatmap
-                updateHeatmap();
-            }
-        });
-
-        // Layout Selector
-        document.querySelectorAll('.layout-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                currentLayout = btn.dataset.layout;
-                
-                // Update active state
-                document.querySelectorAll('.layout-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                
-                // Apply layout
-                applyLayout(currentLayout);
-            });
-        });
-
-        // Apply Layout
-        function applyLayout(layout) {
-            const layouts = {
-                default: 'overview',
-                risk: 'crisis',
-                macro: 'fed'
-            };
             
-            // Switch to appropriate tab
-            const targetTab = layouts[layout] || 'overview';
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            document.getElementById(targetTab).classList.add('active');
-            
-            // Update tab navigation
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelector(`[data-tab="${targetTab}"]`).classList.add('active');
+            removeAlert(id) {
+                this.alerts = this.alerts.filter(a => a.id !== id);
+                state.alerts = this.alerts;
+                state.saveState();
+                this.updateAlertDisplay();
+            }
         }
-
-        // Global Search
-        const searchBar = document.getElementById('globalSearch');
-        const searchResults = document.getElementById('searchResults');
         
-        searchBar.addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
-            
-            if (query.length < 2) {
-                searchResults.style.display = 'none';
-                return;
+        const alertSystem = new AlertSystem();
+        
+        // ====================================
+        // DATA MANAGEMENT
+        // ====================================
+        class DataManager {
+            constructor() {
+                this.updateInProgress = false;
+                this.lastUpdate = null;
+                this.setupAutoUpdate();
             }
             
-            const results = [];
+            async fetchAllData() {
+                if (this.updateInProgress) return;
+                
+                this.updateInProgress = true;
+                console.log('📊 Fetching all FRED data...');
+                
+                try {
+                    // Get all enabled indicators
+                    const enabledIndicators = Object.entries(state.indicators)
+                        .filter(([_, config]) => config.enabled)
+                        .map(([id, _]) => id);
+                    
+                    // Fetch data for all indicators
+                    const dataPromises = enabledIndicators.map(async (id) => {
+                        const data = await fredAPI.fetchSeries(id);
+                        if (data) {
+                            const changes = fredAPI.calculateChanges(data.observations);
+                            const trend = fredAPI.detectTrendReversal(data.observations);
+                            const momentum = fredAPI.calculateMomentum(data.observations);
+                            
+                            return {
+                                id,
+                                ...changes,
+                                trend,
+                                momentum,
+                                observations: data.observations
+                            };
+                        }
+                        return null;
+                    });
+                    
+                    const results = await Promise.all(dataPromises);
+                    
+                    // Process results
+                    results.forEach(result => {
+                        if (result) {
+                            state.data[result.id] = result;
+                        }
+                    });
+                    
+                    // Calculate correlations
+                    this.calculateCorrelations();
+                    
+                    // Detect anomalies
+                    this.detectAnomalies();
+                    
+                    // Check alerts
+                    alertSystem.checkAlerts(state.data);
+                    
+                    // Update UI
+                    this.updateAllDisplays();
+                    
+                    this.lastUpdate = new Date();
+                    console.log('✅ Data update complete');
+                    
+                } catch (error) {
+                    console.error('Error fetching data:', error);
+                } finally {
+                    this.updateInProgress = false;
+                }
+            }
             
-            // Search through all indicators
-            Object.values(INDICATORS).forEach(category => {
-                Object.entries(category).forEach(([series, info]) => {
-                    const name = customIndicators[series] || info.name;
-                    if (name.toLowerCase().includes(query) || series.toLowerCase().includes(query)) {
-                        results.push({ series, name, category: info.category });
+            calculateCorrelations() {
+                const indicators = Object.keys(state.data);
+                const correlationMatrix = {};
+                
+                indicators.forEach(id1 => {
+                    correlationMatrix[id1] = {};
+                    indicators.forEach(id2 => {
+                        if (id1 === id2) {
+                            correlationMatrix[id1][id2] = 1;
+                        } else {
+                            const corr = this.pearsonCorrelation(
+                                state.data[id1].observations,
+                                state.data[id2].observations
+                            );
+                            correlationMatrix[id1][id2] = corr;
+                        }
+                    });
+                });
+                
+                state.correlations = correlationMatrix;
+            }
+            
+            pearsonCorrelation(obs1, obs2) {
+                // Match observations by date
+                const matched = [];
+                obs1.forEach(o1 => {
+                    const o2 = obs2.find(o => o.date === o1.date);
+                    if (o2) {
+                        matched.push([o1.value, o2.value]);
                     }
                 });
-            });
+                
+                if (matched.length < 2) return 0;
+                
+                const n = matched.length;
+                let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0, sumY2 = 0;
+                
+                matched.forEach(([x, y]) => {
+                    sumX += x;
+                    sumY += y;
+                    sumXY += x * y;
+                    sumX2 += x * x;
+                    sumY2 += y * y;
+                });
+                
+                const numerator = n * sumXY - sumX * sumY;
+                const denominator = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
+                
+                return denominator === 0 ? 0 : numerator / denominator;
+            }
             
-            if (results.length > 0) {
-                searchResults.innerHTML = results.map(r => `
-                    <div class="search-result-item" onclick="showHistoricalData('${r.series}', '${r.name}')">
-                        <strong>${r.name}</strong>
-                        <span style="float: right; color: #666;">${r.series}</span>
+            detectAnomalies() {
+                Object.entries(state.data).forEach(([id, data]) => {
+                    if (!data.observations || data.observations.length < 30) return;
+                    
+                    const values = data.observations.map(o => o.value);
+                    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+                    const stdDev = Math.sqrt(values.reduce((sq, n) => sq + Math.pow(n - mean, 2), 0) / values.length);
+                    
+                    const latest = values[values.length - 1];
+                    const zScore = Math.abs((latest - mean) / stdDev);
+                    
+                    if (zScore > 3) {
+                        state.anomalies[id] = {
+                            zScore,
+                            direction: latest > mean ? 'above' : 'below',
+                            severity: zScore > 4 ? 'extreme' : 'high'
+                        };
+                    }
+                });
+            }
+            
+            setupAutoUpdate() {
+                // Check if we should update
+                const checkUpdate = () => {
+                    const now = new Date();
+                    const day = now.getDay();
+                    const hour = now.getHours();
+                    
+                    if (CONFIG.AUTO_UPDATE_DAYS.includes(day) && hour === CONFIG.AUTO_UPDATE_HOUR) {
+                        const lastUpdateDate = this.lastUpdate ? new Date(this.lastUpdate) : null;
+                        
+                        if (!lastUpdateDate || now - lastUpdateDate > 3600000) { // More than 1 hour since last update
+                            this.fetchAllData();
+                        }
+                    }
+                };
+                
+                // Check every hour
+                setInterval(checkUpdate, 3600000);
+                
+                // Initial check
+                checkUpdate();
+            }
+            
+            updateAllDisplays() {
+                // Update active tab
+                const activeTabElement = document.querySelector('.tab-content.active');
+                if (activeTabElement) {
+                    const tabId = activeTabElement.id;
+                    this.updateTabContent(tabId);
+                }
+                
+                // Update header stats
+                this.updateHeaderStats();
+            }
+            
+            updateHeaderStats() {
+                // Update any header statistics if needed
+            }
+            
+            updateTabContent(tabId) {
+                const tab = state.tabs.find(t => t.id === tabId);
+                if (!tab) return;
+                
+                const container = document.getElementById(`${tabId}-content`);
+                if (!container) return;
+                
+                // Clear existing content
+                container.innerHTML = '';
+                
+                // Special tabs
+                if (tabId === 'heatmap') {
+                    this.renderHeatmap(container);
+                } else if (tabId === 'correlations') {
+                    this.renderCorrelations(container);
+                } else if (tabId === 'anomalies') {
+                    this.renderAnomalies(container);
+                } else {
+                    // Regular indicator tabs
+                    this.renderIndicatorTab(container, tab);
+                }
+            }
+            
+            renderIndicatorTab(container, tab) {
+                // Add indicator manager
+                const managerDiv = document.createElement('div');
+                managerDiv.className = 'indicator-manager';
+                managerDiv.innerHTML = `
+                    <h3>Manage Indicators</h3>
+                    <input type="text" class="indicator-search" placeholder="Search indicators..." 
+                           onkeyup="dataManager.filterIndicators(this.value, '${tab.id}')">
+                    <div class="indicator-list" id="${tab.id}-indicators"></div>
+                `;
+                container.appendChild(managerDiv);
+                
+                // Render indicator list
+                this.renderIndicatorList(tab.id);
+                
+                // Add main chart
+                const chartDiv = document.createElement('div');
+                chartDiv.className = 'advanced-chart-container';
+                chartDiv.innerHTML = `
+                    <div class="chart-toolbar">
+                        <div class="timeframe-selector">
+                            ${Object.keys(CONFIG.TIMEFRAMES).map(tf => `
+                                <button class="timeframe-btn ${tf === state.selectedTimeframe ? 'active' : ''}" 
+                                        onclick="chartManager.setTimeframe('${tf}')">${tf}</button>
+                            `).join('')}
+                        </div>
+                        <div class="chart-tools">
+                            <button class="tool-btn" onclick="chartManager.toggleComparison()">
+                                📊 Compare
+                            </button>
+                            <button class="tool-btn" onclick="chartManager.toggleChartType()">
+                                📈 Chart Type
+                            </button>
+                            <button class="tool-btn" onclick="chartManager.addIndicator()">
+                                ➕ Add Indicator
+                            </button>
+                        </div>
                     </div>
-                `).join('');
-                searchResults.style.display = 'block';
-            } else {
-                searchResults.style.display = 'none';
+                    <div id="${tab.id}-chart" style="height: 500px;"></div>
+                    <div class="comparison-panel" id="${tab.id}-comparison"></div>
+                `;
+                container.appendChild(chartDiv);
+                
+                // Render chart
+                this.renderChart(tab.id);
+                
+                // Add data grid
+                const gridDiv = document.createElement('div');
+                gridDiv.className = 'data-grid';
+                gridDiv.id = `${tab.id}-grid`;
+                container.appendChild(gridDiv);
+                
+                // Render data cards
+                this.renderDataCards(tab.id);
             }
-        });
-
-        // Click outside search to close
-        document.addEventListener('click', (e) => {
-            if (!searchBar.contains(e.target) && !searchResults.contains(e.target)) {
-                searchResults.style.display = 'none';
+            
+            renderIndicatorList(tabId) {
+                const container = document.getElementById(`${tabId}-indicators`);
+                if (!container) return;
+                
+                const tab = state.tabs.find(t => t.id === tabId);
+                if (!tab) return;
+                
+                container.innerHTML = '';
+                
+                Object.entries(state.indicators).forEach(([id, config]) => {
+                    const isInTab = tab.indicators === 'all' || tab.indicators.includes(id);
+                    
+                    const indicatorDiv = document.createElement('div');
+                    indicatorDiv.className = `indicator-item ${isInTab ? 'selected' : ''}`;
+                    indicatorDiv.innerHTML = `
+                        <span>${config.name}</span>
+                        <input type="checkbox" ${isInTab ? 'checked' : ''} 
+                               onchange="dataManager.toggleIndicatorInTab('${tabId}', '${id}', this.checked)">
+                    `;
+                    
+                    container.appendChild(indicatorDiv);
+                });
             }
-        });
-
-        // Export Functions
-        function exportToPDF() {
-            if (typeof jspdf !== 'undefined') {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
+            
+            toggleIndicatorInTab(tabId, indicatorId, enabled) {
+                const tab = state.tabs.find(t => t.id === tabId);
+                if (!tab) return;
                 
-                doc.setFontSize(20);
-                doc.text('FRED Financial Data Report', 20, 20);
+                if (tab.indicators === 'all') {
+                    tab.indicators = [];
+                }
                 
-                doc.setFontSize(12);
-                doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 30);
-                
-                let y = 50;
-                Object.entries(currentData).forEach(([series, data]) => {
-                    if (y > 250) {
-                        doc.addPage();
-                        y = 20;
+                if (enabled) {
+                    if (!tab.indicators.includes(indicatorId)) {
+                        tab.indicators.push(indicatorId);
                     }
+                } else {
+                    tab.indicators = tab.indicators.filter(id => id !== indicatorId);
+                }
+                
+                state.saveState();
+                this.updateTabContent(tabId);
+            }
+            
+            renderChart(tabId) {
+                const tab = state.tabs.find(t => t.id === tabId);
+                if (!tab || tab.indicators === 'special') return;
+                
+                const indicators = tab.indicators === 'all' 
+                    ? Object.keys(state.indicators) 
+                    : tab.indicators;
+                
+                const traces = [];
+                
+                indicators.forEach(id => {
+                    const data = state.data[id];
+                    if (!data || !data.observations) return;
                     
-                    const info = Object.values(INDICATORS).flatMap(cat => Object.entries(cat))
-                                       .find(([s]) => s === series)?.[1];
-                    const name = customIndicators[series] || info?.name || series;
+                    const trace = {
+                        x: data.observations.map(o => o.date),
+                        y: data.observations.map(o => o.value),
+                        type: state.chartType,
+                        mode: 'lines',
+                        name: state.indicators[id]?.name || id,
+                        line: { width: 2 }
+                    };
                     
-                    doc.text(`${name}: ${formatValue(data.value, info?.units || '')} (${data.dayChange > 0 ? '+' : ''}${data.dayChange.toFixed(2)}%)`, 20, y);
-                    y += 10;
+                    traces.push(trace);
                 });
                 
-                doc.save('fred_financial_report.pdf');
+                const layout = {
+                    title: `${tab.name.replace(/[^a-zA-Z\s]/g, '')} Chart`,
+                    paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                    plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
+                    font: { color: '#fff' },
+                    xaxis: {
+                        gridcolor: 'rgba(255, 255, 255, 0.1)',
+                        tickfont: { color: '#888' }
+                    },
+                    yaxis: {
+                        gridcolor: 'rgba(255, 255, 255, 0.1)',
+                        tickfont: { color: '#888' }
+                    },
+                    showlegend: true,
+                    legend: {
+                        orientation: 'h',
+                        y: -0.2
+                    }
+                };
+                
+                Plotly.newPlot(`${tabId}-chart`, traces, layout, { responsive: true });
+            }
+            
+            renderDataCards(tabId) {
+                const container = document.getElementById(`${tabId}-grid`);
+                if (!container) return;
+                
+                const tab = state.tabs.find(t => t.id === tabId);
+                if (!tab || tab.indicators === 'special') return;
+                
+                container.innerHTML = '';
+                
+                const indicators = tab.indicators === 'all' 
+                    ? Object.keys(state.indicators) 
+                    : tab.indicators;
+                
+                indicators.forEach(id => {
+                    const data = state.data[id];
+                    if (!data) return;
+                    
+                    const card = document.createElement('div');
+                    card.className = 'data-card';
+                    
+                    // Check for anomaly
+                    const anomaly = state.anomalies[id];
+                    if (anomaly) {
+                        const badge = document.createElement('div');
+                        badge.className = 'anomaly-badge';
+                        badge.textContent = `Anomaly: ${anomaly.severity}`;
+                        card.appendChild(badge);
+                    }
+                    
+                    // Add card actions
+                    const actions = document.createElement('div');
+                    actions.className = 'card-actions';
+                    actions.innerHTML = `
+                        <button class="action-btn" onclick="dataManager.editIndicatorName('${id}')">✏️</button>
+                        <button class="action-btn" onclick="dataManager.viewDetails('${id}')">📊</button>
+                        <button class="action-btn" onclick="alertSystem.addAlert('${id}')">🔔</button>
+                    `;
+                    card.appendChild(actions);
+                    
+                    // Card content
+                    const indicatorName = state.indicators[id]?.name || id;
+                    const changeClass = data.DoD > 0 ? 'positive' : 'negative';
+                    
+                    card.innerHTML += `
+                        <h3>${indicatorName}</h3>
+                        <div style="font-size: 2rem; font-weight: bold; margin: 1rem 0;">
+                            ${data.current ? data.current.toFixed(2) : 'N/A'}
+                        </div>
+                        <div class="${changeClass}">
+                            DoD: ${data.DoD ? data.DoD.toFixed(2) : 0}%
+                        </div>
+                        <div style="margin-top: 0.5rem; font-size: 0.875rem;">
+                            WoW: ${data.WoW ? data.WoW.toFixed(2) : 0}% | 
+                            MoM: ${data.MoM ? data.MoM.toFixed(2) : 0}% | 
+                            YoY: ${data.YoY ? data.YoY.toFixed(2) : 0}%
+                        </div>
+                        ${data.trend ? `
+                            <div style="margin-top: 0.5rem; font-size: 0.875rem;">
+                                Trend: <span class="${data.trend.type === 'bullish' ? 'positive' : 'negative'}">
+                                    ${data.trend.type} (${data.trend.strength.toFixed(2)})
+                                </span>
+                            </div>
+                        ` : ''}
+                        ${data.momentum ? `
+                            <div style="margin-top: 0.5rem; font-size: 0.875rem;">
+                                RSI: ${data.momentum.rsi.toFixed(1)} (${data.momentum.interpretation})
+                            </div>
+                        ` : ''}
+                    `;
+                    
+                    container.appendChild(card);
+                });
+            }
+            
+            renderHeatmap(container) {
+                container.innerHTML = '<h2>Market Heatmap</h2>';
+                
+                const heatmapDiv = document.createElement('div');
+                heatmapDiv.className = 'heatmap-grid';
+                
+                // Headers
+                const headers = ['Indicator', '1D', '1W', '1M', '3M', '1Y', 'Trend', 'RSI'];
+                headers.forEach(header => {
+                    const cell = document.createElement('div');
+                    cell.className = 'heatmap-cell header';
+                    cell.textContent = header;
+                    heatmapDiv.appendChild(cell);
+                });
+                
+                // Data rows
+                Object.entries(state.data).forEach(([id, data]) => {
+                    if (!data) return;
+                    
+                    // Indicator name
+                    const nameCell = document.createElement('div');
+                    nameCell.className = 'heatmap-cell';
+                    nameCell.textContent = state.indicators[id]?.name || id;
+                    nameCell.style.textAlign = 'left';
+                    nameCell.style.fontWeight = 'bold';
+                    heatmapDiv.appendChild(nameCell);
+                    
+                    // Changes
+                    const changes = [data.DoD, data.WoW, data.MoM, data.QoQ, data.YoY];
+                    changes.forEach(change => {
+                        const cell = document.createElement('div');
+                        cell.className = `heatmap-cell ${this.getHeatmapClass(change)}`;
+                        cell.textContent = change ? `${change.toFixed(1)}%` : '0%';
+                        heatmapDiv.appendChild(cell);
+                    });
+                    
+                    // Trend
+                    const trendCell = document.createElement('div');
+                    trendCell.className = 'heatmap-cell';
+                    if (data.trend) {
+                        trendCell.className += data.trend.type === 'bullish' ? ' heat-moderate-positive' : ' heat-moderate-negative';
+                        trendCell.textContent = data.trend.type;
+                    } else {
+                        trendCell.textContent = '-';
+                    }
+                    heatmapDiv.appendChild(trendCell);
+                    
+                    // RSI
+                    const rsiCell = document.createElement('div');
+                    rsiCell.className = 'heatmap-cell';
+                    if (data.momentum) {
+                        const rsi = data.momentum.rsi;
+                        if (rsi > 70) {
+                            rsiCell.className += ' heat-high-negative';
+                        } else if (rsi < 30) {
+                            rsiCell.className += ' heat-high-positive';
+                        } else {
+                            rsiCell.className += ' heat-neutral';
+                        }
+                        rsiCell.textContent = rsi.toFixed(0);
+                    } else {
+                        rsiCell.textContent = '-';
+                    }
+                    heatmapDiv.appendChild(rsiCell);
+                });
+                
+                container.appendChild(heatmapDiv);
+            }
+            
+            getHeatmapClass(value) {
+                if (!value) return 'heat-neutral';
+                if (value < -10) return 'heat-extreme-negative';
+                if (value < -5) return 'heat-high-negative';
+                if (value < -2) return 'heat-moderate-negative';
+                if (value < 0) return 'heat-low-negative';
+                if (value < 2) return 'heat-neutral';
+                if (value < 5) return 'heat-moderate-positive';
+                if (value < 10) return 'heat-high-positive';
+                return 'heat-extreme-positive';
+            }
+            
+            renderCorrelations(container) {
+                container.innerHTML = '<h2>Correlation Matrix</h2>';
+                
+                const tableDiv = document.createElement('div');
+                tableDiv.className = 'correlation-matrix';
+                
+                const table = document.createElement('table');
+                table.className = 'correlation-table';
+                
+                // Headers
+                const headerRow = document.createElement('tr');
+                headerRow.innerHTML = '<th></th>';
+                Object.keys(state.correlations).forEach(id => {
+                    const th = document.createElement('th');
+                    th.textContent = state.indicators[id]?.name || id;
+                    th.style.fontSize = '0.75rem';
+                    headerRow.appendChild(th);
+                });
+                table.appendChild(headerRow);
+                
+                // Data rows
+                Object.entries(state.correlations).forEach(([id1, correlations]) => {
+                    const row = document.createElement('tr');
+                    const th = document.createElement('th');
+                    th.textContent = state.indicators[id1]?.name || id1;
+                    row.appendChild(th);
+                    
+                    Object.entries(correlations).forEach(([id2, corr]) => {
+                        const td = document.createElement('td');
+                        td.className = 'correlation-cell';
+                        
+                        if (corr > 0.7) td.className += ' correlation-positive-high';
+                        else if (corr > 0.3) td.className += ' correlation-positive-medium';
+                        else if (corr > 0) td.className += ' correlation-positive-low';
+                        else if (corr > -0.3) td.className += ' correlation-negative-low';
+                        else if (corr > -0.7) td.className += ' correlation-negative-medium';
+                        else td.className += ' correlation-negative-high';
+                        
+                        td.textContent = corr.toFixed(2);
+                        row.appendChild(td);
+                    });
+                    
+                    table.appendChild(row);
+                });
+                
+                tableDiv.appendChild(table);
+                container.appendChild(tableDiv);
+            }
+            
+            renderAnomalies(container) {
+                container.innerHTML = '<h2>Anomaly Detection</h2>';
+                
+                const anomalyList = document.createElement('div');
+                anomalyList.className = 'data-grid';
+                
+                Object.entries(state.anomalies).forEach(([id, anomaly]) => {
+                    const data = state.data[id];
+                    if (!data) return;
+                    
+                    const card = document.createElement('div');
+                    card.className = 'data-card';
+                    card.style.border = `2px solid ${anomaly.severity === 'extreme' ? 'var(--danger-red)' : 'var(--warning-orange)'}`;
+                    
+                    card.innerHTML = `
+                        <div class="anomaly-badge">${anomaly.severity.toUpperCase()}</div>
+                        <h3>${state.indicators[id]?.name || id}</h3>
+                        <div style="font-size: 2rem; font-weight: bold; margin: 1rem 0;">
+                            ${data.current ? data.current.toFixed(2) : 'N/A'}
+                        </div>
+                        <div>Z-Score: ${anomaly.zScore.toFixed(2)}</div>
+                        <div>Direction: ${anomaly.direction}</div>
+                        <div style="margin-top: 1rem;">
+                            <button class="export-btn" onclick="dataManager.investigateAnomaly('${id}')">
+                                Investigate
+                            </button>
+                        </div>
+                    `;
+                    
+                    anomalyList.appendChild(card);
+                });
+                
+                if (Object.keys(state.anomalies).length === 0) {
+                    anomalyList.innerHTML = '<p style="text-align: center; padding: 2rem;">No anomalies detected</p>';
+                }
+                
+                container.appendChild(anomalyList);
+            }
+            
+            editIndicatorName(id) {
+                const currentName = state.indicators[id]?.name || id;
+                const newName = prompt('Enter new name:', currentName);
+                
+                if (newName && newName !== currentName) {
+                    state.indicators[id].name = newName;
+                    state.saveState();
+                    this.updateAllDisplays();
+                }
+            }
+            
+            viewDetails(id) {
+                // Open detailed view modal
+                console.log('View details for', id);
+            }
+            
+            investigateAnomaly(id) {
+                // Open anomaly investigation modal
+                console.log('Investigate anomaly for', id);
             }
         }
-
-        function exportToExcel() {
-            const ws_data = [['Indicator', 'Series ID', 'Value', 'Day Change %', 'Week Change %', 'Month Change %', 'Year Change %', 'Date']];
+        
+        const dataManager = new DataManager();
+        
+        // ====================================
+        // CHART MANAGER
+        // ====================================
+        class ChartManager {
+            setTimeframe(timeframe) {
+                state.selectedTimeframe = timeframe;
+                document.querySelectorAll('.timeframe-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.textContent === timeframe);
+                });
+                dataManager.updateAllDisplays();
+            }
             
-            Object.entries(currentData).forEach(([series, data]) => {
-                const info = Object.values(INDICATORS).flatMap(cat => Object.entries(cat))
-                                   .find(([s]) => s === series)?.[1];
-                const name = customIndicators[series] || info?.name || series;
+            toggleComparison() {
+                state.comparisonMode = !state.comparisonMode;
+                dataManager.updateAllDisplays();
+            }
+            
+            toggleChartType() {
+                const types = ['line', 'bar', 'candlestick', 'area'];
+                const currentIndex = types.indexOf(state.chartType);
+                state.chartType = types[(currentIndex + 1) % types.length];
+                dataManager.updateAllDisplays();
+            }
+            
+            addIndicator() {
+                // Open indicator selector modal
+                console.log('Add indicator');
+            }
+        }
+        
+        const chartManager = new ChartManager();
+        
+        // ====================================
+        // EXPORT FUNCTIONS
+        // ====================================
+        async function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF();
+            
+            pdf.setFontSize(20);
+            pdf.text('FRED Financial Report', 20, 20);
+            
+            pdf.setFontSize(12);
+            pdf.text(`Generated: ${new Date().toLocaleString()}`, 20, 30);
+            
+            let y = 50;
+            Object.entries(state.data).forEach(([id, data]) => {
+                if (y > 250) {
+                    pdf.addPage();
+                    y = 20;
+                }
                 
-                ws_data.push([
-                    name, 
-                    series,
-                    data.value, 
-                    data.dayChange, 
-                    data.weekChange,
-                    data.monthChange,
-                    data.yearChange,
-                    data.date
+                pdf.setFontSize(14);
+                pdf.text(state.indicators[id]?.name || id, 20, y);
+                y += 10;
+                
+                pdf.setFontSize(10);
+                pdf.text(`Current: ${data.current?.toFixed(2) || 'N/A'}`, 20, y);
+                y += 7;
+                pdf.text(`Changes - DoD: ${data.DoD?.toFixed(2)}%, WoW: ${data.WoW?.toFixed(2)}%, MoM: ${data.MoM?.toFixed(2)}%, YoY: ${data.YoY?.toFixed(2)}%`, 20, y);
+                y += 15;
+            });
+            
+            pdf.save('fred-report.pdf');
+        }
+        
+        async function exportToExcel() {
+            const workbook = XLSX.utils.book_new();
+            
+            // Create main data sheet
+            const wsData = [];
+            wsData.push(['Indicator', 'Current', 'DoD %', 'WoW %', 'MoM %', 'QoQ %', 'YoY %', 'Trend', 'RSI']);
+            
+            Object.entries(state.data).forEach(([id, data]) => {
+                wsData.push([
+                    state.indicators[id]?.name || id,
+                    data.current || 0,
+                    data.DoD || 0,
+                    data.WoW || 0,
+                    data.MoM || 0,
+                    data.QoQ || 0,
+                    data.YoY || 0,
+                    data.trend?.type || '',
+                    data.momentum?.rsi || 0
                 ]);
             });
             
-            const ws = XLSX.utils.aoa_to_sheet(ws_data);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'FRED Data');
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            XLSX.utils.book_append_sheet(workbook, ws, 'Data');
             
-            XLSX.writeFile(wb, 'fred_data.xlsx');
+            // Create correlations sheet
+            if (Object.keys(state.correlations).length > 0) {
+                const corrData = [];
+                const headers = [''];
+                Object.keys(state.correlations).forEach(id => {
+                    headers.push(state.indicators[id]?.name || id);
+                });
+                corrData.push(headers);
+                
+                Object.entries(state.correlations).forEach(([id1, correlations]) => {
+                    const row = [state.indicators[id1]?.name || id1];
+                    Object.values(correlations).forEach(corr => {
+                        row.push(corr);
+                    });
+                    corrData.push(row);
+                });
+                
+                const corrWs = XLSX.utils.aoa_to_sheet(corrData);
+                XLSX.utils.book_append_sheet(workbook, corrWs, 'Correlations');
+            }
+            
+            XLSX.writeFile(workbook, 'fred-data.xlsx');
         }
-
-        function exportToJSON() {
-            const exportData = {
-                timestamp: new Date().toISOString(),
-                data: currentData,
-                historical: historicalData,
-                customIndicators: customIndicators
-            };
+        
+        async function exportToCSV() {
+            let csv = 'Indicator,Current,DoD %,WoW %,MoM %,QoQ %,YoY %\n';
             
-            const blob = new Blob([JSON.stringify(exportData, null, 2)], 
-                                 { type: 'application/json' });
+            Object.entries(state.data).forEach(([id, data]) => {
+                csv += `"${state.indicators[id]?.name || id}",${data.current || 0},${data.DoD || 0},${data.WoW || 0},${data.MoM || 0},${data.QoQ || 0},${data.YoY || 0}\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'fred_data.json';
+            a.download = 'fred-data.csv';
             a.click();
         }
-
-        // Alert Panel Functions
-        function toggleAlertPanel() {
-            const panel = document.getElementById('alertPanel');
-            panel.classList.toggle('active');
-            
-            if (panel.classList.contains('active')) {
-                alertManager.updateAlertPanel();
-            }
-        }
-
-        function addNewAlert() {
-            const indicator = prompt('Enter FRED series ID (e.g., VIXCLS, DGS10):');
-            if (!indicator) return;
-            
-            const condition = prompt('Enter condition (above/below/change):');
-            if (!condition) return;
-            
-            const threshold = parseFloat(prompt('Enter threshold value:'));
-            if (isNaN(threshold)) return;
-            
-            const action = 'notify'; // For browser notifications
-            
-            alertManager.addAlert(indicator, condition, threshold, action);
-            alert('Alert added successfully!');
-        }
-
-        // Refresh Functions
-        function refreshHeatmap() {
-            updateHeatmap();
-        }
-
-        function addIndicatorToChart() {
-            const indicator = prompt('Enter FRED series ID to add (e.g., SP500, NASDAQCOM):');
-            if (indicator && historicalData[indicator]) {
-                const data = filterDataByTimeframe(historicalData[indicator], currentTimeframe);
-                const info = Object.values(INDICATORS).flatMap(cat => Object.entries(cat))
-                                   .find(([s]) => s === indicator)?.[1];
-                
-                const trace = {
-                    x: data.map(d => d.date),
-                    y: data.map(d => d.value),
-                    type: 'scatter',
-                    mode: 'lines',
-                    name: customIndicators[indicator] || info?.name || indicator
-                };
-                
-                Plotly.addTraces('comparisonChart', [trace]);
-            } else {
-                alert('Series not found. Please load it first or check the series ID.');
-            }
-        }
-
-        // Initialize Comparison Chart
-        function initComparisonChart() {
-            const layout = {
-                title: 'Indicator Comparison',
-                xaxis: {
-                    gridcolor: 'rgba(255, 255, 255, 0.1)',
-                    tickfont: { color: '#888' }
-                },
-                yaxis: {
-                    gridcolor: 'rgba(255, 255, 255, 0.1)',
-                    tickfont: { color: '#888' }
-                },
-                paper_bgcolor: 'rgba(0, 0, 0, 0)',
-                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
-                font: { color: '#fff' },
-                showlegend: true
+        
+        async function exportToJSON() {
+            const exportData = {
+                timestamp: new Date().toISOString(),
+                data: state.data,
+                indicators: state.indicators,
+                correlations: state.correlations,
+                anomalies: state.anomalies
             };
             
-            Plotly.newPlot('comparisonChart', [], layout, { responsive: true });
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'fred-data.json';
+            a.click();
         }
-
-        // Auto-refresh function
-        function startAutoRefresh() {
-            // Refresh every 5 minutes (FRED data doesn't update that frequently)
-            setInterval(() => {
-                console.log('Auto-refreshing data...');
-                loadAllData();
-            }, 300000); // 5 minutes
-        }
-
-        // Initialize Dashboard
-        async function init() {
-            console.log('Initializing FRED Dashboard...');
+        
+        // ====================================
+        // UI FUNCTIONS
+        // ====================================
+        function initializeTabs() {
+            const tabsNav = document.getElementById('tabsNav');
+            const tabContents = document.getElementById('tabContents');
             
-            // Check if API key is set
-            if (FRED_API_KEY === 'YOUR_FRED_API_KEY_HERE') {
-                alert('Please add your FRED API key to the code. Get one free at: https://fred.stlouisfed.org/docs/api/api_key.html');
+            tabsNav.innerHTML = '';
+            tabContents.innerHTML = '';
+            
+            state.tabs.forEach((tab, index) => {
+                // Create tab button
+                const tabBtn = document.createElement('button');
+                tabBtn.className = `tab-btn ${index === 0 ? 'active' : ''}`;
+                tabBtn.dataset.tab = tab.id;
+                tabBtn.innerHTML = `
+                    ${tab.name}
+                    <span class="edit-tab" onclick="editTab('${tab.id}')">✏️</span>
+                `;
+                tabBtn.onclick = (e) => {
+                    if (!e.target.classList.contains('edit-tab')) {
+                        switchTab(tab.id);
+                    }
+                };
+                tabsNav.appendChild(tabBtn);
                 
-                // Update API status
-                const apiStatus = document.getElementById('apiStatus');
-                apiStatus.textContent = 'API: No Key';
-                apiStatus.classList.add('error');
-                return;
-            }
-            
-            // Request notification permission
-            if ('Notification' in window && Notification.permission === 'default') {
-                Notification.requestPermission();
-            }
-            
-            // Initialize comparison chart
-            initComparisonChart();
-            
-            // Load all data
-            await loadAllData();
-            
-            // Start auto-refresh
-            startAutoRefresh();
-            
-            console.log('Dashboard initialized successfully');
+                // Create tab content
+                const tabContent = document.createElement('div');
+                tabContent.className = `tab-content ${index === 0 ? 'active' : ''}`;
+                tabContent.id = tab.id;
+                
+                const contentDiv = document.createElement('div');
+                contentDiv.id = `${tab.id}-content`;
+                tabContent.appendChild(contentDiv);
+                
+                tabContents.appendChild(tabContent);
+            });
         }
-
-        // Start the application
-        init();
+        
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tab === tabId);
+            });
+            
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.toggle('active', content.id === tabId);
+            });
+            
+            state.activeTab = tabId;
+            dataManager.updateTabContent(tabId);
+        }
+        
+        function editTab(tabId) {
+            const tab = state.tabs.find(t => t.id === tabId);
+            if (!tab) return;
+            
+            const newName = prompt('Enter new tab name:', tab.name);
+            if (newName && newName !== tab.name) {
+                tab.name = newName;
+                state.saveState();
+                initializeTabs();
+            }
+        }
+        
+        function toggleAlertManager() {
+            const manager = document.getElementById('alertManager');
+            manager.classList.toggle('active');
+            if (manager.classList.contains('active')) {
+                alertSystem.updateAlertDisplay();
+            }
+        }
+        
+        function toggleExportPanel() {
+            const panel = document.getElementById('exportPanel');
+            panel.classList.toggle('active');
+        }
+        
+        function createNewAlert() {
+            const indicators = Object.entries(state.indicators).map(([id, config]) => 
+                `<option value="${id}">${config.name}</option>`
+            ).join('');
+            
+            const html = `
+                <div style="padding: 1rem;">
+                    <h3>Create New Alert</h3>
+                    <select id="alertIndicator" style="width: 100%; margin: 0.5rem 0; padding: 0.5rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff;">
+                        ${indicators}
+                    </select>
+                    <select id="alertCondition" style="width: 100%; margin: 0.5rem 0; padding: 0.5rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff;">
+                        <option value="above">Above</option>
+                        <option value="below">Below</option>
+                        <option value="change">Change %</option>
+                        <option value="crossover">Crossover</option>
+                    </select>
+                    <input type="number" id="alertThreshold" placeholder="Threshold value" style="width: 100%; margin: 0.5rem 0; padding: 0.5rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff;">
+                    <button onclick="saveNewAlert()" style="width: 100%; padding: 0.75rem; background: var(--primary-green); color: #000; border: none; border-radius: 8px; cursor: pointer; margin-top: 1rem;">Create Alert</button>
+                </div>
+            `;
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal active';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 400px;">
+                    ${html}
+                </div>
+            `;
+            modal.onclick = (e) => {
+                if (e.target === modal) modal.remove();
+            };
+            document.body.appendChild(modal);
+        }
+        
+        function saveNewAlert() {
+            const indicator = document.getElementById('alertIndicator').value;
+            const condition = document.getElementById('alertCondition').value;
+            const threshold = parseFloat(document.getElementById('alertThreshold').value);
+            
+            if (indicator && condition && !isNaN(threshold)) {
+                alertSystem.addAlert(indicator, condition, threshold);
+                document.querySelector('.modal').remove();
+            }
+        }
+        
+        function openCustomizeDashboard() {
+            const modal = document.getElementById('customizeModal');
+            const content = document.getElementById('customizeContent');
+            
+            content.innerHTML = `
+                <h3>Dashboard Layouts</h3>
+                <div style="margin-bottom: 2rem;">
+                    ${Object.keys(state.customLayouts).map(name => `
+                        <button class="export-btn" onclick="applyLayout('${name}')">${name}</button>
+                    `).join('')}
+                </div>
+                
+                <h3>Add New Tab</h3>
+                <input type="text" id="newTabName" placeholder="Tab name" style="width: 100%; margin: 0.5rem 0; padding: 0.5rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff;">
+                <button onclick="addNewTab()" style="width: 100%; padding: 0.75rem; background: var(--primary-green); color: #000; border: none; border-radius: 8px; cursor: pointer; margin-top: 1rem;">Add Tab</button>
+                
+                <h3 style="margin-top: 2rem;">Manage Indicators</h3>
+                <button onclick="addNewIndicator()" style="width: 100%; padding: 0.75rem; background: var(--primary-blue); color: #000; border: none; border-radius: 8px; cursor: pointer;">Add Custom Indicator</button>
+            `;
+            
+            modal.classList.add('active');
+        }
+        
+        function closeCustomizeModal() {
+            document.getElementById('customizeModal').classList.remove('active');
+        }
+        
+        function applyLayout(layoutName) {
+            const layout = state.customLayouts[layoutName];
+            if (layout) {
+                // Apply layout logic
+                console.log('Applying layout:', layoutName);
+                closeCustomizeModal();
+            }
+        }
+        
+        function addNewTab() {
+            const name = document.getElementById('newTabName').value;
+            if (name) {
+                const newTab = {
+                    id: name.toLowerCase().replace(/\s+/g, '-'),
+                    name: name,
+                    indicators: []
+                };
+                state.tabs.push(newTab);
+                state.saveState();
+                initializeTabs();
+                closeCustomizeModal();
+            }
+        }
+        
+        function addNewIndicator() {
+            const symbol = prompt('Enter FRED symbol (e.g., CPILFESL for Core CPI):');
+            if (symbol) {
+                const name = prompt('Enter display name:');
+                if (name) {
+                    state.indicators[symbol] = {
+                        name: name,
+                        category: 'custom',
+                        enabled: true
+                    };
+                    state.saveState();
+                    dataManager.fetchAllData();
+                }
+            }
+        }
+        
+        function forceRefreshAllData() {
+            dataManager.fetchAllData();
+        }
+        
+        // ====================================
+        // INITIALIZATION
+        // ====================================
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Initializing Ultimate FRED Platform...');
+            
+            // Initialize UI
+            initializeTabs();
+            
+            // Load initial data
+            dataManager.fetchAllData();
+            
+            // Set up periodic refresh (every 5 minutes)
+            setInterval(() => {
+                dataManager.fetchAllData();
+            }, 5 * 60 * 1000);
+            
+            console.log('✅ Platform ready');
+        });
+        
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
 </html>
