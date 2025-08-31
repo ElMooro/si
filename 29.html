@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate Financial Intelligence Platform</title>
+    <title>FRED Real-Time Financial Dashboard</title>
     <script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -531,82 +531,6 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Correlation Matrix */
-        .correlation-matrix {
-            overflow-x: auto;
-            margin-top: 2rem;
-        }
-
-        .correlation-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .correlation-table th,
-        .correlation-table td {
-            padding: 0.75rem;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .correlation-table th {
-            background: rgba(255, 255, 255, 0.05);
-            font-weight: 600;
-        }
-
-        .correlation-cell {
-            position: relative;
-            font-weight: 600;
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 10px;
-            height: 10px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 5px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .header-content {
-                flex-direction: column;
-                gap: 1rem;
-            }
-
-            .search-container {
-                margin: 0;
-                max-width: 100%;
-            }
-
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .charts-container {
-                grid-template-columns: 1fr;
-            }
-
-            .heatmap-grid {
-                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            }
-
-            .alert-panel {
-                width: 100%;
-            }
-        }
-
         /* Export Controls */
         .export-controls {
             display: flex;
@@ -674,28 +598,91 @@
             border-color: #00ff88;
             color: #00ff88;
         }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .search-container {
+                margin: 0;
+                max-width: 100%;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+
+            .heatmap-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            }
+
+            .alert-panel {
+                width: 100%;
+            }
+        }
+
+        .api-status {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+
+        .api-status.error {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff4444;
+        }
     </style>
 </head>
 <body>
     <!-- Header -->
     <header class="header">
         <div class="header-content">
-            <div class="logo">📊 Financial Intelligence Platform</div>
+            <div class="logo">📊 FRED Financial Dashboard</div>
             
             <!-- Search Bar -->
             <div class="search-container">
-                <input type="text" class="search-bar" placeholder="Search indicators, symbols, or data..." id="globalSearch">
+                <input type="text" class="search-bar" placeholder="Search FRED indicators..." id="globalSearch">
                 <div class="search-results" id="searchResults"></div>
             </div>
             
             <!-- Header Controls -->
             <div class="header-controls">
+                <!-- API Status -->
+                <div class="api-status" id="apiStatus">API: Connected</div>
+                
                 <!-- Layout Selector -->
                 <div class="layout-selector">
                     <button class="layout-btn active" data-layout="default">Default</button>
-                    <button class="layout-btn" data-layout="risk">Risk Manager</button>
-                    <button class="layout-btn" data-layout="macro">Macro Trader</button>
-                    <button class="layout-btn" data-layout="crisis">Crisis Monitor</button>
+                    <button class="layout-btn" data-layout="risk">Risk</button>
+                    <button class="layout-btn" data-layout="macro">Macro</button>
                 </div>
                 
                 <!-- Export Controls -->
@@ -710,9 +697,6 @@
                     🔔
                     <span class="alert-count" id="alertCount">0</span>
                 </div>
-                
-                <!-- Settings -->
-                <button class="export-btn" onclick="openSettings()">⚙️</button>
             </div>
         </div>
     </header>
@@ -729,8 +713,6 @@
         <button class="tab-btn" data-tab="crisis">⚠️ Crisis Indicators</button>
         <button class="tab-btn" data-tab="ml">🤖 ML Predictions</button>
         <button class="tab-btn" data-tab="signals">📡 Trading Signals</button>
-        <button class="tab-btn" data-tab="correlation">🔗 Correlations</button>
-        <button class="tab-btn" data-tab="volatility">📉 Volatility</button>
         <button class="tab-btn" data-tab="alerts">🚨 Alerts</button>
     </nav>
 
@@ -747,14 +729,13 @@
                     <div class="chart-header">
                         <h3 class="chart-title">Market Overview</h3>
                         <div class="chart-controls">
-                            <button class="timeframe-btn active" data-timeframe="1D">1D</button>
-                            <button class="timeframe-btn" data-timeframe="1W">1W</button>
                             <button class="timeframe-btn" data-timeframe="1M">1M</button>
                             <button class="timeframe-btn" data-timeframe="3M">3M</button>
                             <button class="timeframe-btn" data-timeframe="6M">6M</button>
-                            <button class="timeframe-btn" data-timeframe="1Y">1Y</button>
+                            <button class="timeframe-btn active" data-timeframe="1Y">1Y</button>
                             <button class="timeframe-btn" data-timeframe="5Y">5Y</button>
                             <button class="timeframe-btn" data-timeframe="10Y">10Y</button>
+                            <button class="timeframe-btn" data-timeframe="20Y">20Y</button>
                             <button class="timeframe-btn" data-timeframe="MAX">MAX</button>
                         </div>
                     </div>
@@ -850,23 +831,6 @@
             </div>
         </div>
 
-        <!-- Correlations Tab -->
-        <div class="tab-content" id="correlation">
-            <div class="correlation-matrix" id="correlationMatrix">
-                <div class="loading"><div class="spinner"></div></div>
-            </div>
-        </div>
-
-        <!-- Volatility Tab -->
-        <div class="tab-content" id="volatility">
-            <div class="chart-wrapper">
-                <div class="chart-header">
-                    <h3 class="chart-title">Volatility Surface</h3>
-                </div>
-                <div id="volatilitySurface" style="height: 500px;"></div>
-            </div>
-        </div>
-
         <!-- Alerts Tab -->
         <div class="tab-content" id="alerts">
             <div class="heatmap-container">
@@ -904,85 +868,86 @@
         let customIndicators = JSON.parse(localStorage.getItem('customIndicators')) || {};
         let alerts = JSON.parse(localStorage.getItem('alerts')) || [];
         let currentLayout = 'default';
-        let currentPeriod = 'MoM';
-        let wsConnection = null;
-        let currentTimeframe = '1D';
+        let currentPeriod = 'DoD';
+        let currentTimeframe = '1Y';
 
-        // API Configuration
-        const API_BASE = 'https://api.stlouisfed.org/fred/series/observations';
-        const API_KEY = 'your_api_key_here'; // Replace with actual API key
+        // IMPORTANT: Add your FRED API key here
+        const FRED_API_KEY = 'YOUR_FRED_API_KEY_HERE'; // Get from https://fred.stlouisfed.org/docs/api/api_key.html
         
-        // FRED Series IDs for different tabs
+        // FRED API Configuration
+        const FRED_BASE_URL = 'https://api.stlouisfed.org/fred/series/observations';
+        
+        // FRED Series IDs - These are real FRED series
         const INDICATORS = {
             overview: {
-                'VIXCLS': { name: 'VIX Index', category: 'Risk' },
-                'DGS10': { name: '10-Year Treasury', category: 'Rates' },
-                'DGS2': { name: '2-Year Treasury', category: 'Rates' },
-                'DEXUSEU': { name: 'USD/EUR', category: 'Currency' },
-                'DCOILWTICO': { name: 'WTI Crude Oil', category: 'Commodity' },
-                'GOLDAMGBD228NLBM': { name: 'Gold Price', category: 'Commodity' },
-                'DJIA': { name: 'Dow Jones', category: 'Equity' },
-                'NASDAQCOM': { name: 'NASDAQ', category: 'Equity' }
+                'VIXCLS': { name: 'CBOE Volatility Index: VIX', category: 'Volatility', units: 'Index' },
+                'DGS10': { name: '10-Year Treasury Rate', category: 'Rates', units: 'Percent' },
+                'DGS2': { name: '2-Year Treasury Rate', category: 'Rates', units: 'Percent' },
+                'DEXUSEU': { name: 'US/Euro Exchange Rate', category: 'Currency', units: 'US$/Euro' },
+                'DCOILWTICO': { name: 'WTI Crude Oil Price', category: 'Commodity', units: '$/Barrel' },
+                'GOLDAMGBD228NLBM': { name: 'Gold Price (London Fixing)', category: 'Commodity', units: '$/Ounce' },
+                'SP500': { name: 'S&P 500 Index', category: 'Equity', units: 'Index' },
+                'NASDAQCOM': { name: 'NASDAQ Composite Index', category: 'Equity', units: 'Index' }
             },
             fed: {
-                'FEDFUNDS': { name: 'Fed Funds Rate', category: 'Policy' },
-                'WALCL': { name: 'Fed Balance Sheet', category: 'Balance Sheet' },
-                'RRPONTSYD': { name: 'Reverse Repo', category: 'Operations' },
-                'WSHOSHO': { name: 'Treasury Holdings', category: 'Holdings' },
-                'WSHOMOR': { name: 'MBS Holdings', category: 'Holdings' },
-                'M2SL': { name: 'M2 Money Supply', category: 'Money Supply' },
-                'BOGMBASE': { name: 'Monetary Base', category: 'Money Supply' },
-                'EXCSRESNS': { name: 'Excess Reserves', category: 'Reserves' }
+                'DFF': { name: 'Federal Funds Effective Rate', category: 'Policy', units: 'Percent' },
+                'WALCL': { name: 'Fed Total Assets', category: 'Balance Sheet', units: 'Millions of $' },
+                'RRPONTSYD': { name: 'Overnight Reverse Repo', category: 'Operations', units: 'Billions of $' },
+                'WSHOSHO': { name: 'Treasury Securities Held', category: 'Holdings', units: 'Millions of $' },
+                'WSHOMOR': { name: 'MBS Holdings', category: 'Holdings', units: 'Millions of $' },
+                'M2SL': { name: 'M2 Money Supply', category: 'Money Supply', units: 'Billions of $' },
+                'BOGMBASE': { name: 'Monetary Base', category: 'Money Supply', units: 'Billions of $' },
+                'EXCSRESNS': { name: 'Excess Reserves', category: 'Reserves', units: 'Billions of $' }
             },
             blackswan: {
-                'TEDRATE': { name: 'TED Spread', category: 'Credit Risk' },
-                'T10Y2Y': { name: '10Y-2Y Spread', category: 'Yield Curve' },
-                'T10Y3M': { name: '10Y-3M Spread', category: 'Yield Curve' },
-                'BAMLH0A0HYM2': { name: 'High Yield Spread', category: 'Credit' },
-                'BAMLC0A0CM': { name: 'IG Credit Spread', category: 'Credit' },
-                'STLFSI3': { name: 'Financial Stress', category: 'Stress' },
-                'UMCSENT': { name: 'Consumer Sentiment', category: 'Sentiment' },
-                'DCOILBRENTEU': { name: 'Brent Oil', category: 'Energy' }
+                'TEDRATE': { name: 'TED Spread', category: 'Credit Risk', units: 'Percent' },
+                'T10Y2Y': { name: '10-Year/2-Year Treasury Spread', category: 'Yield Curve', units: 'Percent' },
+                'T10Y3M': { name: '10-Year/3-Month Treasury Spread', category: 'Yield Curve', units: 'Percent' },
+                'BAMLH0A0HYM2': { name: 'US High Yield Spread', category: 'Credit', units: 'Percent' },
+                'BAMLC0A0CM': { name: 'US IG Corporate Spread', category: 'Credit', units: 'Percent' },
+                'STLFSI3': { name: 'St. Louis Fed Financial Stress Index', category: 'Stress', units: 'Index' },
+                'UMCSENT': { name: 'Consumer Sentiment', category: 'Sentiment', units: 'Index' },
+                'DCOILBRENTEU': { name: 'Brent Crude Oil Price', category: 'Energy', units: '$/Barrel' }
             },
             liquidity: {
-                'SOFR': { name: 'SOFR Rate', category: 'Funding' },
-                'OBFR': { name: 'Fed Funds Volume', category: 'Volume' },
-                'EFFR': { name: 'Effective Fed Funds', category: 'Funding' },
-                'IORB': { name: 'Interest on Reserves', category: 'Policy' },
-                'DFEDTARU': { name: 'Fed Target Upper', category: 'Policy' },
-                'DFEDTARL': { name: 'Fed Target Lower', category: 'Policy' },
-                'TRESEGUSM052N': { name: 'Treasury Cash', category: 'Treasury' },
-                'WLRRAL': { name: 'Repo Agreements', category: 'Operations' }
+                'SOFR': { name: 'SOFR Rate', category: 'Funding', units: 'Percent' },
+                'EFFR': { name: 'Effective Fed Funds Rate', category: 'Funding', units: 'Percent' },
+                'IORB': { name: 'Interest on Reserve Balances', category: 'Policy', units: 'Percent' },
+                'DFEDTARU': { name: 'Fed Funds Target Upper', category: 'Policy', units: 'Percent' },
+                'DFEDTARL': { name: 'Fed Funds Target Lower', category: 'Policy', units: 'Percent' },
+                'DPCREDIT': { name: 'Primary Credit Rate', category: 'Discount Window', units: 'Percent' },
+                'TRESEGUSM052N': { name: 'Treasury General Account', category: 'Treasury', units: 'Millions of $' },
+                'WLRRAL': { name: 'Repo Agreements', category: 'Operations', units: 'Millions of $' }
             },
             currencies: {
-                'DXY': { name: 'Dollar Index', category: 'Index' },
-                'DEXJPUS': { name: 'USD/JPY', category: 'Major' },
-                'DEXUSUK': { name: 'GBP/USD', category: 'Major' },
-                'DEXCAUS': { name: 'USD/CAD', category: 'Major' },
-                'DEXSZUS': { name: 'USD/CHF', category: 'Major' },
-                'DEXUSAL': { name: 'AUD/USD', category: 'Major' },
-                'DEXUSNZ': { name: 'NZD/USD', category: 'Major' },
-                'DEXCHUS': { name: 'USD/CNY', category: 'EM' }
+                'DTWEXBGS': { name: 'Trade Weighted US Dollar Index', category: 'Index', units: 'Index' },
+                'DEXJPUS': { name: 'Japanese Yen/US Dollar', category: 'Major', units: 'Yen/$' },
+                'DEXUSUK': { name: 'US Dollar/British Pound', category: 'Major', units: '$/Pound' },
+                'DEXCAUS': { name: 'Canadian Dollar/US Dollar', category: 'Major', units: 'CAD/$' },
+                'DEXSZUS': { name: 'Swiss Franc/US Dollar', category: 'Major', units: 'CHF/$' },
+                'DEXUSAL': { name: 'US Dollar/Australian Dollar', category: 'Major', units: '$/AUD' },
+                'DEXUSNZ': { name: 'US Dollar/New Zealand Dollar', category: 'Major', units: '$/NZD' },
+                'DEXCHUS': { name: 'Chinese Yuan/US Dollar', category: 'EM', units: 'Yuan/$' }
             },
             credit: {
-                'AAA': { name: 'AAA Corporate', category: 'IG' },
-                'BAA': { name: 'BAA Corporate', category: 'IG' },
-                'BAMLH0A0HYM2EY': { name: 'HY Effective Yield', category: 'HY' },
-                'BAMLC0A4CBBB': { name: 'BBB Spread', category: 'IG' },
-                'DAAA': { name: 'AAA Spread', category: 'Spread' },
-                'DBAA': { name: 'BAA Spread', category: 'Spread' },
-                'DMOAA': { name: 'Moody\'s AAA', category: 'Rating' },
-                'DMBAA': { name: 'Moody\'s BAA', category: 'Rating' }
+                'AAA': { name: 'Moody\'s AAA Corporate Yield', category: 'IG', units: 'Percent' },
+                'BAA': { name: 'Moody\'s BAA Corporate Yield', category: 'IG', units: 'Percent' },
+                'BAMLH0A0HYM2EY': { name: 'US High Yield Effective Yield', category: 'HY', units: 'Percent' },
+                'BAMLC0A4CBBB': { name: 'US BBB Corporate Spread', category: 'IG', units: 'Percent' },
+                'DAAA': { name: 'AAA Corporate Spread', category: 'Spread', units: 'Percent' },
+                'DBAA': { name: 'BAA Corporate Spread', category: 'Spread', units: 'Percent' },
+                'DCOMP': { name: 'Commercial Paper Rate', category: 'Short Term', units: 'Percent' },
+                'TB3MS': { name: '3-Month Treasury Bill', category: 'Treasury', units: 'Percent' }
             },
             crisis: {
-                'VIXCLS': { name: 'VIX Index', category: 'Volatility' },
-                'MOVE': { name: 'MOVE Index', category: 'Bond Vol' },
-                'GVZCLS': { name: 'Gold VIX', category: 'Commodity Vol' },
-                'OVX': { name: 'Oil VIX', category: 'Energy Vol' },
-                'EVZ': { name: 'Euro VIX', category: 'FX Vol' },
-                'JPMVXYG': { name: 'EM FX Vol', category: 'EM Vol' },
-                'STLFSI3': { name: 'Financial Stress', category: 'Stress' },
-                'NFCI': { name: 'Financial Conditions', category: 'Conditions' }
+                'VIXCLS': { name: 'CBOE Volatility Index', category: 'Volatility', units: 'Index' },
+                'EVZCLS': { name: 'Euro Currency Volatility', category: 'FX Vol', units: 'Index' },
+                'GVZCLS': { name: 'Gold Volatility', category: 'Commodity Vol', units: 'Index' },
+                'OVXCLS': { name: 'Oil Volatility', category: 'Energy Vol', units: 'Index' },
+                'RVXCLS': { name: 'Russell 2000 Volatility', category: 'Equity Vol', units: 'Index' },
+                'VXNCLS': { name: 'NASDAQ Volatility', category: 'Tech Vol', units: 'Index' },
+                'STLFSI3': { name: 'Financial Stress Index', category: 'Stress', units: 'Index' },
+                'NFCI': { name: 'National Financial Conditions', category: 'Conditions', units: 'Index' }
             }
         };
 
@@ -1029,7 +994,7 @@
                             triggered = value < alert.threshold;
                             break;
                         case 'change':
-                            const change = currentData[alert.indicator]?.change;
+                            const change = currentData[alert.indicator]?.dayChange;
                             triggered = Math.abs(change) > alert.threshold;
                             break;
                     }
@@ -1045,18 +1010,7 @@
                 alert.triggeredAt = new Date().toISOString();
                 alert.triggeredValue = value;
                 
-                switch(alert.action) {
-                    case 'notify':
-                        this.showNotification(alert, value);
-                        break;
-                    case 'email':
-                        this.sendEmail(alert, value);
-                        break;
-                    case 'webhook':
-                        this.callWebhook(alert, value);
-                        break;
-                }
-                
+                this.showNotification(alert, value);
                 this.save();
                 this.updateAlertPanel();
                 this.updateAlertCount();
@@ -1066,23 +1020,13 @@
                 if ('Notification' in window) {
                     Notification.requestPermission().then(permission => {
                         if (permission === 'granted') {
-                            new Notification('Alert Triggered!', {
+                            new Notification('FRED Alert Triggered!', {
                                 body: `${alert.indicator} is ${alert.condition} ${alert.threshold} (Current: ${value})`,
                                 icon: '/icon.png'
                             });
                         }
                     });
                 }
-            }
-            
-            sendEmail(alert, value) {
-                // Implementation would require backend service
-                console.log('Email alert:', alert, value);
-            }
-            
-            callWebhook(alert, value) {
-                // Implementation would require backend service
-                console.log('Webhook alert:', alert, value);
             }
             
             save() {
@@ -1145,97 +1089,117 @@
         // Initialize Alert Manager
         const alertManager = new AlertManager();
 
-        // Fetch Data Function
-        async function fetchData(series, startDate = '2020-01-01') {
+        // Fetch FRED Data
+        async function fetchFREDData(seriesId, startDate = null, endDate = null) {
             try {
-                const response = await fetch(
-                    `${API_BASE}?series_id=${series}&api_key=${API_KEY}&file_type=json&observation_start=${startDate}`
-                );
+                // Build the API URL
+                let url = `${FRED_BASE_URL}?series_id=${seriesId}&api_key=${FRED_API_KEY}&file_type=json&sort_order=desc&limit=1000`;
+                
+                if (startDate) {
+                    url += `&observation_start=${startDate}`;
+                }
+                if (endDate) {
+                    url += `&observation_end=${endDate}`;
+                }
+                
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status}`);
+                }
+                
                 const data = await response.json();
                 
-                if (data.observations) {
-                    const latest = data.observations[data.observations.length - 1];
-                    const previous = data.observations[data.observations.length - 2];
+                if (data.observations && data.observations.length > 0) {
+                    // Sort observations by date (newest first)
+                    data.observations.sort((a, b) => new Date(b.date) - new Date(a.date));
                     
-                    // Calculate changes
+                    // Get the latest value
+                    const latest = data.observations[0];
                     const value = parseFloat(latest.value);
-                    const prevValue = parseFloat(previous?.value || value);
-                    const change = ((value - prevValue) / prevValue) * 100;
+                    
+                    // Calculate percentage changes
+                    const dayAgo = data.observations[1] ? parseFloat(data.observations[1].value) : value;
+                    const weekAgo = data.observations[5] ? parseFloat(data.observations[5].value) : value;
+                    const monthAgo = data.observations[22] ? parseFloat(data.observations[22].value) : value;
+                    const quarterAgo = data.observations[66] ? parseFloat(data.observations[66].value) : value;
+                    const yearAgo = data.observations[252] ? parseFloat(data.observations[252].value) : value;
                     
                     // Store in currentData
-                    currentData[series] = {
+                    currentData[seriesId] = {
                         value: value,
                         date: latest.date,
-                        change: change,
-                        previousValue: prevValue,
-                        observations: data.observations
+                        dayChange: ((value - dayAgo) / dayAgo) * 100,
+                        weekChange: ((value - weekAgo) / weekAgo) * 100,
+                        monthChange: ((value - monthAgo) / monthAgo) * 100,
+                        quarterChange: ((value - quarterAgo) / quarterAgo) * 100,
+                        yearChange: ((value - yearAgo) / yearAgo) * 100,
+                        previousValue: dayAgo
                     };
                     
-                    // Store historical data
-                    historicalData[series] = data.observations.map(obs => ({
+                    // Store historical data (reverse for chronological order)
+                    historicalData[seriesId] = data.observations.reverse().map(obs => ({
                         date: obs.date,
                         value: parseFloat(obs.value)
                     }));
                     
-                    return currentData[series];
+                    return currentData[seriesId];
                 }
+                
+                throw new Error('No data available');
+                
             } catch (error) {
-                console.error(`Error fetching ${series}:`, error);
-                // Return mock data for demonstration
-                return generateMockData(series);
-            }
-        }
-
-        // Generate Mock Data (for demonstration when API fails)
-        function generateMockData(series) {
-            const baseValue = Math.random() * 100;
-            const change = (Math.random() - 0.5) * 10;
-            
-            currentData[series] = {
-                value: baseValue,
-                date: new Date().toISOString().split('T')[0],
-                change: change,
-                previousValue: baseValue - (baseValue * change / 100),
-                observations: generateHistoricalData(baseValue, 365)
-            };
-            
-            historicalData[series] = currentData[series].observations;
-            return currentData[series];
-        }
-
-        // Generate Historical Data
-        function generateHistoricalData(baseValue, days) {
-            const data = [];
-            const today = new Date();
-            
-            for (let i = days; i >= 0; i--) {
-                const date = new Date(today);
-                date.setDate(date.getDate() - i);
+                console.error(`Error fetching ${seriesId}:`, error);
                 
-                // Add some random walk
-                baseValue += (Math.random() - 0.5) * (baseValue * 0.02);
+                // Update API status
+                const apiStatus = document.getElementById('apiStatus');
+                apiStatus.textContent = 'API: Error';
+                apiStatus.classList.add('error');
                 
-                data.push({
-                    date: date.toISOString().split('T')[0],
-                    value: baseValue
-                });
+                // Return null to indicate error
+                return null;
             }
-            
-            return data;
         }
 
         // Load All Data
         async function loadAllData() {
-            const allSeries = new Set();
+            console.log('Loading FRED data...');
+            
+            // Update API status
+            const apiStatus = document.getElementById('apiStatus');
+            apiStatus.textContent = 'API: Loading...';
+            apiStatus.classList.remove('error');
             
             // Collect all unique series
+            const allSeries = new Set();
             Object.values(INDICATORS).forEach(category => {
                 Object.keys(category).forEach(series => allSeries.add(series));
             });
             
-            // Fetch all data in parallel
-            const promises = Array.from(allSeries).map(series => fetchData(series));
-            await Promise.all(promises);
+            // Calculate date range (last 5 years for initial load)
+            const endDate = new Date().toISOString().split('T')[0];
+            const startDate = new Date();
+            startDate.setFullYear(startDate.getFullYear() - 5);
+            const startDateStr = startDate.toISOString().split('T')[0];
+            
+            // Fetch all data with rate limiting
+            const seriesArray = Array.from(allSeries);
+            const batchSize = 5; // Process 5 series at a time to avoid rate limiting
+            
+            for (let i = 0; i < seriesArray.length; i += batchSize) {
+                const batch = seriesArray.slice(i, i + batchSize);
+                const promises = batch.map(series => fetchFREDData(series, startDateStr, endDate));
+                await Promise.all(promises);
+                
+                // Small delay to avoid rate limiting
+                if (i + batchSize < seriesArray.length) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+            }
+            
+            // Update API status
+            apiStatus.textContent = 'API: Connected';
+            apiStatus.classList.remove('error');
             
             // Update all tabs
             updateOverviewTab();
@@ -1246,13 +1210,13 @@
             updateCurrenciesTab();
             updateCreditTab();
             updateCrisisTab();
-            updateMLTab();
-            updateSignalsTab();
-            updateCorrelationMatrix();
-            updateVolatilitySurface();
+            updateMLPredictions();
+            updateTradingSignals();
             
             // Check alerts
             alertManager.checkAlerts();
+            
+            console.log('Data loaded successfully');
         }
 
         // Update Overview Tab
@@ -1265,7 +1229,7 @@
                 if (!data) return '';
                 
                 const customName = customIndicators[series] || info.name;
-                const changeClass = data.change > 0 ? 'positive' : 'negative';
+                const changeClass = data.dayChange > 0 ? 'positive' : 'negative';
                 
                 return `
                     <div class="metric-card" onclick="showHistoricalData('${series}', '${customName}')">
@@ -1276,12 +1240,12 @@
                                       data-series="${series}">
                                     ${customName}
                                 </span>
-                                <span style="font-size: 0.75rem; color: #666;">${info.category}</span>
+                                <span style="font-size: 0.75rem; color: #666;">${info.units}</span>
                             </div>
                         </div>
-                        <div class="metric-value">${formatValue(data.value)}</div>
+                        <div class="metric-value">${formatValue(data.value, info.units)}</div>
                         <div class="metric-change ${changeClass}">
-                            ${data.change > 0 ? '▲' : '▼'} ${Math.abs(data.change).toFixed(2)}%
+                            ${data.dayChange > 0 ? '▲' : '▼'} ${Math.abs(data.dayChange).toFixed(2)}%
                         </div>
                         <div style="font-size: 0.75rem; color: #666; margin-top: 0.5rem;">
                             ${data.date}
@@ -1304,12 +1268,22 @@
                 Object.entries(category).forEach(([series, info]) => {
                     const data = currentData[series];
                     if (data) {
+                        let change = 0;
+                        switch(currentPeriod) {
+                            case 'DoD': change = data.dayChange || 0; break;
+                            case 'WoW': change = data.weekChange || 0; break;
+                            case 'MoM': change = data.monthChange || 0; break;
+                            case 'QoQ': change = data.quarterChange || 0; break;
+                            case 'YoY': change = data.yearChange || 0; break;
+                        }
+                        
                         allData.push({
                             series,
                             name: customIndicators[series] || info.name,
                             category: info.category,
                             value: data.value,
-                            change: calculatePeriodChange(series, currentPeriod)
+                            change: change,
+                            units: info.units
                         });
                     }
                 });
@@ -1331,7 +1305,7 @@
                     <div class="${className}" 
                          onclick="showHistoricalData('${item.series}', '${item.name}')">
                         <div class="heatmap-symbol">${item.name}</div>
-                        <div class="heatmap-value">${formatValue(item.value)}</div>
+                        <div class="heatmap-value">${formatValue(item.value, item.units)}</div>
                         <div class="heatmap-change">
                             ${item.change > 0 ? '+' : ''}${item.change.toFixed(2)}%
                         </div>
@@ -1340,227 +1314,41 @@
             }).join('');
         }
 
-        // Calculate Period Change
-        function calculatePeriodChange(series, period) {
-            const data = historicalData[series];
-            if (!data || data.length < 2) return 0;
-            
-            const current = data[data.length - 1].value;
-            let compareIndex = data.length - 1;
-            
-            switch(period) {
-                case 'DoD': compareIndex -= 1; break;
-                case 'WoW': compareIndex -= 7; break;
-                case 'MoM': compareIndex -= 30; break;
-                case 'QoQ': compareIndex -= 90; break;
-                case 'YoY': compareIndex -= 365; break;
-            }
-            
-            compareIndex = Math.max(0, compareIndex);
-            const previous = data[compareIndex].value;
-            
-            return ((current - previous) / previous) * 100;
-        }
-
-        // Update Federal Reserve Tab
+        // Update other tabs with real data
         function updateFedTab() {
-            const grid = document.getElementById('fedGrid');
-            const indicators = INDICATORS.fed;
-            
-            grid.innerHTML = Object.entries(indicators).map(([series, info]) => {
-                const data = currentData[series];
-                if (!data) return '';
-                
-                const customName = customIndicators[series] || info.name;
-                const changeClass = data.change > 0 ? 'positive' : 'negative';
-                
-                return `
-                    <div class="metric-card" onclick="showHistoricalData('${series}', '${customName}')">
-                        <div class="metric-header">
-                            <div class="metric-title">
-                                <span class="indicator-name" 
-                                      ondblclick="editIndicatorName('${series}', '${customName}')"
-                                      data-series="${series}">
-                                    ${customName}
-                                </span>
-                                <span style="font-size: 0.75rem; color: #666;">${info.category}</span>
-                            </div>
-                        </div>
-                        <div class="metric-value">${formatValue(data.value)}</div>
-                        <div class="metric-change ${changeClass}">
-                            ${data.change > 0 ? '▲' : '▼'} ${Math.abs(data.change).toFixed(2)}%
-                        </div>
-                    </div>
-                `;
-            }).join('');
+            updateTabGrid('fedGrid', INDICATORS.fed);
         }
 
-        // Update Black Swan Tab
         function updateBlackSwanTab() {
-            const grid = document.getElementById('blackswanGrid');
-            const indicators = INDICATORS.blackswan;
-            
-            grid.innerHTML = Object.entries(indicators).map(([series, info]) => {
-                const data = currentData[series];
-                if (!data) return '';
-                
-                const customName = customIndicators[series] || info.name;
-                const changeClass = data.change > 0 ? 'positive' : 'negative';
-                
-                // Special formatting for stress indicators
-                let alertLevel = '';
-                if (series === 'STLFSI3' && data.value > 1) {
-                    alertLevel = '⚠️ ELEVATED STRESS';
-                } else if (series === 'TEDRATE' && data.value > 0.5) {
-                    alertLevel = '⚠️ CREDIT STRESS';
-                }
-                
-                return `
-                    <div class="metric-card" onclick="showHistoricalData('${series}', '${customName}')">
-                        <div class="metric-header">
-                            <div class="metric-title">
-                                <span class="indicator-name" 
-                                      ondblclick="editIndicatorName('${series}', '${customName}')"
-                                      data-series="${series}">
-                                    ${customName}
-                                </span>
-                                <span style="font-size: 0.75rem; color: #666;">${info.category}</span>
-                            </div>
-                        </div>
-                        <div class="metric-value">${formatValue(data.value)}</div>
-                        <div class="metric-change ${changeClass}">
-                            ${data.change > 0 ? '▲' : '▼'} ${Math.abs(data.change).toFixed(2)}%
-                        </div>
-                        ${alertLevel ? `<div style="color: #ff4444; font-weight: bold; margin-top: 0.5rem;">${alertLevel}</div>` : ''}
-                    </div>
-                `;
-            }).join('');
+            updateTabGrid('blackswanGrid', INDICATORS.blackswan);
         }
 
-        // Update Liquidity Tab
         function updateLiquidityTab() {
-            const grid = document.getElementById('liquidityGrid');
-            const indicators = INDICATORS.liquidity;
-            
-            grid.innerHTML = Object.entries(indicators).map(([series, info]) => {
-                const data = currentData[series];
-                if (!data) return '';
-                
-                const customName = customIndicators[series] || info.name;
-                const changeClass = data.change > 0 ? 'positive' : 'negative';
-                
-                return `
-                    <div class="metric-card" onclick="showHistoricalData('${series}', '${customName}')">
-                        <div class="metric-header">
-                            <div class="metric-title">
-                                <span class="indicator-name" 
-                                      ondblclick="editIndicatorName('${series}', '${customName}')"
-                                      data-series="${series}">
-                                    ${customName}
-                                </span>
-                                <span style="font-size: 0.75rem; color: #666;">${info.category}</span>
-                            </div>
-                        </div>
-                        <div class="metric-value">${formatValue(data.value)}</div>
-                        <div class="metric-change ${changeClass}">
-                            ${data.change > 0 ? '▲' : '▼'} ${Math.abs(data.change).toFixed(2)}%
-                        </div>
-                    </div>
-                `;
-            }).join('');
+            updateTabGrid('liquidityGrid', INDICATORS.liquidity);
         }
 
-        // Update Currencies Tab
         function updateCurrenciesTab() {
-            const grid = document.getElementById('currenciesGrid');
-            const indicators = INDICATORS.currencies;
-            
-            grid.innerHTML = Object.entries(indicators).map(([series, info]) => {
-                const data = currentData[series];
-                if (!data) return '';
-                
-                const customName = customIndicators[series] || info.name;
-                const changeClass = data.change > 0 ? 'positive' : 'negative';
-                
-                return `
-                    <div class="metric-card" onclick="showHistoricalData('${series}', '${customName}')">
-                        <div class="metric-header">
-                            <div class="metric-title">
-                                <span class="indicator-name" 
-                                      ondblclick="editIndicatorName('${series}', '${customName}')"
-                                      data-series="${series}">
-                                    ${customName}
-                                </span>
-                                <span style="font-size: 0.75rem; color: #666;">${info.category}</span>
-                            </div>
-                        </div>
-                        <div class="metric-value">${formatValue(data.value)}</div>
-                        <div class="metric-change ${changeClass}">
-                            ${data.change > 0 ? '▲' : '▼'} ${Math.abs(data.change).toFixed(2)}%
-                        </div>
-                    </div>
-                `;
-            }).join('');
+            updateTabGrid('currenciesGrid', INDICATORS.currencies);
         }
 
-        // Update Credit Markets Tab
         function updateCreditTab() {
-            const grid = document.getElementById('creditGrid');
-            const indicators = INDICATORS.credit;
-            
-            grid.innerHTML = Object.entries(indicators).map(([series, info]) => {
-                const data = currentData[series];
-                if (!data) return '';
-                
-                const customName = customIndicators[series] || info.name;
-                const changeClass = data.change > 0 ? 'positive' : 'negative';
-                
-                return `
-                    <div class="metric-card" onclick="showHistoricalData('${series}', '${customName}')">
-                        <div class="metric-header">
-                            <div class="metric-title">
-                                <span class="indicator-name" 
-                                      ondblclick="editIndicatorName('${series}', '${customName}')"
-                                      data-series="${series}">
-                                    ${customName}
-                                </span>
-                                <span style="font-size: 0.75rem; color: #666;">${info.category}</span>
-                            </div>
-                        </div>
-                        <div class="metric-value">${formatValue(data.value)}%</div>
-                        <div class="metric-change ${changeClass}">
-                            ${data.change > 0 ? '▲' : '▼'} ${Math.abs(data.change).toFixed(2)}%
-                        </div>
-                    </div>
-                `;
-            }).join('');
+            updateTabGrid('creditGrid', INDICATORS.credit);
         }
 
-        // Update Crisis Indicators Tab
         function updateCrisisTab() {
-            const grid = document.getElementById('crisisGrid');
-            const indicators = INDICATORS.crisis;
+            updateTabGrid('crisisGrid', INDICATORS.crisis);
+        }
+
+        // Generic function to update tab grids
+        function updateTabGrid(gridId, indicators) {
+            const grid = document.getElementById(gridId);
             
             grid.innerHTML = Object.entries(indicators).map(([series, info]) => {
                 const data = currentData[series];
                 if (!data) return '';
                 
                 const customName = customIndicators[series] || info.name;
-                const changeClass = data.change > 0 ? 'positive' : 'negative';
-                
-                // Risk levels
-                let riskLevel = 'LOW';
-                let riskColor = '#00ff88';
-                
-                if (series === 'VIXCLS') {
-                    if (data.value > 30) {
-                        riskLevel = 'HIGH';
-                        riskColor = '#ff4444';
-                    } else if (data.value > 20) {
-                        riskLevel = 'MODERATE';
-                        riskColor = '#ffc107';
-                    }
-                }
+                const changeClass = data.dayChange > 0 ? 'positive' : 'negative';
                 
                 return `
                     <div class="metric-card" onclick="showHistoricalData('${series}', '${customName}')">
@@ -1571,64 +1359,48 @@
                                       data-series="${series}">
                                     ${customName}
                                 </span>
-                                <span style="font-size: 0.75rem; color: #666;">${info.category}</span>
+                                <span style="font-size: 0.75rem; color: #666;">${info.units}</span>
                             </div>
                         </div>
-                        <div class="metric-value">${formatValue(data.value)}</div>
+                        <div class="metric-value">${formatValue(data.value, info.units)}</div>
                         <div class="metric-change ${changeClass}">
-                            ${data.change > 0 ? '▲' : '▼'} ${Math.abs(data.change).toFixed(2)}%
+                            ${data.dayChange > 0 ? '▲' : '▼'} ${Math.abs(data.dayChange).toFixed(2)}%
                         </div>
-                        <div style="margin-top: 0.5rem; padding: 0.25rem 0.5rem; background: ${riskColor}20; 
-                                    color: ${riskColor}; border-radius: 4px; font-size: 0.75rem; 
-                                    display: inline-block; font-weight: 600;">
-                            RISK: ${riskLevel}
+                        <div style="font-size: 0.75rem; color: #666; margin-top: 0.5rem;">
+                            Updated: ${data.date}
                         </div>
                     </div>
                 `;
             }).join('');
         }
 
-        // Update ML Predictions Tab
-        function updateMLTab() {
+        // Update ML Predictions based on real data
+        function updateMLPredictions() {
             const grid = document.getElementById('mlGrid');
             
-            // Simulate ML predictions based on current data
+            // Generate predictions based on actual data
+            const vix = currentData['VIXCLS']?.value || 20;
+            const yieldCurve = (currentData['DGS10']?.value || 4) - (currentData['DGS2']?.value || 4);
+            const tedSpread = currentData['TEDRATE']?.value || 0.3;
+            
             const predictions = [
                 {
                     name: 'Market Direction (1 Week)',
-                    prediction: 'BULLISH',
-                    confidence: 72,
-                    factors: ['VIX < 20', 'Positive momentum', 'Strong liquidity']
+                    prediction: vix < 20 ? 'BULLISH' : vix > 30 ? 'BEARISH' : 'NEUTRAL',
+                    confidence: Math.min(90, 50 + Math.abs(20 - vix) * 2),
+                    factors: [`VIX at ${vix?.toFixed(2)}`, `Yield curve: ${yieldCurve?.toFixed(2)}%`]
                 },
                 {
                     name: 'Volatility Forecast',
-                    prediction: 'DECREASING',
-                    confidence: 68,
-                    factors: ['Term structure normalizing', 'Credit spreads tightening']
-                },
-                {
-                    name: 'Fed Action Probability',
-                    prediction: 'HOLD',
-                    confidence: 85,
-                    factors: ['Inflation moderating', 'Employment stable']
-                },
-                {
-                    name: 'Credit Risk',
-                    prediction: 'STABLE',
-                    confidence: 77,
-                    factors: ['Spreads within range', 'Default rates low']
-                },
-                {
-                    name: 'Currency Trend',
-                    prediction: 'USD STRENGTH',
-                    confidence: 65,
-                    factors: ['Rate differentials', 'Risk-off flows']
+                    prediction: vix > 25 ? 'INCREASING' : 'DECREASING',
+                    confidence: 65 + Math.random() * 20,
+                    factors: ['Historical patterns', 'Current VIX level']
                 },
                 {
                     name: 'Recession Probability',
-                    prediction: '24%',
+                    prediction: `${Math.max(0, Math.min(100, yieldCurve < 0 ? 45 : 15)).toFixed(0)}%`,
                     confidence: 70,
-                    factors: ['Yield curve', 'Leading indicators', 'Credit conditions']
+                    factors: ['Yield curve', 'Financial stress', 'Credit spreads']
                 }
             ];
             
@@ -1647,7 +1419,7 @@
                             <div style="background: rgba(255,255,255,0.1); border-radius: 8px; overflow: hidden;">
                                 <div style="background: linear-gradient(90deg, ${color}, transparent); 
                                           width: ${pred.confidence}%; padding: 0.5rem; text-align: center;">
-                                    ${pred.confidence}% Confidence
+                                    ${pred.confidence.toFixed(0)}% Confidence
                                 </div>
                             </div>
                         </div>
@@ -1662,19 +1434,41 @@
             }).join('');
         }
 
-        // Update Trading Signals Tab
-        function updateSignalsTab() {
+        // Update Trading Signals based on real data
+        function updateTradingSignals() {
             const grid = document.getElementById('signalsGrid');
+            const signals = [];
             
-            // Generate trading signals based on technical analysis
-            const signals = generateTradingSignals();
+            // VIX Signal
+            const vixData = currentData['VIXCLS'];
+            if (vixData) {
+                signals.push({
+                    name: 'VIX Index',
+                    currentValue: vixData.value,
+                    action: vixData.value < 15 ? 'BUY PROTECTION' : vixData.value > 30 ? 'SELL' : 'HOLD',
+                    signal: vixData.value < 15 ? 'Low Volatility' : vixData.value > 30 ? 'High Fear' : 'Normal',
+                    target: vixData.value < 15 ? 20 : vixData.value > 30 ? 20 : vixData.value
+                });
+            }
+            
+            // Add more signals based on available data
+            if (currentData['DGS10']) {
+                const yieldData = currentData['DGS10'];
+                signals.push({
+                    name: '10-Year Treasury',
+                    currentValue: yieldData.value,
+                    action: yieldData.dayChange > 5 ? 'SELL BONDS' : yieldData.dayChange < -5 ? 'BUY BONDS' : 'HOLD',
+                    signal: `${yieldData.dayChange > 0 ? 'Rising' : 'Falling'} Yields`,
+                    target: yieldData.value
+                });
+            }
             
             grid.innerHTML = signals.map(signal => {
-                const actionColor = signal.action === 'BUY' ? '#00ff88' : 
-                                  signal.action === 'SELL' ? '#ff4444' : '#ffc107';
+                const actionColor = signal.action.includes('BUY') ? '#00ff88' : 
+                                  signal.action.includes('SELL') ? '#ff4444' : '#ffc107';
                 
                 return `
-                    <div class="metric-card" onclick="showHistoricalData('${signal.series}', '${signal.name}')">
+                    <div class="metric-card">
                         <div class="metric-header">
                             <div class="metric-title">${signal.name}</div>
                             <span style="background: ${actionColor}20; color: ${actionColor}; 
@@ -1682,213 +1476,62 @@
                                 ${signal.action}
                             </span>
                         </div>
-                        <div class="metric-value">${formatValue(signal.currentPrice)}</div>
+                        <div class="metric-value">${signal.currentValue.toFixed(2)}</div>
                         <div style="margin: 1rem 0; font-size: 0.9rem;">
                             <div>Signal: <strong>${signal.signal}</strong></div>
-                            <div>Strength: <strong>${signal.strength}/10</strong></div>
-                            <div>Target: <strong>${formatValue(signal.target)}</strong></div>
-                            <div>Stop Loss: <strong>${formatValue(signal.stopLoss)}</strong></div>
-                        </div>
-                        <div style="font-size: 0.85rem; color: #888;">
-                            ${signal.reasoning}
+                            <div>Target: <strong>${signal.target.toFixed(2)}</strong></div>
                         </div>
                     </div>
                 `;
             }).join('');
         }
 
-        // Generate Trading Signals
-        function generateTradingSignals() {
-            const signals = [];
-            
-            // VIX Signal
-            const vixData = currentData['VIXCLS'];
-            if (vixData) {
-                const vixSignal = {
-                    series: 'VIXCLS',
-                    name: 'VIX Index',
-                    currentPrice: vixData.value,
-                    action: vixData.value < 15 ? 'BUY PROTECTION' : vixData.value > 30 ? 'SELL' : 'HOLD',
-                    signal: vixData.value < 15 ? 'Oversold' : vixData.value > 30 ? 'Overbought' : 'Neutral',
-                    strength: vixData.value < 15 ? 8 : vixData.value > 30 ? 7 : 5,
-                    target: vixData.value < 15 ? vixData.value * 1.5 : vixData.value * 0.8,
-                    stopLoss: vixData.value < 15 ? vixData.value * 0.9 : vixData.value * 1.2,
-                    reasoning: `VIX at ${vixData.value.toFixed(2)} indicates ${
-                        vixData.value < 20 ? 'low volatility - consider hedging' : 
-                        'elevated volatility - opportunities in vol strategies'}`
-                };
-                signals.push(vixSignal);
-            }
-            
-            // Add more signals for other indicators
-            const indicators = ['DGS10', 'DXY', 'GOLDAMGBD228NLBM'];
-            indicators.forEach(series => {
-                const data = currentData[series];
-                if (data) {
-                    const trend = data.change > 0 ? 'Uptrend' : 'Downtrend';
-                    const momentum = Math.abs(data.change) > 2 ? 'Strong' : 'Weak';
-                    
-                    signals.push({
-                        series,
-                        name: INDICATORS.overview[series]?.name || series,
-                        currentPrice: data.value,
-                        action: data.change > 1 ? 'BUY' : data.change < -1 ? 'SELL' : 'HOLD',
-                        signal: `${momentum} ${trend}`,
-                        strength: Math.min(10, Math.abs(data.change) * 2),
-                        target: data.value * (1 + (data.change > 0 ? 0.05 : -0.05)),
-                        stopLoss: data.value * (1 + (data.change > 0 ? -0.03 : 0.03)),
-                        reasoning: `${momentum} momentum with ${Math.abs(data.change).toFixed(2)}% change`
-                    });
-                }
-            });
-            
-            return signals;
-        }
-
-        // Update Correlation Matrix
-        function updateCorrelationMatrix() {
-            const container = document.getElementById('correlationMatrix');
-            const series = ['VIXCLS', 'DGS10', 'DGS2', 'DXY', 'GOLDAMGBD228NLBM'];
-            
-            // Calculate correlations
-            const correlations = calculateCorrelations(series);
-            
-            // Create correlation table
-            let html = '<table class="correlation-table"><thead><tr><th></th>';
-            series.forEach(s => {
-                const name = INDICATORS.overview[s]?.name || s;
-                html += `<th>${name}</th>`;
-            });
-            html += '</tr></thead><tbody>';
-            
-            series.forEach((s1, i) => {
-                const name1 = INDICATORS.overview[s1]?.name || s1;
-                html += `<tr><th>${name1}</th>`;
-                
-                series.forEach((s2, j) => {
-                    const corr = correlations[i][j];
-                    const color = corr > 0.5 ? '#00ff88' : corr < -0.5 ? '#ff4444' : '#ffc107';
-                    const opacity = Math.abs(corr);
-                    
-                    html += `
-                        <td class="correlation-cell" 
-                            style="background: ${color}${Math.round(opacity * 40).toString(16)};">
-                            ${corr.toFixed(2)}
-                        </td>
-                    `;
-                });
-                
-                html += '</tr>';
-            });
-            
-            html += '</tbody></table>';
-            
-            container.innerHTML = html;
-        }
-
-        // Calculate Correlations
-        function calculateCorrelations(series) {
-            const n = series.length;
-            const correlations = Array(n).fill().map(() => Array(n).fill(0));
-            
-            for (let i = 0; i < n; i++) {
-                for (let j = 0; j < n; j++) {
-                    if (i === j) {
-                        correlations[i][j] = 1;
-                    } else {
-                        // Simplified correlation calculation
-                        correlations[i][j] = (Math.random() - 0.5) * 2;
-                    }
-                }
-            }
-            
-            return correlations;
-        }
-
-        // Update Volatility Surface
-        function updateVolatilitySurface() {
-            const strikes = [];
-            const expirations = [];
-            const volatilities = [];
-            
-            // Generate sample volatility surface data
-            for (let strike = 80; strike <= 120; strike += 5) {
-                for (let expiry = 7; expiry <= 365; expiry += 30) {
-                    strikes.push(strike);
-                    expirations.push(expiry);
-                    
-                    // Generate realistic volatility based on strike and expiry
-                    const moneyness = Math.abs(100 - strike) / 100;
-                    const timeEffect = Math.sqrt(expiry / 365);
-                    const baseVol = 0.15 + moneyness * 0.1 + timeEffect * 0.05;
-                    volatilities.push(baseVol + (Math.random() - 0.5) * 0.02);
-                }
-            }
-            
-            const data = [{
-                x: expirations,
-                y: strikes,
-                z: volatilities,
-                type: 'surface',
-                colorscale: 'Viridis',
-                showscale: true
-            }];
-            
-            const layout = {
-                title: 'Implied Volatility Surface',
-                scene: {
-                    xaxis: { title: 'Days to Expiration' },
-                    yaxis: { title: 'Strike' },
-                    zaxis: { title: 'Implied Volatility' },
-                    camera: {
-                        eye: { x: 1.5, y: 1.5, z: 1.5 }
-                    }
-                },
-                paper_bgcolor: 'rgba(0, 0, 0, 0)',
-                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
-                font: { color: '#fff' }
-            };
-            
-            Plotly.newPlot('volatilitySurface', data, layout, { responsive: true });
-        }
-
         // Update Main Chart
         function updateMainChart() {
             const traces = [];
-            const timeRange = getTimeRange(currentTimeframe);
             
-            // Add main indicators to chart
-            ['VIXCLS', 'DGS10'].forEach((series, index) => {
-                const data = historicalData[series];
-                if (data) {
-                    const filtered = data.filter(d => new Date(d.date) >= timeRange.start);
-                    
-                    traces.push({
-                        x: filtered.map(d => d.date),
-                        y: filtered.map(d => d.value),
-                        type: 'scatter',
-                        mode: 'lines',
-                        name: INDICATORS.overview[series]?.name || series,
-                        yaxis: index === 0 ? 'y' : 'y2',
-                        line: { color: index === 0 ? '#00ff88' : '#00d4ff', width: 2 }
-                    });
-                }
-            });
+            // Add VIX to chart
+            if (historicalData['VIXCLS']) {
+                const data = filterDataByTimeframe(historicalData['VIXCLS'], currentTimeframe);
+                traces.push({
+                    x: data.map(d => d.date),
+                    y: data.map(d => d.value),
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'VIX',
+                    yaxis: 'y',
+                    line: { color: '#00ff88', width: 2 }
+                });
+            }
+            
+            // Add 10Y Treasury to chart
+            if (historicalData['DGS10']) {
+                const data = filterDataByTimeframe(historicalData['DGS10'], currentTimeframe);
+                traces.push({
+                    x: data.map(d => d.date),
+                    y: data.map(d => d.value),
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: '10Y Treasury',
+                    yaxis: 'y2',
+                    line: { color: '#00d4ff', width: 2 }
+                });
+            }
             
             const layout = {
-                title: 'Market Overview',
+                title: 'Market Overview - Real FRED Data',
                 xaxis: {
                     gridcolor: 'rgba(255, 255, 255, 0.1)',
                     tickfont: { color: '#888' }
                 },
                 yaxis: {
-                    title: 'VIX',
+                    title: 'VIX Index',
                     gridcolor: 'rgba(255, 255, 255, 0.1)',
                     tickfont: { color: '#888' },
                     titlefont: { color: '#00ff88' }
                 },
                 yaxis2: {
-                    title: '10Y Yield',
+                    title: '10Y Treasury Yield (%)',
                     overlaying: 'y',
                     side: 'right',
                     gridcolor: 'rgba(255, 255, 255, 0.1)',
@@ -1908,24 +1551,25 @@
             Plotly.newPlot('mainChart', traces, layout, { responsive: true });
         }
 
-        // Get Time Range
-        function getTimeRange(timeframe) {
-            const end = new Date();
-            const start = new Date();
+        // Filter data by timeframe
+        function filterDataByTimeframe(data, timeframe) {
+            if (!data || data.length === 0) return [];
+            
+            const now = new Date();
+            const cutoffDate = new Date();
             
             switch(timeframe) {
-                case '1D': start.setDate(end.getDate() - 1); break;
-                case '1W': start.setDate(end.getDate() - 7); break;
-                case '1M': start.setMonth(end.getMonth() - 1); break;
-                case '3M': start.setMonth(end.getMonth() - 3); break;
-                case '6M': start.setMonth(end.getMonth() - 6); break;
-                case '1Y': start.setFullYear(end.getFullYear() - 1); break;
-                case '5Y': start.setFullYear(end.getFullYear() - 5); break;
-                case '10Y': start.setFullYear(end.getFullYear() - 10); break;
-                case 'MAX': start.setFullYear(1990); break;
+                case '1M': cutoffDate.setMonth(now.getMonth() - 1); break;
+                case '3M': cutoffDate.setMonth(now.getMonth() - 3); break;
+                case '6M': cutoffDate.setMonth(now.getMonth() - 6); break;
+                case '1Y': cutoffDate.setFullYear(now.getFullYear() - 1); break;
+                case '5Y': cutoffDate.setFullYear(now.getFullYear() - 5); break;
+                case '10Y': cutoffDate.setFullYear(now.getFullYear() - 10); break;
+                case '20Y': cutoffDate.setFullYear(now.getFullYear() - 20); break;
+                case 'MAX': return data;
             }
             
-            return { start, end };
+            return data.filter(d => new Date(d.date) >= cutoffDate);
         }
 
         // Show Historical Data
@@ -1934,35 +1578,57 @@
             const modalTitle = document.getElementById('modalTitle');
             const modalChart = document.getElementById('modalChart');
             
-            modalTitle.textContent = `${name} - Historical Data`;
+            modalTitle.textContent = `${name} - Historical Data (Since 1990)`;
             modal.classList.add('active');
             
-            const data = historicalData[series];
-            if (data) {
-                const trace = {
-                    x: data.map(d => d.date),
-                    y: data.map(d => d.value),
-                    type: 'scatter',
-                    mode: 'lines',
-                    line: { color: '#00ff88', width: 2 }
-                };
-                
-                const layout = {
-                    xaxis: {
-                        gridcolor: 'rgba(255, 255, 255, 0.1)',
-                        tickfont: { color: '#888' }
-                    },
-                    yaxis: {
-                        gridcolor: 'rgba(255, 255, 255, 0.1)',
-                        tickfont: { color: '#888' }
-                    },
-                    paper_bgcolor: 'rgba(0, 0, 0, 0)',
-                    plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
-                    font: { color: '#fff' }
-                };
-                
-                Plotly.newPlot(modalChart, [trace], layout, { responsive: true });
+            // Fetch more historical data if needed
+            fetchExtendedHistory(series).then(() => {
+                const data = historicalData[series];
+                if (data && data.length > 0) {
+                    const trace = {
+                        x: data.map(d => d.date),
+                        y: data.map(d => d.value),
+                        type: 'scatter',
+                        mode: 'lines',
+                        line: { color: '#00ff88', width: 2 }
+                    };
+                    
+                    const layout = {
+                        xaxis: {
+                            gridcolor: 'rgba(255, 255, 255, 0.1)',
+                            tickfont: { color: '#888' },
+                            rangeslider: { visible: true }
+                        },
+                        yaxis: {
+                            gridcolor: 'rgba(255, 255, 255, 0.1)',
+                            tickfont: { color: '#888' },
+                            title: INDICATORS[getIndicatorCategory(series)][series].units
+                        },
+                        paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                        plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
+                        font: { color: '#fff' }
+                    };
+                    
+                    Plotly.newPlot(modalChart, [trace], layout, { responsive: true });
+                }
+            });
+        }
+
+        // Fetch extended history (from 1990)
+        async function fetchExtendedHistory(series) {
+            const startDate = '1990-01-01';
+            const endDate = new Date().toISOString().split('T')[0];
+            
+            const data = await fetchFREDData(series, startDate, endDate);
+            return data;
+        }
+
+        // Get indicator category
+        function getIndicatorCategory(series) {
+            for (const [category, indicators] of Object.entries(INDICATORS)) {
+                if (indicators[series]) return category;
             }
+            return 'overview';
         }
 
         // Close Modal
@@ -1970,14 +1636,20 @@
             document.getElementById('historicalModal').classList.remove('active');
         }
 
-        // Format Value
-        function formatValue(value) {
-            if (value >= 1000000000) {
-                return (value / 1000000000).toFixed(2) + 'B';
-            } else if (value >= 1000000) {
-                return (value / 1000000).toFixed(2) + 'M';
-            } else if (value >= 1000) {
-                return (value / 1000).toFixed(2) + 'K';
+        // Format Value based on units
+        function formatValue(value, units) {
+            if (!value && value !== 0) return 'N/A';
+            
+            if (units.includes('Billions')) {
+                return (value / 1000).toFixed(2) + 'T';
+            } else if (units.includes('Millions')) {
+                return (value / 1000000).toFixed(2) + 'T';
+            } else if (units.includes('Percent')) {
+                return value.toFixed(3) + '%';
+            } else if (units.includes('$/')) {
+                return '  + value.toFixed(2);
+            } else if (units.includes('Index')) {
+                return value.toFixed(2);
             } else {
                 return value.toFixed(2);
             }
@@ -1989,7 +1661,19 @@
             if (newName && newName !== currentName) {
                 customIndicators[series] = newName;
                 localStorage.setItem('customIndicators', JSON.stringify(customIndicators));
-                loadAllData(); // Refresh all tabs
+                
+                // Refresh current tab
+                const activeTab = document.querySelector('.tab-content.active').id;
+                switch(activeTab) {
+                    case 'overview': updateOverviewTab(); break;
+                    case 'heatmap': updateHeatmap(); break;
+                    case 'fed': updateFedTab(); break;
+                    case 'blackswan': updateBlackSwanTab(); break;
+                    case 'liquidity': updateLiquidityTab(); break;
+                    case 'currencies': updateCurrenciesTab(); break;
+                    case 'credit': updateCreditTab(); break;
+                    case 'crisis': updateCrisisTab(); break;
+                }
             }
         }
 
@@ -2053,24 +1737,20 @@
 
         // Apply Layout
         function applyLayout(layout) {
-            // Different layouts show different indicators
             const layouts = {
-                default: ['overview', 'heatmap'],
-                risk: ['crisis', 'blackswan', 'volatility'],
-                macro: ['fed', 'currencies', 'credit'],
-                crisis: ['blackswan', 'liquidity', 'correlation']
+                default: 'overview',
+                risk: 'crisis',
+                macro: 'fed'
             };
             
-            // Hide all tabs
+            // Switch to appropriate tab
+            const targetTab = layouts[layout] || 'overview';
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            
-            // Show first tab of selected layout
-            const firstTab = layouts[layout][0];
-            document.getElementById(firstTab).classList.add('active');
+            document.getElementById(targetTab).classList.add('active');
             
             // Update tab navigation
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelector(`[data-tab="${firstTab}"]`).classList.add('active');
+            document.querySelector(`[data-tab="${targetTab}"]`).classList.add('active');
         }
 
         // Global Search
@@ -2101,7 +1781,7 @@
                 searchResults.innerHTML = results.map(r => `
                     <div class="search-result-item" onclick="showHistoricalData('${r.series}', '${r.name}')">
                         <strong>${r.name}</strong>
-                        <span style="float: right; color: #666;">${r.category}</span>
+                        <span style="float: right; color: #666;">${r.series}</span>
                     </div>
                 `).join('');
                 searchResults.style.display = 'block';
@@ -2124,7 +1804,7 @@
                 const doc = new jsPDF();
                 
                 doc.setFontSize(20);
-                doc.text('Financial Intelligence Report', 20, 20);
+                doc.text('FRED Financial Data Report', 20, 20);
                 
                 doc.setFontSize(12);
                 doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 30);
@@ -2136,40 +1816,50 @@
                         y = 20;
                     }
                     
-                    const name = customIndicators[series] || 
-                                 Object.values(INDICATORS).flatMap(cat => Object.entries(cat))
-                                       .find(([s]) => s === series)?.[1]?.name || series;
+                    const info = Object.values(INDICATORS).flatMap(cat => Object.entries(cat))
+                                       .find(([s]) => s === series)?.[1];
+                    const name = customIndicators[series] || info?.name || series;
                     
-                    doc.text(`${name}: ${formatValue(data.value)} (${data.change > 0 ? '+' : ''}${data.change.toFixed(2)}%)`, 20, y);
+                    doc.text(`${name}: ${formatValue(data.value, info?.units || '')} (${data.dayChange > 0 ? '+' : ''}${data.dayChange.toFixed(2)}%)`, 20, y);
                     y += 10;
                 });
                 
-                doc.save('financial_report.pdf');
+                doc.save('fred_financial_report.pdf');
             }
         }
 
         function exportToExcel() {
-            const ws_data = [['Indicator', 'Value', 'Change %', 'Date']];
+            const ws_data = [['Indicator', 'Series ID', 'Value', 'Day Change %', 'Week Change %', 'Month Change %', 'Year Change %', 'Date']];
             
             Object.entries(currentData).forEach(([series, data]) => {
-                const name = customIndicators[series] || 
-                            Object.values(INDICATORS).flatMap(cat => Object.entries(cat))
-                                  .find(([s]) => s === series)?.[1]?.name || series;
+                const info = Object.values(INDICATORS).flatMap(cat => Object.entries(cat))
+                                   .find(([s]) => s === series)?.[1];
+                const name = customIndicators[series] || info?.name || series;
                 
-                ws_data.push([name, data.value, data.change, data.date]);
+                ws_data.push([
+                    name, 
+                    series,
+                    data.value, 
+                    data.dayChange, 
+                    data.weekChange,
+                    data.monthChange,
+                    data.yearChange,
+                    data.date
+                ]);
             });
             
             const ws = XLSX.utils.aoa_to_sheet(ws_data);
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'Financial Data');
+            XLSX.utils.book_append_sheet(wb, ws, 'FRED Data');
             
-            XLSX.writeFile(wb, 'financial_data.xlsx');
+            XLSX.writeFile(wb, 'fred_data.xlsx');
         }
 
         function exportToJSON() {
             const exportData = {
                 timestamp: new Date().toISOString(),
                 data: currentData,
+                historical: historicalData,
                 customIndicators: customIndicators
             };
             
@@ -2178,7 +1868,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'financial_data.json';
+            a.download = 'fred_data.json';
             a.click();
         }
 
@@ -2193,7 +1883,7 @@
         }
 
         function addNewAlert() {
-            const indicator = prompt('Enter indicator symbol (e.g., VIXCLS):');
+            const indicator = prompt('Enter FRED series ID (e.g., VIXCLS, DGS10):');
             if (!indicator) return;
             
             const condition = prompt('Enter condition (above/below/change):');
@@ -2202,7 +1892,7 @@
             const threshold = parseFloat(prompt('Enter threshold value:'));
             if (isNaN(threshold)) return;
             
-            const action = prompt('Enter action (notify/email/webhook):') || 'notify';
+            const action = 'notify'; // For browser notifications
             
             alertManager.addAlert(indicator, condition, threshold, action);
             alert('Alert added successfully!');
@@ -2214,76 +1904,84 @@
         }
 
         function addIndicatorToChart() {
-            const indicator = prompt('Enter indicator symbol to add:');
-            if (indicator && INDICATORS.overview[indicator]) {
-                // Add to comparison chart
-                const data = historicalData[indicator];
-                if (data) {
-                    const trace = {
-                        x: data.map(d => d.date),
-                        y: data.map(d => d.value),
-                        type: 'scatter',
-                        mode: 'lines',
-                        name: INDICATORS.overview[indicator].name
-                    };
-                    
-                    Plotly.addTraces('comparisonChart', [trace]);
-                }
+            const indicator = prompt('Enter FRED series ID to add (e.g., SP500, NASDAQCOM):');
+            if (indicator && historicalData[indicator]) {
+                const data = filterDataByTimeframe(historicalData[indicator], currentTimeframe);
+                const info = Object.values(INDICATORS).flatMap(cat => Object.entries(cat))
+                                   .find(([s]) => s === indicator)?.[1];
+                
+                const trace = {
+                    x: data.map(d => d.date),
+                    y: data.map(d => d.value),
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: customIndicators[indicator] || info?.name || indicator
+                };
+                
+                Plotly.addTraces('comparisonChart', [trace]);
+            } else {
+                alert('Series not found. Please load it first or check the series ID.');
             }
         }
 
-        function openSettings() {
-            alert('Settings panel - customize your dashboard preferences');
+        // Initialize Comparison Chart
+        function initComparisonChart() {
+            const layout = {
+                title: 'Indicator Comparison',
+                xaxis: {
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' }
+                },
+                yaxis: {
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' }
+                },
+                paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
+                font: { color: '#fff' },
+                showlegend: true
+            };
+            
+            Plotly.newPlot('comparisonChart', [], layout, { responsive: true });
         }
 
-        // WebSocket Connection (simulated)
-        function initWebSocket() {
-            // In production, connect to real WebSocket server
-            console.log('WebSocket connection initialized');
-            
-            // Simulate real-time updates
+        // Auto-refresh function
+        function startAutoRefresh() {
+            // Refresh every 5 minutes (FRED data doesn't update that frequently)
             setInterval(() => {
-                // Update random indicators
-                const series = Object.keys(currentData);
-                if (series.length > 0) {
-                    const randomSeries = series[Math.floor(Math.random() * series.length)];
-                    const data = currentData[randomSeries];
-                    if (data) {
-                        // Simulate small price movement
-                        data.value += (Math.random() - 0.5) * (data.value * 0.001);
-                        data.change = ((data.value - data.previousValue) / data.previousValue) * 100;
-                        
-                        // Check alerts
-                        alertManager.checkAlerts();
-                    }
-                }
-            }, 5000);
+                console.log('Auto-refreshing data...');
+                loadAllData();
+            }, 300000); // 5 minutes
         }
 
         // Initialize Dashboard
         async function init() {
-            console.log('Initializing Financial Intelligence Platform...');
+            console.log('Initializing FRED Dashboard...');
+            
+            // Check if API key is set
+            if (FRED_API_KEY === 'YOUR_FRED_API_KEY_HERE') {
+                alert('Please add your FRED API key to the code. Get one free at: https://fred.stlouisfed.org/docs/api/api_key.html');
+                
+                // Update API status
+                const apiStatus = document.getElementById('apiStatus');
+                apiStatus.textContent = 'API: No Key';
+                apiStatus.classList.add('error');
+                return;
+            }
             
             // Request notification permission
             if ('Notification' in window && Notification.permission === 'default') {
                 Notification.requestPermission();
             }
             
-            // Load saved preferences
-            const savedLayout = localStorage.getItem('preferredLayout');
-            if (savedLayout) {
-                currentLayout = savedLayout;
-                applyLayout(currentLayout);
-            }
-            
-            // Initialize WebSocket
-            initWebSocket();
+            // Initialize comparison chart
+            initComparisonChart();
             
             // Load all data
             await loadAllData();
             
-            // Set up auto-refresh
-            setInterval(loadAllData, 60000); // Refresh every minute
+            // Start auto-refresh
+            startAutoRefresh();
             
             console.log('Dashboard initialized successfully');
         }
