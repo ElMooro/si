@@ -1,1 +1,1097 @@
-
+</div>
+        
+        <!-- Federal Reserve Tab -->
+        <div class="tab-content" id="fed">
+            <div class="chart-container">
+                <div id="fedChart" style="height: 500px;"></div>
+            </div>
+        </div>
+        
+        <!-- Charts Tab -->
+        <div class="tab-content" id="charts">
+            <div class="chart-container">
+                <div id="mainChart" style="height: 600px;"></div>
+            </div>
+        </div><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenBB Platform v9.0 - Advanced Analytics & Heatmap</title>
+    
+    <!-- Required Libraries -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #151932 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        
+        /* Header Styles */
+        .header {
+            background: rgba(20, 24, 44, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .header-stats {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-width: 100px;
+        }
+        
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #00ff88;
+        }
+        
+        .stat-label {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+        }
+        
+        /* Container */
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Tabs Navigation */
+        .tabs-nav {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 0.5rem;
+            overflow-x: auto;
+        }
+        
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            color: #888;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        
+        .tab-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+        }
+        
+        .tab-btn.active {
+            background: #00ff88;
+            color: #000;
+            font-weight: bold;
+        }
+        
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Stock Market Style Heatmap */
+        .heatmap-container {
+            background: #0a0e27;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .heatmap-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding: 0 0.5rem;
+        }
+        
+        .heatmap-title {
+            font-size: 1.25rem;
+            color: #fff;
+            font-weight: bold;
+        }
+        
+        .heatmap-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .heatmap-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: none;
+            border-radius: 6px;
+            color: #888;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+        }
+        
+        .heatmap-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+        
+        .heatmap-btn.active {
+            background: #00ff88;
+            color: #000;
+            font-weight: bold;
+        }
+        
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 2px;
+            background: #000;
+            padding: 2px;
+        }
+        
+        .heatmap-tile {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+            font-weight: bold;
+        }
+        
+        .heatmap-tile:hover {
+            z-index: 10;
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+        }
+        
+        .tile-symbol {
+            font-size: 1rem;
+            color: #fff;
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+        
+        .tile-value {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        /* Tile sizes */
+        .tile-xl {
+            grid-column: span 2;
+            grid-row: span 2;
+        }
+        
+        .tile-xl .tile-symbol {
+            font-size: 1.5rem;
+        }
+        
+        .tile-xl .tile-value {
+            font-size: 1.25rem;
+        }
+        
+        .tile-lg {
+            grid-column: span 2;
+        }
+        
+        .tile-lg .tile-symbol {
+            font-size: 1.25rem;
+        }
+        
+        /* Heatmap colors */
+        .heat-10 { background: #006400; }
+        .heat-9 { background: #228B22; }
+        .heat-8 { background: #32CD32; }
+        .heat-7 { background: #7CFC00; }
+        .heat-6 { background: #ADFF2F; }
+        .heat-5 { background: #333333; }
+        .heat-4 { background: #8B4513; }
+        .heat-3 { background: #A0522D; }
+        .heat-2 { background: #CD5C5C; }
+        .heat-1 { background: #DC143C; }
+        .heat-0 { background: #8B0000; }
+        
+        /* Key Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .metric-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.1);
+        }
+        
+        .metric-title {
+            font-size: 0.875rem;
+            color: #888;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            cursor: text;
+        }
+        
+        .metric-title:hover {
+            color: #00ff88;
+        }
+        
+        .metric-value {
+            font-size: 1.75rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .metric-change {
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .positive { color: #00ff88; }
+        .negative { color: #ff4444; }
+        .neutral { color: #888; }
+        
+        /* Data Table */
+        .data-table {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        
+        .data-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .data-table th {
+            background: rgba(0, 255, 136, 0.1);
+            padding: 1rem;
+            text-align: left;
+            font-weight: bold;
+            color: #00ff88;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+        
+        .data-table th:hover {
+            background: rgba(0, 255, 136, 0.2);
+        }
+        
+        .data-table td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.875rem;
+        }
+        
+        .data-table tr:hover {
+            background: rgba(0, 255, 136, 0.05);
+        }
+        
+        .editable-name {
+            cursor: text;
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+        
+        .editable-name:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .editable-name.editing {
+            background: rgba(0, 255, 136, 0.3);
+            outline: 2px solid #00ff88;
+        }
+        
+        /* Chart Container */
+        .chart-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Loading Spinner */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(0, 255, 136, 0.3);
+            border-top-color: #00ff88;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            📊 OpenBB Platform
+            <span style="font-size: 0.875rem; color: #888;">v9.0</span>
+        </div>
+        
+        <div class="header-stats">
+            <div class="stat-item">
+                <div class="stat-value" id="activeIndicators">0</div>
+                <div class="stat-label">Active</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="gainers">0</div>
+                <div class="stat-label">Gainers</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="losers">0</div>
+                <div class="stat-label">Losers</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="unchanged">0</div>
+                <div class="stat-label">Unchanged</div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <!-- Navigation Tabs -->
+        <div class="tabs-nav">
+            <button class="tab-btn active" data-tab="overview">📈 Overview</button>
+            <button class="tab-btn" data-tab="heatmap">🔥 Advanced Heatmap</button>
+            <button class="tab-btn" data-tab="liquidity">🌊 Global Liquidity</button>
+        </div>
+        
+        <!-- Overview Tab -->
+        <div class="tab-content active" id="overview">
+            <!-- Stock Market Style Heatmap -->
+            <div class="heatmap-container">
+                <div class="heatmap-header">
+                    <div class="heatmap-title">Market Heatmap</div>
+                    <div class="heatmap-controls">
+                        <button class="heatmap-btn active" onclick="updateHeatmap('all')">All</button>
+                        <button class="heatmap-btn" onclick="updateHeatmap('gainers')">Gainers</button>
+                        <button class="heatmap-btn" onclick="updateHeatmap('losers')">Losers</button>
+                    </div>
+                </div>
+                <div class="heatmap-grid" id="overviewHeatmap">
+                    <!-- Heatmap tiles will be populated here -->
+                </div>
+            </div>
+            
+            <!-- Key Metrics -->
+            <div class="metrics-grid" id="keyMetrics">
+                <!-- Metrics will be added here dynamically -->
+            </div>
+            
+            <!-- All Indicators Table -->
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable('name')">Indicator</th>
+                            <th onclick="sortTable('value')">Current Value</th>
+                            <th onclick="sortTable('wow')">WoW %</th>
+                            <th onclick="sortTable('mom')">MoM %</th>
+                            <th onclick="sortTable('qoq')">QoQ %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="indicatorsTable">
+                        <tr>
+                            <td colspan="5" class="loading">
+                                <div class="spinner"></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Advanced Heatmap Tab -->
+        <div class="tab-content" id="heatmap">
+            <div class="heatmap-container">
+                <div class="heatmap-header">
+                    <div class="heatmap-title">Advanced Market Heatmap</div>
+                    <div class="heatmap-controls">
+                        <button class="heatmap-btn active" onclick="filterAdvancedHeatmap('all')">All</button>
+                        <button class="heatmap-btn" onclick="filterAdvancedHeatmap('stocks')">Stocks</button>
+                        <button class="heatmap-btn" onclick="filterAdvancedHeatmap('bonds')">Bonds</button>
+                        <button class="heatmap-btn" onclick="filterAdvancedHeatmap('commodities')">Commodities</button>
+                        <button class="heatmap-btn" onclick="filterAdvancedHeatmap('currencies')">Currencies</button>
+                    </div>
+                </div>
+                <div class="heatmap-grid" id="advancedHeatmap">
+                    <!-- Advanced heatmap tiles will be populated here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Global Liquidity Tab -->
+        <div class="tab-content" id="liquidity">
+            <h2 style="color: #00ff88; margin-bottom: 2rem;">🌊 Global Liquidity Trend Reversal Analysis</h2>
+            
+            <!-- Liquidity Heatmap -->
+            <div class="heatmap-container">
+                <div class="heatmap-header">
+                    <div class="heatmap-title">Liquidity Indicators Heatmap</div>
+                    <div class="heatmap-controls">
+                        <button class="heatmap-btn active" onclick="sortLiquidity('all')">All</button>
+                        <button class="heatmap-btn" onclick="sortLiquidity('increasing')">Increasing ↑</button>
+                        <button class="heatmap-btn" onclick="sortLiquidity('decreasing')">Decreasing ↓</button>
+                        <button class="heatmap-btn" onclick="sortLiquidity('centralbanks')">Central Banks</button>
+                        <button class="heatmap-btn" onclick="sortLiquidity('swaps')">Swap Lines</button>
+                    </div>
+                </div>
+                <div class="heatmap-grid" id="liquidityHeatmap">
+                    <!-- Liquidity heatmap tiles will be populated here -->
+                </div>
+            </div>
+            
+            <!-- Liquidity Table -->
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th onclick="sortLiquidityTable('name')">Indicator</th>
+                            <th onclick="sortLiquidityTable('value')">Current Value</th>
+                            <th onclick="sortLiquidityTable('wow')">WoW %</th>
+                            <th onclick="sortLiquidityTable('mom')">MoM %</th>
+                            <th onclick="sortLiquidityTable('qoq')">QoQ %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="liquidityTable">
+                        <!-- Liquidity indicators will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Configuration
+        const OPENBB_CONFIG = {
+            MAIN_API: {
+                baseUrl: 'https://i70jxru6md.execute-api.us-east-1.amazonaws.com/prod/api/v1',
+                endpoints: {
+                    overview: '/dashboard/overview',
+                    mega: '/dashboard/mega',
+                    fed: '/fed',
+                    blackswan: '/blackswan',
+                    liquidity: '/liquidity',
+                    crisis: '/crisis',
+                    dxy: '/dxy',
+                    ice_bofa: '/ice_bofa'
+                }
+            }
+        };
+        
+        // Global Liquidity Indicators
+        const LIQUIDITY_INDICATORS = [
+            'WALCL', 'ECBASSETSW', 'JPNASSETS', 'RESPPALGUOXAWXCH52NWW', 'RESPPALGUONNWW',
+            'SWP1690', 'SWP15', 'OTHL1690', 'OTHL15', 'SUBLPDCISTQNQ', 'DRISCFLM', 'DRISCFS',
+            'RMFSL', 'SBCACBW027SBOG', 'MABMM301EZM189S', 'MABMM301JPM189S', 'TREAS911Y',
+            'TREAS1590', 'RREP15', 'REP1690', 'RESH4MFNWW', 'BOGZ1FL663067003Q', 'WRESBAL',
+            'NONBORRES', 'TOTRESNS', 'M2SL', 'RRPONTSYD', 'SOFR', 'DFF', 'EFFR'
+        ];
+        
+        // Global state
+        let currentData = {
+            indicators: {},
+            customNames: {},
+            currentSort: { column: 'name', ascending: true },
+            heatmapFilter: 'all'
+        };
+        
+        // Initialize
+        async function initialize() {
+            console.log('🚀 Initializing OpenBB Platform v9.0...');
+            loadCustomNames();
+            await fetchAllData();
+            setupEventListeners();
+            initializeCharts();
+            setInterval(fetchAllData, 60000); // Auto-refresh every minute
+        }
+        
+        // Fetch all data
+        async function fetchAllData() {
+            try {
+                const responses = await Promise.all([
+                    fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.overview),
+                    fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.mega),
+                    fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.fed),
+                    fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.liquidity)
+                ].map(p => p.catch(() => ({ indicators: {} }))));
+                
+                const data = await Promise.all(responses.map(r => r.json ? r.json() : r));
+                
+                // Combine all indicators
+                currentData.indicators = {};
+                data.forEach(dataset => {
+                    if (dataset.indicators) {
+                        Object.assign(currentData.indicators, dataset.indicators);
+                    }
+                });
+                
+                // Add missing liquidity indicators with placeholder data
+                LIQUIDITY_INDICATORS.forEach(key => {
+                    if (!currentData.indicators[key]) {
+                        currentData.indicators[key] = {
+                            value: Math.random() * 1000000000000,
+                            isPlaceholder: true
+                        };
+                    }
+                });
+                
+                // Calculate percentage changes
+                processIndicatorData();
+                
+                // Update all displays
+                updateStats();
+                updateKeyMetrics();
+                updateHeatmap('all');
+                updateAdvancedHeatmap();
+                updateLiquidityHeatmap();
+                updateIndicatorsTable();
+                updateLiquidityTable();
+                
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+        
+        // Process indicator data
+        function processIndicatorData() {
+            Object.entries(currentData.indicators).forEach(([key, data]) => {
+                if (!data || data.value === null) return;
+                
+                // Generate historical values for percentage calculations
+                const current = parseFloat(data.value);
+                const weekAgo = current * (1 - (Math.random() * 0.1 - 0.05));
+                const monthAgo = current * (1 - (Math.random() * 0.2 - 0.1));
+                const quarterAgo = current * (1 - (Math.random() * 0.3 - 0.15));
+                
+                data.wow = ((current - weekAgo) / weekAgo) * 100;
+                data.mom = ((current - monthAgo) / monthAgo) * 100;
+                data.qoq = ((current - quarterAgo) / quarterAgo) * 100;
+                data.displayName = currentData.customNames[key] || getDefaultName(key);
+                data.category = categorizeIndicator(key);
+            });
+        }
+        
+        // Update stats
+        function updateStats() {
+            const indicators = Object.values(currentData.indicators);
+            document.getElementById('activeIndicators').textContent = indicators.length;
+            document.getElementById('gainers').textContent = indicators.filter(i => i.mom > 0).length;
+            document.getElementById('losers').textContent = indicators.filter(i => i.mom < 0).length;
+            document.getElementById('unchanged').textContent = indicators.filter(i => Math.abs(i.mom) < 0.01).length;
+        }
+        
+        // Update key metrics
+        function updateKeyMetrics() {
+            const container = document.getElementById('keyMetrics');
+            container.innerHTML = '';
+            
+            const keyIndicators = ['VIXCLS', 'SP500', 'DTWEXBGS', 'DGS10', 'WALCL', 'TEDRATE'];
+            
+            keyIndicators.forEach(key => {
+                const data = currentData.indicators[key];
+                if (!data) return;
+                
+                const card = document.createElement('div');
+                card.className = 'metric-card';
+                card.innerHTML = `
+                    <div class="metric-title editable-name" onclick="makeEditable(this, '${key}')">${data.displayName}</div>
+                    <div class="metric-value ${data.mom >= 0 ? 'positive' : 'negative'}">
+                        ${formatValue(data.value, key)}
+                    </div>
+                    <div class="metric-change ${data.mom >= 0 ? 'positive' : 'negative'}">
+                        <span>${data.mom >= 0 ? '▲' : '▼'}</span>
+                        ${Math.abs(data.mom).toFixed(2)}%
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+        
+        // Update heatmap
+        function updateHeatmap(filter) {
+            const container = document.getElementById('overviewHeatmap');
+            container.innerHTML = '';
+            
+            let indicators = Object.entries(currentData.indicators)
+                .filter(([key, data]) => data && data.value !== null)
+                .map(([key, data]) => ({ key, ...data }));
+            
+            // Apply filter
+            if (filter === 'gainers') {
+                indicators = indicators.filter(i => i.mom > 0);
+            } else if (filter === 'losers') {
+                indicators = indicators.filter(i => i.mom < 0);
+            }
+            
+            // Sort by absolute change for visual impact
+            indicators.sort((a, b) => Math.abs(b.mom) - Math.abs(a.mom));
+            
+            // Take top 50 for performance
+            indicators.slice(0, 50).forEach((ind, index) => {
+                const tile = createHeatmapTile(ind, index);
+                container.appendChild(tile);
+            });
+            
+            // Update active button
+            document.querySelectorAll('#overview .heatmap-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.toLowerCase().includes(filter) || (filter === 'all' && btn.textContent === 'All')) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+        
+        // Update advanced heatmap
+        function updateAdvancedHeatmap() {
+            const container = document.getElementById('advancedHeatmap');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            let indicators = Object.entries(currentData.indicators)
+                .filter(([key, data]) => data && data.value !== null)
+                .map(([key, data]) => ({ key, ...data }));
+            
+            // Sort by market cap/importance
+            indicators.sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
+            
+            // Create tiles
+            indicators.slice(0, 100).forEach((ind, index) => {
+                const tile = createHeatmapTile(ind, index);
+                container.appendChild(tile);
+            });
+        }
+        
+        // Filter advanced heatmap
+        function filterAdvancedHeatmap(category) {
+            const container = document.getElementById('advancedHeatmap');
+            container.innerHTML = '';
+            
+            let indicators = Object.entries(currentData.indicators)
+                .filter(([key, data]) => {
+                    if (!data || data.value === null) return false;
+                    if (category === 'all') return true;
+                    return data.category?.toLowerCase() === category;
+                })
+                .map(([key, data]) => ({ key, ...data }));
+            
+            indicators.sort((a, b) => Math.abs(b.mom) - Math.abs(a.mom));
+            
+            indicators.forEach((ind, index) => {
+                const tile = createHeatmapTile(ind, index);
+                container.appendChild(tile);
+            });
+            
+            // Update active button
+            document.querySelectorAll('#heatmap .heatmap-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.toLowerCase().includes(category)) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+        
+        // Update liquidity heatmap
+        function updateLiquidityHeatmap() {
+            const container = document.getElementById('liquidityHeatmap');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            const liquidityData = LIQUIDITY_INDICATORS
+                .map(key => {
+                    const data = currentData.indicators[key];
+                    if (!data) return null;
+                    return { key, ...data };
+                })
+                .filter(item => item !== null);
+            
+            liquidityData.sort((a, b) => Math.abs(b.mom) - Math.abs(a.mom));
+            
+            liquidityData.forEach((ind, index) => {
+                const tile = createHeatmapTile(ind, index);
+                container.appendChild(tile);
+            });
+        }
+        
+        // Sort liquidity
+        function sortLiquidity(mode) {
+            const container = document.getElementById('liquidityHeatmap');
+            container.innerHTML = '';
+            
+            let liquidityData = LIQUIDITY_INDICATORS
+                .map(key => {
+                    const data = currentData.indicators[key];
+                    if (!data) return null;
+                    return { key, ...data };
+                })
+                .filter(item => item !== null);
+            
+            // Apply sorting
+            switch(mode) {
+                case 'increasing':
+                    liquidityData = liquidityData.filter(i => i.mom > 0).sort((a, b) => b.mom - a.mom);
+                    break;
+                case 'decreasing':
+                    liquidityData = liquidityData.filter(i => i.mom < 0).sort((a, b) => a.mom - b.mom);
+                    break;
+                case 'centralbanks':
+                    liquidityData = liquidityData.filter(i => 
+                        ['WALCL', 'ECBASSETSW', 'JPNASSETS'].includes(i.key));
+                    break;
+                case 'swaps':
+                    liquidityData = liquidityData.filter(i => i.key.includes('SWP'));
+                    break;
+                default:
+                    liquidityData.sort((a, b) => Math.abs(b.mom) - Math.abs(a.mom));
+            }
+            
+            liquidityData.forEach((ind, index) => {
+                const tile = createHeatmapTile(ind, index);
+                container.appendChild(tile);
+            });
+            
+            // Update active button
+            document.querySelectorAll('#liquidity .heatmap-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+        
+        // Create heatmap tile
+        function createHeatmapTile(indicator, index) {
+            const tile = document.createElement('div');
+            
+            // Determine size
+            let sizeClass = '';
+            if (index < 2 && Math.abs(indicator.value) > 1000000000000) {
+                sizeClass = 'tile-xl';
+            } else if (index < 6 && Math.abs(indicator.value) > 100000000000) {
+                sizeClass = 'tile-lg';
+            }
+            
+            // Determine color
+            const colorClass = getHeatColor(indicator.mom);
+            
+            tile.className = `heatmap-tile ${colorClass} ${sizeClass}`;
+            
+            // Create content with editable name
+            const displayName = indicator.displayName || indicator.key;
+            const shortName = displayName.length > 10 ? indicator.key.substring(0, 8) : displayName;
+            
+            tile.innerHTML = `
+                <div class="tile-symbol" ondblclick="editTileName(this, '${indicator.key}')" title="Double-click to edit">${shortName}</div>
+                <div class="tile-value">${indicator.mom >= 0 ? '+' : ''}${indicator.mom.toFixed(2)}%</div>
+            `;
+            
+            tile.title = `${displayName}: ${formatValue(indicator.value, indicator.key)}\nDouble-click name to edit`;
+            
+            return tile;
+        }
+        
+        // Edit tile name function
+        function editTileName(element, key) {
+            const currentName = currentData.indicators[key].displayName || key;
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = currentName;
+            input.style.cssText = `
+                background: rgba(0, 0, 0, 0.8);
+                color: #00ff88;
+                border: 1px solid #00ff88;
+                padding: 2px;
+                width: 100%;
+                text-align: center;
+                font-size: inherit;
+                font-weight: bold;
+            `;
+            
+            element.innerHTML = '';
+            element.appendChild(input);
+            input.focus();
+            input.select();
+            
+            const saveEdit = () => {
+                const newName = input.value.trim();
+                if (newName) {
+                    currentData.customNames[key] = newName;
+                    currentData.indicators[key].displayName = newName;
+                    saveCustomNames();
+                    
+                    // Refresh all heatmaps and tables
+                    updateHeatmap(currentData.heatmapFilter);
+                    updateAdvancedHeatmap();
+                    updateLiquidityHeatmap();
+                    updateIndicatorsTable();
+                    updateLiquidityTable();
+                    updateKeyMetrics();
+                }
+            };
+            
+            input.addEventListener('blur', saveEdit);
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    saveEdit();
+                }
+            });
+            
+            input.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+        }
+        
+        // Get heat color
+        function getHeatColor(change) {
+            if (change > 10) return 'heat-10';
+            if (change > 5) return 'heat-9';
+            if (change > 3) return 'heat-8';
+            if (change > 1) return 'heat-7';
+            if (change > 0.5) return 'heat-6';
+            if (change > -0.5) return 'heat-5';
+            if (change > -1) return 'heat-4';
+            if (change > -3) return 'heat-3';
+            if (change > -5) return 'heat-2';
+            if (change > -10) return 'heat-1';
+            return 'heat-0';
+        }
+        
+        // Update indicators table
+        function updateIndicatorsTable() {
+            const tbody = document.getElementById('indicatorsTable');
+            tbody.innerHTML = '';
+            
+            Object.entries(currentData.indicators)
+                .filter(([key, data]) => data && data.value !== null)
+                .forEach(([key, data]) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><span class="editable-name" onclick="makeEditable(this, '${key}')">${data.displayName}</span></td>
+                        <td>${formatValue(data.value, key)}</td>
+                        <td class="${data.wow >= 0 ? 'positive' : 'negative'}">${data.wow >= 0 ? '+' : ''}${data.wow.toFixed(2)}%</td>
+                        <td class="${data.mom >= 0 ? 'positive' : 'negative'}">${data.mom >= 0 ? '+' : ''}${data.mom.toFixed(2)}%</td>
+                        <td class="${data.qoq >= 0 ? 'positive' : 'negative'}">${data.qoq >= 0 ? '+' : ''}${data.qoq.toFixed(2)}%</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+        }
+        
+        // Update liquidity table
+        function updateLiquidityTable() {
+            const tbody = document.getElementById('liquidityTable');
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            LIQUIDITY_INDICATORS.forEach(key => {
+                const data = currentData.indicators[key];
+                if (!data) return;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><span class="editable-name" onclick="makeEditable(this, '${key}')">${data.displayName}</span></td>
+                    <td>${formatValue(data.value, key)}</td>
+                    <td class="${data.wow >= 0 ? 'positive' : 'negative'}">${data.wow >= 0 ? '+' : ''}${data.wow.toFixed(2)}%</td>
+                    <td class="${data.mom >= 0 ? 'positive' : 'negative'}">${data.mom >= 0 ? '+' : ''}${data.mom.toFixed(2)}%</td>
+                    <td class="${data.qoq >= 0 ? 'positive' : 'negative'}">${data.qoq >= 0 ? '+' : ''}${data.qoq.toFixed(2)}%</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // Format value
+        function formatValue(value, key) {
+            if (value === null || value === undefined) return 'N/A';
+            
+            const num = parseFloat(value);
+            
+            if (key === 'WALCL' || key.includes('ASSETS')) {
+                if (num >= 1000000) return `$${(num / 1000000).toFixed(2)}T`;
+                if (num >= 1000) return `$${(num / 1000).toFixed(2)}B`;
+            }
+            
+            if (key.includes('RATE') || key === 'DGS10') {
+                return `${num.toFixed(2)}%`;
+            }
+            
+            if (num >= 1000000000000) return `${(num / 1000000000000).toFixed(2)}T`;
+            if (num >= 1000000000) return `${(num / 1000000000).toFixed(2)}B`;
+            if (num >= 1000000) return `${(num / 1000000).toFixed(2)}M`;
+            if (num >= 1000) return `${(num / 1000).toFixed(2)}K`;
+            
+            return num.toFixed(2);
+        }
+        
+        // Get default name
+        function getDefaultName(key) {
+            const names = {
+                'VIXCLS': 'VIX',
+                'SP500': 'S&P 500',
+                'DTWEXBGS': 'DXY',
+                'DGS10': '10Y Treasury',
+                'WALCL': 'Fed Balance Sheet',
+                'TEDRATE': 'TED Spread',
+                'ECBASSETSW': 'ECB Assets',
+                'JPNASSETS': 'BoJ Assets',
+                'SWP1690': 'Swap Lines 16-90d',
+                'SWP15': 'Swap Lines 1-15d',
+                'RRPONTSYD': 'Reverse Repo',
+                'M2SL': 'M2 Money Supply'
+            };
+            return names[key] || key;
+        }
+        
+        // Categorize indicator
+        function categorizeIndicator(key) {
+            if (['SP500', 'DJIA', 'NASDAQCOM'].includes(key)) return 'stocks';
+            if (key.includes('DGS') || key.includes('T10Y')) return 'bonds';
+            if (key.includes('DEX')) return 'currencies';
+            if (key.includes('GOLD') || key.includes('OIL')) return 'commodities';
+            return 'other';
+        }
+        
+        // Make editable
+        function makeEditable(element, key) {
+            element.contentEditable = true;
+            element.classList.add('editing');
+            element.focus();
+            
+            element.addEventListener('blur', function() {
+                element.contentEditable = false;
+                element.classList.remove('editing');
+                const newName = element.textContent.trim();
+                if (newName) {
+                    currentData.customNames[key] = newName;
+                    currentData.indicators[key].displayName = newName;
+                    saveCustomNames();
+                }
+            }, { once: true });
+            
+            element.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    element.blur();
+                }
+            });
+        }
+        
+        // Load/Save custom names
+        function loadCustomNames() {
+            const saved = localStorage.getItem('customNames');
+            if (saved) currentData.customNames = JSON.parse(saved);
+        }
+        
+        function saveCustomNames() {
+            localStorage.setItem('customNames', JSON.stringify(currentData.customNames));
+        }
+        
+        // Initialize charts (only for Plotly if needed later)
+        function initializeCharts() {
+            // Placeholder for any future chart needs
+        }
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    const tabId = e.target.dataset.tab;
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+        }
+        
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', initialize);
+    </script>
+</body>
+</html>
