@@ -961,10 +961,23 @@
             RATE_LIMIT_DELAY: 200 // ms between requests
         };
         
-        // OpenBB API Configuration (backup)
+        // OpenBB API Configuration - USING YOUR WORKING V8.0 PATTERN
         const OPENBB_CONFIG = {
-            BASE_URL: 'https://i70jxru6md.execute-api.us-east-1.amazonaws.com/prod/api/v1',
-            USE_AS_BACKUP: true
+            // Main API (143 Active Indicators) - YOUR EXACT WORKING ENDPOINTS
+            MAIN_API: {
+                baseUrl: 'https://i70jxru6md.execute-api.us-east-1.amazonaws.com/prod/api/v1',
+                endpoints: {
+                    health: '/health',
+                    overview: '/dashboard/overview',
+                    mega: '/dashboard/mega',
+                    dxy: '/dxy',
+                    ice_bofa: '/ice_bofa',
+                    fed: '/fed',
+                    blackswan: '/blackswan',
+                    liquidity: '/liquidity',
+                    crisis: '/crisis'
+                }
+            }
         };
         
         // Core Indicators List with FRED Series IDs
@@ -2357,27 +2370,10 @@
             updateHeatmap(filter);
         }
         
+        
+        // Remove the duplicate OPENBB_CONFIG declaration that was at the bottom
         // Initialize on load
         document.addEventListener('DOMContentLoaded', initialize);
-        
-        // OpenBB Platform Configuration - USING YOUR WORKING V8.0 PATTERN
-        const OPENBB_CONFIG = {
-            // Main API (143 Active Indicators) - YOUR EXACT WORKING ENDPOINTS
-            MAIN_API: {
-                baseUrl: 'https://i70jxru6md.execute-api.us-east-1.amazonaws.com/prod/api/v1',
-                endpoints: {
-                    health: '/health',
-                    overview: '/dashboard/overview',
-                    mega: '/dashboard/mega',
-                    dxy: '/dxy',
-                    ice_bofa: '/ice_bofa',
-                    fed: '/fed',
-                    blackswan: '/blackswan',
-                    liquidity: '/liquidity',
-                    crisis: '/crisis'
-                }
-            }
-        };
         
         // Replace the initialize function
         async function initialize() {
