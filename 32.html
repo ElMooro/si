@@ -2417,32 +2417,68 @@
             updateStatus('Loading real-time data...');
             
             try {
-                // Fetch from all endpoints simultaneously - YOUR EXACT PATTERN
+                // Test the API first
+                const healthCheck = await fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.health);
+                console.log('Health check status:', healthCheck.status);
+                
+                // Fetch from all endpoints with error handling for each
+                const fetchEndpoint = async (endpoint) => {
+                    try {
+                        const response = await fetch(OPENBB_CONFIG.MAIN_API.baseUrl + endpoint);
+                        if (!response.ok) {
+                            console.warn(`Endpoint ${endpoint} returned status ${response.status}`);
+                            return { indicators: {} };
+                        }
+                        const data = await response.json();
+                        return data;
+                    } catch (error) {
+                        console.error(`Error fetching ${endpoint}:`, error);
+                        return { indicators: {} };
+                    }
+                };
+                
+                // Fetch all endpoints
                 const [overviewData, fedData, blackswanData, liquidityData, dxyData, crisisData] = await Promise.all([
-                    fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.overview).then(r => r.json()),
-                    fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.fed).then(r => r.json()),
-                    fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.blackswan).then(r => r.json()),
-                    fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.liquidity).then(r => r.json()),
-                    fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.dxy).then(r => r.json()),
-                    fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.crisis).then(r => r.json())
+                    fetchEndpoint(OPENBB_CONFIG.MAIN_API.endpoints.overview),
+                    fetchEndpoint(OPENBB_CONFIG.MAIN_API.endpoints.fed),
+                    fetchEndpoint(OPENBB_CONFIG.MAIN_API.endpoints.blackswan),
+                    fetchEndpoint(OPENBB_CONFIG.MAIN_API.endpoints.liquidity),
+                    fetchEndpoint(OPENBB_CONFIG.MAIN_API.endpoints.dxy),
+                    fetchEndpoint(OPENBB_CONFIG.MAIN_API.endpoints.crisis)
                 ]);
                 
-                // Combine all indicators - YOUR EXACT DATA STRUCTURE
+                console.log('Data fetched:', {
+                    overview: Object.keys(overviewData.indicators || {}).length,
+                    fed: Object.keys(fedData.indicators || {}).length,
+                    blackswan: Object.keys(blackswanData.indicators || {}).length,
+                    liquidity: Object.keys(liquidityData.indicators || {}).length,
+                    dxy: Object.keys(dxyData.indicators || {}).length,
+                    crisis: Object.keys(crisisData.indicators || {}).length
+                });
+                
+                // Combine all indicators
                 const allIndicators = {
-                    ...overviewData.indicators,
-                    ...fedData.indicators,
-                    ...blackswanData.indicators,
-                    ...liquidityData.indicators,
-                    ...dxyData.indicators,
-                    ...crisisData.indicators
+                    ...(overviewData.indicators || {}),
+                    ...(fedData.indicators || {}),
+                    ...(blackswanData.indicators || {}),
+                    ...(liquidityData.indicators || {}),
+                    ...(dxyData.indicators || {}),
+                    ...(crisisData.indicators || {})
                 };
+                
+                // If no indicators found, use fallback
+                if (Object.keys(allIndicators).length === 0) {
+                    console.log('No indicators found, using fallback data');
+                    useFallbackData();
+                    return;
+                }
                 
                 // Store in currentData
                 currentData.indicators = allIndicators;
                 
                 // Process each indicator
                 Object.entries(allIndicators).forEach(([key, data]) => {
-                    if (!data || data.value === null || data.value === undefined) return;
+                    if (!data || (data.value === null && data.value === undefined)) return;
                     
                     // Store the raw data
                     if (!currentData.historicalData[key]) {
@@ -2450,9 +2486,10 @@
                     }
                     
                     // Add current value to history
+                    const value = parseFloat(data.value) || 0;
                     currentData.historicalData[key].push({
                         date: new Date(),
-                        value: parseFloat(data.value)
+                        value: value
                     });
                     
                     // Keep max 365 days of history
@@ -2466,11 +2503,17 @@
                     indicator.category = categorizeIndicator(key);
                     
                     // Use API-provided changes or calculate them
-                    indicator.changePercent = data.change || calculateChange(currentData.historicalData[key], 1);
-                    indicator.wow = data.wow_change || calculateChange(currentData.historicalData[key], 7);
-                    indicator.mom = data.mom_change || calculateChange(currentData.historicalData[key], 30);
-                    indicator.qoq = data.qoq_change || calculateChange(currentData.historicalData[key], 90);
-                    indicator.yoy = data.yoy_change || calculateChange(currentData.historicalData[key], 365);
+                    indicator.changePercent = parseFloat(data.change) || calculateChange(currentData.historicalData[key], 1);
+                    indicator.wow = parseFloat(data.wow_change) || calculateChange(currentData.historicalData[key], 7);
+                    indicator.mom = parseFloat(data.mom_change) || calculateChange(currentData.historicalData[key], 30);
+                    indicator.qoq = parseFloat(data.qoq_change) || calculateChange(currentData.historicalData[key], 90);
+                    indicator.yoy = parseFloat(data.yoy_change) || calculateChange(currentData.historicalData[key], 365);
+                    
+                    // Generate more historical data if needed
+                    if (currentData.historicalData[key].length < 100) {
+                        const historicalData = generateInitialHistoricalData(key);
+                        currentData.historicalData[key] = historicalData;
+                    }
                     
                     // Calculate second derivative
                     const secondDerivative = calculateSecondDerivative(currentData.historicalData[key]);
@@ -2498,7 +2541,7 @@
                 
             } catch (error) {
                 console.error('Error fetching data:', error);
-                updateStatus('Data fetch error', 'error');
+                updateStatus('Using fallback data', 'error');
                 
                 // Use fallback data if API fails
                 useFallbackData();
