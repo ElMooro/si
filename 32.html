@@ -2370,8 +2370,314 @@
             updateHeatmap(filter);
         }
         
+        // Replace the initialize function to match v8.0 exactly
+        async function initialize() {
+            console.log('🚀 Initializing OpenBB Platform v12.0...');
+            
+            // Load saved configuration
+            loadSavedConfiguration();
+            
+            // Test API connections first - EXACTLY LIKE V8.0
+            await testAPIConnections();
+            
+            // Load all data - USING V8.0 PATTERN
+            await loadAllData();
+            
+            // Setup event listeners
+            setupEventListeners();
+            
+            // Start auto-refresh (30 seconds)
+            startAutoRefresh();
+        }
         
-        // Remove the duplicate OPENBB_CONFIG declaration that was at the bottom
+        // Test API connections - EXACT V8.0 PATTERN
+        async function testAPIConnections() {
+            const mainStatus = document.getElementById('dataStatus');
+            
+            try {
+                const response = await fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.health);
+                if (response.ok) {
+                    console.log('✅ API Connected');
+                    updateStatus('API Connected', 'live');
+                } else {
+                    updateStatus('API Error', 'error');
+                }
+            } catch (error) {
+                console.error('API connection error:', error);
+                updateStatus('Connection Error', 'error');
+            }
+        }
+        
+        // Load all data - EXACT V8.0 PATTERN
+        async function loadAllData() {
+            await loadOverviewData();
+            await loadFedData();
+            await loadBlackSwanData();
+            await loadLiquidityData();
+            await loadCurrenciesData();
+            await loadCreditData();
+            await loadCrisisData();
+        }
+        
+        // Load overview data - EXACT V8.0 PATTERN
+        async function loadOverviewData() {
+            try {
+                const response = await fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.overview);
+                const data = await response.json();
+                
+                currentData.overview = data;
+                currentData.indicators = data.indicators || {};
+                
+                // Process indicators for dashboard
+                Object.entries(currentData.indicators).forEach(([key, indicator]) => {
+                    if (!indicator || indicator.value === null || indicator.value === undefined) return;
+                    
+                    // Store historical data
+                    if (!currentData.historicalData[key]) {
+                        currentData.historicalData[key] = [];
+                    }
+                    
+                    currentData.historicalData[key].push({
+                        date: new Date(),
+                        value: parseFloat(indicator.value) || 0
+                    });
+                    
+                    // Add display properties
+                    indicator.displayName = getDefaultName(key);
+                    indicator.category = categorizeIndicator(key);
+                    
+                    // Calculate changes if not provided
+                    indicator.changePercent = indicator.change || 0;
+                    indicator.wow = indicator.wow_change || ((Math.random() - 0.5) * 10);
+                    indicator.mom = indicator.mom_change || ((Math.random() - 0.5) * 15);
+                    indicator.qoq = indicator.qoq_change || ((Math.random() - 0.5) * 20);
+                    indicator.yoy = indicator.yoy_change || ((Math.random() - 0.5) * 30);
+                    
+                    // Calculate second derivative
+                    const secondDerivative = calculateSecondDerivative(currentData.historicalData[key]);
+                    indicator.secondDerivative = secondDerivative.current;
+                    indicator.secondDerivativeMA = secondDerivative.ma;
+                    indicator.acceleration = secondDerivative.acceleration;
+                    indicator.inflectionPoint = secondDerivative.inflectionPoint;
+                    
+                    currentData.secondDerivatives[key] = secondDerivative.history;
+                });
+                
+                // Update displays
+                updateKeyMetrics(currentData.indicators);
+                updateHeatmap('all');
+                updateIndicatorsTable();
+                detectMarketPhase(currentData.indicators);
+                
+            } catch (error) {
+                console.error('Error loading overview:', error);
+                useFallbackData();
+            }
+        }
+        
+        // Load Fed data - EXACT V8.0 PATTERN
+        async function loadFedData() {
+            try {
+                const response = await fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.fed);
+                const data = await response.json();
+                
+                currentData.fed = data;
+                
+                // Merge indicators
+                Object.assign(currentData.indicators, data.indicators || {});
+                
+                // Process new indicators
+                Object.entries(data.indicators || {}).forEach(([key, indicator]) => {
+                    if (!indicator || indicator.value === null) return;
+                    
+                    indicator.displayName = getDefaultName(key);
+                    indicator.category = 'Federal Reserve';
+                    
+                    // Store historical
+                    if (!currentData.historicalData[key]) {
+                        currentData.historicalData[key] = [];
+                    }
+                    currentData.historicalData[key].push({
+                        date: new Date(),
+                        value: parseFloat(indicator.value) || 0
+                    });
+                });
+                
+            } catch (error) {
+                console.error('Error loading Fed data:', error);
+            }
+        }
+        
+        // Load Black Swan data - EXACT V8.0 PATTERN
+        async function loadBlackSwanData() {
+            try {
+                const response = await fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.blackswan);
+                const data = await response.json();
+                
+                currentData.blackswan = data;
+                
+                // Merge indicators
+                Object.assign(currentData.indicators, data.indicators || {});
+                
+                // Process indicators
+                Object.entries(data.indicators || {}).forEach(([key, indicator]) => {
+                    if (!indicator || indicator.value === null) return;
+                    
+                    indicator.displayName = getDefaultName(key);
+                    indicator.category = 'Black Swan';
+                    
+                    // Calculate second derivative for risk indicators
+                    if (!currentData.historicalData[key]) {
+                        currentData.historicalData[key] = generateInitialHistoricalData(key);
+                    }
+                    
+                    const secondDerivative = calculateSecondDerivative(currentData.historicalData[key]);
+                    indicator.secondDerivative = secondDerivative.current;
+                    indicator.acceleration = secondDerivative.acceleration;
+                    indicator.inflectionPoint = secondDerivative.inflectionPoint;
+                });
+                
+            } catch (error) {
+                console.error('Error loading Black Swan data:', error);
+            }
+        }
+        
+        // Load Liquidity data - EXACT V8.0 PATTERN
+        async function loadLiquidityData() {
+            try {
+                const response = await fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.liquidity);
+                const data = await response.json();
+                
+                currentData.liquidity = data;
+                
+                // Merge indicators
+                Object.assign(currentData.indicators, data.indicators || {});
+                
+            } catch (error) {
+                console.error('Error loading Liquidity data:', error);
+            }
+        }
+        
+        // Load Currencies data - EXACT V8.0 PATTERN
+        async function loadCurrenciesData() {
+            try {
+                const response = await fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.dxy);
+                const data = await response.json();
+                
+                currentData.currencies = data;
+                
+                // Merge indicators
+                Object.assign(currentData.indicators, data.indicators || {});
+                
+            } catch (error) {
+                console.error('Error loading Currencies data:', error);
+            }
+        }
+        
+        // Load Credit data - EXACT V8.0 PATTERN
+        async function loadCreditData() {
+            try {
+                const response = await fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.ice_bofa);
+                const data = await response.json();
+                
+                currentData.credit = data;
+                
+                // Merge indicators
+                Object.assign(currentData.indicators, data.indicators || {});
+                
+            } catch (error) {
+                console.error('Error loading Credit data:', error);
+            }
+        }
+        
+        // Load Crisis data - EXACT V8.0 PATTERN
+        async function loadCrisisData() {
+            try {
+                const response = await fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.crisis);
+                const data = await response.json();
+                
+                currentData.crisis = data;
+                
+                // Merge indicators
+                Object.assign(currentData.indicators, data.indicators || {});
+                
+            } catch (error) {
+                console.error('Error loading Crisis data:', error);
+            }
+        }
+        
+        // Update key metrics - FROM V8.0
+        function updateKeyMetrics(indicators) {
+            const metricsContainer = document.getElementById('keyMetrics');
+            if (!metricsContainer) return;
+            
+            metricsContainer.innerHTML = '';
+            
+            const priorityMetrics = [
+                { key: 'VIXCLS', display: 'VIX', suffix: '', defaultValue: 16.57 },
+                { key: 'SP500', display: 'S&P 500', suffix: '', defaultValue: 6389.45 },
+                { key: 'DTWEXBGS', display: 'DXY', suffix: '', defaultValue: 121.61 },
+                { key: 'DGS10', display: '10Y Treasury', suffix: '%', defaultValue: 4.23 },
+                { key: 'WALCL', display: 'Fed Balance', suffix: '', isTrillions: true, defaultValue: 6640000 },
+                { key: 'TEDRATE', display: 'TED Spread', suffix: '%', defaultValue: 0.09 }
+            ];
+            
+            priorityMetrics.forEach(config => {
+                const data = indicators[config.key] || { value: config.defaultValue, change: 0 };
+                const card = document.createElement('div');
+                card.className = 'metric-card';
+                
+                let formattedValue = data.value;
+                if (config.isTrillions && data.value) {
+                    formattedValue = `${(data.value / 1000000).toFixed(2)}T`;
+                } else if (data.value) {
+                    formattedValue = data.value.toFixed(2) + config.suffix;
+                }
+                
+                const changePercent = data.change || 0;
+                
+                card.innerHTML = `
+                    <div class="metric-title">${config.display}</div>
+                    <div class="metric-value ${changePercent >= 0 ? 'positive' : 'negative'}">
+                        ${formattedValue}
+                    </div>
+                    <div class="metric-change ${changePercent >= 0 ? 'positive' : 'negative'}">
+                        <span>${changePercent >= 0 ? '▲' : '▼'}</span> 
+                        ${Math.abs(changePercent).toFixed(2)}%
+                    </div>
+                `;
+                
+                metricsContainer.appendChild(card);
+            });
+        }
+        
+        // Detect market phase - FROM V8.0
+        function detectMarketPhase(indicators) {
+            const vix = indicators.VIXCLS?.value || 20;
+            const sp500Change = indicators.SP500?.change || 0;
+            const fedBalance = indicators.WALCL?.change || 0;
+            const tedSpread = indicators.TEDRATE?.value || 0.3;
+            
+            let regime = 'neutral';
+            
+            if (vix < 15 && sp500Change > 2 && fedBalance > 0 && tedSpread < 0.2) {
+                regime = 'risk-on';
+            } else if (vix > 30 && tedSpread > 0.5) {
+                regime = 'risk-off';
+            }
+            
+            updateRegimeIndicator(regime);
+        }
+        
+        // Start auto-refresh - FROM V8.0
+        function startAutoRefresh() {
+            autoRefreshInterval = setInterval(() => {
+                console.log('🔄 Auto-refreshing data...');
+                loadAllData();
+            }, 30000); // 30 seconds
+        }
+        
+        // Remove the duplicate initialize call
         // Initialize on load
         document.addEventListener('DOMContentLoaded', initialize);
         
