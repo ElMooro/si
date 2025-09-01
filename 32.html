@@ -610,6 +610,7 @@
         <div class="tabs-nav">
             <button class="tab-btn active" data-tab="overview">📈 Overview</button>
             <button class="tab-btn" data-tab="heatmap">🔥 Advanced Heatmap</button>
+            <button class="tab-btn" data-tab="macro">🌍 Macro</button>
             <button class="tab-btn" data-tab="liquidity">🌊 Global Liquidity</button>
             <button class="tab-btn" data-tab="analytics">📊 Analytics</button>
         </div>
@@ -680,6 +681,68 @@
                     </div>
                 </div>
                 <div class="heatmap-grid" id="advancedHeatmap"></div>
+            </div>
+        </div>
+        
+        <!-- Macro Tab -->
+        <div class="tab-content" id="macro">
+            <h2 style="color: #00ff88; margin-bottom: 2rem;">🌍 Macro Economic Indicators</h2>
+            
+            <!-- Macro Heatmap -->
+            <div class="heatmap-container">
+                <div class="heatmap-header">
+                    <div class="heatmap-title">Macro Indicators Heatmap</div>
+                    <div class="heatmap-controls">
+                        <button class="heatmap-btn active" onclick="sortMacro('all')">All</button>
+                        <button class="heatmap-btn" onclick="sortMacro('gainers')">Gainers ↑</button>
+                        <button class="heatmap-btn" onclick="sortMacro('losers')">Losers ↓</button>
+                        <button class="heatmap-btn" onclick="sortMacro('centralbanks')">Central Banks</button>
+                        <button class="heatmap-btn" onclick="sortMacro('reserves')">Reserves</button>
+                    </div>
+                </div>
+                <div class="heatmap-grid" id="macroHeatmap"></div>
+            </div>
+            
+            <!-- Macro Analytics -->
+            <div class="analytics-grid">
+                <div class="analytics-card">
+                    <div class="analytics-title">Net Global Liquidity</div>
+                    <div class="analytics-value" id="netLiquidity">$0T</div>
+                    <div class="analytics-chart" id="netLiquidityChart"></div>
+                </div>
+                <div class="analytics-card">
+                    <div class="analytics-title">CB Balance Change</div>
+                    <div class="analytics-value" id="cbChange">0%</div>
+                    <div class="analytics-chart" id="cbChangeChart"></div>
+                </div>
+                <div class="analytics-card">
+                    <div class="analytics-title">Global Reserves</div>
+                    <div class="analytics-value" id="globalReserves">$0T</div>
+                    <div class="analytics-chart" id="reservesChart"></div>
+                </div>
+                <div class="analytics-card">
+                    <div class="analytics-title">Liquidity Pulse</div>
+                    <div class="analytics-value" id="liquidityPulse">0</div>
+                    <div class="analytics-chart" id="pulseChart"></div>
+                </div>
+            </div>
+            
+            <!-- Macro Table -->
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th onclick="sortMacroTable('name')">Indicator</th>
+                            <th onclick="sortMacroTable('value')">Current Value</th>
+                            <th onclick="sortMacroTable('change')">24h Change</th>
+                            <th onclick="sortMacroTable('wow')">WoW %</th>
+                            <th onclick="sortMacroTable('mom')">MoM %</th>
+                            <th onclick="sortMacroTable('qoq')">QoQ %</th>
+                            <th onclick="sortMacroTable('yoy')">YoY %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="macroTable"></tbody>
+                </table>
             </div>
         </div>
         
@@ -773,27 +836,24 @@
             }
         };
         
-        // Global Liquidity Indicators - Complete List
-        const LIQUIDITY_INDICATORS = [
+        // Macro Economic Indicators List
+        const MACRO_INDICATORS = [
             'WALCL', 'ECBASSETSW', 'JPNASSETS', 'G7LOLITOAASTSAM',
             'RESPPALGUOXAWXCH52NWW', 'RESPPALGUONNWW', 'RESPPALGUMXCH1NWW', 'RESPPNTEPNWW',
             'SWP1690', 'SWP15', 'OTHL1690', 'OTHL15', 'OTHL91T1Y',
-            'SUBLPDCISTQNQ', 'DRISCFLM', 'DRISCFS',
-            'RMFSL', 'SBCACBW027SBOG', 
-            'MABMM301EZM189S', 'MABMM301JPM189S',
-            'TREAS911Y', 'TREAS1590',
-            'RREP15', 'REP1690', 'RRPONTSYD',
-            'RESH4MFNWW', 'BOGZ1FL663067003Q',
-            'WRESBAL', 'NONBORRES', 'TOTRESNS',
-            'MNFCTRIRSA', 'ISRATIO', 'REVOLSL',
-            'INTGSTMXM193N', 'AMERIBOR', 'T10YIE',
-            'RETAILIMSA', 'IGREA',
-            'BSFGLV02EZM460S', 'BSOBLV02EZM460S', 'BSFGLV02DEM460S',
+            'SUBLPDCISTQNQ', 'DRISCFLM', 'DRISCFS', 'RMFSL', 'SBCACBW027SBOG',
+            'MABMM301EZM189S', 'MABMM301JPM189S', 'TREAS911Y', 'TREAS1590',
+            'RREP15', 'REP1690', 'RESH4MFNWW', 'BOGZ1FL663067003Q',
+            'WRESBAL', 'NONBORRES', 'TOTRESNS', 'MNFCTRIRSA', 'ISRATIO',
+            'REVOLSL', 'INTGSTMXM193N', 'AMERIBOR', 'T10YIE', 'RETAILIMSA',
+            'IGREA', 'BSFGLV02EZM460S', 'BSOBLV02EZM460S', 'BSFGLV02DEM460S',
             'BSOBLV02ATM460S', 'BSOBLV02FIM460S', 'BSOBLV02ESM460S',
             'PCU5231205231204', 'BSCURT02EZQ160S', 'BCEMFT02EEM460S',
-            'BSCICP02MXM460S', 'BSCICP02EZM460S', 'BSCICP02USM460S',
-            'M2SL', 'DFF', 'SOFR', 'EFFR'
+            'BSCICP02MXM460S', 'BSCICP02EZM460S', 'BSCICP02USM460S'
         ];
+        
+        // Global Liquidity Indicators - Complete List
+        const LIQUIDITY_INDICATORS = MACRO_INDICATORS;
         
         // Global state
         let currentData = {
@@ -862,7 +922,7 @@
             }
         }
         
-        // Bulk fetch all data
+        // Bulk fetch all data from API (REAL DATA ONLY)
         async function fetchAllData() {
             const endpoints = Object.values(OPENBB_CONFIG.MAIN_API.endpoints);
             const baseUrl = OPENBB_CONFIG.MAIN_API.baseUrl;
@@ -888,7 +948,7 @@
                 }
             }
             
-            // Process all data
+            // Process all data - REAL VALUES ONLY
             currentData.indicators = {};
             results.forEach(dataset => {
                 if (dataset.indicators) {
@@ -896,37 +956,115 @@
                 }
             });
             
-            // Add historical data if not present
-            Object.keys(currentData.indicators).forEach(key => {
-                if (!currentData.historicalData[key]) {
-                    currentData.historicalData[key] = generateInitialHistoricalData(key);
-                } else {
-                    // Add current value to historical
-                    currentData.historicalData[key].push({
-                        date: new Date(),
-                        value: currentData.indicators[key].value
-                    });
-                    
-                    // Keep only last 90 days
-                    if (currentData.historicalData[key].length > 90) {
-                        currentData.historicalData[key].shift();
-                    }
+            // Ensure macro indicators are included
+            MACRO_INDICATORS.forEach(key => {
+                if (!currentData.indicators[key] && currentData.indicators[key] !== 0) {
+                    // Don't create fake data - indicator will be skipped if not available
+                    console.log(`Indicator ${key} not available in API`);
                 }
             });
             
-            // Calculate accurate percentage changes
-            calculatePercentageChanges();
+            // Initialize or update historical data with REAL values
+            Object.keys(currentData.indicators).forEach(key => {
+                const indicator = currentData.indicators[key];
+                if (!indicator || indicator.value === null || indicator.value === undefined) return;
+                
+                if (!currentData.historicalData[key]) {
+                    currentData.historicalData[key] = [];
+                }
+                
+                // Add current real value to history
+                currentData.historicalData[key].push({
+                    date: new Date(),
+                    value: parseFloat(indicator.value)
+                });
+                
+                // Keep maximum historical days
+                if (currentData.historicalData[key].length > currentData.maxHistoricalDays) {
+                    currentData.historicalData[key].shift();
+                }
+            });
             
-            // Calculate analytics
+            // Calculate accurate percentage changes from REAL historical data
+            calculateRealPercentageChanges();
+            
+            // Calculate analytics based on real data
             calculateAnalytics();
             
-            // Update displays
+            // Update all displays
             updateAllDisplays();
+            
+            // Update macro specific displays
+            updateMacroAnalytics();
             
             // Save data
             saveData();
             
             currentData.lastUpdate = new Date();
+        }
+        
+        // Calculate REAL percentage changes from actual historical data
+        function calculateRealPercentageChanges() {
+            Object.entries(currentData.indicators).forEach(([key, data]) => {
+                if (!data || data.value === null || data.value === undefined) return;
+                
+                const history = currentData.historicalData[key] || [];
+                const current = parseFloat(data.value);
+                
+                // Initialize all changes to 0 if not enough history
+                data.changePercent = 0;
+                data.wow = 0;
+                data.mom = 0;
+                data.qoq = 0;
+                data.yoy = 0;
+                
+                if (history.length >= 2) {
+                    const dayAgo = history[history.length - 2]?.value;
+                    if (dayAgo) {
+                        data.change = current - dayAgo;
+                        data.changePercent = ((current - dayAgo) / Math.abs(dayAgo)) * 100;
+                    }
+                }
+                
+                if (history.length >= 8) {
+                    const weekAgo = history[history.length - 8]?.value;
+                    if (weekAgo) {
+                        data.wow = ((current - weekAgo) / Math.abs(weekAgo)) * 100;
+                    }
+                }
+                
+                if (history.length >= 31) {
+                    const monthAgo = history[history.length - 31]?.value;
+                    if (monthAgo) {
+                        data.mom = ((current - monthAgo) / Math.abs(monthAgo)) * 100;
+                    }
+                }
+                
+                if (history.length >= 91) {
+                    const quarterAgo = history[history.length - 91]?.value;
+                    if (quarterAgo) {
+                        data.qoq = ((current - quarterAgo) / Math.abs(quarterAgo)) * 100;
+                    }
+                }
+                
+                if (history.length >= 366) {
+                    const yearAgo = history[history.length - 366]?.value;
+                    if (yearAgo) {
+                        data.yoy = ((current - yearAgo) / Math.abs(yearAgo)) * 100;
+                    }
+                }
+                
+                // Add metadata
+                data.displayName = currentData.customNames[key] || getDefaultName(key);
+                data.category = categorizeIndicator(key);
+                
+                // Ensure NaN values are handled
+                ['changePercent', 'wow', 'mom', 'qoq', 'yoy'].forEach(field => {
+                    if (isNaN(data[field]) || !isFinite(data[field])) {
+                        data[field] = 0;
+                    }
+                });
+            });
         }
         
         // Generate initial historical data (15,000 days)
