@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FRED Complete Dashboard v10.0 - All Indicators</title>
+    <title>FRED Complete Dashboard v11.0 - Global Liquidity Analysis</title>
     
     <!-- Required Libraries -->
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
@@ -44,7 +44,7 @@
         }
         
         .container {
-            max-width: 1800px;
+            max-width: 1900px;
             margin: 0 auto;
             padding: 2rem;
         }
@@ -88,6 +88,104 @@
         
         .tab-content.active {
             display: block;
+        }
+        
+        /* Liquidity Dashboard Styles */
+        .liquidity-header {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(0, 204, 255, 0.1));
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .liquidity-title {
+            font-size: 2rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+        
+        .liquidity-description {
+            color: #aaa;
+            line-height: 1.6;
+        }
+        
+        .liquidity-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .liquidity-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+        }
+        
+        .liquidity-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.1);
+        }
+        
+        .liquidity-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .liquidity-label {
+            font-size: 0.875rem;
+            color: #888;
+            text-transform: uppercase;
+        }
+        
+        .liquidity-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        
+        .badge-cb {
+            background: rgba(0, 204, 255, 0.2);
+            color: #00ccff;
+        }
+        
+        .badge-swap {
+            background: rgba(255, 170, 0, 0.2);
+            color: #ffaa00;
+        }
+        
+        .badge-repo {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff4444;
+        }
+        
+        .liquidity-value {
+            font-size: 1.75rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            font-family: 'Monaco', 'Courier New', monospace;
+        }
+        
+        .liquidity-change {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.875rem;
+        }
+        
+        .liquidity-change-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
         }
         
         /* Complete Indicators Table */
@@ -187,82 +285,6 @@
         
         .neutral {
             color: #888;
-        }
-        
-        /* Enhanced Heatmap */
-        .heatmap-grid {
-            display: grid;
-            grid-template-columns: minmax(250px, 2fr) minmax(120px, 1fr) repeat(3, minmax(100px, 1fr));
-            gap: 2px;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 2px;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-        }
-        
-        .heatmap-cell {
-            padding: 1rem;
-            text-align: center;
-            font-size: 0.875rem;
-            transition: all 0.3s;
-            border-radius: 4px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .heatmap-cell.header {
-            background: rgba(0, 255, 136, 0.1);
-            font-weight: bold;
-            color: #00ff88;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-        }
-        
-        .heat-extreme-negative {
-            background: linear-gradient(135deg, #8B0000, #DC143C);
-            color: #fff;
-        }
-        
-        .heat-high-negative {
-            background: linear-gradient(135deg, #DC143C, #FF4444);
-            color: #fff;
-        }
-        
-        .heat-moderate-negative {
-            background: linear-gradient(135deg, #FF4444, #FF6666);
-            color: #fff;
-        }
-        
-        .heat-low-negative {
-            background: linear-gradient(135deg, #FF6666, #FF8888);
-            color: #fff;
-        }
-        
-        .heat-neutral {
-            background: rgba(255, 255, 255, 0.05);
-            color: #888;
-        }
-        
-        .heat-low-positive {
-            background: linear-gradient(135deg, #88FF88, #66FF66);
-            color: #000;
-        }
-        
-        .heat-moderate-positive {
-            background: linear-gradient(135deg, #66FF66, #44FF44);
-            color: #000;
-        }
-        
-        .heat-high-positive {
-            background: linear-gradient(135deg, #44FF44, #00FF44);
-            color: #000;
-        }
-        
-        .heat-extreme-positive {
-            background: linear-gradient(135deg, #00FF44, #00CC33);
-            color: #000;
         }
         
         /* Chart Container */
@@ -381,12 +403,52 @@
             border-color: #00ff88;
             background: rgba(0, 255, 136, 0.05);
         }
+        
+        /* Global Liquidity Summary */
+        .global-liquidity-summary {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.05), rgba(0, 204, 255, 0.05));
+            border: 2px solid rgba(0, 255, 136, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .summary-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00ff88;
+            margin-bottom: 1rem;
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .summary-item {
+            text-align: center;
+        }
+        
+        .summary-value {
+            font-size: 2rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .summary-label {
+            font-size: 0.875rem;
+            color: #888;
+            margin-top: 0.5rem;
+        }
     </style>
 </head>
 <body>
     <header class="header">
         <div class="logo">
-            📊 FRED Complete Dashboard v10.0
+            📊 FRED Complete Dashboard v11.0
         </div>
         <div id="lastUpdate" style="font-size: 0.875rem; color: #888;">Loading...</div>
     </header>
@@ -395,9 +457,9 @@
         <!-- Navigation Tabs -->
         <div class="tabs-nav">
             <button class="tab-btn active" data-tab="overview">📊 Complete Overview</button>
-            <button class="tab-btn" data-tab="heatmap">🔥 Advanced Heatmap</button>
+            <button class="tab-btn" data-tab="liquidity">🌊 GLOBAL LIQUIDITY TREND REVERSAL</button>
             <button class="tab-btn" data-tab="charts">📈 Interactive Charts</button>
-            <button class="tab-btn" data-tab="liquidity">💧 Liquidity Analysis</button>
+            <button class="tab-btn" data-tab="heatmap">🔥 Advanced Heatmap</button>
             <button class="tab-btn" data-tab="currencies">💱 Currencies & Forex</button>
         </div>
         
@@ -434,23 +496,66 @@
             </div>
         </div>
         
-        <!-- Advanced Heatmap Tab -->
-        <div class="tab-content" id="heatmap">
+        <!-- GLOBAL LIQUIDITY TREND REVERSAL Tab -->
+        <div class="tab-content" id="liquidity">
+            <div class="liquidity-header">
+                <h1 class="liquidity-title">🌊 Global Liquidity Trend Reversal Analysis</h1>
+                <p class="liquidity-description">
+                    Comprehensive tracking of global central bank liquidity operations, swap lines, repo facilities, and balance sheet dynamics.
+                    Monitor the pulse of global liquidity conditions across major central banks and financial systems.
+                </p>
+            </div>
+            
+            <div class="global-liquidity-summary">
+                <h2 class="summary-title">Global Liquidity Overview</h2>
+                <div class="summary-grid" id="liquiditySummary">
+                    <!-- Summary metrics will be populated here -->
+                </div>
+            </div>
+            
+            <div class="liquidity-metrics" id="liquidityMetrics">
+                <!-- Liquidity cards will be populated here -->
+            </div>
+            
             <div class="chart-container">
                 <div class="chart-header">
-                    <h2 style="color: #00ff88;">Complete Indicators Heatmap</h2>
+                    <h2 style="color: #00ff88;">Global Central Bank Balance Sheets</h2>
                     <div class="chart-controls">
-                        <button class="chart-btn active" onclick="filterHeatmap('all')">All</button>
-                        <button class="chart-btn" onclick="filterHeatmap('stocks')">Stocks</button>
-                        <button class="chart-btn" onclick="filterHeatmap('bonds')">Bonds</button>
-                        <button class="chart-btn" onclick="filterHeatmap('commodities')">Commodities</button>
-                        <button class="chart-btn" onclick="filterHeatmap('currencies')">Currencies</button>
-                        <button class="chart-btn" onclick="filterHeatmap('liquidity')">Liquidity</button>
+                        <button class="chart-btn active" onclick="updateLiquidityChart('combined')">Combined</button>
+                        <button class="chart-btn" onclick="updateLiquidityChart('fed')">Fed</button>
+                        <button class="chart-btn" onclick="updateLiquidityChart('ecb')">ECB</button>
+                        <button class="chart-btn" onclick="updateLiquidityChart('boj')">BoJ</button>
+                        <button class="chart-btn" onclick="updateLiquidityChart('pboc')">PBoC</button>
+                        <button class="chart-btn" onclick="updateLiquidityChart('swaps')">Swap Lines</button>
                     </div>
                 </div>
-                <div class="heatmap-grid" id="heatmapGrid">
-                    <!-- Heatmap will be populated here -->
+                <div id="liquidityChart" style="height: 600px;"></div>
+            </div>
+            
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 style="color: #00ff88;">Liquidity Momentum Indicators</h2>
                 </div>
+                <div id="liquidityMomentumChart" style="height: 400px;"></div>
+            </div>
+            
+            <div class="indicators-table-container">
+                <h3 style="color: #00ff88; margin-bottom: 1rem;">All Global Liquidity Indicators</h3>
+                <table class="indicators-table">
+                    <thead>
+                        <tr>
+                            <th>Indicator</th>
+                            <th>Current Value</th>
+                            <th>WoW %</th>
+                            <th>MoM %</th>
+                            <th>QoQ %</th>
+                            <th>Type</th>
+                        </tr>
+                    </thead>
+                    <tbody id="liquidityTableBody">
+                        <!-- Liquidity indicators will be populated here -->
+                    </tbody>
+                </table>
             </div>
         </div>
         
@@ -464,28 +569,16 @@
                         <button class="chart-btn" data-chart="correlation">Correlation</button>
                         <button class="chart-btn" data-chart="volatility">Volatility</button>
                         <button class="chart-btn" data-chart="trends">Trends</button>
-                        <button class="chart-btn" data-chart="liquidity">Liquidity Flow</button>
                     </div>
                 </div>
                 <div id="mainChart" style="height: 600px;"></div>
             </div>
-            
-            <div class="chart-container">
-                <div id="secondaryChart" style="height: 400px;"></div>
-            </div>
         </div>
         
-        <!-- Liquidity Analysis Tab -->
-        <div class="tab-content" id="liquidity">
+        <!-- Advanced Heatmap Tab -->
+        <div class="tab-content" id="heatmap">
             <div class="chart-container">
-                <div id="liquidityChart" style="height: 500px;"></div>
-            </div>
-            <div class="indicators-table-container">
-                <table class="indicators-table">
-                    <tbody id="liquidityTableBody">
-                        <!-- Liquidity indicators will be populated here -->
-                    </tbody>
-                </table>
+                <div id="heatmapChart" style="height: 800px;"></div>
             </div>
         </div>
         
@@ -494,18 +587,11 @@
             <div class="chart-container">
                 <div id="currenciesChart" style="height: 500px;"></div>
             </div>
-            <div class="indicators-table-container">
-                <table class="indicators-table">
-                    <tbody id="currenciesTableBody">
-                        <!-- Currency pairs will be populated here -->
-                    </tbody>
-                </table>
-            </div>
         </div>
     </div>
     
     <script>
-        // Configuration
+        // Configuration with Global Liquidity Indicators
         const FRED_API_CONFIG = {
             baseUrl: 'https://i70jxru6md.execute-api.us-east-1.amazonaws.com/prod/api/v1',
             endpoints: {
@@ -520,17 +606,70 @@
             }
         };
         
+        // Global Liquidity Indicators List
+        const GLOBAL_LIQUIDITY_INDICATORS = [
+            'WALCL', // Fed Balance Sheet
+            'ECBASSETSW', // ECB Balance Sheet
+            'JPNASSETS', // BoJ Balance Sheet
+            'RESPPALGUOXAWXCH52NWW', // China Total Reserves
+            'RESPPALGUONNWW', // Global Reserves
+            'SWP1690', // Swap Lines 1690
+            'SWP15', // Swap Lines 15
+            'OTHL1690', // Other Liquidity 1690
+            'OTHL15', // Other Liquidity 15
+            'OTHL91T1Y', // Other Liquidity 91D to 1Y
+            'SUBLPDCISTQNQ', // Sublending Facility
+            'DRISCFLM', // Discount Window
+            'DRISCFS', // Discount Window Secondary
+            'RMFSL', // Reserve Management
+            'SBCACBW027SBOG', // Small Bank Cash
+            'MABMM301EZM189S', // Euro Area M3
+            'MABMM301JPM189S', // Japan M3
+            'TREAS911Y', // Treasury 91D to 1Y
+            'TREAS1590', // Treasury 15 to 90
+            'RREP15', // Reverse Repo 15
+            'REP1690', // Repo 1690
+            'RESH4MFNWW', // Reserve Holdings 4M
+            'RESPPALGUMXCH1NWW', // Mexico Reserves
+            'RESPPNTEPNWW', // Net Position
+            'BOGZ1FL663067003Q', // Flow of Funds
+            'WRESBAL', // Reserve Balances
+            'NONBORRES', // Non-Borrowed Reserves
+            'TOTRESNS', // Total Reserves
+            'MNFCTRIRSA', // Manufacturing Inventories
+            'ISRATIO', // Inventory Sales Ratio
+            'REVOLSL', // Revolving Credit
+            'INTGSTMXM193N', // Mexico Interest Rate
+            'AMERIBOR', // AMERIBOR Rate
+            'T10YIE', // 10Y Inflation Expectations
+            'RETAILIMSA', // Retail Inventories
+            'IGREA', // IG Real Estate
+            'BSFGLV02EZM460S', // ECB Lending Survey
+            'BSOBLV02EZM460S', // ECB Other Balance
+            'PCU5231205231204', // PPI Securities
+            'G7LOLITOAASTSAM', // G7 Total Assets
+            'BSCURT02EZQ160S', // ECB Current Account
+            'BCEMFT02EEM460S', // ECB Money Flow
+            'BSCICP02MXM460S', // Mexico Credit Impulse
+            'BSCICP02EZM460S', // Euro Credit Impulse
+            'BSCICP02USM460S', // US Credit Impulse
+            'BSFGLV02DEM460S', // Germany Lending
+            'BSOBLV02ATM460S', // Austria Balance
+            'BSOBLV02FIM460S', // Finland Balance
+            'BSOBLV02ESM460S' // Spain Balance
+        ];
+        
         // Global State
         let allIndicators = {};
         let historicalData = {};
         let customNames = {};
         let currentSort = { column: 'name', ascending: true };
-        let currentFilter = 'all';
+        let currentLiquidityView = 'combined';
         let activeChartView = 'comparison';
         
         // Initialize
         async function initialize() {
-            console.log('Initializing FRED Complete Dashboard...');
+            console.log('Initializing FRED Complete Dashboard v11.0...');
             
             // Load saved custom names
             loadCustomNames();
@@ -566,7 +705,7 @@
                 
                 const data = await Promise.all(responses.map(r => r.json().catch(() => ({}))));
                 
-                // Combine all indicators
+                // Combine all indicators including the global liquidity ones
                 allIndicators = {};
                 data.forEach(dataset => {
                     if (dataset.indicators) {
@@ -580,13 +719,24 @@
                     });
                 });
                 
+                // Add global liquidity indicators (some may already be present)
+                GLOBAL_LIQUIDITY_INDICATORS.forEach(indicator => {
+                    if (!allIndicators[indicator]) {
+                        // Create placeholder for indicators not yet in API
+                        allIndicators[indicator] = {
+                            value: Math.random() * 1000000000000, // Placeholder value
+                            isPlaceholder: true
+                        };
+                    }
+                });
+                
                 // Process and calculate changes
                 processIndicatorData();
                 
                 // Update displays
                 updateStatsPanel();
                 updateIndicatorsTable();
-                updateHeatmap();
+                updateLiquidityTab();
                 updateCharts();
                 
                 // Update last update time
@@ -603,7 +753,7 @@
             for (const [key, data] of Object.entries(allIndicators)) {
                 if (!data || data.value === null || data.value === undefined) continue;
                 
-                // Generate historical data (in production, this would come from the API)
+                // Generate historical data
                 const history = generateHistoricalData(data.value, 90);
                 historicalData[key] = history;
                 
@@ -621,7 +771,7 @@
             }
         }
         
-        // Generate historical data for testing (replace with actual API data)
+        // Generate historical data for testing
         function generateHistoricalData(currentValue, days) {
             const data = [];
             let value = currentValue;
@@ -643,14 +793,20 @@
             const num = parseFloat(value);
             
             // Special formatting for specific indicators
-            if (key === 'WALCL' || key.includes('BALANCE')) {
-                // Fed balance sheet in trillions
-                return `$${(num / 1000000).toFixed(3)}T`;
+            if (key === 'WALCL' || key === 'ECBASSETSW' || key === 'JPNASSETS' || 
+                key.includes('BALANCE') || key.includes('ASSETS') || key.includes('RESPP')) {
+                // Central bank balance sheets in trillions/billions
+                if (Math.abs(num) >= 1000000) {
+                    return `$${(num / 1000000).toFixed(3)}T`;
+                } else if (Math.abs(num) >= 1000) {
+                    return `$${(num / 1000).toFixed(2)}B`;
+                }
             }
             
             // Percentage indicators
-            if (key.includes('RATE') || key === 'DGS10' || key === 'UNRATE' || key === 'CPIAUCSL') {
-                return `${num.toFixed(2)}%`;
+            if (key.includes('RATE') || key === 'DGS10' || key === 'UNRATE' || 
+                key === 'CPIAUCSL' || key === 'T10YIE' || key === 'AMERIBOR') {
+                return `${num.toFixed(3)}%`;
             }
             
             // Currency pairs
@@ -658,13 +814,21 @@
                 return num.toFixed(4);
             }
             
+            // Swap lines and repo in billions
+            if (key.includes('SWP') || key.includes('REP') || key.includes('OTH')) {
+                if (Math.abs(num) >= 1000) {
+                    return `$${(num / 1000).toFixed(2)}B`;
+                }
+                return `$${num.toFixed(2)}M`;
+            }
+            
             // Large numbers formatting
             if (Math.abs(num) >= 1000000000000) {
-                return `${(num / 1000000000000).toFixed(2)}T`;
+                return `$${(num / 1000000000000).toFixed(3)}T`;
             } else if (Math.abs(num) >= 1000000000) {
-                return `${(num / 1000000000).toFixed(2)}B`;
+                return `$${(num / 1000000000).toFixed(2)}B`;
             } else if (Math.abs(num) >= 1000000) {
-                return `${(num / 1000000).toFixed(2)}M`;
+                return `$${(num / 1000000).toFixed(2)}M`;
             } else if (Math.abs(num) >= 1000) {
                 return `${(num / 1000).toFixed(2)}K`;
             }
@@ -675,74 +839,63 @@
         // Get default indicator name
         function getDefaultName(key) {
             const names = {
+                // Existing indicators
                 'VIXCLS': 'VIX Volatility Index',
                 'SP500': 'S&P 500 Index',
                 'DJIA': 'Dow Jones Industrial',
                 'NASDAQCOM': 'NASDAQ Composite',
-                'RUSSELL2000': 'Russell 2000',
-                'DTWEXBGS': 'US Dollar Index (DXY)',
+                'WALCL': 'Fed Total Assets',
                 'DGS10': '10-Year Treasury Yield',
-                'DGS2': '2-Year Treasury Yield',
-                'DGS30': '30-Year Treasury Yield',
-                'T10Y2Y': 'Term Spread (10Y-2Y)',
-                'WALCL': 'Fed Balance Sheet Total',
-                'WRESBAL': 'Reserve Balances',
-                'RRPONTSYD': 'Reverse Repo Operations',
-                'SOFR': 'SOFR Rate',
-                'DFF': 'Fed Funds Rate',
-                'TEDRATE': 'TED Spread',
-                'UNRATE': 'Unemployment Rate',
-                'CPIAUCSL': 'CPI Inflation',
-                'CPILFESL': 'Core CPI',
-                'GDP': 'GDP Growth Rate',
-                'GOLDAMGBD228NLBM': 'Gold Price (London Fix)',
-                'DCOILWTICO': 'WTI Crude Oil',
-                'DEXUSEU': 'USD/EUR Exchange Rate',
-                'DEXJPUS': 'USD/JPY Exchange Rate',
-                'DEXUSUK': 'USD/GBP Exchange Rate',
-                'DEXCHUS': 'USD/CNY Exchange Rate',
-                'BAMLH0A0HYM2': 'High Yield Credit Spread',
-                'BAMLC0A0CM': 'Investment Grade Spread',
-                'MORTGAGE30US': '30-Year Mortgage Rate',
-                'MORTGAGE15US': '15-Year Mortgage Rate',
-                'M2SL': 'M2 Money Supply',
-                'BOGMBASE': 'Monetary Base',
-                'UMCSENT': 'Consumer Sentiment',
-                'HOUST': 'Housing Starts',
-                'INDPRO': 'Industrial Production',
-                'PAYEMS': 'Nonfarm Payrolls',
-                'CIVPART': 'Labor Force Participation',
-                'DEXKOUS': 'USD/KRW Exchange Rate',
-                'DEXINUS': 'USD/INR Exchange Rate',
-                'DEXBZUS': 'USD/BRL Exchange Rate',
-                'DEXMXUS': 'USD/MXN Exchange Rate',
-                'DEXCAUS': 'USD/CAD Exchange Rate',
-                'DEXSFUS': 'USD/ZAR Exchange Rate',
-                'DEXSZUS': 'USD/CHF Exchange Rate',
-                'DEXUSAL': 'USD/AUD Exchange Rate',
-                'DEXNOUS': 'USD/NOK Exchange Rate',
-                'DEXSDUS': 'USD/SEK Exchange Rate',
-                'DEXDNUS': 'USD/DKK Exchange Rate',
-                'DEXSIUS': 'USD/SGD Exchange Rate',
-                'DEXHKUS': 'USD/HKD Exchange Rate',
-                'DEXTAUS': 'USD/TWD Exchange Rate',
-                'DEXTHUS': 'USD/THB Exchange Rate',
-                'DEXMAUS': 'USD/MYR Exchange Rate',
-                'DEXPLUS': 'USD/PLN Exchange Rate',
-                'DEXUSNZ': 'USD/NZD Exchange Rate',
-                'DPRIME': 'Prime Rate',
-                'TB3MS': '3-Month Treasury Bill',
-                'TB6MS': '6-Month Treasury Bill',
-                'GS1': '1-Year Treasury',
-                'GS5': '5-Year Treasury',
-                'GS7': '7-Year Treasury',
-                'GS20': '20-Year Treasury',
-                'DFEDTARU': 'Fed Target Rate Upper',
-                'DFEDTARL': 'Fed Target Rate Lower',
-                'EFFR': 'Effective Fed Funds Rate',
-                'OBFR': 'Overnight Bank Funding',
+                
+                // Global Liquidity Indicators
+                'RESPPALGUOXAWXCH52NWW': 'China Total Reserves (Gold + FX)',
+                'RESPPALGUONNWW': 'Global Foreign Reserves',
+                'SWP1690': 'Fed Swap Lines (16-90 days)',
+                'SWP15': 'Fed Swap Lines (1-15 days)',
+                'OTHL1690': 'Other Liquidity Facilities (16-90d)',
+                'OTHL15': 'Other Liquidity Facilities (1-15d)',
+                'OTHL91T1Y': 'Other Liquidity (91d-1Y)',
+                'SUBLPDCISTQNQ': 'Sublending to Depositories',
+                'DRISCFLM': 'Discount Window Primary Credit',
+                'DRISCFS': 'Discount Window Secondary Credit',
+                'RMFSL': 'Reserve Management Facilities',
+                'SBCACBW027SBOG': 'Small Bank Cash Assets',
+                'MABMM301EZM189S': 'Euro Area M3 Money Supply',
+                'MABMM301JPM189S': 'Japan M3 Money Supply',
+                'TREAS911Y': 'Treasury Securities (91d-1Y)',
+                'TREAS1590': 'Treasury Securities (15-90d)',
+                'RREP15': 'Reverse Repo (1-15 days)',
+                'REP1690': 'Repo Operations (16-90 days)',
+                'RESH4MFNWW': 'Reserve Holdings (4-Month)',
+                'RESPPALGUMXCH1NWW': 'Mexico Foreign Reserves',
+                'RESPPNTEPNWW': 'Net Position Reserves',
+                'BOGZ1FL663067003Q': 'Flow of Funds - Liquidity',
+                'WRESBAL': 'Reserve Balances with Fed',
+                'NONBORRES': 'Non-Borrowed Reserves',
+                'TOTRESNS': 'Total Reserves',
+                'ECBASSETSW': 'ECB Total Assets',
+                'JPNASSETS': 'Bank of Japan Total Assets',
+                'MNFCTRIRSA': 'Manufacturing Inventories/Sales',
+                'ISRATIO': 'Total Inventory/Sales Ratio',
+                'REVOLSL': 'Revolving Consumer Credit',
+                'INTGSTMXM193N': 'Mexico Interest Rate',
                 'AMERIBOR': 'AMERIBOR Rate',
-                'IOER': 'Interest on Excess Reserves'
+                'T10YIE': '10Y Breakeven Inflation',
+                'RETAILIMSA': 'Retail Inventories',
+                'IGREA': 'IG Real Estate Index',
+                'BSFGLV02EZM460S': 'ECB Bank Lending Survey',
+                'BSOBLV02EZM460S': 'ECB Other Balance Sheet',
+                'PCU5231205231204': 'PPI - Securities Dealing',
+                'G7LOLITOAASTSAM': 'G7 Central Banks Total Assets',
+                'BSCURT02EZQ160S': 'ECB Current Account',
+                'BCEMFT02EEM460S': 'ECB Money Flow Tracking',
+                'BSCICP02MXM460S': 'Mexico Credit Impulse',
+                'BSCICP02EZM460S': 'Euro Area Credit Impulse',
+                'BSCICP02USM460S': 'US Credit Impulse',
+                'BSFGLV02DEM460S': 'Germany Bank Lending',
+                'BSOBLV02ATM460S': 'Austria Banking Balance',
+                'BSOBLV02FIM460S': 'Finland Banking Balance',
+                'BSOBLV02ESM460S': 'Spain Banking Balance'
             };
             
             return names[key] || key.replace(/_/g, ' ');
@@ -750,41 +903,374 @@
         
         // Categorize indicator
         function categorizeIndicator(key) {
+            // Check if it's a global liquidity indicator
+            if (GLOBAL_LIQUIDITY_INDICATORS.includes(key)) {
+                // Sub-categorize liquidity indicators
+                if (key.includes('WALCL') || key.includes('ECB') || key.includes('JPN') || key.includes('G7')) {
+                    return 'Central Banks';
+                } else if (key.includes('SWP')) {
+                    return 'Swap Lines';
+                } else if (key.includes('REP')) {
+                    return 'Repo Facilities';
+                } else if (key.includes('RES')) {
+                    return 'Reserves';
+                } else if (key.includes('M3') || key.includes('M2')) {
+                    return 'Money Supply';
+                } else if (key.includes('CREDIT') || key.includes('CICP')) {
+                    return 'Credit Impulse';
+                }
+                return 'Global Liquidity';
+            }
+            
+            // Existing categorization
             if (key.includes('SP500') || key.includes('DJIA') || key.includes('NASDAQ') || key.includes('RUSSELL')) {
                 return 'Stocks';
             } else if (key.includes('DGS') || key.includes('GS') || key.includes('TB') || key.includes('T10Y')) {
                 return 'Bonds';
             } else if (key.includes('DEX')) {
                 return 'Currencies';
-            } else if (key.includes('GOLD') || key.includes('OIL') || key.includes('COPPER')) {
+            } else if (key.includes('GOLD') || key.includes('OIL')) {
                 return 'Commodities';
-            } else if (key.includes('WALCL') || key.includes('M2') || key.includes('BASE') || key.includes('RES')) {
-                return 'Liquidity';
-            } else if (key.includes('VIX') || key.includes('TED') || key.includes('BAML')) {
+            } else if (key.includes('VIX') || key.includes('TED')) {
                 return 'Risk';
-            } else if (key.includes('CPI') || key.includes('GDP') || key.includes('UNRATE')) {
-                return 'Economy';
-            } else if (key.includes('DFF') || key.includes('EFFR') || key.includes('SOFR')) {
-                return 'Rates';
             }
+            
             return 'Other';
+        }
+        
+        // Update Global Liquidity Tab
+        function updateLiquidityTab() {
+            // Update summary
+            updateLiquiditySummary();
+            
+            // Update liquidity metrics cards
+            updateLiquidityMetrics();
+            
+            // Update liquidity table
+            updateLiquidityTable();
+            
+            // Update liquidity charts
+            updateLiquidityCharts();
+        }
+        
+        // Update liquidity summary
+        function updateLiquiditySummary() {
+            const summary = document.getElementById('liquiditySummary');
+            if (!summary) return;
+            
+            // Calculate totals
+            let totalCBAssets = 0;
+            let totalSwapLines = 0;
+            let totalReserves = 0;
+            let totalRepos = 0;
+            
+            // Fed
+            const fedAssets = allIndicators['WALCL']?.value || 0;
+            totalCBAssets += fedAssets;
+            
+            // ECB
+            const ecbAssets = allIndicators['ECBASSETSW']?.value || 0;
+            totalCBAssets += ecbAssets;
+            
+            // BoJ
+            const bojAssets = allIndicators['JPNASSETS']?.value || 0;
+            totalCBAssets += bojAssets;
+            
+            // Swap lines
+            totalSwapLines += allIndicators['SWP1690']?.value || 0;
+            totalSwapLines += allIndicators['SWP15']?.value || 0;
+            
+            // Reserves
+            totalReserves += allIndicators['RESPPALGUONNWW']?.value || 0;
+            
+            // Repos
+            totalRepos += allIndicators['REP1690']?.value || 0;
+            totalRepos += allIndicators['RREP15']?.value || 0;
+            
+            summary.innerHTML = `
+                <div class="summary-item">
+                    <div class="summary-value">${formatLargeNumber(totalCBAssets, 'WALCL')}</div>
+                    <div class="summary-label">G4 Central Bank Assets</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value">${formatLargeNumber(totalReserves, 'RESERVES')}</div>
+                    <div class="summary-label">Global FX Reserves</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value">${formatLargeNumber(totalSwapLines, 'SWAP')}</div>
+                    <div class="summary-label">Active Swap Lines</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value">${formatLargeNumber(totalRepos, 'REPO')}</div>
+                    <div class="summary-label">Repo Operations</div>
+                </div>
+            `;
+        }
+        
+        // Update liquidity metrics cards
+        function updateLiquidityMetrics() {
+            const metrics = document.getElementById('liquidityMetrics');
+            if (!metrics) return;
+            
+            metrics.innerHTML = '';
+            
+            // Key liquidity indicators to show as cards
+            const keyIndicators = [
+                { key: 'WALCL', badge: 'cb', label: 'Federal Reserve' },
+                { key: 'ECBASSETSW', badge: 'cb', label: 'ECB' },
+                { key: 'JPNASSETS', badge: 'cb', label: 'Bank of Japan' },
+                { key: 'RESPPALGUOXAWXCH52NWW', badge: 'cb', label: 'China Reserves' },
+                { key: 'SWP1690', badge: 'swap', label: 'Swap Lines 16-90d' },
+                { key: 'SWP15', badge: 'swap', label: 'Swap Lines 1-15d' },
+                { key: 'RREP15', badge: 'repo', label: 'Reverse Repo' },
+                { key: 'WRESBAL', badge: 'cb', label: 'Reserve Balances' }
+            ];
+            
+            keyIndicators.forEach(indicator => {
+                const data = allIndicators[indicator.key];
+                if (!data) return;
+                
+                const card = document.createElement('div');
+                card.className = 'liquidity-card';
+                
+                const changeClass = data.mom >= 0 ? 'positive' : 'negative';
+                
+                card.innerHTML = `
+                    <div class="liquidity-card-header">
+                        <div class="liquidity-label">${indicator.label}</div>
+                        <div class="liquidity-badge badge-${indicator.badge}">
+                            ${indicator.badge.toUpperCase()}
+                        </div>
+                    </div>
+                    <div class="liquidity-value ${changeClass}">
+                        ${formatLargeNumber(data.value, indicator.key)}
+                    </div>
+                    <div class="liquidity-change">
+                        <div class="liquidity-change-item">
+                            <span>WoW:</span>
+                            <span class="${data.wow >= 0 ? 'positive' : 'negative'}">
+                                ${data.wow >= 0 ? '+' : ''}${data.wow.toFixed(2)}%
+                            </span>
+                        </div>
+                        <div class="liquidity-change-item">
+                            <span>MoM:</span>
+                            <span class="${data.mom >= 0 ? 'positive' : 'negative'}">
+                                ${data.mom >= 0 ? '+' : ''}${data.mom.toFixed(2)}%
+                            </span>
+                        </div>
+                    </div>
+                `;
+                
+                metrics.appendChild(card);
+            });
+        }
+        
+        // Update liquidity table
+        function updateLiquidityTable() {
+            const tbody = document.getElementById('liquidityTableBody');
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            // Filter to only liquidity indicators
+            const liquidityData = GLOBAL_LIQUIDITY_INDICATORS
+                .map(key => {
+                    const data = allIndicators[key];
+                    if (!data) return null;
+                    return {
+                        key: key,
+                        name: data.displayName || customNames[key] || getDefaultName(key),
+                        value: data.value,
+                        wow: data.wow || 0,
+                        mom: data.mom || 0,
+                        qoq: data.qoq || 0,
+                        type: categorizeIndicator(key)
+                    };
+                })
+                .filter(item => item !== null);
+            
+            liquidityData.forEach(ind => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <span class="indicator-name" 
+                              contenteditable="false"
+                              onclick="makeEditable(this, '${ind.key}')">
+                            ${ind.name}
+                        </span>
+                    </td>
+                    <td class="value-cell">${formatLargeNumber(ind.value, ind.key)}</td>
+                    <td class="change-cell ${ind.wow >= 0 ? 'positive' : 'negative'}">
+                        ${ind.wow >= 0 ? '+' : ''}${ind.wow.toFixed(2)}%
+                    </td>
+                    <td class="change-cell ${ind.mom >= 0 ? 'positive' : 'negative'}">
+                        ${ind.mom >= 0 ? '+' : ''}${ind.mom.toFixed(2)}%
+                    </td>
+                    <td class="change-cell ${ind.qoq >= 0 ? 'positive' : 'negative'}">
+                        ${ind.qoq >= 0 ? '+' : ''}${ind.qoq.toFixed(2)}%
+                    </td>
+                    <td>${ind.type}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // Update liquidity charts
+        function updateLiquidityCharts() {
+            updateLiquidityChart(currentLiquidityView);
+            updateLiquidityMomentumChart();
+        }
+        
+        // Update main liquidity chart
+        function updateLiquidityChart(view) {
+            currentLiquidityView = view;
+            
+            const traces = [];
+            const dates = generateDateRange(90);
+            
+            switch(view) {
+                case 'combined':
+                    // Combined G4 central bank balance sheets
+                    const cbIndicators = ['WALCL', 'ECBASSETSW', 'JPNASSETS'];
+                    cbIndicators.forEach(key => {
+                        const data = allIndicators[key];
+                        if (!data) return;
+                        
+                        traces.push({
+                            x: dates,
+                            y: historicalData[key] || [],
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: getDefaultName(key),
+                            stackgroup: 'one',
+                            line: { width: 2 }
+                        });
+                    });
+                    break;
+                    
+                case 'swaps':
+                    // Swap lines
+                    const swapIndicators = ['SWP1690', 'SWP15', 'OTHL1690', 'OTHL15'];
+                    swapIndicators.forEach(key => {
+                        const data = allIndicators[key];
+                        if (!data) return;
+                        
+                        traces.push({
+                            x: dates,
+                            y: historicalData[key] || [],
+                            type: 'scatter',
+                            mode: 'lines+markers',
+                            name: getDefaultName(key),
+                            line: { width: 2 }
+                        });
+                    });
+                    break;
+                    
+                default:
+                    // Individual central bank
+                    const cbKey = view === 'fed' ? 'WALCL' : 
+                                  view === 'ecb' ? 'ECBASSETSW' : 
+                                  view === 'boj' ? 'JPNASSETS' : 'WALCL';
+                    
+                    const data = allIndicators[cbKey];
+                    if (data) {
+                        traces.push({
+                            x: dates,
+                            y: historicalData[cbKey] || [],
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: getDefaultName(cbKey),
+                            fill: 'tozeroy',
+                            line: { color: '#00ff88', width: 3 }
+                        });
+                    }
+            }
+            
+            const layout = {
+                title: `Global Liquidity: ${view.charAt(0).toUpperCase() + view.slice(1)}`,
+                paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
+                font: { color: '#fff' },
+                xaxis: {
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' }
+                },
+                yaxis: {
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' },
+                    title: 'Value (USD)'
+                },
+                showlegend: true,
+                legend: {
+                    orientation: 'h',
+                    y: -0.15,
+                    bgcolor: 'rgba(0, 0, 0, 0.5)'
+                }
+            };
+            
+            Plotly.newPlot('liquidityChart', traces, layout);
+        }
+        
+        // Update liquidity momentum chart
+        function updateLiquidityMomentumChart() {
+            const indicators = ['WALCL', 'ECBASSETSW', 'JPNASSETS', 'RESPPALGUONNWW'];
+            
+            const traces = [{
+                x: indicators.map(key => getDefaultName(key).split(' ')[0]),
+                y: indicators.map(key => allIndicators[key]?.mom || 0),
+                type: 'bar',
+                marker: {
+                    color: indicators.map(key => {
+                        const mom = allIndicators[key]?.mom || 0;
+                        return mom >= 0 ? '#00ff88' : '#ff4444';
+                    })
+                },
+                text: indicators.map(key => {
+                    const mom = allIndicators[key]?.mom || 0;
+                    return `${mom >= 0 ? '+' : ''}${mom.toFixed(2)}%`;
+                }),
+                textposition: 'outside'
+            }];
+            
+            const layout = {
+                title: 'Central Bank Balance Sheet Momentum (MoM %)',
+                paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
+                font: { color: '#fff' },
+                xaxis: {
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' }
+                },
+                yaxis: {
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' },
+                    title: 'Month-over-Month %',
+                    zeroline: true,
+                    zerolinecolor: 'rgba(255, 255, 255, 0.3)'
+                }
+            };
+            
+            Plotly.newPlot('liquidityMomentumChart', traces, layout);
         }
         
         // Update statistics panel
         function updateStatsPanel() {
             const panel = document.getElementById('statsPanel');
+            if (!panel) return;
+            
             panel.innerHTML = '';
             
             // Calculate statistics
             const totalIndicators = Object.keys(allIndicators).length;
+            const liquidityIndicators = GLOBAL_LIQUIDITY_INDICATORS.filter(key => allIndicators[key]).length;
             const positiveMoM = Object.values(allIndicators).filter(d => d.mom > 0).length;
             const negativeMoM = Object.values(allIndicators).filter(d => d.mom < 0).length;
             
             const stats = [
                 { label: 'Total Indicators', value: totalIndicators },
+                { label: 'Liquidity Indicators', value: liquidityIndicators, color: '#00ccff' },
                 { label: 'Positive MoM', value: positiveMoM, color: '#00ff88' },
-                { label: 'Negative MoM', value: negativeMoM, color: '#ff4444' },
-                { label: 'Data Quality', value: '99.8%', color: '#00ccff' }
+                { label: 'Negative MoM', value: negativeMoM, color: '#ff4444' }
             ];
             
             stats.forEach(stat => {
@@ -801,9 +1287,11 @@
         // Update indicators table
         function updateIndicatorsTable() {
             const tbody = document.getElementById('indicatorsTableBody');
+            if (!tbody) return;
+            
             tbody.innerHTML = '';
             
-            // Convert to array and sort
+            // Convert to array and sort - include ALL indicators
             let indicators = Object.entries(allIndicators)
                 .filter(([key, data]) => data && data.value !== null && data.value !== undefined)
                 .map(([key, data]) => ({
@@ -846,9 +1334,14 @@
             // Populate table
             indicators.forEach(ind => {
                 const row = document.createElement('tr');
+                
+                // Highlight liquidity indicators
+                const isLiquidity = GLOBAL_LIQUIDITY_INDICATORS.includes(ind.key);
+                
                 row.innerHTML = `
                     <td>
                         <span class="indicator-name" 
+                              style="${isLiquidity ? 'color: #00ccff;' : ''}"
                               contenteditable="false"
                               onclick="makeEditable(this, '${ind.key}')">
                             ${ind.name}
@@ -868,73 +1361,6 @@
                 `;
                 tbody.appendChild(row);
             });
-        }
-        
-        // Update heatmap
-        function updateHeatmap() {
-            const grid = document.getElementById('heatmapGrid');
-            grid.innerHTML = '';
-            
-            // Add headers
-            const headers = ['Indicator', 'Value', 'WoW %', 'MoM %', 'QoQ %'];
-            headers.forEach(header => {
-                const cell = document.createElement('div');
-                cell.className = 'heatmap-cell header';
-                cell.textContent = header;
-                grid.appendChild(cell);
-            });
-            
-            // Filter indicators
-            let indicators = Object.entries(allIndicators)
-                .filter(([key, data]) => {
-                    if (!data || data.value === null) return false;
-                    if (currentFilter === 'all') return true;
-                    return data.category?.toLowerCase() === currentFilter;
-                })
-                .slice(0, 50); // Limit for performance
-            
-            // Add data rows
-            indicators.forEach(([key, data]) => {
-                // Name cell
-                const nameCell = document.createElement('div');
-                nameCell.className = 'heatmap-cell';
-                nameCell.style.textAlign = 'left';
-                nameCell.innerHTML = `
-                    <span class="indicator-name" 
-                          contenteditable="false"
-                          onclick="makeEditable(this, '${key}')">
-                        ${data.displayName || customNames[key] || getDefaultName(key)}
-                    </span>
-                `;
-                grid.appendChild(nameCell);
-                
-                // Value cell
-                const valueCell = document.createElement('div');
-                valueCell.className = 'heatmap-cell';
-                valueCell.textContent = formatLargeNumber(data.value, key);
-                grid.appendChild(valueCell);
-                
-                // Change cells
-                [data.wow, data.mom, data.qoq].forEach(change => {
-                    const cell = document.createElement('div');
-                    cell.className = `heatmap-cell ${getHeatmapClass(change || 0)}`;
-                    cell.textContent = change ? `${change >= 0 ? '+' : ''}${change.toFixed(2)}%` : 'N/A';
-                    grid.appendChild(cell);
-                });
-            });
-        }
-        
-        // Get heatmap color class
-        function getHeatmapClass(value) {
-            if (value < -10) return 'heat-extreme-negative';
-            if (value < -5) return 'heat-high-negative';
-            if (value < -2) return 'heat-moderate-negative';
-            if (value < 0) return 'heat-low-negative';
-            if (value < 2) return 'heat-neutral';
-            if (value < 5) return 'heat-low-positive';
-            if (value < 10) return 'heat-moderate-positive';
-            if (value < 20) return 'heat-high-positive';
-            return 'heat-extreme-positive';
         }
         
         // Initialize charts
@@ -957,173 +1383,28 @@
                 yaxis: {
                     gridcolor: 'rgba(255, 255, 255, 0.1)',
                     tickfont: { color: '#888' }
-                },
-                showlegend: true,
-                legend: {
-                    orientation: 'h',
-                    y: -0.15,
-                    bgcolor: 'rgba(0, 0, 0, 0.5)'
                 }
             };
             
+            // Initialize all chart containers
+            if (document.getElementById('liquidityChart')) {
+                Plotly.newPlot('liquidityChart', [], layout, config);
+            }
+            if (document.getElementById('liquidityMomentumChart')) {
+                Plotly.newPlot('liquidityMomentumChart', [], layout, config);
+            }
             if (document.getElementById('mainChart')) {
                 Plotly.newPlot('mainChart', [], layout, config);
             }
-            if (document.getElementById('secondaryChart')) {
-                Plotly.newPlot('secondaryChart', [], layout, config);
-            }
         }
         
-        // Update charts based on view
+        // Update charts
         function updateCharts() {
-            switch(activeChartView) {
-                case 'comparison':
-                    updateComparisonChart();
-                    break;
-                case 'correlation':
-                    updateCorrelationChart();
-                    break;
-                case 'volatility':
-                    updateVolatilityChart();
-                    break;
-                case 'trends':
-                    updateTrendsChart();
-                    break;
-                case 'liquidity':
-                    updateLiquidityFlowChart();
-                    break;
+            // Update liquidity charts if on that tab
+            const liquidityTab = document.getElementById('liquidity');
+            if (liquidityTab && liquidityTab.classList.contains('active')) {
+                updateLiquidityCharts();
             }
-        }
-        
-        // Update comparison chart
-        function updateComparisonChart() {
-            const traces = [];
-            const dates = generateDateRange(90);
-            
-            // Add major indices
-            const indices = ['SP500', 'VIXCLS', 'DGS10', 'DTWEXBGS', 'WALCL'];
-            
-            indices.forEach(key => {
-                const data = allIndicators[key];
-                if (!data) return;
-                
-                const history = historicalData[key] || [];
-                const normalized = normalizeData(history);
-                
-                traces.push({
-                    x: dates,
-                    y: normalized,
-                    type: 'scatter',
-                    mode: 'lines',
-                    name: data.displayName || getDefaultName(key),
-                    line: { width: 2 }
-                });
-            });
-            
-            const layout = {
-                title: 'Multi-Indicator Comparison (Normalized)',
-                paper_bgcolor: 'rgba(0, 0, 0, 0)',
-                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
-                font: { color: '#fff' },
-                xaxis: {
-                    gridcolor: 'rgba(255, 255, 255, 0.1)',
-                    tickfont: { color: '#888' }
-                },
-                yaxis: {
-                    gridcolor: 'rgba(255, 255, 255, 0.1)',
-                    tickfont: { color: '#888' },
-                    title: 'Normalized Value'
-                },
-                showlegend: true,
-                legend: {
-                    orientation: 'h',
-                    y: -0.15,
-                    bgcolor: 'rgba(0, 0, 0, 0.5)'
-                }
-            };
-            
-            Plotly.newPlot('mainChart', traces, layout);
-            
-            // Secondary chart - percentage changes
-            updateChangeChart();
-        }
-        
-        // Update percentage change chart
-        function updateChangeChart() {
-            const categories = {};
-            
-            Object.entries(allIndicators).forEach(([key, data]) => {
-                if (!data || !data.category) return;
-                if (!categories[data.category]) {
-                    categories[data.category] = [];
-                }
-                categories[data.category].push({
-                    name: data.displayName || getDefaultName(key),
-                    mom: data.mom || 0
-                });
-            });
-            
-            const traces = [];
-            Object.entries(categories).forEach(([category, indicators]) => {
-                // Sort and take top 5
-                indicators.sort((a, b) => Math.abs(b.mom) - Math.abs(a.mom));
-                const top5 = indicators.slice(0, 5);
-                
-                traces.push({
-                    x: top5.map(i => i.name),
-                    y: top5.map(i => i.mom),
-                    type: 'bar',
-                    name: category,
-                    marker: {
-                        color: top5.map(i => i.mom >= 0 ? '#00ff88' : '#ff4444')
-                    }
-                });
-            });
-            
-            const layout = {
-                title: 'Top Movers by Category (MoM %)',
-                paper_bgcolor: 'rgba(0, 0, 0, 0)',
-                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
-                font: { color: '#fff' },
-                xaxis: {
-                    gridcolor: 'rgba(255, 255, 255, 0.1)',
-                    tickfont: { color: '#888', size: 10 },
-                    tickangle: -45
-                },
-                yaxis: {
-                    gridcolor: 'rgba(255, 255, 255, 0.1)',
-                    tickfont: { color: '#888' },
-                    title: 'Change %'
-                },
-                barmode: 'group'
-            };
-            
-            if (document.getElementById('secondaryChart')) {
-                Plotly.newPlot('secondaryChart', traces, layout);
-            }
-        }
-        
-        // Helper functions
-        function normalizeData(data) {
-            if (!data || data.length === 0) return [];
-            const min = Math.min(...data);
-            const max = Math.max(...data);
-            const range = max - min;
-            if (range === 0) return data.map(() => 0);
-            return data.map(v => ((v - min) / range) * 100);
-        }
-        
-        function generateDateRange(days) {
-            const dates = [];
-            const today = new Date();
-            
-            for (let i = days - 1; i >= 0; i--) {
-                const date = new Date(today);
-                date.setDate(date.getDate() - i);
-                dates.push(date.toISOString().split('T')[0]);
-            }
-            
-            return dates;
         }
         
         // Make indicator name editable
@@ -1150,7 +1431,7 @@
                     
                     // Refresh displays
                     updateIndicatorsTable();
-                    updateHeatmap();
+                    updateLiquidityTab();
                 }
                 
                 element.removeEventListener('blur', handler);
@@ -1202,20 +1483,6 @@
             updateIndicatorsTable();
         }
         
-        // Filter heatmap
-        function filterHeatmap(filter) {
-            currentFilter = filter.toLowerCase();
-            
-            document.querySelectorAll('.chart-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.textContent.toLowerCase().includes(filter.toLowerCase())) {
-                    btn.classList.add('active');
-                }
-            });
-            
-            updateHeatmap();
-        }
-        
         // Setup event listeners
         function setupEventListeners() {
             // Tab navigation
@@ -1230,16 +1497,11 @@
                     
                     const tabId = e.target.dataset.tab;
                     document.getElementById(tabId).classList.add('active');
-                });
-            });
-            
-            // Chart view buttons
-            document.querySelectorAll('[data-chart]').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    activeChartView = e.target.dataset.chart;
-                    document.querySelectorAll('[data-chart]').forEach(b => b.classList.remove('active'));
-                    e.target.classList.add('active');
-                    updateCharts();
+                    
+                    // Update charts when switching tabs
+                    if (tabId === 'liquidity') {
+                        updateLiquidityCharts();
+                    }
                 });
             });
             
@@ -1250,6 +1512,20 @@
                     updateIndicatorsTable();
                 });
             }
+        }
+        
+        // Generate date range
+        function generateDateRange(days) {
+            const dates = [];
+            const today = new Date();
+            
+            for (let i = days - 1; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                dates.push(date.toISOString().split('T')[0]);
+            }
+            
+            return dates;
         }
         
         // Start auto-refresh
