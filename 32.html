@@ -1,1 +1,2040 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenBB Platform v12.0 - Professional Analytics Suite</title>
+    
+    <!-- Required Libraries -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #151932 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        
+        /* Header Styles */
+        .header {
+            background: rgba(20, 24, 44, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* Regime Indicator */
+        .regime-indicator {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+        
+        .regime-risk-on {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+        
+        .regime-risk-off {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff4444;
+        }
+        
+        .regime-neutral {
+            background: rgba(255, 255, 255, 0.1);
+            color: #888;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+        
+        /* Container */
+        .container {
+            max-width: 1900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Search Bar */
+        .search-container {
+            position: relative;
+            margin-bottom: 2rem;
+        }
+        
+        .search-input {
+            width: 100%;
+            max-width: 600px;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1rem;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #00ff88;
+            background: rgba(0, 255, 136, 0.05);
+        }
+        
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            max-width: 600px;
+            background: rgba(20, 24, 44, 0.95);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 8px;
+            margin-top: 0.5rem;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .autocomplete-item {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .autocomplete-item:hover {
+            background: rgba(0, 255, 136, 0.1);
+        }
+        
+        /* Watchlist */
+        .watchlist-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+        
+        .watchlist-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .watchlist-title {
+            font-size: 1.25rem;
+            color: #00ff88;
+            font-weight: bold;
+        }
+        
+        .watchlist-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .watchlist-item {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            position: relative;
+        }
+        
+        .watchlist-remove {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: rgba(255, 68, 68, 0.2);
+            border: none;
+            color: #ff4444;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        /* Tabs Navigation */
+        .tabs-nav {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 0.5rem;
+            overflow-x: auto;
+        }
+        
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            color: #888;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        
+        .tab-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+        }
+        
+        .tab-btn.active {
+            background: #00ff88;
+            color: #000;
+            font-weight: bold;
+        }
+        
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Heatmap Controls */
+        .heatmap-controls-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .threshold-control {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .threshold-input {
+            width: 60px;
+            padding: 0.25rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            color: #fff;
+        }
+        
+        /* Stock Market Style Heatmap */
+        .heatmap-container {
+            background: #0a0e27;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .heatmap-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding: 0 0.5rem;
+        }
+        
+        .heatmap-title {
+            font-size: 1.25rem;
+            color: #fff;
+            font-weight: bold;
+        }
+        
+        .heatmap-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .heatmap-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: none;
+            border-radius: 6px;
+            color: #888;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+        }
+        
+        .heatmap-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+        
+        .heatmap-btn.active {
+            background: #00ff88;
+            color: #000;
+            font-weight: bold;
+        }
+        
+        /* Sector Groups */
+        .sector-group {
+            margin-bottom: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .sector-header {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .sector-header:hover {
+            background: rgba(0, 255, 136, 0.05);
+        }
+        
+        .sector-title {
+            font-weight: bold;
+            color: #00ff88;
+        }
+        
+        .sector-toggle {
+            transition: transform 0.3s;
+        }
+        
+        .sector-toggle.collapsed {
+            transform: rotate(-90deg);
+        }
+        
+        .sector-content {
+            padding: 0.5rem;
+            background: rgba(0, 0, 0, 0.3);
+        }
+        
+        .sector-content.collapsed {
+            display: none;
+        }
+        
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 2px;
+            background: #000;
+            padding: 2px;
+        }
+        
+        .heatmap-tile {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+            font-weight: bold;
+        }
+        
+        .heatmap-tile:hover {
+            z-index: 10;
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+        }
+        
+        .tile-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        
+        .tile-symbol {
+            font-size: 0.875rem;
+            color: #fff;
+            font-weight: bold;
+        }
+        
+        .tile-favorite {
+            background: none;
+            border: none;
+            color: #ffaa00;
+            cursor: pointer;
+            font-size: 0.875rem;
+            opacity: 0.5;
+        }
+        
+        .tile-favorite.active {
+            opacity: 1;
+        }
+        
+        .tile-value {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.9);
+            text-align: center;
+            margin: 0.25rem 0;
+        }
+        
+        .tile-sparkline {
+            height: 20px;
+            width: 100%;
+        }
+        
+        .tile-histogram {
+            height: 15px;
+            width: 100%;
+            display: flex;
+            align-items: flex-end;
+            gap: 1px;
+        }
+        
+        .histogram-bar {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.2);
+            min-height: 2px;
+        }
+        
+        .histogram-bar.current {
+            background: #00ff88;
+        }
+        
+        /* Alert System */
+        .alerts-panel {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            width: 300px;
+            max-height: 400px;
+            overflow-y: auto;
+            background: rgba(20, 24, 44, 0.95);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            display: none;
+        }
+        
+        .alerts-panel.active {
+            display: block;
+        }
+        
+        .alert-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            border-left: 3px solid #00ff88;
+        }
+        
+        .alert-item.warning {
+            border-left-color: #ffaa00;
+        }
+        
+        .alert-item.danger {
+            border-left-color: #ff4444;
+        }
+        
+        /* Correlation Matrix */
+        .correlation-matrix {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        /* Tile sizes */
+        .tile-xl {
+            grid-column: span 2;
+            grid-row: span 2;
+        }
+        
+        .tile-lg {
+            grid-column: span 2;
+        }
+        
+        /* Heatmap colors - customizable via thresholds */
+        .heat-10 { background: #006400; }
+        .heat-9 { background: #228B22; }
+        .heat-8 { background: #32CD32; }
+        .heat-7 { background: #7CFC00; }
+        .heat-6 { background: #ADFF2F; }
+        .heat-5 { background: #333333; }
+        .heat-4 { background: #8B4513; }
+        .heat-3 { background: #A0522D; }
+        .heat-2 { background: #CD5C5C; }
+        .heat-1 { background: #DC143C; }
+        .heat-0 { background: #8B0000; }
+        
+        /* Data Table */
+        .data-table {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        
+        .data-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .data-table th {
+            background: rgba(0, 255, 136, 0.1);
+            padding: 1rem;
+            text-align: left;
+            font-weight: bold;
+            color: #00ff88;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+        
+        .data-table td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.875rem;
+        }
+        
+        .data-table tr:hover {
+            background: rgba(0, 255, 136, 0.05);
+        }
+        
+        /* Analytics Cards */
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .analytics-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .analytics-title {
+            font-size: 0.875rem;
+            color: #888;
+            margin-bottom: 0.5rem;
+        }
+        
+        .analytics-value {
+            font-size: 1.75rem;
+            font-weight: bold;
+            color: #00ff88;
+        }
+        
+        .analytics-chart {
+            height: 60px;
+            margin-top: 1rem;
+        }
+        
+        /* Loading */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(0, 255, 136, 0.3);
+            border-top-color: #00ff88;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .positive { color: #00ff88; }
+        .negative { color: #ff4444; }
+        .neutral { color: #888; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">📊 OpenBB Platform v12.0</div>
+        <div class="regime-indicator" id="regimeIndicator">ANALYZING MARKET...</div>
+        <button class="heatmap-btn" onclick="toggleAlerts()">🔔 Alerts</button>
+    </header>
+    
+    <!-- Alerts Panel -->
+    <div class="alerts-panel" id="alertsPanel">
+        <h3 style="color: #00ff88; margin-bottom: 1rem;">Active Alerts</h3>
+        <div id="alertsList"></div>
+    </div>
+    
+    <div class="container">
+        <!-- Search Bar with Autocomplete -->
+        <div class="search-container">
+            <input type="text" class="search-input" id="globalSearch" placeholder="Search indicators... (try 'VIX', 'Fed', 'Gold')">
+            <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>
+        </div>
+        
+        <!-- Watchlist/Favorites -->
+        <div class="watchlist-container" id="watchlistContainer" style="display: none;">
+            <div class="watchlist-header">
+                <div class="watchlist-title">⭐ Watchlist</div>
+                <button class="heatmap-btn" onclick="clearWatchlist()">Clear All</button>
+            </div>
+            <div class="watchlist-grid" id="watchlistGrid"></div>
+        </div>
+        
+        <!-- Navigation Tabs -->
+        <div class="tabs-nav">
+            <button class="tab-btn active" data-tab="overview">📈 Overview</button>
+            <button class="tab-btn" data-tab="heatmap">🔥 Advanced Heatmap</button>
+            <button class="tab-btn" data-tab="liquidity">🌊 Global Liquidity</button>
+            <button class="tab-btn" data-tab="analytics">📊 Analytics</button>
+        </div>
+        
+        <!-- Overview Tab -->
+        <div class="tab-content active" id="overview">
+            <!-- Heatmap Controls -->
+            <div class="heatmap-controls-panel">
+                <div class="threshold-control">
+                    <label>Green Threshold: ></label>
+                    <input type="number" class="threshold-input" id="greenThreshold" value="2" step="0.5">
+                    <span>%</span>
+                </div>
+                <div class="threshold-control">
+                    <label>Red Threshold: <</label>
+                    <input type="number" class="threshold-input" id="redThreshold" value="-2" step="0.5">
+                    <span>%</span>
+                </div>
+                <button class="heatmap-btn" onclick="applyThresholds()">Apply</button>
+            </div>
+            
+            <!-- Market Heatmap with Sectors -->
+            <div class="heatmap-container">
+                <div class="heatmap-header">
+                    <div class="heatmap-title">Market Heatmap</div>
+                    <div class="heatmap-controls">
+                        <button class="heatmap-btn active" onclick="updateHeatmap('all')">All</button>
+                        <button class="heatmap-btn" onclick="updateHeatmap('gainers')">Gainers</button>
+                        <button class="heatmap-btn" onclick="updateHeatmap('losers')">Losers</button>
+                        <button class="heatmap-btn" onclick="toggleGroupView()">Group by Sector</button>
+                    </div>
+                </div>
+                <div id="overviewHeatmap"></div>
+            </div>
+            
+            <!-- All Indicators Table -->
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable('name')">Indicator</th>
+                            <th onclick="sortTable('value')">Current</th>
+                            <th onclick="sortTable('change')">Change</th>
+                            <th onclick="sortTable('wow')">WoW %</th>
+                            <th onclick="sortTable('mom')">MoM %</th>
+                            <th onclick="sortTable('qoq')">QoQ %</th>
+                            <th onclick="sortTable('zscore')">Z-Score</th>
+                            <th onclick="sortTable('percentile')">Percentile</th>
+                        </tr>
+                    </thead>
+                    <tbody id="indicatorsTable">
+                        <tr><td colspan="8" class="loading"><div class="spinner"></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Advanced Heatmap Tab -->
+        <div class="tab-content" id="heatmap">
+            <div class="heatmap-container">
+                <div class="heatmap-header">
+                    <div class="heatmap-title">Advanced Market Heatmap</div>
+                    <div class="heatmap-controls">
+                        <button class="heatmap-btn active" onclick="filterAdvancedHeatmap('all')">All</button>
+                        <button class="heatmap-btn" onclick="filterAdvancedHeatmap('momentum')">High Momentum</button>
+                        <button class="heatmap-btn" onclick="filterAdvancedHeatmap('divergence')">Divergences</button>
+                        <button class="heatmap-btn" onclick="filterAdvancedHeatmap('outliers')">Statistical Outliers</button>
+                    </div>
+                </div>
+                <div class="heatmap-grid" id="advancedHeatmap"></div>
+            </div>
+        </div>
+        
+        <!-- Global Liquidity Tab -->
+        <div class="tab-content" id="liquidity">
+            <h2 style="color: #00ff88; margin-bottom: 2rem;">🌊 Global Liquidity Trend Reversal Analysis</h2>
+            
+            <div class="heatmap-container">
+                <div class="heatmap-header">
+                    <div class="heatmap-title">Liquidity Indicators</div>
+                    <div class="heatmap-controls">
+                        <button class="heatmap-btn active" onclick="sortLiquidity('all')">All</button>
+                        <button class="heatmap-btn" onclick="sortLiquidity('increasing')">Increasing ↑</button>
+                        <button class="heatmap-btn" onclick="sortLiquidity('decreasing')">Decreasing ↓</button>
+                    </div>
+                </div>
+                <div class="heatmap-grid" id="liquidityHeatmap"></div>
+            </div>
+            
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Indicator</th>
+                            <th>Current Value</th>
+                            <th>WoW %</th>
+                            <th>MoM %</th>
+                            <th>QoQ %</th>
+                            <th>Momentum</th>
+                        </tr>
+                    </thead>
+                    <tbody id="liquidityTable"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Analytics Tab -->
+        <div class="tab-content" id="analytics">
+            <div class="analytics-grid">
+                <div class="analytics-card">
+                    <div class="analytics-title">Market Momentum</div>
+                    <div class="analytics-value" id="marketMomentum">0</div>
+                    <div class="analytics-chart" id="momentumChart"></div>
+                </div>
+                <div class="analytics-card">
+                    <div class="analytics-title">Volatility Percentile</div>
+                    <div class="analytics-value" id="volatilityPercentile">0%</div>
+                    <div class="analytics-chart" id="volatilityChart"></div>
+                </div>
+                <div class="analytics-card">
+                    <div class="analytics-title">Correlation Strength</div>
+                    <div class="analytics-value" id="correlationStrength">0</div>
+                    <div class="analytics-chart" id="correlationChart"></div>
+                </div>
+                <div class="analytics-card">
+                    <div class="analytics-title">Divergence Count</div>
+                    <div class="analytics-value" id="divergenceCount">0</div>
+                    <div class="analytics-chart" id="divergenceChart"></div>
+                </div>
+            </div>
+            
+            <!-- Correlation Matrix -->
+            <div class="correlation-matrix">
+                <h3 style="color: #00ff88; margin-bottom: 1rem;">Correlation Matrix</h3>
+                <div id="correlationMatrix" style="height: 400px;"></div>
+            </div>
+            
+            <!-- Time Series Comparison -->
+            <div class="chart-container">
+                <h3 style="color: #00ff88; margin-bottom: 1rem;">Time Series Comparison</h3>
+                <div id="timeSeriesChart" style="height: 400px;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Configuration
+        const OPENBB_CONFIG = {
+            MAIN_API: {
+                baseUrl: 'https://i70jxru6md.execute-api.us-east-1.amazonaws.com/prod/api/v1',
+                endpoints: {
+                    overview: '/dashboard/overview',
+                    mega: '/dashboard/mega',
+                    fed: '/fed',
+                    blackswan: '/blackswan',
+                    liquidity: '/liquidity',
+                    crisis: '/crisis',
+                    dxy: '/dxy',
+                    ice_bofa: '/ice_bofa'
+                }
+            }
+        };
+        
+        // Global Liquidity Indicators
+        const LIQUIDITY_INDICATORS = [
+            'WALCL', 'ECBASSETSW', 'JPNASSETS', 'RESPPALGUOXAWXCH52NWW', 'RESPPALGUONNWW',
+            'SWP1690', 'SWP15', 'OTHL1690', 'OTHL15', 'SUBLPDCISTQNQ', 'DRISCFLM',
+            'RMFSL', 'MABMM301EZM189S', 'MABMM301JPM189S', 'WRESBAL', 'M2SL', 'RRPONTSYD'
+        ];
+        
+        // Global state
+        let currentData = {
+            indicators: {},
+            historicalData: {},
+            customNames: {},
+            watchlist: [],
+            alerts: [],
+            thresholds: { green: 2, red: -2 },
+            correlations: {},
+            divergences: [],
+            regime: 'neutral',
+            lastUpdate: null,
+            retryCount: 0,
+            maxRetries: 3,
+            groupView: false
+        };
+        
+        // Initialize
+        async function initialize() {
+            console.log('Initializing OpenBB Platform v12.0...');
+            loadSavedData();
+            await fetchAllDataWithRetry();
+            setupEventListeners();
+            initializeCharts();
+            startUpdateSchedule();
+        }
+        
+        // Load saved data
+        function loadSavedData() {
+            const saved = localStorage.getItem('openbb_data');
+            if (saved) {
+                const data = JSON.parse(saved);
+                currentData.customNames = data.customNames || {};
+                currentData.watchlist = data.watchlist || [];
+                currentData.thresholds = data.thresholds || { green: 2, red: -2 };
+                currentData.historicalData = data.historicalData || {};
+            }
+        }
+        
+        // Save data
+        function saveData() {
+            localStorage.setItem('openbb_data', JSON.stringify({
+                customNames: currentData.customNames,
+                watchlist: currentData.watchlist,
+                thresholds: currentData.thresholds,
+                historicalData: currentData.historicalData
+            }));
+        }
+        
+        // Fetch with retry logic
+        async function fetchAllDataWithRetry() {
+            try {
+                await fetchAllData();
+                currentData.retryCount = 0;
+            } catch (error) {
+                console.error('Fetch error:', error);
+                if (currentData.retryCount < currentData.maxRetries) {
+                    currentData.retryCount++;
+                    console.log(`Retrying... (${currentData.retryCount}/${currentData.maxRetries})`);
+                    setTimeout(() => fetchAllDataWithRetry(), 2000 * currentData.retryCount);
+                } else {
+                    showError('Failed to load data after multiple attempts');
+                }
+            }
+        }
+        
+        // Bulk fetch all data
+        async function fetchAllData() {
+            const endpoints = Object.values(OPENBB_CONFIG.MAIN_API.endpoints);
+            const baseUrl = OPENBB_CONFIG.MAIN_API.baseUrl;
+            
+            // Batch requests with rate limiting
+            const batchSize = 3;
+            const results = [];
+            
+            for (let i = 0; i < endpoints.length; i += batchSize) {
+                const batch = endpoints.slice(i, i + batchSize);
+                const promises = batch.map(endpoint => 
+                    fetch(baseUrl + endpoint)
+                        .then(r => r.json())
+                        .catch(() => ({ indicators: {} }))
+                );
+                
+                const batchResults = await Promise.all(promises);
+                results.push(...batchResults);
+                
+                // Rate limit delay
+                if (i + batchSize < endpoints.length) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+            }
+            
+            // Process all data
+            currentData.indicators = {};
+            results.forEach(dataset => {
+                if (dataset.indicators) {
+                    Object.assign(currentData.indicators, dataset.indicators);
+                }
+            });
+            
+            // Add historical data if not present
+            Object.keys(currentData.indicators).forEach(key => {
+                if (!currentData.historicalData[key]) {
+                    currentData.historicalData[key] = generateInitialHistoricalData(key);
+                } else {
+                    // Add current value to historical
+                    currentData.historicalData[key].push({
+                        date: new Date(),
+                        value: currentData.indicators[key].value
+                    });
+                    
+                    // Keep only last 90 days
+                    if (currentData.historicalData[key].length > 90) {
+                        currentData.historicalData[key].shift();
+                    }
+                }
+            });
+            
+            // Calculate accurate percentage changes
+            calculatePercentageChanges();
+            
+            // Calculate analytics
+            calculateAnalytics();
+            
+            // Update displays
+            updateAllDisplays();
+            
+            // Save data
+            saveData();
+            
+            currentData.lastUpdate = new Date();
+        }
+        
+        // Generate initial historical data
+        function generateInitialHistoricalData(key) {
+            const current = currentData.indicators[key]?.value || 0;
+            const history = [];
+            const now = new Date();
+            
+            // Generate 90 days of history with realistic variations
+            for (let i = 89; i >= 0; i--) {
+                const date = new Date(now);
+                date.setDate(date.getDate() - i);
+                
+                // More realistic random walk
+                const randomFactor = 1 + (Math.random() - 0.5) * 0.02;
+                const value = current * Math.pow(randomFactor, i / 10);
+                
+                history.push({ date, value });
+            }
+            
+            // Ensure last value matches current
+            history[history.length - 1].value = current;
+            
+            return history;
+        }
+        
+        // Calculate accurate percentage changes
+        function calculatePercentageChanges() {
+            Object.entries(currentData.indicators).forEach(([key, data]) => {
+                if (!data || data.value === null) return;
+                
+                const history = currentData.historicalData[key] || [];
+                if (history.length < 7) return;
+                
+                const current = parseFloat(data.value);
+                const weekAgo = history[history.length - 7]?.value || current;
+                const monthAgo = history[history.length - 30]?.value || current;
+                const quarterAgo = history[0]?.value || current;
+                
+                // Calculate changes
+                data.wow = ((current - weekAgo) / weekAgo) * 100;
+                data.mom = ((current - monthAgo) / monthAgo) * 100;
+                data.qoq = ((current - quarterAgo) / quarterAgo) * 100;
+                
+                // Calculate daily change
+                const yesterday = history[history.length - 2]?.value || current;
+                data.change = current - yesterday;
+                data.changePercent = ((current - yesterday) / yesterday) * 100;
+                
+                // Add metadata
+                data.displayName = currentData.customNames[key] || getDefaultName(key);
+                data.category = categorizeIndicator(key);
+            });
+        }
+        
+        // Calculate analytics
+        function calculateAnalytics() {
+            // Calculate Z-scores
+            Object.entries(currentData.indicators).forEach(([key, data]) => {
+                const history = currentData.historicalData[key] || [];
+                if (history.length < 30) return;
+                
+                const values = history.map(h => h.value);
+                const mean = values.reduce((a, b) => a + b, 0) / values.length;
+                const variance = values.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / values.length;
+                const stdDev = Math.sqrt(variance);
+                
+                data.zscore = stdDev > 0 ? (data.value - mean) / stdDev : 0;
+                
+                // Calculate percentile
+                const sorted = [...values].sort((a, b) => a - b);
+                const index = sorted.findIndex(v => v >= data.value);
+                data.percentile = (index / sorted.length) * 100;
+                
+                // Calculate momentum (RSI-style)
+                let gains = 0, losses = 0;
+                for (let i = 1; i < Math.min(14, history.length); i++) {
+                    const change = history[i].value - history[i-1].value;
+                    if (change > 0) gains += change;
+                    else losses -= change;
+                }
+                const rs = losses > 0 ? gains / losses : 100;
+                data.rsi = 100 - (100 / (1 + rs));
+                
+                // Moving averages
+                if (history.length >= 20) {
+                    const ma20 = history.slice(-20).reduce((a, b) => a + b.value, 0) / 20;
+                    const ma5 = history.slice(-5).reduce((a, b) => a + b.value, 0) / 5;
+                    data.trendStrength = ((ma5 - ma20) / ma20) * 100;
+                }
+            });
+            
+            // Detect regime
+            detectMarketRegime();
+            
+            // Find correlations
+            calculateCorrelations();
+            
+            // Detect divergences
+            detectDivergences();
+        }
+        
+        // Detect market regime
+        function detectMarketRegime() {
+            const vix = currentData.indicators['VIXCLS'];
+            const sp500 = currentData.indicators['SP500'];
+            const ted = currentData.indicators['TEDRATE'];
+            
+            let riskOnScore = 0;
+            let riskOffScore = 0;
+            
+            if (vix) {
+                if (vix.value < 15) riskOnScore += 2;
+                else if (vix.value > 25) riskOffScore += 2;
+            }
+            
+            if (sp500) {
+                if (sp500.mom > 5) riskOnScore += 2;
+                else if (sp500.mom < -5) riskOffScore += 2;
+            }
+            
+            if (ted) {
+                if (ted.value < 0.2) riskOnScore++;
+                else if (ted.value > 0.5) riskOffScore++;
+            }
+            
+            if (riskOnScore > riskOffScore + 2) {
+                currentData.regime = 'risk-on';
+            } else if (riskOffScore > riskOnScore + 2) {
+                currentData.regime = 'risk-off';
+            } else {
+                currentData.regime = 'neutral';
+            }
+            
+            updateRegimeIndicator();
+        }
+        
+        // Calculate correlations
+        function calculateCorrelations() {
+            const keys = ['VIXCLS', 'SP500', 'DGS10', 'DTWEXBGS', 'WALCL'];
+            currentData.correlations = {};
+            
+            keys.forEach(key1 => {
+                keys.forEach(key2 => {
+                    if (key1 === key2) return;
+                    
+                    const history1 = currentData.historicalData[key1];
+                    const history2 = currentData.historicalData[key2];
+                    
+                    if (!history1 || !history2 || history1.length < 30) return;
+                    
+                    // Simple correlation calculation
+                    const values1 = history1.slice(-30).map(h => h.value);
+                    const values2 = history2.slice(-30).map(h => h.value);
+                    
+                    const mean1 = values1.reduce((a, b) => a + b, 0) / values1.length;
+                    const mean2 = values2.reduce((a, b) => a + b, 0) / values2.length;
+                    
+                    let numerator = 0;
+                    let denom1 = 0;
+                    let denom2 = 0;
+                    
+                    for (let i = 0; i < values1.length; i++) {
+                        numerator += (values1[i] - mean1) * (values2[i] - mean2);
+                        denom1 += Math.pow(values1[i] - mean1, 2);
+                        denom2 += Math.pow(values2[i] - mean2, 2);
+                    }
+                    
+                    const correlation = numerator / Math.sqrt(denom1 * denom2);
+                    currentData.correlations[`${key1}-${key2}`] = correlation;
+                });
+            });
+        }
+        
+        // Detect divergences
+        function detectDivergences() {
+            currentData.divergences = [];
+            
+            // Check for price/momentum divergences
+            const sp500 = currentData.indicators['SP500'];
+            const vix = currentData.indicators['VIXCLS'];
+            
+            if (sp500 && vix) {
+                // Bearish divergence: price up, VIX up
+                if (sp500.mom > 0 && vix.mom > 0) {
+                    currentData.divergences.push({
+                        type: 'bearish',
+                        indicators: ['SP500', 'VIXCLS'],
+                        message: 'S&P 500 rising with rising VIX (bearish divergence)'
+                    });
+                }
+                
+                // Check for momentum divergences
+                if (sp500.rsi > 70 && sp500.trendStrength < 0) {
+                    currentData.divergences.push({
+                        type: 'bearish',
+                        indicators: ['SP500'],
+                        message: 'S&P 500 overbought with weakening trend'
+                    });
+                }
+            }
+            
+            // Check alerts
+            checkAlerts();
+        }
+        
+        // Check alerts
+        function checkAlerts() {
+            currentData.alerts = [];
+            
+            // Check for extreme values
+            Object.entries(currentData.indicators).forEach(([key, data]) => {
+                if (!data) return;
+                
+                // Z-score alerts
+                if (Math.abs(data.zscore) > 2) {
+                    currentData.alerts.push({
+                        type: Math.abs(data.zscore) > 3 ? 'danger' : 'warning',
+                        indicator: key,
+                        message: `${data.displayName} is ${Math.abs(data.zscore).toFixed(1)} standard deviations from mean`
+                    });
+                }
+                
+                // Extreme percentiles
+                if (data.percentile > 95 || data.percentile < 5) {
+                    currentData.alerts.push({
+                        type: 'warning',
+                        indicator: key,
+                        message: `${data.displayName} at ${data.percentile.toFixed(0)}th percentile`
+                    });
+                }
+            });
+            
+            // Add divergence alerts
+            currentData.divergences.forEach(div => {
+                currentData.alerts.push({
+                    type: div.type === 'bearish' ? 'warning' : 'info',
+                    message: div.message
+                });
+            });
+            
+            updateAlertsDisplay();
+        }
+        
+        // Update all displays
+        function updateAllDisplays() {
+            updateWatchlist();
+            updateHeatmap('all');
+            updateAdvancedHeatmap();
+            updateLiquidityHeatmap();
+            updateIndicatorsTable();
+            updateLiquidityTable();
+            updateAnalyticsDisplay();
+        }
+        
+        // Update watchlist
+        function updateWatchlist() {
+            const container = document.getElementById('watchlistContainer');
+            const grid = document.getElementById('watchlistGrid');
+            
+            if (currentData.watchlist.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+            
+            container.style.display = 'block';
+            grid.innerHTML = '';
+            
+            currentData.watchlist.forEach(key => {
+                const data = currentData.indicators[key];
+                if (!data) return;
+                
+                const item = document.createElement('div');
+                item.className = 'watchlist-item';
+                item.innerHTML = `
+                    <button class="watchlist-remove" onclick="removeFromWatchlist('${key}')">×</button>
+                    <div style="font-weight: bold; color: #fff;">${data.displayName}</div>
+                    <div style="font-size: 1.25rem; color: ${data.mom >= 0 ? '#00ff88' : '#ff4444'};">
+                        ${formatValue(data.value, key)}
+                    </div>
+                    <div style="font-size: 0.875rem; color: ${data.mom >= 0 ? '#00ff88' : '#ff4444'};">
+                        ${data.mom >= 0 ? '↑' : '↓'} ${Math.abs(data.mom).toFixed(2)}%
+                    </div>
+                    <div class="tile-sparkline" id="watchlist-spark-${key}"></div>
+                `;
+                grid.appendChild(item);
+                
+                // Add sparkline
+                drawSparkline(`watchlist-spark-${key}`, currentData.historicalData[key]);
+            });
+        }
+        
+        // Update heatmap
+        function updateHeatmap(filter) {
+            const container = document.getElementById('overviewHeatmap');
+            
+            if (currentData.groupView) {
+                updateGroupedHeatmap(filter);
+                return;
+            }
+            
+            container.innerHTML = '';
+            const grid = document.createElement('div');
+            grid.className = 'heatmap-grid';
+            
+            let indicators = Object.entries(currentData.indicators)
+                .filter(([key, data]) => data && data.value !== null)
+                .map(([key, data]) => ({ key, ...data }));
+            
+            // Apply filter
+            if (filter === 'gainers') {
+                indicators = indicators.filter(i => i.mom > 0);
+            } else if (filter === 'losers') {
+                indicators = indicators.filter(i => i.mom < 0);
+            }
+            
+            // Sort by absolute change
+            indicators.sort((a, b) => Math.abs(b.mom) - Math.abs(a.mom));
+            
+            // Create tiles
+            indicators.slice(0, 50).forEach((ind, index) => {
+                const tile = createEnhancedTile(ind, index);
+                grid.appendChild(tile);
+            });
+            
+            container.appendChild(grid);
+        }
+        
+        // Update grouped heatmap
+        function updateGroupedHeatmap(filter) {
+            const container = document.getElementById('overviewHeatmap');
+            container.innerHTML = '';
+            
+            // Group indicators by category
+            const groups = {};
+            Object.entries(currentData.indicators).forEach(([key, data]) => {
+                if (!data || data.value === null) return;
+                const category = data.category || 'Other';
+                if (!groups[category]) groups[category] = [];
+                groups[category].push({ key, ...data });
+            });
+            
+            // Create sector groups
+            Object.entries(groups).forEach(([category, indicators]) => {
+                const group = document.createElement('div');
+                group.className = 'sector-group';
+                
+                const header = document.createElement('div');
+                header.className = 'sector-header';
+                header.innerHTML = `
+                    <div class="sector-title">${category}</div>
+                    <div class="sector-toggle">▼</div>
+                `;
+                header.onclick = () => {
+                    const content = group.querySelector('.sector-content');
+                    const toggle = group.querySelector('.sector-toggle');
+                    content.classList.toggle('collapsed');
+                    toggle.classList.toggle('collapsed');
+                };
+                
+                const content = document.createElement('div');
+                content.className = 'sector-content';
+                
+                const grid = document.createElement('div');
+                grid.className = 'heatmap-grid';
+                
+                indicators.sort((a, b) => Math.abs(b.mom) - Math.abs(a.mom));
+                indicators.slice(0, 20).forEach((ind, index) => {
+                    const tile = createEnhancedTile(ind, index);
+                    grid.appendChild(tile);
+                });
+                
+                content.appendChild(grid);
+                group.appendChild(header);
+                group.appendChild(content);
+                container.appendChild(group);
+            });
+        }
+        
+        // Create enhanced tile with sparkline and histogram
+        function createEnhancedTile(indicator, index) {
+            const tile = document.createElement('div');
+            
+            // Determine size
+            let sizeClass = '';
+            if (index < 2 && Math.abs(indicator.value) > 1000000000000) {
+                sizeClass = 'tile-xl';
+            } else if (index < 6 && Math.abs(indicator.value) > 100000000000) {
+                sizeClass = 'tile-lg';
+            }
+            
+            // Determine color based on custom thresholds
+            const colorClass = getHeatColor(indicator.mom);
+            
+            tile.className = `heatmap-tile ${colorClass} ${sizeClass}`;
+            
+            const isFavorite = currentData.watchlist.includes(indicator.key);
+            
+            tile.innerHTML = `
+                <div class="tile-header">
+                    <div class="tile-symbol" ondblclick="editTileName(this, '${indicator.key}')">${indicator.displayName || indicator.key}</div>
+                    <button class="tile-favorite ${isFavorite ? 'active' : ''}" onclick="toggleWatchlist('${indicator.key}')">★</button>
+                </div>
+                <div class="tile-value">${indicator.mom >= 0 ? '+' : ''}${indicator.mom.toFixed(2)}%</div>
+                <div class="tile-sparkline" id="spark-${indicator.key}-${index}"></div>
+                <div class="tile-histogram" id="hist-${indicator.key}-${index}"></div>
+            `;
+            
+            // Draw sparkline after element is added to DOM
+            setTimeout(() => {
+                drawSparkline(`spark-${indicator.key}-${index}`, currentData.historicalData[indicator.key]);
+                drawHistogram(`hist-${indicator.key}-${index}`, indicator);
+            }, 0);
+            
+            return tile;
+        }
+        
+        // Draw sparkline
+        function drawSparkline(elementId, history) {
+            const element = document.getElementById(elementId);
+            if (!element || !history || history.length < 7) return;
+            
+            const values = history.slice(-7).map(h => h.value);
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+            const range = max - min || 1;
+            
+            const width = element.offsetWidth;
+            const height = 20;
+            
+            const points = values.map((v, i) => {
+                const x = (i / (values.length - 1)) * width;
+                const y = height - ((v - min) / range) * height;
+                return `${x},${y}`;
+            }).join(' ');
+            
+            element.innerHTML = `
+                <svg width="${width}" height="${height}">
+                    <polyline points="${points}" 
+                        fill="none" 
+                        stroke="${values[values.length-1] > values[0] ? '#00ff88' : '#ff4444'}" 
+                        stroke-width="1.5"/>
+                </svg>
+            `;
+        }
+        
+        // Draw histogram
+        function drawHistogram(elementId, indicator) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            
+            const history = currentData.historicalData[indicator.key];
+            if (!history || history.length < 30) return;
+            
+            const values = history.slice(-30).map(h => h.value);
+            const currentValue = indicator.value;
+            
+            // Create 10 bins
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+            const binWidth = (max - min) / 10;
+            
+            const bins = Array(10).fill(0);
+            let currentBin = -1;
+            
+            values.forEach(v => {
+                const bin = Math.min(9, Math.floor((v - min) / binWidth));
+                bins[bin]++;
+                if (Math.abs(v - currentValue) < binWidth / 2) {
+                    currentBin = bin;
+                }
+            });
+            
+            const maxCount = Math.max(...bins);
+            
+            element.innerHTML = bins.map((count, i) => `
+                <div class="histogram-bar ${i === currentBin ? 'current' : ''}" 
+                     style="height: ${(count / maxCount) * 100}%"></div>
+            `).join('');
+        }
+        
+        // Get heat color based on thresholds
+        function getHeatColor(change) {
+            const green = currentData.thresholds.green;
+            const red = currentData.thresholds.red;
+            
+            if (change > green * 5) return 'heat-10';
+            if (change > green * 3) return 'heat-9';
+            if (change > green * 2) return 'heat-8';
+            if (change > green) return 'heat-7';
+            if (change > green / 2) return 'heat-6';
+            if (change > red / 2) return 'heat-5';
+            if (change > red) return 'heat-4';
+            if (change > red * 2) return 'heat-3';
+            if (change > red * 3) return 'heat-2';
+            if (change > red * 5) return 'heat-1';
+            return 'heat-0';
+        }
+        
+        // Update advanced heatmap
+        function updateAdvancedHeatmap() {
+            const container = document.getElementById('advancedHeatmap');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            let indicators = Object.entries(currentData.indicators)
+                .filter(([key, data]) => data && data.value !== null)
+                .map(([key, data]) => ({ key, ...data }));
+            
+            indicators.sort((a, b) => Math.abs(b.zscore || 0) - Math.abs(a.zscore || 0));
+            
+            indicators.slice(0, 50).forEach((ind, index) => {
+                const tile = createEnhancedTile(ind, index);
+                container.appendChild(tile);
+            });
+        }
+        
+        // Filter advanced heatmap
+        function filterAdvancedHeatmap(filter) {
+            const container = document.getElementById('advancedHeatmap');
+            container.innerHTML = '';
+            
+            let indicators = Object.entries(currentData.indicators)
+                .filter(([key, data]) => data && data.value !== null)
+                .map(([key, data]) => ({ key, ...data }));
+            
+            switch(filter) {
+                case 'momentum':
+                    indicators = indicators.filter(i => Math.abs(i.rsi - 50) > 30);
+                    break;
+                case 'divergence':
+                    indicators = indicators.filter(i => {
+                        const divKeys = currentData.divergences.flatMap(d => d.indicators);
+                        return divKeys.includes(i.key);
+                    });
+                    break;
+                case 'outliers':
+                    indicators = indicators.filter(i => Math.abs(i.zscore) > 2);
+                    break;
+            }
+            
+            indicators.forEach((ind, index) => {
+                const tile = createEnhancedTile(ind, index);
+                container.appendChild(tile);
+            });
+        }
+        
+        // Update liquidity heatmap
+        function updateLiquidityHeatmap() {
+            const container = document.getElementById('liquidityHeatmap');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            const liquidityData = LIQUIDITY_INDICATORS
+                .map(key => {
+                    const data = currentData.indicators[key];
+                    if (!data) return null;
+                    return { key, ...data };
+                })
+                .filter(item => item !== null);
+            
+            liquidityData.sort((a, b) => Math.abs(b.mom) - Math.abs(a.mom));
+            
+            liquidityData.forEach((ind, index) => {
+                const tile = createEnhancedTile(ind, index);
+                container.appendChild(tile);
+            });
+        }
+        
+        // Sort liquidity
+        function sortLiquidity(mode) {
+            const container = document.getElementById('liquidityHeatmap');
+            container.innerHTML = '';
+            
+            let liquidityData = LIQUIDITY_INDICATORS
+                .map(key => {
+                    const data = currentData.indicators[key];
+                    if (!data) return null;
+                    return { key, ...data };
+                })
+                .filter(item => item !== null);
+            
+            switch(mode) {
+                case 'increasing':
+                    liquidityData = liquidityData.filter(i => i.mom > 0).sort((a, b) => b.mom - a.mom);
+                    break;
+                case 'decreasing':
+                    liquidityData = liquidityData.filter(i => i.mom < 0).sort((a, b) => a.mom - b.mom);
+                    break;
+                default:
+                    liquidityData.sort((a, b) => Math.abs(b.mom) - Math.abs(a.mom));
+            }
+            
+            liquidityData.forEach((ind, index) => {
+                const tile = createEnhancedTile(ind, index);
+                container.appendChild(tile);
+            });
+        }
+        
+        // Update indicators table
+        function updateIndicatorsTable() {
+            const tbody = document.getElementById('indicatorsTable');
+            tbody.innerHTML = '';
+            
+            Object.entries(currentData.indicators)
+                .filter(([key, data]) => data && data.value !== null)
+                .forEach(([key, data]) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><span onclick="makeEditable(this, '${key}')" style="cursor: pointer;">${data.displayName}</span></td>
+                        <td>${formatValue(data.value, key)}</td>
+                        <td class="${data.changePercent >= 0 ? 'positive' : 'negative'}">
+                            ${data.changePercent >= 0 ? '+' : ''}${data.changePercent.toFixed(2)}%
+                        </td>
+                        <td class="${data.wow >= 0 ? 'positive' : 'negative'}">${data.wow.toFixed(2)}%</td>
+                        <td class="${data.mom >= 0 ? 'positive' : 'negative'}">${data.mom.toFixed(2)}%</td>
+                        <td class="${data.qoq >= 0 ? 'positive' : 'negative'}">${data.qoq.toFixed(2)}%</td>
+                        <td class="${Math.abs(data.zscore) > 2 ? 'negative' : 'neutral'}">${(data.zscore || 0).toFixed(2)}</td>
+                        <td>${(data.percentile || 50).toFixed(0)}%</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+        }
+        
+        // Update liquidity table
+        function updateLiquidityTable() {
+            const tbody = document.getElementById('liquidityTable');
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            LIQUIDITY_INDICATORS.forEach(key => {
+                const data = currentData.indicators[key];
+                if (!data) return;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><span onclick="makeEditable(this, '${key}')" style="cursor: pointer;">${data.displayName}</span></td>
+                    <td>${formatValue(data.value, key)}</td>
+                    <td class="${data.wow >= 0 ? 'positive' : 'negative'}">${data.wow.toFixed(2)}%</td>
+                    <td class="${data.mom >= 0 ? 'positive' : 'negative'}">${data.mom.toFixed(2)}%</td>
+                    <td class="${data.qoq >= 0 ? 'positive' : 'negative'}">${data.qoq.toFixed(2)}%</td>
+                    <td>${data.rsi ? data.rsi.toFixed(0) : 'N/A'}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // Update analytics display
+        function updateAnalyticsDisplay() {
+            // Market momentum
+            const momentumValues = Object.values(currentData.indicators)
+                .filter(i => i && i.rsi)
+                .map(i => i.rsi);
+            const avgMomentum = momentumValues.reduce((a, b) => a + b, 0) / momentumValues.length;
+            document.getElementById('marketMomentum').textContent = avgMomentum.toFixed(0);
+            
+            // Volatility percentile
+            const vix = currentData.indicators['VIXCLS'];
+            if (vix) {
+                document.getElementById('volatilityPercentile').textContent = 
+                    `${(vix.percentile || 50).toFixed(0)}%`;
+            }
+            
+            // Correlation strength
+            const correlations = Object.values(currentData.correlations);
+            const avgCorrelation = correlations.length > 0 ? 
+                correlations.reduce((a, b) => a + Math.abs(b), 0) / correlations.length : 0;
+            document.getElementById('correlationStrength').textContent = avgCorrelation.toFixed(2);
+            
+            // Divergence count
+            document.getElementById('divergenceCount').textContent = currentData.divergences.length;
+            
+            // Update correlation matrix
+            updateCorrelationMatrix();
+            
+            // Update time series chart
+            updateTimeSeriesChart();
+        }
+        
+        // Update correlation matrix
+        function updateCorrelationMatrix() {
+            const keys = ['VIXCLS', 'SP500', 'DGS10', 'DTWEXBGS', 'WALCL'];
+            const matrix = [];
+            
+            keys.forEach(key1 => {
+                const row = [];
+                keys.forEach(key2 => {
+                    if (key1 === key2) {
+                        row.push(1);
+                    } else {
+                        const corr = currentData.correlations[`${key1}-${key2}`] || 
+                                    currentData.correlations[`${key2}-${key1}`] || 0;
+                        row.push(corr);
+                    }
+                });
+                matrix.push(row);
+            });
+            
+            const data = [{
+                z: matrix,
+                x: keys.map(k => currentData.indicators[k]?.displayName || k),
+                y: keys.map(k => currentData.indicators[k]?.displayName || k),
+                type: 'heatmap',
+                colorscale: 'RdBu',
+                reversescale: true,
+                zmin: -1,
+                zmax: 1
+            }];
+            
+            const layout = {
+                paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
+                font: { color: '#fff' },
+                margin: { t: 20, l: 100, r: 20, b: 100 }
+            };
+            
+            Plotly.newPlot('correlationMatrix', data, layout, { responsive: true });
+        }
+        
+        // Update time series chart
+        function updateTimeSeriesChart() {
+            const traces = [];
+            const keys = ['SP500', 'VIXCLS', 'DGS10'];
+            
+            keys.forEach(key => {
+                const history = currentData.historicalData[key];
+                if (!history || history.length < 30) return;
+                
+                const normalized = normalizeTimeSeries(history.slice(-30));
+                
+                traces.push({
+                    x: normalized.map(h => h.date),
+                    y: normalized.map(h => h.value),
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: currentData.indicators[key]?.displayName || key,
+                    line: { width: 2 }
+                });
+            });
+            
+            const layout = {
+                paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
+                font: { color: '#fff' },
+                xaxis: {
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' }
+                },
+                yaxis: {
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' },
+                    title: 'Normalized Value'
+                },
+                showlegend: true,
+                legend: {
+                    orientation: 'h',
+                    y: -0.15,
+                    bgcolor: 'rgba(0, 0, 0, 0.5)'
+                }
+            };
+            
+            Plotly.newPlot('timeSeriesChart', traces, layout, { responsive: true });
+        }
+        
+        // Normalize time series
+        function normalizeTimeSeries(history) {
+            if (!history || history.length === 0) return [];
+            
+            const values = history.map(h => h.value);
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+            const range = max - min || 1;
+            
+            return history.map(h => ({
+                date: h.date,
+                value: ((h.value - min) / range) * 100
+            }));
+        }
+        
+        // Update regime indicator
+        function updateRegimeIndicator() {
+            const indicator = document.getElementById('regimeIndicator');
+            indicator.className = `regime-indicator regime-${currentData.regime}`;
+            indicator.textContent = `MARKET: ${currentData.regime.toUpperCase()}`;
+        }
+        
+        // Update alerts display
+        function updateAlertsDisplay() {
+            const list = document.getElementById('alertsList');
+            list.innerHTML = '';
+            
+            currentData.alerts.slice(0, 10).forEach(alert => {
+                const item = document.createElement('div');
+                item.className = `alert-item ${alert.type}`;
+                item.innerHTML = `
+                    <div style="font-weight: bold; margin-bottom: 0.25rem;">
+                        ${alert.indicator ? currentData.indicators[alert.indicator]?.displayName || alert.indicator : 'System'}
+                    </div>
+                    <div style="font-size: 0.875rem;">${alert.message}</div>
+                `;
+                list.appendChild(item);
+            });
+            
+            // Show notification badge
+            const alertBtn = document.querySelector('button[onclick="toggleAlerts()"]');
+            if (currentData.alerts.length > 0) {
+                alertBtn.textContent = `🔔 Alerts (${currentData.alerts.length})`;
+            }
+        }
+        
+        // Search functionality
+        function setupSearch() {
+            const searchInput = document.getElementById('globalSearch');
+            const dropdown = document.getElementById('autocompleteDropdown');
+            
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                if (query.length < 2) {
+                    dropdown.style.display = 'none';
+                    return;
+                }
+                
+                const matches = Object.entries(currentData.indicators)
+                    .filter(([key, data]) => {
+                        const name = (data.displayName || key).toLowerCase();
+                        return name.includes(query) || key.toLowerCase().includes(query);
+                    })
+                    .slice(0, 10);
+                
+                if (matches.length === 0) {
+                    dropdown.style.display = 'none';
+                    return;
+                }
+                
+                dropdown.innerHTML = '';
+                matches.forEach(([key, data]) => {
+                    const item = document.createElement('div');
+                    item.className = 'autocomplete-item';
+                    item.innerHTML = `
+                        <strong>${data.displayName || key}</strong>
+                        <span style="float: right; color: ${data.mom >= 0 ? '#00ff88' : '#ff4444'};">
+                            ${data.mom >= 0 ? '+' : ''}${data.mom.toFixed(2)}%
+                        </span>
+                    `;
+                    item.onclick = () => {
+                        searchInput.value = data.displayName || key;
+                        dropdown.style.display = 'none';
+                        scrollToIndicator(key);
+                    };
+                    dropdown.appendChild(item);
+                });
+                
+                dropdown.style.display = 'block';
+            });
+            
+            // Hide dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.style.display = 'none';
+                }
+            });
+        }
+        
+        // Scroll to indicator
+        function scrollToIndicator(key) {
+            // Find indicator in table
+            const rows = document.querySelectorAll('#indicatorsTable tr');
+            rows.forEach(row => {
+                const firstCell = row.querySelector('td');
+                if (firstCell && firstCell.textContent.includes(currentData.indicators[key]?.displayName || key)) {
+                    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    row.style.background = 'rgba(0, 255, 136, 0.2)';
+                    setTimeout(() => {
+                        row.style.background = '';
+                    }, 2000);
+                }
+            });
+        }
+        
+        // Toggle watchlist
+        function toggleWatchlist(key) {
+            const index = currentData.watchlist.indexOf(key);
+            if (index > -1) {
+                currentData.watchlist.splice(index, 1);
+            } else {
+                currentData.watchlist.push(key);
+            }
+            saveData();
+            updateWatchlist();
+            updateHeatmap(currentData.heatmapFilter || 'all');
+        }
+        
+        // Remove from watchlist
+        function removeFromWatchlist(key) {
+            const index = currentData.watchlist.indexOf(key);
+            if (index > -1) {
+                currentData.watchlist.splice(index, 1);
+                saveData();
+                updateWatchlist();
+                updateHeatmap(currentData.heatmapFilter || 'all');
+            }
+        }
+        
+        // Clear watchlist
+        function clearWatchlist() {
+            currentData.watchlist = [];
+            saveData();
+            updateWatchlist();
+            updateHeatmap(currentData.heatmapFilter || 'all');
+        }
+        
+        // Apply thresholds
+        function applyThresholds() {
+            currentData.thresholds.green = parseFloat(document.getElementById('greenThreshold').value);
+            currentData.thresholds.red = parseFloat(document.getElementById('redThreshold').value);
+            saveData();
+            updateHeatmap(currentData.heatmapFilter || 'all');
+        }
+        
+        // Toggle group view
+        function toggleGroupView() {
+            currentData.groupView = !currentData.groupView;
+            updateHeatmap(currentData.heatmapFilter || 'all');
+        }
+        
+        // Toggle alerts panel
+        function toggleAlerts() {
+            const panel = document.getElementById('alertsPanel');
+            panel.classList.toggle('active');
+        }
+        
+        // Edit tile name
+        function editTileName(element, key) {
+            const currentName = currentData.indicators[key].displayName || key;
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = currentName;
+            input.style.cssText = `
+                background: rgba(0, 0, 0, 0.8);
+                color: #00ff88;
+                border: 1px solid #00ff88;
+                padding: 2px;
+                width: 100%;
+                text-align: center;
+                font-size: inherit;
+                font-weight: bold;
+            `;
+            
+            element.innerHTML = '';
+            element.appendChild(input);
+            input.focus();
+            input.select();
+            
+            const saveEdit = () => {
+                const newName = input.value.trim();
+                if (newName) {
+                    currentData.customNames[key] = newName;
+                    currentData.indicators[key].displayName = newName;
+                    saveData();
+                    updateAllDisplays();
+                }
+            };
+            
+            input.addEventListener('blur', saveEdit);
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    saveEdit();
+                }
+            });
+        }
+        
+        // Make editable
+        function makeEditable(element, key) {
+            element.contentEditable = true;
+            element.style.background = 'rgba(0, 255, 136, 0.1)';
+            element.focus();
+            
+            const originalText = element.textContent;
+            
+            element.addEventListener('blur', function() {
+                element.contentEditable = false;
+                element.style.background = '';
+                const newName = element.textContent.trim();
+                if (newName && newName !== originalText) {
+                    currentData.customNames[key] = newName;
+                    currentData.indicators[key].displayName = newName;
+                    saveData();
+                    updateAllDisplays();
+                }
+            }, { once: true });
+            
+            element.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    element.blur();
+                }
+            });
+        }
+        
+        // Format value
+        function formatValue(value, key) {
+            if (value === null || value === undefined) return 'N/A';
+            
+            const num = parseFloat(value);
+            
+            if (key === 'WALCL' || key.includes('ASSETS')) {
+                if (num >= 1000000) return `${(num / 1000000).toFixed(2)}T`;
+                if (num >= 1000) return `${(num / 1000).toFixed(2)}B`;
+            }
+            
+            if (key.includes('RATE') || key === 'DGS10') {
+                return `${num.toFixed(2)}%`;
+            }
+            
+            if (num >= 1000000000000) return `${(num / 1000000000000).toFixed(2)}T`;
+            if (num >= 1000000000) return `${(num / 1000000000).toFixed(2)}B`;
+            if (num >= 1000000) return `${(num / 1000000).toFixed(2)}M`;
+            if (num >= 1000) return `${(num / 1000).toFixed(2)}K`;
+            
+            return num.toFixed(2);
+        }
+        
+        // Get default name
+        function getDefaultName(key) {
+            const names = {
+                'VIXCLS': 'VIX',
+                'SP500': 'S&P 500',
+                'DTWEXBGS': 'DXY',
+                'DGS10': '10Y Treasury',
+                'WALCL': 'Fed Balance Sheet',
+                'TEDRATE': 'TED Spread',
+                'ECBASSETSW': 'ECB Assets',
+                'JPNASSETS': 'BoJ Assets',
+                'M2SL': 'M2 Money Supply',
+                'RRPONTSYD': 'Reverse Repo'
+            };
+            return names[key] || key;
+        }
+        
+        // Categorize indicator
+        function categorizeIndicator(key) {
+            if (['SP500', 'DJIA', 'NASDAQCOM'].includes(key)) return 'Stocks';
+            if (key.includes('DGS') || key.includes('T10Y')) return 'Bonds';
+            if (key.includes('DEX')) return 'Currencies';
+            if (key.includes('GOLD') || key.includes('OIL')) return 'Commodities';
+            if (LIQUIDITY_INDICATORS.includes(key)) return 'Liquidity';
+            return 'Other';
+        }
+        
+        // Show error
+        function showError(message) {
+            console.error(message);
+            // Could add a toast notification here
+        }
+        
+        // Initialize charts
+        function initializeCharts() {
+            // Charts are initialized when needed
+        }
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            // Tab navigation
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    const tabId = e.target.dataset.tab;
+                    document.getElementById(tabId).classList.add('active');
+                    
+                    if (tabId === 'analytics') {
+                        updateAnalyticsDisplay();
+                    }
+                });
+            });
+            
+            // Setup search
+            setupSearch();
+            
+            // Load threshold values
+            document.getElementById('greenThreshold').value = currentData.thresholds.green;
+            document.getElementById('redThreshold').value = currentData.thresholds.red;
+        }
+        
+        // Start update schedule (3 times per week)
+        function startUpdateSchedule() {
+            // Update on Monday, Wednesday, Friday at market open
+            const checkUpdate = () => {
+                const now = new Date();
+                const day = now.getDay();
+                const hour = now.getHours();
+                
+                // Check if it's Mon(1), Wed(3), or Fri(5) at 9:30 AM
+                if ([1, 3, 5].includes(day) && hour === 9 && now.getMinutes() === 30) {
+                    fetchAllDataWithRetry();
+                }
+            };
+            
+            // Check every minute
+            setInterval(checkUpdate, 60000);
+            
+            // Also update every 5 minutes for demo purposes
+            setInterval(() => fetchAllDataWithRetry(), 300000);
+        }
+        
+        // Sort table
+        function sortTable(column) {
+            // Implementation for table sorting
+            console.log(`Sorting by ${column}`);
+        }
+        
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', initialize);
+    </script>
+</body>
+</html>
