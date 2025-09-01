@@ -2359,6 +2359,212 @@
         
         // Initialize on load
         document.addEventListener('DOMContentLoaded', initialize);
+        
+        // OpenBB Platform Configuration - USING YOUR WORKING V8.0 PATTERN
+        const OPENBB_CONFIG = {
+            // Main API (143 Active Indicators) - YOUR EXACT WORKING ENDPOINTS
+            MAIN_API: {
+                baseUrl: 'https://i70jxru6md.execute-api.us-east-1.amazonaws.com/prod/api/v1',
+                endpoints: {
+                    health: '/health',
+                    overview: '/dashboard/overview',
+                    mega: '/dashboard/mega',
+                    dxy: '/dxy',
+                    ice_bofa: '/ice_bofa',
+                    fed: '/fed',
+                    blackswan: '/blackswan',
+                    liquidity: '/liquidity',
+                    crisis: '/crisis'
+                }
+            }
+        };
+        
+        // Replace the initialize function
+        async function initialize() {
+            console.log('🚀 Initializing OpenBB Platform v12.0 with FRED Live Data...');
+            
+            // Load saved configuration
+            loadSavedConfiguration();
+            
+            // Test API connections first
+            await testAPIConnections();
+            
+            // Fetch data using YOUR WORKING PATTERN
+            await fetchAllDataFromOpenBB();
+            
+            // Setup event listeners
+            setupEventListeners();
+            
+            // Start real-time updates
+            startRealTimeUpdates();
+        }
+        
+        // Test API connections - FROM YOUR WORKING CODE
+        async function testAPIConnections() {
+            try {
+                const response = await fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.health);
+                if (response.ok) {
+                    console.log('✅ API Connected');
+                    updateStatus('API Connected', 'live');
+                } else {
+                    console.error('API connection failed');
+                    updateStatus('API Error', 'error');
+                }
+            } catch (error) {
+                console.error('API connection error:', error);
+                updateStatus('Connection Error', 'error');
+            }
+        }
+        
+        // Fetch all data from OpenBB - USING YOUR EXACT WORKING PATTERN
+        async function fetchAllDataFromOpenBB() {
+            updateStatus('Loading real-time data...');
+            
+            try {
+                // Fetch from all endpoints simultaneously - YOUR EXACT PATTERN
+                const [overviewData, fedData, blackswanData, liquidityData, dxyData, crisisData] = await Promise.all([
+                    fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.overview).then(r => r.json()),
+                    fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.fed).then(r => r.json()),
+                    fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.blackswan).then(r => r.json()),
+                    fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.liquidity).then(r => r.json()),
+                    fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.dxy).then(r => r.json()),
+                    fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.crisis).then(r => r.json())
+                ]);
+                
+                // Combine all indicators - YOUR EXACT DATA STRUCTURE
+                const allIndicators = {
+                    ...overviewData.indicators,
+                    ...fedData.indicators,
+                    ...blackswanData.indicators,
+                    ...liquidityData.indicators,
+                    ...dxyData.indicators,
+                    ...crisisData.indicators
+                };
+                
+                // Store in currentData
+                currentData.indicators = allIndicators;
+                
+                // Process each indicator
+                Object.entries(allIndicators).forEach(([key, data]) => {
+                    if (!data || data.value === null || data.value === undefined) return;
+                    
+                    // Store the raw data
+                    if (!currentData.historicalData[key]) {
+                        currentData.historicalData[key] = [];
+                    }
+                    
+                    // Add current value to history
+                    currentData.historicalData[key].push({
+                        date: new Date(),
+                        value: parseFloat(data.value)
+                    });
+                    
+                    // Keep max 365 days of history
+                    if (currentData.historicalData[key].length > 365) {
+                        currentData.historicalData[key].shift();
+                    }
+                    
+                    // Calculate percentage changes from the API data
+                    const indicator = currentData.indicators[key];
+                    indicator.displayName = getDefaultName(key);
+                    indicator.category = categorizeIndicator(key);
+                    
+                    // Use API-provided changes or calculate them
+                    indicator.changePercent = data.change || calculateChange(currentData.historicalData[key], 1);
+                    indicator.wow = data.wow_change || calculateChange(currentData.historicalData[key], 7);
+                    indicator.mom = data.mom_change || calculateChange(currentData.historicalData[key], 30);
+                    indicator.qoq = data.qoq_change || calculateChange(currentData.historicalData[key], 90);
+                    indicator.yoy = data.yoy_change || calculateChange(currentData.historicalData[key], 365);
+                    
+                    // Calculate second derivative
+                    const secondDerivative = calculateSecondDerivative(currentData.historicalData[key]);
+                    indicator.secondDerivative = secondDerivative.current;
+                    indicator.secondDerivativeMA = secondDerivative.ma;
+                    indicator.acceleration = secondDerivative.acceleration;
+                    indicator.inflectionPoint = secondDerivative.inflectionPoint;
+                    
+                    // Store second derivative history
+                    currentData.secondDerivatives[key] = secondDerivative.history;
+                });
+                
+                // Calculate advanced metrics
+                calculateAllMetrics();
+                
+                // Detect second derivative signals
+                detectSecondDerivativeSignals();
+                
+                // Update all displays
+                updateAllDisplays();
+                
+                updateStatus('Live data connected', 'live');
+                
+                console.log('✅ Data loaded successfully:', Object.keys(allIndicators).length, 'indicators');
+                
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                updateStatus('Data fetch error', 'error');
+                
+                // Use fallback data if API fails
+                useFallbackData();
+            }
+        }
+        
+        // Calculate percentage change helper
+        function calculateChange(history, daysAgo) {
+            if (!history || history.length < daysAgo + 1) return 0;
+            
+            const current = history[history.length - 1].value;
+            const past = history[Math.max(0, history.length - daysAgo - 1)].value;
+            
+            if (past === 0) return 0;
+            return ((current - past) / Math.abs(past)) * 100;
+        }
+        
+        // Use fallback data if API fails
+        function useFallbackData() {
+            console.log('Using fallback data...');
+            
+            // Fallback data structure matching your API
+            const fallbackIndicators = {
+                'VIXCLS': { value: 16.57, change: -2.3, displayName: 'VIX' },
+                'SP500': { value: 6389.45, change: 1.2, displayName: 'S&P 500' },
+                'DTWEXBGS': { value: 121.61, change: 0.5, displayName: 'Dollar Index' },
+                'DGS10': { value: 4.23, change: -0.8, displayName: '10Y Treasury' },
+                'WALCL': { value: 6640843, change: -1.5, displayName: 'Fed Balance Sheet' },
+                'TEDRATE': { value: 0.09, change: 0.2, displayName: 'TED Spread' },
+                'UNRATE': { value: 3.7, change: 0.0, displayName: 'Unemployment' },
+                'CPIAUCSL': { value: 310.33, change: 0.3, displayName: 'CPI' },
+                'BAMLH0A0HYM2': { value: 3.38, change: -0.5, displayName: 'HY Spread' }
+            };
+            
+            currentData.indicators = fallbackIndicators;
+            
+            // Generate historical data for fallback
+            Object.entries(fallbackIndicators).forEach(([key, data]) => {
+                if (!currentData.historicalData[key]) {
+                    currentData.historicalData[key] = generateInitialHistoricalData(key);
+                }
+                
+                // Calculate changes
+                data.wow = calculateChange(currentData.historicalData[key], 7);
+                data.mom = calculateChange(currentData.historicalData[key], 30);
+                data.qoq = calculateChange(currentData.historicalData[key], 90);
+                data.yoy = calculateChange(currentData.historicalData[key], 365);
+                
+                // Calculate second derivative
+                const secondDerivative = calculateSecondDerivative(currentData.historicalData[key]);
+                data.secondDerivative = secondDerivative.current;
+                data.secondDerivativeMA = secondDerivative.ma;
+                data.acceleration = secondDerivative.acceleration;
+                data.inflectionPoint = secondDerivative.inflectionPoint;
+                
+                currentData.secondDerivatives[key] = secondDerivative.history;
+            });
+            
+            calculateAllMetrics();
+            detectSecondDerivativeSignals();
+            updateAllDisplays();
+        }
     </script>
 </body>
 </html>
