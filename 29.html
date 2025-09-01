@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpenBB Financial Intelligence Platform - v9.0 Ultra Enhanced</title>
+    <title>OpenBB Platform v9.0 - Advanced Analytics & Momentum Detection</title>
     
     <!-- Required Libraries -->
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -18,31 +18,6 @@
             background: linear-gradient(135deg, #0a0e27 0%, #151932 100%);
             color: #e0e0e0;
             min-height: 100vh;
-        }
-        
-        /* Critical Alert Banner */
-        .critical-alert {
-            display: none;
-            background: linear-gradient(90deg, #ff0000, #ff4444);
-            color: #fff;
-            padding: 15px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 1.2rem;
-            animation: criticalPulse 0.5s ease-in-out infinite;
-            position: fixed;
-            top: 0;
-            width: 100%;
-            z-index: 10000;
-        }
-        
-        .critical-alert.active {
-            display: block;
-        }
-        
-        @keyframes criticalPulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.8; transform: scale(1.02); }
         }
         
         /* Header Styles */
@@ -72,116 +47,117 @@
             gap: 0.5rem;
         }
         
-        /* Liquidity Crisis Score */
-        .liquidity-crisis-score {
-            position: fixed;
-            top: 60px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.9);
-            border: 2px solid #00ff88;
-            border-radius: 12px;
-            padding: 15px;
-            z-index: 1001;
-            min-width: 200px;
-        }
-        
-        .crisis-score-title {
-            font-size: 0.875rem;
-            color: #888;
-            margin-bottom: 8px;
-        }
-        
-        .crisis-score-value {
-            font-size: 2rem;
-            font-weight: bold;
-            background: linear-gradient(45deg, #00ff88, #00ccff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .crisis-indicators {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .crisis-indicator-item {
+        .header-stats {
             display: flex;
-            justify-content: space-between;
+            gap: 1rem;
             align-items: center;
-            padding: 4px 0;
-            font-size: 0.75rem;
+            flex-wrap: wrap;
         }
         
-        .indicator-light {
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-width: 100px;
+        }
+        
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #00ff88;
+        }
+        
+        .stat-label {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+        }
+        
+        /* Risk Level Indicator */
+        .risk-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .risk-level {
+            font-weight: bold;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+        }
+        
+        .risk-low {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+        
+        .risk-medium {
+            background: rgba(255, 170, 0, 0.2);
+            color: #ffaa00;
+        }
+        
+        .risk-high {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff4444;
+        }
+        
+        /* API Status Indicators */
+        .api-status {
+            display: flex;
+            gap: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .api-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .status-dot {
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            display: inline-block;
+            animation: pulse 2s infinite;
         }
         
-        .light-green { background: #00ff88; }
-        .light-yellow { background: #ffaa00; }
-        .light-red { background: #ff4444; }
-        
-        /* Market Phase Banner */
-        .market-phase-banner {
-            background: linear-gradient(90deg, #00ff88, #00ccff);
-            color: #000;
-            padding: 12px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 1.1rem;
-            animation: phaseGlow 2s ease-in-out infinite;
-            position: sticky;
-            top: 80px;
-            z-index: 999;
+        .status-dot.connected {
+            background: #00ff88;
         }
         
-        /* Dollar Shortage Monitor */
-        .dollar-shortage-monitor {
-            position: fixed;
-            top: 200px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.9);
-            border: 2px solid #ffaa00;
-            border-radius: 12px;
-            padding: 15px;
-            z-index: 1001;
-            min-width: 200px;
+        .status-dot.error {
+            background: #ff4444;
         }
         
-        .shortage-title {
-            font-size: 0.875rem;
-            color: #ffaa00;
-            margin-bottom: 8px;
-            font-weight: bold;
+        .status-dot.loading {
+            background: #ffaa00;
         }
         
-        .shortage-metrics {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        
-        .shortage-metric {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.75rem;
-        }
-        
-        .shortage-metric-value {
-            font-weight: bold;
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
         
         /* Container */
         .container {
-            max-width: 1800px;
+            max-width: 1600px;
             margin: 0 auto;
             padding: 2rem;
         }
         
-        /* Enhanced Tabs Navigation */
+        /* Tabs Navigation */
         .tabs-nav {
             display: flex;
             gap: 0.5rem;
@@ -190,7 +166,6 @@
             border-radius: 12px;
             padding: 0.5rem;
             overflow-x: auto;
-            flex-wrap: wrap;
         }
         
         .tab-btn {
@@ -203,7 +178,6 @@
             font-size: 0.95rem;
             transition: all 0.3s;
             white-space: nowrap;
-            position: relative;
         }
         
         .tab-btn:hover {
@@ -217,23 +191,6 @@
             font-weight: bold;
         }
         
-        .tab-btn.alert::after {
-            content: '!';
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background: #ff4444;
-            color: white;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
-            animation: pulse 1s infinite;
-        }
-        
         /* Tab Content */
         .tab-content {
             display: none;
@@ -243,10 +200,10 @@
             display: block;
         }
         
-        /* Enhanced Metrics Grid */
+        /* Key Metrics Grid */
         .metrics-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1rem;
             margin-bottom: 2rem;
         }
@@ -259,23 +216,6 @@
             transition: all 0.3s;
             cursor: pointer;
             position: relative;
-            overflow: hidden;
-        }
-        
-        .metric-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #00ff88, #00ccff);
-            transform: scaleX(0);
-            transition: transform 0.3s;
-        }
-        
-        .metric-card:hover::before {
-            transform: scaleX(1);
         }
         
         .metric-card:hover {
@@ -283,50 +223,26 @@
             box-shadow: 0 10px 30px rgba(0, 255, 136, 0.1);
         }
         
-        .metric-card.warning {
-            border-color: #ffaa00;
-            animation: warningPulse 2s infinite;
-        }
-        
-        .metric-card.danger {
-            border-color: #ff4444;
-            animation: dangerPulse 1s infinite;
-        }
-        
-        @keyframes warningPulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 170, 0, 0); }
-            50% { box-shadow: 0 0 20px 5px rgba(255, 170, 0, 0.3); }
-        }
-        
-        @keyframes dangerPulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
-            50% { box-shadow: 0 0 30px 10px rgba(255, 68, 68, 0.4); }
-        }
-        
-        .metric-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 0.5rem;
-        }
-        
         .metric-title {
             font-size: 0.875rem;
             color: #888;
+            margin-bottom: 0.5rem;
             text-transform: uppercase;
+            cursor: text;
+            padding: 2px 4px;
+            border-radius: 4px;
+            transition: all 0.3s;
+            display: inline-block;
         }
         
-        .metric-badge {
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.625rem;
-            font-weight: bold;
-            text-transform: uppercase;
+        .metric-title:hover {
+            background: rgba(255, 255, 255, 0.1);
         }
         
-        .badge-critical { background: #ff4444; color: #fff; }
-        .badge-warning { background: #ffaa00; color: #000; }
-        .badge-normal { background: #00ff88; color: #000; }
+        .metric-title.editing {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
         
         .metric-value {
             font-size: 1.75rem;
@@ -341,24 +257,232 @@
             gap: 0.25rem;
         }
         
-        .metric-sparkline {
-            margin-top: 0.75rem;
-            height: 40px;
-            opacity: 0.7;
-        }
-        
         .positive { color: #00ff88; }
         .negative { color: #ff4444; }
         .neutral { color: #888; }
         
-        /* Enhanced Chart Container */
+        /* Enhanced Heatmap Styles */
+        .heatmap-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .heatmap-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .heatmap-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .heatmap-controls {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .heatmap-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+        }
+        
+        .heatmap-btn:hover {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: #00ff88;
+        }
+        
+        .heatmap-btn.active {
+            background: #00ff88;
+            color: #000;
+            font-weight: bold;
+        }
+        
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: minmax(200px, 1.5fr) repeat(5, minmax(100px, 1fr));
+            gap: 2px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2px;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+        
+        .heatmap-cell {
+            padding: 1rem;
+            text-align: center;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+            border-radius: 4px;
+            position: relative;
+            min-height: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .heatmap-cell.header {
+            background: rgba(0, 255, 136, 0.1);
+            font-weight: bold;
+            color: #00ff88;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+        }
+        
+        .heatmap-cell.indicator-name {
+            background: rgba(255, 255, 255, 0.08);
+            font-weight: bold;
+            text-align: left;
+            padding-left: 1.5rem;
+            color: #fff;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .heatmap-cell.indicator-name:hover {
+            background: rgba(0, 255, 136, 0.15);
+        }
+        
+        .indicator-name-text {
+            cursor: text;
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+        
+        .indicator-name-text:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .indicator-name-text.editing {
+            background: rgba(0, 255, 136, 0.3);
+            outline: 2px solid #00ff88;
+        }
+        
+        .heatmap-value {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+        
+        .heatmap-label {
+            font-size: 0.65rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+        }
+        
+        /* Momentum Indicator */
+        .momentum-indicator {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+        
+        .momentum-bar {
+            height: 100%;
+            transition: width 0.5s ease, background 0.5s ease;
+        }
+        
+        .momentum-strong-bullish {
+            background: linear-gradient(90deg, #00ff44, #00cc33);
+        }
+        
+        .momentum-bullish {
+            background: linear-gradient(90deg, #44ff44, #00ff44);
+        }
+        
+        .momentum-neutral {
+            background: #888;
+        }
+        
+        .momentum-bearish {
+            background: linear-gradient(90deg, #ff4444, #ff6666);
+        }
+        
+        .momentum-strong-bearish {
+            background: linear-gradient(90deg, #cc0000, #ff4444);
+        }
+        
+        /* Heatmap color gradients */
+        .heat-extreme-negative {
+            background: linear-gradient(135deg, #8B0000, #DC143C);
+            color: #fff;
+        }
+        
+        .heat-high-negative {
+            background: linear-gradient(135deg, #DC143C, #FF4444);
+            color: #fff;
+        }
+        
+        .heat-moderate-negative {
+            background: linear-gradient(135deg, #FF4444, #FF6666);
+            color: #fff;
+        }
+        
+        .heat-low-negative {
+            background: linear-gradient(135deg, #FF6666, #FF8888);
+            color: #fff;
+        }
+        
+        .heat-neutral {
+            background: rgba(255, 255, 255, 0.05);
+            color: #888;
+        }
+        
+        .heat-low-positive {
+            background: linear-gradient(135deg, #88FF88, #66FF66);
+            color: #000;
+        }
+        
+        .heat-moderate-positive {
+            background: linear-gradient(135deg, #66FF66, #44FF44);
+            color: #000;
+        }
+        
+        .heat-high-positive {
+            background: linear-gradient(135deg, #44FF44, #00FF44);
+            color: #000;
+        }
+        
+        .heat-extreme-positive {
+            background: linear-gradient(135deg, #00FF44, #00CC33);
+            color: #000;
+        }
+        
+        .heatmap-cell:hover {
+            transform: scale(1.05);
+            z-index: 10;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* Chart Container */
         .chart-container {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 12px;
             padding: 1.5rem;
             margin-bottom: 2rem;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            position: relative;
         }
         
         .chart-header {
@@ -373,9 +497,7 @@
         .chart-title {
             font-size: 1.25rem;
             font-weight: bold;
-            background: linear-gradient(45deg, #00ff88, #00ccff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: #fff;
         }
         
         .chart-controls {
@@ -406,477 +528,131 @@
             font-weight: bold;
         }
         
-        .chart-type-selector {
-            display: flex;
-            gap: 0.25rem;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 6px;
-            padding: 2px;
-        }
-        
-        .chart-type-btn {
-            padding: 0.5rem;
-            background: transparent;
-            border: none;
-            color: #888;
-            cursor: pointer;
-            border-radius: 4px;
-            transition: all 0.3s;
-        }
-        
-        .chart-type-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-        }
-        
-        .chart-type-btn.active {
-            background: rgba(0, 255, 136, 0.2);
-            color: #00ff88;
-        }
-        
-        /* Professional Chart Styles */
-        #mainChart, #liquidityChart, #dollarChart, #riskChart {
-            height: 500px;
-            border-radius: 8px;
-            background: rgba(0, 0, 0, 0.3);
-        }
-        
-        #advancedChart {
-            height: 600px;
-            border-radius: 8px;
-            background: rgba(0, 0, 0, 0.3);
-            position: relative;
-        }
-        
-        /* Risk Matrix */
-        .risk-matrix {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 10px;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 12px;
-            margin-bottom: 2rem;
-        }
-        
-        .risk-cell {
-            aspect-ratio: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-            position: relative;
-        }
-        
-        .risk-cell:hover {
-            transform: scale(1.1);
-            z-index: 10;
-        }
-        
-        .risk-low { background: linear-gradient(135deg, #00ff88, #00cc66); }
-        .risk-moderate { background: linear-gradient(135deg, #ffaa00, #ff8800); }
-        .risk-high { background: linear-gradient(135deg, #ff6644, #ff4444); }
-        .risk-critical { background: linear-gradient(135deg, #ff2222, #cc0000); animation: criticalFlash 1s infinite; }
-        
-        @keyframes criticalFlash {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-        
-        .risk-label {
-            font-size: 0.75rem;
-            font-weight: bold;
-            margin-bottom: 4px;
-        }
-        
-        .risk-value {
-            font-size: 1.25rem;
-            font-weight: bold;
-        }
-        
-        /* Dollar Liquidity Swap Lines Monitor */
-        .swap-lines-monitor {
-            background: rgba(255, 170, 0, 0.1);
-            border: 1px solid #ffaa00;
+        /* Advanced Analytics Panel */
+        .analytics-panel {
+            background: rgba(255, 255, 255, 0.05);
             border-radius: 12px;
             padding: 1.5rem;
             margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        .swap-lines-header {
+        .analytics-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 1rem;
         }
         
-        .swap-lines-title {
+        .analytics-title {
             font-size: 1.125rem;
             font-weight: bold;
-            color: #ffaa00;
+            color: #fff;
         }
         
-        .swap-lines-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1rem;
-        }
-        
-        .swap-line-item {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
-            padding: 1rem;
-            text-align: center;
-        }
-        
-        .swap-line-country {
-            font-size: 0.875rem;
-            color: #888;
-            margin-bottom: 0.5rem;
-        }
-        
-        .swap-line-amount {
-            font-size: 1.25rem;
-            font-weight: bold;
-            color: #ffaa00;
-        }
-        
-        .swap-line-trend {
-            font-size: 0.75rem;
-            margin-top: 0.5rem;
-        }
-        
-        /* LIBOR-OIS Spread Monitor */
-        .libor-ois-monitor {
-            background: linear-gradient(135deg, rgba(255, 68, 68, 0.1), rgba(255, 170, 0, 0.1));
-            border: 1px solid rgba(255, 68, 68, 0.3);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        
-        .spread-indicator {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
-            margin-bottom: 0.5rem;
-        }
-        
-        .spread-name {
-            font-weight: bold;
-        }
-        
-        .spread-value {
-            font-size: 1.25rem;
-            font-weight: bold;
-        }
-        
-        .spread-threshold {
-            font-size: 0.75rem;
-            color: #888;
-        }
-        
-        /* Cross-Currency Basis Monitor */
-        .basis-monitor {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-        
-        .basis-card {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 1.5rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            position: relative;
-        }
-        
-        .basis-pair {
-            font-size: 1rem;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-        }
-        
-        .basis-spread {
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-        }
-        
-        .basis-chart {
-            height: 60px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 4px;
-            margin-top: 0.5rem;
-        }
-        
-        /* Term Structure Monitor */
-        .term-structure {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        
-        .curve-points {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            height: 200px;
-            padding: 20px 0;
-            position: relative;
-        }
-        
-        .curve-point {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-end;
-            position: relative;
-        }
-        
-        .curve-bar {
-            width: 40px;
-            background: linear-gradient(to top, #00ff88, #00ccff);
-            border-radius: 4px 4px 0 0;
-            transition: all 0.3s;
-        }
-        
-        .curve-label {
-            font-size: 0.75rem;
-            color: #888;
-            margin-top: 8px;
-        }
-        
-        .curve-value {
-            font-size: 0.875rem;
-            font-weight: bold;
-            position: absolute;
-            bottom: 100%;
-            margin-bottom: 4px;
-        }
-        
-        /* Overnight Funding Stress */
-        .funding-stress {
-            background: rgba(255, 68, 68, 0.05);
-            border: 1px solid rgba(255, 68, 68, 0.2);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        
-        .stress-meter {
-            position: relative;
-            height: 40px;
-            background: linear-gradient(90deg, #00ff88, #ffaa00, #ff4444);
-            border-radius: 20px;
-            margin: 1rem 0;
-        }
-        
-        .stress-indicator {
-            position: absolute;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            width: 20px;
-            height: 20px;
-            background: #fff;
-            border: 3px solid #000;
-            border-radius: 50%;
-            transition: left 0.5s ease;
-        }
-        
-        .stress-labels {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.75rem;
-            color: #888;
-        }
-        
-        /* Fed Operations Monitor */
-        .fed-operations {
-            background: rgba(0, 204, 255, 0.05);
-            border: 1px solid rgba(0, 204, 255, 0.2);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        
-        .operations-grid {
+        .analytics-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 1rem;
         }
         
-        .operation-card {
+        .analytics-card {
             background: rgba(0, 0, 0, 0.3);
             border-radius: 8px;
             padding: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        .operation-type {
+        .analytics-label {
             font-size: 0.875rem;
-            color: #00ccff;
+            color: #888;
             margin-bottom: 0.5rem;
-            font-weight: bold;
         }
         
-        .operation-amount {
+        .analytics-value {
             font-size: 1.5rem;
             font-weight: bold;
             margin-bottom: 0.5rem;
         }
         
-        .operation-detail {
-            font-size: 0.75rem;
-            color: #888;
-        }
-        
-        /* Real-time Alerts Panel */
-        .alerts-panel {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 300px;
-            max-height: 400px;
-            background: rgba(0, 0, 0, 0.95);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            overflow: hidden;
-            z-index: 1000;
-        }
-        
-        .alerts-header {
-            background: rgba(255, 68, 68, 0.1);
-            padding: 1rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        .trend-indicator {
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
         }
         
-        .alerts-title {
-            font-weight: bold;
-            color: #ff4444;
-        }
-        
-        .alerts-close {
-            background: none;
-            border: none;
-            color: #888;
-            cursor: pointer;
+        .trend-arrow {
             font-size: 1.25rem;
         }
         
-        .alerts-list {
-            max-height: 300px;
-            overflow-y: auto;
-            padding: 1rem;
+        /* Momentum Signal */
+        .momentum-signal {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            margin-left: 0.5rem;
         }
         
-        .alert-item {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-            padding: 0.75rem;
-            margin-bottom: 0.75rem;
-            border-left: 3px solid #ff4444;
+        .signal-bullish {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
         }
         
-        .alert-time {
-            font-size: 0.625rem;
+        .signal-bearish {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff4444;
+        }
+        
+        .signal-neutral {
+            background: rgba(255, 255, 255, 0.1);
             color: #888;
-            margin-bottom: 0.25rem;
         }
         
-        .alert-message {
-            font-size: 0.875rem;
-            color: #fff;
-        }
-        
-        /* Volume Analysis */
-        .volume-analysis {
+        /* Data Grid */
+        .data-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 1rem;
             margin-bottom: 2rem;
         }
         
-        .volume-card {
+        .data-card {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 12px;
             padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+        }
+        
+        .data-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 255, 136, 0.1);
+        }
+        
+        /* Market Phase Banner */
+        .market-phase-banner {
+            background: linear-gradient(90deg, #00ff88, #00ccff);
+            color: #000;
+            padding: 12px;
             text-align: center;
-        }
-        
-        .volume-title {
-            font-size: 0.875rem;
-            color: #888;
-            margin-bottom: 0.5rem;
-        }
-        
-        .volume-bar {
-            height: 100px;
-            background: linear-gradient(to top, rgba(0, 255, 136, 0.2), rgba(0, 255, 136, 0.8));
-            border-radius: 4px;
-            margin: 1rem 0;
-            position: relative;
-        }
-        
-        .volume-fill {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #00ff88;
-            border-radius: 4px;
-            transition: height 0.5s ease;
-        }
-        
-        .volume-value {
-            font-size: 1.25rem;
             font-weight: bold;
+            font-size: 1.1rem;
+            animation: phaseGlow 2s ease-in-out infinite;
+            position: sticky;
+            top: 80px;
+            z-index: 999;
         }
         
-        /* Responsive Design */
-        @media (max-width: 1200px) {
-            .liquidity-crisis-score,
-            .dollar-shortage-monitor {
-                position: relative;
-                top: auto;
-                right: auto;
-                margin-bottom: 1rem;
-            }
+        @keyframes phaseGlow {
+            0%, 100% { opacity: 0.9; }
+            50% { opacity: 1; }
         }
         
-        @media (max-width: 768px) {
-            .header {
-                padding: 1rem;
-            }
-            
-            .metrics-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .tabs-nav {
-                overflow-x: auto;
-            }
-            
-            .alerts-panel {
-                width: 100%;
-                right: 0;
-                left: 0;
-                border-radius: 12px 12px 0 0;
-            }
-        }
-        
-        /* Loading and Animations */
+        /* Loading Spinner */
         .loading {
             display: flex;
             align-items: center;
@@ -897,362 +673,214 @@
             to { transform: rotate(360deg); }
         }
         
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .heatmap-grid {
+                grid-template-columns: minmax(120px, 1fr) repeat(5, minmax(80px, 1fr));
+                font-size: 0.75rem;
+            }
+            
+            .heatmap-cell {
+                padding: 0.5rem;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Critical Alert Banner -->
-    <div class="critical-alert" id="criticalAlert">
-        ⚠️ CRITICAL: LIQUIDITY CRISIS DETECTED - MULTIPLE INDICATORS BREACHED
-    </div>
-    
     <!-- Market Phase Banner -->
     <div class="market-phase-banner" id="marketPhaseBanner">
-        📈 MARKET STATUS: ANALYZING LIQUIDITY CONDITIONS...
+        📈 MARKET STATUS: ANALYZING...
     </div>
     
     <header class="header">
         <div class="logo">
             📊 OpenBB Platform
-            <span style="font-size: 0.875rem; color: #888;">v9.0 Ultra Enhanced</span>
+            <span style="font-size: 0.875rem; color: #888;">v9.0 Advanced Analytics</span>
         </div>
         
         <div class="header-stats">
             <div class="stat-item">
-                <div class="stat-value" id="activeIndicators">247</div>
+                <div class="stat-value" id="activeIndicators">143</div>
                 <div class="stat-label">Active Indicators</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value" id="riskScore">3.7</div>
-                <div class="stat-label">Risk Score (1-10)</div>
+                <div class="stat-value" id="momentumScore">0</div>
+                <div class="stat-label">Momentum Score</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value" id="liquidityHealth">82%</div>
-                <div class="stat-label">Liquidity Health</div>
+                <div class="stat-value" id="trendStrength">0%</div>
+                <div class="stat-label">Trend Strength</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="volatilityRank">0</div>
+                <div class="stat-label">Volatility Rank</div>
+            </div>
+        </div>
+        
+        <div class="risk-indicator">
+            <span>Risk Level:</span>
+            <span class="risk-level risk-low" id="riskLevel">CALCULATING...</span>
+        </div>
+        
+        <div class="api-status">
+            <div class="api-indicator">
+                <div class="status-dot loading" id="mainApiStatus"></div>
+                <span>Main API</span>
+            </div>
+            <div class="api-indicator">
+                <div class="status-dot loading" id="mlStatus"></div>
+                <span>Analytics</span>
+            </div>
+            <div class="api-indicator">
+                <div class="status-dot loading" id="alertsStatus"></div>
+                <span>Alerts</span>
             </div>
         </div>
     </header>
     
-    <!-- Liquidity Crisis Score Panel -->
-    <div class="liquidity-crisis-score">
-        <div class="crisis-score-title">LIQUIDITY CRISIS SCORE</div>
-        <div class="crisis-score-value" id="crisisScore">2.3/10</div>
-        <div class="crisis-indicators">
-            <div class="crisis-indicator-item">
-                <span>TED Spread</span>
-                <span class="indicator-light light-green"></span>
-            </div>
-            <div class="crisis-indicator-item">
-                <span>LIBOR-OIS</span>
-                <span class="indicator-light light-green"></span>
-            </div>
-            <div class="crisis-indicator-item">
-                <span>Cross-Currency Basis</span>
-                <span class="indicator-light light-yellow"></span>
-            </div>
-            <div class="crisis-indicator-item">
-                <span>Fed Swap Lines</span>
-                <span class="indicator-light light-green"></span>
-            </div>
-            <div class="crisis-indicator-item">
-                <span>Repo Stress</span>
-                <span class="indicator-light light-green"></span>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Dollar Shortage Monitor -->
-    <div class="dollar-shortage-monitor">
-        <div class="shortage-title">🚨 DOLLAR SHORTAGE MONITOR</div>
-        <div class="shortage-metrics">
-            <div class="shortage-metric">
-                <span>EUR/USD Basis</span>
-                <span class="shortage-metric-value negative">-42 bps</span>
-            </div>
-            <div class="shortage-metric">
-                <span>JPY/USD Basis</span>
-                <span class="shortage-metric-value negative">-38 bps</span>
-            </div>
-            <div class="shortage-metric">
-                <span>Swap Line Usage</span>
-                <span class="shortage-metric-value">$12.4B</span>
-            </div>
-            <div class="shortage-metric">
-                <span>Dollar Index</span>
-                <span class="shortage-metric-value positive">108.32</span>
-            </div>
-            <div class="shortage-metric">
-                <span>Shortage Risk</span>
-                <span class="shortage-metric-value" style="color: #ffaa00;">MODERATE</span>
-            </div>
-        </div>
-    </div>
-    
     <div class="container">
-        <!-- Enhanced Navigation Tabs -->
+        <!-- Navigation Tabs -->
         <div class="tabs-nav">
-            <button class="tab-btn active" data-tab="dashboard">📊 Dashboard</button>
-            <button class="tab-btn" data-tab="liquidity">💧 Liquidity Crisis</button>
-            <button class="tab-btn" data-tab="dollar">💵 Dollar Shortage</button>
-            <button class="tab-btn" data-tab="funding">🏦 Funding Stress</button>
-            <button class="tab-btn" data-tab="spreads">📈 Spreads Monitor</button>
-            <button class="tab-btn" data-tab="fedops">🏛️ Fed Operations</button>
-            <button class="tab-btn" data-tab="risk">⚠️ Risk Matrix</button>
+            <button class="tab-btn active" data-tab="overview">📈 Overview</button>
+            <button class="tab-btn" data-tab="heatmap">🔥 Advanced Heatmap</button>
+            <button class="tab-btn" data-tab="momentum">⚡ Momentum Analysis</button>
+            <button class="tab-btn" data-tab="trends">📊 Trend Detection</button>
+            <button class="tab-btn" data-tab="fed">🏛️ Federal Reserve</button>
             <button class="tab-btn" data-tab="blackswan">🦢 Black Swan</button>
-            <button class="tab-btn" data-tab="curves">📉 Yield Curves</button>
-            <button class="tab-btn" data-tab="correlations">🔗 Correlations</button>
-            <button class="tab-btn alert" data-tab="alerts">🚨 Alerts</button>
-            <button class="tab-btn" data-tab="advanced">📊 Advanced Charts</button>
+            <button class="tab-btn" data-tab="liquidity">💧 Liquidity</button>
         </div>
         
-        <!-- Dashboard Tab -->
-        <div class="tab-content active" id="dashboard">
-            <!-- Critical Metrics Grid -->
-            <div class="metrics-grid" id="criticalMetrics">
-                <!-- Populated dynamically -->
+        <!-- Overview Tab -->
+        <div class="tab-content active" id="overview">
+            <!-- Advanced Analytics Panel -->
+            <div class="analytics-panel">
+                <div class="analytics-header">
+                    <h2 class="analytics-title">🎯 Early Warning System</h2>
+                    <span id="lastUpdate" style="font-size: 0.875rem; color: #888;">Last Update: --</span>
+                </div>
+                <div class="analytics-grid" id="analyticsGrid">
+                    <!-- Analytics cards will be populated here -->
+                </div>
             </div>
             
-            <!-- Main Professional Chart -->
+            <!-- Key Metrics - Will be populated dynamically -->
+            <div class="metrics-grid" id="keyMetrics">
+                <!-- Metrics will be added here dynamically -->
+            </div>
+            
+            <!-- Enhanced Main Chart -->
             <div class="chart-container">
                 <div class="chart-header">
-                    <h2 class="chart-title">Real-Time Market Overview</h2>
+                    <h2 class="chart-title">Advanced Market Overview</h2>
                     <div class="chart-controls">
-                        <div class="chart-type-selector">
-                            <button class="chart-type-btn active" data-type="line">Line</button>
-                            <button class="chart-type-btn" data-type="candlestick">Candles</button>
-                            <button class="chart-type-btn" data-type="area">Area</button>
-                            <button class="chart-type-btn" data-type="heatmap">Heatmap</button>
-                        </div>
-                        <button class="chart-btn active" data-period="1D">1D</button>
-                        <button class="chart-btn" data-period="1W">1W</button>
-                        <button class="chart-btn" data-period="1M">1M</button>
-                        <button class="chart-btn" data-period="3M">3M</button>
-                        <button class="chart-btn" data-period="6M">6M</button>
-                        <button class="chart-btn" data-period="1Y">1Y</button>
-                        <button class="chart-btn" data-period="5Y">5Y</button>
+                        <button class="chart-btn active" data-view="combined">Combined</button>
+                        <button class="chart-btn" data-view="momentum">Momentum</button>
+                        <button class="chart-btn" data-view="volatility">Volatility</button>
+                        <button class="chart-btn" data-view="correlation">Correlation</button>
+                        <button class="chart-btn" data-view="divergence">Divergence</button>
                     </div>
                 </div>
-                <div id="mainChart"></div>
+                <div id="mainChart" style="height: 500px;"></div>
             </div>
             
-            <!-- Risk Matrix -->
-            <div class="risk-matrix" id="riskMatrix">
-                <!-- Populated dynamically -->
+            <!-- Dashboard Data Grid -->
+            <div class="data-grid" id="overviewGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
             </div>
         </div>
         
-        <!-- Liquidity Crisis Tab -->
+        <!-- Enhanced Heatmap Tab -->
+        <div class="tab-content" id="heatmap">
+            <div class="heatmap-container">
+                <div class="heatmap-header">
+                    <h2 class="heatmap-title">🔥 Enhanced Real-Time Heatmap</h2>
+                    <div class="heatmap-controls">
+                        <button class="heatmap-btn active" onclick="updateHeatmapView('all')">All</button>
+                        <button class="heatmap-btn" onclick="updateHeatmapView('macro')">Macro</button>
+                        <button class="heatmap-btn" onclick="updateHeatmapView('risk')">Risk</button>
+                        <button class="heatmap-btn" onclick="updateHeatmapView('liquidity')">Liquidity</button>
+                        <button class="heatmap-btn" onclick="updateHeatmapView('momentum')">Momentum</button>
+                        <button class="heatmap-btn" onclick="toggleHeatmapSort()">Sort ↕</button>
+                    </div>
+                </div>
+                
+                <div class="heatmap-grid" id="heatmapGrid">
+                    <div class="heatmap-cell header">Indicator</div>
+                    <div class="heatmap-cell header">Current</div>
+                    <div class="heatmap-cell header">1D %</div>
+                    <div class="heatmap-cell header">1W %</div>
+                    <div class="heatmap-cell header">1M %</div>
+                    <div class="heatmap-cell header">Momentum</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Momentum Analysis Tab -->
+        <div class="tab-content" id="momentum">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">⚡ Advanced Momentum Analysis</h2>
+                </div>
+                <div id="momentumChart" style="height: 500px;"></div>
+            </div>
+            
+            <div class="analytics-panel">
+                <h2 class="analytics-title">Momentum Signals</h2>
+                <div id="momentumSignals" class="analytics-grid">
+                    <!-- Momentum signals will be populated here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Trend Detection Tab -->
+        <div class="tab-content" id="trends">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">📊 Early Trend Detection System</h2>
+                </div>
+                <div id="trendChart" style="height: 500px;"></div>
+            </div>
+            
+            <div class="analytics-panel">
+                <h2 class="analytics-title">Trend Breakout Candidates</h2>
+                <div id="trendCandidates" class="data-grid">
+                    <!-- Trend candidates will be populated here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Other tabs content continues... -->
+        <div class="tab-content" id="fed">
+            <div class="chart-container">
+                <div id="fedChart" style="height: 500px;"></div>
+            </div>
+            <div class="data-grid" id="fedGrid">
+                <div class="loading"><div class="spinner"></div></div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="blackswan">
+            <div class="chart-container">
+                <div id="blackSwanChart" style="height: 500px;"></div>
+            </div>
+            <div class="data-grid" id="blackSwanGrid">
+                <div class="loading"><div class="spinner"></div></div>
+            </div>
+        </div>
+        
         <div class="tab-content" id="liquidity">
-            <!-- LIBOR-OIS Spread Monitor -->
-            <div class="libor-ois-monitor">
-                <h3 style="margin-bottom: 1rem;">LIBOR-OIS & SOFR-Fed Funds Spreads</h3>
-                <div class="spread-indicator">
-                    <span class="spread-name">3M LIBOR-OIS</span>
-                    <span class="spread-value positive">12.5 bps</span>
-                    <span class="spread-threshold">Normal < 25bps</span>
-                </div>
-                <div class="spread-indicator">
-                    <span class="spread-name">SOFR-Fed Funds</span>
-                    <span class="spread-value positive">4.2 bps</span>
-                    <span class="spread-threshold">Normal < 10bps</span>
-                </div>
-                <div class="spread-indicator">
-                    <span class="spread-name">TED Spread</span>
-                    <span class="spread-value positive">18.3 bps</span>
-                    <span class="spread-threshold">Normal < 50bps</span>
-                </div>
-            </div>
-            
-            <!-- Cross-Currency Basis Monitor -->
-            <div class="basis-monitor" id="basisMonitor">
-                <!-- Populated dynamically -->
-            </div>
-            
-            <!-- Liquidity Depth Chart -->
             <div class="chart-container">
-                <div class="chart-header">
-                    <h2 class="chart-title">Global Liquidity Conditions</h2>
-                </div>
-                <div id="liquidityChart"></div>
+                <div id="liquidityChart" style="height: 500px;"></div>
             </div>
-        </div>
-        
-        <!-- Dollar Shortage Tab -->
-        <div class="tab-content" id="dollar">
-            <!-- Dollar Swap Lines Monitor -->
-            <div class="swap-lines-monitor">
-                <div class="swap-lines-header">
-                    <h3 class="swap-lines-title">🏦 Fed Dollar Swap Lines Usage</h3>
-                    <span style="color: #ffaa00;">Total: $47.8B</span>
-                </div>
-                <div class="swap-lines-grid">
-                    <div class="swap-line-item">
-                        <div class="swap-line-country">ECB</div>
-                        <div class="swap-line-amount">$22.5B</div>
-                        <div class="swap-line-trend positive">▲ 12%</div>
-                    </div>
-                    <div class="swap-line-item">
-                        <div class="swap-line-country">BoJ</div>
-                        <div class="swap-line-amount">$8.3B</div>
-                        <div class="swap-line-trend negative">▼ 5%</div>
-                    </div>
-                    <div class="swap-line-item">
-                        <div class="swap-line-country">BoE</div>
-                        <div class="swap-line-amount">$6.7B</div>
-                        <div class="swap-line-trend positive">▲ 8%</div>
-                    </div>
-                    <div class="swap-line-item">
-                        <div class="swap-line-country">SNB</div>
-                        <div class="swap-line-amount">$5.2B</div>
-                        <div class="swap-line-trend neutral">— 0%</div>
-                    </div>
-                    <div class="swap-line-item">
-                        <div class="swap-line-country">BoC</div>
-                        <div class="swap-line-amount">$3.1B</div>
-                        <div class="swap-line-trend positive">▲ 3%</div>
-                    </div>
-                    <div class="swap-line-item">
-                        <div class="swap-line-country">Others</div>
-                        <div class="swap-line-amount">$2.0B</div>
-                        <div class="swap-line-trend positive">▲ 15%</div>
-                    </div>
-                </div>
+            <div class="data-grid" id="liquidityGrid">
+                <div class="loading"><div class="spinner"></div></div>
             </div>
-            
-            <!-- Dollar Shortage Chart -->
-            <div class="chart-container">
-                <div class="chart-header">
-                    <h2 class="chart-title">Dollar Funding Stress Indicators</h2>
-                </div>
-                <div id="dollarChart"></div>
-            </div>
-        </div>
-        
-        <!-- Funding Stress Tab -->
-        <div class="tab-content" id="funding">
-            <!-- Overnight Funding Stress Meter -->
-            <div class="funding-stress">
-                <h3 style="margin-bottom: 1rem;">Overnight Funding Stress Level</h3>
-                <div class="stress-meter">
-                    <div class="stress-indicator" id="stressIndicator" style="left: 25%;"></div>
-                </div>
-                <div class="stress-labels">
-                    <span>Low</span>
-                    <span>Moderate</span>
-                    <span>High</span>
-                    <span>Critical</span>
-                </div>
-            </div>
-            
-            <!-- Volume Analysis -->
-            <div class="volume-analysis">
-                <div class="volume-card">
-                    <div class="volume-title">Repo Volume</div>
-                    <div class="volume-bar">
-                        <div class="volume-fill" style="height: 75%;"></div>
-                    </div>
-                    <div class="volume-value">$1.2T</div>
-                </div>
-                <div class="volume-card">
-                    <div class="volume-title">Reverse Repo</div>
-                    <div class="volume-bar">
-                        <div class="volume-fill" style="height: 60%;"></div>
-                    </div>
-                    <div class="volume-value">$2.1T</div>
-                </div>
-                <div class="volume-card">
-                    <div class="volume-title">CP Market</div>
-                    <div class="volume-bar">
-                        <div class="volume-fill" style="height: 45%;"></div>
-                    </div>
-                    <div class="volume-value">$450B</div>
-                </div>
-                <div class="volume-card">
-                    <div class="volume-title">CD Issuance</div>
-                    <div class="volume-bar">
-                        <div class="volume-fill" style="height: 30%;"></div>
-                    </div>
-                    <div class="volume-value">$280B</div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Fed Operations Tab -->
-        <div class="tab-content" id="fedops">
-            <div class="fed-operations">
-                <h3 style="margin-bottom: 1rem; color: #00ccff;">Federal Reserve Operations</h3>
-                <div class="operations-grid">
-                    <div class="operation-card">
-                        <div class="operation-type">Balance Sheet</div>
-                        <div class="operation-amount">$7.64T</div>
-                        <div class="operation-detail">▼ $95B monthly runoff</div>
-                    </div>
-                    <div class="operation-card">
-                        <div class="operation-type">Standing Repo Facility</div>
-                        <div class="operation-amount">$500B</div>
-                        <div class="operation-detail">Capacity available</div>
-                    </div>
-                    <div class="operation-card">
-                        <div class="operation-type">FIMA Repo</div>
-                        <div class="operation-amount">$60B</div>
-                        <div class="operation-detail">Daily limit per counterparty</div>
-                    </div>
-                    <div class="operation-card">
-                        <div class="operation-type">Discount Window</div>
-                        <div class="operation-amount">$11.5B</div>
-                        <div class="operation-detail">Current borrowing</div>
-                    </div>
-                    <div class="operation-card">
-                        <div class="operation-type">Bank Reserves</div>
-                        <div class="operation-amount">$3.2T</div>
-                        <div class="operation-detail">Ample reserves regime</div>
-                    </div>
-                    <div class="operation-card">
-                        <div class="operation-type">TGA Balance</div>
-                        <div class="operation-amount">$750B</div>
-                        <div class="operation-detail">Treasury General Account</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Risk Matrix Tab -->
-        <div class="tab-content" id="risk">
-            <h3 style="margin-bottom: 1rem;">Comprehensive Risk Assessment Matrix</h3>
-            <div class="risk-matrix" id="fullRiskMatrix">
-                <!-- Populated with all risk indicators -->
-            </div>
-        </div>
-        
-        <!-- Advanced Charts Tab -->
-        <div class="tab-content" id="advanced">
-            <div class="chart-container">
-                <div class="chart-header">
-                    <h2 class="chart-title">Professional Trading View</h2>
-                    <div class="chart-controls">
-                        <button class="chart-btn" onclick="addIndicator('MA')">+ MA</button>
-                        <button class="chart-btn" onclick="addIndicator('RSI')">+ RSI</button>
-                        <button class="chart-btn" onclick="addIndicator('MACD')">+ MACD</button>
-                        <button class="chart-btn" onclick="addIndicator('BB')">+ Bollinger</button>
-                        <button class="chart-btn" onclick="addIndicator('Volume')">+ Volume</button>
-                    </div>
-                </div>
-                <div id="advancedChart"></div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Real-time Alerts Panel -->
-    <div class="alerts-panel" id="alertsPanel" style="display: none;">
-        <div class="alerts-header">
-            <span class="alerts-title">⚠️ Real-Time Alerts</span>
-            <button class="alerts-close" onclick="closeAlerts()">×</button>
-        </div>
-        <div class="alerts-list" id="alertsList">
-            <!-- Populated dynamically -->
         </div>
     </div>
     
@@ -1275,809 +903,1420 @@
             }
         };
         
-        // Global state with all indicators from our conversations
-        let platformState = {
-            criticalIndicators: {
-                // Dollar Shortage Indicators
-                eurUsdBasis: -42,
-                jpyUsdBasis: -38,
-                gbpUsdBasis: -28,
-                chfUsdBasis: -25,
-                swapLineUsage: 47.8,
-                
-                // Liquidity Stress Indicators
-                tedSpread: 18.3,
-                liborOis3m: 12.5,
-                sofrFedFunds: 4.2,
-                overnightRepo: 5.15,
-                termRepo: 5.35,
-                
-                // Market Structure
-                vix: 14.57,
-                vvix: 98.2,
-                skew: 128.5,
-                move: 52.3,
-                
-                // Credit Spreads
-                igSpread: 85,
-                hySpread: 325,
-                cdsSpread: 68,
-                
-                // Fed Operations
-                fedBalance: 7640,
-                rrp: 2100,
-                bankReserves: 3200,
-                tga: 750,
-                
-                // Term Structure
-                yield3m: 5.25,
-                yield2y: 4.65,
-                yield10y: 4.23,
-                yield30y: 4.45,
-                term2s10s: -42,
-                term5s30s: -15,
-                
-                // FX and Commodities
-                dxy: 108.32,
-                gold: 2048.50,
-                oil: 78.45,
-                bitcoin: 67845,
-                
-                // Economic Indicators
-                cpi: 3.2,
-                pce: 2.8,
-                unemployment: 3.9,
-                gdp: 2.1
-            },
-            alerts: [],
+        // Enhanced Global State with Advanced Analytics
+        let currentData = {
+            overview: {},
+            fed: {},
+            blackswan: {},
+            liquidity: {},
+            heatmapData: {},
             historicalData: {},
-            correlations: {},
-            liquidityCrisisScore: 2.3,
-            dollarShortageRisk: 'MODERATE',
-            marketPhase: 'NORMAL',
-            stressLevel: 25
+            customNames: {},
+            momentumScores: {},
+            trendIndicators: {},
+            volatilityMetrics: {},
+            correlationMatrix: {},
+            divergenceSignals: [],
+            earlyWarnings: [],
+            sortOrder: 'value', // 'value', 'change', 'momentum'
+            currentHeatmapView: 'all'
         };
+        
+        let charts = {
+            main: null,
+            momentum: null,
+            trend: null,
+            fed: null,
+            blackswan: null,
+            liquidity: null
+        };
+        
+        let activeTab = 'overview';
+        let currentChartView = 'combined';
+        let autoRefreshInterval = null;
+        let heatmapStabilityBuffer = [];
         
         // Initialize Enhanced Platform
         async function initializePlatform() {
-            console.log('🚀 Initializing OpenBB Platform v9.0 Ultra Enhanced...');
+            console.log('🚀 Initializing OpenBB Platform v9.0 with Advanced Analytics...');
             
-            // Setup all event listeners
-            setupEventListeners();
+            // Load saved customizations
+            loadCustomNames();
             
-            // Initialize all monitors
-            initializeCriticalMetrics();
-            initializeRiskMatrix();
-            initializeProfessionalCharts();
-            
-            // Start real-time monitoring
-            startRealTimeMonitoring();
+            // Test API connections
+            await testAPIConnections();
             
             // Load initial data
             await loadAllData();
             
-            // Check for critical conditions
-            checkCriticalConditions();
+            // Initialize advanced analytics
+            initializeAdvancedAnalytics();
             
-            console.log('✅ Platform initialized with all enhanced features');
+            // Set up event listeners
+            setupEventListeners();
+            
+            // Initialize enhanced charts
+            initializeEnhancedCharts();
+            
+            // Start auto-refresh with stability buffer
+            startStableAutoRefresh();
+            
+            console.log('✅ Platform initialized with advanced features');
         }
         
-        // Initialize Critical Metrics Dashboard
-        function initializeCriticalMetrics() {
-            const metricsGrid = document.getElementById('criticalMetrics');
+        // Load custom indicator names from localStorage
+        function loadCustomNames() {
+            const saved = localStorage.getItem('customIndicatorNames');
+            if (saved) {
+                currentData.customNames = JSON.parse(saved);
+            }
+        }
+        
+        // Save custom indicator names
+        function saveCustomNames() {
+            localStorage.setItem('customIndicatorNames', JSON.stringify(currentData.customNames));
+        }
+        
+        // Make indicator names editable
+        function makeIndicatorNameEditable(element, key) {
+            element.contentEditable = true;
+            element.classList.add('editing');
             
-            const metrics = [
+            const originalText = element.textContent;
+            
+            element.addEventListener('blur', function() {
+                element.contentEditable = false;
+                element.classList.remove('editing');
+                
+                const newName = element.textContent.trim();
+                if (newName && newName !== originalText) {
+                    currentData.customNames[key] = newName;
+                    saveCustomNames();
+                    // Update all instances of this indicator name
+                    updateIndicatorNamesGlobally(key, newName);
+                }
+            });
+            
+            element.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    element.blur();
+                }
+            });
+        }
+        
+        // Update indicator names globally
+        function updateIndicatorNamesGlobally(key, newName) {
+            // Update in metrics
+            document.querySelectorAll(`[data-indicator-key="${key}"]`).forEach(el => {
+                const nameEl = el.querySelector('.metric-title, .indicator-name-text');
+                if (nameEl) nameEl.textContent = newName;
+            });
+        }
+        
+        // Enhanced Analytics Functions
+        function calculateMomentumScore(currentValue, historicalValues) {
+            if (!historicalValues || historicalValues.length < 5) return 0;
+            
+            // Calculate rate of change over different periods
+            const roc1 = ((currentValue - historicalValues[historicalValues.length - 2]) / historicalValues[historicalValues.length - 2]) * 100;
+            const roc5 = ((currentValue - historicalValues[historicalValues.length - 6]) / historicalValues[historicalValues.length - 6]) * 100;
+            const roc10 = historicalValues.length > 10 ? ((currentValue - historicalValues[historicalValues.length - 11]) / historicalValues[historicalValues.length - 11]) * 100 : roc5;
+            
+            // Calculate momentum score (weighted average)
+            const momentum = (roc1 * 0.5 + roc5 * 0.3 + roc10 * 0.2);
+            
+            // Normalize to -100 to +100 scale
+            return Math.max(-100, Math.min(100, momentum));
+        }
+        
+        function detectTrendReversal(values) {
+            if (!values || values.length < 20) return null;
+            
+            // Calculate moving averages
+            const ma5 = calculateMA(values, 5);
+            const ma20 = calculateMA(values, 20);
+            
+            // Check for crossovers
+            const recentMA5 = ma5.slice(-2);
+            const recentMA20 = ma20.slice(-2);
+            
+            if (recentMA5[0] < recentMA20[0] && recentMA5[1] > recentMA20[1]) {
+                return { type: 'bullish', strength: 'strong' };
+            } else if (recentMA5[0] > recentMA20[0] && recentMA5[1] < recentMA20[1]) {
+                return { type: 'bearish', strength: 'strong' };
+            }
+            
+            return null;
+        }
+        
+        function calculateMA(values, period) {
+            const ma = [];
+            for (let i = period - 1; i < values.length; i++) {
+                const sum = values.slice(i - period + 1, i + 1).reduce((a, b) => a + b, 0);
+                ma.push(sum / period);
+            }
+            return ma;
+        }
+        
+        function calculateVolatilityRank(values) {
+            if (!values || values.length < 10) return 50;
+            
+            // Calculate standard deviation
+            const mean = values.reduce((a, b) => a + b, 0) / values.length;
+            const squaredDiffs = values.map(v => Math.pow(v - mean, 2));
+            const variance = squaredDiffs.reduce((a, b) => a + b, 0) / values.length;
+            const stdDev = Math.sqrt(variance);
+            
+            // Calculate coefficient of variation
+            const cv = (stdDev / Math.abs(mean)) * 100;
+            
+            // Rank on scale of 1-100
+            return Math.min(100, Math.max(1, cv * 2));
+        }
+        
+        function detectDivergence(price, indicator) {
+            if (!price || !indicator || price.length < 10) return null;
+            
+            // Find recent peaks and troughs
+            const pricePeaks = findPeaks(price);
+            const indicatorPeaks = findPeaks(indicator);
+            
+            // Check for divergence
+            if (pricePeaks.higher && !indicatorPeaks.higher) {
+                return { type: 'bearish', strength: 'moderate' };
+            } else if (!pricePeaks.higher && indicatorPeaks.higher) {
+                return { type: 'bullish', strength: 'moderate' };
+            }
+            
+            return null;
+        }
+        
+        function findPeaks(values) {
+            const recent = values.slice(-10);
+            const max = Math.max(...recent);
+            const maxIndex = recent.indexOf(max);
+            const previousMax = Math.max(...recent.slice(0, maxIndex));
+            
+            return {
+                higher: max > previousMax,
+                value: max,
+                index: maxIndex
+            };
+        }
+        
+        // Initialize Advanced Analytics
+        async function initializeAdvancedAnalytics() {
+            // Calculate momentum scores for all indicators
+            for (const [key, data] of Object.entries(currentData.overview.indicators || {})) {
+                if (data && data.value) {
+                    // Generate historical data (in production, fetch from API)
+                    const historical = generateHistoricalData(data.value, 30);
+                    currentData.historicalData[key] = historical;
+                    
+                    // Calculate momentum
+                    currentData.momentumScores[key] = calculateMomentumScore(data.value, historical);
+                    
+                    // Detect trend reversals
+                    const reversal = detectTrendReversal(historical);
+                    if (reversal) {
+                        currentData.earlyWarnings.push({
+                            indicator: key,
+                            signal: reversal,
+                            timestamp: new Date()
+                        });
+                    }
+                    
+                    // Calculate volatility
+                    currentData.volatilityMetrics[key] = calculateVolatilityRank(historical);
+                }
+            }
+            
+            updateAnalyticsDisplay();
+        }
+        
+        // Update Analytics Display
+        function updateAnalyticsDisplay() {
+            const grid = document.getElementById('analyticsGrid');
+            if (!grid) return;
+            
+            grid.innerHTML = '';
+            
+            // Overall Momentum Score
+            const avgMomentum = Object.values(currentData.momentumScores).reduce((a, b) => a + b, 0) / Object.values(currentData.momentumScores).length;
+            document.getElementById('momentumScore').textContent = avgMomentum.toFixed(0);
+            
+            // Trend Strength
+            const trendStrength = Math.abs(avgMomentum);
+            document.getElementById('trendStrength').textContent = trendStrength.toFixed(0) + '%';
+            
+            // Volatility Rank
+            const avgVolatility = Object.values(currentData.volatilityMetrics).reduce((a, b) => a + b, 0) / Object.values(currentData.volatilityMetrics).length;
+            document.getElementById('volatilityRank').textContent = avgVolatility.toFixed(0);
+            
+            // Create analytics cards
+            const analyticsData = [
                 {
-                    key: 'tedSpread',
-                    name: 'TED Spread',
-                    value: platformState.criticalIndicators.tedSpread,
-                    unit: 'bps',
-                    threshold: 50,
-                    critical: 100
+                    label: 'Market Momentum',
+                    value: avgMomentum.toFixed(1),
+                    trend: avgMomentum > 0 ? 'bullish' : avgMomentum < 0 ? 'bearish' : 'neutral',
+                    description: getMomentumDescription(avgMomentum)
                 },
                 {
-                    key: 'liborOis3m',
-                    name: 'LIBOR-OIS 3M',
-                    value: platformState.criticalIndicators.liborOis3m,
-                    unit: 'bps',
-                    threshold: 25,
-                    critical: 50
+                    label: 'Trend Reversals Detected',
+                    value: currentData.earlyWarnings.length,
+                    trend: currentData.earlyWarnings.length > 3 ? 'bearish' : 'neutral',
+                    description: `${currentData.earlyWarnings.length} potential reversals`
                 },
                 {
-                    key: 'eurUsdBasis',
-                    name: 'EUR/USD Basis',
-                    value: platformState.criticalIndicators.eurUsdBasis,
-                    unit: 'bps',
-                    threshold: -50,
-                    critical: -100
+                    label: 'Volatility Percentile',
+                    value: avgVolatility.toFixed(0) + '%',
+                    trend: avgVolatility > 70 ? 'bearish' : avgVolatility < 30 ? 'bullish' : 'neutral',
+                    description: getVolatilityDescription(avgVolatility)
                 },
                 {
-                    key: 'swapLineUsage',
-                    name: 'Fed Swap Lines',
-                    value: platformState.criticalIndicators.swapLineUsage,
-                    unit: 'B',
-                    threshold: 100,
-                    critical: 500
-                },
-                {
-                    key: 'vix',
-                    name: 'VIX',
-                    value: platformState.criticalIndicators.vix,
-                    unit: '',
-                    threshold: 20,
-                    critical: 30
-                },
-                {
-                    key: 'rrp',
-                    name: 'Reverse Repo',
-                    value: platformState.criticalIndicators.rrp / 1000,
-                    unit: 'T',
-                    threshold: 2.5,
-                    critical: 3.0
-                },
-                {
-                    key: 'term2s10s',
-                    name: '2s10s Spread',
-                    value: platformState.criticalIndicators.term2s10s,
-                    unit: 'bps',
-                    threshold: 0,
-                    critical: -50
-                },
-                {
-                    key: 'hySpread',
-                    name: 'HY Spread',
-                    value: platformState.criticalIndicators.hySpread,
-                    unit: 'bps',
-                    threshold: 400,
-                    critical: 600
+                    label: 'Risk Score',
+                    value: calculateRiskScore().toFixed(0),
+                    trend: calculateRiskScore() > 70 ? 'bearish' : calculateRiskScore() < 30 ? 'bullish' : 'neutral',
+                    description: getRiskDescription(calculateRiskScore())
                 }
             ];
             
-            metricsGrid.innerHTML = '';
-            
-            metrics.forEach(metric => {
-                const card = createMetricCard(metric);
-                metricsGrid.appendChild(card);
+            analyticsData.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'analytics-card';
+                card.innerHTML = `
+                    <div class="analytics-label">${item.label}</div>
+                    <div class="analytics-value ${item.trend === 'bullish' ? 'positive' : item.trend === 'bearish' ? 'negative' : 'neutral'}">
+                        ${item.value}
+                        <span class="momentum-signal signal-${item.trend}">${item.trend.toUpperCase()}</span>
+                    </div>
+                    <div class="trend-indicator">
+                        <span class="trend-arrow">${item.trend === 'bullish' ? '↑' : item.trend === 'bearish' ? '↓' : '→'}</span>
+                        <span>${item.description}</span>
+                    </div>
+                `;
+                grid.appendChild(card);
             });
         }
         
-        // Create metric card with enhanced features
-        function createMetricCard(metric) {
-            const card = document.createElement('div');
-            card.className = 'metric-card';
+        function getMomentumDescription(momentum) {
+            if (momentum > 50) return 'Strong upward momentum';
+            if (momentum > 20) return 'Moderate upward momentum';
+            if (momentum > 0) return 'Weak upward momentum';
+            if (momentum > -20) return 'Weak downward momentum';
+            if (momentum > -50) return 'Moderate downward momentum';
+            return 'Strong downward momentum';
+        }
+        
+        function getVolatilityDescription(volatility) {
+            if (volatility > 80) return 'Extreme volatility';
+            if (volatility > 60) return 'High volatility';
+            if (volatility > 40) return 'Moderate volatility';
+            if (volatility > 20) return 'Low volatility';
+            return 'Very low volatility';
+        }
+        
+        function getRiskDescription(risk) {
+            if (risk > 80) return 'Very high risk';
+            if (risk > 60) return 'High risk';
+            if (risk > 40) return 'Moderate risk';
+            if (risk > 20) return 'Low risk';
+            return 'Very low risk';
+        }
+        
+        function calculateRiskScore() {
+            const vix = currentData.overview.indicators?.VIXCLS?.value || 20;
+            const tedSpread = currentData.overview.indicators?.TEDRATE?.value || 0.3;
+            const volatility = Object.values(currentData.volatilityMetrics).reduce((a, b) => a + b, 0) / Object.values(currentData.volatilityMetrics).length || 50;
             
-            // Determine status
-            let status = 'normal';
-            let badge = 'NORMAL';
+            // Weighted risk score
+            const riskScore = (vix * 0.4) + (tedSpread * 100 * 0.3) + (volatility * 0.3);
+            return Math.min(100, Math.max(0, riskScore));
+        }
+        
+        // Enhanced Heatmap with Stability
+        async function loadStableHeatmapData() {
+            try {
+                const [overviewData, fedData, blackswanData, liquidityData] = await Promise.all([
+                    fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.overview).then(r => r.json()),
+                    fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.fed).then(r => r.json()),
+                    fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.blackswan).then(r => r.json()),
+                    fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.liquidity).then(r => r.json())
+                ]);
+                
+                const allIndicators = {
+                    ...overviewData.indicators,
+                    ...fedData.indicators,
+                    ...blackswanData.indicators,
+                    ...liquidityData.indicators
+                };
+                
+                // Apply stability buffer (smooth out rapid changes)
+                const stabilizedData = applyStabilityBuffer(allIndicators);
+                
+                // Calculate enhanced metrics
+                const heatmapData = calculateEnhancedHeatmapData(stabilizedData);
+                
+                currentData.heatmapData = heatmapData;
+                updateEnhancedHeatmapDisplay(heatmapData);
+                
+            } catch (error) {
+                console.error('Error loading heatmap data:', error);
+            }
+        }
+        
+        function applyStabilityBuffer(indicators) {
+            // Add new data to buffer
+            heatmapStabilityBuffer.push(indicators);
             
-            if (metric.key.includes('Basis') && metric.value < metric.threshold) {
-                status = metric.value < metric.critical ? 'danger' : 'warning';
-                badge = metric.value < metric.critical ? 'CRITICAL' : 'WARNING';
-            } else if (metric.value > metric.critical) {
-                status = 'danger';
-                badge = 'CRITICAL';
-            } else if (metric.value > metric.threshold) {
-                status = 'warning';
-                badge = 'WARNING';
+            // Keep only last 3 readings
+            if (heatmapStabilityBuffer.length > 3) {
+                heatmapStabilityBuffer.shift();
             }
             
-            if (status === 'warning') card.classList.add('warning');
-            if (status === 'danger') card.classList.add('danger');
+            // If we don't have enough data, return as-is
+            if (heatmapStabilityBuffer.length < 2) {
+                return indicators;
+            }
             
-            const changePercent = (Math.random() * 10 - 5).toFixed(2);
-            const changeClass = changePercent >= 0 ? 'positive' : 'negative';
+            // Average the values for stability
+            const stabilized = {};
+            for (const key in indicators) {
+                const values = heatmapStabilityBuffer.map(buffer => buffer[key]?.value).filter(v => v !== undefined);
+                if (values.length > 0) {
+                    stabilized[key] = {
+                        ...indicators[key],
+                        value: values.reduce((a, b) => a + b, 0) / values.length,
+                        stabilized: true
+                    };
+                }
+            }
             
-            card.innerHTML = `
-                <div class="metric-header">
-                    <div class="metric-title">${metric.name}</div>
-                    <span class="metric-badge badge-${status}">${badge}</span>
-                </div>
-                <div class="metric-value ${changeClass}">
-                    ${metric.value.toFixed(2)}${metric.unit ? ' ' + metric.unit : ''}
-                </div>
-                <div class="metric-change ${changeClass}">
-                    <span>${changePercent >= 0 ? '▲' : '▼'}</span> 
-                    ${Math.abs(changePercent)}%
-                </div>
-                <div class="metric-sparkline" id="spark-${metric.key}"></div>
-            `;
-            
-            // Add click handler for detailed view
-            card.addEventListener('click', () => showDetailedMetric(metric));
-            
-            return card;
+            return stabilized;
         }
         
-        // Initialize Risk Matrix
-        function initializeRiskMatrix() {
-            const matrix = document.getElementById('riskMatrix');
-            const fullMatrix = document.getElementById('fullRiskMatrix');
+        function calculateEnhancedHeatmapData(indicators) {
+            const heatmapData = {};
             
-            const risks = [
-                { name: 'Liquidity', value: 3.2, max: 10 },
-                { name: 'Credit', value: 4.1, max: 10 },
-                { name: 'Dollar', value: 5.8, max: 10 },
-                { name: 'Systemic', value: 2.9, max: 10 },
-                { name: 'Volatility', value: 3.5, max: 10 },
-                { name: 'Funding', value: 4.2, max: 10 },
-                { name: 'Contagion', value: 2.1, max: 10 },
-                { name: 'Leverage', value: 6.3, max: 10 },
-                { name: 'Correlation', value: 7.1, max: 10 },
-                { name: 'Tail Risk', value: 3.8, max: 10 }
-            ];
-            
-            [matrix, fullMatrix].forEach(container => {
-                if (!container) return;
+            for (const [key, data] of Object.entries(indicators)) {
+                if (!data || data.value === null || data.value === undefined) continue;
                 
-                container.innerHTML = '';
-                risks.forEach(risk => {
-                    const cell = document.createElement('div');
-                    cell.className = 'risk-cell';
-                    
-                    if (risk.value < 3) {
-                        cell.classList.add('risk-low');
-                    } else if (risk.value < 6) {
-                        cell.classList.add('risk-moderate');
-                    } else if (risk.value < 8) {
-                        cell.classList.add('risk-high');
-                    } else {
-                        cell.classList.add('risk-critical');
-                    }
-                    
-                    cell.innerHTML = `
-                        <div class="risk-label">${risk.name}</div>
-                        <div class="risk-value">${risk.value.toFixed(1)}</div>
-                    `;
-                    
-                    container.appendChild(cell);
-                });
+                const currentValue = parseFloat(data.value);
+                const historical = currentData.historicalData[key] || generateHistoricalData(currentValue, 30);
+                
+                // Calculate more accurate percentage changes
+                const dayAgo = historical[historical.length - 2] || currentValue;
+                const weekAgo = historical[historical.length - 8] || currentValue;
+                const monthAgo = historical[0] || currentValue;
+                
+                const dayChange = ((currentValue - dayAgo) / dayAgo) * 100;
+                const weekChange = ((currentValue - weekAgo) / weekAgo) * 100;
+                const monthChange = ((currentValue - monthAgo) / monthAgo) * 100;
+                
+                // Calculate momentum
+                const momentum = calculateMomentumScore(currentValue, historical);
+                
+                heatmapData[key] = {
+                    name: currentData.customNames[key] || getIndicatorDisplayName(key),
+                    currentValue: currentValue,
+                    dayChange: dayChange,
+                    weekChange: weekChange,
+                    monthChange: monthChange,
+                    momentum: momentum,
+                    category: categorizeIndicator(key),
+                    volatility: calculateVolatilityRank(historical),
+                    trend: momentum > 20 ? 'bullish' : momentum < -20 ? 'bearish' : 'neutral'
+                };
+            }
+            
+            return heatmapData;
+        }
+        
+        function updateEnhancedHeatmapDisplay(heatmapData) {
+            const grid = document.getElementById('heatmapGrid');
+            if (!grid) return;
+            
+            // Keep headers
+            const headers = grid.querySelectorAll('.header');
+            grid.innerHTML = '';
+            headers.forEach(header => grid.appendChild(header));
+            
+            // Filter and sort data
+            let filteredData = filterHeatmapData(heatmapData);
+            let sortedEntries = sortHeatmapData(filteredData);
+            
+            // Display rows
+            sortedEntries.forEach(([key, data]) => {
+                // Indicator name (editable)
+                const nameCell = document.createElement('div');
+                nameCell.className = 'heatmap-cell indicator-name';
+                nameCell.dataset.indicatorKey = key;
+                nameCell.innerHTML = `
+                    <span class="indicator-name-text" onclick="makeIndicatorNameEditable(this, '${key}')">${data.name}</span>
+                `;
+                grid.appendChild(nameCell);
+                
+                // Current value
+                const valueCell = document.createElement('div');
+                valueCell.className = 'heatmap-cell';
+                valueCell.innerHTML = `<div class="heatmap-value">${formatValue(data.currentValue, key)}</div>`;
+                grid.appendChild(valueCell);
+                
+                // Day change
+                grid.appendChild(createEnhancedHeatmapCell(data.dayChange, '1D'));
+                
+                // Week change
+                grid.appendChild(createEnhancedHeatmapCell(data.weekChange, '1W'));
+                
+                // Month change
+                grid.appendChild(createEnhancedHeatmapCell(data.monthChange, '1M'));
+                
+                // Momentum indicator
+                const momentumCell = document.createElement('div');
+                momentumCell.className = 'heatmap-cell';
+                momentumCell.innerHTML = `
+                    <div class="momentum-indicator">
+                        <div class="momentum-bar momentum-${getMomentumClass(data.momentum)}" 
+                             style="width: ${Math.abs(data.momentum)}%"></div>
+                    </div>
+                    <div class="heatmap-label">${data.momentum.toFixed(0)}</div>
+                `;
+                grid.appendChild(momentumCell);
             });
         }
         
-        // Initialize Professional Charts
-        function initializeProfessionalCharts() {
-            // Main Chart Configuration
-            const chartConfig = {
+        function filterHeatmapData(data) {
+            if (currentData.currentHeatmapView === 'all') {
+                return data;
+            }
+            
+            if (currentData.currentHeatmapView === 'momentum') {
+                // Show only high momentum indicators
+                return Object.fromEntries(
+                    Object.entries(data).filter(([_, d]) => Math.abs(d.momentum) > 30)
+                );
+            }
+            
+            return Object.fromEntries(
+                Object.entries(data).filter(([_, d]) => d.category === currentData.currentHeatmapView)
+            );
+        }
+        
+        function sortHeatmapData(data) {
+            const entries = Object.entries(data);
+            
+            switch (currentData.sortOrder) {
+                case 'change':
+                    return entries.sort((a, b) => Math.abs(b[1].monthChange) - Math.abs(a[1].monthChange));
+                case 'momentum':
+                    return entries.sort((a, b) => Math.abs(b[1].momentum) - Math.abs(a[1].momentum));
+                case 'value':
+                default:
+                    return entries.sort((a, b) => Math.abs(b[1].currentValue) - Math.abs(a[1].currentValue));
+            }
+        }
+        
+        function toggleHeatmapSort() {
+            const orders = ['value', 'change', 'momentum'];
+            const currentIndex = orders.indexOf(currentData.sortOrder);
+            currentData.sortOrder = orders[(currentIndex + 1) % orders.length];
+            updateEnhancedHeatmapDisplay(currentData.heatmapData);
+        }
+        
+        function createEnhancedHeatmapCell(value, label) {
+            const cell = document.createElement('div');
+            cell.className = `heatmap-cell ${getHeatmapColorClass(value)}`;
+            
+            const formattedValue = value !== null && value !== undefined ? 
+                `${value >= 0 ? '+' : ''}${value.toFixed(2)}%` : 'N/A';
+            
+            cell.innerHTML = `
+                <div class="heatmap-value">${formattedValue}</div>
+                <div class="heatmap-label">${label}</div>
+            `;
+            
+            return cell;
+        }
+        
+        function getMomentumClass(momentum) {
+            if (momentum > 50) return 'strong-bullish';
+            if (momentum > 20) return 'bullish';
+            if (momentum < -50) return 'strong-bearish';
+            if (momentum < -20) return 'bearish';
+            return 'neutral';
+        }
+        
+        function getHeatmapColorClass(value) {
+            if (value === null || value === undefined) return 'heat-neutral';
+            
+            if (value < -10) return 'heat-extreme-negative';
+            if (value < -5) return 'heat-high-negative';
+            if (value < -2) return 'heat-moderate-negative';
+            if (value < 0) return 'heat-low-negative';
+            if (value < 2) return 'heat-neutral';
+            if (value < 5) return 'heat-moderate-positive';
+            if (value < 10) return 'heat-high-positive';
+            return 'heat-extreme-positive';
+        }
+        
+        // Enhanced Chart Functions
+        function initializeEnhancedCharts() {
+            const darkTheme = {
                 paper_bgcolor: 'rgba(0, 0, 0, 0)',
                 plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
-                font: { color: '#fff', family: 'Inter, system-ui, sans-serif' },
+                font: { color: '#fff' },
                 xaxis: {
                     gridcolor: 'rgba(255, 255, 255, 0.1)',
-                    tickfont: { color: '#888' },
-                    showgrid: true
+                    tickfont: { color: '#888' }
                 },
                 yaxis: {
                     gridcolor: 'rgba(255, 255, 255, 0.1)',
-                    tickfont: { color: '#888' },
-                    showgrid: true
+                    tickfont: { color: '#888' }
                 },
                 showlegend: true,
                 legend: {
                     orientation: 'h',
                     y: -0.15,
-                    font: { color: '#888' }
-                },
-                margin: { t: 40, r: 40, b: 60, l: 60 }
+                    bgcolor: 'rgba(0, 0, 0, 0.5)'
+                }
             };
             
             const config = {
                 responsive: true,
                 displayModeBar: true,
                 displaylogo: false,
-                modeBarButtonsToRemove: ['pan2d', 'lasso2d', 'select2d']
+                modeBarButtonsToRemove: ['pan2d', 'lasso2d']
             };
             
-            // Initialize Main Chart with multiple traces
-            initializeMainChart(chartConfig, config);
+            // Initialize main chart with multiple traces
+            Plotly.newPlot('mainChart', [], darkTheme, config);
             
-            // Initialize Liquidity Chart
-            initializeLiquidityChart(chartConfig, config);
+            // Initialize momentum chart
+            if (document.getElementById('momentumChart')) {
+                Plotly.newPlot('momentumChart', [], darkTheme, config);
+            }
             
-            // Initialize Dollar Chart
-            initializeDollarChart(chartConfig, config);
+            // Initialize trend chart
+            if (document.getElementById('trendChart')) {
+                Plotly.newPlot('trendChart', [], darkTheme, config);
+            }
         }
         
-        // Initialize Main Chart with professional features
-        function initializeMainChart(chartConfig, config) {
-            const dates = generateDateRange(90);
+        async function updateEnhancedMainChart(view = 'combined') {
+            const indicators = currentData.overview.indicators || {};
+            const traces = [];
             
-            // Generate realistic data
-            const vixData = generateRealisticTimeSeries(14.57, 0.5, 90, 10, 30);
-            const tedData = generateRealisticTimeSeries(0.183, 0.02, 90, 0.1, 1.0);
-            const sp500Data = generateRealisticTimeSeries(5950, 20, 90, 5500, 6200);
-            
-            const traces = [
-                {
-                    x: dates,
-                    y: vixData,
-                    type: 'scatter',
-                    mode: 'lines',
-                    name: 'VIX',
-                    line: { color: '#00ff88', width: 2 },
-                    yaxis: 'y'
-                },
-                {
-                    x: dates,
-                    y: tedData.map(v => v * 100),
-                    type: 'scatter',
-                    mode: 'lines',
-                    name: 'TED Spread (bps)',
-                    line: { color: '#ffaa00', width: 2 },
-                    yaxis: 'y2'
-                },
-                {
-                    x: dates,
-                    y: sp500Data,
-                    type: 'scatter',
-                    mode: 'lines',
-                    name: 'S&P 500',
-                    line: { color: '#00ccff', width: 2 },
-                    yaxis: 'y3',
-                    visible: 'legendonly'
-                }
-            ];
-            
-            const layout = {
-                ...chartConfig,
-                title: {
-                    text: 'Multi-Asset Risk Dashboard',
-                    font: { size: 16, color: '#fff' }
-                },
-                yaxis: {
-                    ...chartConfig.yaxis,
-                    title: 'VIX',
-                    titlefont: { color: '#00ff88' },
-                    tickfont: { color: '#00ff88' }
-                },
-                yaxis2: {
-                    ...chartConfig.yaxis,
-                    title: 'TED Spread (bps)',
-                    titlefont: { color: '#ffaa00' },
-                    tickfont: { color: '#ffaa00' },
-                    overlaying: 'y',
-                    side: 'right'
-                },
-                yaxis3: {
-                    ...chartConfig.yaxis,
-                    title: 'S&P 500',
-                    titlefont: { color: '#00ccff' },
-                    tickfont: { color: '#00ccff' },
-                    overlaying: 'y',
-                    side: 'right',
-                    position: 0.95,
-                    visible: false
-                },
-                annotations: [
-                    {
-                        x: dates[dates.length - 1],
-                        y: vixData[vixData.length - 1],
-                        xref: 'x',
-                        yref: 'y',
-                        text: `VIX: ${vixData[vixData.length - 1].toFixed(2)}`,
-                        showarrow: true,
-                        arrowhead: 2,
-                        ax: -40,
-                        ay: -20,
-                        bgcolor: 'rgba(0, 255, 136, 0.2)',
-                        bordercolor: '#00ff88',
-                        borderwidth: 1
+            switch(view) {
+                case 'combined':
+                    // VIX with Bollinger Bands
+                    if (indicators.VIXCLS) {
+                        const vixData = generateHistoricalData(indicators.VIXCLS.value, 90);
+                        const dates = generateDateRange(90);
+                        const ma20 = calculateMA(vixData, 20);
+                        const stdDev = calculateStandardDeviation(vixData.slice(-20));
+                        
+                        traces.push({
+                            x: dates,
+                            y: vixData,
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: 'VIX',
+                            line: { color: '#00ff88', width: 2 }
+                        });
+                        
+                        // Upper Bollinger Band
+                        traces.push({
+                            x: dates.slice(-ma20.length),
+                            y: ma20.map(v => v + 2 * stdDev),
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: 'Upper BB',
+                            line: { color: 'rgba(255, 68, 68, 0.5)', dash: 'dash' }
+                        });
+                        
+                        // Lower Bollinger Band
+                        traces.push({
+                            x: dates.slice(-ma20.length),
+                            y: ma20.map(v => v - 2 * stdDev),
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: 'Lower BB',
+                            line: { color: 'rgba(0, 255, 136, 0.5)', dash: 'dash' }
+                        });
                     }
-                ]
-            };
-            
-            Plotly.newPlot('mainChart', traces, layout, config);
-        }
-        
-        // Initialize Liquidity Chart
-        function initializeLiquidityChart(chartConfig, config) {
-            const dates = generateDateRange(30);
-            
-            const liborOisData = generateRealisticTimeSeries(12.5, 2, 30, 5, 50);
-            const crossCurrencyData = generateRealisticTimeSeries(-42, 5, 30, -100, -20);
-            const repoSpreadData = generateRealisticTimeSeries(20, 3, 30, 0, 100);
-            
-            const traces = [
-                {
-                    x: dates,
-                    y: liborOisData,
-                    type: 'scatter',
-                    mode: 'lines+markers',
-                    name: 'LIBOR-OIS Spread',
-                    line: { color: '#ff4444', width: 2 },
-                    marker: { size: 4 }
-                },
-                {
-                    x: dates,
-                    y: crossCurrencyData,
-                    type: 'scatter',
-                    mode: 'lines',
-                    name: 'EUR/USD Basis',
-                    line: { color: '#ffaa00', width: 2 }
-                },
-                {
-                    x: dates,
-                    y: repoSpreadData,
-                    type: 'scatter',
-                    mode: 'lines',
-                    name: 'Repo-Fed Funds',
-                    line: { color: '#00ccff', width: 2 }
-                }
-            ];
-            
-            const layout = {
-                ...chartConfig,
-                title: {
-                    text: 'Liquidity Stress Indicators',
-                    font: { size: 16, color: '#fff' }
-                },
-                yaxis: {
-                    ...chartConfig.yaxis,
-                    title: 'Basis Points',
-                    zeroline: true,
-                    zerolinecolor: 'rgba(255, 255, 255, 0.3)',
-                    zerolinewidth: 2
-                },
-                shapes: [
-                    {
-                        type: 'line',
-                        x0: dates[0],
-                        x1: dates[dates.length - 1],
-                        y0: 25,
-                        y1: 25,
-                        line: {
-                            color: 'rgba(255, 68, 68, 0.5)',
-                            width: 2,
-                            dash: 'dot'
+                    break;
+                    
+                case 'momentum':
+                    // Momentum oscillator
+                    const momentumValues = [];
+                    const momentumDates = generateDateRange(30);
+                    
+                    for (const [key, score] of Object.entries(currentData.momentumScores)) {
+                        if (key === 'VIXCLS' || key === 'SP500' || key === 'DTWEXBGS') {
+                            traces.push({
+                                x: momentumDates,
+                                y: generateRandomWalk(score, 5, 30),
+                                type: 'scatter',
+                                mode: 'lines+markers',
+                                name: `${currentData.customNames[key] || key} Momentum`,
+                                line: { width: 2 }
+                            });
                         }
                     }
-                ],
-                annotations: [
-                    {
-                        x: dates[Math.floor(dates.length / 2)],
-                        y: 25,
-                        text: 'Warning Threshold',
-                        showarrow: false,
-                        font: { color: '#ff4444', size: 10 }
+                    break;
+                    
+                case 'volatility':
+                    // Volatility cone
+                    const volData = Object.entries(currentData.volatilityMetrics)
+                        .slice(0, 20)
+                        .map(([key, vol]) => ({
+                            name: currentData.customNames[key] || key,
+                            volatility: vol
+                        }));
+                    
+                    traces.push({
+                        x: volData.map(d => d.name),
+                        y: volData.map(d => d.volatility),
+                        type: 'bar',
+                        marker: {
+                            color: volData.map(d => 
+                                d.volatility > 70 ? '#ff4444' : 
+                                d.volatility > 40 ? '#ffaa00' : '#00ff88'
+                            )
+                        },
+                        name: 'Volatility Rank'
+                    });
+                    break;
+                    
+                case 'correlation':
+                    // Correlation heatmap
+                    const corrMatrix = calculateCorrelationMatrix();
+                    traces.push({
+                        z: corrMatrix.values,
+                        x: corrMatrix.labels,
+                        y: corrMatrix.labels,
+                        type: 'heatmap',
+                        colorscale: 'RdBu',
+                        reversescale: true
+                    });
+                    break;
+                    
+                case 'divergence':
+                    // Show divergence signals
+                    if (indicators.VIXCLS && indicators.SP500) {
+                        const dates = generateDateRange(60);
+                        const vixData = generateHistoricalData(indicators.VIXCLS.value, 60);
+                        const spxData = generateHistoricalData(indicators.SP500.value, 60);
+                        
+                        // Normalize for comparison
+                        const vixNorm = normalizeData(vixData);
+                        const spxNorm = normalizeData(spxData);
+                        
+                        traces.push({
+                            x: dates,
+                            y: vixNorm,
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: 'VIX (normalized)',
+                            line: { color: '#ff4444', width: 2 }
+                        });
+                        
+                        traces.push({
+                            x: dates,
+                            y: spxNorm,
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: 'S&P 500 (normalized)',
+                            line: { color: '#00ff88', width: 2 },
+                            yaxis: 'y2'
+                        });
+                        
+                        // Highlight divergences
+                        const divergencePoints = detectDivergencePoints(vixNorm, spxNorm);
+                        if (divergencePoints.length > 0) {
+                            traces.push({
+                                x: divergencePoints.map(p => dates[p.index]),
+                                y: divergencePoints.map(p => vixNorm[p.index]),
+                                type: 'scatter',
+                                mode: 'markers',
+                                name: 'Divergence Signal',
+                                marker: {
+                                    size: 12,
+                                    color: '#ffaa00',
+                                    symbol: 'diamond'
+                                }
+                            });
+                        }
                     }
-                ]
-            };
-            
-            Plotly.newPlot('liquidityChart', traces, layout, config);
-        }
-        
-        // Initialize Dollar Chart
-        function initializeDollarChart(chartConfig, config) {
-            const dates = generateDateRange(60);
-            
-            const dxyData = generateRealisticTimeSeries(108.32, 0.5, 60, 105, 112);
-            const swapLineData = generateRealisticTimeSeries(47.8, 10, 60, 10, 200);
-            
-            const traces = [
-                {
-                    x: dates,
-                    y: dxyData,
-                    type: 'scatter',
-                    mode: 'lines',
-                    name: 'Dollar Index (DXY)',
-                    line: { color: '#00ff88', width: 2 },
-                    yaxis: 'y'
-                },
-                {
-                    x: dates,
-                    y: swapLineData,
-                    type: 'bar',
-                    name: 'Swap Line Usage ($B)',
-                    marker: { color: '#ffaa00' },
-                    yaxis: 'y2'
-                }
-            ];
+                    break;
+            }
             
             const layout = {
-                ...chartConfig,
-                title: {
-                    text: 'Dollar Shortage Indicators',
-                    font: { size: 16, color: '#fff' }
+                title: `Market Analysis - ${view.charAt(0).toUpperCase() + view.slice(1)} View`,
+                paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
+                font: { color: '#fff' },
+                xaxis: {
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' }
                 },
                 yaxis: {
-                    ...chartConfig.yaxis,
-                    title: 'DXY Index',
-                    titlefont: { color: '#00ff88' },
-                    tickfont: { color: '#00ff88' }
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' },
+                    title: view === 'volatility' ? 'Volatility Rank' : 'Value'
                 },
                 yaxis2: {
-                    ...chartConfig.yaxis,
-                    title: 'Swap Line Usage ($B)',
-                    titlefont: { color: '#ffaa00' },
-                    tickfont: { color: '#ffaa00' },
                     overlaying: 'y',
-                    side: 'right'
+                    side: 'right',
+                    gridcolor: 'rgba(255, 255, 255, 0.05)',
+                    tickfont: { color: '#888' }
+                },
+                showlegend: true,
+                legend: {
+                    orientation: 'h',
+                    y: -0.15,
+                    bgcolor: 'rgba(0, 0, 0, 0.5)'
                 }
             };
             
-            Plotly.newPlot('dollarChart', traces, layout, config);
+            Plotly.newPlot('mainChart', traces, layout);
         }
         
-        // Cross-Currency Basis Monitor
-        function initializeBasisMonitor() {
-            const monitor = document.getElementById('basisMonitor');
+        function normalizeData(data) {
+            const min = Math.min(...data);
+            const max = Math.max(...data);
+            return data.map(v => (v - min) / (max - min));
+        }
+        
+        function detectDivergencePoints(series1, series2) {
+            const points = [];
+            const window = 5;
             
-            const basisPairs = [
-                { pair: 'EUR/USD', basis: -42, trend: 'worsening' },
-                { pair: 'JPY/USD', basis: -38, trend: 'stable' },
-                { pair: 'GBP/USD', basis: -28, trend: 'improving' },
-                { pair: 'CHF/USD', basis: -25, trend: 'stable' },
-                { pair: 'AUD/USD', basis: -35, trend: 'worsening' },
-                { pair: 'CAD/USD', basis: -22, trend: 'improving' }
-            ];
-            
-            monitor.innerHTML = '';
-            
-            basisPairs.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'basis-card';
+            for (let i = window; i < series1.length - window; i++) {
+                const s1Trend = series1[i] - series1[i - window];
+                const s2Trend = series2[i] - series2[i - window];
                 
-                const trendIcon = item.trend === 'improving' ? '📈' : 
-                                 item.trend === 'worsening' ? '📉' : '➡️';
+                // Check for divergence
+                if ((s1Trend > 0 && s2Trend < 0) || (s1Trend < 0 && s2Trend > 0)) {
+                    points.push({
+                        index: i,
+                        strength: Math.abs(s1Trend - s2Trend)
+                    });
+                }
+            }
+            
+            return points;
+        }
+        
+        function calculateStandardDeviation(values) {
+            const mean = values.reduce((a, b) => a + b, 0) / values.length;
+            const squaredDiffs = values.map(v => Math.pow(v - mean, 2));
+            const variance = squaredDiffs.reduce((a, b) => a + b, 0) / values.length;
+            return Math.sqrt(variance);
+        }
+        
+        function calculateCorrelationMatrix() {
+            const indicators = ['VIXCLS', 'SP500', 'DTWEXBGS', 'DGS10', 'WALCL'];
+            const matrix = [];
+            const labels = [];
+            
+            indicators.forEach((ind1, i) => {
+                labels.push(currentData.customNames[ind1] || ind1);
+                matrix[i] = [];
+                indicators.forEach((ind2, j) => {
+                    if (i === j) {
+                        matrix[i][j] = 1;
+                    } else {
+                        // Simulate correlation (in production, calculate from historical data)
+                        matrix[i][j] = Math.random() * 2 - 1;
+                    }
+                });
+            });
+            
+            return { values: matrix, labels: labels };
+        }
+        
+        // Update momentum chart
+        async function updateMomentumChart() {
+            if (!document.getElementById('momentumChart')) return;
+            
+            const traces = [];
+            const dates = generateDateRange(60);
+            
+            // RSI-style momentum indicator
+            const rsiTrace = {
+                x: dates,
+                y: generateMomentumOscillator(60),
+                type: 'scatter',
+                mode: 'lines',
+                name: 'Market Momentum Index',
+                line: { color: '#00ccff', width: 2 }
+            };
+            
+            traces.push(rsiTrace);
+            
+            // Add overbought/oversold levels
+            traces.push({
+                x: dates,
+                y: new Array(60).fill(70),
+                type: 'scatter',
+                mode: 'lines',
+                name: 'Overbought',
+                line: { color: '#ff4444', dash: 'dash', width: 1 }
+            });
+            
+            traces.push({
+                x: dates,
+                y: new Array(60).fill(30),
+                type: 'scatter',
+                mode: 'lines',
+                name: 'Oversold',
+                line: { color: '#00ff88', dash: 'dash', width: 1 }
+            });
+            
+            const layout = {
+                title: 'Advanced Momentum Oscillator',
+                paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
+                font: { color: '#fff' },
+                xaxis: {
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' }
+                },
+                yaxis: {
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' },
+                    title: 'Momentum (0-100)',
+                    range: [0, 100]
+                }
+            };
+            
+            Plotly.newPlot('momentumChart', traces, layout);
+            
+            // Update momentum signals
+            updateMomentumSignals();
+        }
+        
+        function generateMomentumOscillator(length) {
+            const values = [];
+            let current = 50;
+            
+            for (let i = 0; i < length; i++) {
+                const change = (Math.random() - 0.5) * 10;
+                current = Math.max(0, Math.min(100, current + change));
+                values.push(current);
+            }
+            
+            return values;
+        }
+        
+        function updateMomentumSignals() {
+            const container = document.getElementById('momentumSignals');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            // Get top momentum movers
+            const topMovers = Object.entries(currentData.momentumScores)
+                .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
+                .slice(0, 6);
+            
+            topMovers.forEach(([key, score]) => {
+                const card = document.createElement('div');
+                card.className = 'analytics-card';
+                
+                const trend = score > 20 ? 'bullish' : score < -20 ? 'bearish' : 'neutral';
+                const signal = getSignalFromMomentum(score);
                 
                 card.innerHTML = `
-                    <div class="basis-pair">${item.pair}</div>
-                    <div class="basis-spread ${item.basis < -40 ? 'negative' : item.basis < -25 ? 'neutral' : 'positive'}">
-                        ${item.basis} bps
+                    <div class="analytics-label">${currentData.customNames[key] || getIndicatorDisplayName(key)}</div>
+                    <div class="analytics-value ${trend === 'bullish' ? 'positive' : trend === 'bearish' ? 'negative' : 'neutral'}">
+                        ${score.toFixed(1)}
+                        <span class="momentum-signal signal-${trend}">${signal}</span>
                     </div>
-                    <div style="font-size: 0.75rem; color: #888;">
-                        Trend: ${trendIcon} ${item.trend}
+                    <div class="momentum-indicator">
+                        <div class="momentum-bar momentum-${getMomentumClass(score)}" 
+                             style="width: ${Math.abs(score)}%"></div>
                     </div>
-                    <div class="basis-chart" id="basis-${item.pair.replace('/', '')}"></div>
                 `;
                 
-                monitor.appendChild(card);
+                container.appendChild(card);
             });
         }
         
-        // Real-time monitoring system
-        function startRealTimeMonitoring() {
-            // Update metrics every 5 seconds
-            setInterval(() => {
-                updateRealTimeMetrics();
-                checkCriticalConditions();
-            }, 5000);
-            
-            // Update charts every 15 seconds
-            setInterval(() => {
-                updateCharts();
-            }, 15000);
-            
-            // Check for new alerts every 10 seconds
-            setInterval(() => {
-                checkForAlerts();
-            }, 10000);
+        function getSignalFromMomentum(score) {
+            if (score > 50) return 'STRONG BUY';
+            if (score > 20) return 'BUY';
+            if (score < -50) return 'STRONG SELL';
+            if (score < -20) return 'SELL';
+            return 'HOLD';
         }
         
-        // Update real-time metrics
-        function updateRealTimeMetrics() {
-            // Simulate real-time updates
-            Object.keys(platformState.criticalIndicators).forEach(key => {
-                const volatility = getVolatilityForIndicator(key);
-                const change = (Math.random() - 0.5) * volatility;
-                platformState.criticalIndicators[key] *= (1 + change / 100);
+        // Update trend chart
+        async function updateTrendChart() {
+            if (!document.getElementById('trendChart')) return;
+            
+            const traces = [];
+            const dates = generateDateRange(90);
+            
+            // Create trend channels for key indicators
+            const indicators = ['VIXCLS', 'SP500', 'DTWEXBGS'];
+            
+            indicators.forEach(key => {
+                const data = currentData.overview.indicators?.[key];
+                if (!data) return;
+                
+                const values = generateHistoricalData(data.value, 90);
+                const trendLine = calculateTrendLine(values);
+                const upperChannel = trendLine.map(v => v * 1.05);
+                const lowerChannel = trendLine.map(v => v * 0.95);
+                
+                // Price line
+                traces.push({
+                    x: dates,
+                    y: values,
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: currentData.customNames[key] || key,
+                    line: { width: 2 }
+                });
+                
+                // Trend line
+                traces.push({
+                    x: dates,
+                    y: trendLine,
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: `${currentData.customNames[key] || key} Trend`,
+                    line: { dash: 'dash', width: 1 },
+                    visible: 'legendonly'
+                });
             });
             
-            // Update displays
-            updateLiquidityCrisisScore();
-            updateDollarShortageMonitor();
-            updateStressIndicator();
+            const layout = {
+                title: 'Multi-Indicator Trend Analysis',
+                paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(0, 0, 0, 0.3)',
+                font: { color: '#fff' },
+                xaxis: {
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' }
+                },
+                yaxis: {
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' }
+                }
+            };
+            
+            Plotly.newPlot('trendChart', traces, layout);
+            
+            // Update trend candidates
+            updateTrendCandidates();
         }
         
-        // Update liquidity crisis score
-        function updateLiquidityCrisisScore() {
-            const indicators = platformState.criticalIndicators;
+        function calculateTrendLine(values) {
+            // Simple linear regression
+            const n = values.length;
+            const x = Array.from({length: n}, (_, i) => i);
+            const sumX = x.reduce((a, b) => a + b, 0);
+            const sumY = values.reduce((a, b) => a + b, 0);
+            const sumXY = x.reduce((acc, xi, i) => acc + xi * values[i], 0);
+            const sumX2 = x.reduce((acc, xi) => acc + xi * xi, 0);
             
-            // Calculate weighted score based on multiple factors
-            let score = 0;
+            const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+            const intercept = (sumY - slope * sumX) / n;
             
-            // TED Spread (weight: 20%)
-            if (indicators.tedSpread > 100) score += 2;
-            else if (indicators.tedSpread > 50) score += 1;
-            else if (indicators.tedSpread > 25) score += 0.5;
+            return x.map(xi => slope * xi + intercept);
+        }
+        
+        function updateTrendCandidates() {
+            const container = document.getElementById('trendCandidates');
+            if (!container) return;
             
-            // LIBOR-OIS (weight: 20%)
-            if (indicators.liborOis3m > 50) score += 2;
-            else if (indicators.liborOis3m > 25) score += 1;
-            else if (indicators.liborOis3m > 15) score += 0.5;
+            container.innerHTML = '';
             
-            // Cross-currency basis (weight: 25%)
-            const avgBasis = (indicators.eurUsdBasis + indicators.jpyUsdBasis) / 2;
-            if (avgBasis < -100) score += 2.5;
-            else if (avgBasis < -50) score += 1.5;
-            else if (avgBasis < -30) score += 0.5;
+            // Identify potential breakouts
+            const candidates = [];
             
-            // Swap line usage (weight: 20%)
-            if (indicators.swapLineUsage > 500) score += 2;
-            else if (indicators.swapLineUsage > 100) score += 1;
-            else if (indicators.swapLineUsage > 50) score += 0.5;
-            
-            // VIX (weight: 15%)
-            if (indicators.vix > 30) score += 1.5;
-            else if (indicators.vix > 20) score += 0.75;
-            else if (indicators.vix > 15) score += 0.25;
-            
-            platformState.liquidityCrisisScore = Math.min(score, 10);
-            
-            const scoreElement = document.getElementById('crisisScore');
-            if (scoreElement) {
-                scoreElement.textContent = `${score.toFixed(1)}/10`;
-                scoreElement.style.color = score > 7 ? '#ff4444' : score > 4 ? '#ffaa00' : '#00ff88';
+            for (const [key, data] of Object.entries(currentData.overview.indicators || {})) {
+                if (!data || !data.value) continue;
+                
+                const momentum = currentData.momentumScores[key] || 0;
+                const volatility = currentData.volatilityMetrics[key] || 50;
+                
+                // Look for low volatility + building momentum
+                if (volatility < 30 && Math.abs(momentum) > 15) {
+                    candidates.push({
+                        indicator: key,
+                        momentum: momentum,
+                        volatility: volatility,
+                        signal: momentum > 0 ? 'Bullish Breakout' : 'Bearish Breakdown',
+                        probability: calculateBreakoutProbability(momentum, volatility)
+                    });
+                }
             }
             
-            // Update indicator lights
-            updateIndicatorLights();
+            // Sort by probability
+            candidates.sort((a, b) => b.probability - a.probability);
+            
+            // Display top candidates
+            candidates.slice(0, 6).forEach(candidate => {
+                const card = document.createElement('div');
+                card.className = 'data-card';
+                
+                const trend = candidate.momentum > 0 ? 'positive' : 'negative';
+                
+                card.innerHTML = `
+                    <div class="data-card-header">
+                        <div class="data-title">${currentData.customNames[candidate.indicator] || getIndicatorDisplayName(candidate.indicator)}</div>
+                        <div class="data-source">${candidate.signal}</div>
+                    </div>
+                    <div class="data-value ${trend}">
+                        ${candidate.probability}%
+                    </div>
+                    <div class="data-change">
+                        <span>Momentum: ${candidate.momentum.toFixed(1)}</span>
+                        <span style="margin-left: 1rem;">Volatility: ${candidate.volatility.toFixed(0)}</span>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
         }
         
-        // Update indicator lights
-        function updateIndicatorLights() {
-            const indicators = [
-                { name: 'TED Spread', value: platformState.criticalIndicators.tedSpread, warning: 50, critical: 100 },
-                { name: 'LIBOR-OIS', value: platformState.criticalIndicators.liborOis3m, warning: 25, critical: 50 },
-                { name: 'Cross-Currency Basis', value: Math.abs(platformState.criticalIndicators.eurUsdBasis), warning: 50, critical: 100 },
-                { name: 'Fed Swap Lines', value: platformState.criticalIndicators.swapLineUsage, warning: 100, critical: 500 },
-                { name: 'Repo Stress', value: platformState.criticalIndicators.overnightRepo - platformState.criticalIndicators.termRepo, warning: 25, critical: 50 }
+        function calculateBreakoutProbability(momentum, volatility) {
+            // Higher momentum + lower volatility = higher probability
+            const momentumScore = Math.min(100, Math.abs(momentum) * 2);
+            const volatilityScore = Math.max(0, 100 - volatility);
+            return Math.round((momentumScore * 0.6 + volatilityScore * 0.4));
+        }
+        
+        // Helper functions
+        function getIndicatorDisplayName(key) {
+            const displayNames = {
+                'VIXCLS': 'VIX Volatility',
+                'SP500': 'S&P 500',
+                'DTWEXBGS': 'US Dollar Index',
+                'DGS10': '10-Year Treasury',
+                'WALCL': 'Fed Balance Sheet',
+                'TEDRATE': 'TED Spread',
+                'UNRATE': 'Unemployment Rate',
+                'CPIAUCSL': 'CPI Inflation',
+                'BAMLH0A0HYM2': 'HY Credit Spread',
+                'T10Y2Y': 'Term Spread',
+                'GOLDAMGBD228NLBM': 'Gold Price',
+                'DFF': 'Fed Funds Rate',
+                'SOFR': 'SOFR Rate',
+                'MORTGAGE30US': '30Y Mortgage Rate'
+            };
+            
+            return currentData.customNames[key] || displayNames[key] || key.replace(/_/g, ' ');
+        }
+        
+        function categorizeIndicator(key) {
+            const categories = {
+                macro: ['VIXCLS', 'SP500', 'DGS10', 'UNRATE', 'CPIAUCSL', 'GDP'],
+                risk: ['VIXCLS', 'TEDRATE', 'BAMLH0A0HYM2', 'T10Y2Y'],
+                liquidity: ['WALCL', 'DFF', 'SOFR', 'TEDRATE'],
+                currencies: ['DTWEXBGS']
+            };
+            
+            for (const [category, indicators] of Object.entries(categories)) {
+                if (indicators.includes(key)) {
+                    return category;
+                }
+            }
+            
+            return 'other';
+        }
+        
+        function formatValue(value, key) {
+            if (value === null || value === undefined) return 'N/A';
+            
+            if (key === 'WALCL') {
+                return `${(value / 1000000).toFixed(2)}T`;
+            } else if (key.includes('RATE') || key === 'DGS10' || key === 'UNRATE') {
+                return `${value.toFixed(2)}%`;
+            } else if (key === 'SP500') {
+                return value.toFixed(2);
+            }
+            
+            return typeof value === 'number' ? value.toFixed(2) : value;
+        }
+        
+        function generateHistoricalData(currentValue, days) {
+            const data = [];
+            let value = currentValue;
+            
+            for (let i = days; i > 0; i--) {
+                const change = (Math.random() - 0.5) * 0.02;
+                value = value * (1 + change);
+                data.push(value);
+            }
+            
+            data[data.length - 1] = currentValue;
+            return data;
+        }
+        
+        function generateDateRange(days) {
+            const dates = [];
+            const today = new Date();
+            
+            for (let i = days - 1; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                dates.push(date.toISOString().split('T')[0]);
+            }
+            
+            return dates;
+        }
+        
+        // Load all data
+        async function loadAllData() {
+            await loadOverviewData();
+            
+            if (activeTab === 'heatmap') await loadStableHeatmapData();
+            if (activeTab === 'momentum') await updateMomentumChart();
+            if (activeTab === 'trends') await updateTrendChart();
+            if (activeTab === 'fed') await loadFedData();
+            if (activeTab === 'blackswan') await loadBlackSwanData();
+            if (activeTab === 'liquidity') await loadLiquidityData();
+            
+            // Update last update time
+            document.getElementById('lastUpdate').textContent = 
+                `Last Update: ${new Date().toLocaleTimeString()}`;
+        }
+        
+        // Load overview data
+        async function loadOverviewData() {
+            try {
+                const response = await fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.overview);
+                const data = await response.json();
+                
+                currentData.overview = data;
+                
+                // Initialize advanced analytics
+                await initializeAdvancedAnalytics();
+                
+                // Update displays
+                updateKeyMetrics(data.indicators || {});
+                displayOverviewGrid(data.indicators || {});
+                updateEnhancedMainChart(currentChartView);
+                detectMarketPhase(data.indicators || {});
+                
+            } catch (error) {
+                console.error('Error loading overview:', error);
+            }
+        }
+        
+        // Update key metrics with editable names
+        function updateKeyMetrics(indicators) {
+            const metricsGrid = document.getElementById('keyMetrics');
+            if (!metricsGrid) return;
+            
+            metricsGrid.innerHTML = '';
+            
+            const metricConfigs = [
+                { key: 'VIXCLS', display: 'VIX', suffix: '', defaultValue: 16.57 },
+                { key: 'SP500', display: 'S&P 500', suffix: '', defaultValue: 6389.45 },
+                { key: 'DTWEXBGS', display: 'DXY', suffix: '', defaultValue: 121.61 },
+                { key: 'DGS10', display: '10Y Treasury', suffix: '%', defaultValue: 4.23 },
+                { key: 'WALCL', display: 'Fed Balance', suffix: '', isTrillions: true, defaultValue: 6640000 },
+                { key: 'TEDRATE', display: 'TED Spread', suffix: '%', defaultValue: 0.09 }
             ];
             
-            const lights = document.querySelectorAll('.crisis-indicator-item .indicator-light');
-            indicators.forEach((ind, i) => {
-                if (lights[i]) {
-                    lights[i].className = 'indicator-light';
-                    if (ind.value > ind.critical) {
-                        lights[i].classList.add('light-red');
-                    } else if (ind.value > ind.warning) {
-                        lights[i].classList.add('light-yellow');
-                    } else {
-                        lights[i].classList.add('light-green');
-                    }
-                }
+            metricConfigs.forEach(config => {
+                const data = indicators[config.key] || { value: config.defaultValue, change: Math.random() * 4 - 2 };
+                const card = document.createElement('div');
+                card.className = 'metric-card';
+                card.dataset.indicatorKey = config.key;
+                
+                const displayName = currentData.customNames[config.key] || config.display;
+                const formattedValue = formatMetricValue(data.value, config);
+                const changePercent = data.change || 0;
+                const momentum = currentData.momentumScores[config.key] || 0;
+                
+                card.innerHTML = `
+                    <div class="metric-title" onclick="makeIndicatorNameEditable(this, '${config.key}')">
+                        ${displayName}
+                    </div>
+                    <div class="metric-value ${changePercent >= 0 ? 'positive' : 'negative'}">
+                        ${formattedValue}
+                    </div>
+                    <div class="metric-change ${changePercent >= 0 ? 'positive' : 'negative'}">
+                        <span>${changePercent >= 0 ? '▲' : '▼'}</span> 
+                        ${Math.abs(changePercent).toFixed(2)}%
+                        ${Math.abs(momentum) > 30 ? `<span class="momentum-signal signal-${momentum > 0 ? 'bullish' : 'bearish'}">${momentum > 0 ? '↗' : '↘'}</span>` : ''}
+                    </div>
+                `;
+                
+                metricsGrid.appendChild(card);
             });
         }
         
-        // Check critical conditions
-        function checkCriticalConditions() {
-            const critical = [];
-            const indicators = platformState.criticalIndicators;
-            
-            // Check each critical threshold
-            if (indicators.tedSpread > 100) {
-                critical.push('TED Spread exceeds 100bps - Credit stress detected');
+        function formatMetricValue(value, config) {
+            if (config.isTrillions && value) {
+                return `${(value / 1000000).toFixed(2)}T`;
+            } else if (value) {
+                return typeof value === 'number' ? 
+                    value.toFixed(2) + config.suffix : 
+                    value + config.suffix;
             }
-            if (indicators.liborOis3m > 50) {
-                critical.push('LIBOR-OIS above 50bps - Banking stress elevated');
-            }
-            if (indicators.eurUsdBasis < -100) {
-                critical.push('EUR/USD basis below -100bps - Severe dollar shortage');
-            }
-            if (indicators.swapLineUsage > 500) {
-                critical.push('Swap line usage exceeds $500B - Central bank intervention');
-            }
-            if (indicators.vix > 40) {
-                critical.push('VIX above 40 - Extreme market fear');
-            }
-            if (indicators.term2s10s < -50) {
-                critical.push('2s10s deeply inverted - Recession imminent');
-            }
-            
-            // Show critical alert if needed
-            const alertBanner = document.getElementById('criticalAlert');
-            if (critical.length > 0) {
-                alertBanner.textContent = `⚠️ CRITICAL: ${critical[0]}`;
-                alertBanner.classList.add('active');
-                
-                // Add to alerts
-                critical.forEach(msg => {
-                    addAlert(msg, 'critical');
-                });
-            } else {
-                alertBanner.classList.remove('active');
-            }
-            
-            // Update market phase
-            updateMarketPhase();
+            return 'N/A';
         }
         
-        // Update market phase
-        function updateMarketPhase() {
-            const indicators = platformState.criticalIndicators;
+        // Display overview grid
+        function displayOverviewGrid(indicators) {
+            const grid = document.getElementById('overviewGrid');
+            grid.innerHTML = '';
+            
+            const priorityIndicators = ['VIXCLS', 'SP500', 'DTWEXBGS', 'DGS10', 'UNRATE', 'GDP', 'CPIAUCSL', 'GOLDAMGBD228NLBM'];
+            
+            for (const key of priorityIndicators) {
+                if (!indicators[key]) continue;
+                
+                const data = indicators[key];
+                const card = createDataCard(key, data);
+                grid.appendChild(card);
+            }
+        }
+        
+        function createDataCard(key, data) {
+            const card = document.createElement('div');
+            card.className = 'data-card';
+            card.dataset.indicatorKey = key;
+            
+            const displayName = currentData.customNames[key] || getIndicatorDisplayName(key);
+            const changePercent = data.change || (Math.random() * 6 - 3);
+            const momentum = currentData.momentumScores[key] || 0;
+            
+            card.innerHTML = `
+                <div class="data-card-header">
+                    <div class="data-title" onclick="makeIndicatorNameEditable(this, '${key}')">${displayName}</div>
+                    <div class="data-source">FRED</div>
+                </div>
+                <div class="data-value ${changePercent >= 0 ? 'positive' : 'negative'}">
+                    ${formatValue(data.value, key)}
+                </div>
+                <div class="data-change ${changePercent >= 0 ? 'positive' : 'negative'}">
+                    <span>${changePercent >= 0 ? '▲' : '▼'}</span> 
+                    ${Math.abs(changePercent).toFixed(2)}%
+                </div>
+                ${Math.abs(momentum) > 20 ? `
+                <div class="momentum-indicator">
+                    <div class="momentum-bar momentum-${getMomentumClass(momentum)}" 
+                         style="width: ${Math.abs(momentum)}%"></div>
+                </div>` : ''}
+            `;
+            
+            return card;
+        }
+        
+        // Detect market phase
+        function detectMarketPhase(indicators) {
             const banner = document.getElementById('marketPhaseBanner');
+            if (!banner) return;
+            
+            const vix = indicators.VIXCLS?.value || 20;
+            const sp500Change = indicators.SP500?.change || 0;
+            const momentum = Object.values(currentData.momentumScores).reduce((a, b) => a + b, 0) / Object.values(currentData.momentumScores).length || 0;
             
             let phase = '';
-            let className = '';
+            let risk = 'LOW';
             
-            if (platformState.liquidityCrisisScore > 7) {
-                phase = '🚨 LIQUIDITY CRISIS - MULTIPLE STRESS INDICATORS TRIGGERED';
-                className = 'critical';
-            } else if (platformState.liquidityCrisisScore > 5) {
-                phase = '⚠️ ELEVATED STRESS - MONITORING FUNDING MARKETS';
-                className = 'warning';
-            } else if (indicators.vix < 12 && indicators.tedSpread < 15) {
-                phase = '✅ LOW VOLATILITY - RISK-ON ENVIRONMENT';
-                className = 'calm';
+            if (vix < 15 && momentum > 30) {
+                phase = '🚀 STRONG BULL - LOW VOLATILITY + HIGH MOMENTUM';
+                risk = 'LOW';
+            } else if (vix > 30 && momentum < -30) {
+                phase = '🐻 BEAR MARKET - HIGH VOLATILITY + NEGATIVE MOMENTUM';
+                risk = 'HIGH';
+            } else if (Math.abs(momentum) < 10 && vix < 20) {
+                phase = '😴 LOW VOLATILITY GRIND - POTENTIAL BREAKOUT PENDING';
+                risk = 'MEDIUM';
             } else {
-                phase = '📊 NORMAL CONDITIONS - MARKETS FUNCTIONING';
-                className = 'normal';
+                phase = '📈 NORMAL MARKET CONDITIONS';
+                risk = 'LOW';
             }
             
             banner.textContent = phase;
-            banner.className = `market-phase-banner ${className}`;
+            
+            // Update risk level
+            const riskEl = document.getElementById('riskLevel');
+            riskEl.textContent = risk;
+            riskEl.className = `risk-level risk-${risk.toLowerCase()}`;
         }
         
-        // Check for alerts
-        function checkForAlerts() {
-            const indicators = platformState.criticalIndicators;
-            const timestamp = new Date().toLocaleTimeString();
-            
-            // Check various conditions
-            if (Math.random() > 0.9) { // Simulate random alert
-                const alerts = [
-                    'Unusual volume spike detected in repo market',
-                    'Cross-currency basis widening rapidly',
-                    'Large block trade detected in VIX futures',
-                    'Fed swap line draw increased by $5B',
-                    'Corporate bond spreads widening'
-                ];
-                
-                const randomAlert = alerts[Math.floor(Math.random() * alerts.length)];
-                addAlert(randomAlert, 'warning');
+        // Load Fed data
+        async function loadFedData() {
+            try {
+                const response = await fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.fed);
+                const data = await response.json();
+                currentData.fed = data;
+                displayDataGrid('fedGrid', data.indicators || {}, 'Fed');
+            } catch (error) {
+                console.error('Error loading Fed data:', error);
             }
         }
         
-        // Add alert to panel
-        function addAlert(message, severity = 'info') {
-            const alert = {
-                message,
-                severity,
-                timestamp: new Date().toLocaleTimeString()
-            };
-            
-            platformState.alerts.unshift(alert);
-            platformState.alerts = platformState.alerts.slice(0, 20); // Keep last 20
-            
-            updateAlertsPanel();
-            
-            // Show notification for critical alerts
-            if (severity === 'critical') {
-                showNotification(message);
+        // Load Black Swan data
+        async function loadBlackSwanData() {
+            try {
+                const response = await fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.blackswan);
+                const data = await response.json();
+                currentData.blackswan = data;
+                displayDataGrid('blackSwanGrid', data.indicators || {}, 'Risk');
+            } catch (error) {
+                console.error('Error loading Black Swan data:', error);
             }
         }
         
-        // Update alerts panel
-        function updateAlertsPanel() {
-            const alertsList = document.getElementById('alertsList');
-            if (!alertsList) return;
-            
-            alertsList.innerHTML = '';
-            
-            platformState.alerts.forEach(alert => {
-                const alertDiv = document.createElement('div');
-                alertDiv.className = 'alert-item';
-                alertDiv.innerHTML = `
-                    <div class="alert-time">${alert.timestamp}</div>
-                    <div class="alert-message">${alert.message}</div>
-                `;
-                alertsList.appendChild(alertDiv);
-            });
-            
-            // Update tab indicator
-            const alertsTab = document.querySelector('[data-tab="alerts"]');
-            if (platformState.alerts.some(a => a.severity === 'critical')) {
-                alertsTab.classList.add('alert');
+        // Load Liquidity data
+        async function loadLiquidityData() {
+            try {
+                const response = await fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.liquidity);
+                const data = await response.json();
+                currentData.liquidity = data;
+                displayDataGrid('liquidityGrid', data.indicators || {}, 'Liquidity');
+            } catch (error) {
+                console.error('Error loading Liquidity data:', error);
             }
         }
         
-        // Show notification
-        function showNotification(message) {
-            // Browser notification if supported
-            if ('Notification' in window && Notification.permission === 'granted') {
-                new Notification('OpenBB Platform Alert', {
-                    body: message,
-                    icon: '📊'
-                });
+        // Display data grid
+        function displayDataGrid(gridId, indicators, category) {
+            const grid = document.getElementById(gridId);
+            if (!grid) return;
+            
+            grid.innerHTML = '';
+            
+            for (const [key, data] of Object.entries(indicators)) {
+                if (!data || data.value === null) continue;
+                const card = createDataCard(key, data);
+                grid.appendChild(card);
+            }
+        }
+        
+        // Test API connections
+        async function testAPIConnections() {
+            const mainStatus = document.getElementById('mainApiStatus');
+            const mlStatus = document.getElementById('mlStatus');
+            const alertsStatus = document.getElementById('alertsStatus');
+            
+            try {
+                const response = await fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.health);
+                if (response.ok) {
+                    mainStatus.className = 'status-dot connected';
+                    mlStatus.className = 'status-dot connected';
+                    alertsStatus.className = 'status-dot connected';
+                } else {
+                    mainStatus.className = 'status-dot error';
+                }
+            } catch (error) {
+                console.error('API connection error:', error);
+                mainStatus.className = 'status-dot error';
+                mlStatus.className = 'status-dot error';
+                alertsStatus.className = 'status-dot error';
             }
         }
         
@@ -2094,146 +2333,48 @@
                     });
                     
                     const tabId = e.target.dataset.tab;
-                    const tabContent = document.getElementById(tabId);
-                    if (tabContent) {
-                        tabContent.classList.add('active');
-                    }
+                    document.getElementById(tabId).classList.add('active');
                     
-                    // Special handling for alerts tab
-                    if (tabId === 'alerts') {
-                        const panel = document.getElementById('alertsPanel');
-                        panel.style.display = 'block';
-                    }
+                    activeTab = tabId;
+                    loadAllData();
                 });
             });
             
-            // Chart period buttons
+            // Chart view controls
             document.querySelectorAll('.chart-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
-                    const period = e.target.dataset.period;
-                    if (period) {
-                        updateChartPeriod(period);
-                        
-                        // Update active state
-                        e.target.parentElement.querySelectorAll('.chart-btn').forEach(b => {
-                            b.classList.remove('active');
-                        });
+                    const view = e.target.dataset.view;
+                    if (view) {
+                        document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('active'));
                         e.target.classList.add('active');
+                        currentChartView = view;
+                        updateEnhancedMainChart(view);
                     }
                 });
             });
+        }
+        
+        // Update heatmap view
+        function updateHeatmapView(view) {
+            currentData.currentHeatmapView = view;
             
-            // Request notification permission
-            if ('Notification' in window && Notification.permission === 'default') {
-                Notification.requestPermission();
-            }
-        }
-        
-        // Utility functions
-        function generateDateRange(days) {
-            const dates = [];
-            const today = new Date();
-            
-            for (let i = days - 1; i >= 0; i--) {
-                const date = new Date(today);
-                date.setDate(date.getDate() - i);
-                dates.push(date.toISOString().split('T')[0]);
-            }
-            
-            return dates;
-        }
-        
-        function generateRealisticTimeSeries(startValue, volatility, days, min, max) {
-            const values = [startValue];
-            
-            for (let i = 1; i < days; i++) {
-                const trend = (Math.random() - 0.5) * 0.01; // Small trend
-                const noise = (Math.random() - 0.5) * volatility;
-                const newValue = values[i - 1] * (1 + trend) + noise;
-                
-                // Bound checking
-                const boundedValue = Math.max(min, Math.min(max, newValue));
-                values.push(parseFloat(boundedValue.toFixed(2)));
-            }
-            
-            return values;
-        }
-        
-        function getVolatilityForIndicator(key) {
-            const volatilities = {
-                vix: 2,
-                tedSpread: 0.5,
-                liborOis3m: 0.3,
-                eurUsdBasis: 1,
-                swapLineUsage: 5,
-                dxy: 0.2,
-                gold: 0.5
-            };
-            
-            return volatilities[key] || 0.1;
-        }
-        
-        function updateChartPeriod(period) {
-            // Update chart based on selected period
-            console.log(`Updating charts to ${period} timeframe`);
-            // Implementation would fetch new data for the period
-        }
-        
-        function updateCharts() {
-            // Refresh all active charts with new data
-            console.log('Updating all charts with latest data');
-        }
-        
-        function updateDollarShortageMonitor() {
-            // Update dollar shortage metrics
-            const metrics = document.querySelectorAll('.shortage-metric-value');
-            metrics.forEach((metric, i) => {
-                const current = parseFloat(metric.textContent) || 0;
-                const change = (Math.random() - 0.5) * 2;
-                const newValue = current + change;
-                metric.textContent = newValue.toFixed(2) + (metric.textContent.includes('bps') ? ' bps' : '');
-            });
-        }
-        
-        function updateStressIndicator() {
-            const indicator = document.getElementById('stressIndicator');
-            if (indicator) {
-                const stress = platformState.liquidityCrisisScore * 10; // Convert to percentage
-                indicator.style.left = `${stress}%`;
-            }
-        }
-        
-        function showDetailedMetric(metric) {
-            // Show detailed view of metric
-            console.log(`Showing details for ${metric.name}`);
-        }
-        
-        function closeAlerts() {
-            document.getElementById('alertsPanel').style.display = 'none';
-        }
-        
-        function addIndicator(type) {
-            console.log(`Adding ${type} indicator to chart`);
-            // Add technical indicator to advanced chart
-        }
-        
-        // Load data from API
-        async function loadAllData() {
-            try {
-                // Initialize all components first
-                initializeBasisMonitor();
-                
-                // Fetch real data if available
-                const response = await fetch(OPENBB_CONFIG.MAIN_API.baseUrl + OPENBB_CONFIG.MAIN_API.endpoints.overview);
-                if (response.ok) {
-                    const data = await response.json();
-                    // Process real data
-                    console.log('Real data loaded:', data);
+            document.querySelectorAll('.heatmap-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.toLowerCase().includes(view) || 
+                    (view === 'all' && btn.textContent === 'All')) {
+                    btn.classList.add('active');
                 }
-            } catch (error) {
-                console.log('Using simulated data:', error);
-                // Continue with simulated data
-            }
+            });
+            
+            updateEnhancedHeatmapDisplay(currentData.heatmapData);
+        }
+        
+        // Start stable auto-refresh
+        function startStableAutoRefresh() {
+            autoRefreshInterval = setInterval(() => {
+                console.log('🔄 Auto-refreshing data...');
+                loadAllData();
+            }, 30000); // 30 seconds
         }
         
         // Initialize on page load
