@@ -1459,10 +1459,17 @@
             container.innerHTML = '';
             
             let indicators = Object.entries(currentData.indicators)
-                .filter(([key, data]) => data && data.value !== null)
-                .map(([key, data]) => ({ key, ...data }));
+                .filter(([key, data]) => data && data.value !== null && data.value !== undefined)
+                .map(([key, data]) => ({ key, seriesId: key, ...data }));
             
-            indicators.sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
+            console.log('Updating advanced heatmap with', indicators.length, 'items');
+            
+            if (indicators.length === 0) {
+                container.innerHTML = '<div style="padding: 2rem; text-align: center; color: #888;">Loading data...</div>';
+                return;
+            }
+            
+            indicators.sort((a, b) => Math.abs(b.mom || 0) - Math.abs(a.mom || 0));
             
             indicators.slice(0, 100).forEach((ind, index) => {
                 const tile = createHeatmapTile(ind, index);
@@ -1472,18 +1479,129 @@
         
         // Filter functions
         function filterMacroHeatmap(category) {
-            // Implementation for filtering macro heatmap
-            updateMacroHeatmap();
+            const container = document.getElementById('macroHeatmap');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            let indicators = MACRO_INDICATORS;
+            
+            // Filter by category
+            if (category === 'rates') {
+                indicators = ['DFF', 'DGS10', 'DGS2', 'DGS5', 'SOFR', 'EFFR'];
+            } else if (category === 'inflation') {
+                indicators = ['CPIAUCSL', 'CPILFESL'];
+            } else if (category === 'employment') {
+                indicators = ['UNRATE', 'PAYEMS'];
+            } else if (category === 'gdp') {
+                indicators = ['GDPC1', 'INDPRO'];
+            }
+            
+            const macroData = indicators
+                .map(key => currentData.macro[key] || currentData.indicators[key])
+                .filter(item => item && item.value !== null);
+            
+            if (macroData.length === 0) {
+                container.innerHTML = '<div style="padding: 2rem; text-align: center; color: #888;">No data for this category</div>';
+                return;
+            }
+            
+            macroData.sort((a, b) => Math.abs(b.mom || 0) - Math.abs(a.mom || 0));
+            
+            macroData.forEach((ind, index) => {
+                const tile = createHeatmapTile(ind, index);
+                container.appendChild(tile);
+            });
+            
+            // Update active button
+            document.querySelectorAll('#macro .heatmap-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
         }
         
         function filterAdvancedHeatmap(category) {
-            // Implementation for filtering advanced heatmap
-            updateAdvancedHeatmap();
+            const container = document.getElementById('advancedHeatmap');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            let indicators = Object.entries(currentData.indicators)
+                .filter(([key, data]) => {
+                    if (!data || data.value === null) return false;
+                    if (category === 'all') return true;
+                    const cat = data.category || categorizeIndicator(key);
+                    return cat === category;
+                })
+                .map(([key, data]) => ({ key, seriesId: key, ...data }));
+            
+            if (indicators.length === 0) {
+                container.innerHTML = '<div style="padding: 2rem; text-align: center; color: #888;">No data for this category</div>';
+                return;
+            }
+            
+            indicators.sort((a, b) => Math.abs(b.mom || 0) - Math.abs(a.mom || 0));
+            
+            indicators.slice(0, 100).forEach((ind, index) => {
+                const tile = createHeatmapTile(ind, index);
+                container.appendChild(tile);
+            });
+            
+            // Update active button
+            document.querySelectorAll('#heatmap .heatmap-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
         }
         
         function sortLiquidity(mode) {
-            // Implementation for sorting liquidity
-            updateLiquidityHeatmap();
+            const container = document.getElementById('liquidityHeatmap');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            let liquidityData = Object.values(currentData.liquidity).filter(d => d && d.value !== null);
+            
+            // Apply sorting
+            switch(mode) {
+                case 'increasing':
+                    liquidityData = liquidityData.filter(i => i.mom > 0).sort((a, b) => b.mom - a.mom);
+                    break;
+                case 'decreasing':
+                    liquidityData = liquidityData.filter(i => i.mom < 0).sort((a, b) => a.mom - b.mom);
+                    break;
+                case 'centralbanks':
+                    liquidityData = liquidityData.filter(i => 
+                        ['WALCL', 'ECBASSETSW', 'JPNASSETS'].includes(i.seriesId));
+                    break;
+                case 'swaps':
+                    liquidityData = liquidityData.filter(i => i.seriesId?.includes('SWP'));
+                    break;
+                default:
+                    liquidityData.sort((a, b) => Math.abs(b.mom || 0) - Math.abs(a.mom || 0));
+            }
+            
+            if (liquidityData.length === 0) {
+                container.innerHTML = '<div style="padding: 2rem; text-align: center; color: #888;">No data for this filter</div>';
+                return;
+            }
+            
+            liquidityData.forEach((ind, index) => {
+                const tile = createHeatmapTile(ind, index);
+                container.appendChild(tile);
+            });
+            
+            // Update active button
+            document.querySelectorAll('#liquidity .heatmap-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
         }
         
         function filterICE(filter) {
