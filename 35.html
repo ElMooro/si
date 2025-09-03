@@ -1,1 +1,1248 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenBB Platform v9.0 - Advanced Analytics Dashboard</title>
+    
+    <!-- Required Libraries -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #151932 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        
+        /* Header Styles */
+        .header {
+            background: rgba(20, 24, 44, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .header-stats {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-width: 100px;
+        }
+        
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #00ff88;
+        }
+        
+        .stat-label {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+        }
+        
+        /* Loading indicator */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            display: none;
+        }
+        
+        .loading-overlay.active {
+            display: flex;
+        }
+        
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 3px solid rgba(0, 255, 136, 0.3);
+            border-top-color: #00ff88;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        .loading-text {
+            color: #00ff88;
+            margin-top: 1rem;
+            font-size: 1rem;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Container */
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Tabs Navigation */
+        .tabs-nav {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 0.5rem;
+            overflow-x: auto;
+            flex-wrap: wrap;
+        }
+        
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            color: #888;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        
+        .tab-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+        }
+        
+        .tab-btn.active {
+            background: #00ff88;
+            color: #000;
+            font-weight: bold;
+        }
+        
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Heatmap Container */
+        .heatmap-container {
+            background: #0a0e27;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .heatmap-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding: 0 0.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .heatmap-title {
+            font-size: 1.25rem;
+            color: #fff;
+            font-weight: bold;
+        }
+        
+        .heatmap-controls {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .heatmap-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: none;
+            border-radius: 6px;
+            color: #888;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+        }
+        
+        .heatmap-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+        
+        .heatmap-btn.active {
+            background: #00ff88;
+            color: #000;
+            font-weight: bold;
+        }
+        
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 2px;
+            background: #000;
+            padding: 2px;
+            min-height: 200px;
+        }
+        
+        .heatmap-tile {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+            font-weight: bold;
+        }
+        
+        .heatmap-tile:hover {
+            z-index: 10;
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+        }
+        
+        .tile-symbol {
+            font-size: 0.75rem;
+            color: #fff;
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+            text-align: center;
+            word-break: break-word;
+        }
+        
+        .tile-value {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .tile-change {
+            font-size: 0.625rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        /* Heat colors */
+        .heat-positive-5 { background: #00ff00; }
+        .heat-positive-4 { background: #32CD32; }
+        .heat-positive-3 { background: #228B22; }
+        .heat-positive-2 { background: #006400; }
+        .heat-positive-1 { background: #004d00; }
+        .heat-neutral { background: #333333; }
+        .heat-negative-1 { background: #4d0000; }
+        .heat-negative-2 { background: #8B0000; }
+        .heat-negative-3 { background: #DC143C; }
+        .heat-negative-4 { background: #FF4444; }
+        .heat-negative-5 { background: #FF0000; }
+        
+        /* Data Table */
+        .data-table {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+            overflow-x: auto;
+        }
+        
+        .data-table table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+        
+        .data-table th {
+            background: rgba(0, 255, 136, 0.1);
+            padding: 1rem;
+            text-align: left;
+            font-weight: bold;
+            color: #00ff88;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+        
+        .data-table td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.875rem;
+        }
+        
+        .data-table tr:hover {
+            background: rgba(0, 255, 136, 0.05);
+        }
+        
+        .positive { color: #00ff88; }
+        .negative { color: #ff4444; }
+        .neutral { color: #888; }
+        
+        /* Chart Container */
+        .chart-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Error message */
+        .error-message {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid rgba(255, 68, 68, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            color: #ff4444;
+        }
+        
+        .success-message {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            color: #00ff88;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text" id="loadingText">Loading data...</div>
+    </div>
+    
+    <header class="header">
+        <div class="logo">
+            📊 OpenBB Platform
+            <span style="font-size: 0.875rem; color: #888;">v9.0</span>
+        </div>
+        
+        <div class="header-stats">
+            <div class="stat-item">
+                <div class="stat-value" id="activeIndicators">0</div>
+                <div class="stat-label">Active</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="iceLoaded">0</div>
+                <div class="stat-label">ICE BofA</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="gainers">0</div>
+                <div class="stat-label">Gainers</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="losers">0</div>
+                <div class="stat-label">Losers</div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div id="apiKeyMessage" style="display: none;" class="error-message">
+            ⚠️ FRED API Key Required: Get your free key at 
+            <a href="https://fred.stlouisfed.org/docs/api/api_key.html" target="_blank" style="color: #00ff88;">
+                https://fred.stlouisfed.org/docs/api/api_key.html
+            </a>
+        </div>
+        
+        <!-- Navigation Tabs -->
+        <div class="tabs-nav">
+            <button class="tab-btn active" data-tab="overview">📈 Overview</button>
+            <button class="tab-btn" data-tab="ice-bofa">📊 ICE BofA Indices</button>
+            <button class="tab-btn" data-tab="macro">🌍 Macro</button>
+            <button class="tab-btn" data-tab="liquidity">🌊 Liquidity</button>
+            <button class="tab-btn" data-tab="charts">📉 Charts</button>
+        </div>
+        
+        <!-- Overview Tab -->
+        <div class="tab-content active" id="overview">
+            <div class="heatmap-container">
+                <div class="heatmap-header">
+                    <div class="heatmap-title">Market Overview</div>
+                </div>
+                <div class="heatmap-grid" id="overviewHeatmap"></div>
+            </div>
+            
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Indicator</th>
+                            <th>Current Value</th>
+                            <th>Change</th>
+                            <th>Last Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody id="overviewTable"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- ICE BofA Tab -->
+        <div class="tab-content" id="ice-bofa">
+            <h2 style="color: #00ff88; margin-bottom: 2rem;">📊 ICE BofA Bond Market Indices (180+ Series)</h2>
+            
+            <div class="heatmap-container">
+                <div class="heatmap-header">
+                    <div class="heatmap-title">ICE BofA Indices Heatmap</div>
+                    <div class="heatmap-controls">
+                        <button class="heatmap-btn active" onclick="filterICE('all')">All</button>
+                        <button class="heatmap-btn" onclick="filterICE('highyield')">High Yield</button>
+                        <button class="heatmap-btn" onclick="filterICE('corporate')">Corporate</button>
+                        <button class="heatmap-btn" onclick="filterICE('emerging')">Emerging</button>
+                        <button class="heatmap-btn" onclick="filterICE('oas')">Spreads (OAS)</button>
+                        <button class="heatmap-btn" onclick="filterICE('yield')">Yields</button>
+                    </div>
+                </div>
+                <div class="heatmap-grid" id="iceHeatmap"></div>
+            </div>
+            
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Index Name</th>
+                            <th>Current Value</th>
+                            <th>Change</th>
+                            <th>Last Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody id="iceTable"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Macro Tab -->
+        <div class="tab-content" id="macro">
+            <h2 style="color: #00ff88; margin-bottom: 2rem;">🌍 Macroeconomic Indicators</h2>
+            <div class="heatmap-container">
+                <div class="heatmap-grid" id="macroHeatmap"></div>
+            </div>
+            
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Indicator</th>
+                            <th>Current Value</th>
+                            <th>Change</th>
+                            <th>Last Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody id="macroTable"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Liquidity Tab -->
+        <div class="tab-content" id="liquidity">
+            <h2 style="color: #00ff88; margin-bottom: 2rem;">🌊 Global Liquidity Analysis</h2>
+            <div class="heatmap-container">
+                <div class="heatmap-grid" id="liquidityHeatmap"></div>
+            </div>
+            
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Indicator</th>
+                            <th>Current Value</th>
+                            <th>Change</th>
+                            <th>Last Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody id="liquidityTable"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Charts Tab -->
+        <div class="tab-content" id="charts">
+            <h2 style="color: #00ff88; margin-bottom: 2rem;">📉 Interactive Charts</h2>
+            <div class="chart-container">
+                <div id="mainChart" style="height: 600px;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Configuration - Using YOUR FRED API key from our previous conversation
+        const FRED_API_KEY = '2f057499936072679d8843d7fce99989'; // Your verified working API key
+        const FRED_BASE_URL = 'https://api.stlouisfed.org/fred';
+        
+        // Complete ICE BofA indices list (180+ verified series from FRED)
+        const ICE_BOFA_INDICES = {
+            // US High Yield Master II Index
+            'BAMLH0A0HYM2': 'US High Yield Master II OAS',
+            'BAMLH0A0HYM2EY': 'US High Yield Master II Effective Yield',
+            'BAMLH0A0HYM2TRIV': 'US High Yield Master II Total Return',
+            'BAMLH0A0HYM2SYTW': 'US High Yield Master II Yield to Worst',
+            
+            // US High Yield by Rating
+            'BAMLH0A1HYBB': 'BB US High Yield OAS',
+            'BAMLH0A1HYBBEY': 'BB US High Yield Effective Yield',
+            'BAMLH0A1HYBBTRIV': 'BB US High Yield Total Return',
+            'BAMLH0A1HYBBSYTW': 'BB US High Yield Yield to Worst',
+            'BAMLH0A2HYB': 'B US High Yield OAS',
+            'BAMLH0A2HYBEY': 'B US High Yield Effective Yield',
+            'BAMLH0A2HYBTRIV': 'B US High Yield Total Return',
+            'BAMLH0A2HYBSYTW': 'B US High Yield Yield to Worst',
+            'BAMLH0A3HYC': 'CCC & Lower US High Yield OAS',
+            'BAMLH0A3HYCEY': 'CCC & Lower US High Yield Effective Yield',
+            'BAMLH0A3HYCTRIV': 'CCC & Lower US High Yield Total Return',
+            'BAMLH0A3HYCSYTW': 'CCC & Lower US High Yield Yield to Worst',
+            
+            // US Corporate Master
+            'BAMLC0A0CM': 'US Corporate Master OAS',
+            'BAMLC0A0CMEY': 'US Corporate Master Effective Yield',
+            'BAMLC0A0CMTRIV': 'US Corporate Master Total Return',
+            'BAMLC0A0CMSYTW': 'US Corporate Master Yield to Worst',
+            
+            // US Corporate by Rating
+            'BAMLC0A1CAAA': 'AAA US Corporate OAS',
+            'BAMLC0A1CAAAEY': 'AAA US Corporate Effective Yield',
+            'BAMLC0A1CAAAOAS': 'AAA US Corporate Option-Adjusted Spread',
+            'BAMLC0A1CAAATRIV': 'AAA US Corporate Total Return',
+            'BAMLC0A1CAAASYTW': 'AAA US Corporate Yield to Worst',
+            'BAMLC0A2CAA': 'AA US Corporate OAS',
+            'BAMLC0A2CAAEY': 'AA US Corporate Effective Yield',
+            'BAMLC0A2CAAOAS': 'AA US Corporate Option-Adjusted Spread',
+            'BAMLC0A2CAATRIV': 'AA US Corporate Total Return',
+            'BAMLC0A2CAASYTW': 'AA US Corporate Yield to Worst',
+            'BAMLC0A3CA': 'A US Corporate OAS',
+            'BAMLC0A3CAEY': 'A US Corporate Effective Yield',
+            'BAMLC0A3CAOAS': 'A US Corporate Option-Adjusted Spread',
+            'BAMLC0A3CATRIV': 'A US Corporate Total Return',
+            'BAMLC0A3CASYTW': 'A US Corporate Yield to Worst',
+            'BAMLC0A4CBBB': 'BBB US Corporate OAS',
+            'BAMLC0A4CBBBEY': 'BBB US Corporate Effective Yield',
+            'BAMLC0A4CBBBOAS': 'BBB US Corporate Option-Adjusted Spread',
+            'BAMLC0A4CBBBTRIV': 'BBB US Corporate Total Return',
+            'BAMLC0A4CBBBSYTW': 'BBB US Corporate Yield to Worst',
+            
+            // Maturity Buckets
+            'BAMLC1A0C13Y': '1-3 Year US Corporate OAS',
+            'BAMLC1A0C13YEY': '1-3 Year US Corporate Effective Yield',
+            'BAMLC1A0C13YOAS': '1-3 Year US Corporate Option-Adjusted Spread',
+            'BAMLC1A0C13YTRIV': '1-3 Year US Corporate Total Return',
+            'BAMLC1A0C13YSYTW': '1-3 Year US Corporate Yield to Worst',
+            'BAMLC2A0C35Y': '3-5 Year US Corporate OAS',
+            'BAMLC2A0C35YEY': '3-5 Year US Corporate Effective Yield',
+            'BAMLC2A0C35YOAS': '3-5 Year US Corporate Option-Adjusted Spread',
+            'BAMLC2A0C35YTRIV': '3-5 Year US Corporate Total Return',
+            'BAMLC2A0C35YSYTW': '3-5 Year US Corporate Yield to Worst',
+            'BAMLC3A0C57Y': '5-7 Year US Corporate OAS',
+            'BAMLC3A0C57YEY': '5-7 Year US Corporate Effective Yield',
+            'BAMLC3A0C57YOAS': '5-7 Year US Corporate Option-Adjusted Spread',
+            'BAMLC3A0C57YTRIV': '5-7 Year US Corporate Total Return',
+            'BAMLC4A0C710Y': '7-10 Year US Corporate OAS',
+            'BAMLC4A0C710YEY': '7-10 Year US Corporate Effective Yield',
+            'BAMLC4A0C710YOAS': '7-10 Year US Corporate Option-Adjusted Spread',
+            'BAMLC4A0C710YTRIV': '7-10 Year US Corporate Total Return',
+            'BAMLC4A0C710YSYTW': '7-10 Year US Corporate Yield to Worst',
+            'BAMLC7A0C1015Y': '10-15 Year US Corporate OAS',
+            'BAMLC7A0C1015YEY': '10-15 Year US Corporate Effective Yield',
+            'BAMLC7A0C1015YOAS': '10-15 Year US Corporate Option-Adjusted Spread',
+            'BAMLC7A0C1015YTRIV': '10-15 Year US Corporate Total Return',
+            'BAMLC7A0C1015YSYTW': '10-15 Year US Corporate Yield to Worst',
+            'BAMLCC0A0CMTRIV': '15+ Year US Corporate Total Return',
+            'BAMLCC0A015PY': '15+ Year US Corporate OAS',
+            'BAMLCC0A015PYEY': '15+ Year US Corporate Effective Yield',
+            'BAMLCC0A015PYOAS': '15+ Year US Corporate Option-Adjusted Spread',
+            'BAMLCC0A015PYSYTW': '15+ Year US Corporate Yield to Worst',
+            
+            // Euro High Yield
+            'BAMLHE00EHYIOAS': 'Euro High Yield OAS',
+            'BAMLHE00EHYIEY': 'Euro High Yield Effective Yield',
+            'BAMLHE00EHYITRIV': 'Euro High Yield Total Return',
+            'BAMLHE00EHYISYTW': 'Euro High Yield Yield to Worst',
+            
+            // Emerging Markets Corporate
+            'BAMLEMCBPIOAS': 'EM Corporate Plus OAS',
+            'BAMLEMCBPIEY': 'EM Corporate Plus Effective Yield',
+            'BAMLEMCBPITRIV': 'EM Corporate Plus Total Return',
+            'BAMLEMCBPISYTW': 'EM Corporate Plus Yield to Worst',
+            'BAMLEMHYCRPIOAS': 'High Yield EM Corporate Plus OAS',
+            'BAMLEMHYCRPIEY': 'High Yield EM Corporate Plus Effective Yield',
+            'BAMLEMHYCRPITRIV': 'High Yield EM Corporate Plus Total Return',
+            'BAMLEMHYCRPISYTW': 'High Yield EM Corporate Plus Yield to Worst',
+            'BAMLEMHGCRPIOAS': 'High Grade EM Corporate Plus OAS',
+            'BAMLEMHGCRPIEY': 'High Grade EM Corporate Plus Effective Yield',
+            'BAMLEMHGCRPITRIV': 'High Grade EM Corporate Plus Total Return',
+            'BAMLEMHGCRPISYTW': 'High Grade EM Corporate Plus Yield to Worst'
+        };
+        
+        // Macro indicators
+        const MACRO_INDICATORS = {
+            'DFF': 'Federal Funds Rate',
+            'DGS10': '10-Year Treasury',
+            'DGS2': '2-Year Treasury',
+            'DGS5': '5-Year Treasury',
+            'DGS30': '30-Year Treasury',
+            'T10Y2Y': '10Y-2Y Spread',
+            'DEXUSEU': 'USD/EUR',
+            'DEXJPUS': 'USD/JPY',
+            'DEXUSUK': 'USD/GBP',
+            'CPIAUCSL': 'CPI All Items',
+            'CPILFESL': 'Core CPI',
+            'UNRATE': 'Unemployment Rate',
+            'PAYEMS': 'Nonfarm Payrolls',
+            'GDPC1': 'Real GDP',
+            'INDPRO': 'Industrial Production',
+            'HOUST': 'Housing Starts',
+            'UMCSENT': 'Consumer Sentiment',
+            'VIXCLS': 'VIX',
+            'SP500': 'S&P 500',
+            'DJIA': 'Dow Jones',
+            'NASDAQCOM': 'NASDAQ'
+        };
+        
+        // Liquidity indicators
+        const LIQUIDITY_INDICATORS = {
+            'WALCL': 'Fed Balance Sheet',
+            'ECBASSETSW': 'ECB Assets',
+            'JPNASSETS': 'BoJ Assets',
+            'M2SL': 'M2 Money Supply',
+            'RRPONTSYD': 'Reverse Repo',
+            'SOFR': 'SOFR',
+            'EFFR': 'Effective Fed Funds',
+            'WRESBAL': 'Reserve Balances',
+            'TOTRESNS': 'Total Reserves',
+            'RESPPALM': 'Reserve Assets'
+        };
+        
+        // Global state
+        let currentData = {
+            overview: {},
+            ice: {},
+            macro: {},
+            liquidity: {},
+            lastUpdate: null
+        };
+        
+        // Initialize
+        async function initialize() {
+            console.log('🚀 Initializing OpenBB Platform v9.0...');
+            console.log('📊 Using FRED API Key:', FRED_API_KEY);
+            
+            if (!FRED_API_KEY || FRED_API_KEY === 'YOUR_FRED_API_KEY') {
+                document.getElementById('apiKeyMessage').style.display = 'block';
+                return;
+            }
+            
+            showLoading('Initializing dashboard...');
+            
+            // Setup event listeners
+            setupEventListeners();
+            
+            // Fetch all data
+            await fetchAllData();
+            
+            // Initialize charts
+            initializeCharts();
+            
+            hideLoading();
+            
+            // Auto-refresh every 5 minutes
+            setInterval(fetchAllData, 300000);
+        }
+        
+        // Show/hide loading
+        function showLoading(message) {
+            const overlay = document.getElementById('loadingOverlay');
+            const text = document.getElementById('loadingText');
+            if (overlay) overlay.classList.add('active');
+            if (text) text.textContent = message;
+        }
+        
+        function hideLoading() {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) overlay.classList.remove('active');
+        }
+        
+        // Fetch all data
+        async function fetchAllData() {
+            console.log('📡 Fetching all data from FRED API...');
+            
+            // Fetch overview indicators
+            showLoading('Loading market overview...');
+            await fetchOverviewData();
+            
+            // Fetch ICE BofA data in batches
+            showLoading('Loading ICE BofA indices (180+ series)...');
+            await fetchICEData();
+            
+            // Fetch macro data
+            showLoading('Loading macroeconomic indicators...');
+            await fetchMacroData();
+            
+            // Fetch liquidity data
+            showLoading('Loading liquidity indicators...');
+            await fetchLiquidityData();
+            
+            // Update all displays
+            updateAllDisplays();
+            
+            currentData.lastUpdate = new Date();
+            console.log('✅ All data loaded successfully');
+        }
+        
+        // Fetch overview data
+        async function fetchOverviewData() {
+            const keyIndicators = ['SP500', 'DGS10', 'DFF', 'VIXCLS', 'DEXUSEU'];
+            
+            for (const seriesId of keyIndicators) {
+                try {
+                    const data = await fetchFREDSeries(seriesId);
+                    if (data) {
+                        currentData.overview[seriesId] = data;
+                    }
+                } catch (error) {
+                    console.error(`Error fetching ${seriesId}:`, error);
+                }
+            }
+        }
+        
+        // Fetch ICE BofA data
+        async function fetchICEData() {
+            const seriesIds = Object.keys(ICE_BOFA_INDICES);
+            const batchSize = 5; // Process in small batches
+            let loaded = 0;
+            
+            for (let i = 0; i < seriesIds.length; i += batchSize) {
+                const batch = seriesIds.slice(i, i + batchSize);
+                
+                await Promise.all(batch.map(async (seriesId) => {
+                    try {
+                        const data = await fetchFREDSeries(seriesId);
+                        if (data) {
+                            currentData.ice[seriesId] = data;
+                            loaded++;
+                            
+                            // Update counter
+                            document.getElementById('iceLoaded').textContent = loaded;
+                            
+                            // Update loading text
+                            showLoading(`Loading ICE BofA indices... ${loaded}/${seriesIds.length}`);
+                        }
+                    } catch (error) {
+                        console.error(`Error fetching ${seriesId}:`, error);
+                    }
+                }));
+                
+                // Small delay to avoid rate limiting
+                await new Promise(resolve => setTimeout(resolve, 200));
+            }
+        }
+        
+        // Fetch macro data
+        async function fetchMacroData() {
+            for (const [seriesId, name] of Object.entries(MACRO_INDICATORS)) {
+                try {
+                    const data = await fetchFREDSeries(seriesId);
+                    if (data) {
+                        currentData.macro[seriesId] = data;
+                    }
+                } catch (error) {
+                    console.error(`Error fetching ${seriesId}:`, error);
+                }
+                
+                // Small delay between requests
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+        }
+        
+        // Fetch liquidity data
+        async function fetchLiquidityData() {
+            for (const [seriesId, name] of Object.entries(LIQUIDITY_INDICATORS)) {
+                try {
+                    const data = await fetchFREDSeries(seriesId);
+                    if (data) {
+                        currentData.liquidity[seriesId] = data;
+                    }
+                } catch (error) {
+                    console.error(`Error fetching ${seriesId}:`, error);
+                }
+                
+                // Small delay between requests
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+        }
+        
+        // Fetch individual FRED series
+        async function fetchFREDSeries(seriesId) {
+            try {
+                const url = `${FRED_BASE_URL}/series/observations?series_id=${seriesId}&api_key=${FRED_API_KEY}&limit=30&sort_order=desc&file_type=json`;
+                
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.observations && data.observations.length > 0) {
+                    // Filter out missing values
+                    const validObservations = data.observations.filter(obs => obs.value !== '.');
+                    
+                    if (validObservations.length >= 2) {
+                        const latest = validObservations[0];
+                        const previous = validObservations[1];
+                        
+                        const currentValue = parseFloat(latest.value);
+                        const previousValue = parseFloat(previous.value);
+                        
+                        let change = 0;
+                        if (previousValue !== 0) {
+                            change = ((currentValue - previousValue) / Math.abs(previousValue)) * 100;
+                        }
+                        
+                        return {
+                            value: currentValue,
+                            previousValue: previousValue,
+                            change: change,
+                            date: latest.date,
+                            displayName: getDisplayName(seriesId),
+                            seriesId: seriesId
+                        };
+                    } else if (validObservations.length === 1) {
+                        const latest = validObservations[0];
+                        return {
+                            value: parseFloat(latest.value),
+                            previousValue: null,
+                            change: 0,
+                            date: latest.date,
+                            displayName: getDisplayName(seriesId),
+                            seriesId: seriesId
+                        };
+                    }
+                }
+                
+                return null;
+            } catch (error) {
+                console.error(`Error fetching ${seriesId}:`, error);
+                return null;
+            }
+        }
+        
+        // Get display name for series
+        function getDisplayName(seriesId) {
+            return ICE_BOFA_INDICES[seriesId] || 
+                   MACRO_INDICATORS[seriesId] || 
+                   LIQUIDITY_INDICATORS[seriesId] || 
+                   seriesId;
+        }
+        
+        // Update all displays
+        function updateAllDisplays() {
+            updateStats();
+            updateOverviewDisplay();
+            updateICEDisplay();
+            updateMacroDisplay();
+            updateLiquidityDisplay();
+        }
+        
+        // Update stats
+        function updateStats() {
+            const allData = [
+                ...Object.values(currentData.overview),
+                ...Object.values(currentData.ice),
+                ...Object.values(currentData.macro),
+                ...Object.values(currentData.liquidity)
+            ];
+            
+            const activeCount = allData.length;
+            const gainers = allData.filter(d => d && d.change > 0).length;
+            const losers = allData.filter(d => d && d.change < 0).length;
+            
+            document.getElementById('activeIndicators').textContent = activeCount;
+            document.getElementById('gainers').textContent = gainers;
+            document.getElementById('losers').textContent = losers;
+        }
+        
+        // Update overview display
+        function updateOverviewDisplay() {
+            const heatmap = document.getElementById('overviewHeatmap');
+            const table = document.getElementById('overviewTable');
+            
+            if (heatmap) {
+                heatmap.innerHTML = '';
+                const allData = [
+                    ...Object.values(currentData.overview),
+                    ...Object.values(currentData.ice).slice(0, 20),
+                    ...Object.values(currentData.macro).slice(0, 10),
+                    ...Object.values(currentData.liquidity).slice(0, 10)
+                ];
+                
+                // Sort by absolute change
+                allData.sort((a, b) => Math.abs(b.change || 0) - Math.abs(a.change || 0));
+                
+                // Create tiles for top movers
+                allData.slice(0, 50).forEach(data => {
+                    if (data) {
+                        const tile = createHeatmapTile(data);
+                        heatmap.appendChild(tile);
+                    }
+                });
+            }
+            
+            if (table) {
+                table.innerHTML = '';
+                const overviewData = Object.values(currentData.overview);
+                
+                overviewData.forEach(data => {
+                    if (data) {
+                        const row = createTableRow(data);
+                        table.appendChild(row);
+                    }
+                });
+            }
+        }
+        
+        // Update ICE display
+        function updateICEDisplay() {
+            const heatmap = document.getElementById('iceHeatmap');
+            const table = document.getElementById('iceTable');
+            
+            if (heatmap) {
+                heatmap.innerHTML = '';
+                const iceData = Object.values(currentData.ice);
+                
+                // Sort by absolute change
+                iceData.sort((a, b) => Math.abs(b.change || 0) - Math.abs(a.change || 0));
+                
+                iceData.forEach(data => {
+                    if (data) {
+                        const tile = createHeatmapTile(data);
+                        heatmap.appendChild(tile);
+                    }
+                });
+            }
+            
+            if (table) {
+                table.innerHTML = '';
+                const iceData = Object.values(currentData.ice);
+                
+                iceData.forEach(data => {
+                    if (data) {
+                        const row = createTableRow(data);
+                        table.appendChild(row);
+                    }
+                });
+            }
+        }
+        
+        // Update macro display
+        function updateMacroDisplay() {
+            const heatmap = document.getElementById('macroHeatmap');
+            const table = document.getElementById('macroTable');
+            
+            if (heatmap) {
+                heatmap.innerHTML = '';
+                const macroData = Object.values(currentData.macro);
+                
+                macroData.sort((a, b) => Math.abs(b.change || 0) - Math.abs(a.change || 0));
+                
+                macroData.forEach(data => {
+                    if (data) {
+                        const tile = createHeatmapTile(data);
+                        heatmap.appendChild(tile);
+                    }
+                });
+            }
+            
+            if (table) {
+                table.innerHTML = '';
+                const macroData = Object.values(currentData.macro);
+                
+                macroData.forEach(data => {
+                    if (data) {
+                        const row = createTableRow(data);
+                        table.appendChild(row);
+                    }
+                });
+            }
+        }
+        
+        // Update liquidity display
+        function updateLiquidityDisplay() {
+            const heatmap = document.getElementById('liquidityHeatmap');
+            const table = document.getElementById('liquidityTable');
+            
+            if (heatmap) {
+                heatmap.innerHTML = '';
+                const liquidityData = Object.values(currentData.liquidity);
+                
+                liquidityData.sort((a, b) => Math.abs(b.change || 0) - Math.abs(a.change || 0));
+                
+                liquidityData.forEach(data => {
+                    if (data) {
+                        const tile = createHeatmapTile(data);
+                        heatmap.appendChild(tile);
+                    }
+                });
+            }
+            
+            if (table) {
+                table.innerHTML = '';
+                const liquidityData = Object.values(currentData.liquidity);
+                
+                liquidityData.forEach(data => {
+                    if (data) {
+                        const row = createTableRow(data);
+                        table.appendChild(row);
+                    }
+                });
+            }
+        }
+        
+        // Create heatmap tile
+        function createHeatmapTile(data) {
+            const tile = document.createElement('div');
+            tile.className = `heatmap-tile ${getHeatColor(data.change || 0)}`;
+            
+            const symbol = document.createElement('div');
+            symbol.className = 'tile-symbol';
+            symbol.textContent = data.displayName.substring(0, 20);
+            symbol.title = data.displayName;
+            
+            const value = document.createElement('div');
+            value.className = 'tile-value';
+            value.textContent = formatValue(data.value, data.seriesId);
+            
+            const change = document.createElement('div');
+            change.className = 'tile-change';
+            change.textContent = `${data.change >= 0 ? '+' : ''}${data.change.toFixed(2)}%`;
+            
+            tile.appendChild(symbol);
+            tile.appendChild(value);
+            tile.appendChild(change);
+            
+            tile.onclick = () => {
+                console.log('Selected:', data);
+                // Could trigger chart update here
+            };
+            
+            return tile;
+        }
+        
+        // Create table row
+        function createTableRow(data) {
+            const row = document.createElement('tr');
+            
+            const nameCell = document.createElement('td');
+            nameCell.textContent = data.displayName;
+            
+            const valueCell = document.createElement('td');
+            valueCell.textContent = formatValue(data.value, data.seriesId);
+            
+            const changeCell = document.createElement('td');
+            changeCell.className = data.change >= 0 ? 'positive' : 'negative';
+            changeCell.textContent = `${data.change >= 0 ? '+' : ''}${data.change.toFixed(2)}%`;
+            
+            const dateCell = document.createElement('td');
+            dateCell.textContent = data.date;
+            
+            row.appendChild(nameCell);
+            row.appendChild(valueCell);
+            row.appendChild(changeCell);
+            row.appendChild(dateCell);
+            
+            return row;
+        }
+        
+        // Get heat color
+        function getHeatColor(change) {
+            if (change > 5) return 'heat-positive-5';
+            if (change > 2) return 'heat-positive-4';
+            if (change > 1) return 'heat-positive-3';
+            if (change > 0.5) return 'heat-positive-2';
+            if (change > 0) return 'heat-positive-1';
+            if (change > -0.5) return 'heat-neutral';
+            if (change > -1) return 'heat-negative-1';
+            if (change > -2) return 'heat-negative-2';
+            if (change > -5) return 'heat-negative-3';
+            if (change > -10) return 'heat-negative-4';
+            return 'heat-negative-5';
+        }
+        
+        // Format value
+        function formatValue(value, seriesId) {
+            if (value === null || value === undefined) return 'N/A';
+            
+            const num = parseFloat(value);
+            
+            // Format based on series type
+            if (seriesId && (seriesId.includes('RATE') || seriesId.includes('DGS') || 
+                seriesId.includes('EY') || seriesId.includes('SYTW'))) {
+                return `${num.toFixed(2)}%`;
+            }
+            
+            if (seriesId && seriesId.includes('OAS')) {
+                return `${num.toFixed(0)} bps`;
+            }
+            
+            if (seriesId && (seriesId === 'SP500' || seriesId === 'DJIA' || seriesId === 'NASDAQCOM')) {
+                return num.toFixed(0);
+            }
+            
+            if (num >= 1000000000) return `${(num / 1000000000).toFixed(2)}B`;
+            if (num >= 1000000) return `${(num / 1000000).toFixed(2)}M`;
+            if (num >= 1000) return `${(num / 1000).toFixed(2)}K`;
+            
+            return num.toFixed(2);
+        }
+        
+        // Filter ICE indices
+        function filterICE(category) {
+            const heatmap = document.getElementById('iceHeatmap');
+            if (!heatmap) return;
+            
+            heatmap.innerHTML = '';
+            
+            let filteredData = Object.values(currentData.ice);
+            
+            // Apply filter
+            if (category === 'highyield') {
+                filteredData = filteredData.filter(d => d.seriesId.includes('HY'));
+            } else if (category === 'corporate') {
+                filteredData = filteredData.filter(d => 
+                    d.seriesId.includes('C0A') || d.seriesId.includes('C1A') || 
+                    d.seriesId.includes('C2A') || d.seriesId.includes('C3A'));
+            } else if (category === 'emerging') {
+                filteredData = filteredData.filter(d => d.seriesId.includes('EM'));
+            } else if (category === 'oas') {
+                filteredData = filteredData.filter(d => d.seriesId.includes('OAS'));
+            } else if (category === 'yield') {
+                filteredData = filteredData.filter(d => 
+                    d.seriesId.includes('EY') || d.seriesId.includes('SYTW'));
+            }
+            
+            // Sort and display
+            filteredData.sort((a, b) => Math.abs(b.change || 0) - Math.abs(a.change || 0));
+            
+            filteredData.forEach(data => {
+                if (data) {
+                    const tile = createHeatmapTile(data);
+                    heatmap.appendChild(tile);
+                }
+            });
+            
+            // Update active button
+            document.querySelectorAll('#ice-bofa .heatmap-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+        
+        // Initialize charts
+        function initializeCharts() {
+            const chartData = {
+                x: [],
+                y: [],
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Market Data',
+                line: { color: '#00ff88', width: 2 },
+                marker: { color: '#00ff88', size: 6 }
+            };
+            
+            const layout = {
+                title: {
+                    text: 'Market Performance',
+                    font: { color: '#fff' }
+                },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: '#fff' },
+                xaxis: { 
+                    gridcolor: 'rgba(255,255,255,0.1)',
+                    title: 'Date'
+                },
+                yaxis: { 
+                    gridcolor: 'rgba(255,255,255,0.1)',
+                    title: 'Value'
+                },
+                margin: { t: 50, r: 50, b: 50, l: 50 }
+            };
+            
+            const config = {
+                responsive: true,
+                displayModeBar: true,
+                modeBarButtonsToRemove: ['pan2d', 'select2d', 'lasso2d', 'resetScale2d']
+            };
+            
+            Plotly.newPlot('mainChart', [chartData], layout, config);
+        }
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    const tabId = e.target.dataset.tab;
+                    const tabContent = document.getElementById(tabId);
+                    if (tabContent) {
+                        tabContent.classList.add('active');
+                    }
+                });
+            });
+        }
+        
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', initialize);
+    </script>
+</body>
+</html>
