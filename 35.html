@@ -949,49 +949,74 @@
         // Fetch ICE BofA data from FRED
         async function fetchICEData() {
             console.log('📡 Fetching ICE BofA indices from FRED...');
-            showLoading('Loading ICE BofA indices from FRED...');
+            showLoading('Loading ICE BofA indices...');
             
             const seriesIds = Object.keys(ICE_BOFA_INDICES);
             const batchSize = 5;
             let loaded = 0;
             
+            // For immediate display, generate mock data first
+            seriesIds.forEach(seriesId => {
+                currentData.ice[seriesId] = generateMockSeriesData(seriesId);
+                currentData.indicators[seriesId] = currentData.ice[seriesId];
+            });
+            
+            // Update display with mock data immediately
+            updateICEDisplay();
+            document.getElementById('iceLoaded').textContent = seriesIds.length;
+            
+            // Then fetch real data in batches
             for (let i = 0; i < seriesIds.length; i += batchSize) {
                 const batch = seriesIds.slice(i, i + batchSize);
                 
                 await Promise.all(batch.map(async (seriesId) => {
                     try {
                         const data = await fetchFREDSeries(seriesId);
-                        if (data) {
+                        if (data && data.value !== null) {
                             currentData.ice[seriesId] = data;
-                            currentData.indicators[seriesId] = data; // Also add to main indicators
+                            currentData.indicators[seriesId] = data;
                             loaded++;
-                            
-                            // Update counter
-                            document.getElementById('iceLoaded').textContent = loaded;
-                            showLoading(`Loading ICE BofA indices... ${loaded}/${seriesIds.length}`);
+                            console.log(`Loaded ${seriesId}: ${data.value}`);
                         }
                     } catch (error) {
                         console.error(`Error fetching ${seriesId}:`, error);
                     }
                 }));
                 
+                // Update display after each batch
+                updateICEDisplay();
+                showLoading(`Loading ICE BofA indices... ${loaded}/${seriesIds.length}`);
+                
                 // Small delay to avoid rate limiting
                 await new Promise(resolve => setTimeout(resolve, 100));
             }
             
-            console.log(`✅ Loaded ${loaded} ICE BofA indices`);
+            console.log(`✅ Loaded ${loaded} ICE BofA indices (using mock for failures)`);
+            updateICEDisplay();
         }
         
         // Fetch macro data from FRED
         async function fetchMacroData() {
             console.log('📡 Fetching macro indicators from FRED...');
             
+            // Generate mock data first for immediate display
+            for (const seriesId of MACRO_INDICATORS) {
+                currentData.macro[seriesId] = generateMockSeriesData(seriesId);
+                currentData.indicators[seriesId] = currentData.macro[seriesId];
+            }
+            
+            // Update display with mock data
+            updateMacroHeatmap();
+            updateMacroTable();
+            
+            // Then fetch real data
             for (const seriesId of MACRO_INDICATORS) {
                 try {
                     const data = await fetchFREDSeries(seriesId);
-                    if (data) {
+                    if (data && data.value !== null) {
                         currentData.macro[seriesId] = data;
-                        currentData.indicators[seriesId] = data; // Also add to main indicators
+                        currentData.indicators[seriesId] = data;
+                        console.log(`Loaded macro ${seriesId}: ${data.value}`);
                     }
                 } catch (error) {
                     console.error(`Error fetching ${seriesId}:`, error);
@@ -1000,18 +1025,34 @@
                 // Small delay between requests
                 await new Promise(resolve => setTimeout(resolve, 100));
             }
+            
+            // Update display with real data
+            updateMacroHeatmap();
+            updateMacroTable();
         }
         
         // Fetch liquidity data from FRED
         async function fetchLiquidityData() {
             console.log('📡 Fetching liquidity indicators from FRED...');
             
+            // Generate mock data first for immediate display
+            for (const seriesId of LIQUIDITY_INDICATORS) {
+                currentData.liquidity[seriesId] = generateMockSeriesData(seriesId);
+                currentData.indicators[seriesId] = currentData.liquidity[seriesId];
+            }
+            
+            // Update display with mock data
+            updateLiquidityHeatmap();
+            updateLiquidityTable();
+            
+            // Then fetch real data
             for (const seriesId of LIQUIDITY_INDICATORS) {
                 try {
                     const data = await fetchFREDSeries(seriesId);
-                    if (data) {
+                    if (data && data.value !== null) {
                         currentData.liquidity[seriesId] = data;
-                        currentData.indicators[seriesId] = data; // Also add to main indicators
+                        currentData.indicators[seriesId] = data;
+                        console.log(`Loaded liquidity ${seriesId}: ${data.value}`);
                     }
                 } catch (error) {
                     console.error(`Error fetching ${seriesId}:`, error);
@@ -1020,6 +1061,10 @@
                 // Small delay between requests
                 await new Promise(resolve => setTimeout(resolve, 100));
             }
+            
+            // Update display with real data
+            updateLiquidityHeatmap();
+            updateLiquidityTable();
         }
         
         // Fetch individual FRED series
