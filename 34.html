@@ -1075,6 +1075,21 @@
             });
         }
         
+        // Update all displays - main function that coordinates all updates
+        function updateAllDisplays() {
+            updateStats();
+            updateKeyMetrics();
+            updateHeatmap('all');
+            updateIndicatorsTable();
+            updateMacroHeatmap();
+            updateMacroTable();
+            updateLiquidityHeatmap();
+            updateLiquidityTable();
+            updateICEHeatmap();
+            updateICETable();
+            updateAdvancedHeatmap();
+        }
+        
         // Update stats
         function updateStats() {
             const indicators = Object.values(currentData.indicators);
@@ -1859,8 +1874,8 @@
             const num = parseFloat(value);
             
             if (key === 'WALCL' || key.includes('ASSETS')) {
-                if (num >= 1000000) return `$${(num / 1000000).toFixed(2)}T`;
-                if (num >= 1000) return `$${(num / 1000).toFixed(2)}B`;
+                if (num >= 1000000) return `${(num / 1000000).toFixed(2)}T`;
+                if (num >= 1000) return `${(num / 1000).toFixed(2)}B`;
             }
             
             if (key.includes('RATE') || key === 'DGS10' || key === 'DGS2' || key === 'DGS5' || key.includes('BAML')) {
