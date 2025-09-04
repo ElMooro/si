@@ -406,7 +406,7 @@
             }
         }
         
-        // Load all series data with retry logic and better error handling
+        // Load all series data
         async function loadAllSeriesData() {
             const seriesIds = Object.keys(allSeriesMetadata);
             const totalCount = seriesIds.length;
@@ -417,7 +417,7 @@
             }
             
             console.log(`📊 Starting to load ${totalCount} series...`);
-            showStatus(`Loading ${totalCount} series with retry logic...`, 'info');
+            showStatus(`Loading ${totalCount} series...`, 'info');
             
             // Show progress bar
             const progressContainer = document.getElementById('progressContainer');
@@ -430,20 +430,17 @@
             
             let loaded = 0;
             let failed = 0;
-            const failedSeries = [];
             
-            // Process ONE AT A TIME with longer delays to avoid rate limiting
-            for (let i = 0; i < seriesIds.length; i++) {
-                const seriesId = seriesIds[i];
-                let success = false;
-                let retryCount = 0;
-                const maxRetries = 2;
+            // Process in smaller batches to avoid overwhelming the API
+            const batchSize = 3;
+            
+            for (let i = 0; i < seriesIds.length; i += batchSize) {
+                const batch = seriesIds.slice(i, i + batchSize);
                 
-                // Try to load with retries
-                while (!success && retryCount <= maxRetries) {
+                // Process batch in parallel
+                const batchPromises = batch.map(async (seriesId) => {
                     try {
                         const response = await fetch(`${API_BASE}/ice_bofa?series=${seriesId}`);
-                        
                         if (response.ok) {
                             const data = await response.json();
                             
@@ -458,54 +455,48 @@
                             });
                             
                             loaded++;
-                            success = true;
                             console.log(`✓ Loaded ${seriesId} (${loaded}/${totalCount})`);
                         } else {
-                            const errorText = await response.text();
-                            throw new Error(`HTTP ${response.status}: ${errorText}`);
+                            throw new Error(`HTTP ${response.status}`);
                         }
                     } catch (err) {
-                        retryCount++;
+                        console.error(`✗ Failed to load ${seriesId}:`, err.message);
                         
-                        if (retryCount <= maxRetries) {
-                            console.log(`⚠️ Retry ${retryCount}/${maxRetries} for ${seriesId}`);
-                            // Wait longer before retry (exponential backoff)
-                            await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
-                        } else {
-                            console.error(`✗ Failed to load ${seriesId} after ${maxRetries} retries:`, err.message);
-                            failedSeries.push(seriesId);
-                            
-                            // Add placeholder for failed series
-                            allSeriesData.push({
-                                id: seriesId,
-                                name: allSeriesMetadata[seriesId],
-                                latest: { value: null, date: null },
-                                changes: {},
-                                error: true,
-                                errorMessage: err.message
-                            });
-                            
-                            failed++;
-                        }
+                        // Add placeholder for failed series
+                        allSeriesData.push({
+                            id: seriesId,
+                            name: allSeriesMetadata[seriesId],
+                            latest: { value: null, date: null },
+                            changes: {},
+                            error: true
+                        });
+                        
+                        failed++;
                     }
-                }
+                });
+                
+                // Wait for batch to complete
+                await Promise.all(batchPromises);
                 
                 // Update progress
                 const progress = Math.round(((loaded + failed) / totalCount) * 100);
                 progressBar.style.width = `${progress}%`;
-                progressBar.textContent = `${progress}% (${loaded + failed}/${totalCount})`;
+                progressBar.textContent = `${progress}%`;
                 
                 document.getElementById('loadedSeries').textContent = loaded;
                 document.getElementById('seriesCount').textContent = `${loaded} of ${totalCount} loaded`;
                 
-                // Update status periodically
-                if ((loaded + failed) % 10 === 0) {
-                    showStatus(`Progress: ${loaded} successful, ${failed} failed (${loaded + failed}/${totalCount})...`, 'info');
+                // Update status
+                if (failed > 0) {
+                    showStatus(`Loading: ${loaded} successful, ${failed} failed...`, 'info');
+                } else {
+                    showStatus(`Loading: ${loaded}/${totalCount}...`, 'info');
                 }
                 
-                // Delay between each request to avoid rate limiting
-                // Longer delay = more reliable but slower
-                await new Promise(resolve => setTimeout(resolve, 200));
+                // Small delay between batches
+                if (i + batchSize < seriesIds.length) {
+                    await new Promise(resolve => setTimeout(resolve, 50));
+                }
             }
             
             // Hide progress bar
@@ -515,47 +506,15 @@
             displaySeriesData();
             updateLastUpdateTime();
             
-            // Final status and detailed error report
+            // Final status
             if (failed > 0) {
                 showStatus(`Loaded ${loaded} series successfully. ${failed} series failed to load.`, 'info');
-                console.log(`\n❌ Failed Series (${failed}):`);
-                console.log(failedSeries);
-                
-                // Provide diagnostic info
-                console.log('\n📝 Diagnostic Info:');
-                console.log('To test a specific failed series, run in console:');
-                console.log('testSingleSeries("SERIES_ID")');
             } else {
                 showStatus(`Successfully loaded all ${loaded} series!`, 'success');
             }
             
             console.log(`\n📊 Final Results:\n✅ Loaded: ${loaded}\n❌ Failed: ${failed}\n📈 Total: ${totalCount}`);
         }
-        
-        // Test function to diagnose single series
-        async function testSingleSeries(seriesId) {
-            console.log(`Testing ${seriesId}...`);
-            try {
-                const response = await fetch(`${API_BASE}/ice_bofa?series=${seriesId}`);
-                const text = await response.text();
-                
-                console.log('Response Status:', response.status);
-                console.log('Response Headers:', response.headers);
-                console.log('Response Body:', text);
-                
-                if (response.ok) {
-                    const data = JSON.parse(text);
-                    console.log('✅ Success! Data:', data);
-                } else {
-                    console.log('❌ Failed with status:', response.status);
-                }
-            } catch (err) {
-                console.error('Error:', err);
-            }
-        }
-        
-        // Make test function available globally
-        window.testSingleSeries = testSingleSeries;
         
         // Display series data in the table
         function displaySeriesData() {
@@ -791,6 +750,11 @@
         
         // Initialize on load
         document.addEventListener('DOMContentLoaded', initialize);
+        
+        // Make functions available globally for debugging
+        window.testSingleSeries = testSingleSeries;
+        window.retryFailedSeries = retryFailedSeries;
+        window.showWorkingSeries = showWorkingSeries;
     </script>
 </body>
 </html>
