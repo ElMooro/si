@@ -1,1 +1,939 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ICE BofA Bond Indices Dashboard - Complete Collection</title>
+    
+    <!-- Required Libraries -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #151932 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        
+        /* Header Styles */
+        .header {
+            background: rgba(20, 24, 44, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .header-stats {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-width: 100px;
+        }
+        
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #00ff88;
+        }
+        
+        .stat-label {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+        }
+        
+        /* Container */
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Category Sections */
+        .category-section {
+            margin-bottom: 3rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid rgba(0, 255, 136, 0.3);
+        }
+        
+        .category-title {
+            font-size: 1.5rem;
+            color: #00ff88;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .category-count {
+            font-size: 0.875rem;
+            color: #888;
+            background: rgba(0, 255, 136, 0.1);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+        }
+        
+        .category-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .collapse-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #fff;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .collapse-btn:hover {
+            background: rgba(0, 255, 136, 0.2);
+        }
+        
+        /* Filter buttons */
+        .filter-container {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 0.75rem 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #888;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+        }
+        
+        .filter-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border-color: rgba(0, 255, 136, 0.3);
+        }
+        
+        .filter-btn.active {
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            color: #000;
+            font-weight: bold;
+            border: none;
+        }
+        
+        /* Data Table */
+        .data-table {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+            overflow-x: auto;
+        }
+        
+        .data-table table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+        }
+        
+        .data-table th {
+            background: rgba(0, 255, 136, 0.1);
+            padding: 0.75rem;
+            text-align: left;
+            font-weight: bold;
+            color: #00ff88;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.875rem;
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+        }
+        
+        .data-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.875rem;
+        }
+        
+        .data-table tr:hover {
+            background: rgba(0, 255, 136, 0.05);
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+            border-radius: 12px;
+            padding: 1.25rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+        }
+        
+        .stat-card:hover {
+            border-color: rgba(0, 255, 136, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .stat-card-title {
+            font-size: 0.75rem;
+            color: #888;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+        
+        .stat-card-value {
+            font-size: 1.75rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .stat-card-subtitle {
+            font-size: 0.875rem;
+            color: #aaa;
+            margin-top: 0.25rem;
+        }
+        
+        /* Loading States */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #888;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(0, 255, 136, 0.2);
+            border-top-color: #00ff88;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Status Messages */
+        .error {
+            color: #ff4444;
+            padding: 1rem;
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid rgba(255, 68, 68, 0.3);
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        .success {
+            color: #00ff88;
+            padding: 1rem;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        .info {
+            color: #00ccff;
+            padding: 1rem;
+            background: rgba(0, 204, 255, 0.1);
+            border: 1px solid rgba(0, 204, 255, 0.3);
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        /* Value Styles */
+        .positive { color: #00ff88; }
+        .negative { color: #ff4444; }
+        .neutral { color: #888; }
+        
+        .value-cell {
+            font-family: 'Courier New', monospace;
+            font-weight: 500;
+        }
+        
+        .series-id {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            color: #00ccff;
+        }
+        
+        /* Search Box */
+        .search-container {
+            margin-bottom: 2rem;
+        }
+        
+        .search-input {
+            width: 100%;
+            max-width: 500px;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #00ff88;
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .category-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            📊 ICE BofA Bond Indices
+            <span style="font-size: 0.875rem; color: #888;">Complete Collection</span>
+        </div>
+        
+        <div class="header-stats">
+            <div class="stat-item">
+                <div class="stat-value" id="totalSeries">162</div>
+                <div class="stat-label">Total Series</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="loadedSeries">0</div>
+                <div class="stat-label">Loaded</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="lastUpdate">--:--</div>
+                <div class="stat-label">Last Update</div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <!-- Status messages -->
+        <div id="statusMessage"></div>
+        
+        <!-- Main Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-card-title">Investment Grade</div>
+                <div class="stat-card-value" id="igCount">45</div>
+                <div class="stat-card-subtitle">Corporate Bonds</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-title">High Yield</div>
+                <div class="stat-card-value" id="hyCount">20</div>
+                <div class="stat-card-subtitle">Junk Bonds</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-title">Emerging Markets</div>
+                <div class="stat-card-value" id="emCount">97</div>
+                <div class="stat-card-subtitle">EM Bonds</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-title">Duration Based</div>
+                <div class="stat-card-value" id="durationCount">24</div>
+                <div class="stat-card-subtitle">By Duration</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-title">Euro Indices</div>
+                <div class="stat-card-value" id="euroCount">6</div>
+                <div class="stat-card-subtitle">EUR Bonds</div>
+            </div>
+        </div>
+        
+        <!-- Search Box -->
+        <div class="search-container">
+            <input type="text" 
+                   class="search-input" 
+                   id="searchInput" 
+                   placeholder="Search by series ID or description..."
+                   onkeyup="searchSeries()">
+        </div>
+        
+        <!-- Filter buttons -->
+        <div class="filter-container">
+            <button class="filter-btn active" onclick="showAllCategories()">📊 All Categories</button>
+            <button class="filter-btn" onclick="showCategory('investment-grade')">🏢 Investment Grade</button>
+            <button class="filter-btn" onclick="showCategory('high-yield')">⚠️ High Yield</button>
+            <button class="filter-btn" onclick="showCategory('emerging-markets')">🌍 Emerging Markets</button>
+            <button class="filter-btn" onclick="showCategory('duration')">⏱️ Duration Based</button>
+            <button class="filter-btn" onclick="showCategory('euro')">€ Euro Indices</button>
+            <button class="filter-btn" onclick="loadAllData()">🔄 Load All Data</button>
+            <button class="filter-btn" onclick="exportToCSV()">📥 Export CSV</button>
+        </div>
+        
+        <!-- US Corporate Investment Grade Section -->
+        <div class="category-section" id="investment-grade-section">
+            <div class="category-header">
+                <div class="category-title">
+                    🏢 US Corporate Investment Grade
+                    <span class="category-count">45 series</span>
+                </div>
+                <div class="category-controls">
+                    <button class="collapse-btn" onclick="toggleCategory('investment-grade')">Collapse</button>
+                    <button class="collapse-btn" onclick="refreshCategory('investment-grade')">Refresh</button>
+                </div>
+            </div>
+            <div class="data-table" id="investment-grade-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Series ID</th>
+                            <th>Description</th>
+                            <th>Current Value</th>
+                            <th>WoW %</th>
+                            <th>MoM %</th>
+                            <th>QoQ %</th>
+                            <th>YoY %</th>
+                            <th>Last Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody id="investment-grade-tbody">
+                        <tr><td colspan="8" class="loading">Click "Load All Data" to fetch data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- US High Yield Section -->
+        <div class="category-section" id="high-yield-section">
+            <div class="category-header">
+                <div class="category-title">
+                    ⚠️ US High Yield
+                    <span class="category-count">20 series</span>
+                </div>
+                <div class="category-controls">
+                    <button class="collapse-btn" onclick="toggleCategory('high-yield')">Collapse</button>
+                    <button class="collapse-btn" onclick="refreshCategory('high-yield')">Refresh</button>
+                </div>
+            </div>
+            <div class="data-table" id="high-yield-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Series ID</th>
+                            <th>Description</th>
+                            <th>Current Value</th>
+                            <th>WoW %</th>
+                            <th>MoM %</th>
+                            <th>QoQ %</th>
+                            <th>YoY %</th>
+                            <th>Last Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody id="high-yield-tbody">
+                        <tr><td colspan="8" class="loading">Click "Load All Data" to fetch data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Emerging Markets Section -->
+        <div class="category-section" id="emerging-markets-section">
+            <div class="category-header">
+                <div class="category-title">
+                    🌍 Emerging Markets
+                    <span class="category-count">97 series</span>
+                </div>
+                <div class="category-controls">
+                    <button class="collapse-btn" onclick="toggleCategory('emerging-markets')">Collapse</button>
+                    <button class="collapse-btn" onclick="refreshCategory('emerging-markets')">Refresh</button>
+                </div>
+            </div>
+            <div class="data-table" id="emerging-markets-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Series ID</th>
+                            <th>Description</th>
+                            <th>Current Value</th>
+                            <th>WoW %</th>
+                            <th>MoM %</th>
+                            <th>QoQ %</th>
+                            <th>YoY %</th>
+                            <th>Last Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody id="emerging-markets-tbody">
+                        <tr><td colspan="8" class="loading">Click "Load All Data" to fetch data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Duration Based Section -->
+        <div class="category-section" id="duration-section">
+            <div class="category-header">
+                <div class="category-title">
+                    ⏱️ Duration Based Indices
+                    <span class="category-count">24 series</span>
+                </div>
+                <div class="category-controls">
+                    <button class="collapse-btn" onclick="toggleCategory('duration')">Collapse</button>
+                    <button class="collapse-btn" onclick="refreshCategory('duration')">Refresh</button>
+                </div>
+            </div>
+            <div class="data-table" id="duration-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Series ID</th>
+                            <th>Description</th>
+                            <th>Current Value</th>
+                            <th>WoW %</th>
+                            <th>MoM %</th>
+                            <th>QoQ %</th>
+                            <th>YoY %</th>
+                            <th>Last Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody id="duration-tbody">
+                        <tr><td colspan="8" class="loading">Click "Load All Data" to fetch data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Euro Indices Section -->
+        <div class="category-section" id="euro-section">
+            <div class="category-header">
+                <div class="category-title">
+                    € Euro Indices
+                    <span class="category-count">6 series</span>
+                </div>
+                <div class="category-controls">
+                    <button class="collapse-btn" onclick="toggleCategory('euro')">Collapse</button>
+                    <button class="collapse-btn" onclick="refreshCategory('euro')">Refresh</button>
+                </div>
+            </div>
+            <div class="data-table" id="euro-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Series ID</th>
+                            <th>Description</th>
+                            <th>Current Value</th>
+                            <th>WoW %</th>
+                            <th>MoM %</th>
+                            <th>QoQ %</th>
+                            <th>YoY %</th>
+                            <th>Last Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody id="euro-tbody">
+                        <tr><td colspan="8" class="loading">Click "Load All Data" to fetch data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // API Configuration
+        const API_BASE = 'https://lnd6erie7y4rw2u6r4dpv4enty0mhtua.lambda-url.us-east-1.on.aws';
+        
+        // Global state
+        let allSeriesData = {};
+        let categorizedData = {
+            'investment-grade': {},
+            'high-yield': {},
+            'emerging-markets': {},
+            'duration': {},
+            'euro': {}
+        };
+        
+        // Initialize
+        async function initialize() {
+            console.log('🚀 Initializing ICE BofA Dashboard...');
+            updateLastUpdateTime();
+            await fetchSeriesList();
+        }
+        
+        // Fetch list of all series
+        async function fetchSeriesList() {
+            showStatus('Fetching series list...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/ice_bofa?series=all`);
+                if (!response.ok) throw new Error('Failed to fetch series list');
+                
+                const data = await response.json();
+                allSeriesData = data.series || {};
+                
+                // Categorize series
+                categorizeSeries(allSeriesData);
+                
+                // Update counts
+                updateCounts();
+                
+                showStatus(`Successfully loaded ${Object.keys(allSeriesData).length} series definitions`, 'success');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus(`Error: ${error.message}`, 'error');
+            }
+        }
+        
+        // Categorize series based on ID patterns
+        function categorizeSeries(series) {
+            Object.keys(series).forEach(id => {
+                const name = series[id];
+                
+                // Investment Grade (BAMLC patterns, excluding high yield)
+                if (id.startsWith('BAMLC') && !id.includes('HY')) {
+                    categorizedData['investment-grade'][id] = name;
+                }
+                // High Yield (BAMLH patterns or contains HY)
+                else if (id.startsWith('BAMLH') || id.includes('HY')) {
+                    categorizedData['high-yield'][id] = name;
+                }
+                // Emerging Markets (BAMLEM patterns)
+                else if (id.includes('BAMLEM')) {
+                    categorizedData['emerging-markets'][id] = name;
+                }
+                // Duration based indices
+                else if (id.includes('1Y') || id.includes('3Y') || id.includes('5Y') || 
+                         id.includes('7Y') || id.includes('10Y') || id.includes('15Y')) {
+                    categorizedData['duration'][id] = name;
+                }
+                // Euro indices
+                else if (id.includes('EUR') || id.includes('EURO')) {
+                    categorizedData['euro'][id] = name;
+                }
+                // Default to emerging markets for uncategorized
+                else if (id.startsWith('BAML')) {
+                    categorizedData['emerging-markets'][id] = name;
+                }
+            });
+        }
+        
+        // Update category counts
+        function updateCounts() {
+            document.getElementById('igCount').textContent = Object.keys(categorizedData['investment-grade']).length;
+            document.getElementById('hyCount').textContent = Object.keys(categorizedData['high-yield']).length;
+            document.getElementById('emCount').textContent = Object.keys(categorizedData['emerging-markets']).length;
+            document.getElementById('durationCount').textContent = Object.keys(categorizedData['duration']).length;
+            document.getElementById('euroCount').textContent = Object.keys(categorizedData['euro']).length;
+        }
+        
+        // Load all data for all categories
+        async function loadAllData() {
+            showStatus('Loading all series data... This may take a few minutes.', 'info');
+            document.getElementById('loadedSeries').textContent = '0';
+            
+            let loaded = 0;
+            const totalSeries = Object.keys(allSeriesData).length;
+            
+            for (const [category, series] of Object.entries(categorizedData)) {
+                await loadCategoryData(category, false);
+                loaded += Object.keys(series).length;
+                document.getElementById('loadedSeries').textContent = loaded;
+                showStatus(`Loading: ${loaded}/${totalSeries} series...`, 'info');
+            }
+            
+            showStatus(`Successfully loaded all ${loaded} series!`, 'success');
+            updateLastUpdateTime();
+        }
+        
+        // Load data for a specific category
+        async function loadCategoryData(category, showMessage = true) {
+            if (showMessage) {
+                showStatus(`Loading ${category} data...`, 'info');
+            }
+            
+            const tbody = document.getElementById(`${category}-tbody`);
+            tbody.innerHTML = '<tr><td colspan="8" class="loading"><div class="loading-spinner"></div> Loading...</td></tr>';
+            
+            const seriesIds = Object.keys(categorizedData[category]);
+            const rows = [];
+            
+            // Batch fetch to avoid overwhelming the API
+            const batchSize = 5;
+            for (let i = 0; i < seriesIds.length; i += batchSize) {
+                const batch = seriesIds.slice(i, i + batchSize);
+                
+                await Promise.all(batch.map(async (id) => {
+                    try {
+                        const response = await fetch(`${API_BASE}/ice_bofa?series=${id}`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            rows.push(createTableRow(id, data));
+                        }
+                    } catch (err) {
+                        console.error(`Error fetching ${id}:`, err);
+                        rows.push(createErrorRow(id, categorizedData[category][id]));
+                    }
+                }));
+            }
+            
+            tbody.innerHTML = rows.join('');
+            
+            if (showMessage) {
+                showStatus(`Loaded ${seriesIds.length} ${category} series`, 'success');
+            }
+        }
+        
+        // Create table row from data
+        function createTableRow(id, data) {
+            const latest = data.latest || {};
+            const changes = data.percentage_changes || {};
+            
+            return `
+                <tr>
+                    <td class="series-id">${id}</td>
+                    <td>${data.name || categorizedData[findCategory(id)][id]}</td>
+                    <td class="value-cell">${formatValue(latest.value, id)}</td>
+                    <td class="${getColorClass(changes['WoW%'])}">${formatChange(changes['WoW%'])}</td>
+                    <td class="${getColorClass(changes['MoM%'])}">${formatChange(changes['MoM%'])}</td>
+                    <td class="${getColorClass(changes['QoQ%'])}">${formatChange(changes['QoQ%'])}</td>
+                    <td class="${getColorClass(changes['YoY%'])}">${formatChange(changes['YoY%'])}</td>
+                    <td>${latest.date || 'N/A'}</td>
+                </tr>
+            `;
+        }
+        
+        // Create error row
+        function createErrorRow(id, name) {
+            return `
+                <tr>
+                    <td class="series-id">${id}</td>
+                    <td>${name}</td>
+                    <td colspan="6" class="neutral">Data unavailable</td>
+                </tr>
+            `;
+        }
+        
+        // Find category for a series ID
+        function findCategory(id) {
+            for (const [category, series] of Object.entries(categorizedData)) {
+                if (id in series) return category;
+            }
+            return null;
+        }
+        
+        // Format value based on series type
+        function formatValue(value, seriesId) {
+            if (value === null || value === undefined) return 'N/A';
+            
+            const num = parseFloat(value);
+            
+            if (seriesId.includes('OAS') || seriesId.includes('SPREAD')) {
+                return `${num.toFixed(2)} bps`;
+            }
+            
+            if (seriesId.includes('EY') || seriesId.includes('YIELD') || seriesId.includes('SYTW')) {
+                return `${num.toFixed(2)}%`;
+            }
+            
+            if (seriesId.includes('TRIV')) {
+                return num.toFixed(2);
+            }
+            
+            return num.toFixed(2);
+        }
+        
+        // Format percentage change
+        function formatChange(value) {
+            if (value === null || value === undefined) return 'N/A';
+            const sign = value >= 0 ? '+' : '';
+            return `${sign}${value.toFixed(2)}%`;
+        }
+        
+        // Get color class based on value
+        function getColorClass(value) {
+            if (value === null || value === undefined) return 'neutral';
+            return value >= 0 ? 'positive' : 'negative';
+        }
+        
+        // Refresh specific category
+        async function refreshCategory(category) {
+            await loadCategoryData(category);
+        }
+        
+        // Toggle category visibility
+        function toggleCategory(category) {
+            const table = document.getElementById(`${category}-table`);
+            const btn = event.target;
+            
+            if (table.style.display === 'none') {
+                table.style.display = 'block';
+                btn.textContent = 'Collapse';
+            } else {
+                table.style.display = 'none';
+                btn.textContent = 'Expand';
+            }
+        }
+        
+        // Show specific category
+        function showCategory(category) {
+            // Hide all sections
+            document.querySelectorAll('.category-section').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Show selected category
+            document.getElementById(`${category}-section`).style.display = 'block';
+            
+            // Update active filter button
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Load data if not already loaded
+            const tbody = document.getElementById(`${category}-tbody`);
+            if (tbody.innerHTML.includes('Click "Load All Data"')) {
+                loadCategoryData(category);
+            }
+        }
+        
+        // Show all categories
+        function showAllCategories() {
+            document.querySelectorAll('.category-section').forEach(section => {
+                section.style.display = 'block';
+            });
+            
+            // Update active filter button
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+        
+        // Search functionality
+        function searchSeries() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            document.querySelectorAll('.data-table tbody tr').forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        }
+        
+        // Export to CSV
+        function exportToCSV() {
+            let csv = 'Category,Series ID,Description,Current Value,WoW%,MoM%,QoQ%,YoY%,Last Updated\n';
+            
+            document.querySelectorAll('.category-section').forEach(section => {
+                const category = section.querySelector('.category-title').textContent.trim();
+                section.querySelectorAll('tbody tr').forEach(row => {
+                    if (!row.querySelector('.loading')) {
+                        const cells = row.querySelectorAll('td');
+                        if (cells.length >= 8) {
+                            csv += `"${category}",`;
+                            cells.forEach((cell, index) => {
+                                csv += `"${cell.textContent.trim()}"`;
+                                if (index < cells.length - 1) csv += ',';
+                            });
+                            csv += '\n';
+                        }
+                    }
+                });
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ice_bofa_data_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            
+            showStatus('Data exported to CSV', 'success');
+        }
+        
+        // Show status message
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.className = type;
+            statusDiv.textContent = message;
+            
+            if (type === 'success' || type === 'error') {
+                setTimeout(() => {
+                    statusDiv.textContent = '';
+                    statusDiv.className = '';
+                }, 5000);
+            }
+        }
+        
+        // Update last update time
+        function updateLastUpdateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('lastUpdate').textContent = timeStr;
+        }
+        
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', initialize);
+    </script>
+</body>
+</html>
