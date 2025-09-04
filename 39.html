@@ -1017,17 +1017,19 @@
         async function fetchFREDData() {
             console.log('Fetching FRED indicators...');
             
+            // Combine all indicators and also fetch ICE BofA from FRED as backup
             const allIndicators = [
                 ...FEDERAL_RESERVE_INDICATORS,
                 ...DOLLAR_INDICATORS,
                 ...EM_INDICATORS,
                 ...LIQUIDITY_INDICATORS,
-                ...MACRO_INDICATORS
-            ].filter((v, i, a) => a.indexOf(v) === i);
+                ...MACRO_INDICATORS,
+                ...ICE_BOFA_COMPLETE  // Also try to get ICE BofA from FRED
+            ].filter((v, i, a) => a.indexOf(v) === i);  // Remove duplicates
             
             let loadedCount = 0;
             const totalIndicators = allIndicators.length;
-            document.getElementById('totalIndicators').textContent = totalIndicators + iceBofASeriesList.length;
+            document.getElementById('totalIndicators').textContent = 162 + totalIndicators;  // ICE + FRED
             
             // Batch process to avoid rate limiting
             for (let i = 0; i < allIndicators.length; i += 3) {
@@ -1035,6 +1037,11 @@
                 
                 await Promise.all(batch.map(async (seriesId) => {
                     try {
+                        // Skip if already loaded from ICE BofA API
+                        if (allData[seriesId] && allData[seriesId].source === 'ICE_BOFA') {
+                            return;
+                        }
+                        
                         const url = `${CONFIG.FRED_BASE_URL}/series/observations?` +
                             `series_id=${seriesId}&` +
                             `api_key=${CONFIG.FRED_API_KEY}&` +
@@ -1086,7 +1093,7 @@
                 // Update progress
                 const progress = Math.round((i / totalIndicators) * 100);
                 if (i % 20 === 0) {
-                    showStatus(`Loading FRED data: ${progress}% (${loadedCount}/${totalIndicators})`, 'loading');
+                    showStatus(`Loading FRED data: ${progress}% (${loadedCount} indicators)`, 'loading');
                 }
                 
                 // Small delay to avoid rate limiting
