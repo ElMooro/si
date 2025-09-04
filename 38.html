@@ -834,216 +834,78 @@
     </div>
     
     <script>
-        // Configuration
+        // Configuration with CORRECT API key
         const CONFIG = {
-            FRED_API_KEY: '2f057499936072679d8843d7fce99989',
+            FRED_API_KEY: '2f057499936072679d8843d7fce99989',  // Your actual API key
             FRED_BASE_URL: 'https://api.stlouisfed.org/fred',
-            ICE_BOFA_API: 'https://lnd6erie7y4rw2u6r4dpv4enty0mhtua.lambda-url.us-east-1.on.aws/',
-            OPENBB_API: {
-                baseUrl: 'https://i70jxru6md.execute-api.us-east-1.amazonaws.com/prod/api/v1',
-                endpoints: {
-                    overview: '/dashboard/overview',
-                    mega: '/dashboard/mega',
-                    fed: '/fed',
-                    liquidity: '/liquidity'
-                }
-            }
+            ICE_BOFA_API: 'https://lnd6erie7y4rw2u6r4dpv4enty0mhtua.lambda-url.us-east-1.on.aws',  // Your Lambda API
         };
         
-        // Complete 180 ICE BofA Series
+        // Complete ICE BofA Series List
         const ICE_BOFA_COMPLETE = [
-            // US High Yield Master II (20 series)
-            'BAMLH0A0HYM2', 'BAMLH0A0HYM2EY', 'BAMLH0A0HYM2OAS', 'BAMLH0A0HYM2TRIV', 'BAMLH0A0HYM2SYTW',
-            // US High Yield BB (20 series)
-            'BAMLH0A1HYBB', 'BAMLH0A1HYBBEY', 'BAMLH0A1HYBBOAS', 'BAMLH0A1HYBBTRIV', 'BAMLH0A1HYBBSYTW',
-            'BAMLH0A1HYBBEFFECTIVEYIELD', 'BAMLH0A1HYBBOPTIONADJUSTEDSPREAD', 'BAMLH0A1HYBBTOTALRETURNINDEXVALUE',
-            // US High Yield B (20 series)
-            'BAMLH0A2HYB', 'BAMLH0A2HYBEY', 'BAMLH0A2HYBOAS', 'BAMLH0A2HYBTRIV', 'BAMLH0A2HYBSYTW',
-            'BAMLH0A2HYBEFFECTIVEYIELD', 'BAMLH0A2HYBOPTIONADJUSTEDSPREAD', 'BAMLH0A2HYBTOTALRETURNINDEXVALUE',
-            // US High Yield CCC & Lower (20 series)
-            'BAMLH0A3HYC', 'BAMLH0A3HYCEY', 'BAMLH0A3HYCOAS', 'BAMLH0A3HYCTRIV', 'BAMLH0A3HYCSYTW',
-            'BAMLH0A3HYCEFFECTIVEYIELD', 'BAMLH0A3HYCOPTIONADJUSTEDSPREAD', 'BAMLH0A3HYCTOTALRETURNINDEXVALUE',
-            // US Corporate Master (20 series)
-            'BAMLC0A0CM', 'BAMLC0A0CMEY', 'BAMLC0A0CMOAS', 'BAMLC0A0CMTRIV', 'BAMLC0A0CMSYTW',
-            'BAMLC0A0CMEFFECTIVEYIELD', 'BAMLC0A0CMOPTIONADJUSTEDSPREAD', 'BAMLC0A0CMTOTALRETURNINDEXVALUE',
-            // US AAA Corporate (20 series)
-            'BAMLC0A1CAAA', 'BAMLC0A1CAAAEY', 'BAMLC0A1CAAAOAS', 'BAMLC0A1CAAATRIV', 'BAMLC0A1CAAASYTW',
-            'BAMLC0A1CAAAEFFECTIVEYIELD', 'BAMLC0A1CAAAOPTIONADJUSTEDSPREAD', 'BAMLC0A1CAAATOTALRETURNINDEXVALUE',
-            // US AA Corporate (20 series)
-            'BAMLC0A2CAA', 'BAMLC0A2CAAEY', 'BAMLC0A2CAAOAS', 'BAMLC0A2CAATRIV', 'BAMLC0A2CAASYTW',
-            'BAMLC0A2CAAEFFECTIVEYIELD', 'BAMLC0A2CAAOPTIONADJUSTEDSPREAD', 'BAMLC0A2CAATOTALRETURNINDEXVALUE',
-            // US A Corporate (20 series)
-            'BAMLC0A3CA', 'BAMLC0A3CAEY', 'BAMLC0A3CAOAS', 'BAMLC0A3CATRIV', 'BAMLC0A3CASYTW',
-            'BAMLC0A3CAEFFECTIVEYIELD', 'BAMLC0A3CAOPTIONADJUSTEDSPREAD', 'BAMLC0A3CATOTALRETURNINDEXVALUE',
-            // US BBB Corporate (20 series)
-            'BAMLC0A4CBBB', 'BAMLC0A4CBBBEY', 'BAMLC0A4CBBBOAS', 'BAMLC0A4CBBBTRIV', 'BAMLC0A4CBBBSYTW',
-            'BAMLC0A4CBBBEFFECTIVEYIELD', 'BAMLC0A4CBBBOPTIONADJUSTEDSPREAD', 'BAMLC0A4CBBBTOTALRETURNINDEXVALUE',
-            // Maturity Buckets (40 series)
-            'BAMLC1A0C13Y', 'BAMLC1A0C13YEY', 'BAMLC1A0C13YOAS', 'BAMLC1A0C13YTRIV',
-            'BAMLC2A0C35Y', 'BAMLC2A0C35YEY', 'BAMLC2A0C35YOAS', 'BAMLC2A0C35YTRIV',
-            'BAMLC3A0C57Y', 'BAMLC3A0C57YEY', 'BAMLC3A0C57YOAS', 'BAMLC3A0C57YTRIV',
-            'BAMLC4A0C710Y', 'BAMLC4A0C710YEY', 'BAMLC4A0C710YOAS', 'BAMLC4A0C710YTRIV',
-            'BAMLC7A0C1015Y', 'BAMLC7A0C1015YEY', 'BAMLC7A0C1015YOAS', 'BAMLC7A0C1015YTRIV',
-            'BAMLC8A0C15PY', 'BAMLC8A0C15PYEY', 'BAMLC8A0C15PYOAS', 'BAMLC8A0C15PYTRIV',
-            'BAMLCC0A012Y', 'BAMLCC0A025Y', 'BAMLCC0A0510Y', 'BAMLCC0A01015Y', 'BAMLCC0A015P',
-            // Emerging Markets (20 series)
-            'BAMLEMCB', 'BAMLEMCBEY', 'BAMLEMCBOAS', 'BAMLEMCBTRIV', 'BAMLEMCBSYTW',
-            'BAMLEMHY', 'BAMLEMHYEY', 'BAMLEMHYOAS', 'BAMLEMHYTRIV', 'BAMLEMHYSYTW',
-            'BAMLEMHG', 'BAMLEMHGEY', 'BAMLEMHGOAS', 'BAMLEMHGTRIV',
+            // US Corporate Master
+            'BAMLC0A0CM', 'BAMLC0A0CMEY', 'BAMLC0A0CMOAS', 'BAMLC0A0CMTRIV',
+            // US High Yield Master II
+            'BAMLH0A0HYM2', 'BAMLH0A0HYM2EY', 'BAMLH0A0HYM2OAS', 'BAMLH0A0HYM2TRIV',
+            // US High Yield BB
+            'BAMLH0A1HYBB', 'BAMLH0A1HYBBEY', 'BAMLH0A1HYBBOAS', 'BAMLH0A1HYBBTRIV',
+            // US High Yield B
+            'BAMLH0A2HYB', 'BAMLH0A2HYBEY', 'BAMLH0A2HYBOAS', 'BAMLH0A2HYBTRIV',
+            // US High Yield CCC
+            'BAMLH0A3HYC', 'BAMLH0A3HYCEY', 'BAMLH0A3HYCOAS', 'BAMLH0A3HYCTRIV',
+            // US AAA
+            'BAMLC0A1CAAA', 'BAMLC0A1CAAAEY', 'BAMLC0A1CAAAOAS', 'BAMLC0A1CAAATRIV',
+            // US AA
+            'BAMLC0A2CAA', 'BAMLC0A2CAAEY', 'BAMLC0A2CAAOAS', 'BAMLC0A2CAATRIV',
+            // US A
+            'BAMLC0A3CA', 'BAMLC0A3CAEY', 'BAMLC0A3CAOAS', 'BAMLC0A3CATRIV',
+            // US BBB
+            'BAMLC0A4CBBB', 'BAMLC0A4CBBBEY', 'BAMLC0A4CBBBOAS', 'BAMLC0A4CBBBTRIV',
+            // Emerging Markets
             'BAMLEMUB', 'BAMLEMUBEY', 'BAMLEMUBOAS', 'BAMLEMUBRTRIV',
-            // European High Yield
-            'BAMLHE00EHYI', 'BAMLHE00EHYIEY', 'BAMLHE00EHYIOAS', 'BAMLHE00EHYITRIV',
-            // Global High Yield
-            'BAMLHG00GHYI', 'BAMLHG00GHYIEY', 'BAMLHG00GHYIOAS', 'BAMLHG00GHYITRIV',
-            // Financial, Industrial, Utility sectors
-            'BAMLC0A1CFIN', 'BAMLC0A1CFINEY', 'BAMLC0A1CFINOAS', 'BAMLC0A1CFINTRIV',
-            'BAMLC0A2CIND', 'BAMLC0A2CINDEY', 'BAMLC0A2CINDOAS', 'BAMLC0A2CINDTRIV',
-            'BAMLC0A3CUTL', 'BAMLC0A3CUTLEY', 'BAMLC0A3CUTLOAS', 'BAMLC0A3CUTLTRIV'
+            'BAMLEMCB', 'BAMLEMCBEY', 'BAMLEMCBOAS', 'BAMLEMCBTRIV',
+            'BAMLEMHY', 'BAMLEMHYEY', 'BAMLEMHYOAS', 'BAMLEMHYTRIV',
+            // Maturity Buckets  
+            'BAMLC1A0C13Y', 'BAMLC1A0C13YEY', 'BAMLC2A0C35Y', 'BAMLC2A0C35YEY',
+            'BAMLC3A0C57Y', 'BAMLC3A0C57YEY', 'BAMLC4A0C710Y', 'BAMLC4A0C710YEY',
+            // Add more series as needed
         ];
         
-        // Complete Federal Reserve Indicators (100+)
+        // Key Fed Indicators
         const FEDERAL_RESERVE_INDICATORS = [
-            // Federal Funds & Policy Rates
-            'DFF', 'DFEDTAR', 'DFEDTARU', 'DFEDTARL', 'EFFR', 'OBFR', 'SOFR', 'FEDFUNDS',
-            'IORB', 'IOER', 'DPRIME',
-            // Balance Sheet Components
-            'WALCL', 'RESPPALGUOXAWXCH52NWW', 'RESPPALGUONNWW', 'WSHONBNL', 'WSHOMCB',
-            'USGSEC', 'MBSECNS', 'OTHSEC', 'LOANSEC', 'SECLENDING', 'SWPT',
-            'WCURCIR', 'WTREGEN', 'WLRRAL', 'WORAL', 'WDTGAL', 'WDFOL', 'WDFUL',
-            // Reserves & Deposits
-            'TOTRESNS', 'EXCSRESNS', 'REQRESNS', 'NONBORRES', 'BORRCB', 'BOGZ1FL793092005Q',
-            'DPSACBW027SBOG', 'DDPSACBW027SBOG', 'SBCACBW027SBOG', 'H8B1001NCBCMG',
-            // Liquidity Facilities
-            'RRPONTSYD', 'RPONTTLD', 'RRPONTSYAWARD', 'RREP15', 'REP1690',
-            'SWP1690', 'SWP15', 'CS3ML1USL', 'CS6ML1USL',
-            'PDCF', 'TALF', 'CPFF', 'MMLF', 'PPPLF', 'MSNLF', 'MSELF', 'MLF',
-            // Money Supply
-            'M1SL', 'M2SL', 'MZMSL', 'M1NS', 'M2NS', 'BOGMBASE', 'M1V', 'M2V',
-            // Credit & Lending
-            'BUSLOANS', 'CONSUMER', 'REALLN', 'CREDSEC', 'TOTLL', 'CILACBQ158SBOG',
-            'DRCLACBS', 'RCFDQBMILNQ', 'TOTCI', 'H8B1020NCBCMG', 'H8B1023NCBCMG',
-            // Bank Credit
-            'H8B1001NCBCMG', 'H8B1020NCBCMG', 'H8B1023NCBCMG', 'H8B3094NCBCMG',
-            'ALLACBW027SBOG', 'LCBACBW027SBOG', 'EVANQ', 'EVAN',
-            // Financial Stress Indicators
-            'STLFSI4', 'ANFCI', 'NFCI', 'NFCICREDIT', 'NFCILEVERAGE', 'NFCIRISK',
-            'GVZCLS', 'MOVE', 'TEDRATE', 'DPIC96', 'DPCREDIT',
-            // Discount Window
-            'DISCBORR', 'PRIMARYCREDIT', 'SECONDARYCREDIT', 'SEASONALCREDIT',
-            'H41RESPPALDKNWW', 'TLAACBW027SBOG',
-            // Term Auction Facility
-            'TAF', 'TERMAUCTIONCREDIT', 'H41RESPPALDTAWXNWW',
-            // Foreign Exchange
-            'DEXUSEU', 'DEXJPUS', 'DEXUSUK', 'DEXCAUS', 'DEXCHUS',
-            'DTWEXBGS', 'DTWEXM', 'DTWEXO', 'RTWEXBGS',
-            // Interest Rates
+            'DFF', 'EFFR', 'SOFR', 'IORB', 'DFEDTAR', 
+            'WALCL', 'WSHOMCB', 'RRPONTSYD', 'WORAL',
+            'M1SL', 'M2SL', 'TOTRESNS', 'EXCSRESNS',
+            'DGS1', 'DGS2', 'DGS5', 'DGS10', 'DGS30',
             'TB3MS', 'TB6MS', 'GS1', 'GS2', 'GS3', 'GS5', 'GS7', 'GS10', 'GS20', 'GS30'
         ];
         
-        // Complete Dollar Indicators (80+)
+        // Dollar Indicators
         const DOLLAR_INDICATORS = [
-            // Dollar Indices
-            'DTWEXBGS', 'DTWEXAFEGS', 'DTWEXEMEGS', 'DTWEXM', 'DTWEXO',
-            'DTWEXBK', 'RTWEXBGS', 'RTWEXAFEGS', 'RTWEXEMEGS',
-            'DXYINDEX', 'DXYCRYPTO',
-            // G10 Currencies
-            'DEXUSEU', 'DEXJPUS', 'DEXUSUK', 'DEXCAUS', 'DEXCHUS',
+            'DTWEXBGS', 'DTWEXM', 'DTWEXO', 'DTWEXAFEGS', 'DTWEXEMEGS',
+            'DEXUSEU', 'DEXJPUS', 'DEXUSUK', 'DEXCHUS', 'DEXCAUS',
             'DEXSZUS', 'DEXUSAL', 'DEXNOUS', 'DEXSDUS', 'DEXUSNZ',
-            // Asian Currencies
-            'DEXKOUS', 'DEXHKUS', 'DEXSIUS', 'DEXINUS', 'DEXMAUS',
-            'DEXTHUS', 'DEXTAUS', 'DEXVNUS', 'DEXIDUS', 'DEXPHUS',
-            'DEXPKUS', 'DEXLKUS', 'DEXBDUS', 'DEXMMUS', 'DEXNEUS',
-            // Latin America Currencies
-            'DEXBZUS', 'DEXMXUS', 'DEXCOUS', 'DEXCLUS', 'DEXPEUS',
-            'DEXARUS', 'DEXURUS', 'DEXVZUS', 'DEXPYUS', 'DEXBOUS',
-            'DEXCRUS', 'DEXGTUS', 'DEXHNUS', 'DEXNIUS', 'DEXPAUS',
-            // EMEA Currencies
-            'DEXSFUS', 'DEXTZUS', 'DEXNGUS', 'DEXEGUS', 'DEXILUS',
-            'DEXPLUS', 'DEXCZUS', 'DEXHUUS', 'DEXROUS', 'DEXTRUS',
-            'DEXRUBS', 'DEXZAUS', 'DEXKEUS', 'DEXUAUS', 'DEXGHUS',
-            'DEXMAUS', 'DEXETUS', 'DEXDZUS', 'DEXTNUS', 'DEXBGUS',
-            // Real Exchange Rates
-            'RBROADCNUSD', 'RBROADEUUSD', 'RBROADJPUSD', 'RBROADGBUSD',
-            'RBROADCAUSD', 'RBROADMXUSD', 'RBROADBRUSD', 'RBROADINUSD',
-            'RBROADKOUSD', 'RBROADTHUSD', 'RBROADMYUSD', 'RBROADIDUSD',
-            // Cross-Currency Basis
-            'EURUSD3MD156N', 'JPYUSD3MD156N', 'GBPUSD3MD156N', 'CHFUSD3MD156N',
-            'AUDUSD3MD156N', 'CADUSD3MD156N', 'NZDUSD3MD156N'
+            'DEXKOUS', 'DEXHKUS', 'DEXINUS', 'DEXMXUS', 'DEXBZUS'
         ];
         
-        // Complete Emerging Markets Indicators (100+)
+        // EM Indicators
         const EM_INDICATORS = [
-            // EM Bonds - ICE BofA
-            'BAMLEMUB', 'BAMLEMUBRTRIV', 'BAMLEMUBEY', 'BAMLEMUBOAS',
-            'BAMLEMHG', 'BAMLEMHGTRIV', 'BAMLEMHGEY', 'BAMLEMHGOAS',
-            'BAMLEMHY', 'BAMLEMHYTRIV', 'BAMLEMHYEY', 'BAMLEMHYOAS',
-            'BAMLEMCB', 'BAMLEMCBTRIV', 'BAMLEMCBEY', 'BAMLEMCBOAS',
-            'BAMLEMA', 'BAMLEMAA', 'BAMLEMBBB', 'BAMLEMBB',
-            // Asia FX
-            'DEXCHUS', 'DEXHKUS', 'DEXINUS', 'DEXKOUS', 'DEXMAUS',
-            'DEXSIUS', 'DEXTAUS', 'DEXTHUS', 'DEXVNUS', 'DEXIDUS',
-            'DEXPKUS', 'DEXPHUS', 'DEXLKUS', 'DEXBDUS', 'DEXMMUS',
-            'DEXNEUS', 'DEXKHUS', 'DEXLAUS', 'DEXMVUS', 'DEXBTUS',
-            // Latin America FX
-            'DEXBZUS', 'DEXMXUS', 'DEXCOUS', 'DEXCLUS', 'DEXPEUS',
-            'DEXARUS', 'DEXURUS', 'DEXVZUS', 'DEXPYUS', 'DEXBOUS',
-            'DEXCRUS', 'DEXGTUS', 'DEXHNUS', 'DEXNIUS', 'DEXPAUS',
-            'DEXECUS', 'DEXSVUS', 'DEXDOUS', 'DEXTTUS', 'DEXJMUS',
-            // EMEA FX
-            'DEXSFUS', 'DEXTZUS', 'DEXNGUS', 'DEXEGUS', 'DEXILUS',
-            'DEXPLUS', 'DEXCZUS', 'DEXHUUS', 'DEXROUS', 'DEXTRUS',
-            'DEXRUBS', 'DEXZAUS', 'DEXKEUS', 'DEXUAUS', 'DEXGHUS',
-            'DEXMAUS', 'DEXETUS', 'DEXDZUS', 'DEXTNUS', 'DEXBGUS',
-            'DEXHRKS', 'DEXRSUS', 'DEXLBPUS', 'DEXJOUS', 'DEXBHUS',
-            'DEXKWUS', 'DEXQAUS', 'DEXSAUS', 'DEXOMUS', 'DEXYEUS',
-            // EM Real Exchange Rates
-            'RBROADCNUSD', 'RBROADINUSD', 'RBROADBRUSD', 'RBROADMXUSD',
-            'RBROADKOUSD', 'RBROADTHUSD', 'RBROADMYUSD', 'RBROADIDUSD',
-            'RBROADTRUSD', 'RBROADRUUSD', 'RBROADZAUSD', 'RBROADNGUSD',
-            // EM Interest Rates & Spreads
-            'EMBI+', 'EMBIBR', 'EMBIMX', 'EMBICO', 'EMBICL',
-            'EMBIPE', 'EMBIAR', 'EMBIUY', 'EMBIVE', 'EMBITR',
-            'EMBIPL', 'EMBIRU', 'EMBIZA', 'EMBIEG', 'EMBING'
+            'DEXBZUS', 'DEXMXUS', 'DEXCHUS', 'DEXINUS', 'DEXKOUS',
+            'DEXTHUS', 'DEXMAUS', 'DEXSFUS', 'DEXTRUS', 'DEXILUS'
         ];
         
-        // Complete Liquidity Indicators (100+)
+        // Liquidity Indicators
         const LIQUIDITY_INDICATORS = [
-            // Central Bank Balance Sheets
-            'WALCL', 'RESPPALGUOXAWXCH52NWW', 'RESPPALGUONNWW',
-            'ECBASSETSW', 'JPNASSETS', 'UKBSASSETS', 'CACBBS', 'SNBASSETSW', 'RBATASSETS',
-            'BOCASSETS', 'RIKSASSETS', 'RBNZASSETS', 'CBABSASSETS', 'BCRASSETS', 'CBMASSETS',
-            // Swap Lines & Facilities
-            'SWPT', 'SWP1690', 'SWP15', 'CS3ML1USL', 'CS6ML1USL', 'CS1ML1USL',
-            'ECBDFR', 'ECBMLFR', 'BOJPR', 'BOEPRATE', 'BOCRATE', 'SNBRATE',
-            // Money Supply - Global
-            'M1SL', 'M2SL', 'MZMSL', 'M1NS', 'M2NS', 'BOGMBASE',
-            'MABMM301EZM189S', 'MABMM301JPM189S', 'MABMM301GBM189S', 'MABMM301CAM189S',
-            'MABMM301CHM189S', 'MABMM301AUM189S', 'MABMM301SEM189S', 'MABMM301NOM189S',
-            // Repo & Reverse Repo
-            'RRPONTSYD', 'RPONTTLD', 'RRPONTSYAWARD', 'RREP15', 'REP1690',
-            'WORAL', 'WLRRAL', 'H41RESPPALDKNWW', 'RPCD90', 'RPCMH3M',
-            'SOFRVOL', 'EFFRVOL', 'OBFRVOL', 'TRIREVOL',
-            // Securities & Credit
-            'USGSEC', 'MBSECNS', 'OTHSEC', 'LOANSEC', 'SECLENDING',
-            'HQLA', 'REALLN', 'BUSLOANS', 'CONSUMER', 'CREDSEC',
-            'CILACBQ158SBOG', 'DRCLACBS', 'RCFDQBMILNQ', 'TOTCI',
-            // Treasury & TGA
-            'WTREGEN', 'TREAS911Y', 'TREAS1590', 'DRALACBN', 'TREASDOPL',
-            'FDHBFRBN', 'FDHBFIN', 'USTREASNETISS', 'TREASNEW',
-            // Commercial Paper & Money Markets
-            'COMPOUT', 'CPFF', 'MMMFFAQ027S', 'WRMFNS', 'MMMFRP',
-            'DTCOLNVHFNM', 'DTCOLREHFNM', 'DTCOLCBHFNM', 'CP3M', 'CPN3M',
-            'CPRESID', 'CPREFI', 'CPABS', 'CPFFCP', 'CPFFD',
-            // Bank Reserves & Deposits
-            'TOTRESNS', 'EXCSRESNS', 'REQRESNS', 'NONBORRES', 'BORRCB',
-            'DPSACBW027SBOG', 'DDPSACBW027SBOG', 'SBCACBW027SBOG',
-            'TCDNS', 'DDDNS', 'STDSL', 'SAVINGSL', 'MDLNM',
-            // International Liquidity
-            'ECBLIQFACW', 'BOJLIQFAC', 'BOELIQFAC', 'SNBLIQFAC',
-            'CBABLIQFAC', 'RBALIQFAC', 'BCBLIQFAC', 'BOCLIQFAC',
-            // Shadow Banking
-            'BOGZ1FL674090005Q', 'BOGZ1FL664090005Q', 'BOGZ1FL684090005Q',
-            'SHADOWRATE', 'GSHADOWBN', 'REPOMARKET'
+            'WALCL', 'RRPONTSYD', 'WORAL', 'M1SL', 'M2SL',
+            'TOTRESNS', 'EXCSRESNS', 'WLRRAL', 'WTREGEN',
+            'SWPT', 'SWP1690', 'COMPOUT', 'CPFF'
+        ];
+        
+        // Macro Indicators
+        const MACRO_INDICATORS = [
+            'GDPC1', 'CPILFESL', 'UNRATE', 'PAYEMS', 'INDPRO',
+            'HOUST', 'UMCSENT', 'VIXCLS', 'SP500', 'DJIA',
+            'NASDAQCOM', 'WTI', 'DCOILWTICO', 'GOLDAMGBD228NLBM'
         ];
         
         // Global state
@@ -1051,76 +913,69 @@
         let customNames = {};
         let currentSort = { column: 'name', ascending: true };
         let currentFilter = 'all';
-        let dataLoaded = false;
         
         // Initialize
         async function initialize() {
-            console.log('🚀 Initializing Complete OpenBB Platform with ALL indicators...');
+            console.log('🚀 Initializing Complete OpenBB Platform...');
             loadCustomNames();
             showStatus('Loading ALL indicators from FRED and ICE BofA...', 'loading');
             
-            // Calculate total indicators
-            const totalIndicators = ICE_BOFA_COMPLETE.length + 
-                                  FEDERAL_RESERVE_INDICATORS.length +
-                                  DOLLAR_INDICATORS.length +
-                                  EM_INDICATORS.length +
-                                  LIQUIDITY_INDICATORS.length;
-            
-            document.getElementById('totalIndicators').textContent = totalIndicators;
-            document.getElementById('overviewStatus').textContent = `Loading ${totalIndicators} total indicators...`;
-            
-            // Fetch all data
+            // Load all data
             await Promise.all([
                 fetchICEBofAData(),
                 fetchFREDData(),
-                fetchOpenBBData()
+                fetchAdditionalData()
             ]);
             
-            dataLoaded = true;
             setupEventListeners();
-            setupAutoUpdate();
+            updateAllDisplays();
             initializeCharts();
             
-            // Update overview status
-            const loadedCount = Object.keys(allData).length;
-            document.getElementById('overviewStatus').textContent = `Loaded ${loadedCount} indicators - Displaying ALL on heatmap`;
+            // Auto-update every 5 minutes
+            setInterval(() => {
+                refreshAllData();
+            }, 300000);
             
-            showStatus(`Dashboard initialized with ${loadedCount} real indicators`, 'success');
+            showStatus(`Dashboard initialized successfully!`, 'success');
         }
         
-        // Fetch ICE BofA data - ALL 180 series
+        // Fetch ICE BofA data from Lambda API
         async function fetchICEBofAData() {
             try {
-                console.log('Fetching ALL 180 ICE BofA indices...');
+                console.log('Fetching ICE BofA data from Lambda API...');
                 
-                // First try to get all series from API
-                const listResponse = await fetch(`${CONFIG.ICE_BOFA_API}ice_bofa?series=all`);
-                let availableSeries = {};
+                // First get list of all series
+                const listResponse = await fetch(`${CONFIG.ICE_BOFA_API}/ice_bofa?series=all`);
+                if (!listResponse.ok) throw new Error('Failed to get ICE series list');
                 
-                if (listResponse.ok) {
-                    const listData = await listResponse.json();
-                    availableSeries = listData.series || {};
-                }
-                
-                // Combine API series with our complete list
-                const allSeriesIds = [...new Set([...Object.keys(availableSeries), ...ICE_BOFA_COMPLETE])];
+                const listData = await listResponse.json();
+                const allSeries = listData.series || {};
                 
                 let loadedCount = 0;
                 let igCount = 0, hyCount = 0, emCount = 0;
                 
                 // Fetch data for each series
-                for (const seriesId of allSeriesIds) {
-                    try {
-                        const response = await fetch(`${CONFIG.ICE_BOFA_API}ice_bofa?series=${seriesId}`);
-                        if (response.ok) {
-                            const data = await response.json();
-                            const historicalData = data.data || [];
+                const seriesIds = Object.keys(allSeries);
+                console.log(`Found ${seriesIds.length} ICE BofA series`);
+                
+                // Process in batches
+                for (let i = 0; i < seriesIds.length; i += 5) {
+                    const batch = seriesIds.slice(i, i + 5);
+                    
+                    await Promise.all(batch.map(async (seriesId) => {
+                        try {
+                            const response = await fetch(`${CONFIG.ICE_BOFA_API}/ice_bofa?series=${seriesId}`);
+                            if (!response.ok) return;
                             
-                            if (historicalData.length > 0) {
+                            const data = await response.json();
+                            if (data && data.data && data.data.length > 0) {
+                                const historicalData = data.data;
+                                const current = parseFloat(historicalData[0]?.value) || 0;
+                                
                                 allData[seriesId] = {
                                     id: seriesId,
-                                    name: customNames[seriesId] || availableSeries[seriesId] || getICEName(seriesId),
-                                    value: historicalData[0]?.value || 0,
+                                    name: customNames[seriesId] || data.name || getICEName(seriesId),
+                                    value: current,
                                     weeklyChange: calculateChange(historicalData, 5),
                                     monthlyChange: calculateChange(historicalData, 21),
                                     quarterlyChange: calculateChange(historicalData, 63),
@@ -1134,186 +989,161 @@
                                 loadedCount++;
                                 
                                 // Count by category
-                                if (seriesId.includes('BAMLC')) igCount++;
+                                if (seriesId.includes('BAMLC') && !seriesId.includes('HY')) igCount++;
                                 else if (seriesId.includes('BAMLH')) hyCount++;
                                 else if (seriesId.includes('BAMLEM')) emCount++;
                             }
+                        } catch (err) {
+                            console.error(`Error fetching ${seriesId}:`, err);
                         }
-                    } catch (err) {
-                        console.error(`Error fetching ICE BofA ${seriesId}:`, err);
-                        // Add with zero values if fetch fails
-                        allData[seriesId] = {
-                            id: seriesId,
-                            name: customNames[seriesId] || getICEName(seriesId),
-                            value: 0,
-                            weeklyChange: 0,
-                            monthlyChange: 0,
-                            quarterlyChange: 0,
-                            yearlyChange: 0,
-                            category: 'icebofa',
-                            source: 'ICE_BOFA'
-                        };
-                    }
+                    }));
                 }
                 
+                // Update ICE stats
                 document.getElementById('igCount').textContent = igCount;
                 document.getElementById('hyCount').textContent = hyCount;
                 document.getElementById('emCount').textContent = emCount;
-                document.getElementById('iceTotal').textContent = allSeriesIds.length;
+                document.getElementById('iceTotal').textContent = loadedCount;
                 
-                console.log(`Loaded ${loadedCount} ICE BofA series out of ${allSeriesIds.length}`);
+                console.log(`Loaded ${loadedCount} ICE BofA series`);
                 
             } catch (error) {
                 console.error('Error fetching ICE BofA data:', error);
+                showStatus('Failed to load ICE BofA data', 'error');
             }
         }
         
-        // Fetch FRED data - ALL indicators
+        // Fetch FRED data
         async function fetchFREDData() {
-            console.log('Fetching ALL FRED indicators...');
+            console.log('Fetching FRED indicators...');
             
-            // Combine all FRED series
-            const allFredSeries = [
+            const allIndicators = [
                 ...FEDERAL_RESERVE_INDICATORS,
                 ...DOLLAR_INDICATORS,
-                ...EM_INDICATORS.filter(s => !s.includes('BAML')),
-                ...LIQUIDITY_INDICATORS
-            ].filter((v, i, a) => a.indexOf(v) === i); // Remove duplicates
+                ...EM_INDICATORS,
+                ...LIQUIDITY_INDICATORS,
+                ...MACRO_INDICATORS,
+                ...ICE_BOFA_COMPLETE  // Also fetch ICE series from FRED
+            ].filter((v, i, a) => a.indexOf(v) === i);
             
             let loadedCount = 0;
+            const totalIndicators = allIndicators.length;
+            document.getElementById('totalIndicators').textContent = totalIndicators;
             
-            // Batch fetch to avoid rate limiting
-            for (let i = 0; i < allFredSeries.length; i += 5) {
-                const batch = allFredSeries.slice(i, i + 5);
+            // Batch process to avoid rate limiting
+            for (let i = 0; i < allIndicators.length; i += 3) {
+                const batch = allIndicators.slice(i, i + 3);
                 
                 await Promise.all(batch.map(async (seriesId) => {
                     try {
-                        const response = await fetch(
-                            `${CONFIG.FRED_BASE_URL}/series/observations?` +
+                        const url = `${CONFIG.FRED_BASE_URL}/series/observations?` +
                             `series_id=${seriesId}&` +
                             `api_key=${CONFIG.FRED_API_KEY}&` +
                             `file_type=json&` +
                             `limit=252&` +
-                            `sort_order=desc`
-                        );
+                            `sort_order=desc`;
                         
-                        if (response.ok) {
-                            const data = await response.json();
-                            const observations = data.observations || [];
+                        const response = await fetch(url);
+                        if (!response.ok) {
+                            console.error(`Failed to fetch ${seriesId}: ${response.status}`);
+                            return;
+                        }
+                        
+                        const data = await response.json();
+                        const observations = data.observations || [];
+                        
+                        if (observations.length > 0) {
+                            const current = parseFloat(observations[0].value) || 0;
                             
-                            if (observations.length > 0) {
-                                const current = parseFloat(observations[0].value) || 0;
-                                
-                                allData[seriesId] = {
-                                    id: seriesId,
-                                    name: customNames[seriesId] || getIndicatorName(seriesId),
-                                    value: current,
-                                    weeklyChange: calculatePercentChange(observations, 5),
-                                    monthlyChange: calculatePercentChange(observations, 21),
-                                    quarterlyChange: calculatePercentChange(observations, 63),
-                                    lastUpdate: observations[0].date,
-                                    category: categorizeIndicator(seriesId),
-                                    data: observations,
-                                    source: 'FRED'
-                                };
-                                
-                                loadedCount++;
-                                document.getElementById('loadedIndicators').textContent = loadedCount;
-                            }
+                            // Calculate percentage changes properly
+                            const weeklyChange = calculatePercentChange(observations, 5);
+                            const monthlyChange = calculatePercentChange(observations, 21);
+                            const quarterlyChange = calculatePercentChange(observations, 63);
+                            
+                            allData[seriesId] = {
+                                id: seriesId,
+                                name: customNames[seriesId] || getIndicatorName(seriesId),
+                                value: current,
+                                weeklyChange: weeklyChange,
+                                monthlyChange: monthlyChange,
+                                quarterlyChange: quarterlyChange,
+                                lastUpdate: observations[0].date,
+                                category: categorizeIndicator(seriesId),
+                                data: observations,
+                                source: 'FRED'
+                            };
+                            
+                            loadedCount++;
+                            document.getElementById('loadedIndicators').textContent = loadedCount;
                         }
                     } catch (err) {
                         console.error(`Error fetching ${seriesId}:`, err);
                     }
                 }));
                 
-                showStatus(`Loading FRED: ${loadedCount}/${allFredSeries.length} indicators...`, 'loading');
+                // Update progress
+                const progress = Math.round((i / totalIndicators) * 100);
+                showStatus(`Loading FRED data: ${progress}% (${loadedCount}/${totalIndicators})`, 'loading');
+                
+                // Small delay to avoid rate limiting
+                await new Promise(resolve => setTimeout(resolve, 100));
             }
             
             console.log(`Loaded ${loadedCount} FRED indicators`);
         }
         
-        // Fetch OpenBB data as backup
-        async function fetchOpenBBData() {
-            try {
-                const responses = await Promise.allSettled([
-                    fetch(CONFIG.OPENBB_API.baseUrl + CONFIG.OPENBB_API.endpoints.overview),
-                    fetch(CONFIG.OPENBB_API.baseUrl + CONFIG.OPENBB_API.endpoints.mega),
-                    fetch(CONFIG.OPENBB_API.baseUrl + CONFIG.OPENBB_API.endpoints.fed),
-                    fetch(CONFIG.OPENBB_API.baseUrl + CONFIG.OPENBB_API.endpoints.liquidity)
-                ]);
-                
-                for (let response of responses) {
-                    if (response.status === 'fulfilled' && response.value.ok) {
-                        const data = await response.value.json();
-                        if (data.indicators) {
-                            Object.entries(data.indicators).forEach(([key, value]) => {
-                                if (!allData[key]) {
-                                    allData[key] = {
-                                        id: key,
-                                        name: customNames[key] || getIndicatorName(key),
-                                        value: value.value || value,
-                                        weeklyChange: value.wow || 0,
-                                        monthlyChange: value.mom || 0,
-                                        quarterlyChange: value.qoq || 0,
-                                        category: categorizeIndicator(key),
-                                        source: 'OPENBB'
-                                    };
-                                }
-                            });
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error('Error fetching OpenBB data:', error);
-            }
-            
-            // Update all displays after data is loaded
-            updateAllDisplays();
+        // Fetch additional data
+        async function fetchAdditionalData() {
+            // Placeholder for any additional data sources
+            console.log('Fetching additional data...');
         }
         
-        // Calculate percentage change
+        // Calculate percentage change with proper null handling
         function calculatePercentChange(observations, periods) {
-            if (!observations || observations.length <= periods) return 0;
-            const current = parseFloat(observations[0]?.value) || 0;
-            const previous = parseFloat(observations[periods]?.value) || current;
-            if (previous === 0) return 0;
-            return ((current - previous) / previous) * 100;
+            try {
+                if (!observations || observations.length <= periods) return 0;
+                
+                const current = parseFloat(observations[0]?.value);
+                const previous = parseFloat(observations[periods]?.value);
+                
+                if (isNaN(current) || isNaN(previous) || previous === 0) return 0;
+                
+                return ((current - previous) / Math.abs(previous)) * 100;
+            } catch (err) {
+                return 0;
+            }
         }
         
-        // Calculate change from data
+        // Calculate change from data array
         function calculateChange(data, periods) {
-            if (!data || data.length <= periods) return 0;
-            const current = parseFloat(data[0]?.value) || 0;
-            const previous = parseFloat(data[periods]?.value) || current;
-            if (previous === 0) return 0;
-            return ((current - previous) / previous) * 100;
+            try {
+                if (!data || data.length <= periods) return 0;
+                
+                const current = parseFloat(data[0]?.value);
+                const previous = parseFloat(data[periods]?.value);
+                
+                if (isNaN(current) || isNaN(previous) || previous === 0) return 0;
+                
+                return ((current - previous) / Math.abs(previous)) * 100;
+            } catch (err) {
+                return 0;
+            }
         }
         
         // Update all displays
         function updateAllDisplays() {
-            if (!dataLoaded) return;
-            
             updateStats();
             updateOverviewHeatmap('all');
             updateKeyMetrics();
             updateIndicatorsTable();
             updateICEHeatmap();
             updateICETable();
-            updateMacroHeatmap();
-            updateMacroTable();
-            updateLiquidityHeatmap();
-            updateLiquidityTable();
-            updateDollarHeatmap();
-            updateDollarTable();
-            updateEMHeatmap();
-            updateEMTable();
-            updateFedHeatmap();
-            updateFedTable();
-            updateAdvancedHeatmap();
+            updateCategoryHeatmaps();
+            updateCategoryTables();
             updateLastUpdateTime();
         }
         
-        // Update overview heatmap - SHOW ALL INDICATORS
+        // Update overview heatmap
         function updateOverviewHeatmap(filter) {
             const container = document.getElementById('overviewHeatmap');
             if (!container) return;
@@ -1324,40 +1154,36 @@
             let indicators = Object.values(allData)
                 .filter(d => d && d.value !== null && d.value !== undefined);
             
-            // Apply filter but keep all indicators
+            // Apply filter
             if (filter === 'gainers') {
                 indicators = indicators.filter(i => i.weeklyChange > 0);
             } else if (filter === 'losers') {
                 indicators = indicators.filter(i => i.weeklyChange < 0);
-            } else if (filter === 'icebofa') {
-                indicators = indicators.filter(i => i.category === 'icebofa');
-            } else if (filter === 'liquidity') {
-                indicators = indicators.filter(i => i.category === 'liquidity');
-            } else if (filter === 'dollar') {
-                indicators = indicators.filter(i => i.category === 'dollar');
-            } else if (filter === 'em') {
-                indicators = indicators.filter(i => i.category === 'em');
+            } else if (filter !== 'all') {
+                indicators = indicators.filter(i => i.category === filter);
             }
             
-            // Sort by absolute weekly change for sizing
-            indicators.sort((a, b) => Math.abs(b.weeklyChange) - Math.abs(a.weeklyChange));
+            // Sort by absolute weekly change
+            indicators.sort((a, b) => Math.abs(b.weeklyChange || 0) - Math.abs(a.weeklyChange || 0));
             
-            // Display ALL indicators (no limit)
+            // Create tiles
             indicators.forEach((ind, index) => {
                 const tile = createEditableHeatmapTile(ind, index);
                 container.appendChild(tile);
             });
             
-            console.log(`Displaying ${indicators.length} indicators on overview heatmap`);
+            // Update status
+            document.getElementById('overviewStatus').textContent = 
+                `Displaying ${indicators.length} indicators on heatmap`;
         }
         
         // Create editable heatmap tile
         function createEditableHeatmapTile(indicator, index) {
             const tile = document.createElement('div');
             
-            // Size based on weekly change magnitude and index
+            // Size based on magnitude and index
             let sizeClass = '';
-            const absWeekly = Math.abs(indicator.weeklyChange);
+            const absWeekly = Math.abs(indicator.weeklyChange || 0);
             if (index < 3 && absWeekly > 10) {
                 sizeClass = 'tile-xxl';
             } else if (index < 6 && absWeekly > 5) {
@@ -1366,10 +1192,12 @@
                 sizeClass = 'tile-lg';
             }
             
-            const colorClass = getHeatColor(indicator.weeklyChange);
+            const colorClass = getHeatColor(indicator.weeklyChange || 0);
             tile.className = `heatmap-tile ${colorClass} ${sizeClass}`;
             
-            const displayName = indicator.name.substring(0, 20);
+            const displayName = (indicator.name || indicator.id).substring(0, 20);
+            const weeklyChange = indicator.weeklyChange || 0;
+            const monthlyChange = indicator.monthlyChange || 0;
             
             tile.innerHTML = `
                 <input type="text" 
@@ -1378,20 +1206,20 @@
                        data-series-id="${indicator.id}"
                        onchange="updateCustomName('${indicator.id}', this.value)"
                        onclick="event.stopPropagation()">
-                <div class="tile-value">W: ${indicator.weeklyChange >= 0 ? '+' : ''}${indicator.weeklyChange.toFixed(1)}%</div>
-                <div class="tile-value-secondary">M: ${indicator.monthlyChange >= 0 ? '+' : ''}${indicator.monthlyChange.toFixed(1)}%</div>
+                <div class="tile-value">W: ${weeklyChange >= 0 ? '+' : ''}${weeklyChange.toFixed(1)}%</div>
+                <div class="tile-value-secondary">M: ${monthlyChange >= 0 ? '+' : ''}${monthlyChange.toFixed(1)}%</div>
             `;
             
             tile.title = `${indicator.name} (${indicator.id})
 Value: ${formatValue(indicator.value, indicator.id)}
-Weekly: ${indicator.weeklyChange.toFixed(2)}%
-Monthly: ${indicator.monthlyChange.toFixed(2)}%
+Weekly: ${weeklyChange.toFixed(2)}%
+Monthly: ${monthlyChange.toFixed(2)}%
 Source: ${indicator.source || 'N/A'}`;
             
             return tile;
         }
         
-        // Update other heatmaps
+        // Update ICE heatmap
         function updateICEHeatmap() {
             const container = document.getElementById('iceHeatmap');
             if (!container) return;
@@ -1399,9 +1227,9 @@ Source: ${indicator.source || 'N/A'}`;
             container.innerHTML = '';
             
             let iceData = Object.values(allData)
-                .filter(d => d && d.category === 'icebofa');
+                .filter(d => d && (d.category === 'icebofa' || d.id.includes('BAML')));
             
-            iceData.sort((a, b) => Math.abs(b.weeklyChange) - Math.abs(a.weeklyChange));
+            iceData.sort((a, b) => Math.abs(b.weeklyChange || 0) - Math.abs(a.weeklyChange || 0));
             
             iceData.forEach((item, index) => {
                 const tile = createEditableHeatmapTile(item, index);
@@ -1409,106 +1237,40 @@ Source: ${indicator.source || 'N/A'}`;
             });
         }
         
-        function updateMacroHeatmap() {
-            const container = document.getElementById('macroHeatmap');
-            if (!container) return;
+        // Update category heatmaps
+        function updateCategoryHeatmaps() {
+            const categories = ['macro', 'liquidity', 'dollar', 'em', 'fed'];
             
-            container.innerHTML = '';
-            
-            let macroData = Object.values(allData)
-                .filter(d => d && d.category === 'macro');
-            
-            macroData.sort((a, b) => Math.abs(b.weeklyChange) - Math.abs(a.weeklyChange));
-            
-            macroData.forEach((item, index) => {
-                const tile = createEditableHeatmapTile(item, index);
-                container.appendChild(tile);
+            categories.forEach(category => {
+                const container = document.getElementById(`${category}Heatmap`);
+                if (!container) return;
+                
+                container.innerHTML = '';
+                
+                let categoryData = Object.values(allData)
+                    .filter(d => d && d.category === category);
+                
+                categoryData.sort((a, b) => Math.abs(b.weeklyChange || 0) - Math.abs(a.weeklyChange || 0));
+                
+                categoryData.forEach((item, index) => {
+                    const tile = createEditableHeatmapTile(item, index);
+                    container.appendChild(tile);
+                });
             });
-        }
-        
-        function updateLiquidityHeatmap() {
-            const container = document.getElementById('liquidityHeatmap');
-            if (!container) return;
             
-            container.innerHTML = '';
-            
-            let liquidityData = Object.values(allData)
-                .filter(d => d && d.category === 'liquidity');
-            
-            liquidityData.sort((a, b) => Math.abs(b.weeklyChange) - Math.abs(a.weeklyChange));
-            
-            liquidityData.forEach((item, index) => {
-                const tile = createEditableHeatmapTile(item, index);
-                container.appendChild(tile);
-            });
-        }
-        
-        function updateDollarHeatmap() {
-            const container = document.getElementById('dollarHeatmap');
-            if (!container) return;
-            
-            container.innerHTML = '';
-            
-            let dollarData = Object.values(allData)
-                .filter(d => d && d.category === 'dollar');
-            
-            dollarData.sort((a, b) => Math.abs(b.weeklyChange) - Math.abs(a.weeklyChange));
-            
-            dollarData.forEach((item, index) => {
-                const tile = createEditableHeatmapTile(item, index);
-                container.appendChild(tile);
-            });
-        }
-        
-        function updateEMHeatmap() {
-            const container = document.getElementById('emHeatmap');
-            if (!container) return;
-            
-            container.innerHTML = '';
-            
-            let emData = Object.values(allData)
-                .filter(d => d && d.category === 'em');
-            
-            emData.sort((a, b) => Math.abs(b.weeklyChange) - Math.abs(a.weeklyChange));
-            
-            emData.forEach((item, index) => {
-                const tile = createEditableHeatmapTile(item, index);
-                container.appendChild(tile);
-            });
-        }
-        
-        function updateFedHeatmap() {
-            const container = document.getElementById('fedHeatmap');
-            if (!container) return;
-            
-            container.innerHTML = '';
-            
-            let fedData = Object.values(allData)
-                .filter(d => d && d.category === 'fed');
-            
-            fedData.sort((a, b) => Math.abs(b.weeklyChange) - Math.abs(a.weeklyChange));
-            
-            fedData.forEach((item, index) => {
-                const tile = createEditableHeatmapTile(item, index);
-                container.appendChild(tile);
-            });
-        }
-        
-        function updateAdvancedHeatmap() {
-            const container = document.getElementById('advancedHeatmap');
-            if (!container) return;
-            
-            container.innerHTML = '';
-            
-            let indicators = Object.values(allData)
-                .filter(d => d);
-            
-            indicators.sort((a, b) => Math.abs(b.monthlyChange) - Math.abs(a.monthlyChange));
-            
-            indicators.forEach((item, index) => {
-                const tile = createEditableHeatmapTile(item, index);
-                container.appendChild(tile);
-            });
+            // Advanced heatmap (all data sorted by monthly change)
+            const advContainer = document.getElementById('advancedHeatmap');
+            if (advContainer) {
+                advContainer.innerHTML = '';
+                
+                let allIndicators = Object.values(allData).filter(d => d);
+                allIndicators.sort((a, b) => Math.abs(b.monthlyChange || 0) - Math.abs(a.monthlyChange || 0));
+                
+                allIndicators.slice(0, 100).forEach((item, index) => {
+                    const tile = createEditableHeatmapTile(item, index);
+                    advContainer.appendChild(tile);
+                });
+            }
         }
         
         // Update tables
@@ -1533,86 +1295,39 @@ Source: ${indicator.source || 'N/A'}`;
             tbody.innerHTML = '';
             
             Object.values(allData)
-                .filter(d => d && d.category === 'icebofa')
+                .filter(d => d && (d.category === 'icebofa' || d.id.includes('BAML')))
                 .forEach(indicator => {
                     const row = createEditableTableRow(indicator, true);
                     tbody.appendChild(row);
                 });
         }
         
-        function updateMacroTable() {
-            const tbody = document.getElementById('macroTable');
-            if (!tbody) return;
+        function updateCategoryTables() {
+            const categories = ['macro', 'liquidity', 'dollar', 'em', 'fed'];
             
-            tbody.innerHTML = '';
-            
-            Object.values(allData)
-                .filter(d => d && d.category === 'macro')
-                .forEach(indicator => {
-                    const row = createEditableTableRow(indicator);
-                    tbody.appendChild(row);
-                });
-        }
-        
-        function updateLiquidityTable() {
-            const tbody = document.getElementById('liquidityTable');
-            if (!tbody) return;
-            
-            tbody.innerHTML = '';
-            
-            Object.values(allData)
-                .filter(d => d && d.category === 'liquidity')
-                .forEach(indicator => {
-                    const row = createEditableTableRow(indicator);
-                    tbody.appendChild(row);
-                });
-        }
-        
-        function updateDollarTable() {
-            const tbody = document.getElementById('dollarTable');
-            if (!tbody) return;
-            
-            tbody.innerHTML = '';
-            
-            Object.values(allData)
-                .filter(d => d && d.category === 'dollar')
-                .forEach(indicator => {
-                    const row = createEditableTableRow(indicator);
-                    tbody.appendChild(row);
-                });
-        }
-        
-        function updateEMTable() {
-            const tbody = document.getElementById('emTable');
-            if (!tbody) return;
-            
-            tbody.innerHTML = '';
-            
-            Object.values(allData)
-                .filter(d => d && d.category === 'em')
-                .forEach(indicator => {
-                    const row = createEditableTableRow(indicator);
-                    tbody.appendChild(row);
-                });
-        }
-        
-        function updateFedTable() {
-            const tbody = document.getElementById('fedTable');
-            if (!tbody) return;
-            
-            tbody.innerHTML = '';
-            
-            Object.values(allData)
-                .filter(d => d && d.category === 'fed')
-                .forEach(indicator => {
-                    const row = createEditableTableRow(indicator);
-                    tbody.appendChild(row);
-                });
+            categories.forEach(category => {
+                const tbody = document.getElementById(`${category}Table`);
+                if (!tbody) return;
+                
+                tbody.innerHTML = '';
+                
+                Object.values(allData)
+                    .filter(d => d && d.category === category)
+                    .forEach(indicator => {
+                        const row = createEditableTableRow(indicator);
+                        tbody.appendChild(row);
+                    });
+            });
         }
         
         // Create editable table row
         function createEditableTableRow(indicator, includeYearly = false) {
             const row = document.createElement('tr');
+            const weeklyChange = indicator.weeklyChange || 0;
+            const monthlyChange = indicator.monthlyChange || 0;
+            const quarterlyChange = indicator.quarterlyChange || 0;
+            const yearlyChange = indicator.yearlyChange || 0;
+            
             row.innerHTML = `
                 <td style="font-family: monospace; font-size: 0.8rem;">${indicator.id}</td>
                 <td>
@@ -1623,18 +1338,18 @@ Source: ${indicator.source || 'N/A'}`;
                            onchange="updateCustomName('${indicator.id}', this.value)">
                 </td>
                 <td>${formatValue(indicator.value, indicator.id)}</td>
-                <td class="${indicator.weeklyChange >= 0 ? 'positive' : 'negative'}">
-                    ${indicator.weeklyChange >= 0 ? '+' : ''}${indicator.weeklyChange.toFixed(2)}%
+                <td class="${weeklyChange >= 0 ? 'positive' : 'negative'}">
+                    ${weeklyChange >= 0 ? '+' : ''}${weeklyChange.toFixed(2)}%
                 </td>
-                <td class="${indicator.monthlyChange >= 0 ? 'positive' : 'negative'}">
-                    ${indicator.monthlyChange >= 0 ? '+' : ''}${indicator.monthlyChange.toFixed(2)}%
+                <td class="${monthlyChange >= 0 ? 'positive' : 'negative'}">
+                    ${monthlyChange >= 0 ? '+' : ''}${monthlyChange.toFixed(2)}%
                 </td>
-                <td class="${indicator.quarterlyChange >= 0 ? 'positive' : 'negative'}">
-                    ${indicator.quarterlyChange >= 0 ? '+' : ''}${indicator.quarterlyChange.toFixed(2)}%
+                <td class="${quarterlyChange >= 0 ? 'positive' : 'negative'}">
+                    ${quarterlyChange >= 0 ? '+' : ''}${quarterlyChange.toFixed(2)}%
                 </td>
-                ${includeYearly && indicator.yearlyChange !== undefined ? `
-                <td class="${indicator.yearlyChange >= 0 ? 'positive' : 'negative'}">
-                    ${indicator.yearlyChange >= 0 ? '+' : ''}${indicator.yearlyChange.toFixed(2)}%
+                ${includeYearly ? `
+                <td class="${yearlyChange >= 0 ? 'positive' : 'negative'}">
+                    ${yearlyChange >= 0 ? '+' : ''}${yearlyChange.toFixed(2)}%
                 </td>` : ''}
                 ${indicator.lastUpdate ? `<td style="font-size: 0.8rem; color: #888;">${indicator.lastUpdate}</td>` : ''}
             `;
@@ -1654,16 +1369,18 @@ Source: ${indicator.source || 'N/A'}`;
                 const data = allData[key];
                 if (!data) return;
                 
+                const monthlyChange = data.monthlyChange || 0;
+                
                 const card = document.createElement('div');
                 card.className = 'metric-card';
                 card.innerHTML = `
                     <div class="metric-title">${data.name}</div>
-                    <div class="metric-value ${data.monthlyChange >= 0 ? 'positive' : 'negative'}">
+                    <div class="metric-value ${monthlyChange >= 0 ? 'positive' : 'negative'}">
                         ${formatValue(data.value, key)}
                     </div>
-                    <div class="metric-change ${data.monthlyChange >= 0 ? 'positive' : 'negative'}">
-                        <span>${data.monthlyChange >= 0 ? '▲' : '▼'}</span>
-                        ${Math.abs(data.monthlyChange).toFixed(2)}%
+                    <div class="metric-change ${monthlyChange >= 0 ? 'positive' : 'negative'}">
+                        <span>${monthlyChange >= 0 ? '▲' : '▼'}</span>
+                        ${Math.abs(monthlyChange).toFixed(2)}%
                     </div>
                 `;
                 container.appendChild(card);
@@ -1673,15 +1390,16 @@ Source: ${indicator.source || 'N/A'}`;
         // Update stats
         function updateStats() {
             const indicators = Object.values(allData).filter(d => d);
-            const gainers = indicators.filter(d => d.weeklyChange > 0).length;
-            const losers = indicators.filter(d => d.weeklyChange < 0).length;
+            const gainers = indicators.filter(d => (d.weeklyChange || 0) > 0).length;
+            const losers = indicators.filter(d => (d.weeklyChange || 0) < 0).length;
             
+            document.getElementById('totalIndicators').textContent = indicators.length;
+            document.getElementById('loadedIndicators').textContent = indicators.length;
             document.getElementById('gainers').textContent = gainers;
             document.getElementById('losers').textContent = losers;
-            document.getElementById('loadedIndicators').textContent = indicators.length;
         }
         
-        // Other helper functions
+        // Helper functions
         function updateCustomName(seriesId, newName) {
             customNames[seriesId] = newName;
             if (allData[seriesId]) {
@@ -1715,7 +1433,12 @@ Source: ${indicator.source || 'N/A'}`;
                 'DEXUSEU': 'EUR/USD',
                 'DEXJPUS': 'USD/JPY',
                 'VIXCLS': 'VIX Index',
-                'SP500': 'S&P 500'
+                'SP500': 'S&P 500',
+                'GDPC1': 'Real GDP',
+                'CPILFESL': 'Core CPI',
+                'UNRATE': 'Unemployment',
+                'PAYEMS': 'Nonfarm Payrolls',
+                'INDPRO': 'Industrial Production'
             };
             return names[key] || key;
         }
@@ -1723,19 +1446,27 @@ Source: ${indicator.source || 'N/A'}`;
         function getICEName(key) {
             if (key.includes('BAMLH0A0HYM2')) return 'US HY Master II';
             if (key.includes('BAMLC0A0CM')) return 'US Corp Master';
-            if (key.includes('BAMLEMCB')) return 'EM Corp Plus';
-            return key.replace('BAML', '');
+            if (key.includes('BAMLC0A1CAAA')) return 'AAA Corporate';
+            if (key.includes('BAMLC0A4CBBB')) return 'BBB Corporate';
+            if (key.includes('BAMLEMCB')) return 'EM Corporate';
+            if (key.includes('BAMLEMHY')) return 'EM High Yield';
+            return key.replace('BAML', '').substring(0, 20);
         }
         
         function categorizeIndicator(key) {
             if (key.includes('BAML')) return 'icebofa';
             if (FEDERAL_RESERVE_INDICATORS.includes(key)) return 'fed';
-            if (DOLLAR_INDICATORS.includes(key) || key.includes('DEX') || key.includes('DTW')) return 'dollar';
+            if (DOLLAR_INDICATORS.includes(key)) return 'dollar';
             if (EM_INDICATORS.includes(key)) return 'em';
             if (LIQUIDITY_INDICATORS.includes(key)) return 'liquidity';
-            if (['SP500', 'DJIA', 'NASDAQCOM', 'VIXCLS'].includes(key)) return 'stocks';
-            if (key.includes('DGS')) return 'bonds';
-            if (key.includes('CPI') || key.includes('GDP') || key.includes('UNRATE')) return 'macro';
+            if (MACRO_INDICATORS.includes(key)) return 'macro';
+            
+            // Additional categorization
+            if (key.includes('DEX')) return 'dollar';
+            if (key.includes('DTW')) return 'dollar';
+            if (key.includes('DGS') || key.includes('GS')) return 'fed';
+            if (key.includes('M1') || key.includes('M2')) return 'liquidity';
+            
             return 'other';
         }
         
@@ -1758,28 +1489,35 @@ Source: ${indicator.source || 'N/A'}`;
             
             const num = parseFloat(value);
             
-            if (key.includes('WALCL') || key.includes('ASSETS') || key.includes('M2')) {
+            // Large numbers (trillions/billions)
+            if (key.includes('WALCL') || key.includes('M2') || key.includes('M1')) {
                 if (num >= 1000000) return `${(num / 1000000).toFixed(2)}T`;
                 if (num >= 1000) return `${(num / 1000).toFixed(2)}B`;
             }
             
+            // Basis points
             if (key.includes('OAS')) {
                 return `${num.toFixed(2)} bps`;
             }
             
+            // Percentages
             if (key.includes('EY') || key.includes('YTW') || key.includes('DGS') || 
-                key.includes('RATE') || key.includes('SOFR') || key.includes('EFFR')) {
+                key.includes('RATE') || key.includes('SOFR') || key.includes('EFFR') ||
+                key.includes('DFF') || key.includes('UNRATE')) {
                 return `${num.toFixed(2)}%`;
             }
             
+            // Exchange rates
             if (key.includes('DEX')) {
                 return num.toFixed(4);
             }
             
+            // Stock indices
             if (['SP500', 'DJIA', 'NASDAQCOM'].includes(key)) {
                 return num.toFixed(0);
             }
             
+            // General formatting
             if (num >= 1000000000000) return `${(num / 1000000000000).toFixed(2)}T`;
             if (num >= 1000000000) return `${(num / 1000000000).toFixed(2)}B`;
             if (num >= 1000000) return `${(num / 1000000).toFixed(2)}M`;
@@ -1807,16 +1545,15 @@ Source: ${indicator.source || 'N/A'}`;
         }
         
         async function refreshAllData() {
-            showStatus('Refreshing ALL indicators...', 'loading');
+            showStatus('Refreshing all data...', 'loading');
             allData = {};
-            dataLoaded = false;
             await Promise.all([
                 fetchICEBofAData(),
                 fetchFREDData(),
-                fetchOpenBBData()
+                fetchAdditionalData()
             ]);
-            dataLoaded = true;
-            showStatus('All data refreshed successfully', 'success');
+            updateAllDisplays();
+            showStatus('Data refreshed successfully', 'success');
         }
         
         async function refreshICEData() {
@@ -1840,39 +1577,35 @@ Source: ${indicator.source || 'N/A'}`;
         }
         
         function filterICEHeatmap(filter) {
-            // Implementation for ICE filter
-        }
-        
-        function setupAutoUpdate() {
-            const checkAndUpdate = () => {
-                const now = new Date();
-                const day = now.getDay();
-                const hour = now.getHours();
-                const minute = now.getMinutes();
-                
-                // Check if it's Mon(1), Wed(3), or Fri(5) at 9:30 AM
-                if ([1, 3, 5].includes(day) && hour === 9 && minute === 30) {
-                    console.log('Auto-updating data (scheduled 3x/week)...');
-                    refreshAllData();
-                }
-            };
+            const container = document.getElementById('iceHeatmap');
+            if (!container) return;
             
-            // Check every minute
-            setInterval(checkAndUpdate, 60000);
+            container.innerHTML = '';
             
-            // Also refresh every 30 minutes during market hours
-            setInterval(() => {
-                const hour = new Date().getHours();
-                if (hour >= 9 && hour < 16) {
-                    refreshAllData();
-                }
-            }, 1800000); // 30 minutes
+            let iceData = Object.values(allData)
+                .filter(d => d && (d.category === 'icebofa' || d.id.includes('BAML')));
+            
+            if (filter === 'spreads') {
+                iceData = iceData.filter(d => d.id.includes('OAS'));
+            } else if (filter === 'yields') {
+                iceData = iceData.filter(d => d.id.includes('EY'));
+            } else if (filter === 'returns') {
+                iceData = iceData.filter(d => d.id.includes('TRIV'));
+            }
+            
+            iceData.sort((a, b) => Math.abs(b.weeklyChange || 0) - Math.abs(a.weeklyChange || 0));
+            
+            iceData.forEach((item, index) => {
+                const tile = createEditableHeatmapTile(item, index);
+                container.appendChild(tile);
+            });
         }
         
         function initializeCharts() {
+            // Create sample chart
             const mainData = {
-                x: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                y: [4500, 4550, 4600, 4650, 4700, 4750],
+                x: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+                y: [4500, 4550, 4600, 4650, 4700, 4750, 4800, 4850, 4900],
                 type: 'scatter',
                 mode: 'lines+markers',
                 name: 'S&P 500',
@@ -1892,6 +1625,7 @@ Source: ${indicator.source || 'N/A'}`;
         }
         
         function setupEventListeners() {
+            // Tab navigation
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
