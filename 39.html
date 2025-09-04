@@ -1,1 +1,1698 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenBB Platform v9.0 - Complete Analytics Dashboard</title>
+    
+    <!-- Required Libraries -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #151932 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        
+        /* Header Styles */
+        .header {
+            background: rgba(20, 24, 44, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .header-stats {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-width: 100px;
+        }
+        
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #00ff88;
+        }
+        
+        .stat-label {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+        }
+        
+        /* Container */
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Tabs Navigation */
+        .tabs-nav {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 0.5rem;
+            overflow-x: auto;
+            flex-wrap: wrap;
+        }
+        
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            color: #888;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        
+        .tab-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+        }
+        
+        .tab-btn.active {
+            background: #00ff88;
+            color: #000;
+            font-weight: bold;
+        }
+        
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Stock Market Style Heatmap */
+        .heatmap-container {
+            background: #0a0e27;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .heatmap-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding: 0 0.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .heatmap-title {
+            font-size: 1.25rem;
+            color: #fff;
+            font-weight: bold;
+        }
+        
+        .heatmap-controls {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .heatmap-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: none;
+            border-radius: 6px;
+            color: #888;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+        }
+        
+        .heatmap-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+        
+        .heatmap-btn.active {
+            background: #00ff88;
+            color: #000;
+            font-weight: bold;
+        }
+        
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            gap: 2px;
+            background: #000;
+            padding: 2px;
+            min-height: 400px;
+            max-height: 800px;
+            overflow-y: auto;
+        }
+        
+        .heatmap-tile {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 0.2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+            font-weight: bold;
+        }
+        
+        .heatmap-tile:hover {
+            z-index: 10;
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+        }
+        
+        .tile-symbol {
+            font-size: 0.55rem;
+            color: #fff;
+            font-weight: bold;
+            margin-bottom: 0.1rem;
+            text-align: center;
+            word-break: break-word;
+            width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .tile-value {
+            font-size: 0.5rem;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .tile-value-secondary {
+            font-size: 0.45rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        /* Editable tile name */
+        .editable-tile-name {
+            background: transparent;
+            border: none;
+            color: #fff;
+            text-align: center;
+            width: 100%;
+            font-size: 0.55rem;
+            font-weight: bold;
+            cursor: pointer;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .editable-tile-name:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .editable-tile-name:focus {
+            outline: 1px solid #00ff88;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Tile sizes based on weekly change magnitude */
+        .tile-xxl {
+            grid-column: span 3;
+            grid-row: span 3;
+        }
+        
+        .tile-xxl .tile-symbol,
+        .tile-xxl .editable-tile-name {
+            font-size: 0.9rem;
+        }
+        
+        .tile-xxl .tile-value {
+            font-size: 0.75rem;
+        }
+        
+        .tile-xl {
+            grid-column: span 2;
+            grid-row: span 2;
+        }
+        
+        .tile-xl .tile-symbol,
+        .tile-xl .editable-tile-name {
+            font-size: 0.7rem;
+        }
+        
+        .tile-xl .tile-value {
+            font-size: 0.6rem;
+        }
+        
+        .tile-lg {
+            grid-column: span 2;
+        }
+        
+        .tile-lg .tile-symbol,
+        .tile-lg .editable-tile-name {
+            font-size: 0.65rem;
+        }
+        
+        /* Heatmap colors */
+        .heat-positive-5 { background: #00ff00; }
+        .heat-positive-4 { background: #32CD32; }
+        .heat-positive-3 { background: #228B22; }
+        .heat-positive-2 { background: #006400; }
+        .heat-positive-1 { background: #004d00; }
+        .heat-neutral { background: #333333; }
+        .heat-negative-1 { background: #4d0000; }
+        .heat-negative-2 { background: #8B0000; }
+        .heat-negative-3 { background: #DC143C; }
+        .heat-negative-4 { background: #FF4444; }
+        .heat-negative-5 { background: #FF0000; }
+        
+        /* Key Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .metric-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.1);
+        }
+        
+        .metric-title {
+            font-size: 0.875rem;
+            color: #888;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+        
+        .metric-value {
+            font-size: 1.75rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .metric-change {
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .positive { color: #00ff88; }
+        .negative { color: #ff4444; }
+        .neutral { color: #888; }
+        
+        /* Data Table */
+        .data-table {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+            overflow-x: auto;
+        }
+        
+        .data-table table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+        }
+        
+        .data-table th {
+            background: rgba(0, 255, 136, 0.1);
+            padding: 1rem;
+            text-align: left;
+            font-weight: bold;
+            color: #00ff88;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.875rem;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        
+        .data-table th:hover {
+            background: rgba(0, 255, 136, 0.2);
+        }
+        
+        .data-table td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.875rem;
+            white-space: nowrap;
+        }
+        
+        .data-table tr:hover {
+            background: rgba(0, 255, 136, 0.05);
+        }
+        
+        /* Chart Container */
+        .chart-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Loading Spinner */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            color: #888;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(0, 255, 136, 0.3);
+            border-top-color: #00ff88;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Status message */
+        .status-message {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .status-message.show {
+            display: block;
+        }
+        
+        .status-success {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            color: #00ff88;
+        }
+        
+        .status-error {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid rgba(255, 68, 68, 0.3);
+            color: #ff4444;
+        }
+        
+        .status-loading {
+            background: rgba(0, 204, 255, 0.1);
+            border: 1px solid rgba(0, 204, 255, 0.3);
+            color: #00ccff;
+        }
+        
+        /* Editable name field */
+        .editable-name {
+            background: transparent;
+            border: 1px solid transparent;
+            color: inherit;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            min-width: 150px;
+        }
+        
+        .editable-name:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .editable-name:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #00ff88;
+        }
+        
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .stat-card-title {
+            font-size: 0.875rem;
+            color: #888;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-card-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00ff88;
+        }
+        
+        /* Overview status */
+        .overview-status {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            color: #00ff88;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            📊 OpenBB Platform
+            <span style="font-size: 0.875rem; color: #888;">v9.0 Complete</span>
+        </div>
+        
+        <div class="header-stats">
+            <div class="stat-item">
+                <div class="stat-value" id="totalIndicators">0</div>
+                <div class="stat-label">Total Series</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="loadedIndicators">0</div>
+                <div class="stat-label">Loaded</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="gainers">0</div>
+                <div class="stat-label">Gainers</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="losers">0</div>
+                <div class="stat-label">Losers</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="lastUpdate">--:--</div>
+                <div class="stat-label">Last Update</div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <!-- Status Messages -->
+        <div id="statusMessage" class="status-message"></div>
+        
+        <!-- Navigation Tabs -->
+        <div class="tabs-nav">
+            <button class="tab-btn active" data-tab="overview">📈 Overview (ALL)</button>
+            <button class="tab-btn" data-tab="ice-bofa">📊 ICE BofA (162)</button>
+            <button class="tab-btn" data-tab="macro">🌍 Macro</button>
+            <button class="tab-btn" data-tab="heatmap">🔥 Advanced Heatmap</button>
+            <button class="tab-btn" data-tab="liquidity">🌊 Global Liquidity</button>
+            <button class="tab-btn" data-tab="dollar">💵 Dollar</button>
+            <button class="tab-btn" data-tab="em">🌏 Emerging Markets</button>
+            <button class="tab-btn" data-tab="fed">🏛️ Federal Reserve</button>
+            <button class="tab-btn" data-tab="charts">📉 Charts</button>
+        </div>
+        
+        <!-- Overview Tab showing ALL indicators -->
+        <div class="tab-content active" id="overview">
+            <div class="overview-status" id="overviewStatus">
+                Loading ALL indicators from FRED and ICE BofA...
+            </div>
+            
+            <!-- Stock Market Style Heatmap showing ALL -->
+            <div class="heatmap-container">
+                <div class="heatmap-header">
+                    <div class="heatmap-title">Complete Market Heatmap - ALL INDICATORS</div>
+                    <div class="heatmap-controls">
+                        <button class="heatmap-btn active" onclick="updateOverviewHeatmap('all')">All</button>
+                        <button class="heatmap-btn" onclick="updateOverviewHeatmap('gainers')">Gainers</button>
+                        <button class="heatmap-btn" onclick="updateOverviewHeatmap('losers')">Losers</button>
+                        <button class="heatmap-btn" onclick="updateOverviewHeatmap('icebofa')">ICE BofA</button>
+                        <button class="heatmap-btn" onclick="updateOverviewHeatmap('liquidity')">Liquidity</button>
+                        <button class="heatmap-btn" onclick="updateOverviewHeatmap('dollar')">Dollar</button>
+                        <button class="heatmap-btn" onclick="updateOverviewHeatmap('em')">EM</button>
+                        <button class="heatmap-btn" onclick="refreshAllData()">🔄 Refresh</button>
+                    </div>
+                </div>
+                <div class="heatmap-grid" id="overviewHeatmap">
+                    <div class="loading"><div class="spinner"></div></div>
+                </div>
+            </div>
+            
+            <!-- Key Metrics -->
+            <div class="metrics-grid" id="keyMetrics">
+                <!-- Metrics will be added here dynamically -->
+            </div>
+            
+            <!-- All Indicators Table -->
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Series ID</th>
+                            <th onclick="sortTable('name')">Custom Name (Click to Edit)</th>
+                            <th onclick="sortTable('value')">Current Value</th>
+                            <th onclick="sortTable('wow')">WoW %</th>
+                            <th onclick="sortTable('mom')">MoM %</th>
+                            <th onclick="sortTable('qoq')">QoQ %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="indicatorsTable">
+                        <tr>
+                            <td colspan="6" class="loading">
+                                <div class="spinner"></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- ICE BofA Tab with ALL 162 Indices -->
+        <div class="tab-content" id="ice-bofa">
+            <h2 style="color: #00ff88; margin-bottom: 2rem;">📊 ICE BofA Bond Market Indices (Complete 162 Series)</h2>
+            
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-card-title">Investment Grade</div>
+                    <div class="stat-card-value" id="igCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-title">High Yield</div>
+                    <div class="stat-card-value" id="hyCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-title">Emerging Markets</div>
+                    <div class="stat-card-value" id="emCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-title">Total Series</div>
+                    <div class="stat-card-value" id="iceTotal">0</div>
+                </div>
+            </div>
+            
+            <!-- ICE BofA Heatmap -->
+            <div class="heatmap-container">
+                <div class="heatmap-header">
+                    <div class="heatmap-title">ICE BofA Indices Heatmap (162 Series)</div>
+                    <div class="heatmap-controls">
+                        <button class="heatmap-btn active" onclick="filterICEHeatmap('all')">All</button>
+                        <button class="heatmap-btn" onclick="filterICEHeatmap('spreads')">OAS Only</button>
+                        <button class="heatmap-btn" onclick="filterICEHeatmap('yields')">Yields Only</button>
+                        <button class="heatmap-btn" onclick="filterICEHeatmap('returns')">Total Returns</button>
+                        <button class="heatmap-btn" onclick="refreshICEData()">🔄 Refresh</button>
+                    </div>
+                </div>
+                <div class="heatmap-grid" id="iceHeatmap">
+                    <div class="loading">Loading ICE BofA data...</div>
+                </div>
+            </div>
+            
+            <!-- Main ICE BofA Table -->
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Series ID</th>
+                            <th>Custom Name (Click to Edit)</th>
+                            <th>Current Value</th>
+                            <th onclick="sortICETable('weekly')">Weekly %</th>
+                            <th onclick="sortICETable('monthly')">Monthly %</th>
+                            <th onclick="sortICETable('quarterly')">Quarterly %</th>
+                            <th onclick="sortICETable('yearly')">Yearly %</th>
+                            <th>Last Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody id="iceTable">
+                        <tr>
+                            <td colspan="8" class="loading">Loading ICE BofA data...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Other tabs remain similar but will have expanded data -->
+        <div class="tab-content" id="macro">
+            <h2 style="color: #00ff88; margin-bottom: 2rem;">🌍 Macroeconomic Indicators</h2>
+            <div class="heatmap-container">
+                <div class="heatmap-header">
+                    <div class="heatmap-title">Macro Indicators Heatmap</div>
+                </div>
+                <div class="heatmap-grid" id="macroHeatmap"></div>
+            </div>
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Series ID</th>
+                            <th>Custom Name (Click to Edit)</th>
+                            <th>Current Value</th>
+                            <th>WoW %</th>
+                            <th>MoM %</th>
+                            <th>QoQ %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="macroTable"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="heatmap">
+            <div class="heatmap-container">
+                <div class="heatmap-header">
+                    <div class="heatmap-title">Advanced Market Heatmap</div>
+                </div>
+                <div class="heatmap-grid" id="advancedHeatmap"></div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="liquidity">
+            <h2 style="color: #00ff88; margin-bottom: 2rem;">🌊 Global Liquidity Indicators</h2>
+            <div class="heatmap-container">
+                <div class="heatmap-header">
+                    <div class="heatmap-title">Liquidity Indicators Heatmap</div>
+                </div>
+                <div class="heatmap-grid" id="liquidityHeatmap"></div>
+            </div>
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Series ID</th>
+                            <th>Custom Name (Click to Edit)</th>
+                            <th>Current Value</th>
+                            <th>WoW %</th>
+                            <th>MoM %</th>
+                            <th>QoQ %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="liquidityTable"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="dollar">
+            <h2 style="color: #00ff88; margin-bottom: 2rem;">💵 US Dollar Indicators</h2>
+            <div class="heatmap-container">
+                <div class="heatmap-header">
+                    <div class="heatmap-title">Dollar Indicators Heatmap</div>
+                </div>
+                <div class="heatmap-grid" id="dollarHeatmap"></div>
+            </div>
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Series ID</th>
+                            <th>Custom Name (Click to Edit)</th>
+                            <th>Current Value</th>
+                            <th>WoW %</th>
+                            <th>MoM %</th>
+                            <th>QoQ %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dollarTable"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="em">
+            <h2 style="color: #00ff88; margin-bottom: 2rem;">🌏 Emerging Markets Indicators</h2>
+            <div class="heatmap-container">
+                <div class="heatmap-header">
+                    <div class="heatmap-title">Emerging Markets Heatmap</div>
+                </div>
+                <div class="heatmap-grid" id="emHeatmap"></div>
+            </div>
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Series ID</th>
+                            <th>Custom Name (Click to Edit)</th>
+                            <th>Current Value</th>
+                            <th>WoW %</th>
+                            <th>MoM %</th>
+                            <th>QoQ %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="emTable"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="fed">
+            <h2 style="color: #00ff88; margin-bottom: 2rem;">🏛️ Federal Reserve Data</h2>
+            <div class="heatmap-container">
+                <div class="heatmap-header">
+                    <div class="heatmap-title">Federal Reserve Indicators Heatmap</div>
+                </div>
+                <div class="heatmap-grid" id="fedHeatmap"></div>
+            </div>
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Series ID</th>
+                            <th>Custom Name (Click to Edit)</th>
+                            <th>Current Value</th>
+                            <th>WoW %</th>
+                            <th>MoM %</th>
+                            <th>QoQ %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fedTable"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="charts">
+            <h2 style="color: #00ff88; margin-bottom: 2rem;">📉 Interactive Charts</h2>
+            <div class="chart-container">
+                <div id="mainChart" style="height: 600px;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Configuration with CORRECT API key
+        const CONFIG = {
+            FRED_API_KEY: '2f057499936072679d8843d7fce99989',
+            FRED_BASE_URL: 'https://api.stlouisfed.org/fred',
+            ICE_BOFA_API: 'https://lnd6erie7y4rw2u6r4dpv4enty0mhtua.lambda-url.us-east-1.on.aws',
+        };
+        
+        // Enhanced Federal Reserve Indicators with all new series
+        const FEDERAL_RESERVE_INDICATORS = [
+            'DFF', 'EFFR', 'SOFR', 'IORB', 'DFEDTAR', 
+            'WALCL', 'WSHOMCB', 'RRPONTSYD', 'WORAL',
+            'M1SL', 'M2SL', 'TOTRESNS', 'EXCSRESNS',
+            'DGS1', 'DGS2', 'DGS5', 'DGS10', 'DGS30',
+            'TB3MS', 'TB6MS', 'GS1', 'GS2', 'GS3', 'GS5', 'GS7', 'GS10', 'GS20', 'GS30',
+            // New additions from your list
+            'RESPPALGUOXAWXCH52NWW', 'RESPPALGUONNWW', 'SWP1690', 'OTHL1690',
+            'SUBLPDCISTQNQ', 'DRISCFLM', 'RMFSL', 'SBCACBW027SBOG',
+            'MABMM301EZM189S', 'DRISCFS', 'MABMM301JPM189S', 'TREAS911Y',
+            'RREP15', 'OTHL15', 'RESH4MFNWW', 'BOGZ1FL663067003Q',
+            'RESPPNTEPNWW', 'JPNASSETS', 'WRESBAL', 'NONBORRES',
+            'MNFCTRIRSA', 'ISRATIO', 'TREAS1590', 'REVOLSL',
+            'INTGSTMXM193N', 'AMERIBOR', 'T10YIE', 'RETAILIMSA',
+            'OTHL91T1Y', 'SWP15', 'RESPPALGUMXCH1NWW', 'REP1690',
+            'IGREA', 'ECBASSETSW', 'BSFGLV02EZM460S', 'BSOBLV02EZM460S',
+            'PCU5231205231204', 'G7LOLITOAASTSAM', 'BSCURT02EZQ160S',
+            'BCEMFT02EEM460S', 'BSCICP02MXM460S', 'BSCICP02EZM460S',
+            'BSCICP02USM460S', 'BSFGLV02DEM460S', 'BSOBLV02ATM460S',
+            'BSOBLV02FIM460S', 'BSOBLV02ESM460S'
+        ];
+        
+        // Dollar Indicators
+        const DOLLAR_INDICATORS = [
+            'DTWEXBGS', 'DTWEXM', 'DTWEXO', 'DTWEXAFEGS', 'DTWEXEMEGS',
+            'DEXUSEU', 'DEXJPUS', 'DEXUSUK', 'DEXCHUS', 'DEXCAUS',
+            'DEXSZUS', 'DEXUSAL', 'DEXNOUS', 'DEXSDUS', 'DEXUSNZ',
+            'DEXKOUS', 'DEXHKUS', 'DEXINUS', 'DEXMXUS', 'DEXBZUS'
+        ];
+        
+        // EM Indicators
+        const EM_INDICATORS = [
+            'DEXBZUS', 'DEXMXUS', 'DEXCHUS', 'DEXINUS', 'DEXKOUS',
+            'DEXTHUS', 'DEXMAUS', 'DEXSFUS', 'DEXTRUS', 'DEXILUS'
+        ];
+        
+        // Liquidity Indicators
+        const LIQUIDITY_INDICATORS = [
+            'WALCL', 'RRPONTSYD', 'WORAL', 'M1SL', 'M2SL',
+            'TOTRESNS', 'EXCSRESNS', 'WLRRAL', 'WTREGEN',
+            'SWPT', 'SWP1690', 'COMPOUT', 'CPFF'
+        ];
+        
+        // Macro Indicators
+        const MACRO_INDICATORS = [
+            'GDPC1', 'CPILFESL', 'UNRATE', 'PAYEMS', 'INDPRO',
+            'HOUST', 'UMCSENT', 'VIXCLS', 'SP500', 'DJIA',
+            'NASDAQCOM', 'WTI', 'DCOILWTICO', 'GOLDAMGBD228NLBM'
+        ];
+        
+        // Global state
+        let allData = {};
+        let customNames = {};
+        let currentSort = { column: 'name', ascending: true };
+        let currentFilter = 'all';
+        let iceBofASeriesList = [];
+        
+        // Initialize
+        async function initialize() {
+            console.log('🚀 Initializing Complete OpenBB Platform...');
+            loadCustomNames();
+            showStatus('Loading ALL indicators from FRED and ICE BofA...', 'loading');
+            
+            // Load all data
+            await Promise.all([
+                fetchCompleteICEBofAData(),
+                fetchFREDData()
+            ]);
+            
+            setupEventListeners();
+            updateAllDisplays();
+            initializeCharts();
+            
+            // Auto-update every 5 minutes
+            setInterval(() => {
+                refreshAllData();
+            }, 300000);
+            
+            showStatus(`Dashboard initialized successfully!`, 'success');
+        }
+        
+        // Fetch ALL ICE BofA data from Lambda API
+        async function fetchCompleteICEBofAData() {
+            try {
+                console.log('Fetching complete ICE BofA data from Lambda API...');
+                
+                // First get list of all series
+                const listResponse = await fetch(`${CONFIG.ICE_BOFA_API}/ice_bofa?series=all`);
+                if (!listResponse.ok) throw new Error('Failed to get ICE series list');
+                
+                const listData = await listResponse.json();
+                const allSeries = listData.series || {};
+                iceBofASeriesList = Object.keys(allSeries);
+                
+                console.log(`Found ${iceBofASeriesList.length} ICE BofA series`);
+                
+                let loadedCount = 0;
+                let igCount = 0, hyCount = 0, emCount = 0;
+                
+                // Process in smaller batches to avoid timeout
+                const batchSize = 3;
+                for (let i = 0; i < iceBofASeriesList.length; i += batchSize) {
+                    const batch = iceBofASeriesList.slice(i, i + batchSize);
+                    
+                    await Promise.all(batch.map(async (seriesId) => {
+                        try {
+                            const response = await fetch(`${CONFIG.ICE_BOFA_API}/ice_bofa?series=${seriesId}`);
+                            if (!response.ok) {
+                                console.warn(`Failed to fetch ${seriesId}`);
+                                return;
+                            }
+                            
+                            const data = await response.json();
+                            
+                            if (data && data.latest) {
+                                const current = parseFloat(data.latest.value) || 0;
+                                const changes = data.percentage_changes || {};
+                                
+                                allData[seriesId] = {
+                                    id: seriesId,
+                                    name: customNames[seriesId] || data.name || getICEName(seriesId),
+                                    value: current,
+                                    weeklyChange: changes['WoW%'] || 0,
+                                    monthlyChange: changes['MoM%'] || 0,
+                                    quarterlyChange: changes['QoQ%'] || 0,
+                                    yearlyChange: changes['YoY%'] || 0,
+                                    lastUpdate: data.last_updated || data.latest.date,
+                                    category: 'icebofa',
+                                    data: data.data || [],
+                                    source: 'ICE_BOFA'
+                                };
+                                
+                                loadedCount++;
+                                
+                                // Count by category
+                                if (seriesId.includes('BAMLC') && !seriesId.includes('HY')) igCount++;
+                                else if (seriesId.includes('BAMLH')) hyCount++;
+                                else if (seriesId.includes('BAMLEM')) emCount++;
+                                
+                                // Update progress
+                                if (loadedCount % 10 === 0) {
+                                    document.getElementById('iceTotal').textContent = loadedCount;
+                                    document.getElementById('loadedIndicators').textContent = 
+                                        Object.keys(allData).length;
+                                }
+                            }
+                        } catch (err) {
+                            console.error(`Error fetching ${seriesId}:`, err);
+                        }
+                    }));
+                    
+                    // Small delay between batches
+                    if (i + batchSize < iceBofASeriesList.length) {
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                }
+                
+                // Update ICE stats
+                document.getElementById('igCount').textContent = igCount;
+                document.getElementById('hyCount').textContent = hyCount;
+                document.getElementById('emCount').textContent = emCount;
+                document.getElementById('iceTotal').textContent = loadedCount;
+                
+                console.log(`Successfully loaded ${loadedCount} ICE BofA series`);
+                
+            } catch (error) {
+                console.error('Error fetching ICE BofA data:', error);
+                showStatus('Failed to load some ICE BofA data', 'error');
+            }
+        }
+        
+        // Fetch FRED data
+        async function fetchFREDData() {
+            console.log('Fetching FRED indicators...');
+            
+            const allIndicators = [
+                ...FEDERAL_RESERVE_INDICATORS,
+                ...DOLLAR_INDICATORS,
+                ...EM_INDICATORS,
+                ...LIQUIDITY_INDICATORS,
+                ...MACRO_INDICATORS
+            ].filter((v, i, a) => a.indexOf(v) === i);
+            
+            let loadedCount = 0;
+            const totalIndicators = allIndicators.length;
+            document.getElementById('totalIndicators').textContent = totalIndicators + iceBofASeriesList.length;
+            
+            // Batch process to avoid rate limiting
+            for (let i = 0; i < allIndicators.length; i += 3) {
+                const batch = allIndicators.slice(i, i + 3);
+                
+                await Promise.all(batch.map(async (seriesId) => {
+                    try {
+                        const url = `${CONFIG.FRED_BASE_URL}/series/observations?` +
+                            `series_id=${seriesId}&` +
+                            `api_key=${CONFIG.FRED_API_KEY}&` +
+                            `file_type=json&` +
+                            `limit=252&` +
+                            `sort_order=desc`;
+                        
+                        const response = await fetch(url);
+                        if (!response.ok) {
+                            console.error(`Failed to fetch ${seriesId}: ${response.status}`);
+                            return;
+                        }
+                        
+                        const data = await response.json();
+                        const observations = data.observations || [];
+                        
+                        if (observations.length > 0) {
+                            const current = parseFloat(observations[0].value) || 0;
+                            
+                            // Calculate percentage changes properly
+                            const weeklyChange = calculatePercentChange(observations, 5);
+                            const monthlyChange = calculatePercentChange(observations, 21);
+                            const quarterlyChange = calculatePercentChange(observations, 63);
+                            const yearlyChange = calculatePercentChange(observations, 252);
+                            
+                            allData[seriesId] = {
+                                id: seriesId,
+                                name: customNames[seriesId] || getIndicatorName(seriesId),
+                                value: current,
+                                weeklyChange: weeklyChange,
+                                monthlyChange: monthlyChange,
+                                quarterlyChange: quarterlyChange,
+                                yearlyChange: yearlyChange,
+                                lastUpdate: observations[0].date,
+                                category: categorizeIndicator(seriesId),
+                                data: observations,
+                                source: 'FRED'
+                            };
+                            
+                            loadedCount++;
+                            const totalLoaded = Object.keys(allData).length;
+                            document.getElementById('loadedIndicators').textContent = totalLoaded;
+                        }
+                    } catch (err) {
+                        console.error(`Error fetching ${seriesId}:`, err);
+                    }
+                }));
+                
+                // Update progress
+                const progress = Math.round((i / totalIndicators) * 100);
+                if (i % 20 === 0) {
+                    showStatus(`Loading FRED data: ${progress}% (${loadedCount}/${totalIndicators})`, 'loading');
+                }
+                
+                // Small delay to avoid rate limiting
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            console.log(`Loaded ${loadedCount} FRED indicators`);
+        }
+        
+        // Calculate percentage change with proper null handling
+        function calculatePercentChange(observations, periods) {
+            try {
+                if (!observations || observations.length <= periods) return 0;
+                
+                const current = parseFloat(observations[0]?.value);
+                const previous = parseFloat(observations[periods]?.value);
+                
+                if (isNaN(current) || isNaN(previous) || previous === 0) return 0;
+                
+                return ((current - previous) / Math.abs(previous)) * 100;
+            } catch (err) {
+                return 0;
+            }
+        }
+        
+        // Update all displays
+        function updateAllDisplays() {
+            updateStats();
+            updateOverviewHeatmap('all');
+            updateKeyMetrics();
+            updateIndicatorsTable();
+            updateICEHeatmap();
+            updateICETable();
+            updateCategoryHeatmaps();
+            updateCategoryTables();
+            updateLastUpdateTime();
+        }
+        
+        // Update overview heatmap - FIXED VERSION
+        function updateOverviewHeatmap(filter) {
+            const container = document.getElementById('overviewHeatmap');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            currentFilter = filter;
+            
+            let indicators = Object.values(allData)
+                .filter(d => d && d.value !== null && d.value !== undefined);
+            
+            // Apply filter
+            if (filter === 'gainers') {
+                indicators = indicators.filter(i => i.weeklyChange > 0);
+            } else if (filter === 'losers') {
+                indicators = indicators.filter(i => i.weeklyChange < 0);
+            } else if (filter !== 'all') {
+                indicators = indicators.filter(i => i.category === filter);
+            }
+            
+            // Sort by absolute weekly change for better visualization
+            indicators.sort((a, b) => Math.abs(b.weeklyChange || 0) - Math.abs(a.weeklyChange || 0));
+            
+            // Limit to top 200 for performance
+            const displayIndicators = indicators.slice(0, 200);
+            
+            // Create tiles
+            displayIndicators.forEach((ind, index) => {
+                const tile = createEditableHeatmapTile(ind, index);
+                container.appendChild(tile);
+            });
+            
+            // Update button states
+            document.querySelectorAll('.heatmap-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.toLowerCase().includes(filter) || 
+                    (filter === 'all' && btn.textContent === 'All')) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Update status
+            document.getElementById('overviewStatus').textContent = 
+                `Displaying ${displayIndicators.length} of ${indicators.length} indicators on heatmap`;
+        }
+        
+        // Create editable heatmap tile - IMPROVED VERSION
+        function createEditableHeatmapTile(indicator, index) {
+            const tile = document.createElement('div');
+            
+            // Size based on magnitude and index
+            let sizeClass = '';
+            const absWeekly = Math.abs(indicator.weeklyChange || 0);
+            if (index < 3 && absWeekly > 10) {
+                sizeClass = 'tile-xxl';
+            } else if (index < 6 && absWeekly > 5) {
+                sizeClass = 'tile-xl';
+            } else if (index < 12 && absWeekly > 2) {
+                sizeClass = 'tile-lg';
+            }
+            
+            const colorClass = getHeatColor(indicator.weeklyChange || 0);
+            tile.className = `heatmap-tile ${colorClass} ${sizeClass}`;
+            
+            const displayName = (indicator.name || indicator.id).substring(0, 30);
+            const weeklyChange = indicator.weeklyChange || 0;
+            const monthlyChange = indicator.monthlyChange || 0;
+            
+            tile.innerHTML = `
+                <input type="text" 
+                       class="editable-tile-name" 
+                       value="${displayName}" 
+                       data-series-id="${indicator.id}"
+                       onchange="updateCustomName('${indicator.id}', this.value)"
+                       onclick="event.stopPropagation()">
+                <div class="tile-value">W: ${weeklyChange >= 0 ? '+' : ''}${weeklyChange.toFixed(1)}%</div>
+                <div class="tile-value-secondary">M: ${monthlyChange >= 0 ? '+' : ''}${monthlyChange.toFixed(1)}%</div>
+            `;
+            
+            tile.title = `${indicator.name} (${indicator.id})
+Value: ${formatValue(indicator.value, indicator.id)}
+Weekly: ${weeklyChange.toFixed(2)}%
+Monthly: ${monthlyChange.toFixed(2)}%
+Source: ${indicator.source || 'N/A'}`;
+            
+            tile.onclick = () => {
+                console.log('Selected:', indicator);
+            };
+            
+            return tile;
+        }
+        
+        // Update ICE heatmap - FIXED VERSION
+        function updateICEHeatmap() {
+            const container = document.getElementById('iceHeatmap');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            let iceData = Object.values(allData)
+                .filter(d => d && d.category === 'icebofa');
+            
+            if (iceData.length === 0) {
+                container.innerHTML = '<div class="loading">No ICE BofA data loaded yet...</div>';
+                return;
+            }
+            
+            iceData.sort((a, b) => Math.abs(b.weeklyChange || 0) - Math.abs(a.weeklyChange || 0));
+            
+            iceData.forEach((item, index) => {
+                const tile = createEditableHeatmapTile(item, index);
+                container.appendChild(tile);
+            });
+        }
+        
+        // Filter ICE heatmap
+        function filterICEHeatmap(filter) {
+            const container = document.getElementById('iceHeatmap');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            let iceData = Object.values(allData)
+                .filter(d => d && d.category === 'icebofa');
+            
+            if (filter === 'spreads') {
+                iceData = iceData.filter(d => d.id.includes('OAS'));
+            } else if (filter === 'yields') {
+                iceData = iceData.filter(d => d.id.includes('EY'));
+            } else if (filter === 'returns') {
+                iceData = iceData.filter(d => d.id.includes('TRIV'));
+            }
+            
+            iceData.sort((a, b) => Math.abs(b.weeklyChange || 0) - Math.abs(a.weeklyChange || 0));
+            
+            iceData.forEach((item, index) => {
+                const tile = createEditableHeatmapTile(item, index);
+                container.appendChild(tile);
+            });
+            
+            // Update button states
+            document.querySelectorAll('#ice-bofa .heatmap-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+        
+        // Update category heatmaps
+        function updateCategoryHeatmaps() {
+            const categories = ['macro', 'liquidity', 'dollar', 'em', 'fed'];
+            
+            categories.forEach(category => {
+                const container = document.getElementById(`${category}Heatmap`);
+                if (!container) return;
+                
+                container.innerHTML = '';
+                
+                let categoryData = Object.values(allData)
+                    .filter(d => d && d.category === category);
+                
+                if (categoryData.length === 0) {
+                    container.innerHTML = `<div class="loading">No ${category} data loaded yet...</div>`;
+                    return;
+                }
+                
+                categoryData.sort((a, b) => Math.abs(b.weeklyChange || 0) - Math.abs(a.weeklyChange || 0));
+                
+                categoryData.forEach((item, index) => {
+                    const tile = createEditableHeatmapTile(item, index);
+                    container.appendChild(tile);
+                });
+            });
+            
+            // Advanced heatmap (all data sorted by monthly change)
+            const advContainer = document.getElementById('advancedHeatmap');
+            if (advContainer) {
+                advContainer.innerHTML = '';
+                
+                let allIndicators = Object.values(allData).filter(d => d);
+                allIndicators.sort((a, b) => Math.abs(b.monthlyChange || 0) - Math.abs(a.monthlyChange || 0));
+                
+                allIndicators.slice(0, 150).forEach((item, index) => {
+                    const tile = createEditableHeatmapTile(item, index);
+                    advContainer.appendChild(tile);
+                });
+            }
+        }
+        
+        // Update tables
+        function updateIndicatorsTable() {
+            const tbody = document.getElementById('indicatorsTable');
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            const indicators = Object.values(allData).filter(d => d);
+            
+            if (indicators.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6">No data loaded yet...</td></tr>';
+                return;
+            }
+            
+            indicators.forEach(indicator => {
+                const row = createEditableTableRow(indicator);
+                tbody.appendChild(row);
+            });
+        }
+        
+        function updateICETable() {
+            const tbody = document.getElementById('iceTable');
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            const iceIndicators = Object.values(allData)
+                .filter(d => d && d.category === 'icebofa');
+            
+            if (iceIndicators.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8">Loading ICE BofA data...</td></tr>';
+                return;
+            }
+            
+            iceIndicators.forEach(indicator => {
+                const row = createEditableTableRow(indicator, true);
+                tbody.appendChild(row);
+            });
+        }
+        
+        function updateCategoryTables() {
+            const categories = ['macro', 'liquidity', 'dollar', 'em', 'fed'];
+            
+            categories.forEach(category => {
+                const tbody = document.getElementById(`${category}Table`);
+                if (!tbody) return;
+                
+                tbody.innerHTML = '';
+                
+                const categoryData = Object.values(allData)
+                    .filter(d => d && d.category === category);
+                
+                if (categoryData.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6">No ${category} data loaded yet...</td></tr>`;
+                    return;
+                }
+                
+                categoryData.forEach(indicator => {
+                    const row = createEditableTableRow(indicator);
+                    tbody.appendChild(row);
+                });
+            });
+        }
+        
+        // Create editable table row
+        function createEditableTableRow(indicator, includeYearly = false) {
+            const row = document.createElement('tr');
+            const weeklyChange = indicator.weeklyChange || 0;
+            const monthlyChange = indicator.monthlyChange || 0;
+            const quarterlyChange = indicator.quarterlyChange || 0;
+            const yearlyChange = indicator.yearlyChange || 0;
+            
+            row.innerHTML = `
+                <td style="font-family: monospace; font-size: 0.8rem;">${indicator.id}</td>
+                <td>
+                    <input type="text" 
+                           class="editable-name" 
+                           value="${indicator.name}" 
+                           data-series-id="${indicator.id}"
+                           onchange="updateCustomName('${indicator.id}', this.value)">
+                </td>
+                <td>${formatValue(indicator.value, indicator.id)}</td>
+                <td class="${weeklyChange >= 0 ? 'positive' : 'negative'}">
+                    ${weeklyChange >= 0 ? '+' : ''}${weeklyChange.toFixed(2)}%
+                </td>
+                <td class="${monthlyChange >= 0 ? 'positive' : 'negative'}">
+                    ${monthlyChange >= 0 ? '+' : ''}${monthlyChange.toFixed(2)}%
+                </td>
+                <td class="${quarterlyChange >= 0 ? 'positive' : 'negative'}">
+                    ${quarterlyChange >= 0 ? '+' : ''}${quarterlyChange.toFixed(2)}%
+                </td>
+                ${includeYearly ? `
+                <td class="${yearlyChange >= 0 ? 'positive' : 'negative'}">
+                    ${yearlyChange >= 0 ? '+' : ''}${yearlyChange.toFixed(2)}%
+                </td>` : ''}
+                ${indicator.lastUpdate ? `<td style="font-size: 0.8rem; color: #888;">${indicator.lastUpdate}</td>` : ''}
+            `;
+            return row;
+        }
+        
+        // Update key metrics
+        function updateKeyMetrics() {
+            const container = document.getElementById('keyMetrics');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            const keyIndicators = ['VIXCLS', 'SP500', 'DTWEXBGS', 'DGS10', 'WALCL', 'SOFR', 'M2SL', 'RRPONTSYD'];
+            
+            keyIndicators.forEach(key => {
+                const data = allData[key];
+                if (!data) return;
+                
+                const monthlyChange = data.monthlyChange || 0;
+                
+                const card = document.createElement('div');
+                card.className = 'metric-card';
+                card.innerHTML = `
+                    <div class="metric-title">${data.name}</div>
+                    <div class="metric-value ${monthlyChange >= 0 ? 'positive' : 'negative'}">
+                        ${formatValue(data.value, key)}
+                    </div>
+                    <div class="metric-change ${monthlyChange >= 0 ? 'positive' : 'negative'}">
+                        <span>${monthlyChange >= 0 ? '▲' : '▼'}</span>
+                        ${Math.abs(monthlyChange).toFixed(2)}%
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+        
+        // Update stats
+        function updateStats() {
+            const indicators = Object.values(allData).filter(d => d);
+            const gainers = indicators.filter(d => (d.weeklyChange || 0) > 0).length;
+            const losers = indicators.filter(d => (d.weeklyChange || 0) < 0).length;
+            
+            document.getElementById('totalIndicators').textContent = indicators.length;
+            document.getElementById('loadedIndicators').textContent = indicators.length;
+            document.getElementById('gainers').textContent = gainers;
+            document.getElementById('losers').textContent = losers;
+        }
+        
+        // Helper functions
+        function updateCustomName(seriesId, newName) {
+            customNames[seriesId] = newName;
+            if (allData[seriesId]) {
+                allData[seriesId].name = newName;
+            }
+            saveCustomNames();
+        }
+        
+        function loadCustomNames() {
+            const saved = localStorage.getItem('openbbCustomNames');
+            if (saved) {
+                customNames = JSON.parse(saved);
+            }
+        }
+        
+        function saveCustomNames() {
+            localStorage.setItem('openbbCustomNames', JSON.stringify(customNames));
+        }
+        
+        function getIndicatorName(key) {
+            const names = {
+                'DFF': 'Fed Funds Rate',
+                'EFFR': 'Effective Fed Funds',
+                'SOFR': 'SOFR',
+                'DGS10': '10Y Treasury',
+                'DGS2': '2Y Treasury',
+                'WALCL': 'Fed Balance Sheet',
+                'M2SL': 'M2 Money Supply',
+                'RRPONTSYD': 'Reverse Repo',
+                'DTWEXBGS': 'Dollar Index',
+                'DEXUSEU': 'EUR/USD',
+                'DEXJPUS': 'USD/JPY',
+                'VIXCLS': 'VIX Index',
+                'SP500': 'S&P 500',
+                'GDPC1': 'Real GDP',
+                'CPILFESL': 'Core CPI',
+                'UNRATE': 'Unemployment',
+                'PAYEMS': 'Nonfarm Payrolls',
+                'INDPRO': 'Industrial Production',
+                'RESPPALGUOXAWXCH52NWW': 'Reserves Ex China 52W',
+                'RESPPALGUONNWW': 'Reserves All Other',
+                'SWP1690': 'Swap 16-90D',
+                'SUBLPDCISTQNQ': 'Subprime Delinquency',
+                'DRISCFLM': 'Discount Rate Commercial',
+                'RMFSL': 'Reserve Money',
+                'SBCACBW027SBOG': 'Small Bank C&I',
+                'JPNASSETS': 'BOJ Assets',
+                'ECBASSETSW': 'ECB Assets',
+                'AMERIBOR': 'AMERIBOR Rate',
+                'T10YIE': '10Y Breakeven Inflation'
+            };
+            return names[key] || key;
+        }
+        
+        function getICEName(key) {
+            if (key.includes('BAMLH0A0HYM2')) return 'US HY Master II';
+            if (key.includes('BAMLC0A0CM')) return 'US Corp Master';
+            if (key.includes('BAMLC0A1CAAA')) return 'AAA Corporate';
+            if (key.includes('BAMLC0A4CBBB')) return 'BBB Corporate';
+            if (key.includes('BAMLEMCB')) return 'EM Corporate';
+            if (key.includes('BAMLEMHY')) return 'EM High Yield';
+            if (key.includes('OAS')) return key.replace('BAML', '').replace('OAS', ' OAS');
+            if (key.includes('EY')) return key.replace('BAML', '').replace('EY', ' Yield');
+            if (key.includes('TRIV')) return key.replace('BAML', '').replace('TRIV', ' TR');
+            return key.replace('BAML', '').substring(0, 20);
+        }
+        
+        function categorizeIndicator(key) {
+            if (key.includes('BAML')) return 'icebofa';
+            if (FEDERAL_RESERVE_INDICATORS.includes(key)) return 'fed';
+            if (DOLLAR_INDICATORS.includes(key)) return 'dollar';
+            if (EM_INDICATORS.includes(key)) return 'em';
+            if (LIQUIDITY_INDICATORS.includes(key)) return 'liquidity';
+            if (MACRO_INDICATORS.includes(key)) return 'macro';
+            
+            // Additional categorization
+            if (key.includes('DEX')) return 'dollar';
+            if (key.includes('DTW')) return 'dollar';
+            if (key.includes('DGS') || key.includes('GS')) return 'fed';
+            if (key.includes('M1') || key.includes('M2')) return 'liquidity';
+            
+            return 'other';
+        }
+        
+        function getHeatColor(change) {
+            if (change > 5) return 'heat-positive-5';
+            if (change > 2) return 'heat-positive-4';
+            if (change > 1) return 'heat-positive-3';
+            if (change > 0.5) return 'heat-positive-2';
+            if (change > 0) return 'heat-positive-1';
+            if (change > -0.5) return 'heat-neutral';
+            if (change > -1) return 'heat-negative-1';
+            if (change > -2) return 'heat-negative-2';
+            if (change > -5) return 'heat-negative-3';
+            if (change > -10) return 'heat-negative-4';
+            return 'heat-negative-5';
+        }
+        
+        function formatValue(value, key) {
+            if (value === null || value === undefined) return 'N/A';
+            
+            const num = parseFloat(value);
+            
+            // Large numbers (trillions/billions)
+            if (key.includes('WALCL') || key.includes('M2') || key.includes('M1') || 
+                key.includes('ASSETS') || key.includes('JPNASSETS') || key.includes('ECBASSETSW')) {
+                if (num >= 1000000) return `${(num / 1000000).toFixed(2)}T`;
+                if (num >= 1000) return `${(num / 1000).toFixed(2)}B`;
+            }
+            
+            // Basis points
+            if (key.includes('OAS')) {
+                return `${num.toFixed(2)} bps`;
+            }
+            
+            // Percentages
+            if (key.includes('EY') || key.includes('YTW') || key.includes('DGS') || 
+                key.includes('RATE') || key.includes('SOFR') || key.includes('EFFR') ||
+                key.includes('DFF') || key.includes('UNRATE') || key.includes('AMERIBOR')) {
+                return `${num.toFixed(2)}%`;
+            }
+            
+            // Exchange rates
+            if (key.includes('DEX')) {
+                return num.toFixed(4);
+            }
+            
+            // Stock indices
+            if (['SP500', 'DJIA', 'NASDAQCOM'].includes(key)) {
+                return num.toFixed(0);
+            }
+            
+            // General formatting
+            if (num >= 1000000000000) return `${(num / 1000000000000).toFixed(2)}T`;
+            if (num >= 1000000000) return `${(num / 1000000000).toFixed(2)}B`;
+            if (num >= 1000000) return `${(num / 1000000).toFixed(2)}M`;
+            if (num >= 1000) return `${(num / 1000).toFixed(2)}K`;
+            
+            return num.toFixed(2);
+        }
+        
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.className = `status-message show status-${type}`;
+            statusDiv.textContent = message;
+            
+            if (type === 'success' || type === 'error') {
+                setTimeout(() => {
+                    statusDiv.classList.remove('show');
+                }, 5000);
+            }
+        }
+        
+        function updateLastUpdateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('lastUpdate').textContent = timeStr;
+        }
+        
+        async function refreshAllData() {
+            showStatus('Refreshing all data...', 'loading');
+            allData = {};
+            await Promise.all([
+                fetchCompleteICEBofAData(),
+                fetchFREDData()
+            ]);
+            updateAllDisplays();
+            showStatus('Data refreshed successfully', 'success');
+        }
+        
+        async function refreshICEData() {
+            showStatus('Refreshing ICE BofA data...', 'loading');
+            await fetchCompleteICEBofAData();
+            updateICEHeatmap();
+            updateICETable();
+            updateOverviewHeatmap(currentFilter);
+            showStatus('ICE BofA data refreshed', 'success');
+        }
+        
+        function sortTable(column) {
+            currentSort.column = column;
+            currentSort.ascending = !currentSort.ascending;
+            updateIndicatorsTable();
+        }
+        
+        function sortICETable(column) {
+            currentSort.column = column;
+            currentSort.ascending = !currentSort.ascending;
+            updateICETable();
+        }
+        
+        function initializeCharts() {
+            // Create sample chart
+            const mainData = {
+                x: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+                y: [4500, 4550, 4600, 4650, 4700, 4750, 4800, 4850, 4900],
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'S&P 500',
+                line: { color: '#00ccff' }
+            };
+            
+            const mainLayout = {
+                title: 'Market Overview',
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: '#fff' },
+                xaxis: { gridcolor: 'rgba(255,255,255,0.1)' },
+                yaxis: { gridcolor: 'rgba(255,255,255,0.1)' }
+            };
+            
+            Plotly.newPlot('mainChart', [mainData], mainLayout, {responsive: true});
+        }
+        
+        function setupEventListeners() {
+            // Tab navigation
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    const tabId = e.target.dataset.tab;
+                    const tabContent = document.getElementById(tabId);
+                    if (tabContent) {
+                        tabContent.classList.add('active');
+                    }
+                });
+            });
+        }
+        
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', initialize);
+    </script>
+</body>
+</html>
