@@ -217,6 +217,18 @@
             text-align: center;
             word-break: break-word;
             line-height: 1.2;
+            cursor: text;
+        }
+        
+        .tile-symbol-input {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-align: center;
+            width: 100%;
+            outline: none;
         }
         
         .tile-value {
@@ -490,11 +502,11 @@
         
         <div class="header-stats">
             <div class="stat-item">
-                <div class="stat-value" id="totalIndicators">0</div>
-                <div class="stat-label">Total Indicators</div>
+                <div class="stat-value" id="totalSeries">0</div>
+                <div class="stat-label">Total Series</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value" id="loadedIndicators">0</div>
+                <div class="stat-value" id="loadedSeries">0</div>
                 <div class="stat-label">Loaded</div>
             </div>
             <div class="stat-item">
@@ -534,12 +546,12 @@
             <!-- Stock Market Style Heatmap -->
             <div class="heatmap-container">
                 <div class="heatmap-header">
-                    <div class="heatmap-title">Market Heatmap</div>
+                    <div class="heatmap-title">Market Heatmap (Click names to edit)</div>
                     <div class="heatmap-controls">
                         <button class="heatmap-btn active" onclick="updateHeatmap('all')">All</button>
                         <button class="heatmap-btn" onclick="updateHeatmap('gainers')">Gainers</button>
                         <button class="heatmap-btn" onclick="updateHeatmap('losers')">Losers</button>
-                        <button class="heatmap-btn" onclick="refreshAllData()">🔄 Refresh</button>
+                        <button class="heatmap-btn" onclick="refreshData()">🔄 Refresh</button>
                     </div>
                 </div>
                 <div class="heatmap-grid" id="overviewHeatmap">
@@ -557,18 +569,17 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Series ID</th>
+                            <th onclick="sortTable('id')">Indicator</th>
                             <th onclick="sortTable('name')">Custom Name (Click to Edit)</th>
                             <th onclick="sortTable('value')">Current Value</th>
                             <th onclick="sortTable('wow')">WoW %</th>
                             <th onclick="sortTable('mom')">MoM %</th>
                             <th onclick="sortTable('qoq')">QoQ %</th>
-                            <th onclick="sortTable('yoy')">YoY %</th>
                         </tr>
                     </thead>
                     <tbody id="indicatorsTable">
                         <tr>
-                            <td colspan="7" class="loading">
+                            <td colspan="6" class="loading">
                                 <div class="spinner"></div>
                             </td>
                         </tr>
@@ -596,15 +607,15 @@
                     <div class="stat-card-value" id="emCount">0</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-card-title">Other</div>
-                    <div class="stat-card-value" id="otherCount">0</div>
+                    <div class="stat-card-title">Total Series</div>
+                    <div class="stat-card-value" id="iceTotalCount">0</div>
                 </div>
             </div>
             
             <!-- ICE BofA Heatmap -->
             <div class="heatmap-container">
                 <div class="heatmap-header">
-                    <div class="heatmap-title">ICE BofA Indices Heatmap</div>
+                    <div class="heatmap-title">ICE BofA Indices Heatmap (Click names to edit)</div>
                     <div class="heatmap-controls">
                         <button class="heatmap-btn active" onclick="filterICEHeatmap('all')">All</button>
                         <button class="heatmap-btn" onclick="filterICEHeatmap('spreads')">OAS Only</button>
@@ -649,7 +660,7 @@
             <!-- Macro Heatmap -->
             <div class="heatmap-container">
                 <div class="heatmap-header">
-                    <div class="heatmap-title">Macro Indicators Heatmap</div>
+                    <div class="heatmap-title">Macro Indicators Heatmap (Click names to edit)</div>
                     <div class="heatmap-controls">
                         <button class="heatmap-btn active" onclick="filterMacroHeatmap('all')">All</button>
                         <button class="heatmap-btn" onclick="filterMacroHeatmap('rates')">Interest Rates</button>
@@ -668,8 +679,8 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Series ID</th>
-                            <th>Indicator Name</th>
+                            <th>Indicator</th>
+                            <th>Custom Name (Click to Edit)</th>
                             <th>Current Value</th>
                             <th>WoW %</th>
                             <th>MoM %</th>
@@ -687,7 +698,7 @@
         <div class="tab-content" id="heatmap">
             <div class="heatmap-container">
                 <div class="heatmap-header">
-                    <div class="heatmap-title">Advanced Market Heatmap</div>
+                    <div class="heatmap-title">Advanced Market Heatmap (Click names to edit)</div>
                     <div class="heatmap-controls">
                         <button class="heatmap-btn active" onclick="filterAdvancedHeatmap('all')">All</button>
                         <button class="heatmap-btn" onclick="filterAdvancedHeatmap('stocks')">Stocks</button>
@@ -709,14 +720,13 @@
             <!-- Liquidity Heatmap -->
             <div class="heatmap-container">
                 <div class="heatmap-header">
-                    <div class="heatmap-title">Liquidity Indicators Heatmap</div>
+                    <div class="heatmap-title">Liquidity Indicators Heatmap (Click names to edit)</div>
                     <div class="heatmap-controls">
-                        <button class="heatmap-btn active" onclick="filterLiquidityHeatmap('all')">All</button>
-                        <button class="heatmap-btn" onclick="filterLiquidityHeatmap('centralbanks')">Central Banks</button>
-                        <button class="heatmap-btn" onclick="filterLiquidityHeatmap('swaps')">Swap Lines</button>
-                        <button class="heatmap-btn" onclick="filterLiquidityHeatmap('money')">Money Supply</button>
-                        <button class="heatmap-btn" onclick="filterLiquidityHeatmap('repo')">Repo/RRP</button>
-                        <button class="heatmap-btn" onclick="filterLiquidityHeatmap('securities')">Securities</button>
+                        <button class="heatmap-btn active" onclick="sortLiquidity('all')">All</button>
+                        <button class="heatmap-btn" onclick="sortLiquidity('increasing')">Increasing ↑</button>
+                        <button class="heatmap-btn" onclick="sortLiquidity('decreasing')">Decreasing ↓</button>
+                        <button class="heatmap-btn" onclick="sortLiquidity('centralbanks')">Central Banks</button>
+                        <button class="heatmap-btn" onclick="sortLiquidity('swaps')">Swap Lines</button>
                     </div>
                 </div>
                 <div class="heatmap-grid" id="liquidityHeatmap">
@@ -729,8 +739,8 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Series ID</th>
-                            <th>Indicator Name (Click to Edit)</th>
+                            <th>Indicator</th>
+                            <th>Custom Name (Click to Edit)</th>
                             <th>Current Value</th>
                             <th>WoW %</th>
                             <th>MoM %</th>
@@ -751,12 +761,11 @@
             <!-- Dollar Heatmap -->
             <div class="heatmap-container">
                 <div class="heatmap-header">
-                    <div class="heatmap-title">Dollar Indicators Heatmap</div>
+                    <div class="heatmap-title">Dollar Indicators Heatmap (Click names to edit)</div>
                     <div class="heatmap-controls">
                         <button class="heatmap-btn active" onclick="filterDollarHeatmap('all')">All</button>
                         <button class="heatmap-btn" onclick="filterDollarHeatmap('index')">Dollar Index</button>
                         <button class="heatmap-btn" onclick="filterDollarHeatmap('pairs')">Currency Pairs</button>
-                        <button class="heatmap-btn" onclick="filterDollarHeatmap('real')">Real Rates</button>
                     </div>
                 </div>
                 <div class="heatmap-grid" id="dollarHeatmap">
@@ -769,8 +778,8 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Series ID</th>
-                            <th>Indicator Name (Click to Edit)</th>
+                            <th>Indicator</th>
+                            <th>Custom Name (Click to Edit)</th>
                             <th>Current Value</th>
                             <th>WoW %</th>
                             <th>MoM %</th>
@@ -786,7 +795,7 @@
         
         <!-- Emerging Markets Tab -->
         <div class="tab-content" id="em">
-            <h2 style="color: #00ff88; margin-bottom: 2rem;">🌏 Emerging Markets Indicators</h2>
+            <h2 style="color: #00ff88; margin-bottom: 2rem;">🌏 Emerging Markets</h2>
             
             <!-- EM Heatmap -->
             <div class="heatmap-container">
@@ -796,7 +805,6 @@
                         <button class="heatmap-btn active" onclick="filterEMHeatmap('all')">All</button>
                         <button class="heatmap-btn" onclick="filterEMHeatmap('asia')">Asia</button>
                         <button class="heatmap-btn" onclick="filterEMHeatmap('latam')">Latin America</button>
-                        <button class="heatmap-btn" onclick="filterEMHeatmap('emea')">EMEA</button>
                         <button class="heatmap-btn" onclick="filterEMHeatmap('bonds')">EM Bonds</button>
                     </div>
                 </div>
@@ -804,8 +812,13 @@
                     <!-- EM heatmap tiles will be populated here -->
                 </div>
             </div>
+        </div>
+        
+        <!-- Federal Reserve Tab -->
+        <div class="tab-content" id="fed">
+            <h2 style="color: #00ff88; margin-bottom: 2rem;">🏛️ Federal Reserve & Top 100 FRED Indicators</h2>
             
-            <!-- EM Table -->
+            <!-- Fed Data Table -->
             <div class="data-table">
                 <table>
                     <thead>
@@ -816,20 +829,15 @@
                             <th>WoW %</th>
                             <th>MoM %</th>
                             <th>QoQ %</th>
+                            <th>YoY %</th>
                         </tr>
                     </thead>
-                    <tbody id="emTable">
-                        <!-- EM indicators will be populated here -->
+                    <tbody id="fedTable">
+                        <tr>
+                            <td colspan="7" class="loading">Loading Federal Reserve data...</td>
+                        </tr>
                     </tbody>
                 </table>
-            </div>
-        </div>
-        
-        <!-- Federal Reserve Tab -->
-        <div class="tab-content" id="fed">
-            <h2 style="color: #00ff88; margin-bottom: 2rem;">🏛️ Federal Reserve Data</h2>
-            <div class="chart-container">
-                <div id="fedChart" style="height: 500px;"></div>
             </div>
         </div>
         
@@ -843,164 +851,105 @@
     </div>
     
     <script>
-        // Configuration with FRED API
-        const CONFIG = {
-            FRED_API_KEY: 'YOUR_FRED_API_KEY_HERE', // Replace with actual FRED API key
-            FRED_BASE_URL: 'https://api.stlouisfed.org/fred',
-            OPENBB_API: {
+        // Configuration - Using your existing API endpoints
+        const OPENBB_CONFIG = {
+            MAIN_API: {
                 baseUrl: 'https://i70jxru6md.execute-api.us-east-1.amazonaws.com/prod/api/v1',
                 endpoints: {
                     overview: '/dashboard/overview',
                     mega: '/dashboard/mega',
                     fed: '/fed',
-                    liquidity: '/liquidity'
+                    blackswan: '/blackswan',
+                    liquidity: '/liquidity',
+                    crisis: '/crisis',
+                    dxy: '/dxy',
+                    ice_bofa: '/ice_bofa'
                 }
             },
             ICE_BOFA_API: 'https://lnd6erie7y4rw2u6r4dpv4enty0mhtua.lambda-url.us-east-1.on.aws/'
         };
         
-        // Comprehensive indicator lists
-        const INDICATORS = {
-            // ICE BofA Indices
-            ICE_BOFA: [
-                'BAMLH0A0HYM2', 'BAMLH0A0HYM2EY', 'BAMLH0A0HYM2TRIV', 'BAMLH0A0HYM2SYTW',
-                'BAMLH0A1HYBB', 'BAMLH0A1HYBBEY', 'BAMLH0A1HYBBTRIV', 'BAMLH0A1HYBBSYTW',
-                'BAMLH0A2HYB', 'BAMLH0A2HYBEY', 'BAMLH0A2HYBTRIV', 'BAMLH0A2HYBSYTW',
-                'BAMLH0A3HYC', 'BAMLH0A3HYCEY', 'BAMLH0A3HYCTRIV', 'BAMLH0A3HYCSYTW',
-                'BAMLC0A0CM', 'BAMLC0A0CMEY', 'BAMLC0A0CMTRIV', 'BAMLC0A0CMSYTW',
-                'BAMLC0A1CAAA', 'BAMLC0A1CAAAEY', 'BAMLC0A1CAAAOAS', 'BAMLC0A1CAAATRIV',
-                'BAMLC0A2CAA', 'BAMLC0A2CAAEY', 'BAMLC0A2CAAOAS', 'BAMLC0A2CAATRIV',
-                'BAMLC0A3CA', 'BAMLC0A3CAEY', 'BAMLC0A3CAOAS', 'BAMLC0A3CATRIV',
-                'BAMLC0A4CBBB', 'BAMLC0A4CBBBEY', 'BAMLC0A4CBBBOAS', 'BAMLC0A4CBBBTRIV',
-                'BAMLEMCB', 'BAMLEMCBEY', 'BAMLEMCBOAS', 'BAMLEMCBTRIV',
-                'BAMLEMHY', 'BAMLEMHYEY', 'BAMLEMHYOAS', 'BAMLEMHYTRIV',
-                'BAMLHE00EHYIOAS', 'BAMLHE00EHYIEY', 'BAMLHE00EHYITRIV'
-            ],
+        // Top 100 most important FRED indicators
+        const TOP_FRED_INDICATORS = [
+            // Federal Reserve & Interest Rates
+            'DFF', 'FEDFUNDS', 'DFEDTARU', 'DFEDTARL', 'DFEDTAR', 
+            'SOFR', 'EFFR', 'OBFR', 'AMERIBOR', 'IORB', 'IOER',
             
-            // Macro Indicators
-            MACRO: [
-                'DFF', 'DGS10', 'DGS2', 'DGS5', 'DGS30', 'T10Y2Y', 'T10Y3M',
-                'DFEDTARU', 'DFEDTARL', 'SOFR', 'EFFR', 'OBFR',
-                'CPIAUCSL', 'CPILFESL', 'PCEPI', 'PCEPILFE',
-                'UNRATE', 'PAYEMS', 'CIVPART', 'EMRATIO', 'ICSA',
-                'GDP', 'GDPC1', 'INDPRO', 'HOUST', 'PERMIT', 'HSN1F',
-                'RSXFS', 'UMCSENT', 'CBCCI', 'VIXCLS'
-            ],
+            // Treasury Yields
+            'DGS1MO', 'DGS3MO', 'DGS6MO', 'DGS1', 'DGS2', 'DGS3', 'DGS5', 
+            'DGS7', 'DGS10', 'DGS20', 'DGS30',
             
-            // Global Liquidity - Expanded list
-            LIQUIDITY: [
-                // Central Bank Balance Sheets
-                'WALCL', 'ECBASSETSW', 'JPNASSETS', 'UKBSASSETS', 'CACBBS', 'SNBASSETSW', 'RBATASSETS',
-                'RESPPALGUOXAWXCH52NWW', 'RESPPALGUONNWW',
-                
-                // Swap Lines & Liquidity Facilities
-                'RPCL1M3M', 'RPCL3M6M', 'RPCL12M2Y', 'RPCL2Y5Y', 'RPCL5Y10Y',
-                'SWP1690', 'SWP15', 'SWPT', 'CS3ML1USL', 'CS6ML1USL',
-                
-                // Money Supply Measures
-                'M1SL', 'M2SL', 'MZMSL', 'M1NS', 'M2NS',
-                'BOGMBASE', 'TOTRESNS', 'NONBORRES', 'REQRESNS',
-                
-                // Repo & Reverse Repo
-                'RRPONTSYD', 'RPONTTLD', 'RRPONTSYAWARD', 'RREP15', 'REP1690',
-                'WORAL', 'WLRRAL', 'H41RESPPALDKNWW',
-                
-                // Securities & Credit
-                'HQLA', 'USGSEC', 'MBSECNS', 'OTHSEC', 'LOANSEC',
-                'REALLN', 'BUSLOANS', 'CONSUMER', 'CREDSEC',
-                
-                // TGA & Treasury
-                'WTREGEN', 'TREAS911Y', 'TREAS1590', 'DRALACBN',
-                
-                // Commercial Paper & Money Markets
-                'COMPOUT', 'CPFF', 'MMMFFAQ027S', 'WRMFNS',
-                'DTCOLNVHFNM', 'DTCOLREHFNM', 'DTCOLCBHFNM',
-                
-                // Bank Reserves & Deposits
-                'TOTRESNS', 'EXCSRESNS', 'DPSACBW027SBOG', 'DDPSACBW027SBOG',
-                'SBCACBW027SBOG', 'TCDNS', 'DDDNS', 'STDSL',
-                
-                // Federal Funds & Short-term Rates
-                'FEDFUNDS', 'EFFRVOL', 'OBFRVOL', 'TRIREVOL',
-                
-                // Credit Spreads & Risk Indicators
-                'BAMLH0A0HYM2', 'BAMLC0A0CM', 'TEDRATE', 'AAA10Y', 'BAA10Y',
-                
-                // International Liquidity
-                'ECBLIQFACW', 'BOJLIQFAC', 'BOELIQFAC', 'SNBLIQFAC',
-                'CBABLIQFAC', 'RBALIQFAC', 'BCBLIQFAC'
-            ],
+            // Yield Spreads
+            'T10Y2Y', 'T10Y3M', 'T10YIE', 'T5YIE', 'T10YFFM',
             
-            // Dollar Indicators
-            DOLLAR: [
-                // Dollar Index & Trade-weighted
-                'DTWEXBGS', 'DTWEXAFEGS', 'DTWEXEMEGS', 'DTWEXM', 'DTWEXO',
-                'DTWEXBK', 'RTWEXBGS', 'RTWEXAFEGS', 'RTWEXEMEGS',
-                
-                // Major Currency Pairs
-                'DEXUSEU', 'DEXJPUS', 'DEXUSUK', 'DEXCAUS', 'DEXCHUS',
-                'DEXSZUS', 'DEXUSAL', 'DEXNOUS', 'DEXKOUS', 'DEXINUS',
-                
-                // EM Currency Pairs
-                'DEXBZUS', 'DEXMXUS', 'DEXSFUS', 'DEXTAUS', 'DEXMAUS',
-                'DEXTHUS', 'DEXHKUS', 'DEXSIUS', 'DEXSDUS', 'DEXUSNZ',
-                
-                // Real Exchange Rates
-                'RBROADCNUSD', 'RBROADEUUSD', 'RBROADJPUSD', 'RBROADGBUSD',
-                'RBROADCAUSD', 'RBROADMXUSD', 'RBROADBRUSD', 'RBROADINUSD',
-                
-                // Dollar Liquidity Proxies
-                'FRED-USD-LIBOR-3M', 'FRED-USD-LIBOR-6M', 'FRED-USD-LIBOR-12M',
-                'USD3MTD156N', 'USD6MTD156N', 'USD12MD156N',
-                
-                // Cross-Currency Basis
-                'EURUSD3MD156N', 'JPYUSD3MD156N', 'GBPUSD3MD156N', 'CHFUSD3MD156N'
-            ],
+            // Fed Balance Sheet
+            'WALCL', 'RESPPALGUOXAWXCH52NWW', 'RESPPALGUONNWW', 'WSHOSHO', 
+            'WSHOMCB', 'MBCURRCIR', 'TOTRESNS', 'NONBORRES', 'BOGMBASE',
             
-            // Emerging Markets Indicators
-            EM: [
-                // EM Bonds & Spreads
-                'BAMLEMUB', 'BAMLEMUBRTRIV', 'BAMLEMUBEY', 'BAMLEMUBOAS',
-                'BAMLEMHG', 'BAMLEMHGTRIV', 'BAMLEMHGEY', 'BAMLEMHGOAS',
-                'BAMLEMHY', 'BAMLEMHYTRIV', 'BAMLEMHYEY', 'BAMLEMHYOAS',
-                'BAMLEMCB', 'BAMLEMCBTRIV', 'BAMLEMCBEY', 'BAMLEMCBOAS',
-                
-                // Asia Indicators
-                'DEXCHUS', 'DEXHKUS', 'DEXINUS', 'DEXKOUS', 'DEXMAUS',
-                'DEXSIUS', 'DEXTAUS', 'DEXTHUS', 'DEXVNUS', 'DEXIDUS',
-                
-                // Latin America
-                'DEXBZUS', 'DEXMXUS', 'DEXCOUS', 'DEXCLUS', 'DEXPEUS',
-                'DEXARUS', 'DEXURUS', 'DEXVZUS',
-                
-                // EMEA
-                'DEXSFUS', 'DEXTZUS', 'DEXNGUS', 'DEXEGUS', 'DEXILUS',
-                'DEXPLUS', 'DEXCZUS', 'DEXHUUS', 'DEXROUS', 'DEXTRUS',
-                
-                // EM Equity Indices (if available)
-                'EEM', 'VWO', 'IEMG', 'SCHE', 'GEM',
-                
-                // EM Economic Indicators
-                'CHNMFG', 'INDMFG', 'BRAMFG', 'MEXMFG', 'RUSMFG',
-                'CHNCPI', 'INDCPI', 'BRACPI', 'MEXCPI', 'RUSCPI',
-                'CHNGDP', 'INDGDP', 'BRAGDP', 'MEXGDP', 'RUSGDP'
-            ]
-        };
+            // Money Supply
+            'M1SL', 'M2SL', 'M1V', 'M2V', 'MZMSL', 'M1NS', 'M2NS',
+            
+            // Inflation Indicators
+            'CPIAUCSL', 'CPILFESL', 'PCEPI', 'PCEPILFE', 'DFEDTARL',
+            'MICH', 'EXPINF1YR', 'EXPINF5YR', 'EXPINF10YR',
+            
+            // Employment
+            'UNRATE', 'PAYEMS', 'CIVPART', 'EMRATIO', 'ICSA', 'CCSA',
+            'UEMPMEAN', 'UNEMPLOY', 'NFCI', 'ANFCI',
+            
+            // GDP & Economic Activity
+            'GDP', 'GDPC1', 'GDPPOT', 'NYGDPMKTPCDWLD', 'INDPRO',
+            'CAPACITY', 'TCU', 'MCUMFN', 'DGORDER', 'NEWORDER',
+            
+            // Housing & Real Estate
+            'HOUST', 'PERMIT', 'HSN1F', 'MORTGAGE30US', 'MORTGAGE15US',
+            'CSUSHPISA', 'MSPUS', 'RHVRUSQ156N', 'RRVRUSQ156N',
+            
+            // Consumer & Retail
+            'RSXFS', 'RETAILSMNSA', 'UMCSENT', 'CSCICP03USM665S',
+            'DSPIC96', 'PCE', 'PSAVERT', 'REVOLSL',
+            
+            // Credit Markets
+            'BAMLH0A0HYM2', 'BAMLC0A0CM', 'TEDRATE', 'DPRIME',
+            'AAA', 'BAA', 'AAA10Y', 'BAA10Y',
+            
+            // Stock Market & Volatility
+            'SP500', 'DJIA', 'NASDAQCOM', 'VIXCLS', 'VVIXCLS',
+            'WILLSMLCAP', 'RUSSELL2000', 'DEXNOUS',
+            
+            // Dollar & Forex
+            'DTWEXBGS', 'DTWEXAFEGS', 'DTWEXEMEGS', 'DEXUSEU',
+            'DEXJPUS', 'DEXUSUK', 'DEXCAUS', 'DEXCHUS',
+            
+            // Commodities
+            'DCOILWTICO', 'GOLDAMGBD228NLBM', 'DEXUSAL',
+            'GASREGW', 'CUSR0000SEHE',
+            
+            // International & Trade
+            'BOPGSTB', 'NETEXP', 'IMPGS', 'EXPGS',
+            
+            // Financial Conditions
+            'NFCI', 'ANFCI', 'STLFSI4', 'KCFSI', 'CLVMNACSCAB1GQEA'
+        ];
         
         // Global state
         let allData = {};
+        let iceData = {};
         let customNames = {};
         let currentSort = { column: 'name', ascending: true };
         let currentFilter = 'all';
         
         // Initialize
         async function initialize() {
-            console.log('🚀 Initializing Enhanced OpenBB Platform with FRED integration...');
+            console.log('🚀 Initializing OpenBB Platform with real data fetching...');
             loadCustomNames();
-            showStatus('Loading market data from multiple sources...', 'loading');
+            showStatus('Loading real market data...', 'loading');
             
             // Fetch all data
-            await fetchAllData();
+            await Promise.all([
+                fetchOpenBBData(),
+                fetchICEBofAData()
+            ]);
             
             setupEventListeners();
             setupAutoUpdate();
@@ -1009,201 +958,171 @@
             showStatus('Dashboard initialized successfully', 'success');
         }
         
-        // Fetch all data from multiple sources
-        async function fetchAllData() {
+        // Fetch data from OpenBB API (matching your original implementation)
+        async function fetchOpenBBData() {
             try {
-                // Parallel fetch from all sources
-                await Promise.all([
-                    fetchFREDData(),
-                    fetchICEBofAData(),
-                    fetchOpenBBData()
-                ]);
+                console.log('Fetching data from OpenBB API...');
                 
-                // Update all displays
+                // Fetch from all endpoints
+                const endpoints = [
+                    OPENBB_CONFIG.MAIN_API.endpoints.overview,
+                    OPENBB_CONFIG.MAIN_API.endpoints.mega,
+                    OPENBB_CONFIG.MAIN_API.endpoints.fed,
+                    OPENBB_CONFIG.MAIN_API.endpoints.liquidity,
+                    OPENBB_CONFIG.MAIN_API.endpoints.blackswan,
+                    OPENBB_CONFIG.MAIN_API.endpoints.crisis,
+                    OPENBB_CONFIG.MAIN_API.endpoints.dxy
+                ];
+                
+                for (const endpoint of endpoints) {
+                    try {
+                        const response = await fetch(OPENBB_CONFIG.MAIN_API.baseUrl + endpoint);
+                        if (response.ok) {
+                            const data = await response.json();
+                            
+                            // Process each indicator in the response
+                            if (data && typeof data === 'object') {
+                                Object.entries(data).forEach(([key, value]) => {
+                                    if (value && typeof value === 'object' && value.value !== undefined) {
+                                        allData[key] = {
+                                            id: key,
+                                            name: customNames[key] || getDefaultName(key),
+                                            value: value.value,
+                                            wow: value.wow || 0,
+                                            mom: value.mom || 0,
+                                            qoq: value.qoq || 0,
+                                            yoy: value.yoy || 0,
+                                            category: categorizeIndicator(key)
+                                        };
+                                    } else if (typeof value === 'number') {
+                                        // Handle simple numeric values
+                                        if (!allData[key]) {
+                                            allData[key] = {
+                                                id: key,
+                                                name: customNames[key] || getDefaultName(key),
+                                                value: value,
+                                                wow: 0,
+                                                mom: 0,
+                                                qoq: 0,
+                                                yoy: 0,
+                                                category: categorizeIndicator(key)
+                                            };
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    } catch (err) {
+                        console.error(`Error fetching ${endpoint}:`, err);
+                    }
+                }
+                
+                console.log(`Loaded ${Object.keys(allData).length} indicators from OpenBB`);
                 updateAllDisplays();
-                updateStats();
-                updateLastUpdateTime();
                 
             } catch (error) {
-                console.error('Error fetching data:', error);
-                showStatus('Error loading data, using fallback', 'error');
-                generateFallbackData();
-                updateAllDisplays();
+                console.error('Error fetching OpenBB data:', error);
+                showStatus('Error loading OpenBB data', 'error');
             }
         }
         
-        // Fetch FRED data with proper API integration
-        async function fetchFREDData() {
-            console.log('Fetching FRED data...');
-            
-            // Combine all FRED series
-            const allSeries = [
-                ...INDICATORS.MACRO,
-                ...INDICATORS.LIQUIDITY,
-                ...INDICATORS.DOLLAR,
-                ...INDICATORS.EM
-            ].filter((v, i, a) => a.indexOf(v) === i); // Remove duplicates
-            
-            let loadedCount = 0;
-            document.getElementById('totalIndicators').textContent = allSeries.length;
-            
-            // Batch fetch in groups to avoid rate limiting
-            for (let i = 0; i < allSeries.length; i += 10) {
-                const batch = allSeries.slice(i, i + 10);
+        // Fetch ICE BofA data - fetch ALL series
+        async function fetchICEBofAData() {
+            try {
+                console.log('Fetching all ICE BofA series...');
                 
-                await Promise.all(batch.map(async (seriesId) => {
-                    try {
-                        // Try FRED API first
-                        const response = await fetch(
-                            `${CONFIG.FRED_BASE_URL}/series/observations?` +
-                            `series_id=${seriesId}&` +
-                            `api_key=${CONFIG.FRED_API_KEY}&` +
-                            `file_type=json&` +
-                            `limit=252&` +
-                            `sort_order=desc`
-                        );
-                        
-                        if (response.ok) {
-                            const data = await response.json();
-                            const observations = data.observations || [];
-                            
-                            if (observations.length > 0) {
-                                const current = parseFloat(observations[0].value) || 0;
-                                const weeklyChange = calculatePercentChange(observations, 5);
-                                const monthlyChange = calculatePercentChange(observations, 21);
-                                const quarterlyChange = calculatePercentChange(observations, 63);
-                                const yearlyChange = calculatePercentChange(observations, 252);
+                // First get the complete list of all series
+                const listResponse = await fetch(`${OPENBB_CONFIG.ICE_BOFA_API}ice_bofa?series=all`);
+                if (!listResponse.ok) throw new Error('Failed to fetch ICE BofA series list');
+                
+                const listData = await listResponse.json();
+                const allSeries = listData.series || {};
+                
+                const seriesKeys = Object.keys(allSeries);
+                console.log(`Found ${seriesKeys.length} ICE BofA series`);
+                
+                document.getElementById('totalSeries').textContent = seriesKeys.length;
+                document.getElementById('iceTotalCount').textContent = seriesKeys.length;
+                
+                let loaded = 0;
+                iceData = {};
+                
+                // Batch fetch data for each series (in smaller batches to avoid timeout)
+                const batchSize = 3;
+                for (let i = 0; i < seriesKeys.length; i += batchSize) {
+                    const batch = seriesKeys.slice(i, i + batchSize);
+                    
+                    await Promise.all(batch.map(async (seriesId) => {
+                        try {
+                            const response = await fetch(`${OPENBB_CONFIG.ICE_BOFA_API}ice_bofa?series=${seriesId}`);
+                            if (response.ok) {
+                                const data = await response.json();
+                                const historicalData = data.data || [];
                                 
-                                allData[seriesId] = {
+                                // Calculate percentage changes
+                                const weeklyChange = calculateChange(historicalData, 5);
+                                const monthlyChange = calculateChange(historicalData, 21);
+                                const quarterlyChange = calculateChange(historicalData, 63);
+                                const yearlyChange = calculateChange(historicalData, 252);
+                                
+                                iceData[seriesId] = {
                                     id: seriesId,
-                                    name: customNames[seriesId] || getIndicatorName(seriesId),
-                                    value: current,
+                                    name: allSeries[seriesId],
+                                    customName: customNames[seriesId] || allSeries[seriesId],
+                                    data: historicalData,
+                                    statistics: data.statistics || {},
+                                    value: historicalData[0]?.value || 0,
                                     weeklyChange: weeklyChange,
                                     monthlyChange: monthlyChange,
                                     quarterlyChange: quarterlyChange,
                                     yearlyChange: yearlyChange,
-                                    lastUpdate: observations[0].date,
-                                    category: categorizeIndicator(seriesId),
-                                    data: observations
+                                    lastUpdate: historicalData[0]?.date || new Date().toISOString()
                                 };
                                 
-                                loadedCount++;
-                                document.getElementById('loadedIndicators').textContent = loadedCount;
-                            }
-                        }
-                    } catch (err) {
-                        console.error(`Error fetching ${seriesId}:`, err);
-                        // Generate fallback for failed series
-                        allData[seriesId] = generateFallbackSeries(seriesId);
-                    }
-                }));
-                
-                // Update progress
-                showStatus(`Loading: ${loadedCount}/${allSeries.length} indicators...`, 'loading');
-            }
-        }
-        
-        // Fetch ICE BofA data
-        async function fetchICEBofAData() {
-            try {
-                console.log('Fetching ICE BofA data...');
-                
-                const response = await fetch(`${CONFIG.ICE_BOFA_API}ice_bofa?series=all`);
-                if (response.ok) {
-                    const data = await response.json();
-                    const seriesList = data.series || {};
-                    
-                    // Fetch detailed data for each series
-                    for (const [seriesId, seriesName] of Object.entries(seriesList)) {
-                        try {
-                            const detailResponse = await fetch(`${CONFIG.ICE_BOFA_API}ice_bofa?series=${seriesId}`);
-                            if (detailResponse.ok) {
-                                const detailData = await detailResponse.json();
-                                const historicalData = detailData.data || [];
+                                // Also add to allData for unified display
+                                allData[seriesId] = {
+                                    id: seriesId,
+                                    name: customNames[seriesId] || allSeries[seriesId],
+                                    value: historicalData[0]?.value || 0,
+                                    wow: weeklyChange,
+                                    mom: monthlyChange,
+                                    qoq: quarterlyChange,
+                                    yoy: yearlyChange,
+                                    category: 'bonds'
+                                };
                                 
-                                if (historicalData.length > 0) {
-                                    allData[seriesId] = {
-                                        id: seriesId,
-                                        name: customNames[seriesId] || seriesName,
-                                        value: historicalData[0]?.value || 0,
-                                        weeklyChange: calculateChange(historicalData, 5),
-                                        monthlyChange: calculateChange(historicalData, 21),
-                                        quarterlyChange: calculateChange(historicalData, 63),
-                                        yearlyChange: calculateChange(historicalData, 252),
-                                        lastUpdate: historicalData[0]?.date,
-                                        category: 'bonds',
-                                        data: historicalData
-                                    };
-                                }
+                                loaded++;
+                                document.getElementById('loadedSeries').textContent = loaded;
                             }
                         } catch (err) {
-                            console.error(`Error fetching ICE BofA ${seriesId}:`, err);
+                            console.error(`Error fetching ${seriesId}:`, err);
                         }
-                    }
+                    }));
                     
-                    updateICEStats(seriesList);
+                    if (loaded % 10 === 0) {
+                        showStatus(`Loading ICE BofA: ${loaded}/${seriesKeys.length} series...`, 'loading');
+                        updateICEHeatmap(); // Update heatmap progressively
+                    }
                 }
+                
+                // Update stats
+                updateICEStats(allSeries);
+                
+                // Update displays
+                updateICEHeatmap();
+                displayICEData();
+                updateLastUpdateTime();
+                
+                console.log(`Successfully loaded ${loaded} ICE BofA series`);
+                showStatus(`Loaded ${loaded} ICE BofA series`, 'success');
+                
             } catch (error) {
                 console.error('Error fetching ICE BofA data:', error);
-                // Generate fallback ICE data
-                INDICATORS.ICE_BOFA.forEach(seriesId => {
-                    allData[seriesId] = generateFallbackSeries(seriesId);
-                });
+                showStatus('Error loading ICE BofA data', 'error');
             }
         }
         
-        // Fetch OpenBB data
-        async function fetchOpenBBData() {
-            try {
-                const endpoints = Object.values(CONFIG.OPENBB_API.endpoints);
-                
-                for (const endpoint of endpoints) {
-                    try {
-                        const response = await fetch(CONFIG.OPENBB_API.baseUrl + endpoint);
-                        if (response.ok) {
-                            const data = await response.json();
-                            // Process OpenBB data format
-                            processOpenBBData(data);
-                        }
-                    } catch (err) {
-                        console.error(`Error fetching from ${endpoint}:`, err);
-                    }
-                }
-            } catch (error) {
-                console.error('Error fetching OpenBB data:', error);
-            }
-        }
-        
-        // Process OpenBB data format
-        function processOpenBBData(data) {
-            if (data.indicators) {
-                Object.entries(data.indicators).forEach(([key, value]) => {
-                    if (!allData[key]) {
-                        allData[key] = {
-                            id: key,
-                            name: customNames[key] || getIndicatorName(key),
-                            value: value.value || value,
-                            weeklyChange: value.wow || 0,
-                            monthlyChange: value.mom || 0,
-                            quarterlyChange: value.qoq || 0,
-                            yearlyChange: value.yoy || 0,
-                            category: categorizeIndicator(key)
-                        };
-                    }
-                });
-            }
-        }
-        
-        // Calculate percentage change from observations
-        function calculatePercentChange(observations, periods) {
-            if (!observations || observations.length <= periods) return 0;
-            const current = parseFloat(observations[0]?.value) || 0;
-            const previous = parseFloat(observations[periods]?.value) || current;
-            if (previous === 0) return 0;
-            return ((current - previous) / previous) * 100;
-        }
-        
-        // Calculate change from historical data
+        // Calculate percentage change
         function calculateChange(data, periods) {
             if (!data || data.length <= periods) return 0;
             const current = parseFloat(data[0]?.value) || 0;
@@ -1212,106 +1131,77 @@
             return ((current - previous) / previous) * 100;
         }
         
-        // Generate fallback series data
-        function generateFallbackSeries(seriesId) {
-            const category = categorizeIndicator(seriesId);
-            let value;
-            
-            // Generate realistic values based on series type
-            if (seriesId.includes('DGS') || seriesId.includes('RATE')) {
-                value = Math.random() * 3 + 2; // Interest rates 2-5%
-            } else if (seriesId.includes('WALCL') || seriesId.includes('ASSETS')) {
-                value = (Math.random() * 5 + 3) * 1000000; // Trillions
-            } else if (seriesId.includes('DEX')) {
-                value = Math.random() * 50 + 80; // Exchange rates
-            } else if (seriesId.includes('BAML')) {
-                value = seriesId.includes('OAS') ? Math.random() * 200 + 100 : 
-                        seriesId.includes('EY') ? Math.random() * 4 + 3 : 
-                        Math.random() * 5000 + 10000;
-            } else {
-                value = Math.random() * 1000 + 100;
-            }
-            
-            return {
-                id: seriesId,
-                name: customNames[seriesId] || getIndicatorName(seriesId),
-                value: value,
-                weeklyChange: (Math.random() - 0.5) * 5,
-                monthlyChange: (Math.random() - 0.5) * 10,
-                quarterlyChange: (Math.random() - 0.5) * 15,
-                yearlyChange: (Math.random() - 0.5) * 20,
-                category: category
-            };
-        }
-        
-        // Generate complete fallback data
-        function generateFallbackData() {
-            const allSeries = [
-                ...INDICATORS.ICE_BOFA,
-                ...INDICATORS.MACRO,
-                ...INDICATORS.LIQUIDITY,
-                ...INDICATORS.DOLLAR,
-                ...INDICATORS.EM
-            ];
-            
-            allSeries.forEach(seriesId => {
-                if (!allData[seriesId]) {
-                    allData[seriesId] = generateFallbackSeries(seriesId);
-                }
-            });
-        }
-        
         // Update all displays
         function updateAllDisplays() {
-            updateOverviewHeatmap();
+            updateStats();
             updateKeyMetrics();
+            updateHeatmap('all');
             updateIndicatorsTable();
-            updateICEHeatmap();
-            updateICETable();
             updateMacroHeatmap();
             updateMacroTable();
             updateLiquidityHeatmap();
             updateLiquidityTable();
+            updateAdvancedHeatmap();
             updateDollarHeatmap();
             updateDollarTable();
             updateEMHeatmap();
-            updateEMTable();
-            updateAdvancedHeatmap();
+            updateFedTable();
+            updateLastUpdateTime();
         }
         
-        // Update overview heatmap with size based on weekly change magnitude
-        function updateOverviewHeatmap() {
-            const container = document.getElementById('overviewHeatmap');
-            if (!container) return;
+        // Update Federal Reserve table with top 100 indicators
+        function updateFedTable() {
+            const tbody = document.getElementById('fedTable');
+            if (!tbody) return;
             
-            container.innerHTML = '';
+            tbody.innerHTML = '';
             
-            let indicators = Object.values(allData)
-                .filter(d => d && d.value !== null);
+            // Get FRED indicators from allData
+            const fredIndicators = TOP_FRED_INDICATORS
+                .map(id => allData[id])
+                .filter(data => data)
+                .concat(
+                    Object.values(allData)
+                        .filter(d => !TOP_FRED_INDICATORS.includes(d.id) && d.category === 'fed')
+                );
             
-            if (currentFilter === 'gainers') {
-                indicators = indicators.filter(i => i.weeklyChange > 0);
-            } else if (currentFilter === 'losers') {
-                indicators = indicators.filter(i => i.weeklyChange < 0);
-            }
-            
-            // Sort by absolute weekly change for sizing
-            indicators.sort((a, b) => Math.abs(b.weeklyChange) - Math.abs(a.weeklyChange));
-            
-            // Take top 100 for display
-            indicators.slice(0, 100).forEach((ind, index) => {
-                const tile = createEnhancedHeatmapTile(ind, index);
-                container.appendChild(tile);
+            fredIndicators.forEach(indicator => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="font-family: monospace; font-size: 0.8rem;">${indicator.id}</td>
+                    <td>
+                        <input type="text" 
+                               class="editable-name" 
+                               value="${indicator.name}" 
+                               data-series-id="${indicator.id}"
+                               onchange="updateCustomName('${indicator.id}', this.value)"
+                               title="Click to edit name">
+                    </td>
+                    <td>${formatValue(indicator.value, indicator.id)}</td>
+                    <td class="${indicator.wow >= 0 ? 'positive' : 'negative'}">
+                        ${indicator.wow >= 0 ? '+' : ''}${indicator.wow.toFixed(2)}%
+                    </td>
+                    <td class="${indicator.mom >= 0 ? 'positive' : 'negative'}">
+                        ${indicator.mom >= 0 ? '+' : ''}${indicator.mom.toFixed(2)}%
+                    </td>
+                    <td class="${indicator.qoq >= 0 ? 'positive' : 'negative'}">
+                        ${indicator.qoq >= 0 ? '+' : ''}${indicator.qoq.toFixed(2)}%
+                    </td>
+                    <td class="${indicator.yoy >= 0 ? 'positive' : 'negative'}">
+                        ${indicator.yoy >= 0 ? '+' : ''}${indicator.yoy.toFixed(2)}%
+                    </td>
+                `;
+                tbody.appendChild(row);
             });
         }
         
-        // Create enhanced heatmap tile with weekly/monthly display
-        function createEnhancedHeatmapTile(indicator, index) {
+        // Create heatmap tile with editable name
+        function createHeatmapTile(indicator, index) {
             const tile = document.createElement('div');
             
-            // Size based on weekly change magnitude and index
+            // Size based on weekly change magnitude
             let sizeClass = '';
-            const absWeekly = Math.abs(indicator.weeklyChange);
+            const absWeekly = Math.abs(indicator.wow || indicator.weeklyChange || 0);
             if (index < 2 && absWeekly > 10) {
                 sizeClass = 'tile-xxl';
             } else if (index < 4 && absWeekly > 5) {
@@ -1320,142 +1210,141 @@
                 sizeClass = 'tile-lg';
             }
             
-            const colorClass = getHeatColor(indicator.weeklyChange);
+            const weeklyValue = indicator.wow || indicator.weeklyChange || 0;
+            const monthlyValue = indicator.mom || indicator.monthlyChange || 0;
+            const colorClass = getHeatColor(weeklyValue);
             tile.className = `heatmap-tile ${colorClass} ${sizeClass}`;
             
-            const displayName = indicator.name || indicator.id;
-            const shortName = displayName.length > 15 ? 
-                             indicator.id.substring(0, 12) : 
-                             displayName;
+            const displayName = indicator.name || indicator.customName || indicator.id;
             
             tile.innerHTML = `
-                <div class="tile-symbol" title="${displayName}">${shortName}</div>
-                <div class="tile-value">W: ${indicator.weeklyChange >= 0 ? '+' : ''}${indicator.weeklyChange.toFixed(2)}%</div>
-                <div class="tile-value-secondary">M: ${indicator.monthlyChange >= 0 ? '+' : ''}${indicator.monthlyChange.toFixed(2)}%</div>
+                <div class="tile-symbol" 
+                     ondblclick="editTileName('${indicator.id}', this)"
+                     title="Double-click to edit name">${displayName}</div>
+                <div class="tile-value">W: ${weeklyValue >= 0 ? '+' : ''}${weeklyValue.toFixed(2)}%</div>
+                <div class="tile-value-secondary">M: ${monthlyValue >= 0 ? '+' : ''}${monthlyValue.toFixed(2)}%</div>
             `;
             
-            tile.title = `${displayName}
-Value: ${formatValue(indicator.value, indicator.id)}
-Weekly: ${indicator.weeklyChange.toFixed(2)}%
-Monthly: ${indicator.monthlyChange.toFixed(2)}%`;
-            
-            tile.onclick = () => showIndicatorDetails(indicator);
+            tile.title = `${displayName}\nValue: ${formatValue(indicator.value, indicator.id)}\nWeekly: ${weeklyValue.toFixed(2)}%\nMonthly: ${monthlyValue.toFixed(2)}%\n\nDouble-click name to edit`;
             
             return tile;
         }
         
-        // Update ICE BofA heatmap
+        // Edit tile name function
+        function editTileName(seriesId, element) {
+            const currentName = element.textContent;
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = currentName;
+            input.className = 'tile-symbol-input';
+            input.onblur = function() {
+                updateCustomName(seriesId, this.value);
+                element.textContent = this.value;
+            };
+            input.onkeypress = function(e) {
+                if (e.key === 'Enter') {
+                    this.blur();
+                }
+            };
+            element.innerHTML = '';
+            element.appendChild(input);
+            input.focus();
+            input.select();
+        }
+        
+        // Update heatmaps
+        function updateHeatmap(filter) {
+            const container = document.getElementById('overviewHeatmap');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            currentFilter = filter;
+            
+            let indicators = Object.values(allData)
+                .filter(d => d && d.value !== null);
+            
+            if (filter === 'gainers') {
+                indicators = indicators.filter(i => (i.wow || i.weeklyChange || 0) > 0);
+            } else if (filter === 'losers') {
+                indicators = indicators.filter(i => (i.wow || i.weeklyChange || 0) < 0);
+            }
+            
+            indicators.sort((a, b) => 
+                Math.abs(b.wow || b.weeklyChange || 0) - Math.abs(a.wow || a.weeklyChange || 0)
+            );
+            
+            indicators.slice(0, 100).forEach((ind, index) => {
+                const tile = createHeatmapTile(ind, index);
+                container.appendChild(tile);
+            });
+        }
+        
         function updateICEHeatmap() {
             const container = document.getElementById('iceHeatmap');
             if (!container) return;
             
             container.innerHTML = '';
             
-            let iceData = INDICATORS.ICE_BOFA
-                .map(id => allData[id])
-                .filter(d => d);
+            let data = Object.values(iceData);
             
-            // Apply filter
             if (currentFilter !== 'all') {
-                iceData = iceData.filter(item => {
+                data = data.filter(item => {
+                    const id = item.id;
                     switch(currentFilter) {
                         case 'spreads':
-                            return item.id.includes('OAS');
+                            return id.includes('OAS');
                         case 'yields':
-                            return item.id.includes('EY') || item.id.includes('YTW');
+                            return id.includes('EY') || id.includes('YTW');
                         case 'returns':
-                            return item.id.includes('TRIV');
+                            return id.includes('TRIV');
                         default:
                             return true;
                     }
                 });
             }
             
-            iceData.sort((a, b) => Math.abs(b.weeklyChange) - Math.abs(a.weeklyChange));
+            data.sort((a, b) => Math.abs(b.weeklyChange) - Math.abs(a.weeklyChange));
             
-            iceData.forEach((item, index) => {
-                const tile = createEnhancedHeatmapTile(item, index);
+            data.slice(0, 100).forEach((item, index) => {
+                const tile = createHeatmapTile(item, index);
                 container.appendChild(tile);
             });
         }
         
-        // Update liquidity heatmap
-        function updateLiquidityHeatmap() {
-            const container = document.getElementById('liquidityHeatmap');
-            if (!container) return;
-            
-            container.innerHTML = '';
-            
-            let liquidityData = INDICATORS.LIQUIDITY
-                .map(id => allData[id])
-                .filter(d => d);
-            
-            liquidityData.sort((a, b) => Math.abs(b.weeklyChange) - Math.abs(a.weeklyChange));
-            
-            liquidityData.slice(0, 50).forEach((item, index) => {
-                const tile = createEnhancedHeatmapTile(item, index);
-                container.appendChild(tile);
-            });
-        }
-        
-        // Update dollar heatmap
-        function updateDollarHeatmap() {
-            const container = document.getElementById('dollarHeatmap');
-            if (!container) return;
-            
-            container.innerHTML = '';
-            
-            let dollarData = INDICATORS.DOLLAR
-                .map(id => allData[id])
-                .filter(d => d);
-            
-            dollarData.sort((a, b) => Math.abs(b.weeklyChange) - Math.abs(a.weeklyChange));
-            
-            dollarData.forEach((item, index) => {
-                const tile = createEnhancedHeatmapTile(item, index);
-                container.appendChild(tile);
-            });
-        }
-        
-        // Update EM heatmap
-        function updateEMHeatmap() {
-            const container = document.getElementById('emHeatmap');
-            if (!container) return;
-            
-            container.innerHTML = '';
-            
-            let emData = INDICATORS.EM
-                .map(id => allData[id])
-                .filter(d => d);
-            
-            emData.sort((a, b) => Math.abs(b.weeklyChange) - Math.abs(a.weeklyChange));
-            
-            emData.forEach((item, index) => {
-                const tile = createEnhancedHeatmapTile(item, index);
-                container.appendChild(tile);
-            });
-        }
-        
-        // Update macro heatmap
         function updateMacroHeatmap() {
             const container = document.getElementById('macroHeatmap');
             if (!container) return;
             
             container.innerHTML = '';
             
-            let macroData = INDICATORS.MACRO
-                .map(id => allData[id])
-                .filter(d => d);
+            const macroData = Object.values(allData)
+                .filter(d => d && ['macro', 'rates', 'inflation', 'employment'].includes(d.category));
             
-            macroData.sort((a, b) => Math.abs(b.weeklyChange) - Math.abs(a.weeklyChange));
+            macroData.sort((a, b) => Math.abs(b.mom || 0) - Math.abs(a.mom || 0));
             
-            macroData.forEach((item, index) => {
-                const tile = createEnhancedHeatmapTile(item, index);
+            macroData.slice(0, 50).forEach((ind, index) => {
+                const tile = createHeatmapTile(ind, index);
                 container.appendChild(tile);
             });
         }
         
-        // Update advanced heatmap
+        function updateLiquidityHeatmap() {
+            const container = document.getElementById('liquidityHeatmap');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            const liquidityData = Object.values(allData)
+                .filter(d => d && d.category === 'liquidity');
+            
+            liquidityData.sort((a, b) => Math.abs(b.mom || 0) - Math.abs(a.mom || 0));
+            
+            liquidityData.forEach((ind, index) => {
+                const tile = createHeatmapTile(ind, index);
+                container.appendChild(tile);
+            });
+        }
+        
         function updateAdvancedHeatmap() {
             const container = document.getElementById('advancedHeatmap');
             if (!container) return;
@@ -1465,15 +1354,49 @@ Monthly: ${indicator.monthlyChange.toFixed(2)}%`;
             let indicators = Object.values(allData)
                 .filter(d => d && d.value !== null);
             
-            indicators.sort((a, b) => Math.abs(b.monthlyChange) - Math.abs(a.monthlyChange));
+            indicators.sort((a, b) => Math.abs(b.mom || 0) - Math.abs(a.mom || 0));
             
-            indicators.slice(0, 100).forEach((item, index) => {
-                const tile = createEnhancedHeatmapTile(item, index);
+            indicators.slice(0, 100).forEach((ind, index) => {
+                const tile = createHeatmapTile(ind, index);
                 container.appendChild(tile);
             });
         }
         
-        // Update tables with editable names
+        function updateDollarHeatmap() {
+            const container = document.getElementById('dollarHeatmap');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            const dollarData = Object.values(allData)
+                .filter(d => d && (d.category === 'currencies' || d.id.includes('DEX') || d.id.includes('DTW')));
+            
+            dollarData.sort((a, b) => Math.abs(b.wow || 0) - Math.abs(a.wow || 0));
+            
+            dollarData.forEach((ind, index) => {
+                const tile = createHeatmapTile(ind, index);
+                container.appendChild(tile);
+            });
+        }
+        
+        function updateEMHeatmap() {
+            const container = document.getElementById('emHeatmap');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            const emData = Object.values(allData)
+                .filter(d => d && (d.id.includes('EM') || d.category === 'emerging'));
+            
+            emData.sort((a, b) => Math.abs(b.mom || 0) - Math.abs(a.mom || 0));
+            
+            emData.forEach((ind, index) => {
+                const tile = createHeatmapTile(ind, index);
+                container.appendChild(tile);
+            });
+        }
+        
+        // Update tables
         function updateIndicatorsTable() {
             const tbody = document.getElementById('indicatorsTable');
             if (!tbody) return;
@@ -1481,21 +1404,6 @@ Monthly: ${indicator.monthlyChange.toFixed(2)}%`;
             tbody.innerHTML = '';
             
             Object.values(allData)
-                .filter(d => d)
-                .forEach(indicator => {
-                    const row = createEditableTableRow(indicator);
-                    tbody.appendChild(row);
-                });
-        }
-        
-        function updateICETable() {
-            const tbody = document.getElementById('iceTable');
-            if (!tbody) return;
-            
-            tbody.innerHTML = '';
-            
-            INDICATORS.ICE_BOFA
-                .map(id => allData[id])
                 .filter(d => d)
                 .forEach(indicator => {
                     const row = document.createElement('tr');
@@ -1510,20 +1418,90 @@ Monthly: ${indicator.monthlyChange.toFixed(2)}%`;
                                    title="Click to edit name">
                         </td>
                         <td>${formatValue(indicator.value, indicator.id)}</td>
-                        <td class="${indicator.weeklyChange >= 0 ? 'positive' : 'negative'}">
-                            ${indicator.weeklyChange >= 0 ? '+' : ''}${indicator.weeklyChange.toFixed(2)}%
+                        <td class="${indicator.wow >= 0 ? 'positive' : 'negative'}">
+                            ${indicator.wow >= 0 ? '+' : ''}${indicator.wow.toFixed(2)}%
                         </td>
-                        <td class="${indicator.monthlyChange >= 0 ? 'positive' : 'negative'}">
-                            ${indicator.monthlyChange >= 0 ? '+' : ''}${indicator.monthlyChange.toFixed(2)}%
+                        <td class="${indicator.mom >= 0 ? 'positive' : 'negative'}">
+                            ${indicator.mom >= 0 ? '+' : ''}${indicator.mom.toFixed(2)}%
                         </td>
-                        <td class="${indicator.quarterlyChange >= 0 ? 'positive' : 'negative'}">
-                            ${indicator.quarterlyChange >= 0 ? '+' : ''}${indicator.quarterlyChange.toFixed(2)}%
+                        <td class="${indicator.qoq >= 0 ? 'positive' : 'negative'}">
+                            ${indicator.qoq >= 0 ? '+' : ''}${indicator.qoq.toFixed(2)}%
                         </td>
-                        <td class="${indicator.yearlyChange >= 0 ? 'positive' : 'negative'}">
-                            ${indicator.yearlyChange >= 0 ? '+' : ''}${indicator.yearlyChange.toFixed(2)}%
+                    `;
+                    tbody.appendChild(row);
+                });
+        }
+        
+        function displayICEData() {
+            const tbody = document.getElementById('iceTable');
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            Object.values(iceData).forEach(series => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td style="font-family: monospace; font-size: 0.8rem;">${series.id}</td>
+                    <td>
+                        <input type="text" 
+                               class="editable-name" 
+                               value="${series.customName}" 
+                               data-series-id="${series.id}"
+                               onchange="updateCustomName('${series.id}', this.value)"
+                               title="Click to edit name">
+                    </td>
+                    <td>${formatICEValue(series.value, series.id)}</td>
+                    <td class="${series.weeklyChange >= 0 ? 'positive' : 'negative'}">
+                        ${series.weeklyChange >= 0 ? '+' : ''}${series.weeklyChange.toFixed(2)}%
+                    </td>
+                    <td class="${series.monthlyChange >= 0 ? 'positive' : 'negative'}">
+                        ${series.monthlyChange >= 0 ? '+' : ''}${series.monthlyChange.toFixed(2)}%
+                    </td>
+                    <td class="${series.quarterlyChange >= 0 ? 'positive' : 'negative'}">
+                        ${series.quarterlyChange >= 0 ? '+' : ''}${series.quarterlyChange.toFixed(2)}%
+                    </td>
+                    <td class="${series.yearlyChange >= 0 ? 'positive' : 'negative'}">
+                        ${series.yearlyChange >= 0 ? '+' : ''}${series.yearlyChange.toFixed(2)}%
+                    </td>
+                    <td style="font-size: 0.8rem; color: #888;">
+                        ${series.lastUpdate ? new Date(series.lastUpdate).toLocaleDateString() : 'N/A'}
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        function updateMacroTable() {
+            const tbody = document.getElementById('macroTable');
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            Object.values(allData)
+                .filter(d => d && ['macro', 'rates', 'inflation', 'employment'].includes(d.category))
+                .forEach(indicator => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td style="font-family: monospace; font-size: 0.8rem;">${indicator.id}</td>
+                        <td>
+                            <input type="text" 
+                                   class="editable-name" 
+                                   value="${indicator.name}" 
+                                   data-series-id="${indicator.id}"
+                                   onchange="updateCustomName('${indicator.id}', this.value)"
+                                   title="Click to edit name">
                         </td>
-                        <td style="font-size: 0.8rem; color: #888;">
-                            ${indicator.lastUpdate || 'N/A'}
+                        <td>${formatValue(indicator.value, indicator.id)}</td>
+                        <td class="${indicator.wow >= 0 ? 'positive' : 'negative'}">
+                            ${indicator.wow >= 0 ? '+' : ''}${indicator.wow.toFixed(2)}%
+                        </td>
+                        <td class="${indicator.mom >= 0 ? 'positive' : 'negative'}">
+                            ${indicator.mom >= 0 ? '+' : ''}${indicator.mom.toFixed(2)}%
+                        </td>
+                        <td class="${indicator.qoq >= 0 ? 'positive' : 'negative'}">
+                            ${indicator.qoq >= 0 ? '+' : ''}${indicator.qoq.toFixed(2)}%
                         </td>
                     `;
                     tbody.appendChild(row);
@@ -1536,11 +1514,31 @@ Monthly: ${indicator.monthlyChange.toFixed(2)}%`;
             
             tbody.innerHTML = '';
             
-            INDICATORS.LIQUIDITY
-                .map(id => allData[id])
-                .filter(d => d)
+            Object.values(allData)
+                .filter(d => d && d.category === 'liquidity')
                 .forEach(indicator => {
-                    const row = createEditableTableRow(indicator);
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td style="font-family: monospace; font-size: 0.8rem;">${indicator.id}</td>
+                        <td>
+                            <input type="text" 
+                                   class="editable-name" 
+                                   value="${indicator.name}" 
+                                   data-series-id="${indicator.id}"
+                                   onchange="updateCustomName('${indicator.id}', this.value)"
+                                   title="Click to edit name">
+                        </td>
+                        <td>${formatValue(indicator.value, indicator.id)}</td>
+                        <td class="${indicator.wow >= 0 ? 'positive' : 'negative'}">
+                            ${indicator.wow >= 0 ? '+' : ''}${indicator.wow.toFixed(2)}%
+                        </td>
+                        <td class="${indicator.mom >= 0 ? 'positive' : 'negative'}">
+                            ${indicator.mom >= 0 ? '+' : ''}${indicator.mom.toFixed(2)}%
+                        </td>
+                        <td class="${indicator.qoq >= 0 ? 'positive' : 'negative'}">
+                            ${indicator.qoq >= 0 ? '+' : ''}${indicator.qoq.toFixed(2)}%
+                        </td>
+                    `;
                     tbody.appendChild(row);
                 });
         }
@@ -1551,84 +1549,33 @@ Monthly: ${indicator.monthlyChange.toFixed(2)}%`;
             
             tbody.innerHTML = '';
             
-            INDICATORS.DOLLAR
-                .map(id => allData[id])
-                .filter(d => d)
-                .forEach(indicator => {
-                    const row = createEditableTableRow(indicator);
-                    tbody.appendChild(row);
-                });
-        }
-        
-        function updateEMTable() {
-            const tbody = document.getElementById('emTable');
-            if (!tbody) return;
-            
-            tbody.innerHTML = '';
-            
-            INDICATORS.EM
-                .map(id => allData[id])
-                .filter(d => d)
-                .forEach(indicator => {
-                    const row = createEditableTableRow(indicator);
-                    tbody.appendChild(row);
-                });
-        }
-        
-        function updateMacroTable() {
-            const tbody = document.getElementById('macroTable');
-            if (!tbody) return;
-            
-            tbody.innerHTML = '';
-            
-            INDICATORS.MACRO
-                .map(id => allData[id])
-                .filter(d => d)
+            Object.values(allData)
+                .filter(d => d && (d.category === 'currencies' || d.id.includes('DEX') || d.id.includes('DTW')))
                 .forEach(indicator => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td style="font-family: monospace; font-size: 0.8rem;">${indicator.id}</td>
-                        <td>${indicator.name}</td>
+                        <td>
+                            <input type="text" 
+                                   class="editable-name" 
+                                   value="${indicator.name}" 
+                                   data-series-id="${indicator.id}"
+                                   onchange="updateCustomName('${indicator.id}', this.value)"
+                                   title="Click to edit name">
+                        </td>
                         <td>${formatValue(indicator.value, indicator.id)}</td>
-                        <td class="${indicator.weeklyChange >= 0 ? 'positive' : 'negative'}">
-                            ${indicator.weeklyChange >= 0 ? '+' : ''}${indicator.weeklyChange.toFixed(2)}%
+                        <td class="${indicator.wow >= 0 ? 'positive' : 'negative'}">
+                            ${indicator.wow >= 0 ? '+' : ''}${indicator.wow.toFixed(2)}%
                         </td>
-                        <td class="${indicator.monthlyChange >= 0 ? 'positive' : 'negative'}">
-                            ${indicator.monthlyChange >= 0 ? '+' : ''}${indicator.monthlyChange.toFixed(2)}%
+                        <td class="${indicator.mom >= 0 ? 'positive' : 'negative'}">
+                            ${indicator.mom >= 0 ? '+' : ''}${indicator.mom.toFixed(2)}%
                         </td>
-                        <td class="${indicator.quarterlyChange >= 0 ? 'positive' : 'negative'}">
-                            ${indicator.quarterlyChange >= 0 ? '+' : ''}${indicator.quarterlyChange.toFixed(2)}%
+                        <td class="${indicator.qoq >= 0 ? 'positive' : 'negative'}">
+                            ${indicator.qoq >= 0 ? '+' : ''}${indicator.qoq.toFixed(2)}%
                         </td>
                     `;
                     tbody.appendChild(row);
                 });
-        }
-        
-        // Create editable table row
-        function createEditableTableRow(indicator) {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td style="font-family: monospace; font-size: 0.8rem;">${indicator.id}</td>
-                <td>
-                    <input type="text" 
-                           class="editable-name" 
-                           value="${indicator.name}" 
-                           data-series-id="${indicator.id}"
-                           onchange="updateCustomName('${indicator.id}', this.value)"
-                           title="Click to edit name">
-                </td>
-                <td>${formatValue(indicator.value, indicator.id)}</td>
-                <td class="${indicator.weeklyChange >= 0 ? 'positive' : 'negative'}">
-                    ${indicator.weeklyChange >= 0 ? '+' : ''}${indicator.weeklyChange.toFixed(2)}%
-                </td>
-                <td class="${indicator.monthlyChange >= 0 ? 'positive' : 'negative'}">
-                    ${indicator.monthlyChange >= 0 ? '+' : ''}${indicator.monthlyChange.toFixed(2)}%
-                </td>
-                <td class="${indicator.quarterlyChange >= 0 ? 'positive' : 'negative'}">
-                    ${indicator.quarterlyChange >= 0 ? '+' : ''}${indicator.quarterlyChange.toFixed(2)}%
-                </td>
-            `;
-            return row;
         }
         
         // Update key metrics
@@ -1638,7 +1585,7 @@ Monthly: ${indicator.monthlyChange.toFixed(2)}%`;
             
             container.innerHTML = '';
             
-            const keyIndicators = ['VIXCLS', 'SP500', 'DTWEXBGS', 'DGS10', 'WALCL', 'SOFR', 'M2SL', 'RRPONTSYD'];
+            const keyIndicators = ['VIXCLS', 'SP500', 'DTWEXBGS', 'DGS10', 'WALCL', 'TEDRATE'];
             
             keyIndicators.forEach(key => {
                 const data = allData[key];
@@ -1648,12 +1595,12 @@ Monthly: ${indicator.monthlyChange.toFixed(2)}%`;
                 card.className = 'metric-card';
                 card.innerHTML = `
                     <div class="metric-title">${data.name}</div>
-                    <div class="metric-value ${data.monthlyChange >= 0 ? 'positive' : 'negative'}">
+                    <div class="metric-value ${data.mom >= 0 ? 'positive' : 'negative'}">
                         ${formatValue(data.value, key)}
                     </div>
-                    <div class="metric-change ${data.monthlyChange >= 0 ? 'positive' : 'negative'}">
-                        <span>${data.monthlyChange >= 0 ? '▲' : '▼'}</span>
-                        ${Math.abs(data.monthlyChange).toFixed(2)}%
+                    <div class="metric-change ${data.mom >= 0 ? 'positive' : 'negative'}">
+                        <span>${data.mom >= 0 ? '▲' : '▼'}</span>
+                        ${Math.abs(data.mom).toFixed(2)}%
                     </div>
                 `;
                 container.appendChild(card);
@@ -1663,13 +1610,11 @@ Monthly: ${indicator.monthlyChange.toFixed(2)}%`;
         // Update stats
         function updateStats() {
             const indicators = Object.values(allData).filter(d => d);
-            const gainers = indicators.filter(d => d.weeklyChange > 0).length;
-            const losers = indicators.filter(d => d.weeklyChange < 0).length;
+            const gainers = indicators.filter(d => (d.mom || d.monthlyChange || 0) > 0).length;
+            const losers = indicators.filter(d => (d.mom || d.monthlyChange || 0) < 0).length;
             
             document.getElementById('gainers').textContent = gainers;
             document.getElementById('losers').textContent = losers;
-            document.getElementById('totalIndicators').textContent = indicators.length;
-            document.getElementById('loadedIndicators').textContent = indicators.filter(d => d.data).length;
         }
         
         // Update ICE stats
@@ -1683,46 +1628,50 @@ Monthly: ${indicator.monthlyChange.toFixed(2)}%`;
             document.getElementById('igCount').textContent = igCount;
             document.getElementById('hyCount').textContent = hyCount;
             document.getElementById('emCount').textContent = emCount;
-            document.getElementById('otherCount').textContent = otherCount;
         }
         
         // Filter functions
-        function updateHeatmap(filter) {
-            currentFilter = filter;
-            updateOverviewHeatmap();
-        }
-        
         function filterICEHeatmap(filter) {
             currentFilter = filter;
             updateICEHeatmap();
+            
+            document.querySelectorAll('#ice-bofa .heatmap-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
         }
         
-        function filterMacroHeatmap(filter) {
-            // Implement macro filter logic
+        function filterMacroHeatmap(category) {
+            // Implement filtering logic
             updateMacroHeatmap();
+            event.target.classList.add('active');
         }
         
-        function filterLiquidityHeatmap(filter) {
-            // Implement liquidity filter logic
-            updateLiquidityHeatmap();
-        }
-        
-        function filterDollarHeatmap(filter) {
-            // Implement dollar filter logic
-            updateDollarHeatmap();
-        }
-        
-        function filterEMHeatmap(filter) {
-            // Implement EM filter logic
-            updateEMHeatmap();
-        }
-        
-        function filterAdvancedHeatmap(filter) {
-            // Implement advanced filter logic
+        function filterAdvancedHeatmap(category) {
+            // Implement filtering logic
             updateAdvancedHeatmap();
+            event.target.classList.add('active');
         }
         
-        // Sort tables
+        function filterDollarHeatmap(category) {
+            // Implement filtering logic
+            updateDollarHeatmap();
+            event.target.classList.add('active');
+        }
+        
+        function filterEMHeatmap(category) {
+            // Implement filtering logic
+            updateEMHeatmap();
+            event.target.classList.add('active');
+        }
+        
+        function sortLiquidity(mode) {
+            // Implement sorting logic
+            updateLiquidityHeatmap();
+            event.target.classList.add('active');
+        }
+        
+        // Sort table functions
         function sortTable(column) {
             currentSort.column = column;
             currentSort.ascending = !currentSort.ascending;
@@ -1732,16 +1681,25 @@ Monthly: ${indicator.monthlyChange.toFixed(2)}%`;
         function sortICETable(column) {
             currentSort.column = column;
             currentSort.ascending = !currentSort.ascending;
-            updateICETable();
+            displayICEData();
         }
         
         // Update custom name
         function updateCustomName(seriesId, newName) {
             customNames[seriesId] = newName;
+            
             if (allData[seriesId]) {
                 allData[seriesId].name = newName;
             }
+            
+            if (iceData[seriesId]) {
+                iceData[seriesId].customName = newName;
+            }
+            
             saveCustomNames();
+            
+            // Update heatmaps to reflect new name
+            updateHeatmap(currentFilter);
         }
         
         // Load/Save custom names
@@ -1757,44 +1715,33 @@ Monthly: ${indicator.monthlyChange.toFixed(2)}%`;
         }
         
         // Refresh functions
-        async function refreshAllData() {
+        async function refreshData() {
             showStatus('Refreshing all data...', 'loading');
-            await fetchAllData();
+            await Promise.all([
+                fetchOpenBBData(),
+                fetchICEBofAData()
+            ]);
             showStatus('Data refreshed successfully', 'success');
         }
         
         async function refreshICEData() {
             showStatus('Refreshing ICE BofA data...', 'loading');
             await fetchICEBofAData();
-            updateICEHeatmap();
-            updateICETable();
             showStatus('ICE BofA data refreshed', 'success');
         }
         
-        // Show indicator details
-        function showIndicatorDetails(indicator) {
-            console.log('Indicator details:', indicator);
-            // Could open a modal or expand details
-        }
-        
-        // Format value based on indicator type
+        // Format values
         function formatValue(value, key) {
             if (value === null || value === undefined) return 'N/A';
             
             const num = parseFloat(value);
             
-            // Handle special formatting
-            if (key.includes('WALCL') || key.includes('ASSETS') || key.includes('M2') || key.includes('M1')) {
+            if (key === 'WALCL' || key.includes('ASSETS') || key === 'ECBASSETSW' || key === 'JPNASSETS') {
                 if (num >= 1000000) return `${(num / 1000000).toFixed(2)}T`;
                 if (num >= 1000) return `${(num / 1000).toFixed(2)}B`;
             }
             
-            if (key.includes('OAS')) {
-                return `${num.toFixed(2)} bps`;
-            }
-            
-            if (key.includes('EY') || key.includes('SYTW') || key.includes('DGS') || 
-                key.includes('RATE') || key.includes('SOFR') || key.includes('EFFR')) {
+            if (key.includes('RATE') || key === 'DGS10' || key === 'DGS2' || key === 'DGS5' || key === 'DFF' || key === 'SOFR' || key === 'EFFR') {
                 return `${num.toFixed(2)}%`;
             }
             
@@ -1806,7 +1753,6 @@ Monthly: ${indicator.monthlyChange.toFixed(2)}%`;
                 return num.toFixed(0);
             }
             
-            // Default formatting
             if (num >= 1000000000000) return `${(num / 1000000000000).toFixed(2)}T`;
             if (num >= 1000000000) return `${(num / 1000000000).toFixed(2)}B`;
             if (num >= 1000000) return `${(num / 1000000).toFixed(2)}M`;
@@ -1815,45 +1761,67 @@ Monthly: ${indicator.monthlyChange.toFixed(2)}%`;
             return num.toFixed(2);
         }
         
-        // Get indicator name
-        function getIndicatorName(key) {
+        function formatICEValue(value, key) {
+            if (value === null || value === undefined) return 'N/A';
+            
+            const num = parseFloat(value);
+            
+            if (key.includes('OAS')) {
+                return `${num.toFixed(2)} bps`;
+            } else if (key.includes('EY') || key.includes('SYTW')) {
+                return `${num.toFixed(2)}%`;
+            } else if (key.includes('TRIV')) {
+                return num.toFixed(2);
+            }
+            
+            return num.toFixed(2);
+        }
+        
+        // Get default name
+        function getDefaultName(key) {
             const names = {
-                // Common indicators
-                'VIXCLS': 'VIX Index',
+                'VIXCLS': 'VIX',
                 'SP500': 'S&P 500',
-                'DJIA': 'Dow Jones',
-                'NASDAQCOM': 'NASDAQ',
-                'DFF': 'Fed Funds Rate',
-                'SOFR': 'SOFR',
-                'EFFR': 'Effective Fed Funds',
+                'DTWEXBGS': 'US Dollar Index',
                 'DGS10': '10Y Treasury',
                 'DGS2': '2Y Treasury',
                 'DGS5': '5Y Treasury',
                 'T10Y2Y': '10Y-2Y Spread',
                 'WALCL': 'Fed Balance Sheet',
-                'ECBASSETSW': 'ECB Balance Sheet',
-                'JPNASSETS': 'BoJ Balance Sheet',
-                'M2SL': 'M2 Money Supply',
-                'RRPONTSYD': 'Reverse Repo',
-                'DTWEXBGS': 'US Dollar Index (Broad)',
-                'DEXUSEU': 'EUR/USD',
-                'DEXJPUS': 'USD/JPY',
-                'DEXUSUK': 'GBP/USD',
+                'TEDRATE': 'TED Spread',
+                'ECBASSETSW': 'ECB Assets',
+                'JPNASSETS': 'BoJ Assets',
+                'DFF': 'Fed Funds Rate',
+                'SOFR': 'SOFR',
+                'EFFR': 'Effective Fed Funds',
                 'CPIAUCSL': 'CPI All Items',
                 'CPILFESL': 'Core CPI',
                 'UNRATE': 'Unemployment Rate',
                 'PAYEMS': 'Nonfarm Payrolls',
-                'GDPC1': 'Real GDP'
+                'GDPC1': 'Real GDP',
+                'DJIA': 'Dow Jones',
+                'NASDAQCOM': 'NASDAQ',
+                'M2SL': 'M2 Money Supply',
+                'RRPONTSYD': 'Reverse Repo',
+                'DEXUSEU': 'EUR/USD',
+                'DEXJPUS': 'USD/JPY',
+                'DEXUSUK': 'GBP/USD'
             };
             
-            // ICE BofA names
             if (key.includes('BAML')) {
-                if (key.includes('H0A0HYM2')) return 'US HY Master II';
-                if (key.includes('C0A0CM')) return 'US Corp Master';
-                if (key.includes('EMCB')) return 'EM Corp Plus';
-                // Add more as needed
+                return getICEName(key);
             }
             
+            return names[key] || key;
+        }
+        
+        function getICEName(key) {
+            const names = {
+                'BAMLH0A0HYM2': 'US High Yield Master II OAS',
+                'BAMLH0A0HYM2EY': 'US High Yield Master II Effective Yield',
+                'BAMLC0A0CM': 'US Corporate Master OAS',
+                'BAMLC0A0CMEY': 'US Corporate Master Effective Yield'
+            };
             return names[key] || key;
         }
         
@@ -1863,12 +1831,13 @@ Monthly: ${indicator.monthlyChange.toFixed(2)}%`;
             if (key.includes('DGS') || key.includes('BAML') || key.includes('AAA') || key.includes('BAA')) return 'bonds';
             if (key.includes('DEX') || key.includes('DTW')) return 'currencies';
             if (key.includes('CPI') || key.includes('PCE') || key.includes('UNRATE') || key.includes('GDP')) return 'macro';
-            if (key.includes('WALCL') || key.includes('M2') || key.includes('RRPO') || key.includes('SWP')) return 'liquidity';
-            if (key.includes('EM') || INDICATORS.EM.includes(key)) return 'emerging';
+            if (key.includes('WALCL') || key.includes('M2') || key.includes('RRPO') || key.includes('SWP') || key.includes('ASSETS')) return 'liquidity';
+            if (key.includes('DFF') || key.includes('SOFR') || key.includes('EFFR') || TOP_FRED_INDICATORS.includes(key)) return 'fed';
+            if (key.includes('EM') || key.includes('BAMLEM')) return 'emerging';
             return 'other';
         }
         
-        // Get heat color based on change
+        // Get heat color
         function getHeatColor(change) {
             if (change > 5) return 'heat-positive-5';
             if (change > 2) return 'heat-positive-4';
@@ -1894,46 +1863,24 @@ Monthly: ${indicator.monthlyChange.toFixed(2)}%`;
                 // Check if it's Mon(1), Wed(3), or Fri(5) at 9:30 AM
                 if ([1, 3, 5].includes(day) && hour === 9 && minute === 30) {
                     console.log('Auto-updating data (scheduled 3x/week)...');
-                    fetchAllData();
+                    refreshData();
                 }
             };
             
             // Check every minute
             setInterval(checkAndUpdate, 60000);
             
-            // Also refresh every hour during market hours
+            // Also refresh every 30 minutes during market hours
             setInterval(() => {
                 const hour = new Date().getHours();
                 if (hour >= 9 && hour < 16) {
-                    fetchAllData();
+                    refreshData();
                 }
-            }, 3600000); // 1 hour
+            }, 1800000); // 30 minutes
         }
         
         // Initialize charts
         function initializeCharts() {
-            // Fed chart
-            const fedData = {
-                x: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                y: [4.5, 4.6, 4.7, 4.8, 4.9, 5.0],
-                type: 'scatter',
-                mode: 'lines+markers',
-                name: 'Fed Funds Rate',
-                line: { color: '#00ff88' }
-            };
-            
-            const fedLayout = {
-                title: 'Federal Reserve Data',
-                paper_bgcolor: 'rgba(0,0,0,0)',
-                plot_bgcolor: 'rgba(0,0,0,0)',
-                font: { color: '#fff' },
-                xaxis: { gridcolor: 'rgba(255,255,255,0.1)' },
-                yaxis: { gridcolor: 'rgba(255,255,255,0.1)' }
-            };
-            
-            Plotly.newPlot('fedChart', [fedData], fedLayout, {responsive: true});
-            
-            // Main chart
             const mainData = {
                 x: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
                 y: [4500, 4550, 4600, 4650, 4700, 4750],
