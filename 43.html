@@ -615,35 +615,49 @@
             let loaded = 0;
             let failed = 0;
             
-            // Load by category for efficiency
-            const categories = Object.keys(FED_CATEGORIES);
+            // Try batch loading first for efficiency
+            const batchSize = 10;
+            const batches = [];
             
-            for (const category of categories) {
+            for (let i = 0; i < seriesIds.length; i += batchSize) {
+                batches.push(seriesIds.slice(i, i + batchSize));
+            }
+            
+            console.log(`Loading ${batches.length} batches of data...`);
+            
+            for (const batch of batches) {
                 try {
-                    const response = await fetch(`${API_BASE}/?category=${category}`);
+                    const batchList = batch.join(',');
+                    const response = await fetch(`${API_BASE}/?series=batch&list=${batchList}`);
+                    
                     if (response.ok) {
                         const data = await response.json();
                         
                         if (data.data && Array.isArray(data.data)) {
                             data.data.forEach(series => {
-                                if (series.latest) {
+                                if (series.latest || series.observations) {
                                     allSeriesData.push({
                                         id: series.series_id,
                                         name: series.name || allSeriesMetadata[series.series_id],
                                         latest: series.latest || {},
                                         units: series.units || 'Millions of Dollars',
                                         frequency: series.frequency || 'N/A',
-                                        observations: series.observations || [],
-                                        category: category
+                                        observations: series.observations || []
                                     });
                                     loaded++;
+                                } else if (series.error) {
+                                    console.log(`Series ${series.series_id} has no data`);
+                                    failed++;
                                 }
                             });
                         }
+                    } else {
+                        console.error(`Batch request failed with status ${response.status}`);
+                        failed += batch.length;
                     }
                 } catch (err) {
-                    console.error(`Failed to load category ${category}:`, err);
-                    failed++;
+                    console.error(`Failed to load batch:`, err);
+                    failed += batch.length;
                 }
                 
                 // Update progress
@@ -654,8 +668,8 @@
                 document.getElementById('loadedSeries').textContent = loaded;
                 document.getElementById('seriesCount').textContent = `${loaded} of ${totalCount} loaded`;
                 
-                // Small delay between categories
-                await new Promise(resolve => setTimeout(resolve, 500));
+                // Small delay between batches to avoid overwhelming the API
+                await new Promise(resolve => setTimeout(resolve, 200));
             }
             
             // Hide progress bar
