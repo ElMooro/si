@@ -808,21 +808,31 @@
                 const response = await fetch(endpoint);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 
-                const text = await response.text();
-                const responseData = JSON.parse(text);
-                const data = JSON.parse(responseData.body);
+                const rawText = await response.text();
+                let data;
+                
+                try {
+                    // Parse response - handle different formats
+                    data = JSON.parse(rawText);
+                    if (data.body) {
+                        data = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
+                    }
+                } catch (e) {
+                    console.log('Parse error:', e);
+                    throw new Error('Unable to parse response');
+                }
                 
                 if (category === 'summary') {
                     processAndDisplayData(data);
                 } else {
                     // Process category data
-                    const metrics = data.data.map(series => ({
+                    const metrics = data.data ? data.data.map(series => ({
                         series: series.series_id,
                         name: series.name,
                         latest_value: series.latest?.value || 0,
                         latest_date: series.latest?.date || 'N/A',
                         unit: series.units || "Billions of Dollars"
-                    }));
+                    })) : [];
                     
                     processAndDisplayData({ metrics });
                 }
@@ -832,7 +842,8 @@
                 showStatus(`${categoryName} data loaded`, 'success');
                 
             } catch (error) {
-                showStatus(`Error loading ${category}: ${error.message}`, 'error');
+                console.error(`Error loading ${category}:`, error);
+                showStatus(`Error loading ${category}. Check console for details.`, 'error');
             }
         }
         
