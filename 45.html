@@ -2353,13 +2353,27 @@
         function filterBySeries(filter) {
             currentFilter = filter;
             
+            console.log(`Switching to filter: ${filter}`);
+            
             // Update active button
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
             event.target.classList.add('active');
             
-            displaySeriesData();
+            // If we have data loaded, display it with new filter
+            if (allSeriesData.length > 0) {
+                displaySeriesData();
+            } else {
+                console.log('No data loaded yet. Click "Load Tab" or "Load All" first.');
+            }
+            
+            // Log what this filter would load
+            const wouldLoad = getSeriesForCurrentTab();
+            console.log(`This filter would load ${wouldLoad.length} series`);
+            if (wouldLoad.length > 0 && wouldLoad.length <= 5) {
+                console.log('Series IDs:', wouldLoad);
+            }
         }
         
         // Sort table
