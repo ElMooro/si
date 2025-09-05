@@ -467,6 +467,30 @@
             color: var(--text-primary);
         }
 
+        .category-section {
+            margin-bottom: 3rem;
+        }
+
+        .category-header {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);
+            border-left: 4px solid var(--primary);
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+        }
+
+        .category-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .category-description {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
         .loading-overlay {
             position: fixed;
             top: 0;
@@ -557,6 +581,58 @@
             color: var(--text-muted);
         }
 
+        .percentage-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        .percentage-badge.positive {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+
+        .percentage-badge.negative {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+
+        .percentage-badge.neutral {
+            background: rgba(148, 163, 184, 0.15);
+            color: var(--text-secondary);
+        }
+
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+
+        .summary-stat {
+            text-align: center;
+        }
+
+        .summary-stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .summary-stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
         .footer {
             text-align: center;
             padding: 2rem;
@@ -623,6 +699,9 @@
                     <button onclick="app.loadAllCategories()" id="loadAllBtn">
                         📊 Load All Categories
                     </button>
+                    <button onclick="app.updateCache()" id="updateCacheBtn">
+                        🔄 Update Cache
+                    </button>
                     <button onclick="app.exportData()" id="exportBtn">
                         📥 Export Data
                     </button>
@@ -638,7 +717,10 @@
                 Categories
             </button>
             <button class="nav-tab" onclick="app.switchTab('series')" data-tab="series">
-                All Series
+                All Series (62)
+            </button>
+            <button class="nav-tab" onclick="app.switchTab('changes')" data-tab="changes">
+                % Changes
             </button>
             <button class="nav-tab" onclick="app.switchTab('analysis')" data-tab="analysis">
                 Analysis
@@ -656,20 +738,24 @@
         </div>
 
         <div id="dashboard-panel" class="content-panel active">
+            <div class="stats-summary" id="statsSummary">
+                <!-- Summary stats will be loaded here -->
+            </div>
+            
             <div class="metrics-grid" id="metricsGrid">
                 <!-- Metrics will be loaded here -->
             </div>
 
             <div class="chart-container">
                 <div class="chart-header">
-                    <h2 class="chart-title">Balance Sheet Trends</h2>
+                    <h2 class="chart-title">Key Indicators Historical Trends</h2>
                     <div class="chart-controls">
-                        <select id="chartTimeframe" onchange="app.updateChartTimeframe(this.value)">
-                            <option value="1M">1 Month</option>
-                            <option value="3M">3 Months</option>
-                            <option value="6M" selected>6 Months</option>
-                            <option value="1Y">1 Year</option>
-                            <option value="ALL">All Time</option>
+                        <select id="chartSeries" onchange="app.updateMainChart(this.value)">
+                            <option value="WALCL">Fed Total Assets</option>
+                            <option value="WRBWFRBL">Reserve Balances</option>
+                            <option value="WCURCIR">Currency in Circulation</option>
+                            <option value="WTREGEN">Treasury General Account</option>
+                            <option value="RRPONTSYD">Overnight RRP</option>
                         </select>
                     </div>
                 </div>
@@ -691,9 +777,30 @@
         <div id="series-panel" class="content-panel">
             <div class="search-box">
                 <input type="text" class="search-input" placeholder="Search series by name or ID..." id="seriesSearch" onkeyup="app.filterSeries(this.value)">
+                <button onclick="app.loadAllSeriesData()">Load All Series Data</button>
             </div>
             <div class="series-grid" id="seriesContainer">
                 <!-- Series list will be loaded here -->
+            </div>
+        </div>
+
+        <div id="changes-panel" class="content-panel">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">Percentage Changes Analysis</h2>
+                    <div class="chart-controls">
+                        <select id="changePeriod" onchange="app.loadPercentageChanges(this.value)">
+                            <option value="all">All Periods</option>
+                            <option value="week">Weekly</option>
+                            <option value="month">Monthly</option>
+                            <option value="quarter">Quarterly</option>
+                            <option value="year">Yearly</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="changesContainer">
+                    <!-- Percentage changes will be loaded here -->
+                </div>
             </div>
         </div>
 
@@ -714,6 +821,7 @@
 
         <footer class="footer">
             <p>Data provided by the Federal Reserve Economic Data (FRED) API</p>
+            <p>API Status: <span id="apiStatus">Checking...</span></p>
             <p>Last updated: <span id="footerTimestamp">-</span></p>
         </footer>
     </div>
@@ -728,9 +836,90 @@
                     summary: null,
                     categories: {},
                     series: {},
+                    allSeries: {},
+                    changes: {},
                     lastUpdate: null
                 };
                 this.currentTab = 'dashboard';
+                
+                // All 62 series definitions from documentation
+                this.FED_LIQUIDITY_SERIES = {
+                    "WRBWFRBL": "Reserve Balances with Federal Reserve Banks (Weekly)",
+                    "RESBALNS": "Reserve Balances with Federal Reserve Banks (Daily)",
+                    "RESBALNSW": "Reserve Balances with Federal Reserve Banks (Wednesday Level)",
+                    "WCURCIR": "Currency in Circulation (Weekly)",
+                    "CURRCIR": "Currency in Circulation (Monthly)",
+                    "WTREGEN": "Treasury General Account (Weekly)",
+                    "TREASURY": "Treasury General Account (Daily)",
+                    "WREPODEL": "Reverse Repurchase Agreements: Foreign Official (Weekly)",
+                    "WREPOFOR": "Reverse Repurchase Agreements: Foreign Official and International Accounts",
+                    "RRPONTSYD": "Overnight Reverse Repurchase Agreements: Treasury Securities Sold (Daily)",
+                    "RPONTSYD": "Reverse Repurchase Agreements: Treasury Securities Sold",
+                    "WSHOTSL": "Securities Held Outright: Total (Weekly)",
+                    "WSHOSHO": "Securities Held Outright (Weekly)",
+                    "WSHOTS": "Securities Held Outright: Treasury Securities (Weekly)",
+                    "WSHOMCB": "Securities Held Outright: Mortgage-Backed Securities (Weekly)",
+                    "WSHOFDEB": "Securities Held Outright: Federal Agency Debt Securities (Weekly)",
+                    "TREAST": "U.S. Treasury Securities Held by Fed (All Maturities)",
+                    "TREASLT5": "U.S. Treasury Securities: Maturing in Less than 5 Years",
+                    "TREASG5T10": "U.S. Treasury Securities: Maturing in 5-10 Years",
+                    "TREASG10": "U.S. Treasury Securities: Maturing in Over 10 Years",
+                    "TIPS": "Treasury Inflation-Protected Securities (TIPS)",
+                    "FPCPN": "Floating Rate Notes",
+                    "MBST": "Mortgage-Backed Securities Held by Fed",
+                    "CMBS": "Commercial Mortgage-Backed Securities",
+                    "WLCFLL": "Loans: Total (Weekly)",
+                    "WPCREDIT": "Primary Credit",
+                    "DISCBORR": "Discount Window Borrowing",
+                    "WSCREDIT": "Secondary Credit",
+                    "PDCB": "Primary Dealer Credit Facility",
+                    "TAF": "Term Auction Facility",
+                    "WFCDA": "Float (Weekly)",
+                    "WUPSHO": "Unamortized Premiums on Securities Held Outright",
+                    "WUDSON": "Unamortized Discounts on Securities Held Outright",
+                    "SWPT": "Central Bank Liquidity Swaps",
+                    "CLBSWP": "Central Bank Liquidity Swap Lines",
+                    "WORAL": "Other Federal Reserve Assets (Weekly)",
+                    "WGCAL": "Gold Certificate Account (Weekly)",
+                    "WSDRAL": "Special Drawing Rights Certificate Account (Weekly)",
+                    "COINAL": "Coin (Weekly)",
+                    "WDTGAL": "Term Deposits Held by Depository Institutions",
+                    "WOTHLL": "Other Liabilities and Capital",
+                    "TERMAUC": "Term Deposit Facility",
+                    "REQRESNS": "Required Reserves of Depository Institutions",
+                    "EXCSRESNS": "Excess Reserves of Depository Institutions",
+                    "TOTRESNS": "Total Reserves of Depository Institutions",
+                    "BOGMBASE": "Monetary Base: Total",
+                    "BOGMBBM": "Monetary Base: Currency in Circulation",
+                    "BOGMBBR": "Monetary Base: Reserve Balances",
+                    "WALCL": "Total Assets of Federal Reserve (Weekly)",
+                    "RESPPANWW": "Total Factors Supplying Reserve Funds (Weekly)",
+                    "H41RESPPBTFP": "Bank Term Funding Program",
+                    "H41RESPPREPO": "Standing Overnight Repurchase Agreement Facility",
+                    "H41RESPPFIMA": "FIMA Repurchase Agreement Facility",
+                    "RESPPALLEX": "All Emergency Lending Facilities",
+                    "PPPLF": "Paycheck Protection Program Liquidity Facility",
+                    "MSLP": "Main Street Lending Program",
+                    "MLF": "Municipal Liquidity Facility",
+                    "CPFF": "Commercial Paper Funding Facility",
+                    "PMCCF": "Primary Market Corporate Credit Facility",
+                    "SMCCF": "Secondary Market Corporate Credit Facility",
+                    "TALF": "Term Asset-Backed Securities Loan Facility",
+                    "MMLF": "Money Market Mutual Fund Liquidity Facility"
+                };
+
+                this.FED_LIQUIDITY_CATEGORIES = {
+                    "reserves": ["WRBWFRBL", "RESBALNS", "RESBALNSW", "REQRESNS", "EXCSRESNS", "TOTRESNS"],
+                    "currency": ["WCURCIR", "CURRCIR", "BOGMBBM"],
+                    "treasury_account": ["WTREGEN", "TREASURY"],
+                    "repo_operations": ["WREPODEL", "WREPOFOR", "RRPONTSYD", "RPONTSYD", "H41RESPPREPO", "H41RESPPFIMA"],
+                    "securities": ["WSHOTSL", "WSHOSHO", "WSHOTS", "WSHOMCB", "WSHOFDEB", "TREAST", "TREASLT5", "TREASG5T10", "TREASG10", "TIPS", "FPCPN", "MBST", "CMBS"],
+                    "lending_facilities": ["WLCFLL", "WPCREDIT", "DISCBORR", "WSCREDIT", "PDCB", "TAF", "H41RESPPBTFP"],
+                    "emergency_programs": ["RESPPALLEX", "PPPLF", "MSLP", "MLF", "CPFF", "PMCCF", "SMCCF", "TALF", "MMLF"],
+                    "balance_sheet": ["WALCL", "RESPPANWW", "BOGMBASE", "WOTHLL"],
+                    "other_assets": ["WFCDA", "WUPSHO", "WUDSON", "SWPT", "CLBSWP", "WORAL", "WGCAL", "WSDRAL", "COINAL", "WDTGAL", "TERMAUC"]
+                };
+                
                 this.init();
             }
 
@@ -761,74 +950,47 @@
                     }
 
                     const data = await response.json();
-                    
-                    // Handle Lambda response wrapper
-                    if (data.statusCode && data.body) {
-                        return typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
-                    }
-                    
                     return data;
                 } catch (error) {
                     console.error('API Error:', error);
-                    this.showError(error.message);
+                    this.showError(`API Error: ${error.message}`);
                     return null;
                 }
             }
 
             async checkHealth() {
-                const health = await this.fetchAPI('/health');
+                const health = await this.fetchAPI('/');
                 if (health) {
                     this.updateStatus('connected', 'Connected to Fed API');
+                    document.getElementById('apiStatus').textContent = `✅ Online - ${health.total_series || 62} series available`;
                 } else {
                     this.updateStatus('error', 'Connection failed');
+                    document.getElementById('apiStatus').textContent = '❌ Offline';
                 }
             }
 
             async loadSummaryData() {
-                const data = await this.fetchAPI('/fed_liquidity?series=summary');
+                const data = await this.fetchAPI('/?series=summary');
                 if (data && data.metrics) {
                     this.data.summary = data;
                     this.renderMetrics(data.metrics);
-                    this.updateMainChart(data.metrics);
-                    this.showSuccess('Data loaded successfully');
-                } else {
-                    // Fallback to batch request
-                    await this.loadBatchData();
-                }
-            }
-
-            async loadBatchData() {
-                const keyMetrics = 'RESBALNS,WALCL,RRPONTSYD,WCURCIR,WTREGEN,MBST,H41RESPPBTFP';
-                const data = await this.fetchAPI(`/fed_liquidity?series=batch&list=${keyMetrics}`);
-                
-                if (data && data.data) {
-                    const metrics = data.data.map(series => ({
-                        series: series.series_id,
-                        name: series.name,
-                        latest_value: series.latest?.value,
-                        latest_date: series.latest?.date,
-                        frequency: series.frequency
-                    }));
-                    this.renderMetrics(metrics);
+                    this.renderSummaryStats(data.metrics);
+                    this.showSuccess('Dashboard data loaded successfully');
                 }
             }
 
             async loadAllCategories() {
                 this.showLoading();
-                const categories = [
-                    'reserves', 'currency', 'treasury_account', 'repo_operations',
-                    'securities', 'lending_facilities', 'balance_sheet', 'other_assets'
-                ];
-
                 const container = document.getElementById('categoriesContainer');
                 container.innerHTML = '';
 
-                for (const category of categories) {
-                    const data = await this.fetchAPI(`/fed_liquidity?category=${category}`);
+                for (const [categoryName, seriesList] of Object.entries(this.FED_LIQUIDITY_CATEGORIES)) {
+                    const data = await this.fetchAPI(`/?category=${categoryName}`);
                     if (data && data.data) {
-                        this.data.categories[category] = data.data;
-                        this.renderCategory(category, data.data);
+                        this.data.categories[categoryName] = data.data;
+                        this.renderCategory(categoryName, data.data);
                     }
+                    await this.delay(100);
                 }
 
                 this.switchTab('categories');
@@ -838,11 +1000,83 @@
 
             async loadSeriesList() {
                 this.showLoading();
-                const data = await this.fetchAPI('/fed_liquidity?series=all');
+                const data = await this.fetchAPI('/?series=all');
                 
                 if (data && data.series) {
-                    this.data.series = data.series;
+                    this.data.allSeries = data.series;
                     this.renderSeriesList(data.series);
+                }
+                
+                this.hideLoading();
+            }
+
+            async loadAllSeriesData() {
+                this.showLoading();
+                const container = document.getElementById('seriesContainer');
+                container.innerHTML = '<h3>Loading all 62 series...</h3>';
+                
+                const seriesGrid = document.createElement('div');
+                seriesGrid.className = 'series-grid';
+                
+                for (const [id, name] of Object.entries(this.FED_LIQUIDITY_SERIES)) {
+                    const data = await this.fetchAPI(`/?series=${id}`);
+                    if (data && !data.error) {
+                        this.data.series[id] = data;
+                        const card = this.createSeriesCard(data);
+                        seriesGrid.appendChild(card);
+                    }
+                    await this.delay(50);
+                }
+                
+                container.innerHTML = '';
+                container.appendChild(seriesGrid);
+                this.hideLoading();
+                this.showSuccess('All series data loaded');
+            }
+
+            async loadPercentageChanges(period = 'all') {
+                this.showLoading();
+                const container = document.getElementById('changesContainer');
+                container.innerHTML = '';
+                
+                // Load changes for key metrics
+                const keyMetrics = ['WALCL', 'WRBWFRBL', 'WCURCIR', 'WTREGEN', 'RRPONTSYD', 'TOTRESNS'];
+                const changesGrid = document.createElement('div');
+                changesGrid.className = 'metrics-grid';
+                
+                for (const series of keyMetrics) {
+                    const data = await this.fetchAPI(`/?action=changes&series=${series}&period=${period}`);
+                    if (data && !data.error) {
+                        this.data.changes[series] = data;
+                        const card = this.createChangeCard(data);
+                        changesGrid.appendChild(card);
+                    }
+                    await this.delay(100);
+                }
+                
+                container.appendChild(changesGrid);
+                this.hideLoading();
+            }
+
+            async updateCache() {
+                this.showLoading();
+                const result = await this.fetchAPI('/?action=update_cache');
+                
+                if (result && result.results) {
+                    const successful = result.results.filter(r => r.updated).length;
+                    this.showSuccess(`Cache updated: ${successful}/${result.results.length} series refreshed`);
+                }
+                
+                this.hideLoading();
+                await this.loadSummaryData();
+            }
+
+            async updateMainChart(seriesId) {
+                this.showLoading();
+                const data = await this.fetchAPI(`/?series=${seriesId || 'WALCL'}`);
+                
+                if (data && data.observations) {
+                    this.renderChartData(data);
                 }
                 
                 this.hideLoading();
@@ -854,27 +1088,29 @@
                 grid.innerHTML = '';
 
                 metrics.forEach(metric => {
-                    if (!metric.latest_value) return;
+                    if (!metric.latest_value && metric.latest_value !== 0) return;
 
                     const card = document.createElement('div');
                     card.className = 'metric-card';
                     
-                    // Calculate mock change for demo
-                    const change = (Math.random() - 0.5) * 10;
-                    const changeClass = change > 0 ? 'positive' : 'negative';
-                    const changeSymbol = change > 0 ? '↑' : '↓';
+                    const change = metric.week_change || 0;
+                    const changeClass = change > 0 ? 'positive' : change < 0 ? 'negative' : 'neutral';
+                    const changeSymbol = change > 0 ? '↑' : change < 0 ? '↓' : '→';
 
                     card.innerHTML = `
                         <div class="metric-header">
                             <div class="metric-label">${metric.series}</div>
                             <div class="metric-change ${changeClass}">
                                 <span>${changeSymbol}</span>
-                                <span>${Math.abs(change).toFixed(1)}%</span>
+                                <span>${Math.abs(change).toFixed(2)}%</span>
                             </div>
                         </div>
                         <div class="metric-value">${this.formatValue(metric.latest_value)}</div>
                         <div class="metric-name">${metric.name}</div>
-                        <div class="metric-date">As of ${this.formatDate(metric.latest_date)}</div>
+                        <div class="metric-date">
+                            As of ${this.formatDate(metric.latest_date)}
+                            ${metric.cached ? '<span style="color: #10b981; font-size: 0.7rem;">• Cached</span>' : ''}
+                        </div>
                     `;
                     
                     card.onclick = () => this.loadSeriesDetail(metric.series);
@@ -882,64 +1118,87 @@
                 });
             }
 
+            renderSummaryStats(metrics) {
+                const container = document.getElementById('statsSummary');
+                
+                const totalAssets = metrics.find(m => m.series === 'WALCL')?.latest_value || 0;
+                const reserves = metrics.find(m => m.series === 'WRBWFRBL')?.latest_value || 0;
+                const currency = metrics.find(m => m.series === 'WCURCIR')?.latest_value || 0;
+                const rrp = metrics.find(m => m.series === 'RRPONTSYD')?.latest_value || 0;
+                
+                container.innerHTML = `
+                    <div class="summary-stat">
+                        <div class="summary-stat-value">${this.formatValue(totalAssets)}</div>
+                        <div class="summary-stat-label">Total Fed Assets</div>
+                    </div>
+                    <div class="summary-stat">
+                        <div class="summary-stat-value">${this.formatValue(reserves)}</div>
+                        <div class="summary-stat-label">Reserve Balances</div>
+                    </div>
+                    <div class="summary-stat">
+                        <div class="summary-stat-value">${this.formatValue(currency)}</div>
+                        <div class="summary-stat-label">Currency in Circulation</div>
+                    </div>
+                    <div class="summary-stat">
+                        <div class="summary-stat-value">${this.formatValue(rrp)}</div>
+                        <div class="summary-stat-label">Overnight RRP</div>
+                    </div>
+                    <div class="summary-stat">
+                        <div class="summary-stat-value">62</div>
+                        <div class="summary-stat-label">Total Indicators</div>
+                    </div>
+                `;
+            }
+
             renderCategory(categoryName, seriesData) {
                 const container = document.getElementById('categoriesContainer');
                 
                 const section = document.createElement('div');
-                section.className = 'chart-container';
+                section.className = 'category-section';
+                
+                const categoryDescriptions = {
+                    'reserves': 'Federal Reserve bank reserves and requirements',
+                    'currency': 'Currency in circulation metrics',
+                    'treasury_account': 'Treasury General Account balances',
+                    'repo_operations': 'Repurchase and reverse repurchase agreements',
+                    'securities': 'Securities held by the Federal Reserve',
+                    'lending_facilities': 'Lending programs and credit facilities',
+                    'emergency_programs': 'Emergency lending programs',
+                    'balance_sheet': 'Federal Reserve balance sheet metrics',
+                    'other_assets': 'Other Federal Reserve assets and operations'
+                };
+                
                 section.innerHTML = `
-                    <div class="chart-header">
-                        <h2 class="chart-title">${this.formatCategoryName(categoryName)}</h2>
+                    <div class="category-header">
+                        <h2 class="category-title">${this.formatCategoryName(categoryName)}</h2>
+                        <p class="category-description">${categoryDescriptions[categoryName] || ''}</p>
                     </div>
                 `;
 
                 const grid = document.createElement('div');
-                grid.className = 'series-grid';
+                grid.className = 'metrics-grid';
 
-                seriesData.forEach((series, index) => {
+                seriesData.forEach(series => {
                     if (series.error) return;
 
                     const card = document.createElement('div');
-                    card.className = 'series-card';
+                    card.className = 'metric-card';
                     
                     card.innerHTML = `
-                        <div class="series-header">
-                            <div class="series-info">
-                                <h3>${series.name}</h3>
-                                <span class="series-id">${series.series_id}</span>
-                            </div>
+                        <div class="metric-header">
+                            <div class="metric-label">${series.series_id}</div>
                         </div>
-                        <div class="series-stats">
-                            <div class="stat">
-                                <div class="stat-label">Latest Value</div>
-                                <div class="stat-value">${series.latest ? this.formatValue(series.latest.value) : 'N/A'}</div>
-                            </div>
-                            <div class="stat">
-                                <div class="stat-label">Date</div>
-                                <div class="stat-value">${series.latest ? this.formatDate(series.latest.date) : 'N/A'}</div>
-                            </div>
-                            <div class="stat">
-                                <div class="stat-label">Frequency</div>
-                                <div class="stat-value">${series.frequency || 'N/A'}</div>
-                            </div>
-                            <div class="stat">
-                                <div class="stat-label">Data Points</div>
-                                <div class="stat-value">${series.count || 0}</div>
-                            </div>
-                        </div>
-                        <div class="chart-wrapper">
-                            <canvas id="cat-chart-${categoryName}-${index}"></canvas>
+                        <div class="metric-value">${series.latest ? this.formatValue(series.latest.value) : 'N/A'}</div>
+                        <div class="metric-name">${series.name}</div>
+                        <div class="metric-date">
+                            ${series.latest ? this.formatDate(series.latest.date) : 'No data'}
+                            <br>
+                            <small>Points: ${series.count || 0} | ${series.frequency || 'N/A'}</small>
                         </div>
                     `;
-
+                    
+                    card.onclick = () => this.loadSeriesDetail(series.series_id);
                     grid.appendChild(card);
-
-                    // Create chart after DOM update
-                    setTimeout(() => {
-                        if (series.observations && series.observations.length > 0) {
-                            this.createMiniChart(`cat-chart-${categoryName}-${index}`, series);
-                        }
-                    }, 100);
                 });
 
                 section.appendChild(grid);
@@ -950,20 +1209,99 @@
                 const container = document.getElementById('seriesContainer');
                 container.innerHTML = '';
 
+                const grid = document.createElement('div');
+                grid.className = 'metrics-grid';
+
                 Object.entries(seriesDict).forEach(([id, name]) => {
                     const card = document.createElement('div');
-                    card.className = 'series-card';
+                    card.className = 'metric-card';
                     card.innerHTML = `
-                        <div class="series-header">
-                            <div class="series-info">
-                                <h3>${name}</h3>
-                                <span class="series-id">${id}</span>
+                        <div class="metric-header">
+                            <div class="metric-label">${id}</div>
+                        </div>
+                        <div class="metric-name" style="font-size: 1rem; margin-top: 1rem;">${name}</div>
+                        <button onclick="app.loadSeriesDetail('${id}')" style="margin-top: 1rem;">
+                            Load Data
+                        </button>
+                    `;
+                    grid.appendChild(card);
+                });
+
+                container.appendChild(grid);
+            }
+
+            createSeriesCard(data) {
+                const card = document.createElement('div');
+                card.className = 'series-card';
+                
+                card.innerHTML = `
+                    <div class="series-header">
+                        <div class="series-info">
+                            <h3>${data.name}</h3>
+                            <span class="series-id">${data.series_id}</span>
+                        </div>
+                    </div>
+                    <div class="series-stats">
+                        <div class="stat">
+                            <div class="stat-label">Latest Value</div>
+                            <div class="stat-value">${data.latest ? this.formatValue(data.latest.value) : 'N/A'}</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-label">Date</div>
+                            <div class="stat-value">${data.latest ? this.formatDate(data.latest.date) : 'N/A'}</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-label">Data Points</div>
+                            <div class="stat-value">${data.count || 0}</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-label">Status</div>
+                            <div class="stat-value">${data.cached ? '✅ Cached' : '🔄 Live'}</div>
+                        </div>
+                    </div>
+                `;
+                
+                return card;
+            }
+
+            createChangeCard(data) {
+                const card = document.createElement('div');
+                card.className = 'metric-card';
+                
+                const changes = [];
+                if (data.week_change) changes.push(['Week', data.week_change]);
+                if (data.month_change) changes.push(['Month', data.month_change]);
+                if (data.quarter_change) changes.push(['Quarter', data.quarter_change]);
+                if (data.year_change) changes.push(['Year', data.year_change]);
+                
+                let changesHTML = changes.map(([period, change]) => {
+                    const changeClass = change.percentage > 0 ? 'positive' : change.percentage < 0 ? 'negative' : 'neutral';
+                    const symbol = change.percentage > 0 ? '↑' : change.percentage < 0 ? '↓' : '→';
+                    return `
+                        <div class="stat">
+                            <div class="stat-label">${period}</div>
+                            <div class="stat-value">
+                                <span class="percentage-badge ${changeClass}">
+                                    ${symbol} ${Math.abs(change.percentage).toFixed(2)}%
+                                </span>
                             </div>
                         </div>
-                        <button onclick="app.loadSeriesDetail('${id}')">Load Data</button>
                     `;
-                    container.appendChild(card);
-                });
+                }).join('');
+                
+                card.innerHTML = `
+                    <div class="metric-header">
+                        <div class="metric-label">${data.series_id}</div>
+                    </div>
+                    <div class="metric-value">${this.formatValue(data.latest_value)}</div>
+                    <div class="metric-name">${data.name}</div>
+                    <div class="series-stats" style="margin-top: 1rem;">
+                        ${changesHTML}
+                    </div>
+                    <div class="metric-date">As of ${this.formatDate(data.latest_date)}</div>
+                `;
+                
+                return card;
             }
 
             // Chart Methods
@@ -1036,6 +1374,9 @@
                         }
                     }
                 });
+                
+                // Load initial chart data
+                this.updateMainChart('WALCL');
             }
 
             createAnalysisChart() {
@@ -1086,83 +1427,92 @@
                 });
             }
 
-            createMiniChart(canvasId, seriesData) {
-                const canvas = document.getElementById(canvasId);
-                if (!canvas) return;
-
-                const ctx = canvas.getContext('2d');
-                const observations = seriesData.observations.slice(-30);
+            renderChartData(data) {
+                if (!data.observations || data.observations.length === 0) return;
                 
-                new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: observations.map(o => this.formatDate(o.date)),
-                        datasets: [{
-                            data: observations.map(o => o.value),
-                            borderColor: '#818cf8',
-                            backgroundColor: 'rgba(129, 140, 248, 0.1)',
-                            borderWidth: 2,
-                            tension: 0.4,
-                            fill: true,
-                            pointRadius: 0,
-                            pointHoverRadius: 4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: {
-                                enabled: true,
-                                backgroundColor: 'rgba(30, 41, 59, 0.9)',
-                                callbacks: {
-                                    label: (context) => this.formatValue(context.parsed.y)
-                                }
-                            }
-                        },
-                        scales: {
-                            x: { display: false },
-                            y: { display: false }
-                        }
-                    }
-                });
-            }
-
-            updateMainChart(metrics) {
-                // Mock data for demonstration - replace with actual data
-                const mockDates = this.generateDateRange(180);
-                const mockDatasets = metrics.slice(0, 3).map((metric, index) => ({
-                    label: metric.name,
-                    data: this.generateMockData(180, metric.latest_value),
-                    borderColor: ['#818cf8', '#10b981', '#f59e0b'][index],
-                    backgroundColor: ['rgba(129, 140, 248, 0.1)', 'rgba(16, 185, 129, 0.1)', 'rgba(245, 158, 11, 0.1)'][index],
-                    borderWidth: 2,
-                    tension: 0.4,
-                    fill: false,
-                    pointRadius: 0,
-                    pointHoverRadius: 4
-                }));
-
+                const observations = data.observations.slice(0, 100).reverse();
+                
                 this.charts.main.data = {
-                    labels: mockDates,
-                    datasets: mockDatasets
+                    labels: observations.map(o => this.formatDate(o.date)),
+                    datasets: [{
+                        label: data.name,
+                        data: observations.map(o => o.value),
+                        borderColor: '#818cf8',
+                        backgroundColor: 'rgba(129, 140, 248, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 0,
+                        pointHoverRadius: 4
+                    }]
                 };
+                
                 this.charts.main.update();
             }
 
-            updateChartTimeframe(timeframe) {
-                // Implement timeframe filtering
-                console.log('Updating chart timeframe:', timeframe);
-                // Reload data based on timeframe
+            updateAnalysisChart() {
+                if (!this.data.summary || !this.data.summary.metrics) return;
+
+                const metrics = this.data.summary.metrics.slice(0, 8);
+                
+                this.charts.analysis.data = {
+                    labels: metrics.map(m => m.series),
+                    datasets: [{
+                        data: metrics.map(m => m.latest_value),
+                        backgroundColor: [
+                            'rgba(79, 70, 229, 0.8)',
+                            'rgba(129, 140, 248, 0.8)',
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(245, 158, 11, 0.8)',
+                            'rgba(239, 68, 68, 0.8)',
+                            'rgba(168, 85, 247, 0.8)',
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(236, 72, 153, 0.8)'
+                        ],
+                        borderColor: '#334155',
+                        borderWidth: 1
+                    }]
+                };
+                this.charts.analysis.update();
+
+                this.updateAnalysisMetrics(metrics);
+            }
+
+            updateAnalysisMetrics(metrics) {
+                const container = document.getElementById('analysisMetrics');
+                container.innerHTML = '';
+
+                const totalAssets = metrics.reduce((sum, m) => sum + (m.latest_value || 0), 0);
+                const avgValue = totalAssets / metrics.length;
+
+                const summaryCards = [
+                    { label: 'Total Combined Value', value: this.formatValue(totalAssets) },
+                    { label: 'Average Value', value: this.formatValue(avgValue) },
+                    { label: 'Active Series', value: metrics.length },
+                    { label: 'Last Update', value: this.formatDate(metrics[0]?.latest_date) }
+                ];
+
+                summaryCards.forEach(card => {
+                    const div = document.createElement('div');
+                    div.className = 'metric-card';
+                    div.innerHTML = `
+                        <div class="metric-label">${card.label}</div>
+                        <div class="metric-value">${card.value}</div>
+                    `;
+                    container.appendChild(div);
+                });
             }
 
             // Utility Methods
             formatValue(value) {
                 if (!value && value !== 0) return 'N/A';
                 const absValue = Math.abs(value);
-                if (absValue >= 1000) {
-                    return `$${(value / 1000).toFixed(2)}T`;
+                
+                // Values are in millions, convert to trillions/billions
+                if (absValue >= 1000000) {
+                    return `$${(value / 1000000).toFixed(2)}T`;
+                } else if (absValue >= 1000) {
+                    return `$${(value / 1000).toFixed(2)}B`;
                 } else if (absValue >= 1) {
                     return `$${value.toFixed(2)}B`;
                 } else {
@@ -1188,30 +1538,12 @@
                     .join(' ');
             }
 
-            generateDateRange(days) {
-                const dates = [];
-                const today = new Date();
-                for (let i = days; i >= 0; i--) {
-                    const date = new Date(today);
-                    date.setDate(date.getDate() - i);
-                    dates.push(this.formatDate(date));
-                }
-                return dates;
-            }
-
-            generateMockData(points, baseValue) {
-                const data = [];
-                let value = baseValue || 1000;
-                for (let i = 0; i < points; i++) {
-                    value += (Math.random() - 0.5) * (value * 0.02);
-                    data.push(value);
-                }
-                return data;
+            delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
             }
 
             // UI Methods
             switchTab(tabName) {
-                // Update tab buttons
                 document.querySelectorAll('.nav-tab').forEach(tab => {
                     tab.classList.remove('active');
                     if (tab.dataset.tab === tabName) {
@@ -1219,7 +1551,6 @@
                     }
                 });
 
-                // Update panels
                 document.querySelectorAll('.content-panel').forEach(panel => {
                     panel.classList.remove('active');
                 });
@@ -1228,10 +1559,12 @@
                 this.currentTab = tabName;
 
                 // Load data if needed
-                if (tabName === 'series' && Object.keys(this.data.series).length === 0) {
+                if (tabName === 'series' && Object.keys(this.data.allSeries).length === 0) {
                     this.loadSeriesList();
                 } else if (tabName === 'analysis') {
                     this.updateAnalysisChart();
+                } else if (tabName === 'changes' && Object.keys(this.data.changes).length === 0) {
+                    this.loadPercentageChanges('all');
                 }
             }
 
@@ -1277,11 +1610,15 @@
             // Data Methods
             async loadSeriesDetail(seriesId) {
                 this.showLoading();
-                const data = await this.fetchAPI(`/fed_liquidity?series=${seriesId}`);
+                const data = await this.fetchAPI(`/?series=${seriesId}`);
                 
                 if (data) {
                     console.log('Series data:', data);
                     this.showSuccess(`Loaded data for ${data.name}`);
+                    
+                    // Update main chart with this series
+                    this.renderChartData(data);
+                    this.switchTab('dashboard');
                 }
                 
                 this.hideLoading();
@@ -1297,68 +1634,16 @@
                 document.getElementById('footerTimestamp').textContent = timestamp;
             }
 
-            updateAnalysisChart() {
-                if (!this.data.summary || !this.data.summary.metrics) return;
-
-                const metrics = this.data.summary.metrics.slice(0, 8);
-                
-                this.charts.analysis.data = {
-                    labels: metrics.map(m => m.series),
-                    datasets: [{
-                        data: metrics.map(m => m.latest_value),
-                        backgroundColor: [
-                            'rgba(79, 70, 229, 0.8)',
-                            'rgba(129, 140, 248, 0.8)',
-                            'rgba(16, 185, 129, 0.8)',
-                            'rgba(245, 158, 11, 0.8)',
-                            'rgba(239, 68, 68, 0.8)',
-                            'rgba(168, 85, 247, 0.8)',
-                            'rgba(59, 130, 246, 0.8)',
-                            'rgba(236, 72, 153, 0.8)'
-                        ],
-                        borderColor: '#334155',
-                        borderWidth: 1
-                    }]
-                };
-                this.charts.analysis.update();
-
-                // Update analysis metrics
-                this.updateAnalysisMetrics(metrics);
-            }
-
-            updateAnalysisMetrics(metrics) {
-                const container = document.getElementById('analysisMetrics');
-                container.innerHTML = '';
-
-                const totalAssets = metrics.reduce((sum, m) => sum + (m.latest_value || 0), 0);
-                const avgValue = totalAssets / metrics.length;
-
-                const summaryCards = [
-                    { label: 'Total Assets', value: this.formatValue(totalAssets) },
-                    { label: 'Average Value', value: this.formatValue(avgValue) },
-                    { label: 'Active Series', value: metrics.length },
-                    { label: 'Last Update', value: this.formatDate(metrics[0]?.latest_date) }
-                ];
-
-                summaryCards.forEach(card => {
-                    const div = document.createElement('div');
-                    div.className = 'metric-card';
-                    div.innerHTML = `
-                        <div class="metric-label">${card.label}</div>
-                        <div class="metric-value">${card.value}</div>
-                    `;
-                    container.appendChild(div);
+            filterCategories(searchTerm) {
+                const sections = document.querySelectorAll('.category-section');
+                sections.forEach(section => {
+                    const text = section.textContent.toLowerCase();
+                    section.style.display = text.includes(searchTerm.toLowerCase()) ? '' : 'none';
                 });
             }
 
-            filterCategories(searchTerm) {
-                // Implement category filtering
-                console.log('Filtering categories:', searchTerm);
-            }
-
             filterSeries(searchTerm) {
-                // Implement series filtering
-                const cards = document.querySelectorAll('#seriesContainer .series-card');
+                const cards = document.querySelectorAll('#seriesContainer .metric-card');
                 cards.forEach(card => {
                     const text = card.textContent.toLowerCase();
                     card.style.display = text.includes(searchTerm.toLowerCase()) ? '' : 'none';
@@ -1366,12 +1651,15 @@
             }
 
             exportData() {
-                if (!this.data.summary) {
-                    this.showError('No data to export');
-                    return;
-                }
-
-                const dataStr = JSON.stringify(this.data, null, 2);
+                const exportData = {
+                    timestamp: new Date().toISOString(),
+                    summary: this.data.summary,
+                    series: this.data.series,
+                    categories: this.data.categories,
+                    changes: this.data.changes
+                };
+                
+                const dataStr = JSON.stringify(exportData, null, 2);
                 const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
                 
                 const exportName = `fed-liquidity-${new Date().toISOString().split('T')[0]}.json`;
@@ -1389,6 +1677,9 @@
                 setInterval(() => {
                     this.refreshData();
                 }, 300000);
+                
+                // Update timestamp
+                this.updateTimestamp();
             }
         }
 
