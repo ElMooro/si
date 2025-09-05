@@ -371,19 +371,6 @@
         <!-- Status messages -->
         <div id="statusMessage"></div>
         
-        <!-- Setup Notice -->
-        <div class="setup-notice" id="setupNotice">
-            <strong>⚠️ API Setup Required:</strong> To use this dashboard with live data, you need to expose your Lambda function:
-            <br><br>
-            <strong>Option 1 - Lambda Function URL (Quickest):</strong>
-            <br>
-            <code>aws lambda create-function-url-config --function-name fredapi --auth-type NONE --cors '{"AllowOrigins":["*"],"AllowMethods":["GET","POST"],"AllowHeaders":["*"]}' --region us-east-1</code>
-            <br><br>
-            Then get your URL: <code>aws lambda get-function-url-config --function-name fredapi --region us-east-1</code>
-            <br><br>
-            Update line 845 with your URL and the dashboard will start pulling real Fed data!
-        </div>
-        
         <!-- Key Metrics Grid -->
         <div class="metrics-grid" id="keyMetrics">
             <!-- Key metrics will be populated here -->
@@ -443,7 +430,7 @@
     
     <script>
         // Configuration - UPDATE THIS WITH YOUR LAMBDA FUNCTION URL
-        const API_BASE = 'YOUR_LAMBDA_FUNCTION_URL_HERE'; // Replace with your actual Lambda Function URL
+        const API_BASE = 'YOUR_LAMBDA_FUNCTION_URL_HERE'; // Replace with your actual Lambda Function URL from fredapi
         
         // Complete Fed Liquidity Series Mapping (60+ series)
         const FED_LIQUIDITY_SERIES = {
@@ -539,15 +526,7 @@
             console.log('🚀 Initializing Fed Liquidity Dashboard...');
             console.log('📊 Total series available:', Object.keys(FED_LIQUIDITY_SERIES).length);
             
-            // Check if API is configured
-            if (!API_BASE || API_BASE === 'YOUR_LAMBDA_FUNCTION_URL_HERE') {
-                showStatus('⚠️ Please configure API_BASE with your Lambda Function URL (see setup notice)', 'info');
-                document.getElementById('setupNotice').style.display = 'block';
-            } else {
-                document.getElementById('setupNotice').style.display = 'none';
-                await loadData();
-            }
-            
+            await loadData();
             setupAutoUpdate();
             updateNextUpdateTime();
         }
