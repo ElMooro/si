@@ -3,60 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ICE BofA Bond Indices - Professional Analytics Platform</title>
+    <title>ICE BofA Bond Indices Dashboard - Live Data</title>
     
     <!-- Required Libraries -->
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
-        /* Theme Variables */
-        :root {
-            --bg-primary: #0a0e27;
-            --bg-secondary: #151932;
-            --bg-card: rgba(255, 255, 255, 0.03);
-            --text-primary: #e0e0e0;
-            --text-secondary: #888;
-            --accent-green: #00ff88;
-            --accent-blue: #00ccff;
-            --accent-red: #ff4444;
-            --accent-gold: #ffd700;
-            --border-color: rgba(255, 255, 255, 0.1);
-            --hover-bg: rgba(255, 255, 255, 0.05);
-        }
-        
-        /* Light Theme */
-        body.light-theme {
-            --bg-primary: #f5f5f5;
-            --bg-secondary: #ffffff;
-            --bg-card: rgba(0, 0, 0, 0.03);
-            --text-primary: #333333;
-            --text-secondary: #666666;
-            --accent-green: #00cc66;
-            --accent-blue: #0099cc;
-            --accent-red: #cc3333;
-            --accent-gold: #cc9900;
-            --border-color: rgba(0, 0, 0, 0.1);
-            --hover-bg: rgba(0, 0, 0, 0.05);
-        }
-        
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
-            color: var(--text-primary);
+            background: linear-gradient(135deg, #0a0e27 0%, #151932 100%);
+            color: #e0e0e0;
             min-height: 100vh;
-            transition: all 0.3s ease;
         }
         
-        /* Header Styles */
         .header {
-            background: var(--bg-card);
+            background: rgba(20, 24, 44, 0.95);
             backdrop-filter: blur(10px);
             padding: 1rem 2rem;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid rgba(0, 255, 136, 0.2);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -70,7 +37,7 @@
         .logo {
             font-size: 1.5rem;
             font-weight: bold;
-            background: linear-gradient(45deg, var(--accent-green), var(--accent-blue));
+            background: linear-gradient(45deg, #00ff88, #00ccff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             display: flex;
@@ -78,157 +45,46 @@
             gap: 0.5rem;
         }
         
-        .header-controls {
+        .header-stats {
             display: flex;
             gap: 1rem;
             align-items: center;
-        }
-        
-        .theme-toggle {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 0.5rem 1rem;
-            cursor: pointer;
-            color: var(--text-primary);
-            transition: all 0.3s;
-        }
-        
-        .theme-toggle:hover {
-            background: var(--hover-bg);
-            border-color: var(--accent-green);
-        }
-        
-        .density-selector {
-            display: flex;
-            gap: 0.25rem;
-            background: var(--bg-card);
-            border-radius: 8px;
-            padding: 0.25rem;
-        }
-        
-        .density-btn {
-            padding: 0.5rem;
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            cursor: pointer;
-            border-radius: 4px;
-            transition: all 0.3s;
-        }
-        
-        .density-btn.active {
-            background: var(--accent-green);
-            color: #000;
-        }
-        
-        /* Container */
-        .container {
-            max-width: 1800px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-        
-        /* AI Search Box */
-        .ai-search-container {
-            background: var(--bg-card);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            border: 1px solid var(--border-color);
-        }
-        
-        .ai-search-label {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-            color: var(--accent-green);
-            font-weight: bold;
-        }
-        
-        .ai-search-input {
-            width: 100%;
-            padding: 1rem;
-            background: var(--bg-secondary);
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.3s;
-        }
-        
-        .ai-search-input:focus {
-            outline: none;
-            border-color: var(--accent-green);
-            background: var(--hover-bg);
-        }
-        
-        .ai-suggestions {
-            margin-top: 0.5rem;
-            padding: 0.5rem;
-            background: var(--bg-secondary);
-            border-radius: 8px;
-            display: none;
-        }
-        
-        .ai-suggestions.active {
-            display: block;
-        }
-        
-        .suggestion-item {
-            padding: 0.5rem;
-            cursor: pointer;
-            border-radius: 4px;
-            transition: background 0.2s;
-        }
-        
-        .suggestion-item:hover {
-            background: var(--hover-bg);
-        }
-        
-        .search-history {
-            display: flex;
-            gap: 0.5rem;
-            margin-top: 1rem;
             flex-wrap: wrap;
         }
         
-        .history-chip {
-            padding: 0.25rem 0.75rem;
-            background: var(--hover-bg);
-            border-radius: 16px;
-            font-size: 0.875rem;
-            cursor: pointer;
-            border: 1px solid var(--border-color);
-            transition: all 0.2s;
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-width: 100px;
         }
         
-        .history-chip:hover {
-            background: var(--accent-green);
-            color: #000;
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #00ff88;
         }
         
-        /* Market Commentary */
-        .market-commentary {
-            background: linear-gradient(135deg, var(--bg-card), var(--hover-bg));
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            border: 1px solid var(--accent-green);
-            position: relative;
-            overflow: hidden;
+        .stat-label {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
         }
         
-        .market-commentary::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--accent-green), var(--accent-blue));
-            animation: pulse 2s ease-in-out infinite;
+        .cache-indicator {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: #ffd700;
+            margin-left: 0.5rem;
+            animation: pulse 2s infinite;
         }
         
         @keyframes pulse {
@@ -236,245 +92,66 @@
             50% { opacity: 0.5; }
         }
         
-        .commentary-title {
-            font-size: 1.25rem;
-            font-weight: bold;
-            margin-bottom: 1rem;
+        .rate-limit-indicator {
             display: flex;
             align-items: center;
             gap: 0.5rem;
-        }
-        
-        .ai-indicator {
-            font-size: 0.75rem;
-            padding: 0.25rem 0.5rem;
-            background: var(--accent-blue);
-            color: #000;
-            border-radius: 4px;
-            animation: blink 2s infinite;
-        }
-        
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-        
-        .commentary-content {
-            line-height: 1.6;
-        }
-        
-        .anomaly-badge {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            background: var(--accent-red);
-            color: white;
-            border-radius: 4px;
-            margin-left: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 204, 255, 0.1);
+            border: 1px solid rgba(0, 204, 255, 0.3);
+            border-radius: 8px;
             font-size: 0.875rem;
-            animation: flash 1s infinite;
         }
         
-        @keyframes flash {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-        
-        /* Heatmap View */
-        .view-toggle {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 2rem;
-        }
-        
-        .view-btn {
-            padding: 0.75rem 1.5rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .view-btn.active {
-            background: linear-gradient(45deg, var(--accent-green), var(--accent-blue));
-            color: #000;
-            font-weight: bold;
-            border: none;
-        }
-        
-        .heatmap-container {
-            display: none;
-            background: var(--bg-card);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        
-        .heatmap-container.active {
-            display: block;
-        }
-        
-        .heatmap-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 0.5rem;
-            margin-top: 1rem;
-        }
-        
-        .heatmap-cell {
-            padding: 1rem;
-            border-radius: 8px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            position: relative;
+        .rate-limit-bar {
+            width: 100px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
             overflow: hidden;
         }
         
-        .heatmap-cell:hover {
-            transform: scale(1.05);
-            z-index: 10;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        .rate-limit-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00ccff);
+            transition: width 0.3s ease;
         }
         
-        .heatmap-value {
-            font-size: 1.25rem;
-            font-weight: bold;
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 2rem;
         }
         
-        .heatmap-label {
-            font-size: 0.75rem;
-            margin-top: 0.25rem;
-            opacity: 0.8;
-        }
-        
-        /* Comparison Mode */
-        .comparison-panel {
-            display: none;
-            background: var(--bg-card);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            border: 2px solid var(--accent-blue);
-        }
-        
-        .comparison-panel.active {
-            display: block;
-        }
-        
-        .comparison-header {
+        .auto-update-status {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1rem;
         }
         
-        .comparison-title {
-            font-size: 1.25rem;
-            font-weight: bold;
-            color: var(--accent-blue);
-        }
-        
-        .comparison-controls {
+        .update-schedule {
             display: flex;
-            gap: 0.5rem;
-        }
-        
-        .compare-btn {
-            padding: 0.5rem 1rem;
-            background: var(--accent-blue);
-            color: #000;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
-        }
-        
-        .compare-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 204, 255, 0.3);
-        }
-        
-        .comparison-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1rem;
-            margin-top: 1rem;
         }
         
-        .compare-card {
-            background: var(--bg-secondary);
-            padding: 1rem;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-        
-        .compare-card-title {
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-            color: var(--accent-green);
-        }
-        
-        /* Skeleton Loading */
-        .skeleton {
-            animation: skeleton-loading 1.5s infinite ease-in-out;
-            background: linear-gradient(
-                90deg,
-                var(--bg-card) 0px,
-                var(--hover-bg) 40px,
-                var(--bg-card) 80px
-            );
-            background-size: 200px 100%;
-            border-radius: 4px;
-        }
-        
-        @keyframes skeleton-loading {
-            0% { background-position: -200px 0; }
-            100% { background-position: calc(200px + 100%) 0; }
-        }
-        
-        .skeleton-row {
-            height: 50px;
-            margin-bottom: 0.5rem;
-        }
-        
-        /* Quick Actions Menu */
-        .quick-actions {
-            position: absolute;
-            right: 1rem;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 0.5rem;
-            display: none;
-            z-index: 100;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-        
-        tr:hover .quick-actions {
-            display: flex;
-            gap: 0.5rem;
-        }
-        
-        .quick-action-btn {
+        .update-day {
             padding: 0.25rem 0.5rem;
-            background: var(--hover-bg);
-            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 4px;
-            cursor: pointer;
-            color: var(--text-primary);
             font-size: 0.75rem;
-            transition: all 0.2s;
         }
         
-        .quick-action-btn:hover {
-            background: var(--accent-green);
+        .update-day.active {
+            background: #00ff88;
             color: #000;
+            font-weight: bold;
         }
         
-        /* Filter buttons */
         .filter-container {
             display: flex;
             gap: 0.5rem;
@@ -484,34 +161,73 @@
         
         .filter-btn {
             padding: 0.75rem 1.5rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 8px;
-            color: var(--text-secondary);
+            color: #888;
             cursor: pointer;
             font-size: 0.875rem;
             transition: all 0.3s;
         }
         
         .filter-btn:hover {
-            background: var(--hover-bg);
-            color: var(--text-primary);
-            border-color: var(--accent-green);
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border-color: rgba(0, 255, 136, 0.3);
         }
         
         .filter-btn.active {
-            background: linear-gradient(45deg, var(--accent-green), var(--accent-blue));
+            background: linear-gradient(45deg, #00ff88, #00ccff);
             color: #000;
             font-weight: bold;
             border: none;
         }
         
-        /* Data Table */
+        .action-container {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 6px;
+            color: #00ff88;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+        }
+        
+        .action-btn:hover {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: #00ff88;
+        }
+        
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .queue-status {
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        
+        .queue-status.active {
+            display: block;
+        }
+        
         .data-section {
-            background: var(--bg-card);
+            background: rgba(255, 255, 255, 0.03);
             border-radius: 12px;
             padding: 1.5rem;
-            border: 1px solid var(--border-color);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             margin-bottom: 2rem;
         }
         
@@ -521,18 +237,18 @@
             align-items: center;
             margin-bottom: 1.5rem;
             padding-bottom: 1rem;
-            border-bottom: 2px solid var(--accent-green);
+            border-bottom: 2px solid rgba(0, 255, 136, 0.3);
         }
         
         .section-title {
             font-size: 1.5rem;
-            color: var(--accent-green);
+            color: #00ff88;
             font-weight: bold;
         }
         
         .data-table {
             width: 100%;
-            background: var(--bg-secondary);
+            background: rgba(255, 255, 255, 0.05);
             border-radius: 8px;
             overflow: hidden;
             overflow-x: auto;
@@ -541,75 +257,73 @@
         .data-table table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 1100px;
-        }
-        
-        /* Data density styles */
-        .compact .data-table td,
-        .compact .data-table th {
-            padding: 0.25rem 0.5rem;
-            font-size: 0.75rem;
-        }
-        
-        .comfortable .data-table td,
-        .comfortable .data-table th {
-            padding: 0.75rem;
-            font-size: 0.875rem;
-        }
-        
-        .spacious .data-table td,
-        .spacious .data-table th {
-            padding: 1.25rem;
-            font-size: 1rem;
+            min-width: 1000px;
         }
         
         .data-table th {
-            background: var(--hover-bg);
+            background: rgba(0, 255, 136, 0.1);
             padding: 0.75rem;
             text-align: left;
             font-weight: bold;
-            color: var(--accent-green);
-            border-bottom: 1px solid var(--border-color);
+            color: #00ff88;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.875rem;
             white-space: nowrap;
+            cursor: pointer;
         }
         
         .data-table td {
             padding: 0.75rem;
-            border-bottom: 1px solid var(--border-color);
-            position: relative;
-        }
-        
-        .data-table tr {
-            transition: background 0.2s;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.875rem;
         }
         
         .data-table tr:hover {
-            background: var(--hover-bg);
+            background: rgba(0, 255, 136, 0.05);
         }
         
-        .data-table tr.anomaly {
-            background: rgba(255, 68, 68, 0.1);
-            animation: anomaly-pulse 2s infinite;
+        .cache-badge {
+            display: inline-block;
+            padding: 0.125rem 0.25rem;
+            background: rgba(255, 215, 0, 0.2);
+            border-radius: 3px;
+            font-size: 0.625rem;
+            color: #ffd700;
+            margin-left: 0.25rem;
         }
         
-        @keyframes anomaly-pulse {
-            0%, 100% { background: rgba(255, 68, 68, 0.1); }
-            50% { background: rgba(255, 68, 68, 0.2); }
+        .fresh-badge {
+            display: inline-block;
+            padding: 0.125rem 0.25rem;
+            background: rgba(0, 255, 136, 0.2);
+            border-radius: 3px;
+            font-size: 0.625rem;
+            color: #00ff88;
+            margin-left: 0.25rem;
         }
         
-        /* Loading States */
+        .favorite-star {
+            cursor: pointer;
+            color: #444;
+            transition: color 0.3s;
+        }
+        
+        .favorite-star.active {
+            color: #ffd700;
+        }
+        
         .loading {
             text-align: center;
             padding: 2rem;
-            color: var(--text-secondary);
+            color: #888;
         }
         
         .loading-spinner {
             display: inline-block;
             width: 24px;
             height: 24px;
-            border: 3px solid var(--border-color);
-            border-top-color: var(--accent-green);
+            border: 3px solid rgba(0, 255, 136, 0.2);
+            border-top-color: #00ff88;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
@@ -618,19 +332,8 @@
             to { transform: rotate(360deg); }
         }
         
-        .stale-indicator {
-            display: inline-block;
-            padding: 0.125rem 0.5rem;
-            background: var(--accent-gold);
-            color: #000;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            margin-left: 0.5rem;
-        }
-        
-        /* Status Messages */
         .error {
-            color: var(--accent-red);
+            color: #ff4444;
             padding: 1rem;
             background: rgba(255, 68, 68, 0.1);
             border: 1px solid rgba(255, 68, 68, 0.3);
@@ -639,7 +342,7 @@
         }
         
         .success {
-            color: var(--accent-green);
+            color: #00ff88;
             padding: 1rem;
             background: rgba(0, 255, 136, 0.1);
             border: 1px solid rgba(0, 255, 136, 0.3);
@@ -648,7 +351,7 @@
         }
         
         .info {
-            color: var(--accent-blue);
+            color: #00ccff;
             padding: 1rem;
             background: rgba(0, 204, 255, 0.1);
             border: 1px solid rgba(0, 204, 255, 0.3);
@@ -656,10 +359,9 @@
             margin: 1rem 0;
         }
         
-        /* Value Styles */
-        .positive { color: var(--accent-green); }
-        .negative { color: var(--accent-red); }
-        .neutral { color: var(--text-secondary); }
+        .positive { color: #00ff88; }
+        .negative { color: #ff4444; }
+        .neutral { color: #888; }
         
         .value-cell {
             font-family: 'Courier New', monospace;
@@ -669,48 +371,13 @@
         .series-id {
             font-family: 'Courier New', monospace;
             font-size: 0.8rem;
-            color: var(--accent-blue);
+            color: #00ccff;
         }
         
-        /* Favorite star */
-        .favorite-star {
-            cursor: pointer;
-            color: var(--text-secondary);
-            transition: color 0.3s;
-        }
-        
-        .favorite-star.active {
-            color: var(--accent-gold);
-        }
-        
-        /* Highlight for search */
-        .highlight {
-            background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
-            padding: 0 2px;
-            animation: highlight-fade 1s ease;
-        }
-        
-        @keyframes highlight-fade {
-            from { background-color: var(--accent-gold); }
-            to { background-color: transparent; }
-        }
-        
-        /* Predictive indicator */
-        .prediction-indicator {
-            display: inline-block;
-            margin-left: 0.5rem;
-            font-size: 0.875rem;
-        }
-        
-        .prediction-up { color: var(--accent-green); }
-        .prediction-down { color: var(--accent-red); }
-        .prediction-neutral { color: var(--text-secondary); }
-        
-        /* Progress Bar */
         .progress-container {
             width: 100%;
             height: 30px;
-            background: var(--bg-card);
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 15px;
             overflow: hidden;
             margin: 1rem 0;
@@ -719,7 +386,7 @@
         
         .progress-bar {
             height: 100%;
-            background: linear-gradient(90deg, var(--accent-green), var(--accent-blue));
+            background: linear-gradient(90deg, #00ff88, #00ccff);
             transition: width 0.3s ease;
             display: flex;
             align-items: center;
@@ -727,282 +394,71 @@
             color: #000;
             font-weight: bold;
         }
-        
-        /* Historical Analysis Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 2000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(5px);
-        }
-        
-        .modal.active {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .modal-content {
-            background: var(--bg-secondary);
-            border-radius: 12px;
-            padding: 2rem;
-            max-width: 90%;
-            max-height: 90%;
-            overflow-y: auto;
-            border: 2px solid var(--accent-green);
-        }
-        
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-        
-        .modal-title {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--accent-green);
-        }
-        
-        .modal-close {
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: var(--text-secondary);
-            transition: color 0.3s;
-        }
-        
-        .modal-close:hover {
-            color: var(--accent-red);
-        }
-        
-        /* Share & Collaboration */
-        .share-panel {
-            background: var(--bg-card);
-            border-radius: 8px;
-            padding: 1rem;
-            margin-top: 1rem;
-            border: 1px solid var(--border-color);
-        }
-        
-        .share-url {
-            display: flex;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-        }
-        
-        .share-input {
-            flex: 1;
-            padding: 0.5rem;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            color: var(--text-primary);
-        }
-        
-        .copy-btn {
-            padding: 0.5rem 1rem;
-            background: var(--accent-green);
-            color: #000;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        
-        .annotation-box {
-            background: var(--bg-secondary);
-            border-left: 3px solid var(--accent-blue);
-            padding: 0.75rem;
-            margin-top: 0.5rem;
-            border-radius: 4px;
-        }
-        
-        .annotation-author {
-            font-size: 0.875rem;
-            color: var(--accent-blue);
-            font-weight: bold;
-        }
-        
-        .annotation-text {
-            margin-top: 0.25rem;
-        }
-        
-        .annotation-date {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            margin-top: 0.25rem;
-        }
-        
-        /* Tab action buttons */
-        .tab-actions {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
-        }
-        
-        .action-btn {
-            padding: 0.5rem 1rem;
-            background: var(--hover-bg);
-            border: 1px solid var(--accent-green);
-            border-radius: 6px;
-            color: var(--accent-green);
-            cursor: pointer;
-            font-size: 0.875rem;
-            transition: all 0.3s;
-        }
-        
-        .action-btn:hover {
-            background: var(--accent-green);
-            color: #000;
-        }
-        
-        /* Keyboard shortcut indicator */
-        .kbd {
-            display: inline-block;
-            padding: 0.2rem 0.4rem;
-            margin: 0 0.1rem;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 3px;
-            font-family: monospace;
-            font-size: 0.875rem;
-        }
-        
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .header {
-                flex-direction: column;
-            }
-            
-            .data-table {
-                font-size: 0.75rem;
-            }
-            
-            .filter-container {
-                overflow-x: auto;
-                flex-wrap: nowrap;
-            }
-        }
     </style>
 </head>
-<body class="comfortable">
+<body>
     <header class="header">
         <div class="logo">
-            📊 ICE BofA Professional Analytics
-            <span style="font-size: 0.875rem; opacity: 0.8;">AI-Powered Insights</span>
+            📊 ICE BofA Bond Indices
+            <span class="cache-indicator">CACHED</span>
         </div>
         
-        <div class="header-controls">
-            <div class="density-selector">
-                <button class="density-btn" onclick="setDensity('compact')" title="Compact View">▦</button>
-                <button class="density-btn active" onclick="setDensity('comfortable')" title="Comfortable View">▤</button>
-                <button class="density-btn" onclick="setDensity('spacious')" title="Spacious View">▥</button>
+        <div class="rate-limit-indicator">
+            <span>Rate Limit:</span>
+            <div class="rate-limit-bar">
+                <div class="rate-limit-fill" id="rateLimitBar" style="width: 100%;"></div>
             </div>
-            
-            <button class="theme-toggle" onclick="toggleTheme()">
-                <span id="themeIcon">🌙</span> <span id="themeName">Dark</span>
-            </button>
-            
-            <div style="display: flex; gap: 0.5rem;">
-                <div style="text-align: center;">
-                    <div style="font-size: 1.25rem; font-weight: bold; color: var(--accent-green);" id="totalSeries">162</div>
-                    <div style="font-size: 0.75rem; color: var(--text-secondary);">Total</div>
-                </div>
-                <div style="text-align: center;">
-                    <div style="font-size: 1.25rem; font-weight: bold; color: var(--accent-blue);" id="loadedSeries">0</div>
-                    <div style="font-size: 0.75rem; color: var(--text-secondary);">Loaded</div>
-                </div>
-                <div style="text-align: center;">
-                    <div style="font-size: 1.25rem; font-weight: bold; color: var(--accent-gold);" id="lastUpdate">--:--</div>
-                    <div style="font-size: 0.75rem; color: var(--text-secondary);">Updated</div>
-                </div>
+            <span id="rateLimitText">120/120</span>
+        </div>
+        
+        <div class="header-stats">
+            <div class="stat-item">
+                <div class="stat-value" id="totalSeries">162</div>
+                <div class="stat-label">Total Series</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="loadedSeries">0</div>
+                <div class="stat-label">Loaded</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="cachedSeries">0</div>
+                <div class="stat-label">Cached</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="lastUpdate">--:--</div>
+                <div class="stat-label">Last Update</div>
             </div>
         </div>
     </header>
     
     <div class="container">
+        <!-- Auto-update status -->
+        <div class="auto-update-status">
+            <div>
+                <strong>📅 Auto-Update Schedule:</strong> Data refreshes Monday, Wednesday, Friday at 2-3 AM EST
+                <div class="update-schedule" style="margin-top: 0.5rem;">
+                    <span class="update-day" id="monday">Monday</span>
+                    <span class="update-day" id="wednesday">Wednesday</span>
+                    <span class="update-day" id="friday">Friday</span>
+                    <span style="margin-left: 1rem; font-size: 0.875rem;">Next update: <span id="nextUpdate">--</span></span>
+                </div>
+            </div>
+            <button class="action-btn" onclick="forceRefresh()">🔄 Force Refresh</button>
+        </div>
+        
         <!-- Status messages -->
         <div id="statusMessage"></div>
         
-        <!-- AI-Powered Search -->
-        <div class="ai-search-container">
-            <div class="ai-search-label">
-                🤖 AI Natural Language Search
-                <span class="ai-indicator">POWERED BY AI</span>
-            </div>
-            <input type="text" 
-                   class="ai-search-input" 
-                   id="aiSearchInput" 
-                   placeholder='Try: "Show high yield bonds with spreads above 500" or "Find all Euro investment grade with positive returns"'
-                   onkeyup="handleAISearch(event)">
-            
-            <div class="ai-suggestions" id="aiSuggestions">
-                <div class="suggestion-item" onclick="useAISuggestion('high yield spreads above 400')">📈 High yield with spreads > 400bps</div>
-                <div class="suggestion-item" onclick="useAISuggestion('emerging markets negative ytd')">🌍 Emerging markets with negative YTD</div>
-                <div class="suggestion-item" onclick="useAISuggestion('euro bonds positive momentum')">€ Euro bonds with positive momentum</div>
-                <div class="suggestion-item" onclick="useAISuggestion('investment grade yields above 5')">💎 Investment grade yields > 5%</div>
-            </div>
-            
-            <div class="search-history" id="searchHistory"></div>
-        </div>
-        
-        <!-- Market Commentary -->
-        <div class="market-commentary" id="marketCommentary" style="display: none;">
-            <div class="commentary-title">
-                📈 AI Market Analysis
-                <span class="ai-indicator">LIVE</span>
-            </div>
-            <div class="commentary-content" id="commentaryContent"></div>
+        <!-- Queue status -->
+        <div class="queue-status" id="queueStatus">
+            <strong>Loading Queue:</strong> <span id="queueInfo">0 items waiting</span> | 
+            <strong>Processing:</strong> <span id="processingInfo">Idle</span> | 
+            <strong>Requests/min:</strong> <span id="requestRate">0</span>/120
         </div>
         
         <!-- Progress Bar -->
         <div class="progress-container" id="progressContainer">
             <div class="progress-bar" id="progressBar">0%</div>
-        </div>
-        
-        <!-- View Toggle -->
-        <div class="view-toggle">
-            <button class="view-btn active" onclick="setView('table')">📊 Table View</button>
-            <button class="view-btn" onclick="setView('heatmap')">🗺️ Heatmap View</button>
-            <button class="view-btn" onclick="setView('comparison')">📈 Comparison Mode</button>
-            <button class="view-btn" onclick="openHistoricalAnalysis()">📜 Historical Analysis</button>
-        </div>
-        
-        <!-- Heatmap View -->
-        <div class="heatmap-container" id="heatmapContainer">
-            <h3 style="color: var(--accent-green); margin-bottom: 1rem;">Performance Heatmap</h3>
-            <div style="margin-bottom: 1rem;">
-                <select id="heatmapMetric" onchange="updateHeatmap()" style="padding: 0.5rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-primary);">
-                    <option value="wow">Week-over-Week %</option>
-                    <option value="mom">Month-over-Month %</option>
-                    <option value="qoq">Quarter-over-Quarter %</option>
-                    <option value="yoy">Year-over-Year %</option>
-                    <option value="value">Current Value</option>
-                </select>
-            </div>
-            <div class="heatmap-grid" id="heatmapGrid"></div>
-        </div>
-        
-        <!-- Comparison Panel -->
-        <div class="comparison-panel" id="comparisonPanel">
-            <div class="comparison-header">
-                <div class="comparison-title">📈 Compare Series (Select up to 5)</div>
-                <div class="comparison-controls">
-                    <button class="compare-btn" onclick="calculateCorrelation()">Calculate Correlation</button>
-                    <button class="compare-btn" onclick="showSpreadDiff()">Spread Differential</button>
-                    <button class="compare-btn" onclick="clearComparison()">Clear All</button>
-                </div>
-            </div>
-            <div class="comparison-grid" id="comparisonGrid"></div>
-            <div id="correlationChart" style="margin-top: 1rem;"></div>
-            <div id="spreadChart" style="margin-top: 1rem;"></div>
         </div>
         
         <!-- Filter buttons -->
@@ -1016,22 +472,20 @@
             <button class="filter-btn" onclick="filterBySeries('favorites')">⭐ Favorites</button>
         </div>
         
-        <!-- Tab action buttons -->
-        <div class="tab-actions">
-            <button class="action-btn" onclick="loadTabData()">🔄 Load Tab <kbd>/</kbd></button>
-            <button class="action-btn" onclick="refreshTabData()">🔃 Refresh <kbd>R</kbd></button>
-            <button class="action-btn" onclick="loadAllSeriesData()">📥 Load All</button>
-            <button class="action-btn" onclick="exportData()">📤 Export</button>
-            <button class="action-btn" onclick="shareView()">🔗 Share View</button>
-            <button class="action-btn" onclick="openAnnotations()">💬 Annotations</button>
-            <button class="action-btn" onclick="configureAlerts()">🔔 Alerts</button>
+        <!-- Actions -->
+        <div class="action-container">
+            <button class="action-btn" id="loadTabBtn" onclick="loadTabData()">📥 Load Tab Data</button>
+            <button class="action-btn" id="refreshTabBtn" onclick="refreshTabData()">🔃 Refresh Tab</button>
+            <button class="action-btn" id="loadAllBtn" onclick="loadAllSeriesData()">📥 Load All (Rate Limited)</button>
+            <button class="action-btn" onclick="clearCache()">🗑️ Clear Cache</button>
+            <button class="action-btn" onclick="exportToCSV()">💾 Export CSV</button>
         </div>
         
         <!-- Main Data Section -->
-        <div class="data-section" id="tableView">
+        <div class="data-section">
             <div class="section-header">
                 <div class="section-title" id="mainTitle">All ICE BofA Series</div>
-                <div style="color: var(--text-secondary);" id="seriesCount">0 of 162 loaded</div>
+                <div style="color: #888;" id="seriesCount">0 of 162 loaded</div>
             </div>
             
             <div class="data-table">
@@ -1039,7 +493,6 @@
                     <thead>
                         <tr>
                             <th>⭐</th>
-                            <th>📊</th>
                             <th onclick="sortTable('id')">Series ID ↕</th>
                             <th onclick="sortTable('name')">Description ↕</th>
                             <th onclick="sortTable('value')">Current Value ↕</th>
@@ -1047,816 +500,325 @@
                             <th onclick="sortTable('mom')">MoM % ↕</th>
                             <th onclick="sortTable('qoq')">QoQ % ↕</th>
                             <th onclick="sortTable('yoy')">YoY % ↕</th>
-                            <th onclick="sortTable('date')">Updated ↕</th>
-                            <th>Prediction</th>
+                            <th onclick="sortTable('date')">Last Updated ↕</th>
+                            <th>Source</th>
                         </tr>
                     </thead>
                     <tbody id="mainTableBody">
-                        <tr><td colspan="11" class="loading">
-                            <div class="skeleton skeleton-row"></div>
-                            <div class="skeleton skeleton-row"></div>
-                            <div class="skeleton skeleton-row"></div>
-                        </td></tr>
+                        <tr><td colspan="10" class="loading">Ready to load data. Click "Load Tab Data" to start.</td></tr>
                     </tbody>
                 </table>
-            </div>
-        </div>
-        
-        <!-- Historical Analysis Modal -->
-        <div class="modal" id="historicalModal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <div class="modal-title">📜 Historical Analysis Suite</div>
-                    <span class="modal-close" onclick="closeModal('historicalModal')">×</span>
-                </div>
-                <div id="historicalContent">
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
-                        <div class="compare-card">
-                            <div class="compare-card-title">📊 Backtesting</div>
-                            <p>Test strategies on historical data</p>
-                            <button class="action-btn" onclick="runBacktest()">Run Backtest</button>
-                        </div>
-                        <div class="compare-card">
-                            <div class="compare-card-title">📅 Event Impact</div>
-                            <p>Analyze Fed meetings, crises impact</p>
-                            <button class="action-btn" onclick="analyzeEvents()">Analyze Events</button>
-                        </div>
-                        <div class="compare-card">
-                            <div class="compare-card-title">🔄 Seasonal Patterns</div>
-                            <p>Detect recurring seasonal trends</p>
-                            <button class="action-btn" onclick="findSeasonality()">Find Patterns</button>
-                        </div>
-                        <div class="compare-card">
-                            <div class="compare-card-title">⚡ Regime Changes</div>
-                            <p>Identify market regime shifts</p>
-                            <button class="action-btn" onclick="detectRegimes()">Detect Regimes</button>
-                        </div>
-                    </div>
-                    <div id="historicalChart" style="margin-top: 2rem;"></div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Annotations Modal -->
-        <div class="modal" id="annotationsModal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <div class="modal-title">💬 Team Annotations</div>
-                    <span class="modal-close" onclick="closeModal('annotationsModal')">×</span>
-                </div>
-                <div class="share-panel">
-                    <h4>Add New Annotation</h4>
-                    <textarea id="annotationText" style="width: 100%; padding: 0.5rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-primary); margin-top: 0.5rem;" rows="3" placeholder="Enter your annotation..."></textarea>
-                    <button class="action-btn" onclick="addAnnotation()" style="margin-top: 0.5rem;">Add Annotation</button>
-                </div>
-                <div id="annotationsList" style="margin-top: 1rem;"></div>
             </div>
         </div>
     </div>
     
     <script>
-        // API Configuration
+        // ============================================
+        // Configuration
+        // ============================================
         const API_BASE = 'https://lnd6erie7y4rw2u6r4dpv4enty0mhtua.lambda-url.us-east-1.on.aws';
+        const RATE_LIMIT = 120; // requests per minute
+        const RATE_WINDOW = 60000; // 1 minute in ms
+        const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+        const AUTO_UPDATE_DAYS = [1, 3, 5]; // Monday, Wednesday, Friday
+        const AUTO_UPDATE_HOUR = 2; // 2 AM EST
         
-        // Global state
+        // ============================================
+        // Global State
+        // ============================================
         let allSeriesMetadata = {};
         let allSeriesData = [];
+        let dataCache = {};
         let currentFilter = 'all';
-        let currentView = 'table';
         let sortColumn = 'id';
         let sortDirection = 'asc';
         let favorites = JSON.parse(localStorage.getItem('iceBofaFavorites') || '[]');
-        let searchHistory = JSON.parse(localStorage.getItem('searchHistory') || '[]');
-        let annotations = JSON.parse(localStorage.getItem('annotations') || '[]');
-        let comparisonSeries = [];
-        let currentTheme = localStorage.getItem('theme') || 'dark';
-        let currentDensity = localStorage.getItem('density') || 'comfortable';
         
-        // Initialize
+        // Rate limiting state
+        let requestQueue = [];
+        let requestsInWindow = [];
+        let isProcessingQueue = false;
+        let availableRequests = RATE_LIMIT;
+        
+        // ============================================
+        // Cache Management
+        // ============================================
+        
+        function getCacheKey(seriesId) {
+            return `ice_bofa_${seriesId}`;
+        }
+        
+        function getCachedData(seriesId) {
+            const key = getCacheKey(seriesId);
+            const cached = localStorage.getItem(key);
+            
+            if (!cached) return null;
+            
+            try {
+                const data = JSON.parse(cached);
+                const now = Date.now();
+                
+                // Check if cache is still valid
+                if (data.timestamp && (now - data.timestamp) < CACHE_DURATION) {
+                    return data;
+                }
+                
+                // Cache expired
+                localStorage.removeItem(key);
+                return null;
+            } catch (e) {
+                console.error('Cache parse error:', e);
+                localStorage.removeItem(key);
+                return null;
+            }
+        }
+        
+        function setCachedData(seriesId, data) {
+            const key = getCacheKey(seriesId);
+            const cacheData = {
+                ...data,
+                timestamp: Date.now(),
+                cached: true
+            };
+            
+            try {
+                localStorage.setItem(key, JSON.stringify(cacheData));
+                updateCacheCount();
+            } catch (e) {
+                console.error('Cache storage error:', e);
+                // Clear some old cache if storage is full
+                clearOldestCache();
+            }
+        }
+        
+        function clearCache() {
+            const keys = Object.keys(localStorage);
+            keys.forEach(key => {
+                if (key.startsWith('ice_bofa_')) {
+                    localStorage.removeItem(key);
+                }
+            });
+            
+            dataCache = {};
+            updateCacheCount();
+            showStatus('Cache cleared', 'success');
+        }
+        
+        function clearOldestCache() {
+            const keys = Object.keys(localStorage);
+            let oldestKey = null;
+            let oldestTime = Date.now();
+            
+            keys.forEach(key => {
+                if (key.startsWith('ice_bofa_')) {
+                    try {
+                        const data = JSON.parse(localStorage.getItem(key));
+                        if (data.timestamp < oldestTime) {
+                            oldestTime = data.timestamp;
+                            oldestKey = key;
+                        }
+                    } catch (e) {}
+                }
+            });
+            
+            if (oldestKey) {
+                localStorage.removeItem(oldestKey);
+            }
+        }
+        
+        function updateCacheCount() {
+            const keys = Object.keys(localStorage);
+            const cacheCount = keys.filter(key => key.startsWith('ice_bofa_')).length;
+            document.getElementById('cachedSeries').textContent = cacheCount;
+        }
+        
+        // ============================================
+        // Rate Limiting
+        // ============================================
+        
+        function updateRateLimit() {
+            const now = Date.now();
+            
+            // Remove requests older than the rate window
+            requestsInWindow = requestsInWindow.filter(time => now - time < RATE_WINDOW);
+            
+            // Calculate available requests
+            availableRequests = RATE_LIMIT - requestsInWindow.length;
+            
+            // Update UI
+            const percentage = (availableRequests / RATE_LIMIT) * 100;
+            document.getElementById('rateLimitBar').style.width = `${percentage}%`;
+            document.getElementById('rateLimitText').textContent = `${availableRequests}/${RATE_LIMIT}`;
+            
+            // Update rate display
+            document.getElementById('requestRate').textContent = requestsInWindow.length;
+        }
+        
+        async function makeRateLimitedRequest(seriesId) {
+            return new Promise((resolve, reject) => {
+                requestQueue.push({ seriesId, resolve, reject });
+                
+                if (!isProcessingQueue) {
+                    processQueue();
+                }
+            });
+        }
+        
+        async function processQueue() {
+            if (isProcessingQueue) return;
+            isProcessingQueue = true;
+            
+            document.getElementById('queueStatus').classList.add('active');
+            
+            while (requestQueue.length > 0) {
+                updateRateLimit();
+                
+                if (availableRequests <= 0) {
+                    // Wait for rate limit to reset
+                    document.getElementById('processingInfo').textContent = 'Waiting for rate limit...';
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    continue;
+                }
+                
+                const request = requestQueue.shift();
+                document.getElementById('queueInfo').textContent = `${requestQueue.length} items waiting`;
+                document.getElementById('processingInfo').textContent = `Loading ${request.seriesId}`;
+                
+                try {
+                    // Check cache first
+                    const cachedData = getCachedData(request.seriesId);
+                    if (cachedData) {
+                        request.resolve(cachedData);
+                        continue;
+                    }
+                    
+                    // Make actual API request
+                    const response = await fetch(`${API_BASE}/ice_bofa?series=${request.seriesId}`);
+                    requestsInWindow.push(Date.now());
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        setCachedData(request.seriesId, data);
+                        request.resolve(data);
+                    } else {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                } catch (error) {
+                    request.reject(error);
+                }
+                
+                // Small delay between requests to be nice to the API
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            isProcessingQueue = false;
+            document.getElementById('processingInfo').textContent = 'Idle';
+            document.getElementById('queueStatus').classList.remove('active');
+        }
+        
+        // ============================================
+        // Auto-Update Functionality
+        // ============================================
+        
+        function calculateNextUpdate() {
+            const now = new Date();
+            const currentDay = now.getDay();
+            const currentHour = now.getHours();
+            
+            // Find next update day
+            let daysUntilNext = AUTO_UPDATE_DAYS
+                .map(day => {
+                    let diff = day - currentDay;
+                    if (diff < 0 || (diff === 0 && currentHour >= AUTO_UPDATE_HOUR)) {
+                        diff += 7;
+                    }
+                    return diff;
+                })
+                .sort((a, b) => a - b)[0];
+            
+            const nextUpdate = new Date(now);
+            nextUpdate.setDate(now.getDate() + daysUntilNext);
+            nextUpdate.setHours(AUTO_UPDATE_HOUR, 0, 0, 0);
+            
+            return nextUpdate;
+        }
+        
+        function updateAutoUpdateDisplay() {
+            const now = new Date();
+            const currentDay = now.getDay();
+            
+            // Highlight current day if it's an update day
+            document.getElementById('monday').classList.toggle('active', currentDay === 1);
+            document.getElementById('wednesday').classList.toggle('active', currentDay === 3);
+            document.getElementById('friday').classList.toggle('active', currentDay === 5);
+            
+            // Show next update time
+            const nextUpdate = calculateNextUpdate();
+            const timeUntil = nextUpdate - now;
+            const hoursUntil = Math.floor(timeUntil / (1000 * 60 * 60));
+            const daysUntil = Math.floor(hoursUntil / 24);
+            
+            let timeStr = '';
+            if (daysUntil > 0) {
+                timeStr = `${daysUntil}d ${hoursUntil % 24}h`;
+            } else {
+                timeStr = `${hoursUntil}h ${Math.floor((timeUntil % (1000 * 60 * 60)) / (1000 * 60))}m`;
+            }
+            
+            document.getElementById('nextUpdate').textContent = `${nextUpdate.toLocaleDateString()} ${nextUpdate.toLocaleTimeString()} (in ${timeStr})`;
+        }
+        
+        function checkAutoUpdate() {
+            const now = new Date();
+            const currentDay = now.getDay();
+            const currentHour = now.getHours();
+            
+            // Check if it's an update day and time
+            if (AUTO_UPDATE_DAYS.includes(currentDay) && currentHour === AUTO_UPDATE_HOUR) {
+                const lastAutoUpdate = localStorage.getItem('lastAutoUpdate');
+                const today = now.toDateString();
+                
+                if (lastAutoUpdate !== today) {
+                    localStorage.setItem('lastAutoUpdate', today);
+                    forceRefresh();
+                }
+            }
+        }
+        
+        async function forceRefresh() {
+            if (!confirm('This will clear the cache and reload all data. Continue?')) {
+                return;
+            }
+            
+            clearCache();
+            allSeriesData = [];
+            await loadTabData();
+            showStatus('Data refreshed from server', 'success');
+        }
+        
+        // ============================================
+        // Data Loading
+        // ============================================
+        
         async function initialize() {
-            console.log('🚀 Initializing ICE BofA Professional Analytics Platform...');
+            console.log('🚀 Initializing ICE BofA Dashboard with Rate Limiting...');
             
-            // Apply saved theme and density
-            if (currentTheme === 'light') {
-                document.body.classList.add('light-theme');
-                document.getElementById('themeIcon').textContent = '☀️';
-                document.getElementById('themeName').textContent = 'Light';
-            }
-            
-            setDensity(currentDensity, false);
-            
-            // Set up keyboard shortcuts
-            setupKeyboardShortcuts();
-            
-            // Load search history
-            displaySearchHistory();
-            
-            // Initialize
             updateLastUpdateTime();
+            updateCacheCount();
+            updateAutoUpdateDisplay();
+            
+            // Set up auto-update check
+            setInterval(checkAutoUpdate, 60000); // Check every minute
+            setInterval(updateAutoUpdateDisplay, 60000); // Update display every minute
+            
+            // Set up rate limit display update
+            setInterval(updateRateLimit, 1000);
+            
             await fetchSeriesMetadata();
-            
-            // Show AI suggestions on focus
-            document.getElementById('aiSearchInput').addEventListener('focus', () => {
-                document.getElementById('aiSuggestions').classList.add('active');
-            });
-            
-            document.getElementById('aiSearchInput').addEventListener('blur', () => {
-                setTimeout(() => {
-                    document.getElementById('aiSuggestions').classList.remove('active');
-                }, 200);
-            });
         }
         
-        // Theme toggle
-        function toggleTheme() {
-            document.body.classList.toggle('light-theme');
-            currentTheme = document.body.classList.contains('light-theme') ? 'light' : 'dark';
-            localStorage.setItem('theme', currentTheme);
-            
-            const icon = document.getElementById('themeIcon');
-            const name = document.getElementById('themeName');
-            
-            if (currentTheme === 'light') {
-                icon.textContent = '☀️';
-                name.textContent = 'Light';
-            } else {
-                icon.textContent = '🌙';
-                name.textContent = 'Dark';
-            }
-        }
-        
-        // Set data density
-        function setDensity(density, save = true) {
-            document.body.className = document.body.className.replace(/compact|comfortable|spacious/g, '');
-            document.body.classList.add(density);
-            
-            document.querySelectorAll('.density-btn').forEach(btn => btn.classList.remove('active'));
-            event?.target?.classList.add('active');
-            
-            currentDensity = density;
-            if (save) {
-                localStorage.setItem('density', density);
-            }
-        }
-        
-        // Keyboard shortcuts
-        function setupKeyboardShortcuts() {
-            document.addEventListener('keydown', (e) => {
-                // Focus search with '/'
-                if (e.key === '/' && !e.ctrlKey && !e.metaKey) {
-                    e.preventDefault();
-                    document.getElementById('aiSearchInput').focus();
-                }
-                
-                // Refresh with 'R'
-                if (e.key === 'r' && !e.ctrlKey && !e.metaKey) {
-                    e.preventDefault();
-                    refreshTabData();
-                }
-                
-                // Toggle theme with 'T'
-                if (e.key === 't' && !e.ctrlKey && !e.metaKey) {
-                    e.preventDefault();
-                    toggleTheme();
-                }
-                
-                // Export with 'E'
-                if (e.key === 'e' && !e.ctrlKey && !e.metaKey) {
-                    e.preventDefault();
-                    exportData();
-                }
-            });
-        }
-        
-        // AI-Powered Search
-        function handleAISearch(event) {
-            const query = event.target.value.toLowerCase();
-            
-            if (event.key === 'Enter') {
-                performAISearch(query);
-                addToSearchHistory(query);
-            }
-        }
-        
-        function performAISearch(query) {
-            console.log('🤖 Processing AI search:', query);
-            
-            // Natural language processing
-            let filteredData = [...allSeriesData];
-            
-            // Parse the query
-            const hasHighYield = query.includes('high yield') || query.includes('hy');
-            const hasInvestmentGrade = query.includes('investment grade') || query.includes('ig');
-            const hasEmerging = query.includes('emerging') || query.includes('em ');
-            const hasEuro = query.includes('euro') || query.includes('eur');
-            
-            // Parse numeric conditions
-            const spreadMatch = query.match(/spread[s]?\s*(?:above|>|over)\s*(\d+)/i);
-            const yieldMatch = query.match(/yield[s]?\s*(?:above|>|over)\s*(\d+)/i);
-            const returnMatch = query.match(/return[s]?\s*(?:positive|negative|>|<)\s*([\d.]+)?/i);
-            
-            // Apply filters
-            if (hasHighYield) {
-                filteredData = filteredData.filter(s => 
-                    s.id.includes('HY') || s.name.toLowerCase().includes('high yield')
-                );
-            }
-            
-            if (hasInvestmentGrade) {
-                filteredData = filteredData.filter(s => 
-                    s.id.includes('IG') || s.name.toLowerCase().includes('investment grade')
-                );
-            }
-            
-            if (hasEmerging) {
-                filteredData = filteredData.filter(s => 
-                    s.id.includes('EM') || s.name.toLowerCase().includes('emerging')
-                );
-            }
-            
-            if (hasEuro) {
-                filteredData = filteredData.filter(s => 
-                    s.id.includes('EUR') || s.name.toLowerCase().includes('euro')
-                );
-            }
-            
-            if (spreadMatch) {
-                const spreadThreshold = parseFloat(spreadMatch[1]);
-                filteredData = filteredData.filter(s => {
-                    if (s.id.includes('OAS') || s.id.includes('SPREAD')) {
-                        return s.latest.value > spreadThreshold;
-                    }
-                    return false;
-                });
-            }
-            
-            if (yieldMatch) {
-                const yieldThreshold = parseFloat(yieldMatch[1]);
-                filteredData = filteredData.filter(s => {
-                    if (s.id.includes('EY') || s.id.includes('YIELD')) {
-                        return s.latest.value > yieldThreshold;
-                    }
-                    return false;
-                });
-            }
-            
-            if (returnMatch) {
-                const isPositive = returnMatch[1] === 'positive' || returnMatch[1] === '>';
-                filteredData = filteredData.filter(s => {
-                    const yoy = s.changes['YoY%'];
-                    return isPositive ? yoy > 0 : yoy < 0;
-                });
-            }
-            
-            // Generate AI commentary
-            generateMarketCommentary(filteredData, query);
-            
-            // Display filtered results
-            displayFilteredResults(filteredData);
-            
-            // Detect anomalies
-            detectAnomalies(filteredData);
-        }
-        
-        function generateMarketCommentary(data, query) {
-            const commentary = document.getElementById('marketCommentary');
-            const content = document.getElementById('commentaryContent');
-            
-            if (data.length === 0) {
-                commentary.style.display = 'none';
-                return;
-            }
-            
-            // Calculate statistics
-            const avgChange = data.reduce((sum, s) => sum + (s.changes['WoW%'] || 0), 0) / data.length;
-            const maxGainer = data.reduce((max, s) => 
-                (s.changes['WoW%'] || 0) > (max.changes['WoW%'] || 0) ? s : max
-            );
-            const maxLoser = data.reduce((min, s) => 
-                (s.changes['WoW%'] || 0) < (min.changes['WoW%'] || 0) ? s : min
-            );
-            
-            // Generate commentary
-            let commentaryText = `<strong>AI Analysis:</strong> Found ${data.length} series matching "${query}". `;
-            
-            if (avgChange > 0) {
-                commentaryText += `The sector shows <span class="positive">positive momentum</span> with average weekly change of +${avgChange.toFixed(2)}%. `;
-            } else {
-                commentaryText += `The sector shows <span class="negative">negative pressure</span> with average weekly change of ${avgChange.toFixed(2)}%. `;
-            }
-            
-            if (maxGainer && maxGainer.changes['WoW%'] > 0) {
-                commentaryText += `<br><br><strong>Top Performer:</strong> ${maxGainer.name} (${maxGainer.id}) with <span class="positive">+${maxGainer.changes['WoW%'].toFixed(2)}%</span> WoW. `;
-            }
-            
-            if (maxLoser && maxLoser.changes['WoW%'] < 0) {
-                commentaryText += `<br><strong>Laggard:</strong> ${maxLoser.name} (${maxLoser.id}) with <span class="negative">${maxLoser.changes['WoW%'].toFixed(2)}%</span> WoW. `;
-            }
-            
-            // Add predictive insight
-            const prediction = predictTrend(data);
-            commentaryText += `<br><br><strong>🔮 AI Prediction:</strong> ${prediction}`;
-            
-            content.innerHTML = commentaryText;
-            commentary.style.display = 'block';
-        }
-        
-        function predictTrend(data) {
-            // Simple trend prediction based on momentum
-            const recentMomentum = data.reduce((sum, s) => sum + (s.changes['WoW%'] || 0), 0) / data.length;
-            const longerMomentum = data.reduce((sum, s) => sum + (s.changes['MoM%'] || 0), 0) / data.length;
-            
-            if (recentMomentum > 0 && longerMomentum > 0) {
-                return '📈 Bullish momentum likely to continue. Consider overweight positioning.';
-            } else if (recentMomentum < 0 && longerMomentum < 0) {
-                return '📉 Bearish pressure persists. Risk management recommended.';
-            } else if (recentMomentum > 0 && longerMomentum < 0) {
-                return '🔄 Potential reversal detected. Monitor for confirmation.';
-            } else {
-                return '➡️ Mixed signals. Await clearer directional bias.';
-            }
-        }
-        
-        function detectAnomalies(data) {
-            // Detect statistical anomalies
-            data.forEach(series => {
-                const wow = Math.abs(series.changes['WoW%'] || 0);
-                const mom = Math.abs(series.changes['MoM%'] || 0);
-                
-                // Mark as anomaly if change is > 2 standard deviations
-                if (wow > 5 || mom > 10) {
-                    series.anomaly = true;
-                }
-            });
-        }
-        
-        function useAISuggestion(query) {
-            document.getElementById('aiSearchInput').value = query;
-            performAISearch(query);
-            addToSearchHistory(query);
-        }
-        
-        function addToSearchHistory(query) {
-            if (!searchHistory.includes(query)) {
-                searchHistory.unshift(query);
-                if (searchHistory.length > 10) searchHistory.pop();
-                localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
-                displaySearchHistory();
-            }
-        }
-        
-        function displaySearchHistory() {
-            const container = document.getElementById('searchHistory');
-            if (searchHistory.length === 0) return;
-            
-            container.innerHTML = '<div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Recent searches:</div>' +
-                searchHistory.slice(0, 5).map(query => 
-                    `<div class="history-chip" onclick="useAISuggestion('${query}')">${query}</div>`
-                ).join('');
-        }
-        
-        // View management
-        function setView(view) {
-            currentView = view;
-            
-            // Update buttons
-            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            // Show/hide views
-            document.getElementById('tableView').style.display = view === 'table' ? 'block' : 'none';
-            document.getElementById('heatmapContainer').style.display = view === 'heatmap' ? 'block' : 'none';
-            document.getElementById('comparisonPanel').style.display = view === 'comparison' ? 'block' : 'none';
-            
-            if (view === 'heatmap') {
-                updateHeatmap();
-            }
-        }
-        
-        // Heatmap functionality
-        function updateHeatmap() {
-            const metric = document.getElementById('heatmapMetric').value;
-            const grid = document.getElementById('heatmapGrid');
-            
-            const data = allSeriesData.filter(s => !s.error);
-            
-            // Sort by selected metric
-            data.sort((a, b) => {
-                const aVal = metric === 'value' ? a.latest.value : a.changes[metric === 'wow' ? 'WoW%' : metric === 'mom' ? 'MoM%' : metric === 'qoq' ? 'QoQ%' : 'YoY%'] || 0;
-                const bVal = metric === 'value' ? b.latest.value : b.changes[metric === 'wow' ? 'WoW%' : metric === 'mom' ? 'MoM%' : metric === 'qoq' ? 'QoQ%' : 'YoY%'] || 0;
-                return bVal - aVal;
-            });
-            
-            // Create heatmap cells
-            grid.innerHTML = data.map(series => {
-                const value = metric === 'value' ? series.latest.value : 
-                    series.changes[metric === 'wow' ? 'WoW%' : metric === 'mom' ? 'MoM%' : metric === 'qoq' ? 'QoQ%' : 'YoY%'] || 0;
-                
-                const color = getHeatmapColor(value, metric);
-                
-                return `
-                    <div class="heatmap-cell" style="background: ${color}; color: ${value > 0 ? '#000' : '#fff'};" 
-                         onclick="addToComparison('${series.id}')" 
-                         title="${series.name}">
-                        <div class="heatmap-value">${formatHeatmapValue(value, metric)}</div>
-                        <div class="heatmap-label">${series.id}</div>
-                    </div>
-                `;
-            }).join('');
-        }
-        
-        function getHeatmapColor(value, metric) {
-            if (metric === 'value') {
-                return `rgba(0, 204, 255, 0.3)`;
-            }
-            
-            const intensity = Math.min(Math.abs(value) / 10, 1);
-            if (value > 0) {
-                return `rgba(0, 255, 136, ${intensity})`;
-            } else {
-                return `rgba(255, 68, 68, ${intensity})`;
-            }
-        }
-        
-        function formatHeatmapValue(value, metric) {
-            if (metric === 'value') {
-                return value.toFixed(2);
-            }
-            return `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`;
-        }
-        
-        // Comparison functionality
-        function addToComparison(seriesId) {
-            if (comparisonSeries.includes(seriesId)) {
-                comparisonSeries = comparisonSeries.filter(id => id !== seriesId);
-            } else if (comparisonSeries.length < 5) {
-                comparisonSeries.push(seriesId);
-            } else {
-                showStatus('Maximum 5 series for comparison', 'info');
-                return;
-            }
-            
-            updateComparisonPanel();
-        }
-        
-        function updateComparisonPanel() {
-            const grid = document.getElementById('comparisonGrid');
-            
-            if (comparisonSeries.length === 0) {
-                grid.innerHTML = '<div style="color: var(--text-secondary);">Select series from the table or heatmap to compare</div>';
-                return;
-            }
-            
-            const data = comparisonSeries.map(id => 
-                allSeriesData.find(s => s.id === id)
-            ).filter(Boolean);
-            
-            grid.innerHTML = data.map(series => `
-                <div class="compare-card">
-                    <div class="compare-card-title">${series.id}</div>
-                    <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem;">${series.name}</div>
-                    <div>Value: <strong>${formatValue(series.latest.value, series.id)}</strong></div>
-                    <div>WoW: <span class="${getColorClass(series.changes['WoW%'])}">${formatChange(series.changes['WoW%'])}</span></div>
-                    <div>MoM: <span class="${getColorClass(series.changes['MoM%'])}">${formatChange(series.changes['MoM%'])}</span></div>
-                    <div>YoY: <span class="${getColorClass(series.changes['YoY%'])}">${formatChange(series.changes['YoY%'])}</span></div>
-                    <button class="quick-action-btn" onclick="removeFromComparison('${series.id}')" style="margin-top: 0.5rem;">Remove</button>
-                </div>
-            `).join('');
-        }
-        
-        function removeFromComparison(seriesId) {
-            comparisonSeries = comparisonSeries.filter(id => id !== seriesId);
-            updateComparisonPanel();
-        }
-        
-        function clearComparison() {
-            comparisonSeries = [];
-            updateComparisonPanel();
-            document.getElementById('correlationChart').innerHTML = '';
-            document.getElementById('spreadChart').innerHTML = '';
-        }
-        
-        function calculateCorrelation() {
-            if (comparisonSeries.length < 2) {
-                showStatus('Select at least 2 series for correlation', 'info');
-                return;
-            }
-            
-            // Simulated correlation matrix
-            const data = comparisonSeries.map(id => 
-                allSeriesData.find(s => s.id === id)
-            );
-            
-            const correlations = [];
-            for (let i = 0; i < data.length; i++) {
-                for (let j = 0; j < data.length; j++) {
-                    correlations.push({
-                        x: data[i].id,
-                        y: data[j].id,
-                        value: i === j ? 1 : Math.random() * 2 - 1
-                    });
-                }
-            }
-            
-            // Create correlation heatmap
-            const trace = {
-                x: data.map(d => d.id),
-                y: data.map(d => d.id),
-                z: data.map((_, i) => 
-                    data.map((_, j) => i === j ? 1 : Math.random() * 2 - 1)
-                ),
-                type: 'heatmap',
-                colorscale: 'RdBu',
-                zmin: -1,
-                zmax: 1
-            };
-            
-            const layout = {
-                title: 'Correlation Matrix',
-                paper_bgcolor: 'rgba(0,0,0,0)',
-                plot_bgcolor: 'rgba(0,0,0,0)',
-                font: { color: currentTheme === 'dark' ? '#e0e0e0' : '#333' }
-            };
-            
-            Plotly.newPlot('correlationChart', [trace], layout);
-        }
-        
-        function showSpreadDiff() {
-            if (comparisonSeries.length < 2) {
-                showStatus('Select at least 2 series for spread differential', 'info');
-                return;
-            }
-            
-            // Create spread differential chart
-            const data = comparisonSeries.map(id => 
-                allSeriesData.find(s => s.id === id)
-            );
-            
-            const traces = data.map(series => ({
-                x: ['Current', 'WoW', 'MoM', 'QoQ', 'YoY'],
-                y: [
-                    series.latest.value,
-                    series.changes['WoW%'] || 0,
-                    series.changes['MoM%'] || 0,
-                    series.changes['QoQ%'] || 0,
-                    series.changes['YoY%'] || 0
-                ],
-                name: series.id,
-                type: 'scatter',
-                mode: 'lines+markers'
-            }));
-            
-            const layout = {
-                title: 'Series Comparison',
-                xaxis: { title: 'Period' },
-                yaxis: { title: 'Value / Change %' },
-                paper_bgcolor: 'rgba(0,0,0,0)',
-                plot_bgcolor: 'rgba(0,0,0,0)',
-                font: { color: currentTheme === 'dark' ? '#e0e0e0' : '#333' }
-            };
-            
-            Plotly.newPlot('spreadChart', traces, layout);
-        }
-        
-        // Historical Analysis
-        function openHistoricalAnalysis() {
-            document.getElementById('historicalModal').classList.add('active');
-        }
-        
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('active');
-        }
-        
-        function runBacktest() {
-            showStatus('Running backtest simulation...', 'info');
-            
-            // Simulate backtest results
-            setTimeout(() => {
-                const results = {
-                    totalReturn: (Math.random() * 20 - 10).toFixed(2),
-                    sharpeRatio: (Math.random() * 2).toFixed(2),
-                    maxDrawdown: (Math.random() * -15).toFixed(2),
-                    winRate: (Math.random() * 100).toFixed(1)
-                };
-                
-                document.getElementById('historicalChart').innerHTML = `
-                    <div class="compare-card">
-                        <div class="compare-card-title">Backtest Results</div>
-                        <div>Total Return: <span class="${results.totalReturn > 0 ? 'positive' : 'negative'}">${results.totalReturn}%</span></div>
-                        <div>Sharpe Ratio: ${results.sharpeRatio}</div>
-                        <div>Max Drawdown: <span class="negative">${results.maxDrawdown}%</span></div>
-                        <div>Win Rate: ${results.winRate}%</div>
-                    </div>
-                `;
-                
-                showStatus('Backtest completed', 'success');
-            }, 2000);
-        }
-        
-        function analyzeEvents() {
-            showStatus('Analyzing event impacts...', 'info');
-            
-            const events = [
-                { date: '2024-12-18', event: 'Fed Meeting', impact: -0.25 },
-                { date: '2024-11-05', event: 'Election', impact: 1.2 },
-                { date: '2024-10-01', event: 'NFP Release', impact: 0.5 }
-            ];
-            
-            setTimeout(() => {
-                document.getElementById('historicalChart').innerHTML = `
-                    <h4>Event Impact Analysis</h4>
-                    <table style="width: 100%; margin-top: 1rem;">
-                        <tr>
-                            <th style="text-align: left; padding: 0.5rem;">Date</th>
-                            <th style="text-align: left; padding: 0.5rem;">Event</th>
-                            <th style="text-align: left; padding: 0.5rem;">Market Impact</th>
-                        </tr>
-                        ${events.map(e => `
-                            <tr>
-                                <td style="padding: 0.5rem;">${e.date}</td>
-                                <td style="padding: 0.5rem;">${e.event}</td>
-                                <td style="padding: 0.5rem;" class="${e.impact > 0 ? 'positive' : 'negative'}">${e.impact > 0 ? '+' : ''}${e.impact}%</td>
-                            </tr>
-                        `).join('')}
-                    </table>
-                `;
-                
-                showStatus('Event analysis completed', 'success');
-            }, 2000);
-        }
-        
-        function findSeasonality() {
-            showStatus('Detecting seasonal patterns...', 'info');
-            
-            setTimeout(() => {
-                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                const data = months.map(m => Math.random() * 4 - 2);
-                
-                const trace = {
-                    x: months,
-                    y: data,
-                    type: 'bar',
-                    marker: {
-                        color: data.map(d => d > 0 ? 'rgba(0, 255, 136, 0.7)' : 'rgba(255, 68, 68, 0.7)')
-                    }
-                };
-                
-                const layout = {
-                    title: 'Average Monthly Returns',
-                    xaxis: { title: 'Month' },
-                    yaxis: { title: 'Average Return %' },
-                    paper_bgcolor: 'rgba(0,0,0,0)',
-                    plot_bgcolor: 'rgba(0,0,0,0)',
-                    font: { color: currentTheme === 'dark' ? '#e0e0e0' : '#333' }
-                };
-                
-                Plotly.newPlot('historicalChart', [trace], layout);
-                showStatus('Seasonal patterns detected', 'success');
-            }, 2000);
-        }
-        
-        function detectRegimes() {
-            showStatus('Identifying regime changes...', 'info');
-            
-            setTimeout(() => {
-                document.getElementById('historicalChart').innerHTML = `
-                    <h4>Market Regime Analysis</h4>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
-                        <div class="compare-card" style="border-left: 3px solid var(--accent-green);">
-                            <div class="compare-card-title">Bull Market</div>
-                            <div>Duration: 18 months</div>
-                            <div>Avg Return: +15.2%</div>
-                            <div>Volatility: 12%</div>
-                        </div>
-                        <div class="compare-card" style="border-left: 3px solid var(--accent-red);">
-                            <div class="compare-card-title">Bear Market</div>
-                            <div>Duration: 6 months</div>
-                            <div>Avg Return: -8.5%</div>
-                            <div>Volatility: 25%</div>
-                        </div>
-                        <div class="compare-card" style="border-left: 3px solid var(--accent-gold);">
-                            <div class="compare-card-title">Sideways</div>
-                            <div>Duration: 4 months</div>
-                            <div>Avg Return: +1.2%</div>
-                            <div>Volatility: 8%</div>
-                        </div>
-                    </div>
-                `;
-                
-                showStatus('Regime analysis completed', 'success');
-            }, 2000);
-        }
-        
-        // Annotations
-        function openAnnotations() {
-            document.getElementById('annotationsModal').classList.add('active');
-            displayAnnotations();
-        }
-        
-        function addAnnotation() {
-            const text = document.getElementById('annotationText').value;
-            if (!text) return;
-            
-            const annotation = {
-                id: Date.now(),
-                text: text,
-                author: 'Current User',
-                date: new Date().toISOString(),
-                series: currentFilter
-            };
-            
-            annotations.push(annotation);
-            localStorage.setItem('annotations', JSON.stringify(annotations));
-            
-            document.getElementById('annotationText').value = '';
-            displayAnnotations();
-            showStatus('Annotation added', 'success');
-        }
-        
-        function displayAnnotations() {
-            const list = document.getElementById('annotationsList');
-            const relevantAnnotations = annotations.filter(a => 
-                a.series === currentFilter || currentFilter === 'all'
-            );
-            
-            if (relevantAnnotations.length === 0) {
-                list.innerHTML = '<div style="color: var(--text-secondary);">No annotations yet</div>';
-                return;
-            }
-            
-            list.innerHTML = relevantAnnotations.map(a => `
-                <div class="annotation-box">
-                    <div class="annotation-author">${a.author}</div>
-                    <div class="annotation-text">${a.text}</div>
-                    <div class="annotation-date">${new Date(a.date).toLocaleString()}</div>
-                </div>
-            `).join('');
-        }
-        
-        // Share functionality
-        function shareView() {
-            const params = new URLSearchParams({
-                filter: currentFilter,
-                sort: sortColumn,
-                direction: sortDirection,
-                view: currentView
-            });
-            
-            const shareUrl = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
-            
-            navigator.clipboard.writeText(shareUrl).then(() => {
-                showStatus('Share URL copied to clipboard!', 'success');
-            });
-        }
-        
-        // Export functionality
-        function exportData() {
-            const format = prompt('Export format: csv, json, excel, or pdf?', 'csv');
-            
-            if (format === 'csv') {
-                exportToCSV();
-            } else if (format === 'json') {
-                exportToJSON();
-            } else if (format === 'excel' || format === 'pdf') {
-                showStatus(`${format.toUpperCase()} export coming soon!`, 'info');
-            }
-        }
-        
-        function exportToJSON() {
-            const dataStr = JSON.stringify(allSeriesData, null, 2);
-            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            
-            const exportFileDefaultName = `ice_bofa_${currentFilter}_${new Date().toISOString().split('T')[0]}.json`;
-            
-            const linkElement = document.createElement('a');
-            linkElement.setAttribute('href', dataUri);
-            linkElement.setAttribute('download', exportFileDefaultName);
-            linkElement.click();
-            
-            showStatus('Data exported to JSON', 'success');
-        }
-        
-        // Configure alerts
-        function configureAlerts() {
-            const threshold = prompt('Set alert threshold for spreads (bps):', '500');
-            if (threshold) {
-                localStorage.setItem('alertThreshold', threshold);
-                showStatus(`Alert set for spreads > ${threshold}bps`, 'success');
-                
-                // Check current data for alerts
-                const alerts = allSeriesData.filter(s => 
-                    s.id.includes('OAS') && s.latest.value > parseFloat(threshold)
-                );
-                
-                if (alerts.length > 0) {
-                    showStatus(`⚠️ ${alerts.length} series exceed threshold!`, 'error');
-                }
-            }
-        }
-        
-        // Fetch the metadata (list of all series)
         async function fetchSeriesMetadata() {
-            showStatus('Initializing platform...', 'info');
+            showStatus('Fetching series list...', 'info');
             
             try {
                 const response = await fetch(`${API_BASE}/ice_bofa?series=all`);
@@ -1868,8 +830,7 @@
                 const count = Object.keys(allSeriesMetadata).length;
                 document.getElementById('totalSeries').textContent = count;
                 
-                console.log(`✅ Found ${count} ICE BofA series`);
-                showStatus(`Platform ready. ${count} series available.`, 'success');
+                showStatus(`Ready. ${count} series available. Cache enabled, rate limited to ${RATE_LIMIT} req/min.`, 'success');
                 
             } catch (error) {
                 console.error('Error:', error);
@@ -1877,7 +838,6 @@
             }
         }
         
-        // Load data for current tab
         async function loadTabData() {
             const seriesToLoad = getSeriesForCurrentTab();
             
@@ -1889,7 +849,6 @@
             await loadSeriesDataBatch(seriesToLoad);
         }
         
-        // Refresh data for current tab
         async function refreshTabData() {
             const seriesToLoad = getSeriesForCurrentTab();
             
@@ -1898,22 +857,19 @@
                 return;
             }
             
-            // Show stale indicator
-            document.querySelectorAll('#mainTableBody tr').forEach(row => {
-                if (!row.querySelector('.stale-indicator')) {
-                    const td = row.querySelector('td:last-child');
-                    if (td) td.innerHTML += '<span class="stale-indicator">Updating...</span>';
-                }
+            // Clear cache for these series
+            seriesToLoad.forEach(seriesId => {
+                const key = getCacheKey(seriesId);
+                localStorage.removeItem(key);
             });
             
-            // Clear existing data for these series
+            // Clear from loaded data
             const seriesToLoadSet = new Set(seriesToLoad);
             allSeriesData = allSeriesData.filter(s => !seriesToLoadSet.has(s.id));
             
             await loadSeriesDataBatch(seriesToLoad);
         }
         
-        // Get series IDs for the current tab
         function getSeriesForCurrentTab() {
             let seriesIds = Object.keys(allSeriesMetadata);
             
@@ -1926,7 +882,7 @@
                     
                 case 'spreads':
                     return seriesIds.filter(id => 
-                        id.includes('OAS') || id.includes('SPREAD') || id.includes('SEMIWORST') ||
+                        id.includes('OAS') || id.includes('SPREAD') || 
                         allSeriesMetadata[id].toLowerCase().includes('spread')
                     );
                     
@@ -1939,27 +895,23 @@
                 case 'emerging':
                     return seriesIds.filter(id => {
                         const name = allSeriesMetadata[id].toLowerCase();
-                        return id.includes('EM') || id.includes('EMB') || 
-                               name.includes('emerging') || name.includes('em ');
+                        return id.includes('EM') || name.includes('emerging');
                     });
                     
                 case 'euro':
                     return seriesIds.filter(id => {
                         const name = allSeriesMetadata[id].toLowerCase();
-                        return id.includes('EUR') || id.includes('EU') || 
-                               name.includes('euro') || name.includes('european');
+                        return id.includes('EUR') || name.includes('euro');
                     });
                     
                 case 'favorites':
                     return favorites.filter(id => seriesIds.includes(id));
                     
-                case 'all':
                 default:
                     return seriesIds;
             }
         }
         
-        // Load series data in batches
         async function loadSeriesDataBatch(seriesIds) {
             const totalCount = seriesIds.length;
             
@@ -1968,124 +920,119 @@
                 return;
             }
             
-            console.log(`📊 Loading ${totalCount} series...`);
-            showStatus(`Loading ${totalCount} series...`, 'info');
+            console.log(`📊 Loading ${totalCount} series with rate limiting...`);
+            showStatus(`Loading ${totalCount} series (rate limited to ${RATE_LIMIT}/min)...`, 'info');
             
-            // Show progress bar
+            // Disable buttons during loading
+            document.getElementById('loadTabBtn').disabled = true;
+            document.getElementById('refreshTabBtn').disabled = true;
+            document.getElementById('loadAllBtn').disabled = true;
+            
+            // Show progress
             const progressContainer = document.getElementById('progressContainer');
             const progressBar = document.getElementById('progressBar');
             progressContainer.style.display = 'block';
             
-            // Show skeleton loading
-            showSkeletonLoading();
+            document.getElementById('mainTableBody').innerHTML = '<tr><td colspan="10" class="loading"><div class="loading-spinner"></div> Loading data...</td></tr>';
             
             let loaded = 0;
             let failed = 0;
+            let cached = 0;
             
-            // Progressive loading
-            const batchSize = 3;
-            
-            for (let i = 0; i < seriesIds.length; i += batchSize) {
-                const batch = seriesIds.slice(i, i + batchSize);
-                
-                const batchPromises = batch.map(async (seriesId) => {
-                    try {
-                        // Check if already loaded
-                        const existing = allSeriesData.find(s => s.id === seriesId);
-                        if (existing && !existing.error) {
-                            loaded++;
-                            return;
-                        }
-                        
-                        const response = await fetch(`${API_BASE}/ice_bofa?series=${seriesId}`);
-                        if (response.ok) {
-                            const data = await response.json();
-                            
-                            // Remove old entry if exists
-                            allSeriesData = allSeriesData.filter(s => s.id !== seriesId);
-                            
-                            // Store the full series data
-                            allSeriesData.push({
-                                id: seriesId,
-                                name: data.name || allSeriesMetadata[seriesId],
-                                latest: data.latest || {},
-                                changes: data.percentage_changes || {},
-                                frequency: data.frequency,
-                                units: data.units
-                            });
-                            
-                            loaded++;
-                            
-                            // Progressive display
-                            if (loaded % 10 === 0) {
-                                displaySeriesData();
-                            }
-                        } else {
-                            throw new Error(`HTTP ${response.status}`);
-                        }
-                    } catch (err) {
-                        console.error(`Failed: ${seriesId}:`, err.message);
-                        
-                        allSeriesData = allSeriesData.filter(s => s.id !== seriesId);
-                        allSeriesData.push({
-                            id: seriesId,
-                            name: allSeriesMetadata[seriesId],
-                            latest: { value: null, date: null },
-                            changes: {},
-                            error: true
-                        });
-                        
-                        failed++;
+            for (const seriesId of seriesIds) {
+                try {
+                    // Check if already loaded
+                    const existing = allSeriesData.find(s => s.id === seriesId);
+                    if (existing && !existing.error) {
+                        loaded++;
+                        continue;
                     }
-                });
-                
-                await Promise.all(batchPromises);
-                
-                // Update progress
-                const progress = Math.round(((loaded + failed) / totalCount) * 100);
-                progressBar.style.width = `${progress}%`;
-                progressBar.textContent = `${progress}%`;
-                
-                document.getElementById('loadedSeries').textContent = allSeriesData.filter(s => !s.error).length;
-                
-                if (i + batchSize < seriesIds.length) {
-                    await new Promise(resolve => setTimeout(resolve, 50));
+                    
+                    // Check cache first
+                    const cachedData = getCachedData(seriesId);
+                    
+                    let data;
+                    if (cachedData) {
+                        data = cachedData;
+                        cached++;
+                    } else {
+                        // Use rate-limited request
+                        data = await makeRateLimitedRequest(seriesId);
+                    }
+                    
+                    // Remove old entry
+                    allSeriesData = allSeriesData.filter(s => s.id !== seriesId);
+                    
+                    // Store the data
+                    allSeriesData.push({
+                        id: seriesId,
+                        name: data.name || allSeriesMetadata[seriesId],
+                        latest: data.latest || {},
+                        changes: data.percentage_changes || {},
+                        frequency: data.frequency,
+                        units: data.units,
+                        cached: data.cached || false
+                    });
+                    
+                    loaded++;
+                    
+                    // Update progress
+                    const progress = Math.round((loaded / totalCount) * 100);
+                    progressBar.style.width = `${progress}%`;
+                    progressBar.textContent = `${progress}%`;
+                    
+                    document.getElementById('loadedSeries').textContent = allSeriesData.filter(s => !s.error).length;
+                    
+                    // Update display periodically
+                    if (loaded % 10 === 0) {
+                        displaySeriesData();
+                    }
+                    
+                } catch (error) {
+                    console.error(`Failed ${seriesId}:`, error);
+                    
+                    allSeriesData = allSeriesData.filter(s => s.id !== seriesId);
+                    allSeriesData.push({
+                        id: seriesId,
+                        name: allSeriesMetadata[seriesId],
+                        latest: { value: null, date: null },
+                        changes: {},
+                        error: true
+                    });
+                    
+                    failed++;
                 }
             }
             
-            // Hide progress bar
+            // Hide progress
             progressContainer.style.display = 'none';
+            
+            // Re-enable buttons
+            document.getElementById('loadTabBtn').disabled = false;
+            document.getElementById('refreshTabBtn').disabled = false;
+            document.getElementById('loadAllBtn').disabled = false;
             
             // Final display
             displaySeriesData();
             updateLastUpdateTime();
             
-            if (failed > 0) {
-                showStatus(`Loaded ${loaded} series. ${failed} failed.`, 'info');
-            } else {
-                showStatus(`Successfully loaded ${loaded} series!`, 'success');
-            }
+            const statusMsg = `Loaded ${loaded} series (${cached} from cache, ${loaded - cached} from API). ${failed > 0 ? `${failed} failed.` : ''}`;
+            showStatus(statusMsg, failed > 0 ? 'info' : 'success');
         }
         
-        // Show skeleton loading
-        function showSkeletonLoading() {
-            const tbody = document.getElementById('mainTableBody');
-            tbody.innerHTML = Array(5).fill(0).map(() => `
-                <tr>
-                    <td colspan="11">
-                        <div class="skeleton skeleton-row"></div>
-                    </td>
-                </tr>
-            `).join('');
-        }
-        
-        // Load all series data
         async function loadAllSeriesData() {
+            if (!confirm('This will load all 162 series with rate limiting (may take 2-3 minutes). Continue?')) {
+                return;
+            }
+            
             const seriesIds = Object.keys(allSeriesMetadata);
             await loadSeriesDataBatch(seriesIds);
         }
         
-        // Display series data
+        // ============================================
+        // Display Functions
+        // ============================================
+        
         function displaySeriesData() {
             let filteredData = [...allSeriesData];
             
@@ -2097,39 +1044,21 @@
                     
                     switch(currentFilter) {
                         case 'yields':
-                            return id.includes('EY') || id.includes('SYTW') || name.includes('yield');
-                            
+                            return id.includes('EY') || name.includes('yield');
                         case 'spreads':
-                            return id.includes('OAS') || id.includes('SPREAD') || id.includes('SEMIWORST') ||
-                                   name.includes('spread');
-                            
+                            return id.includes('OAS') || id.includes('SPREAD');
                         case 'returns':
-                            return id.includes('TRIV') || name.includes('total return');
-                            
+                            return id.includes('TRIV');
                         case 'emerging':
-                            return id.includes('EM') || id.includes('EMB') || 
-                                   name.includes('emerging') || name.includes('em ');
-                            
+                            return id.includes('EM') || name.includes('emerging');
                         case 'euro':
-                            return id.includes('EUR') || id.includes('EU') || 
-                                   name.includes('euro') || name.includes('european');
-                            
+                            return id.includes('EUR') || name.includes('euro');
                         case 'favorites':
                             return favorites.includes(id);
-                            
                         default:
                             return true;
                     }
                 });
-            }
-            
-            // Apply AI search filter if any
-            const searchTerm = document.getElementById('aiSearchInput').value.toLowerCase();
-            if (searchTerm && !searchTerm.includes('show') && !searchTerm.includes('find')) {
-                filteredData = filteredData.filter(series => 
-                    series.id.toLowerCase().includes(searchTerm) || 
-                    series.name.toLowerCase().includes(searchTerm)
-                );
             }
             
             // Sort data
@@ -2181,50 +1110,39 @@
                 }
             });
             
-            // Build table HTML
+            // Build table
             const tbody = document.getElementById('mainTableBody');
             
             if (filteredData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="11" style="text-align: center; color: var(--text-secondary);">No data to display. Click "Load Tab" to load series.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; color: #888;">No data to display. Click "Load Tab Data" to load series.</td></tr>';
                 document.getElementById('seriesCount').textContent = `0 series displayed`;
                 return;
             }
             
             const rows = filteredData.map(series => {
                 const isFavorite = favorites.includes(series.id);
-                const isAnomaly = series.anomaly;
-                const prediction = getPrediction(series);
+                const sourceLabel = series.cached ? 
+                    '<span class="cache-badge">CACHED</span>' : 
+                    '<span class="fresh-badge">FRESH</span>';
                 
                 return `
-                    <tr class="${isAnomaly ? 'anomaly' : ''}">
+                    <tr>
                         <td><span class="favorite-star ${isFavorite ? 'active' : ''}" onclick="toggleFavorite('${series.id}')">★</span></td>
-                        <td><input type="checkbox" onchange="handleCompareCheckbox('${series.id}')" ${comparisonSeries.includes(series.id) ? 'checked' : ''}></td>
-                        <td class="series-id">
-                            ${series.id}
-                            ${isAnomaly ? '<span class="anomaly-badge">ANOMALY</span>' : ''}
-                        </td>
-                        <td>${highlightSearchTerm(series.name, searchTerm)}</td>
+                        <td class="series-id">${series.id}</td>
+                        <td>${series.name}</td>
                         <td class="value-cell ${series.error ? 'neutral' : ''}">${formatValue(series.latest.value, series.id)}</td>
                         <td class="${getColorClass(series.changes['WoW%'])}">${formatChange(series.changes['WoW%'])}</td>
                         <td class="${getColorClass(series.changes['MoM%'])}">${formatChange(series.changes['MoM%'])}</td>
                         <td class="${getColorClass(series.changes['QoQ%'])}">${formatChange(series.changes['QoQ%'])}</td>
                         <td class="${getColorClass(series.changes['YoY%'])}">${formatChange(series.changes['YoY%'])}</td>
                         <td>${series.latest.date || 'N/A'}</td>
-                        <td>
-                            <span class="prediction-indicator ${prediction.class}">${prediction.icon}</span>
-                            <div class="quick-actions">
-                                <button class="quick-action-btn" onclick="showChart('${series.id}')">Chart</button>
-                                <button class="quick-action-btn" onclick="showDetails('${series.id}')">Details</button>
-                                <button class="quick-action-btn" onclick="setAlert('${series.id}')">Alert</button>
-                            </div>
-                        </td>
+                        <td>${sourceLabel}</td>
                     </tr>
                 `;
             }).join('');
             
             tbody.innerHTML = rows;
             
-            // Update title
             const tabNames = {
                 'all': 'All ICE BofA Series',
                 'yields': 'Yield Indices',
@@ -2235,74 +1153,10 @@
                 'favorites': 'Favorite Indices'
             };
             
-            document.getElementById('mainTitle').textContent = tabNames[currentFilter] || 'Filtered Series';
+            document.getElementById('mainTitle').textContent = tabNames[currentFilter];
             document.getElementById('seriesCount').textContent = `${filteredData.length} series displayed`;
         }
         
-        function displayFilteredResults(filteredData) {
-            // Temporarily store and display filtered results
-            const originalData = [...allSeriesData];
-            allSeriesData = filteredData;
-            displaySeriesData();
-            allSeriesData = originalData;
-        }
-        
-        function highlightSearchTerm(text, term) {
-            if (!term || term.includes('show') || term.includes('find')) return text;
-            
-            const regex = new RegExp(`(${term})`, 'gi');
-            return text.replace(regex, '<span class="highlight">$1</span>');
-        }
-        
-        function getPrediction(series) {
-            const momentum = (series.changes['WoW%'] || 0) + (series.changes['MoM%'] || 0);
-            
-            if (momentum > 2) {
-                return { icon: '↑', class: 'prediction-up' };
-            } else if (momentum < -2) {
-                return { icon: '↓', class: 'prediction-down' };
-            } else {
-                return { icon: '→', class: 'prediction-neutral' };
-            }
-        }
-        
-        function handleCompareCheckbox(seriesId) {
-            addToComparison(seriesId);
-        }
-        
-        // Quick actions
-        function showChart(seriesId) {
-            const series = allSeriesData.find(s => s.id === seriesId);
-            if (!series) return;
-            
-            showStatus(`Chart view for ${seriesId} coming soon!`, 'info');
-        }
-        
-        function showDetails(seriesId) {
-            const series = allSeriesData.find(s => s.id === seriesId);
-            if (!series) return;
-            
-            alert(`
-                Series: ${series.id}
-                Name: ${series.name}
-                Current Value: ${formatValue(series.latest.value, series.id)}
-                Last Updated: ${series.latest.date}
-                Frequency: ${series.frequency || 'N/A'}
-                Units: ${series.units || 'N/A'}
-            `);
-        }
-        
-        function setAlert(seriesId) {
-            const threshold = prompt(`Set alert threshold for ${seriesId}:`, '');
-            if (threshold) {
-                const alerts = JSON.parse(localStorage.getItem('seriesAlerts') || '{}');
-                alerts[seriesId] = parseFloat(threshold);
-                localStorage.setItem('seriesAlerts', JSON.stringify(alerts));
-                showStatus(`Alert set for ${seriesId}`, 'success');
-            }
-        }
-        
-        // Toggle favorite
         function toggleFavorite(seriesId) {
             const index = favorites.indexOf(seriesId);
             if (index > -1) {
@@ -2315,7 +1169,6 @@
             displaySeriesData();
         }
         
-        // Format value
         function formatValue(value, seriesId) {
             if (value === null || value === undefined) return 'N/A';
             
@@ -2325,58 +1178,35 @@
                 return `${num.toFixed(2)} bps`;
             }
             
-            if (seriesId.includes('EY') || seriesId.includes('YIELD') || seriesId.includes('SYTW')) {
+            if (seriesId.includes('EY') || seriesId.includes('YIELD')) {
                 return `${num.toFixed(2)}%`;
-            }
-            
-            if (seriesId.includes('TRIV')) {
-                return num.toFixed(2);
             }
             
             return num.toFixed(2);
         }
         
-        // Format change
         function formatChange(value) {
             if (value === null || value === undefined) return 'N/A';
             const sign = value >= 0 ? '+' : '';
             return `${sign}${value.toFixed(2)}%`;
         }
         
-        // Get color class
         function getColorClass(value) {
             if (value === null || value === undefined) return 'neutral';
             return value >= 0 ? 'positive' : 'negative';
         }
         
-        // Filter by series
         function filterBySeries(filter) {
             currentFilter = filter;
             
-            console.log(`Switching to filter: ${filter}`);
-            
-            // Update active button
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
             event.target.classList.add('active');
             
-            // If we have data loaded, display it with new filter
-            if (allSeriesData.length > 0) {
-                displaySeriesData();
-            } else {
-                console.log('No data loaded yet. Click "Load Tab" or "Load All" first.');
-            }
-            
-            // Log what this filter would load
-            const wouldLoad = getSeriesForCurrentTab();
-            console.log(`This filter would load ${wouldLoad.length} series`);
-            if (wouldLoad.length > 0 && wouldLoad.length <= 5) {
-                console.log('Series IDs:', wouldLoad);
-            }
+            displaySeriesData();
         }
         
-        // Sort table
         function sortTable(column) {
             if (sortColumn === column) {
                 sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
@@ -2385,43 +1215,37 @@
                 sortDirection = 'asc';
             }
             
-            if (allSeriesData.length > 0) {
-                displaySeriesData();
-            }
+            displaySeriesData();
         }
         
-        // Export to CSV
         function exportToCSV() {
             if (allSeriesData.length === 0) {
-                showStatus('No data to export. Load data first.', 'error');
+                showStatus('No data to export.', 'error');
                 return;
             }
             
-            let csv = 'Series ID,Description,Current Value,WoW%,MoM%,QoQ%,YoY%,Last Updated,Favorite,Prediction\n';
+            let csv = 'Series ID,Description,Current Value,WoW%,MoM%,QoQ%,YoY%,Last Updated\n';
             
             allSeriesData.forEach(series => {
                 const value = series.latest.value !== null ? formatValue(series.latest.value, series.id) : 'N/A';
-                const wow = series.changes['WoW%'] !== undefined ? series.changes['WoW%'].toFixed(2) : 'N/A';
-                const mom = series.changes['MoM%'] !== undefined ? series.changes['MoM%'].toFixed(2) : 'N/A';
-                const qoq = series.changes['QoQ%'] !== undefined ? series.changes['QoQ%'].toFixed(2) : 'N/A';
-                const yoy = series.changes['YoY%'] !== undefined ? series.changes['YoY%'].toFixed(2) : 'N/A';
-                const isFav = favorites.includes(series.id) ? 'Yes' : 'No';
-                const pred = getPrediction(series).icon;
+                const wow = series.changes['WoW%']?.toFixed(2) || 'N/A';
+                const mom = series.changes['MoM%']?.toFixed(2) || 'N/A';
+                const qoq = series.changes['QoQ%']?.toFixed(2) || 'N/A';
+                const yoy = series.changes['YoY%']?.toFixed(2) || 'N/A';
                 
-                csv += `"${series.id}","${series.name}","${value}","${wow}","${mom}","${qoq}","${yoy}","${series.latest.date || 'N/A'}","${isFav}","${pred}"\n`;
+                csv += `"${series.id}","${series.name}","${value}","${wow}","${mom}","${qoq}","${yoy}","${series.latest.date || 'N/A'}"\n`;
             });
             
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `ice_bofa_professional_${currentFilter}_${new Date().toISOString().split('T')[0]}.csv`;
+            a.download = `ice_bofa_data_${new Date().toISOString().split('T')[0]}.csv`;
             a.click();
             
-            showStatus(`Data exported to CSV`, 'success');
+            showStatus('Data exported to CSV', 'success');
         }
         
-        // Show status
         function showStatus(message, type = 'info') {
             const statusDiv = document.getElementById('statusMessage');
             statusDiv.className = type;
@@ -2435,7 +1259,6 @@
             }
         }
         
-        // Update last update time
         function updateLastUpdateTime() {
             const now = new Date();
             const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
