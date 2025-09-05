@@ -264,10 +264,6 @@
         }
         
         /* Value Styles */
-        .positive { color: #00ff88; }
-        .negative { color: #ff4444; }
-        .neutral { color: #888; }
-        
         .value-cell {
             font-family: 'Courier New', monospace;
             font-weight: 500;
@@ -277,50 +273,6 @@
             font-family: 'Courier New', monospace;
             font-size: 0.8rem;
             color: #00ccff;
-        }
-        
-        /* Search Box */
-        .search-container {
-            margin-bottom: 2rem;
-        }
-        
-        .search-input {
-            width: 100%;
-            max-width: 500px;
-            padding: 0.75rem 1rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            color: #fff;
-            font-size: 1rem;
-        }
-        
-        .search-input:focus {
-            outline: none;
-            border-color: #00ff88;
-            background: rgba(255, 255, 255, 0.08);
-        }
-        
-        /* Progress Bar */
-        .progress-container {
-            width: 100%;
-            height: 30px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            overflow: hidden;
-            margin: 1rem 0;
-            display: none;
-        }
-        
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #00ff88, #00ccff);
-            transition: width 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #000;
-            font-weight: bold;
         }
         
         /* Chart Container */
@@ -343,12 +295,8 @@
         
         <div class="header-stats">
             <div class="stat-item">
-                <div class="stat-value" id="totalSeries">62</div>
-                <div class="stat-label">Total Series</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value" id="loadedSeries">0</div>
-                <div class="stat-label">Loaded</div>
+                <div class="stat-value" id="totalSeries">0</div>
+                <div class="stat-label">Series Loaded</div>
             </div>
             <div class="stat-item">
                 <div class="stat-value" id="lastUpdate">--:--</div>
@@ -366,31 +314,10 @@
             <!-- Will be populated dynamically -->
         </div>
         
-        <!-- Progress Bar -->
-        <div class="progress-container" id="progressContainer">
-            <div class="progress-bar" id="progressBar">0%</div>
-        </div>
-        
-        <!-- Search Box -->
-        <div class="search-container">
-            <input type="text" 
-                   class="search-input" 
-                   id="searchInput" 
-                   placeholder="Search by series ID or description..."
-                   onkeyup="searchSeries()">
-        </div>
-        
         <!-- Filter buttons -->
         <div class="filter-container">
-            <button class="filter-btn active" onclick="filterByCategory('all')">📊 All Series (62)</button>
-            <button class="filter-btn" onclick="filterByCategory('reserves')">💰 Reserves</button>
-            <button class="filter-btn" onclick="filterByCategory('currency')">💵 Currency</button>
-            <button class="filter-btn" onclick="filterByCategory('treasury_account')">🏛️ Treasury Account</button>
-            <button class="filter-btn" onclick="filterByCategory('repo_operations')">🔄 Repo Operations</button>
-            <button class="filter-btn" onclick="filterByCategory('securities')">📈 Securities</button>
-            <button class="filter-btn" onclick="filterByCategory('balance_sheet')">📋 Balance Sheet</button>
-            <button class="filter-btn" onclick="loadSummaryData()">⚡ Load Summary</button>
-            <button class="filter-btn" onclick="loadAllSeriesData()">🔄 Load All Data</button>
+            <button class="filter-btn active" onclick="loadSummary()">⚡ Load Key Metrics</button>
+            <button class="filter-btn" onclick="loadBatchSeries()">📊 Load All Series</button>
             <button class="filter-btn" onclick="exportToCSV()">📥 Export CSV</button>
         </div>
         
@@ -406,24 +333,22 @@
         <div class="data-section">
             <div class="section-header">
                 <div class="section-title" id="mainTitle">Federal Reserve Liquidity Series</div>
-                <div style="color: #888;" id="seriesCount">0 of 62 loaded</div>
             </div>
             
             <div class="data-table">
                 <table>
                     <thead>
                         <tr>
-                            <th onclick="sortTable('id')">Series ID ↕</th>
-                            <th onclick="sortTable('name')">Description ↕</th>
-                            <th onclick="sortTable('value')">Current Value ↕</th>
-                            <th onclick="sortTable('units')">Units ↕</th>
-                            <th onclick="sortTable('frequency')">Frequency ↕</th>
-                            <th onclick="sortTable('date')">Last Updated ↕</th>
+                            <th>Series ID</th>
+                            <th>Description</th>
+                            <th>Current Value</th>
+                            <th>Units</th>
+                            <th>Last Updated</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="mainTableBody">
-                        <tr><td colspan="7" class="loading">Click "Load Summary" for key metrics or "Load All Data" for complete dataset...</td></tr>
+                        <tr><td colspan="6" class="loading">Click "Load Key Metrics" to start...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -435,86 +360,69 @@
         const API_BASE = 'https://nmkverrwjnxsmgnogzckkoyuce0bqxyk.lambda-url.us-east-1.on.aws';
         
         // Global state
-        let allSeriesMetadata = {};
         let allSeriesData = [];
-        let currentFilter = 'all';
-        let sortColumn = 'id';
-        let sortDirection = 'asc';
         
-        // Fed Liquidity Categories (from API documentation)
-        const FED_CATEGORIES = {
-            "reserves": ["WRBWFRBL", "RESBALNS", "RESBALNSW", "REQRESNS", "EXCSRESNS", "TOTRESNS"],
-            "currency": ["WCURCIR", "CURRCIR", "BOGMBBM"],
-            "treasury_account": ["WTREGEN", "TREASURY"],
-            "repo_operations": ["WREPODEL", "WREPOFOR", "RRPONTSYD", "RPONTSYD", "H41RESPPREPO", "H41RESPPFIMA"],
-            "securities": ["WSHOTSL", "WSHOSHO", "WSHOTS", "WSHOMCB", "WSHOFDEB", "TREAST", "TREASLT5", "TREASG5T10", "TREASG10", "TIPS", "FPCPN", "MBST", "CMBS"],
-            "lending_facilities": ["WLCFLL", "WPCREDIT", "DISCBORR", "WSCREDIT", "PDCB", "TAF", "H41RESPPBTFP"],
-            "emergency_programs": ["RESPPALLEX", "PPPLF", "MSLP", "MLF", "CPFF", "PMCCF", "SMCCF", "TALF", "MMLF"],
-            "balance_sheet": ["WALCL", "RESPPANWW", "BOGMBASE", "WOTHLL"],
-            "other_assets": ["WFCDA", "WUPSHO", "WUDSON", "SWPT", "CLBSWP", "WORAL", "WGCAL", "WSDRAL", "COINAL", "WDTGAL", "TERMAUC"]
+        // List of all Fed series from the documentation
+        const ALL_FED_SERIES = {
+            "WRBWFRBL": "Reserve Balances with Federal Reserve Banks (Weekly)",
+            "WALCL": "Total Assets of Federal Reserve (Weekly)",
+            "WCURCIR": "Currency in Circulation (Weekly)",
+            "WTREGEN": "Treasury General Account (Weekly)",
+            "RRPONTSYD": "Overnight Reverse Repurchase Agreements (Daily)",
+            "TOTRESNS": "Total Reserves of Depository Institutions",
+            "EXCSRESNS": "Excess Reserves of Depository Institutions",
+            "REQRESNS": "Required Reserves of Depository Institutions",
+            "CURRCIR": "Currency in Circulation (Monthly)",
+            "TREASURY": "Treasury General Account (Daily)",
+            "WSHOTSL": "Securities Held Outright: Total (Weekly)",
+            "WSHOTS": "Securities Held Outright: Treasury Securities (Weekly)",
+            "WSHOMCB": "Securities Held Outright: Mortgage-Backed Securities (Weekly)",
+            "TREAST": "U.S. Treasury Securities Held by Fed (All Maturities)",
+            "MBST": "Mortgage-Backed Securities Held by Fed",
+            "BOGMBASE": "Monetary Base: Total",
+            "RESPPANWW": "Total Factors Supplying Reserve Funds (Weekly)",
+            "WOTHLL": "Other Liabilities and Capital"
         };
         
         // Initialize
-        async function initialize() {
-            console.log('🚀 Initializing Federal Reserve Liquidity Dashboard...');
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Initializing Federal Reserve Dashboard...');
             updateLastUpdateTime();
-            await fetchSeriesMetadata();
-            await loadSummaryData();
-        }
+            // Auto-load summary on page load
+            loadSummary();
+        });
         
-        // Fetch the metadata (list of all series)
-        async function fetchSeriesMetadata() {
-            showStatus('Fetching series list from Fed API...', 'info');
-            
-            try {
-                const response = await fetch(`${API_BASE}/?series=all`);
-                if (!response.ok) throw new Error('Failed to fetch series list');
-                
-                const data = await response.json();
-                allSeriesMetadata = data.series || {};
-                
-                const count = Object.keys(allSeriesMetadata).length;
-                document.getElementById('totalSeries').textContent = count;
-                
-                console.log(`✅ Found ${count} Federal Reserve series`);
-                showStatus(`Connected to Fed API. ${count} series available.`, 'success');
-                
-            } catch (error) {
-                console.error('Error:', error);
-                showStatus(`Error: ${error.message}`, 'error');
-            }
-        }
-        
-        // Load summary data (key metrics)
-        async function loadSummaryData() {
-            showStatus('Loading key Fed liquidity metrics...', 'info');
+        // Load summary data
+        async function loadSummary() {
+            showStatus('Loading key Fed metrics...', 'info');
             
             try {
                 const response = await fetch(`${API_BASE}/?series=summary`);
                 if (!response.ok) throw new Error('Failed to fetch summary');
                 
                 const data = await response.json();
+                console.log('Summary data:', data);
                 
-                // Display key metrics in cards
-                displayMetricsCards(data.metrics);
-                
-                // Store the data
-                allSeriesData = data.metrics.map(metric => ({
-                    id: metric.series,
-                    name: metric.name,
-                    latest: {
+                if (data.metrics && data.metrics.length > 0) {
+                    // Display key metrics in cards
+                    displayMetricsCards(data.metrics);
+                    
+                    // Store and display in table
+                    allSeriesData = data.metrics.map(metric => ({
+                        id: metric.series,
+                        name: metric.name,
                         value: metric.latest_value,
-                        date: metric.latest_date
-                    },
-                    units: metric.unit || 'Millions of Dollars',
-                    frequency: 'Various',
-                    observations: []
-                }));
-                
-                displaySeriesData();
-                document.getElementById('loadedSeries').textContent = data.metrics.length;
-                
-                showStatus(`Loaded ${data.metrics.length} key metrics. Click "Load All Data" for complete dataset.`, 'success');
+                        date: metric.latest_date,
+                        units: metric.unit || 'Millions of Dollars'
+                    }));
+                    
+                    displaySeriesTable();
+                    document.getElementById('totalSeries').textContent = allSeriesData.length;
+                    
+                    showStatus(`Loaded ${data.metrics.length} key metrics successfully!`, 'success');
+                } else {
+                    throw new Error('No data received from API');
+                }
                 
             } catch (error) {
                 console.error('Error:', error);
@@ -522,34 +430,65 @@
             }
         }
         
+        // Load batch series
+        async function loadBatchSeries() {
+            showStatus('Loading all Fed series...', 'info');
+            allSeriesData = [];
+            
+            const seriesList = Object.keys(ALL_FED_SERIES);
+            const batchSize = 5;
+            let loaded = 0;
+            
+            for (let i = 0; i < seriesList.length; i += batchSize) {
+                const batch = seriesList.slice(i, i + batchSize).join(',');
+                
+                try {
+                    const response = await fetch(`${API_BASE}/?series=batch&list=${batch}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        
+                        if (data.data) {
+                            data.data.forEach(series => {
+                                if (series.latest) {
+                                    allSeriesData.push({
+                                        id: series.series_id,
+                                        name: series.name || ALL_FED_SERIES[series.series_id],
+                                        value: series.latest.value,
+                                        date: series.latest.date,
+                                        units: series.units || 'Millions of Dollars',
+                                        observations: series.observations
+                                    });
+                                    loaded++;
+                                }
+                            });
+                        }
+                    }
+                } catch (err) {
+                    console.error('Batch error:', err);
+                }
+                
+                // Update display
+                displaySeriesTable();
+                document.getElementById('totalSeries').textContent = loaded;
+                
+                // Small delay between batches
+                await new Promise(resolve => setTimeout(resolve, 200));
+            }
+            
+            showStatus(`Loaded ${loaded} series successfully!`, 'success');
+            updateLastUpdateTime();
+        }
+        
         // Display metrics cards
         function displayMetricsCards(metrics) {
             const grid = document.getElementById('metricsGrid');
             
-            if (!metrics || metrics.length === 0) {
-                grid.innerHTML = '';
-                return;
-            }
-            
-            // Key series to highlight
-            const keySeriesOrder = ['WRBWFRBL', 'WALCL', 'WCURCIR', 'WTREGEN', 'RRPONTSYD', 'TOTRESNS'];
-            
-            // Sort metrics according to keySeriesOrder
-            metrics.sort((a, b) => {
-                const aIndex = keySeriesOrder.indexOf(a.series);
-                const bIndex = keySeriesOrder.indexOf(b.series);
-                if (aIndex === -1) return 1;
-                if (bIndex === -1) return -1;
-                return aIndex - bIndex;
-            });
-            
             const cards = metrics.slice(0, 6).map(metric => {
                 const value = formatLargeValue(metric.latest_value);
-                const icon = getSeriesIcon(metric.series);
                 
                 return `
                     <div class="metric-card">
-                        <div class="metric-label">${icon} ${metric.series}</div>
+                        <div class="metric-label">${metric.series}</div>
                         <div class="metric-value">${value}</div>
                         <div style="color: #aaa; font-size: 0.8rem; margin-top: 0.5rem;">
                             ${metric.name}
@@ -562,212 +501,28 @@
             grid.innerHTML = cards;
         }
         
-        // Get icon for series
-        function getSeriesIcon(seriesId) {
-            if (seriesId.includes('RES') || seriesId.includes('RBW')) return '💰';
-            if (seriesId.includes('CUR')) return '💵';
-            if (seriesId.includes('TRE') || seriesId.includes('WTRE')) return '🏛️';
-            if (seriesId.includes('RRP') || seriesId.includes('REPO')) return '🔄';
-            if (seriesId === 'WALCL') return '📊';
-            if (seriesId.includes('SHOT') || seriesId.includes('MBS')) return '📈';
-            return '📉';
-        }
-        
-        // Format large values
-        function formatLargeValue(value) {
-            if (value === null || value === undefined) return 'N/A';
-            
-            // Value is in millions of dollars
-            const billions = value / 1000;
-            const trillions = billions / 1000;
-            
-            if (trillions >= 1) {
-                return `$${trillions.toFixed(2)}T`;
-            } else if (billions >= 1) {
-                return `$${billions.toFixed(1)}B`;
-            } else {
-                return `$${value.toFixed(0)}M`;
-            }
-        }
-        
-        // Load all series data
-        async function loadAllSeriesData() {
-            const seriesIds = Object.keys(allSeriesMetadata);
-            const totalCount = seriesIds.length;
-            
-            if (totalCount === 0) {
-                showStatus('No series to load. Refresh the page.', 'error');
-                return;
-            }
-            
-            console.log(`📊 Starting to load ${totalCount} series...`);
-            showStatus(`Loading ${totalCount} series from Fed API...`, 'info');
-            
-            // Show progress bar
-            const progressContainer = document.getElementById('progressContainer');
-            const progressBar = document.getElementById('progressBar');
-            progressContainer.style.display = 'block';
-            
-            // Clear existing data
-            allSeriesData = [];
-            document.getElementById('mainTableBody').innerHTML = '<tr><td colspan="7" class="loading"><div class="loading-spinner"></div> Loading Fed data...</td></tr>';
-            
-            let loaded = 0;
-            let failed = 0;
-            
-            // Try batch loading first for efficiency
-            const batchSize = 10;
-            const batches = [];
-            
-            for (let i = 0; i < seriesIds.length; i += batchSize) {
-                batches.push(seriesIds.slice(i, i + batchSize));
-            }
-            
-            console.log(`Loading ${batches.length} batches of data...`);
-            
-            for (const batch of batches) {
-                try {
-                    const batchList = batch.join(',');
-                    const response = await fetch(`${API_BASE}/?series=batch&list=${batchList}`);
-                    
-                    if (response.ok) {
-                        const data = await response.json();
-                        
-                        if (data.data && Array.isArray(data.data)) {
-                            data.data.forEach(series => {
-                                if (series.latest || series.observations) {
-                                    allSeriesData.push({
-                                        id: series.series_id,
-                                        name: series.name || allSeriesMetadata[series.series_id],
-                                        latest: series.latest || {},
-                                        units: series.units || 'Millions of Dollars',
-                                        frequency: series.frequency || 'N/A',
-                                        observations: series.observations || []
-                                    });
-                                    loaded++;
-                                } else if (series.error) {
-                                    console.log(`Series ${series.series_id} has no data`);
-                                    failed++;
-                                }
-                            });
-                        }
-                    } else {
-                        console.error(`Batch request failed with status ${response.status}`);
-                        failed += batch.length;
-                    }
-                } catch (err) {
-                    console.error(`Failed to load batch:`, err);
-                    failed += batch.length;
-                }
-                
-                // Update progress
-                const progress = Math.round(((loaded + failed) / totalCount) * 100);
-                progressBar.style.width = `${progress}%`;
-                progressBar.textContent = `${progress}%`;
-                
-                document.getElementById('loadedSeries').textContent = loaded;
-                document.getElementById('seriesCount').textContent = `${loaded} of ${totalCount} loaded`;
-                
-                // Small delay between batches to avoid overwhelming the API
-                await new Promise(resolve => setTimeout(resolve, 200));
-            }
-            
-            // Hide progress bar
-            progressContainer.style.display = 'none';
-            
-            // Display all data
-            displaySeriesData();
-            updateLastUpdateTime();
-            
-            // Final status
-            showStatus(`Successfully loaded ${loaded} Fed series!`, 'success');
-            console.log(`\n📊 Final Results:\n✅ Loaded: ${loaded}\n❌ Failed: ${failed}`);
-        }
-        
-        // Display series data in the table
-        function displaySeriesData() {
-            let filteredData = [...allSeriesData];
-            
-            // Apply filter
-            if (currentFilter !== 'all' && FED_CATEGORIES[currentFilter]) {
-                const categorySeriesIds = FED_CATEGORIES[currentFilter];
-                filteredData = filteredData.filter(series => 
-                    categorySeriesIds.includes(series.id) || series.category === currentFilter
-                );
-            }
-            
-            // Apply search filter if any
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            if (searchTerm) {
-                filteredData = filteredData.filter(series => 
-                    series.id.toLowerCase().includes(searchTerm) || 
-                    series.name.toLowerCase().includes(searchTerm)
-                );
-            }
-            
-            // Sort data
-            filteredData.sort((a, b) => {
-                let aVal, bVal;
-                
-                switch(sortColumn) {
-                    case 'id':
-                        aVal = a.id;
-                        bVal = b.id;
-                        break;
-                    case 'name':
-                        aVal = a.name;
-                        bVal = b.name;
-                        break;
-                    case 'value':
-                        aVal = a.latest.value || 0;
-                        bVal = b.latest.value || 0;
-                        break;
-                    case 'units':
-                        aVal = a.units || '';
-                        bVal = b.units || '';
-                        break;
-                    case 'frequency':
-                        aVal = a.frequency || '';
-                        bVal = b.frequency || '';
-                        break;
-                    case 'date':
-                        aVal = a.latest.date || '';
-                        bVal = b.latest.date || '';
-                        break;
-                    default:
-                        aVal = a.id;
-                        bVal = b.id;
-                }
-                
-                if (sortDirection === 'asc') {
-                    return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
-                } else {
-                    return aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
-                }
-            });
-            
-            // Build table HTML
+        // Display series in table
+        function displaySeriesTable() {
             const tbody = document.getElementById('mainTableBody');
             
-            if (filteredData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #888;">No data to display</td></tr>';
+            if (allSeriesData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #888;">No data loaded</td></tr>';
                 return;
             }
             
-            const rows = filteredData.map(series => {
-                const formattedValue = formatLargeValue(series.latest.value);
+            const rows = allSeriesData.map(series => {
+                const formattedValue = formatLargeValue(series.value);
                 
                 return `
                     <tr>
                         <td class="series-id">${series.id}</td>
                         <td>${series.name}</td>
                         <td class="value-cell">${formattedValue}</td>
-                        <td style="color: #888; font-size: 0.75rem;">${series.units || 'N/A'}</td>
-                        <td style="color: #888;">${series.frequency || 'N/A'}</td>
-                        <td>${series.latest.date || 'N/A'}</td>
+                        <td style="color: #888; font-size: 0.75rem;">${series.units}</td>
+                        <td>${series.date || 'N/A'}</td>
                         <td>
                             <button class="filter-btn" style="padding: 0.25rem 0.75rem; font-size: 0.75rem;" 
-                                    onclick="loadSeriesDetail('${series.id}')">
+                                    onclick="loadSeriesChart('${series.id}')">
                                 📈 Chart
                             </button>
                         </td>
@@ -776,34 +531,29 @@
             }).join('');
             
             tbody.innerHTML = rows;
-            
-            // Update title
-            document.getElementById('mainTitle').textContent = 
-                currentFilter === 'all' ? 'All Federal Reserve Series' : 
-                `Category: ${currentFilter.charAt(0).toUpperCase() + currentFilter.slice(1)} (${filteredData.length} series)`;
         }
         
-        // Load detailed data for a series and chart it
-        async function loadSeriesDetail(seriesId) {
-            showStatus(`Loading detailed data for ${seriesId}...`, 'info');
+        // Load and chart a series
+        async function loadSeriesChart(seriesId) {
+            showStatus(`Loading chart data for ${seriesId}...`, 'info');
             
             try {
                 const response = await fetch(`${API_BASE}/?series=${seriesId}`);
-                if (!response.ok) throw new Error('Failed to fetch series data');
+                if (!response.ok) throw new Error('Failed to fetch series');
                 
                 const data = await response.json();
                 
                 if (data.observations && data.observations.length > 0) {
                     plotSeries(data);
                     document.getElementById('chartContainer').style.display = 'block';
-                    showStatus(`Loaded ${data.observations.length} observations for ${seriesId}`, 'success');
+                    showStatus(`Charted ${data.observations.length} data points`, 'success');
                 } else {
-                    showStatus('No observations available for this series', 'error');
+                    showStatus('No chart data available', 'error');
                 }
                 
             } catch (error) {
                 console.error('Error:', error);
-                showStatus(`Error loading series: ${error.message}`, 'error');
+                showStatus(`Error: ${error.message}`, 'error');
             }
         }
         
@@ -826,7 +576,7 @@
             
             const layout = {
                 title: {
-                    text: `${seriesData.name} (${seriesData.series_id})`,
+                    text: `${seriesData.name || seriesData.series_id}`,
                     font: { color: '#00ff88' }
                 },
                 paper_bgcolor: 'rgba(0, 0, 0, 0)',
@@ -855,62 +605,41 @@
             Plotly.newPlot('mainChart', [trace], layout, config);
         }
         
-        // Filter by category
-        function filterByCategory(category) {
-            currentFilter = category;
+        // Format large values
+        function formatLargeValue(value) {
+            if (value === null || value === undefined) return 'N/A';
             
-            // Update active button
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
+            // Value is in millions of dollars
+            const billions = value / 1000;
+            const trillions = billions / 1000;
             
-            if (allSeriesData.length > 0) {
-                displaySeriesData();
-            }
-        }
-        
-        // Sort table
-        function sortTable(column) {
-            if (sortColumn === column) {
-                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            if (trillions >= 1) {
+                return `$${trillions.toFixed(2)}T`;
+            } else if (billions >= 1) {
+                return `$${billions.toFixed(1)}B`;
             } else {
-                sortColumn = column;
-                sortDirection = 'asc';
-            }
-            
-            if (allSeriesData.length > 0) {
-                displaySeriesData();
-            }
-        }
-        
-        // Search functionality
-        function searchSeries() {
-            if (allSeriesData.length > 0) {
-                displaySeriesData();
+                return `$${value.toFixed(0)}M`;
             }
         }
         
         // Export to CSV
         function exportToCSV() {
             if (allSeriesData.length === 0) {
-                showStatus('No data to export. Load data first.', 'error');
+                showStatus('No data to export', 'error');
                 return;
             }
             
-            let csv = 'Series ID,Description,Current Value,Units,Frequency,Last Updated\n';
+            let csv = 'Series ID,Description,Current Value,Units,Last Updated\n';
             
             allSeriesData.forEach(series => {
-                const value = formatLargeValue(series.latest.value);
-                
-                csv += `"${series.id}","${series.name}","${value}","${series.units || 'N/A'}","${series.frequency || 'N/A'}","${series.latest.date || 'N/A'}"\n`;
+                csv += `"${series.id}","${series.name}","${formatLargeValue(series.value)}","${series.units}","${series.date || 'N/A'}"\n`;
             });
             
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `fed_liquidity_data_${new Date().toISOString().split('T')[0]}.csv`;
+            a.download = `fed_liquidity_${new Date().toISOString().split('T')[0]}.csv`;
             a.click();
             
             showStatus('Data exported to CSV', 'success');
@@ -936,9 +665,6 @@
             const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
             document.getElementById('lastUpdate').textContent = timeStr;
         }
-        
-        // Initialize on load
-        document.addEventListener('DOMContentLoaded', initialize);
     </script>
 </body>
 </html>
