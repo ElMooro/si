@@ -875,11 +875,12 @@
         function createChart() {
             const traces = [];
             
-            if (chartData.RESBALNS?.observations) {
-                const data = chartData.RESBALNS.observations.slice(0, 30).reverse();
+            // Use WRBWFRBL for reserves (RESBALNS was discontinued in 2020)
+            if (chartData.WRBWFRBL?.observations) {
+                const data = chartData.WRBWFRBL.observations.slice(0, 30).reverse();
                 traces.push({
                     x: data.map(d => d.date),
-                    y: data.map(d => d.value),
+                    y: data.map(d => d.value / 1000), // Convert millions to billions
                     name: 'Reserve Balances',
                     type: 'scatter',
                     mode: 'lines',
@@ -891,12 +892,24 @@
                 const data = chartData.WALCL.observations.slice(0, 30).reverse();
                 traces.push({
                     x: data.map(d => d.date),
-                    y: data.map(d => d.value),
+                    y: data.map(d => d.value / 1000), // Convert millions to billions
                     name: 'Total Fed Assets',
                     type: 'scatter',
                     mode: 'lines',
                     yaxis: 'y2',
                     line: { color: '#00ccff', width: 2 }
+                });
+            }
+            
+            if (chartData.RRPONTSYD?.observations) {
+                const data = chartData.RRPONTSYD.observations.slice(0, 30).reverse();
+                traces.push({
+                    x: data.map(d => d.date),
+                    y: data.map(d => d.value / 1000), // Convert millions to billions
+                    name: 'Overnight RRP',
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: { color: '#ff9500', width: 2 }
                 });
             }
             
@@ -915,10 +928,10 @@
                     tickformat: '%b %d'
                 },
                 yaxis: {
-                    title: 'Reserve Balances ($B)',
+                    title: 'Billions ($B)',
                     gridcolor: 'rgba(255,255,255,0.1)',
                     titlefont: { color: '#00ff88' },
-                    tickfont: { color: '#00ff88' }
+                    tickfont: { color: '#888' }
                 },
                 yaxis2: {
                     title: 'Total Assets ($B)',
