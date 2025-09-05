@@ -4,757 +4,704 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Federal Reserve Liquidity Dashboard</title>
-    
-    <!-- Required Libraries -->
-    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: linear-gradient(135deg, #0a0e27 0%, #151932 100%);
-            color: #e0e0e0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
             min-height: 100vh;
+            padding: 20px;
         }
-        
-        /* Header Styles */
-        .header {
-            background: rgba(20, 24, 44, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 1rem 2rem;
-            border-bottom: 1px solid rgba(0, 255, 136, 0.2);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-        
-        .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
-            background: linear-gradient(45deg, #00ff88, #00ccff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .header-stats {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        
-        .stat-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 0.5rem 1rem;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            min-width: 120px;
-        }
-        
-        .stat-value {
-            font-size: 1.25rem;
-            font-weight: bold;
-            color: #00ff88;
-        }
-        
-        .stat-label {
-            font-size: 0.75rem;
-            color: #888;
-            text-transform: uppercase;
-        }
-        
-        /* Container */
+
         .container {
-            max-width: 1800px;
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 2rem;
         }
-        
-        /* Key Metrics Cards */
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
+
+        header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        
-        .metric-card {
+
+        h1 {
+            color: #fff;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .api-config {
             background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 1.25rem;
-            transition: all 0.3s;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
         }
-        
-        .metric-card:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(0, 255, 136, 0.3);
-            transform: translateY(-2px);
+
+        .api-config label {
+            color: #fff;
+            display: block;
+            margin-bottom: 10px;
+            font-size: 14px;
         }
-        
-        .metric-label {
-            font-size: 0.875rem;
-            color: #888;
-            margin-bottom: 0.5rem;
-        }
-        
-        .metric-value {
-            font-size: 1.75rem;
-            font-weight: bold;
-            color: #00ff88;
-            margin-bottom: 0.25rem;
-        }
-        
-        .metric-date {
-            font-size: 0.75rem;
-            color: #666;
-        }
-        
-        /* Filter buttons */
-        .filter-container {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-        }
-        
-        .filter-btn {
-            padding: 0.75rem 1.5rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+
+        .api-config input {
+            width: 100%;
+            padding: 12px;
             border-radius: 8px;
-            color: #888;
-            cursor: pointer;
-            font-size: 0.875rem;
-            transition: all 0.3s;
-        }
-        
-        .filter-btn:hover {
+            border: 1px solid rgba(255, 255, 255, 0.3);
             background: rgba(255, 255, 255, 0.1);
             color: #fff;
-            border-color: rgba(0, 255, 136, 0.3);
+            font-size: 14px;
         }
-        
-        .filter-btn.active {
-            background: linear-gradient(45deg, #00ff88, #00ccff);
-            color: #000;
-            font-weight: bold;
+
+        .api-config input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+            color: white;
             border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         }
-        
-        /* Data Display Section */
-        .data-section {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 12px;
-            padding: 1.5rem;
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: none;
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+            font-size: 18px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            color: #fca5a5;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .metric-label {
+            color: #a5b4fc;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .metric-value {
+            color: #fff;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .metric-name {
+            color: #e0e7ff;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .metric-date {
+            color: #94a3b8;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        .category-section {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .category-title {
+            color: #fff;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            text-transform: capitalize;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 10px;
+        }
+
+        .series-container {
+            display: grid;
+            gap: 20px;
+        }
+
+        .series-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 20px;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            margin-bottom: 2rem;
         }
-        
-        .section-header {
+
+        .series-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid rgba(0, 255, 136, 0.3);
+            align-items: flex-start;
+            margin-bottom: 15px;
         }
-        
-        .section-title {
-            font-size: 1.5rem;
-            color: #00ff88;
-            font-weight: bold;
+
+        .series-title {
+            color: #e0e7ff;
+            font-size: 16px;
+            font-weight: 600;
+            flex: 1;
         }
-        
-        /* Data Table */
-        .data-table {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-            overflow: hidden;
-            overflow-x: auto;
-        }
-        
-        .data-table table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 900px;
-        }
-        
-        .data-table th {
-            background: rgba(0, 255, 136, 0.1);
-            padding: 0.75rem;
-            text-align: left;
-            font-weight: bold;
-            color: #00ff88;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            font-size: 0.875rem;
-            white-space: nowrap;
-        }
-        
-        .data-table td {
-            padding: 0.75rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            font-size: 0.875rem;
-        }
-        
-        .data-table tr:hover {
-            background: rgba(0, 255, 136, 0.05);
-        }
-        
-        /* Loading States */
-        .loading {
-            text-align: center;
-            padding: 2rem;
-            color: #888;
-        }
-        
-        .loading-spinner {
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            border: 3px solid rgba(0, 255, 136, 0.2);
-            border-top-color: #00ff88;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        /* Status Messages */
-        .error {
-            color: #ff4444;
-            padding: 1rem;
-            background: rgba(255, 68, 68, 0.1);
-            border: 1px solid rgba(255, 68, 68, 0.3);
-            border-radius: 8px;
-            margin: 1rem 0;
-        }
-        
-        .success {
-            color: #00ff88;
-            padding: 1rem;
-            background: rgba(0, 255, 136, 0.1);
-            border: 1px solid rgba(0, 255, 136, 0.3);
-            border-radius: 8px;
-            margin: 1rem 0;
-        }
-        
-        .info {
-            color: #00ccff;
-            padding: 1rem;
-            background: rgba(0, 204, 255, 0.1);
-            border: 1px solid rgba(0, 204, 255, 0.3);
-            border-radius: 8px;
-            margin: 1rem 0;
-        }
-        
-        /* Value Styles */
-        .value-cell {
-            font-family: 'Courier New', monospace;
-            font-weight: 500;
-        }
-        
+
         .series-id {
-            font-family: 'Courier New', monospace;
-            font-size: 0.8rem;
-            color: #00ccff;
+            color: #94a3b8;
+            font-size: 14px;
+            font-family: monospace;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
         }
-        
-        /* Chart Container */
+
+        .series-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .stat-label {
+            color: #94a3b8;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            color: #fff;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
         .chart-container {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 12px;
-            padding: 1.5rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            margin-bottom: 2rem;
-            min-height: 400px;
+            position: relative;
+            height: 300px;
+            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+
+        .tab {
+            color: #94a3b8;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 8px 8px 0 0;
+            transition: all 0.3s ease;
+            background: transparent;
+            border: none;
+            font-size: 14px;
+        }
+
+        .tab.active {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .timestamp {
+            color: #64748b;
+            font-size: 12px;
+            text-align: right;
+            margin-top: 20px;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .loading-dots {
+            animation: pulse 1.5s infinite;
+        }
+
+        .info-box {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #93c5fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
-    <header class="header">
-        <div class="logo">
-            🏦 Federal Reserve Liquidity Dashboard
-            <span style="font-size: 0.875rem; color: #888;">Real-time FRED Data</span>
-        </div>
-        
-        <div class="header-stats">
-            <div class="stat-item">
-                <div class="stat-value" id="totalSeries">0</div>
-                <div class="stat-label">Series Loaded</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value" id="lastUpdate">--:--</div>
-                <div class="stat-label">Last Update</div>
-            </div>
-        </div>
-    </header>
-    
     <div class="container">
-        <!-- Status messages -->
-        <div id="statusMessage"></div>
-        
-        <!-- Key Metrics Dashboard -->
-        <div class="metrics-grid" id="metricsGrid">
-            <!-- Will be populated dynamically -->
-        </div>
-        
-        <!-- Filter buttons -->
-        <div class="filter-container">
-            <button class="filter-btn active" onclick="loadSummary()">⚡ Load Key Metrics</button>
-            <button class="filter-btn" onclick="loadBatchSeries()">📊 Load All Series</button>
-            <button class="filter-btn" onclick="loadByCategory('reserves')">💰 Reserves</button>
-            <button class="filter-btn" onclick="loadByCategory('securities')">📈 Securities</button>
-            <button class="filter-btn" onclick="loadByCategory('repo_operations')">🔄 Repo Ops</button>
-            <button class="filter-btn" onclick="exportToCSV()">📥 Export CSV</button>
-        </div>
-        
-        <!-- Chart Section -->
-        <div class="chart-container" id="chartContainer" style="display: none;">
-            <div class="section-header">
-                <div class="section-title">Historical Chart</div>
+        <header>
+            <h1>🏛️ Federal Reserve Liquidity Dashboard</h1>
+            <div class="api-config">
+                <label for="apiEndpoint">API Gateway Endpoint URL:</label>
+                <input type="text" id="apiEndpoint" placeholder="https://your-api-gateway-id.execute-api.us-east-1.amazonaws.com/prod">
+                <div class="info-box">
+                    Enter your API Gateway endpoint URL above. This should be the base URL without the /fed_liquidity path.
+                    Example: https://abc123.execute-api.us-east-1.amazonaws.com/prod
+                </div>
+                <div class="button-group">
+                    <button onclick="loadSummary()">Load Summary</button>
+                    <button onclick="loadAllCategories()">Load All Categories</button>
+                    <button onclick="loadSeriesList()">Show All Series</button>
+                    <button onclick="loadBatchData()">Load Key Metrics</button>
+                </div>
             </div>
-            <div id="mainChart"></div>
+        </header>
+
+        <div class="loading" id="loading">
+            <span class="loading-dots">Loading Fed data...</span>
         </div>
-        
-        <!-- Main Data Section -->
-        <div class="data-section">
-            <div class="section-header">
-                <div class="section-title" id="mainTitle">Federal Reserve Liquidity Series</div>
-            </div>
-            
-            <div class="data-table">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Series ID</th>
-                            <th>Description</th>
-                            <th>Current Value</th>
-                            <th>Units</th>
-                            <th>Last Updated</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="mainTableBody">
-                        <tr><td colspan="6" class="loading">Click "Load Key Metrics" to start...</td></tr>
-                    </tbody>
-                </table>
-            </div>
+
+        <div class="error" id="error"></div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('summary')">Summary</button>
+            <button class="tab" onclick="switchTab('categories')">By Category</button>
+            <button class="tab" onclick="switchTab('series')">All Series</button>
         </div>
+
+        <div id="summary-tab" class="tab-content active">
+            <div class="summary-grid" id="summaryGrid"></div>
+        </div>
+
+        <div id="categories-tab" class="tab-content">
+            <div id="categoriesContainer"></div>
+        </div>
+
+        <div id="series-tab" class="tab-content">
+            <div id="seriesListContainer"></div>
+        </div>
+
+        <div class="timestamp" id="timestamp"></div>
     </div>
-    
+
     <script>
-        // API Configuration - Your Lambda URL
-        const API_BASE = 'https://nmkverrwjnxsmgnogzckkoyuce0bqxyk.lambda-url.us-east-1.on.aws/fed_liquidity';
-        
-        // Global state
-        let allSeriesData = [];
-        
-        // List of all Fed series from the documentation
-        const ALL_FED_SERIES = {
-            "WRBWFRBL": "Reserve Balances with Federal Reserve Banks (Weekly)",
-            "WALCL": "Total Assets of Federal Reserve (Weekly)",
-            "WCURCIR": "Currency in Circulation (Weekly)",
-            "WTREGEN": "Treasury General Account (Weekly)",
-            "RRPONTSYD": "Overnight Reverse Repurchase Agreements (Daily)",
-            "TOTRESNS": "Total Reserves of Depository Institutions",
-            "EXCSRESNS": "Excess Reserves of Depository Institutions",
-            "REQRESNS": "Required Reserves of Depository Institutions",
-            "CURRCIR": "Currency in Circulation (Monthly)",
-            "TREASURY": "Treasury General Account (Daily)",
-            "WSHOTSL": "Securities Held Outright: Total (Weekly)",
-            "WSHOTS": "Securities Held Outright: Treasury Securities (Weekly)",
-            "WSHOMCB": "Securities Held Outright: Mortgage-Backed Securities (Weekly)",
-            "TREAST": "U.S. Treasury Securities Held by Fed (All Maturities)",
-            "MBST": "Mortgage-Backed Securities Held by Fed",
-            "BOGMBASE": "Monetary Base: Total",
-            "RESPPANWW": "Total Factors Supplying Reserve Funds (Weekly)",
-            "WOTHLL": "Other Liabilities and Capital",
-            "RESBALNS": "Reserve Balances with Federal Reserve Banks (Daily)",
-            "RESBALNSW": "Reserve Balances with Federal Reserve Banks (Wednesday Level)"
-        };
-        
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Initializing Federal Reserve Dashboard...');
-            updateLastUpdateTime();
-            // Auto-load summary on page load
-            loadSummary();
-        });
-        
-        // Load summary data
-        async function loadSummary() {
-            showStatus('Loading key Fed metrics...', 'info');
-            
-            try {
-                // Try with path parameter for Lambda function URL
-                const url = `${API_BASE}/?path=/fed_liquidity&queryStringParameters=${encodeURIComponent(JSON.stringify({series: 'summary'}))}`;
-                console.log('Fetching from:', url);
-                
-                const response = await fetch(url
-                
-                // Parse the body if it's a string
-                let parsedData = data;
-                if (data.body && typeof data.body === 'string') {
-                    parsedData = JSON.parse(data.body);
-                }
-                
-                if (parsedData.metrics && parsedData.metrics.length > 0) {
-                    // Display key metrics in cards
-                    displayMetricsCards(parsedData.metrics);
-                    
-                    // Store and display in table
-                    allSeriesData = parsedData.metrics.map(metric => ({
-                        id: metric.series,
-                        name: metric.name,
-                        value: metric.latest_value,
-                        date: metric.latest_date,
-                        units: metric.unit || 'Billions of Dollars'
-                    }));
-                    
-                    displaySeriesTable();
-                    document.getElementById('totalSeries').textContent = allSeriesData.length;
-                    
-                    showStatus(`Loaded ${parsedData.metrics.length} key metrics successfully!`, 'success');
-                } else {
-                    throw new Error('No data received from API');
-                }
-                
-            } catch (error) {
-                console.error('Error:', error);
-                showStatus(`Error: ${error.message}`, 'error');
+        let charts = {};
+        let allData = {};
+
+        function getApiUrl() {
+            const baseUrl = document.getElementById('apiEndpoint').value.trim();
+            if (!baseUrl) {
+                showError('API endpoint URL is missing');
+                return null;
             }
-            
-            updateLastUpdateTime();
+            // For Lambda Function URLs, the path is part of the query
+            return baseUrl + '/fed_liquidity';
         }
-        
-        // Load batch series
-        async function loadBatchSeries() {
-            showStatus('Loading all Fed series (this may take a moment)...', 'info');
-            allSeriesData = [];
-            
-            const seriesList = Object.keys(ALL_FED_SERIES);
-            const batchSize = 5;
-            let loaded = 0;
-            
-            for (let i = 0; i < seriesList.length; i += batchSize) {
-                const batch = seriesList.slice(i, i + batchSize).join(',');
+
+        function showLoading() {
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('error').classList.remove('active');
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').classList.remove('active');
+        }
+
+        function showError(message) {
+            const errorEl = document.getElementById('error');
+            errorEl.textContent = `Error: ${message}`;
+            errorEl.classList.add('active');
+            hideLoading();
+        }
+
+        function hideError() {
+            document.getElementById('error').classList.remove('active');
+        }
+
+        function formatValue(value) {
+            if (value === null || value === undefined) return 'N/A';
+            if (value >= 1000) {
+                return (value / 1000).toFixed(2) + 'T';
+            }
+            return value.toFixed(2) + 'B';
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        async function fetchData(endpoint) {
+            const apiUrl = getApiUrl();
+            if (!apiUrl) return null;
+
+            try {
+                showLoading();
+                hideError();
                 
-                try {
-                    const response = await fetch(`${API_BASE}?series=batch&list=${batch}`);
-                    if (response.ok) {
-                        const data = await response.json();
-                        
-                        // Parse the body if it's a string
-                        let parsedData = data;
-                        if (data.body && typeof data.body === 'string') {
-                            parsedData = JSON.parse(data.body);
+                const response = await fetch(apiUrl + endpoint);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Handle Lambda response format
+                if (data.statusCode && data.body) {
+                    const bodyData = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
+                    return bodyData;
+                }
+                
+                return data;
+            } catch (error) {
+                showError(error.message);
+                return null;
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function loadSummary() {
+            const data = await fetchData('?series=summary');
+            if (!data || !data.metrics) return;
+
+            const summaryGrid = document.getElementById('summaryGrid');
+            summaryGrid.innerHTML = '';
+
+            data.metrics.forEach(metric => {
+                const card = document.createElement('div');
+                card.className = 'metric-card';
+                card.innerHTML = `
+                    <div class="metric-label">${metric.series}</div>
+                    <div class="metric-value">${formatValue(metric.latest_value)}</div>
+                    <div class="metric-name">${metric.name}</div>
+                    <div class="metric-date">As of ${formatDate(metric.latest_date)}</div>
+                `;
+                summaryGrid.appendChild(card);
+            });
+
+            document.getElementById('timestamp').textContent = `Last updated: ${new Date().toLocaleString()}`;
+        }
+
+        async function loadAllCategories() {
+            const categories = [
+                'reserves', 'currency', 'treasury_account', 'repo_operations',
+                'securities', 'lending_facilities', 'balance_sheet', 'other_assets'
+            ];
+
+            const container = document.getElementById('categoriesContainer');
+            container.innerHTML = '';
+
+            for (const category of categories) {
+                const data = await fetchData(`?category=${category}`);
+                if (!data || !data.data) continue;
+
+                const section = document.createElement('div');
+                section.className = 'category-section';
+                
+                const title = document.createElement('h2');
+                title.className = 'category-title';
+                title.textContent = category.replace(/_/g, ' ');
+                section.appendChild(title);
+
+                const seriesContainer = document.createElement('div');
+                seriesContainer.className = 'series-container';
+
+                data.data.forEach((series, index) => {
+                    if (series.error) return;
+
+                    const card = document.createElement('div');
+                    card.className = 'series-card';
+                    
+                    const chartId = `chart-${category}-${index}`;
+                    
+                    card.innerHTML = `
+                        <div class="series-header">
+                            <div class="series-title">${series.name}</div>
+                            <div class="series-id">${series.series_id}</div>
+                        </div>
+                        <div class="series-stats">
+                            <div class="stat-item">
+                                <div class="stat-label">Latest Value</div>
+                                <div class="stat-value">${series.latest ? formatValue(series.latest.value) : 'N/A'}</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Date</div>
+                                <div class="stat-value">${series.latest ? formatDate(series.latest.date) : 'N/A'}</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Frequency</div>
+                                <div class="stat-value">${series.frequency || 'N/A'}</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Data Points</div>
+                                <div class="stat-value">${series.count || 0}</div>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="${chartId}"></canvas>
+                        </div>
+                    `;
+                    
+                    seriesContainer.appendChild(card);
+                    
+                    // Create chart after DOM is updated
+                    setTimeout(() => {
+                        if (series.observations && series.observations.length > 0) {
+                            createChart(chartId, series);
                         }
-                        
-                        if (parsedData.data) {
-                            parsedData.data.forEach(series => {
-                                if (series.latest) {
-                                    allSeriesData.push({
-                                        id: series.series_id,
-                                        name: series.name || ALL_FED_SERIES[series.series_id],
-                                        value: series.latest.value,
-                                        date: series.latest.date,
-                                        units: series.units || 'Billions of Dollars',
-                                        observations: series.observations
-                                    });
-                                    loaded++;
+                    }, 100);
+                });
+
+                section.appendChild(seriesContainer);
+                container.appendChild(section);
+            }
+
+            switchTab('categories');
+        }
+
+        async function loadSeriesList() {
+            const data = await fetchData('?series=all');
+            if (!data || !data.series) return;
+
+            const container = document.getElementById('seriesListContainer');
+            container.innerHTML = '<div class="category-section"><h2 class="category-title">All Available Series</h2><div class="series-container">';
+
+            Object.entries(data.series).forEach(([code, description]) => {
+                const card = document.createElement('div');
+                card.className = 'series-card';
+                card.innerHTML = `
+                    <div class="series-header">
+                        <div class="series-title">${description}</div>
+                        <div class="series-id">${code}</div>
+                    </div>
+                    <button onclick="loadSingleSeries('${code}')">Load Data</button>
+                `;
+                container.querySelector('.series-container').appendChild(card);
+            });
+
+            container.innerHTML += '</div></div>';
+            switchTab('series');
+        }
+
+        async function loadSingleSeries(seriesId) {
+            const data = await fetchData(`?series=${seriesId}`);
+            if (!data) return;
+
+            alert(`Latest value for ${data.name}: ${data.latest ? formatValue(data.latest.value) : 'No data'} (${data.latest ? data.latest.date : ''})`);
+        }
+
+        async function loadBatchData() {
+            const keyMetrics = 'RESBALNS,WALCL,RRPONTSYD,WCURCIR,WTREGEN,MBST,H41RESPPBTFP,EXCSRESNS';
+            const data = await fetchData(`?series=batch&list=${keyMetrics}`);
+            
+            if (!data || !data.data) return;
+
+            const summaryGrid = document.getElementById('summaryGrid');
+            summaryGrid.innerHTML = '<h2 style="color: white; margin-bottom: 20px;">Key Fed Metrics (Batch Load)</h2>';
+
+            data.data.forEach(series => {
+                if (series.error) return;
+                
+                const card = document.createElement('div');
+                card.className = 'metric-card';
+                card.innerHTML = `
+                    <div class="metric-label">${series.series_id}</div>
+                    <div class="metric-value">${series.latest ? formatValue(series.latest.value) : 'N/A'}</div>
+                    <div class="metric-name">${series.name}</div>
+                    <div class="metric-date">${series.latest ? `As of ${formatDate(series.latest.date)}` : 'No data'}</div>
+                `;
+                summaryGrid.appendChild(card);
+            });
+
+            switchTab('summary');
+        }
+
+        function createChart(canvasId, seriesData) {
+            const ctx = document.getElementById(canvasId);
+            if (!ctx) return;
+
+            // Destroy existing chart if it exists
+            if (charts[canvasId]) {
+                charts[canvasId].destroy();
+            }
+
+            const observations = seriesData.observations.slice(0, 50).reverse();
+            
+            charts[canvasId] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: observations.map(obs => formatDate(obs.date)),
+                    datasets: [{
+                        label: seriesData.series_id,
+                        data: observations.map(obs => obs.value),
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `$${context.parsed.y.toFixed(2)}B`;
                                 }
-                            });
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#94a3b8',
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#94a3b8',
+                                callback: function(value) {
+                                    return '$' + value.toFixed(0) + 'B';
+                                }
+                            }
                         }
                     }
-                } catch (err) {
-                    console.error('Batch error:', err);
                 }
-                
-                // Update display progressively
-                displaySeriesTable();
-                document.getElementById('totalSeries').textContent = loaded;
-                showStatus(`Loading... ${loaded}/${seriesList.length} series`, 'info');
-                
-                // Small delay between batches
-                await new Promise(resolve => setTimeout(resolve, 200));
-            }
-            
-            showStatus(`Loaded ${loaded} series successfully!`, 'success');
-            updateLastUpdateTime();
+            });
         }
-        
-        // Load by category
-        async function loadByCategory(category) {
-            showStatus(`Loading ${category} series...`, 'info');
-            
-            try {
-                const response = await fetch(`${API_BASE}?category=${category}`);
-                if (!response.ok) throw new Error('Failed to fetch category');
-                
-                const data = await response.json();
-                
-                // Parse the body if it's a string
-                let parsedData = data;
-                if (data.body && typeof data.body === 'string') {
-                    parsedData = JSON.parse(data.body);
-                }
-                
-                if (parsedData.data && parsedData.data.length > 0) {
-                    allSeriesData = parsedData.data.map(series => ({
-                        id: series.series_id,
-                        name: series.name,
-                        value: series.latest ? series.latest.value : null,
-                        date: series.latest ? series.latest.date : 'N/A',
-                        units: series.units || 'Billions of Dollars',
-                        observations: series.observations
-                    }));
-                    
-                    displaySeriesTable();
-                    document.getElementById('totalSeries').textContent = allSeriesData.length;
-                    document.getElementById('mainTitle').textContent = `${category.charAt(0).toUpperCase() + category.slice(1).replace(/_/g, ' ')} Series`;
-                    
-                    showStatus(`Loaded ${parsedData.data.length} ${category} series`, 'success');
-                } else {
-                    showStatus('No data available for this category', 'error');
-                }
-                
-            } catch (error) {
-                console.error('Error:', error);
-                showStatus(`Error: ${error.message}`, 'error');
-            }
-            
-            updateLastUpdateTime();
-        }
-        
-        // Display metrics cards
-        function displayMetricsCards(metrics) {
-            const grid = document.getElementById('metricsGrid');
-            
-            const cards = metrics.slice(0, 8).map(metric => {
-                const value = formatLargeValue(metric.latest_value);
-                
-                return `
-                    <div class="metric-card">
-                        <div class="metric-label">${metric.series}</div>
-                        <div class="metric-value">${value}</div>
-                        <div style="color: #aaa; font-size: 0.8rem; margin-top: 0.5rem;">
-                            ${metric.name}
-                        </div>
-                        <div class="metric-date">Updated: ${metric.latest_date}</div>
-                    </div>
-                `;
-            }).join('');
-            
-            grid.innerHTML = cards;
-        }
-        
-        // Display series in table
-        function displaySeriesTable() {
-            const tbody = document.getElementById('mainTableBody');
-            
-            if (allSeriesData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #888;">No data loaded</td></tr>';
-                return;
-            }
-            
-            const rows = allSeriesData.map(series => {
-                const formattedValue = series.value !== null ? formatLargeValue(series.value) : 'N/A';
-                
-                return `
-                    <tr>
-                        <td class="series-id">${series.id}</td>
-                        <td>${series.name}</td>
-                        <td class="value-cell">${formattedValue}</td>
-                        <td style="color: #888; font-size: 0.75rem;">${series.units}</td>
-                        <td>${series.date || 'N/A'}</td>
-                        <td>
-                            <button class="filter-btn" style="padding: 0.25rem 0.75rem; font-size: 0.75rem;" 
-                                    onclick="loadSeriesChart('${series.id}')">
-                                📈 Chart
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-            
-            tbody.innerHTML = rows;
-        }
-        
-        // Load and chart a series
-        async function loadSeriesChart(seriesId) {
-            showStatus(`Loading chart data for ${seriesId}...`, 'info');
-            
-            try {
-                const url = `${API_BASE}/?series=${seriesId}`;
-                console.log('Series fetch from:', url);
-                
-                const response = await fetch(url);
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                
-                const data = await response.json();
-                
-                // Parse the body if it's a string
-                let parsedData = data;
-                if (data.body && typeof data.body === 'string') {
-                    parsedData = JSON.parse(data.body);
-                }
-                
-                if (parsedData.observations && parsedData.observations.length > 0) {
-                    plotSeries(parsedData);
-                    document.getElementById('chartContainer').style.display = 'block';
-                    
-                    // Scroll to chart
-                    document.getElementById('chartContainer').scrollIntoView({ behavior: 'smooth' });
-                    
-                    showStatus(`Charted ${parsedData.observations.length} data points for ${seriesId}`, 'success');
-                } else {
-                    showStatus('No chart data available', 'error');
-                }
-                
-            } catch (error) {
-                console.error('Error:', error);
-                showStatus(`Error: ${error.message}`, 'error');
-            }
-        }
-        
-        // Plot series using Plotly
-        function plotSeries(seriesData) {
-            const dates = seriesData.observations.map(obs => obs.date);
-            const values = seriesData.observations.map(obs => obs.value);
-            
-            const trace = {
-                x: dates,
-                y: values,
-                type: 'scatter',
-                mode: 'lines',
-                name: seriesData.series_id,
-                line: {
-                    color: '#00ff88',
-                    width: 2
-                },
-                hovertemplate: '%{x}<br>Value: %{y:,.2f}<extra></extra>'
-            };
-            
-            const layout = {
-                title: {
-                    text: `${seriesData.name || seriesData.series_id}`,
-                    font: { color: '#00ff88', size: 18 }
-                },
-                paper_bgcolor: 'rgba(0, 0, 0, 0)',
-                plot_bgcolor: 'rgba(255, 255, 255, 0.02)',
-                xaxis: {
-                    title: 'Date',
-                    gridcolor: 'rgba(255, 255, 255, 0.1)',
-                    tickfont: { color: '#888' },
-                    titlefont: { color: '#888' },
-                    rangeslider: { visible: false }
-                },
-                yaxis: {
-                    title: seriesData.units || 'Value (Billions of Dollars)',
-                    gridcolor: 'rgba(255, 255, 255, 0.1)',
-                    tickfont: { color: '#888' },
-                    titlefont: { color: '#888' },
-                    tickformat: ',.0f'
-                },
-                margin: { t: 60, b: 60, l: 80, r: 20 },
-                hovermode: 'x unified',
-                showlegend: false
-            };
-            
-            const config = {
-                responsive: true,
-                displayModeBar: true,
-                displaylogo: false,
-                modeBarButtonsToRemove: ['pan2d', 'select2d', 'lasso2d', 'autoScale2d']
-            };
-            
-            Plotly.newPlot('mainChart', [trace], layout, config);
-        }
-        
-        // Format large values
-        function formatLargeValue(value) {
-            if (value === null || value === undefined) return 'N/A';
-            
-            // Values from API are already in billions
-            const absValue = Math.abs(value);
-            const isNegative = value < 0;
-            let formatted = '';
-            
-            if (absValue >= 1000) {
-                // Trillions
-                formatted = `${(absValue / 1000).toFixed(2)}T`;
-            } else if (absValue >= 1) {
-                // Billions
-                formatted = `${absValue.toFixed(1)}B`;
-            } else {
-                // Millions
-                formatted = `${(absValue * 1000).toFixed(0)}M`;
-            }
-            
-            return `${isNegative ? '-' : ''}$${formatted}`;
-        }
-        
-        // Export to CSV
-        function exportToCSV() {
-            if (allSeriesData.length === 0) {
-                showStatus('No data to export', 'error');
-                return;
-            }
-            
-            let csv = 'Series ID,Description,Current Value (Billions),Units,Last Updated\n';
-            
-            allSeriesData.forEach(series => {
-                const value = series.value !== null ? series.value : 'N/A';
-                csv += `"${series.id}","${series.name}","${value}","${series.units}","${series.date || 'N/A'}"\n`;
+
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
             });
             
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `fed_liquidity_${new Date().toISOString().split('T')[0]}.csv`;
-            a.click();
-            URL.revokeObjectURL(url);
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
             
-            showStatus('Data exported to CSV', 'success');
-        }
-        
-        // Show status message
-        function showStatus(message, type = 'info') {
-            const statusDiv = document.getElementById('statusMessage');
-            statusDiv.className = type;
-            statusDiv.textContent = message;
+            // Show selected tab
+            document.getElementById(`${tabName}-tab`).classList.add('active');
             
-            if (type === 'success' || type === 'error') {
-                setTimeout(() => {
-                    statusDiv.textContent = '';
-                    statusDiv.className = '';
-                }, 5000);
-            }
+            // Add active class to clicked tab button
+            event.target.classList.add('active');
         }
-        
-        // Update last update time
-        function updateLastUpdateTime() {
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-            document.getElementById('lastUpdate').textContent = timeStr;
-        }
+
+        // Initialize with instructions
+        window.onload = function() {
+            const infoBox = document.createElement('div');
+            infoBox.className = 'info-box';
+            infoBox.style.margin = '20px';
+            infoBox.innerHTML = `
+                <h3 style="margin-bottom: 10px;">📊 Welcome to the Fed Liquidity Dashboard</h3>
+                <p>This dashboard fetches REAL data from your Fed Liquidity API Lambda function.</p>
+                <p style="margin-top: 10px;"><strong>To get started:</strong></p>
+                <ol style="margin-left: 20px; margin-top: 10px;">
+                    <li>Enter your API Gateway endpoint URL in the field above</li>
+                    <li>Click "Load Summary" to fetch the latest Fed liquidity metrics</li>
+                    <li>Use "Load All Categories" to see detailed data organized by category</li>
+                    <li>Click "Show All Series" to browse all 60+ available data series</li>
+                </ol>
+            `;
+            document.getElementById('summaryGrid').appendChild(infoBox);
+        };
     </script>
 </body>
 </html>
