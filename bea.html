@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ICE BofA Bond Indices Dashboard - Complete Collection</title>
+    <title>ICE BofA Bond Indices Dashboard - Live Data</title>
     
     <!-- Required Libraries -->
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
@@ -19,7 +19,6 @@
             min-height: 100vh;
         }
         
-        /* Header Styles */
         .header {
             background: rgba(20, 24, 44, 0.95);
             backdrop-filter: blur(10px);
@@ -76,14 +75,83 @@
             text-transform: uppercase;
         }
         
-        /* Container */
+        .cache-indicator {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: #ffd700;
+            margin-left: 0.5rem;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .rate-limit-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 204, 255, 0.1);
+            border: 1px solid rgba(0, 204, 255, 0.3);
+            border-radius: 8px;
+            font-size: 0.875rem;
+        }
+        
+        .rate-limit-bar {
+            width: 100px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .rate-limit-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00ccff);
+            transition: width 0.3s ease;
+        }
+        
         .container {
             max-width: 1800px;
             margin: 0 auto;
             padding: 2rem;
         }
         
-        /* Filter buttons */
+        .auto-update-status {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .update-schedule {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .update-day {
+            padding: 0.25rem 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+        
+        .update-day.active {
+            background: #00ff88;
+            color: #000;
+            font-weight: bold;
+        }
+        
         .filter-container {
             display: flex;
             gap: 0.5rem;
@@ -115,7 +183,46 @@
             border: none;
         }
         
-        /* Data Display Section */
+        .action-container {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 6px;
+            color: #00ff88;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+        }
+        
+        .action-btn:hover {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: #00ff88;
+        }
+        
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .queue-status {
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        
+        .queue-status.active {
+            display: block;
+        }
+        
         .data-section {
             background: rgba(255, 255, 255, 0.03);
             border-radius: 12px;
@@ -139,7 +246,6 @@
             font-weight: bold;
         }
         
-        /* Data Table */
         .data-table {
             width: 100%;
             background: rgba(255, 255, 255, 0.05);
@@ -151,7 +257,7 @@
         .data-table table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 900px;
+            min-width: 1000px;
         }
         
         .data-table th {
@@ -163,6 +269,7 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             font-size: 0.875rem;
             white-space: nowrap;
+            cursor: pointer;
         }
         
         .data-table td {
@@ -175,7 +282,36 @@
             background: rgba(0, 255, 136, 0.05);
         }
         
-        /* Loading States */
+        .cache-badge {
+            display: inline-block;
+            padding: 0.125rem 0.25rem;
+            background: rgba(255, 215, 0, 0.2);
+            border-radius: 3px;
+            font-size: 0.625rem;
+            color: #ffd700;
+            margin-left: 0.25rem;
+        }
+        
+        .fresh-badge {
+            display: inline-block;
+            padding: 0.125rem 0.25rem;
+            background: rgba(0, 255, 136, 0.2);
+            border-radius: 3px;
+            font-size: 0.625rem;
+            color: #00ff88;
+            margin-left: 0.25rem;
+        }
+        
+        .favorite-star {
+            cursor: pointer;
+            color: #444;
+            transition: color 0.3s;
+        }
+        
+        .favorite-star.active {
+            color: #ffd700;
+        }
+        
         .loading {
             text-align: center;
             padding: 2rem;
@@ -196,7 +332,6 @@
             to { transform: rotate(360deg); }
         }
         
-        /* Status Messages */
         .error {
             color: #ff4444;
             padding: 1rem;
@@ -224,7 +359,6 @@
             margin: 1rem 0;
         }
         
-        /* Value Styles */
         .positive { color: #00ff88; }
         .negative { color: #ff4444; }
         .neutral { color: #888; }
@@ -240,29 +374,6 @@
             color: #00ccff;
         }
         
-        /* Search Box */
-        .search-container {
-            margin-bottom: 2rem;
-        }
-        
-        .search-input {
-            width: 100%;
-            max-width: 500px;
-            padding: 0.75rem 1rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            color: #fff;
-            font-size: 1rem;
-        }
-        
-        .search-input:focus {
-            outline: none;
-            border-color: #00ff88;
-            background: rgba(255, 255, 255, 0.08);
-        }
-        
-        /* Progress Bar */
         .progress-container {
             width: 100%;
             height: 30px;
@@ -289,7 +400,15 @@
     <header class="header">
         <div class="logo">
             📊 ICE BofA Bond Indices
-            <span style="font-size: 0.875rem; color: #888;">Complete Collection</span>
+            <span class="cache-indicator">CACHED</span>
+        </div>
+        
+        <div class="rate-limit-indicator">
+            <span>Rate Limit:</span>
+            <div class="rate-limit-bar">
+                <div class="rate-limit-fill" id="rateLimitBar" style="width: 100%;"></div>
+            </div>
+            <span id="rateLimitText">120/120</span>
         </div>
         
         <div class="header-stats">
@@ -302,6 +421,10 @@
                 <div class="stat-label">Loaded</div>
             </div>
             <div class="stat-item">
+                <div class="stat-value" id="cachedSeries">0</div>
+                <div class="stat-label">Cached</div>
+            </div>
+            <div class="stat-item">
                 <div class="stat-value" id="lastUpdate">--:--</div>
                 <div class="stat-label">Last Update</div>
             </div>
@@ -309,31 +432,53 @@
     </header>
     
     <div class="container">
+        <!-- Auto-update status -->
+        <div class="auto-update-status">
+            <div>
+                <strong>📅 Auto-Update Schedule:</strong> Data refreshes Monday, Wednesday, Friday at 2-3 AM EST
+                <div class="update-schedule" style="margin-top: 0.5rem;">
+                    <span class="update-day" id="monday">Monday</span>
+                    <span class="update-day" id="wednesday">Wednesday</span>
+                    <span class="update-day" id="friday">Friday</span>
+                    <span style="margin-left: 1rem; font-size: 0.875rem;">Next update: <span id="nextUpdate">--</span></span>
+                </div>
+            </div>
+            <button class="action-btn" onclick="forceRefresh()">🔄 Force Refresh</button>
+        </div>
+        
         <!-- Status messages -->
         <div id="statusMessage"></div>
+        
+        <!-- Queue status -->
+        <div class="queue-status" id="queueStatus">
+            <strong>Loading Queue:</strong> <span id="queueInfo">0 items waiting</span> | 
+            <strong>Processing:</strong> <span id="processingInfo">Idle</span> | 
+            <strong>Requests/min:</strong> <span id="requestRate">0</span>/120
+        </div>
         
         <!-- Progress Bar -->
         <div class="progress-container" id="progressContainer">
             <div class="progress-bar" id="progressBar">0%</div>
         </div>
         
-        <!-- Search Box -->
-        <div class="search-container">
-            <input type="text" 
-                   class="search-input" 
-                   id="searchInput" 
-                   placeholder="Search by series ID or description..."
-                   onkeyup="searchSeries()">
-        </div>
-        
         <!-- Filter buttons -->
         <div class="filter-container">
-            <button class="filter-btn active" onclick="filterBySeries('all')">📊 All Series (162)</button>
+            <button class="filter-btn active" onclick="filterBySeries('all')">📊 All Series</button>
             <button class="filter-btn" onclick="filterBySeries('yields')">📈 Yields</button>
             <button class="filter-btn" onclick="filterBySeries('spreads')">📉 Spreads/OAS</button>
             <button class="filter-btn" onclick="filterBySeries('returns')">💹 Total Returns</button>
-            <button class="filter-btn" onclick="loadAllSeriesData()">🔄 Load All Data</button>
-            <button class="filter-btn" onclick="exportToCSV()">📥 Export CSV</button>
+            <button class="filter-btn" onclick="filterBySeries('emerging')">🌍 Emerging Markets</button>
+            <button class="filter-btn" onclick="filterBySeries('euro')">€ Euro</button>
+            <button class="filter-btn" onclick="filterBySeries('favorites')">⭐ Favorites</button>
+        </div>
+        
+        <!-- Actions -->
+        <div class="action-container">
+            <button class="action-btn" id="loadTabBtn" onclick="loadTabData()">📥 Load Tab Data</button>
+            <button class="action-btn" id="refreshTabBtn" onclick="refreshTabData()">🔃 Refresh Tab</button>
+            <button class="action-btn" id="loadAllBtn" onclick="loadAllSeriesData()">📥 Load All (Rate Limited)</button>
+            <button class="action-btn" onclick="clearCache()">🗑️ Clear Cache</button>
+            <button class="action-btn" onclick="exportToCSV()">💾 Export CSV</button>
         </div>
         
         <!-- Main Data Section -->
@@ -347,6 +492,7 @@
                 <table>
                     <thead>
                         <tr>
+                            <th>⭐</th>
                             <th onclick="sortTable('id')">Series ID ↕</th>
                             <th onclick="sortTable('name')">Description ↕</th>
                             <th onclick="sortTable('value')">Current Value ↕</th>
@@ -355,10 +501,11 @@
                             <th onclick="sortTable('qoq')">QoQ % ↕</th>
                             <th onclick="sortTable('yoy')">YoY % ↕</th>
                             <th onclick="sortTable('date')">Last Updated ↕</th>
+                            <th>Source</th>
                         </tr>
                     </thead>
                     <tbody id="mainTableBody">
-                        <tr><td colspan="8" class="loading">Click "Load All Data" to fetch series data...</td></tr>
+                        <tr><td colspan="10" class="loading">Ready to load data. Click "Load Tab Data" to start.</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -366,24 +513,310 @@
     </div>
     
     <script>
-        // API Configuration
+        // ============================================
+        // Configuration
+        // ============================================
         const API_BASE = 'https://lnd6erie7y4rw2u6r4dpv4enty0mhtua.lambda-url.us-east-1.on.aws';
+        const RATE_LIMIT = 120; // requests per minute
+        const RATE_WINDOW = 60000; // 1 minute in ms
+        const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+        const AUTO_UPDATE_DAYS = [1, 3, 5]; // Monday, Wednesday, Friday
+        const AUTO_UPDATE_HOUR = 2; // 2 AM EST
         
-        // Global state
-        let allSeriesMetadata = {};  // Just the list from the API
-        let allSeriesData = [];      // Full data for each series
+        // ============================================
+        // Global State
+        // ============================================
+        let allSeriesMetadata = {};
+        let allSeriesData = [];
+        let dataCache = {};
         let currentFilter = 'all';
         let sortColumn = 'id';
         let sortDirection = 'asc';
+        let favorites = JSON.parse(localStorage.getItem('iceBofaFavorites') || '[]');
         
-        // Initialize
+        // Rate limiting state
+        let requestQueue = [];
+        let requestsInWindow = [];
+        let isProcessingQueue = false;
+        let availableRequests = RATE_LIMIT;
+        
+        // ============================================
+        // Cache Management
+        // ============================================
+        
+        function getCacheKey(seriesId) {
+            return `ice_bofa_${seriesId}`;
+        }
+        
+        function getCachedData(seriesId) {
+            const key = getCacheKey(seriesId);
+            const cached = localStorage.getItem(key);
+            
+            if (!cached) return null;
+            
+            try {
+                const data = JSON.parse(cached);
+                const now = Date.now();
+                
+                // Check if cache is still valid
+                if (data.timestamp && (now - data.timestamp) < CACHE_DURATION) {
+                    return data;
+                }
+                
+                // Cache expired
+                localStorage.removeItem(key);
+                return null;
+            } catch (e) {
+                console.error('Cache parse error:', e);
+                localStorage.removeItem(key);
+                return null;
+            }
+        }
+        
+        function setCachedData(seriesId, data) {
+            const key = getCacheKey(seriesId);
+            const cacheData = {
+                ...data,
+                timestamp: Date.now(),
+                cached: true
+            };
+            
+            try {
+                localStorage.setItem(key, JSON.stringify(cacheData));
+                updateCacheCount();
+            } catch (e) {
+                console.error('Cache storage error:', e);
+                // Clear some old cache if storage is full
+                clearOldestCache();
+            }
+        }
+        
+        function clearCache() {
+            const keys = Object.keys(localStorage);
+            keys.forEach(key => {
+                if (key.startsWith('ice_bofa_')) {
+                    localStorage.removeItem(key);
+                }
+            });
+            
+            dataCache = {};
+            updateCacheCount();
+            showStatus('Cache cleared', 'success');
+        }
+        
+        function clearOldestCache() {
+            const keys = Object.keys(localStorage);
+            let oldestKey = null;
+            let oldestTime = Date.now();
+            
+            keys.forEach(key => {
+                if (key.startsWith('ice_bofa_')) {
+                    try {
+                        const data = JSON.parse(localStorage.getItem(key));
+                        if (data.timestamp < oldestTime) {
+                            oldestTime = data.timestamp;
+                            oldestKey = key;
+                        }
+                    } catch (e) {}
+                }
+            });
+            
+            if (oldestKey) {
+                localStorage.removeItem(oldestKey);
+            }
+        }
+        
+        function updateCacheCount() {
+            const keys = Object.keys(localStorage);
+            const cacheCount = keys.filter(key => key.startsWith('ice_bofa_')).length;
+            document.getElementById('cachedSeries').textContent = cacheCount;
+        }
+        
+        // ============================================
+        // Rate Limiting
+        // ============================================
+        
+        function updateRateLimit() {
+            const now = Date.now();
+            
+            // Remove requests older than the rate window
+            requestsInWindow = requestsInWindow.filter(time => now - time < RATE_WINDOW);
+            
+            // Calculate available requests
+            availableRequests = RATE_LIMIT - requestsInWindow.length;
+            
+            // Update UI
+            const percentage = (availableRequests / RATE_LIMIT) * 100;
+            document.getElementById('rateLimitBar').style.width = `${percentage}%`;
+            document.getElementById('rateLimitText').textContent = `${availableRequests}/${RATE_LIMIT}`;
+            
+            // Update rate display
+            document.getElementById('requestRate').textContent = requestsInWindow.length;
+        }
+        
+        async function makeRateLimitedRequest(seriesId) {
+            return new Promise((resolve, reject) => {
+                requestQueue.push({ seriesId, resolve, reject });
+                
+                if (!isProcessingQueue) {
+                    processQueue();
+                }
+            });
+        }
+        
+        async function processQueue() {
+            if (isProcessingQueue) return;
+            isProcessingQueue = true;
+            
+            document.getElementById('queueStatus').classList.add('active');
+            
+            while (requestQueue.length > 0) {
+                updateRateLimit();
+                
+                if (availableRequests <= 0) {
+                    // Wait for rate limit to reset
+                    document.getElementById('processingInfo').textContent = 'Waiting for rate limit...';
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    continue;
+                }
+                
+                const request = requestQueue.shift();
+                document.getElementById('queueInfo').textContent = `${requestQueue.length} items waiting`;
+                document.getElementById('processingInfo').textContent = `Loading ${request.seriesId}`;
+                
+                try {
+                    // Check cache first
+                    const cachedData = getCachedData(request.seriesId);
+                    if (cachedData) {
+                        request.resolve(cachedData);
+                        continue;
+                    }
+                    
+                    // Make actual API request
+                    const response = await fetch(`${API_BASE}/ice_bofa?series=${request.seriesId}`);
+                    requestsInWindow.push(Date.now());
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        setCachedData(request.seriesId, data);
+                        request.resolve(data);
+                    } else {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                } catch (error) {
+                    request.reject(error);
+                }
+                
+                // Small delay between requests to be nice to the API
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            isProcessingQueue = false;
+            document.getElementById('processingInfo').textContent = 'Idle';
+            document.getElementById('queueStatus').classList.remove('active');
+        }
+        
+        // ============================================
+        // Auto-Update Functionality
+        // ============================================
+        
+        function calculateNextUpdate() {
+            const now = new Date();
+            const currentDay = now.getDay();
+            const currentHour = now.getHours();
+            
+            // Find next update day
+            let daysUntilNext = AUTO_UPDATE_DAYS
+                .map(day => {
+                    let diff = day - currentDay;
+                    if (diff < 0 || (diff === 0 && currentHour >= AUTO_UPDATE_HOUR)) {
+                        diff += 7;
+                    }
+                    return diff;
+                })
+                .sort((a, b) => a - b)[0];
+            
+            const nextUpdate = new Date(now);
+            nextUpdate.setDate(now.getDate() + daysUntilNext);
+            nextUpdate.setHours(AUTO_UPDATE_HOUR, 0, 0, 0);
+            
+            return nextUpdate;
+        }
+        
+        function updateAutoUpdateDisplay() {
+            const now = new Date();
+            const currentDay = now.getDay();
+            
+            // Highlight current day if it's an update day
+            document.getElementById('monday').classList.toggle('active', currentDay === 1);
+            document.getElementById('wednesday').classList.toggle('active', currentDay === 3);
+            document.getElementById('friday').classList.toggle('active', currentDay === 5);
+            
+            // Show next update time
+            const nextUpdate = calculateNextUpdate();
+            const timeUntil = nextUpdate - now;
+            const hoursUntil = Math.floor(timeUntil / (1000 * 60 * 60));
+            const daysUntil = Math.floor(hoursUntil / 24);
+            
+            let timeStr = '';
+            if (daysUntil > 0) {
+                timeStr = `${daysUntil}d ${hoursUntil % 24}h`;
+            } else {
+                timeStr = `${hoursUntil}h ${Math.floor((timeUntil % (1000 * 60 * 60)) / (1000 * 60))}m`;
+            }
+            
+            document.getElementById('nextUpdate').textContent = `${nextUpdate.toLocaleDateString()} ${nextUpdate.toLocaleTimeString()} (in ${timeStr})`;
+        }
+        
+        function checkAutoUpdate() {
+            const now = new Date();
+            const currentDay = now.getDay();
+            const currentHour = now.getHours();
+            
+            // Check if it's an update day and time
+            if (AUTO_UPDATE_DAYS.includes(currentDay) && currentHour === AUTO_UPDATE_HOUR) {
+                const lastAutoUpdate = localStorage.getItem('lastAutoUpdate');
+                const today = now.toDateString();
+                
+                if (lastAutoUpdate !== today) {
+                    localStorage.setItem('lastAutoUpdate', today);
+                    forceRefresh();
+                }
+            }
+        }
+        
+        async function forceRefresh() {
+            if (!confirm('This will clear the cache and reload all data. Continue?')) {
+                return;
+            }
+            
+            clearCache();
+            allSeriesData = [];
+            await loadTabData();
+            showStatus('Data refreshed from server', 'success');
+        }
+        
+        // ============================================
+        // Data Loading
+        // ============================================
+        
         async function initialize() {
-            console.log('🚀 Initializing ICE BofA Dashboard...');
+            console.log('🚀 Initializing ICE BofA Dashboard with Rate Limiting...');
+            
             updateLastUpdateTime();
+            updateCacheCount();
+            updateAutoUpdateDisplay();
+            
+            // Set up auto-update check
+            setInterval(checkAutoUpdate, 60000); // Check every minute
+            setInterval(updateAutoUpdateDisplay, 60000); // Update display every minute
+            
+            // Set up rate limit display update
+            setInterval(updateRateLimit, 1000);
+            
             await fetchSeriesMetadata();
         }
         
-        // Fetch the metadata (list of all series)
         async function fetchSeriesMetadata() {
             showStatus('Fetching series list...', 'info');
             
@@ -397,8 +830,7 @@
                 const count = Object.keys(allSeriesMetadata).length;
                 document.getElementById('totalSeries').textContent = count;
                 
-                console.log(`✅ Found ${count} ICE BofA series`);
-                showStatus(`Ready to load ${count} series. Click "Load All Data" to begin.`, 'success');
+                showStatus(`Ready. ${count} series available. Cache enabled, rate limited to ${RATE_LIMIT} req/min.`, 'success');
                 
             } catch (error) {
                 console.error('Error:', error);
@@ -406,117 +838,201 @@
             }
         }
         
-        // Load all series data
-        async function loadAllSeriesData() {
-            const seriesIds = Object.keys(allSeriesMetadata);
-            const totalCount = seriesIds.length;
+        async function loadTabData() {
+            const seriesToLoad = getSeriesForCurrentTab();
             
-            if (totalCount === 0) {
-                showStatus('No series to load. Refresh the page.', 'error');
+            if (seriesToLoad.length === 0) {
+                showStatus('No series to load for this tab.', 'info');
                 return;
             }
             
-            console.log(`📊 Starting to load ${totalCount} series...`);
-            showStatus(`Loading ${totalCount} series...`, 'info');
+            await loadSeriesDataBatch(seriesToLoad);
+        }
+        
+        async function refreshTabData() {
+            const seriesToLoad = getSeriesForCurrentTab();
             
-            // Show progress bar
+            if (seriesToLoad.length === 0) {
+                showStatus('No series to refresh.', 'info');
+                return;
+            }
+            
+            // Clear cache for these series
+            seriesToLoad.forEach(seriesId => {
+                const key = getCacheKey(seriesId);
+                localStorage.removeItem(key);
+            });
+            
+            // Clear from loaded data
+            const seriesToLoadSet = new Set(seriesToLoad);
+            allSeriesData = allSeriesData.filter(s => !seriesToLoadSet.has(s.id));
+            
+            await loadSeriesDataBatch(seriesToLoad);
+        }
+        
+        function getSeriesForCurrentTab() {
+            let seriesIds = Object.keys(allSeriesMetadata);
+            
+            switch(currentFilter) {
+                case 'yields':
+                    return seriesIds.filter(id => 
+                        id.includes('EY') || id.includes('SYTW') || 
+                        allSeriesMetadata[id].toLowerCase().includes('yield')
+                    );
+                    
+                case 'spreads':
+                    return seriesIds.filter(id => 
+                        id.includes('OAS') || id.includes('SPREAD') || 
+                        allSeriesMetadata[id].toLowerCase().includes('spread')
+                    );
+                    
+                case 'returns':
+                    return seriesIds.filter(id => 
+                        id.includes('TRIV') || 
+                        allSeriesMetadata[id].toLowerCase().includes('total return')
+                    );
+                    
+                case 'emerging':
+                    return seriesIds.filter(id => {
+                        const name = allSeriesMetadata[id].toLowerCase();
+                        return id.includes('EM') || name.includes('emerging');
+                    });
+                    
+                case 'euro':
+                    return seriesIds.filter(id => {
+                        const name = allSeriesMetadata[id].toLowerCase();
+                        return id.includes('EUR') || name.includes('euro');
+                    });
+                    
+                case 'favorites':
+                    return favorites.filter(id => seriesIds.includes(id));
+                    
+                default:
+                    return seriesIds;
+            }
+        }
+        
+        async function loadSeriesDataBatch(seriesIds) {
+            const totalCount = seriesIds.length;
+            
+            if (totalCount === 0) {
+                showStatus('No series to load.', 'info');
+                return;
+            }
+            
+            console.log(`📊 Loading ${totalCount} series with rate limiting...`);
+            showStatus(`Loading ${totalCount} series (rate limited to ${RATE_LIMIT}/min)...`, 'info');
+            
+            // Disable buttons during loading
+            document.getElementById('loadTabBtn').disabled = true;
+            document.getElementById('refreshTabBtn').disabled = true;
+            document.getElementById('loadAllBtn').disabled = true;
+            
+            // Show progress
             const progressContainer = document.getElementById('progressContainer');
             const progressBar = document.getElementById('progressBar');
             progressContainer.style.display = 'block';
             
-            // Clear existing data
-            allSeriesData = [];
-            document.getElementById('mainTableBody').innerHTML = '<tr><td colspan="8" class="loading"><div class="loading-spinner"></div> Loading data...</td></tr>';
+            document.getElementById('mainTableBody').innerHTML = '<tr><td colspan="10" class="loading"><div class="loading-spinner"></div> Loading data...</td></tr>';
             
             let loaded = 0;
             let failed = 0;
+            let cached = 0;
             
-            // Process in smaller batches to avoid overwhelming the API
-            const batchSize = 3;
-            
-            for (let i = 0; i < seriesIds.length; i += batchSize) {
-                const batch = seriesIds.slice(i, i + batchSize);
-                
-                // Process batch in parallel
-                const batchPromises = batch.map(async (seriesId) => {
-                    try {
-                        const response = await fetch(`${API_BASE}/ice_bofa?series=${seriesId}`);
-                        if (response.ok) {
-                            const data = await response.json();
-                            
-                            // Store the full series data
-                            allSeriesData.push({
-                                id: seriesId,
-                                name: data.name || allSeriesMetadata[seriesId],
-                                latest: data.latest || {},
-                                changes: data.percentage_changes || {},
-                                frequency: data.frequency,
-                                units: data.units
-                            });
-                            
-                            loaded++;
-                            console.log(`✓ Loaded ${seriesId} (${loaded}/${totalCount})`);
-                        } else {
-                            throw new Error(`HTTP ${response.status}`);
-                        }
-                    } catch (err) {
-                        console.error(`✗ Failed to load ${seriesId}:`, err.message);
-                        
-                        // Add placeholder for failed series
-                        allSeriesData.push({
-                            id: seriesId,
-                            name: allSeriesMetadata[seriesId],
-                            latest: { value: null, date: null },
-                            changes: {},
-                            error: true
-                        });
-                        
-                        failed++;
+            for (const seriesId of seriesIds) {
+                try {
+                    // Check if already loaded
+                    const existing = allSeriesData.find(s => s.id === seriesId);
+                    if (existing && !existing.error) {
+                        loaded++;
+                        continue;
                     }
-                });
-                
-                // Wait for batch to complete
-                await Promise.all(batchPromises);
-                
-                // Update progress
-                const progress = Math.round(((loaded + failed) / totalCount) * 100);
-                progressBar.style.width = `${progress}%`;
-                progressBar.textContent = `${progress}%`;
-                
-                document.getElementById('loadedSeries').textContent = loaded;
-                document.getElementById('seriesCount').textContent = `${loaded} of 192 loaded`;
-                
-                // Update status
-                if (failed > 0) {
-                    showStatus(`Loading: ${loaded} successful, ${failed} failed...`, 'info');
-                } else {
-                    showStatus(`Loading: ${loaded}/${totalCount}...`, 'info');
-                }
-                
-                // Small delay between batches
-                if (i + batchSize < seriesIds.length) {
-                    await new Promise(resolve => setTimeout(resolve, 50));
+                    
+                    // Check cache first
+                    const cachedData = getCachedData(seriesId);
+                    
+                    let data;
+                    if (cachedData) {
+                        data = cachedData;
+                        cached++;
+                    } else {
+                        // Use rate-limited request
+                        data = await makeRateLimitedRequest(seriesId);
+                    }
+                    
+                    // Remove old entry
+                    allSeriesData = allSeriesData.filter(s => s.id !== seriesId);
+                    
+                    // Store the data
+                    allSeriesData.push({
+                        id: seriesId,
+                        name: data.name || allSeriesMetadata[seriesId],
+                        latest: data.latest || {},
+                        changes: data.percentage_changes || {},
+                        frequency: data.frequency,
+                        units: data.units,
+                        cached: data.cached || false
+                    });
+                    
+                    loaded++;
+                    
+                    // Update progress
+                    const progress = Math.round((loaded / totalCount) * 100);
+                    progressBar.style.width = `${progress}%`;
+                    progressBar.textContent = `${progress}%`;
+                    
+                    document.getElementById('loadedSeries').textContent = allSeriesData.filter(s => !s.error).length;
+                    
+                    // Update display periodically
+                    if (loaded % 10 === 0) {
+                        displaySeriesData();
+                    }
+                    
+                } catch (error) {
+                    console.error(`Failed ${seriesId}:`, error);
+                    
+                    allSeriesData = allSeriesData.filter(s => s.id !== seriesId);
+                    allSeriesData.push({
+                        id: seriesId,
+                        name: allSeriesMetadata[seriesId],
+                        latest: { value: null, date: null },
+                        changes: {},
+                        error: true
+                    });
+                    
+                    failed++;
                 }
             }
             
-            // Hide progress bar
+            // Hide progress
             progressContainer.style.display = 'none';
             
-            // Display all data
+            // Re-enable buttons
+            document.getElementById('loadTabBtn').disabled = false;
+            document.getElementById('refreshTabBtn').disabled = false;
+            document.getElementById('loadAllBtn').disabled = false;
+            
+            // Final display
             displaySeriesData();
             updateLastUpdateTime();
             
-            // Final status
-            if (failed > 0) {
-                showStatus(`Loaded ${loaded} series successfully. ${failed} series failed to load.`, 'info');
-            } else {
-                showStatus(`Successfully loaded all ${loaded} series!`, 'success');
-            }
-            
-            console.log(`\n📊 Final Results:\n✅ Loaded: ${loaded}\n❌ Failed: ${failed}\n📈 Total: ${totalCount}`);
+            const statusMsg = `Loaded ${loaded} series (${cached} from cache, ${loaded - cached} from API). ${failed > 0 ? `${failed} failed.` : ''}`;
+            showStatus(statusMsg, failed > 0 ? 'info' : 'success');
         }
         
-        // Display series data in the table
+        async function loadAllSeriesData() {
+            if (!confirm('This will load all 162 series with rate limiting (may take 2-3 minutes). Continue?')) {
+                return;
+            }
+            
+            const seriesIds = Object.keys(allSeriesMetadata);
+            await loadSeriesDataBatch(seriesIds);
+        }
+        
+        // ============================================
+        // Display Functions
+        // ============================================
+        
         function displaySeriesData() {
             let filteredData = [...allSeriesData];
             
@@ -530,22 +1046,19 @@
                         case 'yields':
                             return id.includes('EY') || name.includes('yield');
                         case 'spreads':
-                            return id.includes('OAS') || name.includes('spread');
+                            return id.includes('OAS') || id.includes('SPREAD');
                         case 'returns':
-                            return id.includes('TRIV') || name.includes('total return');
+                            return id.includes('TRIV');
+                        case 'emerging':
+                            return id.includes('EM') || name.includes('emerging');
+                        case 'euro':
+                            return id.includes('EUR') || name.includes('euro');
+                        case 'favorites':
+                            return favorites.includes(id);
                         default:
                             return true;
                     }
                 });
-            }
-            
-            // Apply search filter if any
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            if (searchTerm) {
-                filteredData = filteredData.filter(series => 
-                    series.id.toLowerCase().includes(searchTerm) || 
-                    series.name.toLowerCase().includes(searchTerm)
-                );
             }
             
             // Sort data
@@ -597,17 +1110,24 @@
                 }
             });
             
-            // Build table HTML
+            // Build table
             const tbody = document.getElementById('mainTableBody');
             
             if (filteredData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #888;">No data to display</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; color: #888;">No data to display. Click "Load Tab Data" to load series.</td></tr>';
+                document.getElementById('seriesCount').textContent = `0 series displayed`;
                 return;
             }
             
             const rows = filteredData.map(series => {
+                const isFavorite = favorites.includes(series.id);
+                const sourceLabel = series.cached ? 
+                    '<span class="cache-badge">CACHED</span>' : 
+                    '<span class="fresh-badge">FRESH</span>';
+                
                 return `
                     <tr>
+                        <td><span class="favorite-star ${isFavorite ? 'active' : ''}" onclick="toggleFavorite('${series.id}')">★</span></td>
                         <td class="series-id">${series.id}</td>
                         <td>${series.name}</td>
                         <td class="value-cell ${series.error ? 'neutral' : ''}">${formatValue(series.latest.value, series.id)}</td>
@@ -616,19 +1136,39 @@
                         <td class="${getColorClass(series.changes['QoQ%'])}">${formatChange(series.changes['QoQ%'])}</td>
                         <td class="${getColorClass(series.changes['YoY%'])}">${formatChange(series.changes['YoY%'])}</td>
                         <td>${series.latest.date || 'N/A'}</td>
+                        <td>${sourceLabel}</td>
                     </tr>
                 `;
             }).join('');
             
             tbody.innerHTML = rows;
             
-            // Update title
-            document.getElementById('mainTitle').textContent = 
-                currentFilter === 'all' ? 'All ICE BofA Series' : 
-                `Filtered: ${filteredData.length} series`;
+            const tabNames = {
+                'all': 'All ICE BofA Series',
+                'yields': 'Yield Indices',
+                'spreads': 'Spreads/OAS Indices',
+                'returns': 'Total Return Indices',
+                'emerging': 'Emerging Markets Indices',
+                'euro': 'Euro Indices',
+                'favorites': 'Favorite Indices'
+            };
+            
+            document.getElementById('mainTitle').textContent = tabNames[currentFilter];
+            document.getElementById('seriesCount').textContent = `${filteredData.length} series displayed`;
         }
         
-        // Format value based on series type
+        function toggleFavorite(seriesId) {
+            const index = favorites.indexOf(seriesId);
+            if (index > -1) {
+                favorites.splice(index, 1);
+            } else {
+                favorites.push(seriesId);
+            }
+            
+            localStorage.setItem('iceBofaFavorites', JSON.stringify(favorites));
+            displaySeriesData();
+        }
+        
         function formatValue(value, seriesId) {
             if (value === null || value === undefined) return 'N/A';
             
@@ -638,46 +1178,35 @@
                 return `${num.toFixed(2)} bps`;
             }
             
-            if (seriesId.includes('EY') || seriesId.includes('YIELD') || seriesId.includes('SYTW')) {
+            if (seriesId.includes('EY') || seriesId.includes('YIELD')) {
                 return `${num.toFixed(2)}%`;
-            }
-            
-            if (seriesId.includes('TRIV')) {
-                return num.toFixed(2);
             }
             
             return num.toFixed(2);
         }
         
-        // Format percentage change
         function formatChange(value) {
             if (value === null || value === undefined) return 'N/A';
             const sign = value >= 0 ? '+' : '';
             return `${sign}${value.toFixed(2)}%`;
         }
         
-        // Get color class based on value
         function getColorClass(value) {
             if (value === null || value === undefined) return 'neutral';
             return value >= 0 ? 'positive' : 'negative';
         }
         
-        // Filter by series type
         function filterBySeries(filter) {
             currentFilter = filter;
             
-            // Update active button
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
             event.target.classList.add('active');
             
-            if (allSeriesData.length > 0) {
-                displaySeriesData();
-            }
+            displaySeriesData();
         }
         
-        // Sort table
         function sortTable(column) {
             if (sortColumn === column) {
                 sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
@@ -686,22 +1215,12 @@
                 sortDirection = 'asc';
             }
             
-            if (allSeriesData.length > 0) {
-                displaySeriesData();
-            }
+            displaySeriesData();
         }
         
-        // Search functionality
-        function searchSeries() {
-            if (allSeriesData.length > 0) {
-                displaySeriesData();
-            }
-        }
-        
-        // Export to CSV
         function exportToCSV() {
             if (allSeriesData.length === 0) {
-                showStatus('No data to export. Load data first.', 'error');
+                showStatus('No data to export.', 'error');
                 return;
             }
             
@@ -709,10 +1228,10 @@
             
             allSeriesData.forEach(series => {
                 const value = series.latest.value !== null ? formatValue(series.latest.value, series.id) : 'N/A';
-                const wow = series.changes['WoW%'] !== undefined ? series.changes['WoW%'].toFixed(2) : 'N/A';
-                const mom = series.changes['MoM%'] !== undefined ? series.changes['MoM%'].toFixed(2) : 'N/A';
-                const qoq = series.changes['QoQ%'] !== undefined ? series.changes['QoQ%'].toFixed(2) : 'N/A';
-                const yoy = series.changes['YoY%'] !== undefined ? series.changes['YoY%'].toFixed(2) : 'N/A';
+                const wow = series.changes['WoW%']?.toFixed(2) || 'N/A';
+                const mom = series.changes['MoM%']?.toFixed(2) || 'N/A';
+                const qoq = series.changes['QoQ%']?.toFixed(2) || 'N/A';
+                const yoy = series.changes['YoY%']?.toFixed(2) || 'N/A';
                 
                 csv += `"${series.id}","${series.name}","${value}","${wow}","${mom}","${qoq}","${yoy}","${series.latest.date || 'N/A'}"\n`;
             });
@@ -727,7 +1246,6 @@
             showStatus('Data exported to CSV', 'success');
         }
         
-        // Show status message
         function showStatus(message, type = 'info') {
             const statusDiv = document.getElementById('statusMessage');
             statusDiv.className = type;
@@ -741,7 +1259,6 @@
             }
         }
         
-        // Update last update time
         function updateLastUpdateTime() {
             const now = new Date();
             const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
@@ -750,11 +1267,6 @@
         
         // Initialize on load
         document.addEventListener('DOMContentLoaded', initialize);
-        
-        // Make functions available globally for debugging
-        window.testSingleSeries = testSingleSeries;
-        window.retryFailedSeries = retryFailedSeries;
-        window.showWorkingSeries = showWorkingSeries;
     </script>
 </body>
 </html>
