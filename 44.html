@@ -1,1 +1,762 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ICE BofA Bond Indices Dashboard - Complete Collection</title>
+    
+    <!-- Required Libraries -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #151932 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        
+        /* Header Styles */
+        .header {
+            background: rgba(20, 24, 44, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .header-stats {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-width: 100px;
+        }
+        
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #00ff88;
+        }
+        
+        .stat-label {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+        }
+        
+        /* Container */
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Filter buttons */
+        .filter-container {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 0.75rem 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #888;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+        }
+        
+        .filter-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border-color: rgba(0, 255, 136, 0.3);
+        }
+        
+        .filter-btn.active {
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            color: #000;
+            font-weight: bold;
+            border: none;
+        }
+        
+        /* Data Display Section */
+        .data-section {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid rgba(0, 255, 136, 0.3);
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            color: #00ff88;
+            font-weight: bold;
+        }
+        
+        /* Data Table */
+        .data-table {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            overflow: hidden;
+            overflow-x: auto;
+        }
+        
+        .data-table table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+        }
+        
+        .data-table th {
+            background: rgba(0, 255, 136, 0.1);
+            padding: 0.75rem;
+            text-align: left;
+            font-weight: bold;
+            color: #00ff88;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.875rem;
+            white-space: nowrap;
+        }
+        
+        .data-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.875rem;
+        }
+        
+        .data-table tr:hover {
+            background: rgba(0, 255, 136, 0.05);
+        }
+        
+        /* Loading States */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #888;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(0, 255, 136, 0.2);
+            border-top-color: #00ff88;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Status Messages */
+        .error {
+            color: #ff4444;
+            padding: 1rem;
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid rgba(255, 68, 68, 0.3);
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        .success {
+            color: #00ff88;
+            padding: 1rem;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        .info {
+            color: #00ccff;
+            padding: 1rem;
+            background: rgba(0, 204, 255, 0.1);
+            border: 1px solid rgba(0, 204, 255, 0.3);
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        /* Value Styles */
+        .positive { color: #00ff88; }
+        .negative { color: #ff4444; }
+        .neutral { color: #888; }
+        
+        .value-cell {
+            font-family: 'Courier New', monospace;
+            font-weight: 500;
+        }
+        
+        .series-id {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            color: #00ccff;
+        }
+        
+        /* Search Box */
+        .search-container {
+            margin-bottom: 2rem;
+        }
+        
+        .search-input {
+            width: 100%;
+            max-width: 500px;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #00ff88;
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 1rem 0;
+            display: none;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00ccff);
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            📊 ICE BofA Bond Indices
+            <span style="font-size: 0.875rem; color: #888;">Complete Collection</span>
+        </div>
+        
+        <div class="header-stats">
+            <div class="stat-item">
+                <div class="stat-value" id="totalSeries">162</div>
+                <div class="stat-label">Total Series</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="loadedSeries">0</div>
+                <div class="stat-label">Loaded</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="lastUpdate">--:--</div>
+                <div class="stat-label">Last Update</div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <!-- Status messages -->
+        <div id="statusMessage"></div>
+        
+        <!-- Progress Bar -->
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar" id="progressBar">0%</div>
+        </div>
+        
+        <!-- Search Box -->
+        <div class="search-container">
+            <input type="text" 
+                   class="search-input" 
+                   id="searchInput" 
+                   placeholder="Search by series ID or description..."
+                   onkeyup="searchSeries()">
+        </div>
+        
+        <!-- Filter buttons -->
+        <div class="filter-container">
+            <button class="filter-btn active" onclick="filterBySeries('all')">📊 All Series (162)</button>
+            <button class="filter-btn" onclick="filterBySeries('yields')">📈 Yields</button>
+            <button class="filter-btn" onclick="filterBySeries('spreads')">📉 Spreads/OAS</button>
+            <button class="filter-btn" onclick="filterBySeries('returns')">💹 Total Returns</button>
+            <button class="filter-btn" onclick="loadAllSeriesData()">🔄 Load All Data</button>
+            <button class="filter-btn" onclick="exportToCSV()">📥 Export CSV</button>
+        </div>
+        
+        <!-- Main Data Section -->
+        <div class="data-section">
+            <div class="section-header">
+                <div class="section-title" id="mainTitle">All ICE BofA Series</div>
+                <div style="color: #888;" id="seriesCount">0 of 162 loaded</div>
+            </div>
+            
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable('id')">Series ID ↕</th>
+                            <th onclick="sortTable('name')">Description ↕</th>
+                            <th onclick="sortTable('value')">Current Value ↕</th>
+                            <th onclick="sortTable('wow')">WoW % ↕</th>
+                            <th onclick="sortTable('mom')">MoM % ↕</th>
+                            <th onclick="sortTable('qoq')">QoQ % ↕</th>
+                            <th onclick="sortTable('yoy')">YoY % ↕</th>
+                            <th onclick="sortTable('date')">Last Updated ↕</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mainTableBody">
+                        <tr><td colspan="8" class="loading">Click "Load All Data" to fetch series data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // API Configuration
+        const API_BASE = 'https://lnd6erie7y4rw2u6r4dpv4enty0mhtua.lambda-url.us-east-1.on.aws';
+        
+        // Global state
+        let allSeriesMetadata = {};  // Just the list from the API
+        let allSeriesData = [];      // Full data for each series
+        let currentFilter = 'all';
+        let sortColumn = 'id';
+        let sortDirection = 'asc';
+        
+        // Initialize
+        async function initialize() {
+            console.log('🚀 Initializing ICE BofA Dashboard...');
+            updateLastUpdateTime();
+            await fetchSeriesMetadata();
+        }
+        
+        // Fetch the metadata (list of all series)
+        async function fetchSeriesMetadata() {
+            showStatus('Fetching series list...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/ice_bofa?series=all`);
+                if (!response.ok) throw new Error('Failed to fetch series list');
+                
+                const data = await response.json();
+                allSeriesMetadata = data.series || {};
+                
+                const count = Object.keys(allSeriesMetadata).length;
+                document.getElementById('totalSeries').textContent = count;
+                
+                console.log(`✅ Found ${count} ICE BofA series`);
+                console.log('📦 Data served from cache - Updates Mon/Wed/Fri at 2-3 AM EST');
+                showStatus(`Ready to load ${count} series from cache. Updates 3x weekly (Mon/Wed/Fri).`, 'success');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus(`Error: ${error.message}`, 'error');
+            }
+        }
+        
+        // Load all series data
+        async function loadAllSeriesData() {
+            const seriesIds = Object.keys(allSeriesMetadata);
+            const totalCount = seriesIds.length;
+            
+            if (totalCount === 0) {
+                showStatus('No series to load. Refresh the page.', 'error');
+                return;
+            }
+            
+            console.log(`📊 Starting to load ${totalCount} series...`);
+            showStatus(`Loading ${totalCount} series...`, 'info');
+            
+            // Show progress bar
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            progressContainer.style.display = 'block';
+            
+            // Clear existing data
+            allSeriesData = [];
+            document.getElementById('mainTableBody').innerHTML = '<tr><td colspan="8" class="loading"><div class="loading-spinner"></div> Loading data...</td></tr>';
+            
+            let loaded = 0;
+            let failed = 0;
+            
+            // Process in smaller batches to avoid overwhelming the API
+            const batchSize = 3;
+            
+            for (let i = 0; i < seriesIds.length; i += batchSize) {
+                const batch = seriesIds.slice(i, i + batchSize);
+                
+                // Process batch in parallel
+                const batchPromises = batch.map(async (seriesId) => {
+                    try {
+                        const response = await fetch(`${API_BASE}/ice_bofa?series=${seriesId}`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            
+                            // Store the full series data
+                            allSeriesData.push({
+                                id: seriesId,
+                                name: data.name || allSeriesMetadata[seriesId],
+                                latest: data.latest || {},
+                                changes: data.percentage_changes || {},
+                                frequency: data.frequency,
+                                units: data.units
+                            });
+                            
+                            loaded++;
+                            console.log(`✓ Loaded ${seriesId} (${loaded}/${totalCount})`);
+                        } else {
+                            throw new Error(`HTTP ${response.status}`);
+                        }
+                    } catch (err) {
+                        console.error(`✗ Failed to load ${seriesId}:`, err.message);
+                        
+                        // Add placeholder for failed series
+                        allSeriesData.push({
+                            id: seriesId,
+                            name: allSeriesMetadata[seriesId],
+                            latest: { value: null, date: null },
+                            changes: {},
+                            error: true
+                        });
+                        
+                        failed++;
+                    }
+                });
+                
+                // Wait for batch to complete
+                await Promise.all(batchPromises);
+                
+                // Update progress
+                const progress = Math.round(((loaded + failed) / totalCount) * 100);
+                progressBar.style.width = `${progress}%`;
+                progressBar.textContent = `${progress}%`;
+                
+                document.getElementById('loadedSeries').textContent = loaded;
+                document.getElementById('seriesCount').textContent = `${loaded} of 192 loaded`;
+                
+                // Update status
+                if (failed > 0) {
+                    showStatus(`Loading: ${loaded} successful, ${failed} failed...`, 'info');
+                } else {
+                    showStatus(`Loading: ${loaded}/${totalCount}...`, 'info');
+                }
+                
+                // Small delay between batches
+                if (i + batchSize < seriesIds.length) {
+                    await new Promise(resolve => setTimeout(resolve, 50));
+                }
+            }
+            
+            // Hide progress bar
+            progressContainer.style.display = 'none';
+            
+            // Display all data
+            displaySeriesData();
+            updateLastUpdateTime();
+            
+            // Final status
+            if (failed > 0) {
+                showStatus(`Loaded ${loaded} series successfully. ${failed} series failed to load.`, 'info');
+            } else {
+                showStatus(`Successfully loaded all ${loaded} series!`, 'success');
+            }
+            
+            console.log(`\n📊 Final Results:\n✅ Loaded: ${loaded}\n❌ Failed: ${failed}\n📈 Total: ${totalCount}`);
+        }
+        
+        // Display series data in the table
+        function displaySeriesData() {
+            let filteredData = [...allSeriesData];
+            
+            // Apply filter
+            if (currentFilter !== 'all') {
+                filteredData = filteredData.filter(series => {
+                    const id = series.id;
+                    const name = series.name.toLowerCase();
+                    
+                    switch(currentFilter) {
+                        case 'yields':
+                            return id.includes('EY') || name.includes('yield');
+                        case 'spreads':
+                            return id.includes('OAS') || name.includes('spread');
+                        case 'returns':
+                            return id.includes('TRIV') || name.includes('total return');
+                        default:
+                            return true;
+                    }
+                });
+            }
+            
+            // Apply search filter if any
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            if (searchTerm) {
+                filteredData = filteredData.filter(series => 
+                    series.id.toLowerCase().includes(searchTerm) || 
+                    series.name.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            // Sort data
+            filteredData.sort((a, b) => {
+                let aVal, bVal;
+                
+                switch(sortColumn) {
+                    case 'id':
+                        aVal = a.id;
+                        bVal = b.id;
+                        break;
+                    case 'name':
+                        aVal = a.name;
+                        bVal = b.name;
+                        break;
+                    case 'value':
+                        aVal = a.latest.value || 0;
+                        bVal = b.latest.value || 0;
+                        break;
+                    case 'wow':
+                        aVal = a.changes['WoW%'] || 0;
+                        bVal = b.changes['WoW%'] || 0;
+                        break;
+                    case 'mom':
+                        aVal = a.changes['MoM%'] || 0;
+                        bVal = b.changes['MoM%'] || 0;
+                        break;
+                    case 'qoq':
+                        aVal = a.changes['QoQ%'] || 0;
+                        bVal = b.changes['QoQ%'] || 0;
+                        break;
+                    case 'yoy':
+                        aVal = a.changes['YoY%'] || 0;
+                        bVal = b.changes['YoY%'] || 0;
+                        break;
+                    case 'date':
+                        aVal = a.latest.date || '';
+                        bVal = b.latest.date || '';
+                        break;
+                    default:
+                        aVal = a.id;
+                        bVal = b.id;
+                }
+                
+                if (sortDirection === 'asc') {
+                    return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+                } else {
+                    return aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
+                }
+            });
+            
+            // Build table HTML
+            const tbody = document.getElementById('mainTableBody');
+            
+            if (filteredData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #888;">No data to display</td></tr>';
+                return;
+            }
+            
+            const rows = filteredData.map(series => {
+                return `
+                    <tr>
+                        <td class="series-id">${series.id}</td>
+                        <td>${series.name}</td>
+                        <td class="value-cell ${series.error ? 'neutral' : ''}">${formatValue(series.latest.value, series.id)}</td>
+                        <td class="${getColorClass(series.changes['WoW%'])}">${formatChange(series.changes['WoW%'])}</td>
+                        <td class="${getColorClass(series.changes['MoM%'])}">${formatChange(series.changes['MoM%'])}</td>
+                        <td class="${getColorClass(series.changes['QoQ%'])}">${formatChange(series.changes['QoQ%'])}</td>
+                        <td class="${getColorClass(series.changes['YoY%'])}">${formatChange(series.changes['YoY%'])}</td>
+                        <td>${series.latest.date || 'N/A'}</td>
+                    </tr>
+                `;
+            }).join('');
+            
+            tbody.innerHTML = rows;
+            
+            // Update title
+            document.getElementById('mainTitle').textContent = 
+                currentFilter === 'all' ? 'All ICE BofA Series' : 
+                `Filtered: ${filteredData.length} series`;
+        }
+        
+        // Format value based on series type
+        function formatValue(value, seriesId) {
+            if (value === null || value === undefined) return 'N/A';
+            
+            const num = parseFloat(value);
+            
+            if (seriesId.includes('OAS') || seriesId.includes('SPREAD')) {
+                return `${num.toFixed(2)} bps`;
+            }
+            
+            if (seriesId.includes('EY') || seriesId.includes('YIELD') || seriesId.includes('SYTW')) {
+                return `${num.toFixed(2)}%`;
+            }
+            
+            if (seriesId.includes('TRIV')) {
+                return num.toFixed(2);
+            }
+            
+            return num.toFixed(2);
+        }
+        
+        // Format percentage change
+        function formatChange(value) {
+            if (value === null || value === undefined) return 'N/A';
+            const sign = value >= 0 ? '+' : '';
+            return `${sign}${value.toFixed(2)}%`;
+        }
+        
+        // Get color class based on value
+        function getColorClass(value) {
+            if (value === null || value === undefined) return 'neutral';
+            return value >= 0 ? 'positive' : 'negative';
+        }
+        
+        // Filter by series type
+        function filterBySeries(filter) {
+            currentFilter = filter;
+            
+            // Update active button
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            if (allSeriesData.length > 0) {
+                displaySeriesData();
+            }
+        }
+        
+        // Sort table
+        function sortTable(column) {
+            if (sortColumn === column) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortColumn = column;
+                sortDirection = 'asc';
+            }
+            
+            if (allSeriesData.length > 0) {
+                displaySeriesData();
+            }
+        }
+        
+        // Search functionality
+        function searchSeries() {
+            if (allSeriesData.length > 0) {
+                displaySeriesData();
+            }
+        }
+        
+        // Export to CSV
+        function exportToCSV() {
+            if (allSeriesData.length === 0) {
+                showStatus('No data to export. Load data first.', 'error');
+                return;
+            }
+            
+            let csv = 'Series ID,Description,Current Value,WoW%,MoM%,QoQ%,YoY%,Last Updated\n';
+            
+            allSeriesData.forEach(series => {
+                const value = series.latest.value !== null ? formatValue(series.latest.value, series.id) : 'N/A';
+                const wow = series.changes['WoW%'] !== undefined ? series.changes['WoW%'].toFixed(2) : 'N/A';
+                const mom = series.changes['MoM%'] !== undefined ? series.changes['MoM%'].toFixed(2) : 'N/A';
+                const qoq = series.changes['QoQ%'] !== undefined ? series.changes['QoQ%'].toFixed(2) : 'N/A';
+                const yoy = series.changes['YoY%'] !== undefined ? series.changes['YoY%'].toFixed(2) : 'N/A';
+                
+                csv += `"${series.id}","${series.name}","${value}","${wow}","${mom}","${qoq}","${yoy}","${series.latest.date || 'N/A'}"\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ice_bofa_data_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            
+            showStatus('Data exported to CSV', 'success');
+        }
+        
+        // Show status message
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.className = type;
+            statusDiv.textContent = message;
+            
+            if (type === 'success' || type === 'error') {
+                setTimeout(() => {
+                    statusDiv.textContent = '';
+                    statusDiv.className = '';
+                }, 5000);
+            }
+        }
+        
+        // Update last update time
+        function updateLastUpdateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('lastUpdate').textContent = timeStr;
+        }
+        
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', initialize);
+        
+        // Make functions available globally for debugging
+        window.diagnoseProblem = diagnoseProblem;
+        window.loadAllSlow = loadAllSlow;
+        window.retryFailedSeries = retryFailedSeries;
+        window.showWorkingSeries = showWorkingSeries;
+    </script>
+</body>
+</html>
