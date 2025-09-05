@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Federal Reserve Liquidity Dashboard - Live FRED Data</title>
+    <title>Federal Reserve Liquidity Dashboard</title>
     
     <!-- Required Libraries -->
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
@@ -13,7 +13,7 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            background: linear-gradient(135deg, #0a0e27 0%, #151932 100%);
             color: #e0e0e0;
             min-height: 100vh;
         }
@@ -23,7 +23,7 @@
             background: rgba(20, 24, 44, 0.95);
             backdrop-filter: blur(10px);
             padding: 1rem 2rem;
-            border-bottom: 2px solid rgba(0, 255, 136, 0.3);
+            border-bottom: 1px solid rgba(0, 255, 136, 0.2);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -35,7 +35,7 @@
         }
         
         .logo {
-            font-size: 1.75rem;
+            font-size: 1.5rem;
             font-weight: bold;
             background: linear-gradient(45deg, #00ff88, #00ccff);
             -webkit-background-clip: text;
@@ -64,7 +64,7 @@
         }
         
         .stat-value {
-            font-size: 1.5rem;
+            font-size: 1.25rem;
             font-weight: bold;
             color: #00ff88;
         }
@@ -75,31 +75,6 @@
             text-transform: uppercase;
         }
         
-        /* Auto-update indicator */
-        .auto-update-status {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            background: rgba(0, 255, 136, 0.1);
-            border: 1px solid rgba(0, 255, 136, 0.3);
-            border-radius: 8px;
-        }
-        
-        .pulse {
-            width: 10px;
-            height: 10px;
-            background: #00ff88;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(0, 255, 136, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
-        }
-        
         /* Container */
         .container {
             max-width: 1800px;
@@ -107,28 +82,11 @@
             padding: 2rem;
         }
         
-        /* API Setup Notice */
-        .setup-notice {
-            background: rgba(255, 193, 7, 0.1);
-            border: 1px solid rgba(255, 193, 7, 0.3);
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 2rem;
-            color: #ffc107;
-        }
-        
-        .setup-notice code {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: 'Courier New', monospace;
-        }
-        
-        /* Key Metrics Grid */
+        /* Key Metrics Cards */
         .metrics-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
             margin-bottom: 2rem;
         }
         
@@ -136,38 +94,32 @@
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
-            padding: 1.5rem;
+            padding: 1.25rem;
             transition: all 0.3s;
         }
         
         .metric-card:hover {
             background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(0, 255, 136, 0.5);
+            border-color: rgba(0, 255, 136, 0.3);
             transform: translateY(-2px);
         }
         
-        .metric-title {
-            color: #888;
+        .metric-label {
             font-size: 0.875rem;
+            color: #888;
             margin-bottom: 0.5rem;
-            text-transform: uppercase;
         }
         
         .metric-value {
-            font-size: 2rem;
+            font-size: 1.75rem;
             font-weight: bold;
             color: #00ff88;
-            margin-bottom: 0.5rem;
-        }
-        
-        .metric-change {
-            font-size: 0.875rem;
             margin-bottom: 0.25rem;
         }
         
         .metric-date {
-            color: #666;
             font-size: 0.75rem;
+            color: #666;
         }
         
         /* Filter buttons */
@@ -226,15 +178,6 @@
             font-weight: bold;
         }
         
-        /* Chart Container */
-        .chart-container {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 2rem;
-            min-height: 400px;
-        }
-        
         /* Data Table */
         .data-table {
             width: 100%;
@@ -259,7 +202,6 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             font-size: 0.875rem;
             white-space: nowrap;
-            cursor: pointer;
         }
         
         .data-table td {
@@ -336,28 +278,76 @@
             font-size: 0.8rem;
             color: #00ccff;
         }
+        
+        /* Search Box */
+        .search-container {
+            margin-bottom: 2rem;
+        }
+        
+        .search-input {
+            width: 100%;
+            max-width: 500px;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #00ff88;
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 1rem 0;
+            display: none;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00ccff);
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-weight: bold;
+        }
+        
+        /* Chart Container */
+        .chart-container {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 2rem;
+            min-height: 400px;
+        }
     </style>
 </head>
 <body>
     <header class="header">
         <div class="logo">
-            💹 Federal Reserve Liquidity Dashboard
-            <span style="font-size: 0.875rem; color: #888;">Live FRED Data</span>
-        </div>
-        
-        <div class="auto-update-status">
-            <div class="pulse"></div>
-            <span style="color: #00ff88; font-size: 0.875rem;">Auto-Update Active</span>
-            <span style="color: #666; font-size: 0.75rem;" id="nextUpdate">Next: --:--</span>
+            🏦 Federal Reserve Liquidity Dashboard
+            <span style="font-size: 0.875rem; color: #888;">Real-time FRED Data</span>
         </div>
         
         <div class="header-stats">
             <div class="stat-item">
-                <div class="stat-value">60+</div>
+                <div class="stat-value" id="totalSeries">62</div>
                 <div class="stat-label">Total Series</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value" id="loadedCount">0</div>
+                <div class="stat-value" id="loadedSeries">0</div>
                 <div class="stat-label">Loaded</div>
             </div>
             <div class="stat-item">
@@ -371,40 +361,52 @@
         <!-- Status messages -->
         <div id="statusMessage"></div>
         
-        <!-- Key Metrics Grid -->
-        <div class="metrics-grid" id="keyMetrics">
-            <!-- Key metrics will be populated here -->
+        <!-- Key Metrics Dashboard -->
+        <div class="metrics-grid" id="metricsGrid">
+            <!-- Will be populated dynamically -->
+        </div>
+        
+        <!-- Progress Bar -->
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar" id="progressBar">0%</div>
+        </div>
+        
+        <!-- Search Box -->
+        <div class="search-container">
+            <input type="text" 
+                   class="search-input" 
+                   id="searchInput" 
+                   placeholder="Search by series ID or description..."
+                   onkeyup="searchSeries()">
         </div>
         
         <!-- Filter buttons -->
         <div class="filter-container">
-            <button class="filter-btn active" onclick="filterByCategory('summary')">📊 Summary (8)</button>
-            <button class="filter-btn" onclick="filterByCategory('reserves')">💰 Reserves (6)</button>
-            <button class="filter-btn" onclick="filterByCategory('currency')">💵 Currency (3)</button>
-            <button class="filter-btn" onclick="filterByCategory('treasury_account')">🏛️ Treasury (2)</button>
-            <button class="filter-btn" onclick="filterByCategory('repo_operations')">🔄 Repo Ops (6)</button>
-            <button class="filter-btn" onclick="filterByCategory('securities')">📈 Securities (13)</button>
-            <button class="filter-btn" onclick="filterByCategory('lending_facilities')">🏦 Lending (7)</button>
-            <button class="filter-btn" onclick="filterByCategory('emergency_programs')">🚨 Emergency (9)</button>
-            <button class="filter-btn" onclick="filterByCategory('balance_sheet')">📋 Balance Sheet (4)</button>
-            <button class="filter-btn" onclick="filterByCategory('other_assets')">📂 Other Assets (11)</button>
-            <button class="filter-btn" onclick="loadAllSeries()">📥 Load All 60+</button>
-            <button class="filter-btn" onclick="refreshData()">🔄 Refresh Now</button>
+            <button class="filter-btn active" onclick="filterByCategory('all')">📊 All Series (62)</button>
+            <button class="filter-btn" onclick="filterByCategory('reserves')">💰 Reserves</button>
+            <button class="filter-btn" onclick="filterByCategory('currency')">💵 Currency</button>
+            <button class="filter-btn" onclick="filterByCategory('treasury_account')">🏛️ Treasury Account</button>
+            <button class="filter-btn" onclick="filterByCategory('repo_operations')">🔄 Repo Operations</button>
+            <button class="filter-btn" onclick="filterByCategory('securities')">📈 Securities</button>
+            <button class="filter-btn" onclick="filterByCategory('balance_sheet')">📋 Balance Sheet</button>
+            <button class="filter-btn" onclick="loadSummaryData()">⚡ Load Summary</button>
+            <button class="filter-btn" onclick="loadAllSeriesData()">🔄 Load All Data</button>
+            <button class="filter-btn" onclick="exportToCSV()">📥 Export CSV</button>
         </div>
         
         <!-- Chart Section -->
-        <div class="data-section">
+        <div class="chart-container" id="chartContainer" style="display: none;">
             <div class="section-header">
-                <div class="section-title">Key Fed Liquidity Trends</div>
+                <div class="section-title">Historical Chart</div>
             </div>
-            <div class="chart-container" id="mainChart"></div>
+            <div id="mainChart"></div>
         </div>
         
         <!-- Main Data Section -->
         <div class="data-section">
             <div class="section-header">
-                <div class="section-title" id="mainTitle">Fed Liquidity Metrics</div>
-                <div style="color: #888;" id="dataCount">Loading...</div>
+                <div class="section-title" id="mainTitle">Federal Reserve Liquidity Series</div>
+                <div style="color: #888;" id="seriesCount">0 of 62 loaded</div>
             </div>
             
             <div class="data-table">
@@ -414,14 +416,14 @@
                             <th onclick="sortTable('id')">Series ID ↕</th>
                             <th onclick="sortTable('name')">Description ↕</th>
                             <th onclick="sortTable('value')">Current Value ↕</th>
-                            <th onclick="sortTable('prev')">Previous ↕</th>
-                            <th onclick="sortTable('change')">Change % ↕</th>
+                            <th onclick="sortTable('units')">Units ↕</th>
                             <th onclick="sortTable('frequency')">Frequency ↕</th>
                             <th onclick="sortTable('date')">Last Updated ↕</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="mainTableBody">
-                        <tr><td colspan="7" class="loading"><div class="loading-spinner"></div> Loading Fed data...</td></tr>
+                        <tr><td colspan="7" class="loading">Click "Load Summary" for key metrics or "Load All Data" for complete dataset...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -429,78 +431,18 @@
     </div>
     
     <script>
-        // Configuration - UPDATE THIS WITH YOUR LAMBDA FUNCTION URL
-        const API_BASE = 'YOUR_LAMBDA_FUNCTION_URL_HERE'; // Replace with your actual Lambda Function URL from fredapi
+        // API Configuration
+        const API_BASE = 'https://nmkverrwjnxsmgnogzckkoyuce0bqxyk.lambda-url.us-east-1.on.aws';
         
-        // Complete Fed Liquidity Series Mapping (60+ series)
-        const FED_LIQUIDITY_SERIES = {
-            "WRBWFRBL": "Reserve Balances with Federal Reserve Banks (Weekly)",
-            "RESBALNS": "Reserve Balances with Federal Reserve Banks (Daily)",
-            "RESBALNSW": "Reserve Balances with Federal Reserve Banks (Wednesday Level)",
-            "WCURCIR": "Currency in Circulation (Weekly)",
-            "CURRCIR": "Currency in Circulation (Monthly)",
-            "WTREGEN": "Treasury General Account (Weekly)",
-            "TREASURY": "Treasury General Account (Daily)",
-            "WREPODEL": "Reverse Repurchase Agreements: Foreign Official (Weekly)",
-            "WREPOFOR": "Reverse Repurchase Agreements: Foreign Official and International Accounts",
-            "RRPONTSYD": "Overnight Reverse Repurchase Agreements: Treasury Securities Sold (Daily)",
-            "RPONTSYD": "Reverse Repurchase Agreements: Treasury Securities Sold",
-            "WSHOTSL": "Securities Held Outright: Total (Weekly)",
-            "WSHOSHO": "Securities Held Outright (Weekly)",
-            "WSHOTS": "Securities Held Outright: Treasury Securities (Weekly)",
-            "WSHOMCB": "Securities Held Outright: Mortgage-Backed Securities (Weekly)",
-            "WSHOFDEB": "Securities Held Outright: Federal Agency Debt Securities (Weekly)",
-            "TREAST": "U.S. Treasury Securities Held by Fed (All Maturities)",
-            "TREASLT5": "U.S. Treasury Securities: Maturing in Less than 5 Years",
-            "TREASG5T10": "U.S. Treasury Securities: Maturing in 5-10 Years",
-            "TREASG10": "U.S. Treasury Securities: Maturing in Over 10 Years",
-            "TIPS": "Treasury Inflation-Protected Securities (TIPS)",
-            "FPCPN": "Floating Rate Notes",
-            "MBST": "Mortgage-Backed Securities Held by Fed",
-            "CMBS": "Commercial Mortgage-Backed Securities",
-            "WLCFLL": "Loans: Total (Weekly)",
-            "WPCREDIT": "Primary Credit",
-            "DISCBORR": "Discount Window Borrowing",
-            "WSCREDIT": "Secondary Credit",
-            "PDCB": "Primary Dealer Credit Facility",
-            "TAF": "Term Auction Facility",
-            "WFCDA": "Float (Weekly)",
-            "WUPSHO": "Unamortized Premiums on Securities Held Outright",
-            "WUDSON": "Unamortized Discounts on Securities Held Outright",
-            "SWPT": "Central Bank Liquidity Swaps",
-            "CLBSWP": "Central Bank Liquidity Swap Lines",
-            "WORAL": "Other Federal Reserve Assets (Weekly)",
-            "WGCAL": "Gold Certificate Account (Weekly)",
-            "WSDRAL": "Special Drawing Rights Certificate Account (Weekly)",
-            "COINAL": "Coin (Weekly)",
-            "WDTGAL": "Term Deposits Held by Depository Institutions",
-            "WOTHLL": "Other Liabilities and Capital",
-            "TERMAUC": "Term Deposit Facility",
-            "REQRESNS": "Required Reserves of Depository Institutions",
-            "EXCSRESNS": "Excess Reserves of Depository Institutions",
-            "TOTRESNS": "Total Reserves of Depository Institutions",
-            "BOGMBASE": "Monetary Base: Total",
-            "BOGMBBM": "Monetary Base: Currency in Circulation",
-            "BOGMBBR": "Monetary Base: Reserve Balances",
-            "WALCL": "Total Assets of Federal Reserve (Weekly)",
-            "RESPPANWW": "Total Factors Supplying Reserve Funds (Weekly)",
-            "H41RESPPBTFP": "Bank Term Funding Program",
-            "H41RESPPREPO": "Standing Overnight Repurchase Agreement Facility",
-            "H41RESPPFIMA": "FIMA Repurchase Agreement Facility",
-            "RESPPALLEX": "All Emergency Lending Facilities",
-            "PPPLF": "Paycheck Protection Program Liquidity Facility",
-            "MSLP": "Main Street Lending Program",
-            "MLF": "Municipal Liquidity Facility",
-            "CPFF": "Commercial Paper Funding Facility",
-            "PMCCF": "Primary Market Corporate Credit Facility",
-            "SMCCF": "Secondary Market Corporate Credit Facility",
-            "TALF": "Term Asset-Backed Securities Loan Facility",
-            "MMLF": "Money Market Mutual Fund Liquidity Facility"
-        };
+        // Global state
+        let allSeriesMetadata = {};
+        let allSeriesData = [];
+        let currentFilter = 'all';
+        let sortColumn = 'id';
+        let sortDirection = 'asc';
         
-        // Categories
-        const FED_LIQUIDITY_CATEGORIES = {
-            "summary": ["RESBALNS", "WALCL", "WCURCIR", "WTREGEN", "RRPONTSYD", "WRBWFRBL", "EXCSRESNS", "H41RESPPBTFP"],
+        // Fed Liquidity Categories (from API documentation)
+        const FED_CATEGORIES = {
             "reserves": ["WRBWFRBL", "RESBALNS", "RESBALNSW", "REQRESNS", "EXCSRESNS", "TOTRESNS"],
             "currency": ["WCURCIR", "CURRCIR", "BOGMBBM"],
             "treasury_account": ["WTREGEN", "TREASURY"],
@@ -509,208 +451,278 @@
             "lending_facilities": ["WLCFLL", "WPCREDIT", "DISCBORR", "WSCREDIT", "PDCB", "TAF", "H41RESPPBTFP"],
             "emergency_programs": ["RESPPALLEX", "PPPLF", "MSLP", "MLF", "CPFF", "PMCCF", "SMCCF", "TALF", "MMLF"],
             "balance_sheet": ["WALCL", "RESPPANWW", "BOGMBASE", "WOTHLL"],
-            "other_assets": ["WFCDA", "WUPSHO", "WUDSON", "SWPT", "CLBSWP", "WORAL", "WGCAL", "WSDRAL", "COINAL", "WDTGAL", "TERMAUC", "BOGMBBR"]
+            "other_assets": ["WFCDA", "WUPSHO", "WUDSON", "SWPT", "CLBSWP", "WORAL", "WGCAL", "WSDRAL", "COINAL", "WDTGAL", "TERMAUC"]
         };
-        
-        // Global state
-        let currentData = [];
-        let allSeriesData = {};
-        let currentCategory = 'summary';
-        let sortColumn = 'value';
-        let sortDirection = 'desc';
-        let autoUpdateInterval = null;
-        let chartData = {};
         
         // Initialize
         async function initialize() {
-            console.log('🚀 Initializing Fed Liquidity Dashboard...');
-            console.log('📊 Total series available:', Object.keys(FED_LIQUIDITY_SERIES).length);
-            
-            await loadData();
-            setupAutoUpdate();
-            updateNextUpdateTime();
+            console.log('🚀 Initializing Federal Reserve Liquidity Dashboard...');
+            updateLastUpdateTime();
+            await fetchSeriesMetadata();
+            await loadSummaryData();
         }
         
-        // Setup auto-update (Mon, Wed, Fri at 4:30 PM ET)
-        function setupAutoUpdate() {
-            autoUpdateInterval = setInterval(() => {
-                const now = new Date();
-                const day = now.getDay();
-                const hour = now.getHours();
-                const minute = now.getMinutes();
-                
-                // Update on Mon(1), Wed(3), Fri(5) at 16:30 (4:30 PM)
-                if ([1, 3, 5].includes(day) && hour === 16 && minute === 30) {
-                    console.log('⏰ Auto-update triggered');
-                    refreshData();
-                }
-                
-                updateNextUpdateTime();
-            }, 60000); // Check every minute
-        }
-        
-        // Update next update time display
-        function updateNextUpdateTime() {
-            const now = new Date();
-            const day = now.getDay();
-            const daysToNext = getNextUpdateDay(day);
-            
-            const nextUpdate = new Date(now);
-            nextUpdate.setDate(nextUpdate.getDate() + daysToNext);
-            nextUpdate.setHours(16, 30, 0, 0);
-            
-            // If it's an update day but before 4:30 PM, show today
-            if (daysToNext === 0 && (now.getHours() < 16 || (now.getHours() === 16 && now.getMinutes() < 30))) {
-                nextUpdate.setDate(now.getDate());
-            }
-            
-            const options = { weekday: 'short', hour: '2-digit', minute: '2-digit' };
-            document.getElementById('nextUpdate').textContent = `Next: ${nextUpdate.toLocaleString('en-US', options)}`;
-        }
-        
-        // Get days until next update
-        function getNextUpdateDay(currentDay) {
-            const updateDays = [1, 3, 5]; // Mon, Wed, Fri
-            
-            for (let d of updateDays) {
-                if (d > currentDay) {
-                    return d - currentDay;
-                }
-            }
-            
-            // Next Monday
-            return (8 - currentDay) % 7 || 7;
-        }
-        
-        // Load data from API
-        async function loadData() {
-            try {
-                showStatus('Loading Federal Reserve liquidity data...', 'info');
-                
-                // Load summary data
-                const response = await fetch(`${API_BASE}/fed_liquidity?series=summary`);
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                
-                const text = await response.text();
-                const data = JSON.parse(JSON.parse(text).body);
-                
-                processAndDisplayData(data);
-                
-                // Load additional chart data
-                await loadChartData();
-                
-                updateLastUpdateTime();
-                showStatus('Data loaded successfully', 'success');
-                
-            } catch (error) {
-                console.error('Error loading data:', error);
-                showStatus(`Error: ${error.message}. Check API configuration.`, 'error');
-            }
-        }
-        
-        // Load all series
-        async function loadAllSeries() {
-            showStatus('Loading all 60+ series... This may take a moment', 'info');
+        // Fetch the metadata (list of all series)
+        async function fetchSeriesMetadata() {
+            showStatus('Fetching series list from Fed API...', 'info');
             
             try {
-                const seriesIds = Object.keys(FED_LIQUIDITY_SERIES);
-                const batchSize = 10;
-                let loaded = 0;
+                const response = await fetch(`${API_BASE}/?series=all`);
+                if (!response.ok) throw new Error('Failed to fetch series list');
                 
-                for (let i = 0; i < seriesIds.length; i += batchSize) {
-                    const batch = seriesIds.slice(i, i + batchSize).join(',');
-                    const response = await fetch(`${API_BASE}/fed_liquidity?series=batch&list=${batch}`);
-                    
-                    if (response.ok) {
-                        const text = await response.text();
-                        const data = JSON.parse(JSON.parse(text).body);
-                        
-                        if (data.data) {
-                            data.data.forEach(series => {
-                                allSeriesData[series.series_id] = series;
-                                loaded++;
-                            });
-                        }
-                    }
-                    
-                    document.getElementById('loadedCount').textContent = loaded;
-                    showStatus(`Loading: ${loaded}/${seriesIds.length} series...`, 'info');
-                    
-                    // Small delay between batches
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                }
+                const data = await response.json();
+                allSeriesMetadata = data.series || {};
                 
-                displayAllSeriesData();
-                showStatus(`Loaded all ${loaded} series successfully!`, 'success');
+                const count = Object.keys(allSeriesMetadata).length;
+                document.getElementById('totalSeries').textContent = count;
+                
+                console.log(`✅ Found ${count} Federal Reserve series`);
+                showStatus(`Connected to Fed API. ${count} series available.`, 'success');
                 
             } catch (error) {
-                showStatus(`Error loading all series: ${error.message}`, 'error');
+                console.error('Error:', error);
+                showStatus(`Error: ${error.message}`, 'error');
             }
         }
         
-        // Process and display data
-        function processAndDisplayData(data) {
-            currentData = data.metrics || [];
+        // Load summary data (key metrics)
+        async function loadSummaryData() {
+            showStatus('Loading key Fed liquidity metrics...', 'info');
             
-            // Display key metrics
-            displayKeyMetrics(currentData.slice(0, 6));
-            
-            // Display table data
-            displayTableData(currentData);
-            
-            document.getElementById('dataCount').textContent = `${currentData.length} series loaded`;
-            document.getElementById('loadedCount').textContent = currentData.length;
+            try {
+                const response = await fetch(`${API_BASE}/?series=summary`);
+                if (!response.ok) throw new Error('Failed to fetch summary');
+                
+                const data = await response.json();
+                
+                // Display key metrics in cards
+                displayMetricsCards(data.metrics);
+                
+                // Store the data
+                allSeriesData = data.metrics.map(metric => ({
+                    id: metric.series,
+                    name: metric.name,
+                    latest: {
+                        value: metric.latest_value,
+                        date: metric.latest_date
+                    },
+                    units: metric.unit || 'Millions of Dollars',
+                    frequency: 'Various',
+                    observations: []
+                }));
+                
+                displaySeriesData();
+                document.getElementById('loadedSeries').textContent = data.metrics.length;
+                
+                showStatus(`Loaded ${data.metrics.length} key metrics. Click "Load All Data" for complete dataset.`, 'success');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus(`Error: ${error.message}`, 'error');
+            }
         }
         
-        // Display key metrics cards
-        function displayKeyMetrics(metrics) {
-            const container = document.getElementById('keyMetrics');
+        // Display metrics cards
+        function displayMetricsCards(metrics) {
+            const grid = document.getElementById('metricsGrid');
             
-            const html = metrics.map(metric => {
-                // Calculate a demo change value (would come from comparing with previous data)
-                const changeValue = (Math.random() * 10 - 5).toFixed(2);
-                const changeClass = changeValue >= 0 ? 'positive' : 'negative';
-                const changeSign = changeValue >= 0 ? '+' : '';
+            if (!metrics || metrics.length === 0) {
+                grid.innerHTML = '';
+                return;
+            }
+            
+            // Key series to highlight
+            const keySeriesOrder = ['WRBWFRBL', 'WALCL', 'WCURCIR', 'WTREGEN', 'RRPONTSYD', 'TOTRESNS'];
+            
+            // Sort metrics according to keySeriesOrder
+            metrics.sort((a, b) => {
+                const aIndex = keySeriesOrder.indexOf(a.series);
+                const bIndex = keySeriesOrder.indexOf(b.series);
+                if (aIndex === -1) return 1;
+                if (bIndex === -1) return -1;
+                return aIndex - bIndex;
+            });
+            
+            const cards = metrics.slice(0, 6).map(metric => {
+                const value = formatLargeValue(metric.latest_value);
+                const icon = getSeriesIcon(metric.series);
                 
                 return `
                     <div class="metric-card">
-                        <div class="metric-title">${metric.series}</div>
-                        <div class="metric-value">$${formatValue(metric.latest_value)}</div>
-                        <div class="metric-change ${changeClass}">${changeSign}${changeValue}%</div>
-                        <div class="metric-date">As of ${metric.latest_date}</div>
+                        <div class="metric-label">${icon} ${metric.series}</div>
+                        <div class="metric-value">${value}</div>
+                        <div style="color: #aaa; font-size: 0.8rem; margin-top: 0.5rem;">
+                            ${metric.name}
+                        </div>
+                        <div class="metric-date">Updated: ${metric.latest_date}</div>
                     </div>
                 `;
             }).join('');
             
-            container.innerHTML = html;
+            grid.innerHTML = cards;
         }
         
-        // Display table data
-        function displayTableData(data) {
+        // Get icon for series
+        function getSeriesIcon(seriesId) {
+            if (seriesId.includes('RES') || seriesId.includes('RBW')) return '💰';
+            if (seriesId.includes('CUR')) return '💵';
+            if (seriesId.includes('TRE') || seriesId.includes('WTRE')) return '🏛️';
+            if (seriesId.includes('RRP') || seriesId.includes('REPO')) return '🔄';
+            if (seriesId === 'WALCL') return '📊';
+            if (seriesId.includes('SHOT') || seriesId.includes('MBS')) return '📈';
+            return '📉';
+        }
+        
+        // Format large values
+        function formatLargeValue(value) {
+            if (value === null || value === undefined) return 'N/A';
+            
+            // Value is in millions of dollars
+            const billions = value / 1000;
+            const trillions = billions / 1000;
+            
+            if (trillions >= 1) {
+                return `$${trillions.toFixed(2)}T`;
+            } else if (billions >= 1) {
+                return `$${billions.toFixed(1)}B`;
+            } else {
+                return `$${value.toFixed(0)}M`;
+            }
+        }
+        
+        // Load all series data
+        async function loadAllSeriesData() {
+            const seriesIds = Object.keys(allSeriesMetadata);
+            const totalCount = seriesIds.length;
+            
+            if (totalCount === 0) {
+                showStatus('No series to load. Refresh the page.', 'error');
+                return;
+            }
+            
+            console.log(`📊 Starting to load ${totalCount} series...`);
+            showStatus(`Loading ${totalCount} series from Fed API...`, 'info');
+            
+            // Show progress bar
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            progressContainer.style.display = 'block';
+            
+            // Clear existing data
+            allSeriesData = [];
+            document.getElementById('mainTableBody').innerHTML = '<tr><td colspan="7" class="loading"><div class="loading-spinner"></div> Loading Fed data...</td></tr>';
+            
+            let loaded = 0;
+            let failed = 0;
+            
+            // Load by category for efficiency
+            const categories = Object.keys(FED_CATEGORIES);
+            
+            for (const category of categories) {
+                try {
+                    const response = await fetch(`${API_BASE}/?category=${category}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        
+                        if (data.data && Array.isArray(data.data)) {
+                            data.data.forEach(series => {
+                                if (series.latest) {
+                                    allSeriesData.push({
+                                        id: series.series_id,
+                                        name: series.name || allSeriesMetadata[series.series_id],
+                                        latest: series.latest || {},
+                                        units: series.units || 'Millions of Dollars',
+                                        frequency: series.frequency || 'N/A',
+                                        observations: series.observations || [],
+                                        category: category
+                                    });
+                                    loaded++;
+                                }
+                            });
+                        }
+                    }
+                } catch (err) {
+                    console.error(`Failed to load category ${category}:`, err);
+                    failed++;
+                }
+                
+                // Update progress
+                const progress = Math.round(((loaded + failed) / totalCount) * 100);
+                progressBar.style.width = `${progress}%`;
+                progressBar.textContent = `${progress}%`;
+                
+                document.getElementById('loadedSeries').textContent = loaded;
+                document.getElementById('seriesCount').textContent = `${loaded} of ${totalCount} loaded`;
+                
+                // Small delay between categories
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            // Hide progress bar
+            progressContainer.style.display = 'none';
+            
+            // Display all data
+            displaySeriesData();
+            updateLastUpdateTime();
+            
+            // Final status
+            showStatus(`Successfully loaded ${loaded} Fed series!`, 'success');
+            console.log(`\n📊 Final Results:\n✅ Loaded: ${loaded}\n❌ Failed: ${failed}`);
+        }
+        
+        // Display series data in the table
+        function displaySeriesData() {
+            let filteredData = [...allSeriesData];
+            
+            // Apply filter
+            if (currentFilter !== 'all' && FED_CATEGORIES[currentFilter]) {
+                const categorySeriesIds = FED_CATEGORIES[currentFilter];
+                filteredData = filteredData.filter(series => 
+                    categorySeriesIds.includes(series.id) || series.category === currentFilter
+                );
+            }
+            
+            // Apply search filter if any
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            if (searchTerm) {
+                filteredData = filteredData.filter(series => 
+                    series.id.toLowerCase().includes(searchTerm) || 
+                    series.name.toLowerCase().includes(searchTerm)
+                );
+            }
+            
             // Sort data
-            const sortedData = [...data].sort((a, b) => {
+            filteredData.sort((a, b) => {
                 let aVal, bVal;
                 
                 switch(sortColumn) {
                     case 'id':
-                        aVal = a.series;
-                        bVal = b.series;
+                        aVal = a.id;
+                        bVal = b.id;
                         break;
                     case 'name':
                         aVal = a.name;
                         bVal = b.name;
                         break;
                     case 'value':
-                        aVal = a.latest_value || 0;
-                        bVal = b.latest_value || 0;
+                        aVal = a.latest.value || 0;
+                        bVal = b.latest.value || 0;
+                        break;
+                    case 'units':
+                        aVal = a.units || '';
+                        bVal = b.units || '';
+                        break;
+                    case 'frequency':
+                        aVal = a.frequency || '';
+                        bVal = b.frequency || '';
                         break;
                     case 'date':
-                        aVal = a.latest_date || '';
-                        bVal = b.latest_date || '';
+                        aVal = a.latest.date || '';
+                        bVal = b.latest.date || '';
                         break;
                     default:
-                        aVal = a.latest_value || 0;
-                        bVal = b.latest_value || 0;
+                        aVal = a.id;
+                        bVal = b.id;
                 }
                 
                 if (sortDirection === 'asc') {
@@ -720,77 +732,118 @@
                 }
             });
             
+            // Build table HTML
             const tbody = document.getElementById('mainTableBody');
             
-            const rows = sortedData.map(item => {
-                // Calculate change (would need historical data for real calculation)
-                const prevValue = item.latest_value * (1 + (Math.random() * 0.1 - 0.05));
-                const changePercent = ((item.latest_value - prevValue) / prevValue * 100).toFixed(2);
-                const changeClass = changePercent >= 0 ? 'positive' : 'negative';
-                const changeSign = changePercent >= 0 ? '+' : '';
-                
-                return `
-                    <tr>
-                        <td class="series-id">${item.series}</td>
-                        <td>${item.name}</td>
-                        <td class="value-cell">$${formatValue(item.latest_value)}B</td>
-                        <td class="value-cell">$${formatValue(prevValue)}B</td>
-                        <td class="${changeClass}">${changeSign}${changePercent}%</td>
-                        <td>${getFrequency(item.series)}</td>
-                        <td>${item.latest_date}</td>
-                    </tr>
-                `;
-            }).join('');
-            
-            tbody.innerHTML = rows;
-        }
-        
-        // Display all series data
-        function displayAllSeriesData() {
-            const data = Object.values(allSeriesData);
-            const tbody = document.getElementById('mainTableBody');
-            
-            const rows = data.map(series => {
-                const latest = series.latest || {};
-                const value = latest.value || 'N/A';
-                const date = latest.date || 'N/A';
-                
-                return `
-                    <tr>
-                        <td class="series-id">${series.series_id}</td>
-                        <td>${series.name}</td>
-                        <td class="value-cell">${value !== 'N/A' ? `$${formatValue(value)}B` : 'N/A'}</td>
-                        <td class="value-cell">--</td>
-                        <td class="neutral">--</td>
-                        <td>${series.frequency || 'N/A'}</td>
-                        <td>${date}</td>
-                    </tr>
-                `;
-            }).join('');
-            
-            tbody.innerHTML = rows;
-            document.getElementById('dataCount').textContent = `${data.length} series loaded`;
-        }
-        
-        // Get frequency based on series ID
-        function getFrequency(seriesId) {
-            if (seriesId.startsWith('W')) return 'Weekly';
-            if (seriesId.includes('DAILY') || ['RESBALNS', 'TREASURY', 'RRPONTSYD'].includes(seriesId)) return 'Daily';
-            if (seriesId.includes('MONTHLY') || ['CURRCIR'].includes(seriesId)) return 'Monthly';
-            return 'Weekly';
-        }
-        
-        // Format value
-        function formatValue(value) {
-            if (value >= 1000) {
-                return (value / 1000).toFixed(2) + 'T';
+            if (filteredData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #888;">No data to display</td></tr>';
+                return;
             }
-            return value.toFixed(2);
+            
+            const rows = filteredData.map(series => {
+                const formattedValue = formatLargeValue(series.latest.value);
+                
+                return `
+                    <tr>
+                        <td class="series-id">${series.id}</td>
+                        <td>${series.name}</td>
+                        <td class="value-cell">${formattedValue}</td>
+                        <td style="color: #888; font-size: 0.75rem;">${series.units || 'N/A'}</td>
+                        <td style="color: #888;">${series.frequency || 'N/A'}</td>
+                        <td>${series.latest.date || 'N/A'}</td>
+                        <td>
+                            <button class="filter-btn" style="padding: 0.25rem 0.75rem; font-size: 0.75rem;" 
+                                    onclick="loadSeriesDetail('${series.id}')">
+                                📈 Chart
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            
+            tbody.innerHTML = rows;
+            
+            // Update title
+            document.getElementById('mainTitle').textContent = 
+                currentFilter === 'all' ? 'All Federal Reserve Series' : 
+                `Category: ${currentFilter.charAt(0).toUpperCase() + currentFilter.slice(1)} (${filteredData.length} series)`;
+        }
+        
+        // Load detailed data for a series and chart it
+        async function loadSeriesDetail(seriesId) {
+            showStatus(`Loading detailed data for ${seriesId}...`, 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/?series=${seriesId}`);
+                if (!response.ok) throw new Error('Failed to fetch series data');
+                
+                const data = await response.json();
+                
+                if (data.observations && data.observations.length > 0) {
+                    plotSeries(data);
+                    document.getElementById('chartContainer').style.display = 'block';
+                    showStatus(`Loaded ${data.observations.length} observations for ${seriesId}`, 'success');
+                } else {
+                    showStatus('No observations available for this series', 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus(`Error loading series: ${error.message}`, 'error');
+            }
+        }
+        
+        // Plot series using Plotly
+        function plotSeries(seriesData) {
+            const dates = seriesData.observations.map(obs => obs.date);
+            const values = seriesData.observations.map(obs => obs.value);
+            
+            const trace = {
+                x: dates,
+                y: values,
+                type: 'scatter',
+                mode: 'lines',
+                name: seriesData.series_id,
+                line: {
+                    color: '#00ff88',
+                    width: 2
+                }
+            };
+            
+            const layout = {
+                title: {
+                    text: `${seriesData.name} (${seriesData.series_id})`,
+                    font: { color: '#00ff88' }
+                },
+                paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(255, 255, 255, 0.02)',
+                xaxis: {
+                    title: 'Date',
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' },
+                    titlefont: { color: '#888' }
+                },
+                yaxis: {
+                    title: seriesData.units || 'Value',
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickfont: { color: '#888' },
+                    titlefont: { color: '#888' }
+                },
+                margin: { t: 60, b: 60, l: 80, r: 20 },
+                hovermode: 'x unified'
+            };
+            
+            const config = {
+                responsive: true,
+                displayModeBar: false
+            };
+            
+            Plotly.newPlot('mainChart', [trace], layout, config);
         }
         
         // Filter by category
-        async function filterByCategory(category) {
-            currentCategory = category;
+        function filterByCategory(category) {
+            currentFilter = category;
             
             // Update active button
             document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -798,244 +851,9 @@
             });
             event.target.classList.add('active');
             
-            showStatus(`Loading ${category} data...`, 'info');
-            
-            try {
-                const endpoint = category === 'summary' 
-                    ? `${API_BASE}/fed_liquidity?series=summary`
-                    : `${API_BASE}/fed_liquidity?category=${category}`;
-                
-                const response = await fetch(endpoint);
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                
-                const rawText = await response.text();
-                let data;
-                
-                try {
-                    // Parse response - handle different formats
-                    data = JSON.parse(rawText);
-                    if (data.body) {
-                        data = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
-                    }
-                } catch (e) {
-                    console.log('Parse error:', e);
-                    throw new Error('Unable to parse response');
-                }
-                
-                if (category === 'summary') {
-                    processAndDisplayData(data);
-                } else {
-                    // Process category data
-                    const metrics = data.data ? data.data.map(series => ({
-                        series: series.series_id,
-                        name: series.name,
-                        latest_value: series.latest?.value || 0,
-                        latest_date: series.latest?.date || 'N/A',
-                        unit: series.units || "Billions of Dollars"
-                    })) : [];
-                    
-                    processAndDisplayData({ metrics });
-                }
-                
-                const categoryName = category.charAt(0).toUpperCase() + category.slice(1).replace('_', ' ');
-                document.getElementById('mainTitle').textContent = `Fed Liquidity - ${categoryName}`;
-                showStatus(`${categoryName} data loaded`, 'success');
-                
-            } catch (error) {
-                console.error(`Error loading ${category}:`, error);
-                showStatus(`Error loading ${category}. Check console for details.`, 'error');
+            if (allSeriesData.length > 0) {
+                displaySeriesData();
             }
-        }
-        
-        // Load chart data
-        async function loadChartData() {
-            try {
-                // Load key series for charting
-                const chartSeries = ['RESBALNS', 'WALCL', 'RRPONTSYD'];
-                
-                for (let seriesId of chartSeries) {
-                    const response = await fetch(`${API_BASE}/fed_liquidity?series=${seriesId}`);
-                    if (response.ok) {
-                        const text = await response.text();
-                        const responseData = JSON.parse(text);
-                        const data = JSON.parse(responseData.body);
-                        chartData[seriesId] = data;
-                    }
-                }
-                
-                createChart();
-                
-            } catch (error) {
-                console.error('Error loading chart data:', error);
-                createDemoChart();
-            }
-        }
-        
-        // Create chart with real data
-        function createChart() {
-            const traces = [];
-            
-            // Use WRBWFRBL for reserves (RESBALNS was discontinued in 2020)
-            if (chartData.WRBWFRBL?.observations) {
-                const data = chartData.WRBWFRBL.observations.slice(0, 30).reverse();
-                traces.push({
-                    x: data.map(d => d.date),
-                    y: data.map(d => d.value / 1000), // Convert millions to billions
-                    name: 'Reserve Balances',
-                    type: 'scatter',
-                    mode: 'lines',
-                    line: { color: '#00ff88', width: 2 }
-                });
-            }
-            
-            if (chartData.WALCL?.observations) {
-                const data = chartData.WALCL.observations.slice(0, 30).reverse();
-                traces.push({
-                    x: data.map(d => d.date),
-                    y: data.map(d => d.value / 1000), // Convert millions to billions
-                    name: 'Total Fed Assets',
-                    type: 'scatter',
-                    mode: 'lines',
-                    yaxis: 'y2',
-                    line: { color: '#00ccff', width: 2 }
-                });
-            }
-            
-            if (chartData.RRPONTSYD?.observations) {
-                const data = chartData.RRPONTSYD.observations.slice(0, 30).reverse();
-                traces.push({
-                    x: data.map(d => d.date),
-                    y: data.map(d => d.value / 1000), // Convert millions to billions
-                    name: 'Overnight RRP',
-                    type: 'scatter',
-                    mode: 'lines',
-                    line: { color: '#ff9500', width: 2 }
-                });
-            }
-            
-            if (traces.length === 0) {
-                createDemoChart();
-                return;
-            }
-            
-            const layout = {
-                title: '',
-                paper_bgcolor: 'rgba(0,0,0,0)',
-                plot_bgcolor: 'rgba(255,255,255,0.02)',
-                font: { color: '#888' },
-                xaxis: {
-                    gridcolor: 'rgba(255,255,255,0.1)',
-                    tickformat: '%b %d'
-                },
-                yaxis: {
-                    title: 'Billions ($B)',
-                    gridcolor: 'rgba(255,255,255,0.1)',
-                    titlefont: { color: '#00ff88' },
-                    tickfont: { color: '#888' }
-                },
-                yaxis2: {
-                    title: 'Total Assets ($B)',
-                    overlaying: 'y',
-                    side: 'right',
-                    gridcolor: 'rgba(255,255,255,0.05)',
-                    titlefont: { color: '#00ccff' },
-                    tickfont: { color: '#00ccff' }
-                },
-                showlegend: true,
-                legend: {
-                    x: 0.02,
-                    y: 0.98,
-                    bgcolor: 'rgba(0,0,0,0.5)',
-                    bordercolor: 'rgba(255,255,255,0.1)',
-                    borderwidth: 1
-                },
-                margin: { t: 10 }
-            };
-            
-            Plotly.newPlot('mainChart', traces, layout, {responsive: true});
-        }
-        
-        // Create demo chart (fallback)
-        function createDemoChart() {
-            const dates = [];
-            const reserves = [];
-            const assets = [];
-            const rrp = [];
-            
-            // Generate demo data for last 30 days
-            for (let i = 29; i >= 0; i--) {
-                const date = new Date();
-                date.setDate(date.getDate() - i);
-                dates.push(date.toISOString().split('T')[0]);
-                
-                reserves.push(3200 + Math.random() * 100);
-                assets.push(7100 + Math.random() * 100);
-                rrp.push(400 + Math.random() * 50);
-            }
-            
-            const trace1 = {
-                x: dates,
-                y: reserves,
-                name: 'Reserve Balances',
-                type: 'scatter',
-                mode: 'lines',
-                line: { color: '#00ff88', width: 2 }
-            };
-            
-            const trace2 = {
-                x: dates,
-                y: assets,
-                name: 'Total Fed Assets',
-                type: 'scatter',
-                mode: 'lines',
-                yaxis: 'y2',
-                line: { color: '#00ccff', width: 2 }
-            };
-            
-            const trace3 = {
-                x: dates,
-                y: rrp,
-                name: 'Overnight RRP',
-                type: 'scatter',
-                mode: 'lines',
-                line: { color: '#ff9500', width: 2 }
-            };
-            
-            const layout = {
-                title: '',
-                paper_bgcolor: 'rgba(0,0,0,0)',
-                plot_bgcolor: 'rgba(255,255,255,0.02)',
-                font: { color: '#888' },
-                xaxis: {
-                    gridcolor: 'rgba(255,255,255,0.1)',
-                    tickformat: '%b %d'
-                },
-                yaxis: {
-                    title: 'Billions ($B)',
-                    gridcolor: 'rgba(255,255,255,0.1)',
-                    titlefont: { color: '#00ff88' },
-                    tickfont: { color: '#888' }
-                },
-                yaxis2: {
-                    title: 'Total Assets ($B)',
-                    overlaying: 'y',
-                    side: 'right',
-                    gridcolor: 'rgba(255,255,255,0.05)',
-                    titlefont: { color: '#00ccff' },
-                    tickfont: { color: '#00ccff' }
-                },
-                showlegend: true,
-                legend: {
-                    x: 0.02,
-                    y: 0.98,
-                    bgcolor: 'rgba(0,0,0,0.5)',
-                    bordercolor: 'rgba(255,255,255,0.1)',
-                    borderwidth: 1
-                },
-                margin: { t: 10 }
-            };
-            
-            Plotly.newPlot('mainChart', [trace1, trace2, trace3], layout, {responsive: true});
         }
         
         // Sort table
@@ -1044,16 +862,44 @@
                 sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
             } else {
                 sortColumn = column;
-                sortDirection = 'desc';
+                sortDirection = 'asc';
             }
             
-            displayTableData(currentData);
+            if (allSeriesData.length > 0) {
+                displaySeriesData();
+            }
         }
         
-        // Refresh data manually
-        function refreshData() {
-            console.log('🔄 Refreshing data...');
-            loadData();
+        // Search functionality
+        function searchSeries() {
+            if (allSeriesData.length > 0) {
+                displaySeriesData();
+            }
+        }
+        
+        // Export to CSV
+        function exportToCSV() {
+            if (allSeriesData.length === 0) {
+                showStatus('No data to export. Load data first.', 'error');
+                return;
+            }
+            
+            let csv = 'Series ID,Description,Current Value,Units,Frequency,Last Updated\n';
+            
+            allSeriesData.forEach(series => {
+                const value = formatLargeValue(series.latest.value);
+                
+                csv += `"${series.id}","${series.name}","${value}","${series.units || 'N/A'}","${series.frequency || 'N/A'}","${series.latest.date || 'N/A'}"\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `fed_liquidity_data_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            
+            showStatus('Data exported to CSV', 'success');
         }
         
         // Show status message
@@ -1079,13 +925,6 @@
         
         // Initialize on load
         document.addEventListener('DOMContentLoaded', initialize);
-        
-        // Cleanup on unload
-        window.addEventListener('beforeunload', () => {
-            if (autoUpdateInterval) {
-                clearInterval(autoUpdateInterval);
-            }
-        });
     </script>
 </body>
 </html>
