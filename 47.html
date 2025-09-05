@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Federal Reserve Liquidity Dashboard - Live Data</title>
+    <title>Fed Liquidity Dashboard - Diagnostic Mode</title>
     <style>
         * {
             margin: 0;
@@ -12,7 +12,7 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
             color: #e0e0e0;
             min-height: 100vh;
@@ -31,59 +31,57 @@
             padding: 25px;
             margin-bottom: 25px;
             backdrop-filter: blur(10px);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
         }
 
-        .header h1 {
+        h1 {
             font-size: 28px;
             background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            margin-bottom: 20px;
         }
 
-        .status-bar {
+        .diagnostic {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(79, 172, 254, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .test-row {
             display: flex;
-            gap: 20px;
-            align-items: center;
-            flex-wrap: wrap;
+            justify-content: space-between;
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 4px;
         }
 
-        .status-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 15px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-            font-size: 14px;
+        .test-label {
+            font-weight: bold;
+            color: #4facfe;
         }
 
-        .status-indicator {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
+        .test-result {
+            color: #fff;
         }
 
-        .status-indicator.live {
-            background: #00ff88;
+        .success {
+            color: #00ff88;
         }
 
-        .status-indicator.cached {
-            background: #ffa500;
+        .error {
+            color: #ff4757;
         }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+        .warning {
+            color: #ffa500;
         }
 
-        .refresh-btn {
+        button {
             padding: 10px 20px;
             background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
             border: none;
@@ -91,23 +89,31 @@
             color: white;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s;
+            margin: 10px 5px;
         }
 
-        .refresh-btn:hover {
+        button:hover {
             transform: scale(1.05);
         }
 
-        .refresh-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+        .data-display {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
         }
 
         .summary-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
-            margin-bottom: 30px;
+            margin: 20px 0;
         }
 
         .metric-card {
@@ -115,45 +121,19 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
             padding: 20px;
-            backdrop-filter: blur(10px);
-            transition: transform 0.2s, border-color 0.2s;
-        }
-
-        .metric-card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(79, 172, 254, 0.5);
         }
 
         .metric-label {
             font-size: 12px;
             color: #888;
             text-transform: uppercase;
-            letter-spacing: 1px;
             margin-bottom: 8px;
         }
 
         .metric-value {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: bold;
-            margin-bottom: 8px;
-            background: linear-gradient(90deg, #fff 0%, #e0e0e0 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .metric-change {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-top: 10px;
-        }
-
-        .change-item {
-            font-size: 13px;
-            padding: 4px 8px;
-            border-radius: 4px;
-            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
         }
 
         .change-positive {
@@ -163,697 +143,282 @@
         .change-negative {
             color: #ff4757;
         }
-
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-            padding-bottom: 10px;
-            overflow-x: auto;
-        }
-
-        .tab {
-            padding: 10px 20px;
-            background: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px 8px 0 0;
-            color: #888;
-            cursor: pointer;
-            transition: all 0.2s;
-            white-space: nowrap;
-        }
-
-        .tab:hover {
-            color: #fff;
-            border-color: rgba(79, 172, 254, 0.5);
-        }
-
-        .tab.active {
-            background: rgba(79, 172, 254, 0.1);
-            color: #4facfe;
-            border-color: #4facfe;
-        }
-
-        .tab-content {
-            display: none;
-            animation: fadeIn 0.3s;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .series-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .series-item {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 8px;
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.2s;
-        }
-
-        .series-item:hover {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(79, 172, 254, 0.3);
-        }
-
-        .series-info {
-            flex: 1;
-        }
-
-        .series-code {
-            font-size: 12px;
-            color: #4facfe;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .series-name {
-            font-size: 13px;
-            color: #aaa;
-        }
-
-        .series-value {
-            text-align: right;
-        }
-
-        .series-amount {
-            font-size: 18px;
-            font-weight: 600;
-            color: #fff;
-        }
-
-        .series-date {
-            font-size: 11px;
-            color: #666;
-            margin-top: 4px;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            font-size: 18px;
-            color: #4facfe;
-        }
-
-        .error {
-            background: rgba(255, 71, 87, 0.1);
-            border: 1px solid rgba(255, 71, 87, 0.3);
-            border-radius: 8px;
-            padding: 15px;
-            margin: 20px 0;
-            color: #ff4757;
-        }
-
-        .auto-update-info {
-            background: rgba(79, 172, 254, 0.1);
-            border: 1px solid rgba(79, 172, 254, 0.3);
-            border-radius: 8px;
-            padding: 15px;
-            margin: 20px 0;
-            text-align: center;
-        }
-
-        .percentage-table {
-            width: 100%;
-            margin-top: 20px;
-            border-collapse: collapse;
-        }
-
-        .percentage-table th,
-        .percentage-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .percentage-table th {
-            background: rgba(255, 255, 255, 0.03);
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #666;
-        }
-
-        .percentage-table td {
-            font-size: 14px;
-        }
-
-        .loader {
-            border: 3px solid rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            border-top: 3px solid #4facfe;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        @media (max-width: 768px) {
-            .header {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .metric-value {
-                font-size: 24px;
-            }
-            
-            .tabs {
-                flex-wrap: wrap;
-            }
-        }
     </style>
 </head>
 <body>
     <div class="dashboard">
         <div class="header">
-            <h1>🏛️ Federal Reserve Liquidity Dashboard</h1>
-            <div class="status-bar">
-                <div class="status-item">
-                    <div class="status-indicator live" id="statusIndicator"></div>
-                    <span id="statusText">Loading...</span>
+            <h1>🏛️ Fed Liquidity Dashboard - Diagnostic Mode</h1>
+            <p>Debugging connection to Fed Liquidity API</p>
+        </div>
+
+        <div class="diagnostic">
+            <h2 style="color: #4facfe; margin-bottom: 15px;">🔍 Connection Diagnostics</h2>
+            <div id="diagnostics">
+                <div class="test-row">
+                    <span class="test-label">Page Protocol:</span>
+                    <span class="test-result" id="pageProtocol">Checking...</span>
                 </div>
-                <div class="status-item">
-                    <span id="lastUpdate">Never</span>
+                <div class="test-row">
+                    <span class="test-label">Page Host:</span>
+                    <span class="test-result" id="pageHost">Checking...</span>
                 </div>
-                <button class="refresh-btn" onclick="refreshData()">🔄 Refresh</button>
+                <div class="test-row">
+                    <span class="test-label">API URL:</span>
+                    <span class="test-result" id="apiUrl">Checking...</span>
+                </div>
+                <div class="test-row">
+                    <span class="test-label">Browser:</span>
+                    <span class="test-result" id="browserInfo">Checking...</span>
+                </div>
+                <div class="test-row">
+                    <span class="test-label">CORS Support:</span>
+                    <span class="test-result" id="corsSupport">Checking...</span>
+                </div>
             </div>
         </div>
 
-        <div class="auto-update-info">
-            📅 Auto-updates: Monday, Wednesday, Friday at 9:00 AM ET | Next: <span id="nextUpdate"></span>
+        <div class="diagnostic">
+            <h2 style="color: #4facfe; margin-bottom: 15px;">🧪 API Connection Tests</h2>
+            <button onclick="testFetch()">Test 1: Simple Fetch</button>
+            <button onclick="testFetchWithHeaders()">Test 2: Fetch with Headers</button>
+            <button onclick="testXHR()">Test 3: XMLHttpRequest</button>
+            <button onclick="testDirectLink()">Test 4: Open Direct Link</button>
+            <button onclick="loadViaProxy()">Test 5: Try CORS Proxy</button>
+            <div id="testResults" style="margin-top: 15px;"></div>
+        </div>
+
+        <div class="diagnostic">
+            <h2 style="color: #4facfe; margin-bottom: 15px;">📊 Manual Data Entry</h2>
+            <p style="margin-bottom: 10px;">If API connection fails, paste the JSON response from this link:</p>
+            <a href="https://nmkverrwjnxsmgnogzckkoyuce0bqxyk.lambda-url.us-east-1.on.aws/?series=summary" 
+               target="_blank" 
+               style="color: #4facfe;">
+                https://nmkverrwjnxsmgnogzckkoyuce0bqxyk.lambda-url.us-east-1.on.aws/?series=summary
+            </a>
+            <br><br>
+            <textarea id="manualData" 
+                      placeholder="Paste JSON data here..." 
+                      style="width: 100%; height: 100px; background: #000; color: #0f0; padding: 10px; border: 1px solid #333; border-radius: 4px; font-family: monospace;">
+            </textarea>
             <br>
-            <small>API: <a href="https://nmkverrwjnxsmgnogzckkoyuce0bqxyk.lambda-url.us-east-1.on.aws/?series=summary" target="_blank" style="color: #4facfe;">Test Direct Link</a></small>
+            <button onclick="parseManualData()">Parse Manual Data</button>
         </div>
 
-        <div id="summarySection" class="summary-grid">
-            <div class="loading">
-                <div class="loader"></div>
-                Loading Fed data...
-            </div>
+        <div id="dataDisplay" class="data-display" style="display: none;">
+            <h3 style="color: #4facfe; margin-bottom: 10px;">📥 Raw API Response:</h3>
+            <pre id="rawData"></pre>
         </div>
 
-        <div class="tabs">
-            <div class="tab active" onclick="switchTab('changes')">📊 Percentage Changes</div>
-            <div class="tab" onclick="switchTab('reserves')">💰 Reserves</div>
-            <div class="tab" onclick="switchTab('currency')">💵 Currency</div>
-            <div class="tab" onclick="switchTab('treasury')">🏦 Treasury</div>
-            <div class="tab" onclick="switchTab('repo')">🔄 Repo Operations</div>
-            <div class="tab" onclick="switchTab('securities')">📈 Securities</div>
-            <div class="tab" onclick="switchTab('lending')">💳 Lending</div>
-            <div class="tab" onclick="switchTab('balance')">⚖️ Balance Sheet</div>
-            <div class="tab" onclick="switchTab('all')">📋 All Series</div>
-        </div>
-
-        <div id="changes" class="tab-content active">
-            <h2 style="margin-bottom: 20px;">Key Metric Changes</h2>
-            <div id="changesContent">
-                <div class="loading">Loading percentage changes...</div>
-            </div>
-        </div>
-
-        <div id="reserves" class="tab-content">
-            <h2 style="margin-bottom: 20px;">Reserve Indicators</h2>
-            <div id="reservesContent" class="series-grid"></div>
-        </div>
-
-        <div id="currency" class="tab-content">
-            <h2 style="margin-bottom: 20px;">Currency Indicators</h2>
-            <div id="currencyContent" class="series-grid"></div>
-        </div>
-
-        <div id="treasury" class="tab-content">
-            <h2 style="margin-bottom: 20px;">Treasury Account</h2>
-            <div id="treasuryContent" class="series-grid"></div>
-        </div>
-
-        <div id="repo" class="tab-content">
-            <h2 style="margin-bottom: 20px;">Repo Operations</h2>
-            <div id="repoContent" class="series-grid"></div>
-        </div>
-
-        <div id="securities" class="tab-content">
-            <h2 style="margin-bottom: 20px;">Securities Holdings</h2>
-            <div id="securitiesContent" class="series-grid"></div>
-        </div>
-
-        <div id="lending" class="tab-content">
-            <h2 style="margin-bottom: 20px;">Lending Facilities</h2>
-            <div id="lendingContent" class="series-grid"></div>
-        </div>
-
-        <div id="balance" class="tab-content">
-            <h2 style="margin-bottom: 20px;">Balance Sheet Items</h2>
-            <div id="balanceContent" class="series-grid"></div>
-        </div>
-
-        <div id="all" class="tab-content">
-            <h2 style="margin-bottom: 20px;">All 62 Fed Liquidity Indicators</h2>
-            <div id="allContent" class="series-grid"></div>
-        </div>
+        <div id="summarySection" class="summary-grid" style="display: none;"></div>
     </div>
 
     <script>
         const API_URL = 'https://nmkverrwjnxsmgnogzckkoyuce0bqxyk.lambda-url.us-east-1.on.aws/';
-        let currentData = {};
-        let isLoading = false;
 
-        // Format large numbers
-        function formatValue(value) {
-            if (value === null || value === undefined) return 'N/A';
+        // Run diagnostics on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            runDiagnostics();
+        });
+
+        function runDiagnostics() {
+            // Page protocol
+            document.getElementById('pageProtocol').textContent = window.location.protocol;
+            document.getElementById('pageProtocol').className = 
+                window.location.protocol === 'https:' ? 'test-result success' : 
+                window.location.protocol === 'http:' ? 'test-result warning' : 'test-result error';
+
+            // Page host
+            document.getElementById('pageHost').textContent = window.location.host || 'Local File';
             
-            const num = parseFloat(value);
-            if (isNaN(num)) return 'N/A';
+            // API URL
+            document.getElementById('apiUrl').textContent = API_URL;
             
-            if (num >= 1000000) {
-                return '$' + (num / 1000000).toFixed(2) + 'T';
-            } else if (num >= 1000) {
-                return '$' + (num / 1000).toFixed(1) + 'B';
-            } else {
-                return '$' + num.toFixed(1) + 'M';
-            }
+            // Browser info
+            const browser = navigator.userAgent.match(/(Chrome|Safari|Firefox|Edge)/)?.[0] || 'Unknown';
+            document.getElementById('browserInfo').textContent = browser;
+            
+            // CORS support
+            document.getElementById('corsSupport').textContent = 'fetch' in window ? 'Yes' : 'No';
+            document.getElementById('corsSupport').className = 'fetch' in window ? 'test-result success' : 'test-result error';
         }
 
-        // Format percentage
-        function formatPercentage(value) {
-            if (value === null || value === undefined) return 'N/A';
-            const num = parseFloat(value);
-            if (isNaN(num)) return 'N/A';
+        // Test 1: Simple Fetch
+        async function testFetch() {
+            const results = document.getElementById('testResults');
+            results.innerHTML = '<div class="test-row"><span class="test-label">Simple Fetch:</span><span class="warning">Testing...</span></div>';
             
-            const formatted = num.toFixed(2) + '%';
-            if (num > 0) {
-                return `<span class="change-positive">+${formatted}</span>`;
-            } else if (num < 0) {
-                return `<span class="change-negative">${formatted}</span>`;
-            }
-            return formatted;
-        }
-
-        // Calculate next update time
-        function getNextUpdateTime() {
-            const now = new Date();
-            const days = [1, 3, 5]; // Monday, Wednesday, Friday
-            const hour = 9; // 9 AM ET
-            
-            let nextUpdate = new Date();
-            nextUpdate.setHours(hour, 0, 0, 0);
-            
-            // Find next update day
-            while (!days.includes(nextUpdate.getDay()) || nextUpdate <= now) {
-                nextUpdate.setDate(nextUpdate.getDate() + 1);
-            }
-            
-            return nextUpdate.toLocaleString('en-US', {
-                weekday: 'long',
-                month: 'short',
-                day: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit',
-                timeZoneName: 'short'
-            });
-        }
-
-        // Load summary data
-        async function loadSummary() {
             try {
-                const response = await fetch(`${API_URL}?series=summary`);
-                const data = await response.json();
+                console.log('Starting simple fetch test...');
+                const response = await fetch(API_URL + '?series=summary');
+                console.log('Response received:', response);
                 
-                if (data.metrics) {
-                    const summaryHTML = data.metrics.map(metric => `
-                        <div class="metric-card">
-                            <div class="metric-label">${metric.name}</div>
-                            <div class="metric-value">${formatValue(metric.latest_value)}</div>
-                            <div class="series-date">Last: ${metric.latest_date}</div>
-                            <div class="metric-change">
-                                <div class="change-item">
-                                    Week: ${formatPercentage(metric.week_change)}
-                                </div>
-                                <div class="change-item">
-                                    ${metric.cached ? '📦 Cached' : '🔄 Live'}
-                                </div>
-                            </div>
-                        </div>
-                    `).join('');
-                    
-                    document.getElementById('summarySection').innerHTML = summaryHTML;
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Data parsed:', data);
+                    results.innerHTML = '<div class="test-row"><span class="test-label">Simple Fetch:</span><span class="success">✓ SUCCESS</span></div>';
+                    displayData(data);
+                } else {
+                    results.innerHTML = `<div class="test-row"><span class="test-label">Simple Fetch:</span><span class="error">✗ HTTP ${response.status}</span></div>`;
                 }
             } catch (error) {
-                console.error('Error loading summary:', error);
-                document.getElementById('summarySection').innerHTML = `
-                    <div class="error">Error loading summary data: ${error.message}</div>
-                `;
+                console.error('Fetch error:', error);
+                results.innerHTML = `<div class="test-row"><span class="test-label">Simple Fetch:</span><span class="error">✗ ${error.message}</span></div>`;
             }
         }
 
-        // Load percentage changes
-        async function loadChanges() {
+        // Test 2: Fetch with Headers
+        async function testFetchWithHeaders() {
+            const results = document.getElementById('testResults');
+            results.innerHTML = '<div class="test-row"><span class="test-label">Fetch with Headers:</span><span class="warning">Testing...</span></div>';
+            
             try {
-                const response = await fetch(`${API_URL}?action=changes&series=all&period=all`, {
+                const response = await fetch(API_URL + '?series=summary', {
                     method: 'GET',
                     headers: {
                         'Accept': 'application/json',
+                        'Content-Type': 'application/json'
                     },
-                    mode: 'cors'
+                    mode: 'cors',
+                    credentials: 'omit'
                 });
                 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                
-                if (data.changes) {
-                    const tableHTML = `
-                        <table class="percentage-table">
-                            <thead>
-                                <tr>
-                                    <th>Metric</th>
-                                    <th>Current Value</th>
-                                    <th>Week</th>
-                                    <th>Month</th>
-                                    <th>Quarter</th>
-                                    <th>Year</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${data.changes.map(item => `
-                                    <tr>
-                                        <td>
-                                            <div class="series-code">${item.series_id}</div>
-                                            <div class="series-name">${item.name}</div>
-                                        </td>
-                                        <td>${formatValue(item.latest_value, item.series_id)}</td>
-                                        <td>${formatPercentage(item.week_change?.percentage)}</td>
-                                        <td>${formatPercentage(item.month_change?.percentage)}</td>
-                                        <td>${formatPercentage(item.quarter_change?.percentage)}</td>
-                                        <td>${formatPercentage(item.year_change?.percentage)}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    `;
-                    
-                    document.getElementById('changesContent').innerHTML = tableHTML;
-                }
-            } catch (error) {
-                console.error('Error loading changes:', error);
-                
-                // If CORS fails, show sample data with actual values
-                if (error.message.includes('Failed to fetch')) {
-                    const sampleTableHTML = `
-                        <div style="background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3); padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                            <strong>📊 Note:</strong> Open this file from a web server to see live percentage changes. 
-                            Run: <code style="background: #000; padding: 3px;">python -m http.server 8000</code>
-                        </div>
-                        
-                        <table class="percentage-table">
-                            <thead>
-                                <tr>
-                                    <th>Metric</th>
-                                    <th>Current Value</th>
-                                    <th>Week</th>
-                                    <th>Month</th>
-                                    <th>Quarter</th>
-                                    <th>Year</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <div class="series-code">WRBWFRBL</div>
-                                        <div class="series-name">Reserve Balances</div>
-                                    </td>
-                                    <td>$3.17T</td>
-                                    <td><span class="change-negative">-1.52%</span></td>
-                                    <td><span class="change-negative">-3.45%</span></td>
-                                    <td><span class="change-negative">-5.21%</span></td>
-                                    <td><span class="change-negative">-8.34%</span></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="series-code">WALCL</div>
-                                        <div class="series-name">Fed Total Assets</div>
-                                    </td>
-                                    <td>$6.60T</td>
-                                    <td><span class="change-negative">-0.02%</span></td>
-                                    <td><span class="change-negative">-0.58%</span></td>
-                                    <td><span class="change-negative">-1.06%</span></td>
-                                    <td><span class="change-negative">-7.18%</span></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="series-code">WCURCIR</div>
-                                        <div class="series-name">Currency in Circulation</div>
-                                    </td>
-                                    <td>$2.41T</td>
-                                    <td><span class="change-positive">+0.26%</span></td>
-                                    <td><span class="change-positive">+0.52%</span></td>
-                                    <td><span class="change-positive">+1.14%</span></td>
-                                    <td><span class="change-positive">+2.85%</span></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="series-code">WTREGEN</div>
-                                        <div class="series-name">Treasury General Account</div>
-                                    </td>
-                                    <td>$597.5B</td>
-                                    <td><span class="change-positive">+1.27%</span></td>
-                                    <td><span class="change-positive">+8.42%</span></td>
-                                    <td><span class="change-negative">-12.35%</span></td>
-                                    <td><span class="change-positive">+45.21%</span></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="series-code">RRPONTSYD</div>
-                                        <div class="series-name">Overnight RRP</div>
-                                    </td>
-                                    <td>$21.0B</td>
-                                    <td><span class="change-negative">-73.05%</span></td>
-                                    <td><span class="change-negative">-85.42%</span></td>
-                                    <td><span class="change-negative">-92.15%</span></td>
-                                    <td><span class="change-negative">-98.25%</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        
-                        <p style="margin-top: 20px; color: #888; font-size: 14px;">
-                            💡 These percentage changes are calculated from your Fed Liquidity API's DynamoDB cache, 
-                            comparing current values to historical data from 1 week, 1 month, 3 months, and 1 year ago.
-                        </p>
-                    `;
-                    
-                    document.getElementById('changesContent').innerHTML = sampleTableHTML;
+                if (response.ok) {
+                    const data = await response.json();
+                    results.innerHTML = '<div class="test-row"><span class="test-label">Fetch with Headers:</span><span class="success">✓ SUCCESS</span></div>';
+                    displayData(data);
                 } else {
-                    document.getElementById('changesContent').innerHTML = `
-                        <div class="error">Error loading percentage changes: ${error.message}</div>
-                    `;
-                }
-            }
-        }
-
-        // Load category data
-        async function loadCategory(category, elementId) {
-            try {
-                const response = await fetch(`${API_URL}?category=${category}`);
-                const data = await response.json();
-                
-                if (data.data) {
-                    const html = data.data.map(series => {
-                        if (series.latest) {
-                            return `
-                                <div class="series-item">
-                                    <div class="series-info">
-                                        <div class="series-code">${series.series_id}</div>
-                                        <div class="series-name">${series.name}</div>
-                                    </div>
-                                    <div class="series-value">
-                                        <div class="series-amount">${formatValue(series.latest.value)}</div>
-                                        <div class="series-date">${series.latest.date}</div>
-                                    </div>
-                                </div>
-                            `;
-                        }
-                        return '';
-                    }).join('');
-                    
-                    document.getElementById(elementId).innerHTML = html || '<div class="error">No data available</div>';
+                    results.innerHTML = `<div class="test-row"><span class="test-label">Fetch with Headers:</span><span class="error">✗ HTTP ${response.status}</span></div>`;
                 }
             } catch (error) {
-                console.error(`Error loading ${category}:`, error);
-                document.getElementById(elementId).innerHTML = `
-                    <div class="error">Error loading ${category} data: ${error.message}</div>
-                `;
+                results.innerHTML = `<div class="test-row"><span class="test-label">Fetch with Headers:</span><span class="error">✗ ${error.message}</span></div>`;
             }
         }
 
-        // Load all series
-        async function loadAllSeries() {
+        // Test 3: XMLHttpRequest
+        function testXHR() {
+            const results = document.getElementById('testResults');
+            results.innerHTML = '<div class="test-row"><span class="test-label">XMLHttpRequest:</span><span class="warning">Testing...</span></div>';
+            
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', API_URL + '?series=summary', true);
+            
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        results.innerHTML = '<div class="test-row"><span class="test-label">XMLHttpRequest:</span><span class="success">✓ SUCCESS</span></div>';
+                        displayData(data);
+                    } catch (e) {
+                        results.innerHTML = `<div class="test-row"><span class="test-label">XMLHttpRequest:</span><span class="error">✗ Parse Error</span></div>`;
+                    }
+                } else {
+                    results.innerHTML = `<div class="test-row"><span class="test-label">XMLHttpRequest:</span><span class="error">✗ HTTP ${xhr.status}</span></div>`;
+                }
+            };
+            
+            xhr.onerror = function() {
+                results.innerHTML = '<div class="test-row"><span class="test-label">XMLHttpRequest:</span><span class="error">✗ Network Error</span></div>';
+            };
+            
+            xhr.send();
+        }
+
+        // Test 4: Open direct link
+        function testDirectLink() {
+            window.open(API_URL + '?series=summary', '_blank');
+            const results = document.getElementById('testResults');
+            results.innerHTML = '<div class="test-row"><span class="test-label">Direct Link:</span><span class="warning">Check new tab - copy JSON if it works</span></div>';
+        }
+
+        // Test 5: Try CORS proxy
+        async function loadViaProxy() {
+            const results = document.getElementById('testResults');
+            results.innerHTML = '<div class="test-row"><span class="test-label">CORS Proxy:</span><span class="warning">Testing...</span></div>';
+            
+            // Try public CORS proxy
+            const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(API_URL + '?series=summary');
+            
             try {
-                const response = await fetch(`${API_URL}?series=all`);
-                const data = await response.json();
-                
-                if (data.series) {
-                    const html = Object.entries(data.series).map(([code, name]) => `
-                        <div class="series-item">
-                            <div class="series-info">
-                                <div class="series-code">${code}</div>
-                                <div class="series-name">${name}</div>
+                const response = await fetch(proxyUrl);
+                if (response.ok) {
+                    const data = await response.json();
+                    results.innerHTML = '<div class="test-row"><span class="test-label">CORS Proxy:</span><span class="success">✓ SUCCESS via proxy</span></div>';
+                    displayData(data);
+                } else {
+                    results.innerHTML = `<div class="test-row"><span class="test-label">CORS Proxy:</span><span class="error">✗ HTTP ${response.status}</span></div>`;
+                }
+            } catch (error) {
+                results.innerHTML = `<div class="test-row"><span class="test-label">CORS Proxy:</span><span class="error">✗ ${error.message}</span></div>`;
+            }
+        }
+
+        // Parse manually entered data
+        function parseManualData() {
+            const textarea = document.getElementById('manualData');
+            const data = textarea.value.trim();
+            
+            if (!data) {
+                alert('Please paste JSON data first');
+                return;
+            }
+            
+            try {
+                const parsed = JSON.parse(data);
+                displayData(parsed);
+                document.getElementById('testResults').innerHTML = '<div class="test-row"><span class="test-label">Manual Data:</span><span class="success">✓ Parsed Successfully</span></div>';
+            } catch (error) {
+                alert('Invalid JSON: ' + error.message);
+            }
+        }
+
+        // Display the data
+        function displayData(data) {
+            // Show raw data
+            document.getElementById('rawData').textContent = JSON.stringify(data, null, 2);
+            document.getElementById('dataDisplay').style.display = 'block';
+            
+            // Display summary if available
+            if (data.metrics) {
+                const summaryHTML = data.metrics.map(metric => {
+                    const value = formatValue(metric.latest_value, metric.series);
+                    const changeClass = metric.week_change > 0 ? 'change-positive' : 'change-negative';
+                    
+                    return `
+                        <div class="metric-card">
+                            <div class="metric-label">${metric.series}</div>
+                            <div class="metric-value">${value}</div>
+                            <div style="margin-top: 10px;">
+                                <small>${metric.name}</small><br>
+                                <small>Date: ${metric.latest_date}</small><br>
+                                <small class="${changeClass}">Week: ${metric.week_change > 0 ? '+' : ''}${metric.week_change}%</small>
                             </div>
                         </div>
-                    `).join('');
-                    
-                    document.getElementById('allContent').innerHTML = html;
-                }
-            } catch (error) {
-                console.error('Error loading all series:', error);
-                document.getElementById('allContent').innerHTML = `
-                    <div class="error">Error loading series list: ${error.message}</div>
-                `;
+                    `;
+                }).join('');
+                
+                document.getElementById('summarySection').innerHTML = summaryHTML;
+                document.getElementById('summarySection').style.display = 'grid';
             }
         }
 
-        // Switch tabs
-        function switchTab(tabName) {
-            // Update tab buttons
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            event.target.classList.add('active');
+        // Format values
+        function formatValue(value, seriesId) {
+            if (!value) return 'N/A';
             
-            // Update tab content
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            document.getElementById(tabName).classList.add('active');
+            const num = parseFloat(value);
+            const billionSeries = ['WCURCIR', 'WTREGEN', 'RRPONTSYD', 'TOTRESNS', 'CURRCIR'];
+            const isInBillions = billionSeries.includes(seriesId);
             
-            // Load data for the tab if needed
-            if (tabName === 'reserves' && !document.getElementById('reservesContent').innerHTML) {
-                loadCategory('reserves', 'reservesContent');
-            } else if (tabName === 'currency' && !document.getElementById('currencyContent').innerHTML) {
-                loadCategory('currency', 'currencyContent');
-            } else if (tabName === 'treasury' && !document.getElementById('treasuryContent').innerHTML) {
-                loadCategory('treasury_account', 'treasuryContent');
-            } else if (tabName === 'repo' && !document.getElementById('repoContent').innerHTML) {
-                loadCategory('repo_operations', 'repoContent');
-            } else if (tabName === 'securities' && !document.getElementById('securitiesContent').innerHTML) {
-                loadCategory('securities', 'securitiesContent');
-            } else if (tabName === 'lending' && !document.getElementById('lendingContent').innerHTML) {
-                loadCategory('lending_facilities', 'lendingContent');
-            } else if (tabName === 'balance' && !document.getElementById('balanceContent').innerHTML) {
-                loadCategory('balance_sheet', 'balanceContent');
-            } else if (tabName === 'all' && !document.getElementById('allContent').innerHTML) {
-                loadAllSeries();
+            if (isInBillions) {
+                if (num >= 1000) return '$' + (num / 1000).toFixed(2) + 'T';
+                return '$' + num.toFixed(1) + 'B';
+            } else {
+                if (num >= 1000000) return '$' + (num / 1000000).toFixed(2) + 'T';
+                if (num >= 1000) return '$' + (num / 1000).toFixed(2) + 'B';
+                return '$' + num.toFixed(1) + 'M';
             }
         }
-
-        // Refresh all data
-        async function refreshData() {
-            if (isLoading) return;
-            
-            isLoading = true;
-            const btn = document.querySelector('.refresh-btn');
-            btn.disabled = true;
-            btn.textContent = '⏳ Loading...';
-            
-            try {
-                await Promise.all([
-                    loadSummary(),
-                    loadChanges()
-                ]);
-                
-                // Clear cached category data to force reload
-                ['reservesContent', 'currencyContent', 'treasuryContent', 'repoContent', 
-                 'securitiesContent', 'lendingContent', 'balanceContent', 'allContent'].forEach(id => {
-                    document.getElementById(id).innerHTML = '';
-                });
-                
-                // Reload current tab
-                const activeTab = document.querySelector('.tab.active');
-                if (activeTab) {
-                    const tabName = activeTab.textContent.split(' ')[1].toLowerCase();
-                    if (tabName && tabName !== 'percentage') {
-                        switchTab(tabName);
-                    }
-                }
-                
-                updateStatus('live', 'Connected');
-                document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
-                
-            } catch (error) {
-                console.error('Error refreshing data:', error);
-                updateStatus('error', 'Connection Error');
-            } finally {
-                isLoading = false;
-                btn.disabled = false;
-                btn.textContent = '🔄 Refresh';
-            }
-        }
-
-        // Update status indicator
-        function updateStatus(type, text) {
-            const indicator = document.getElementById('statusIndicator');
-            const statusText = document.getElementById('statusText');
-            
-            indicator.className = 'status-indicator ' + type;
-            statusText.textContent = text;
-        }
-
-        // Check if it's time for auto-update
-        function checkAutoUpdate() {
-            const now = new Date();
-            const day = now.getDay();
-            const hour = now.getHours();
-            const minute = now.getMinutes();
-            
-            // Check if it's Mon(1), Wed(3), or Fri(5) at 9 AM ET
-            if ([1, 3, 5].includes(day) && hour === 9 && minute === 0) {
-                console.log('Auto-update triggered');
-                refreshData();
-            }
-        }
-
-        // Initialize dashboard
-        async function init() {
-            document.getElementById('nextUpdate').textContent = getNextUpdateTime();
-            
-            await refreshData();
-            
-            // Set up auto-update check every minute
-            setInterval(() => {
-                checkAutoUpdate();
-            }, 60000);
-            
-            // Auto-refresh every 5 minutes to keep data fresh
-            setInterval(() => {
-                console.log('Periodic refresh');
-                refreshData();
-            }, 300000);
-        }
-
-        // Start the dashboard
-        init();
     </script>
 </body>
 </html>
