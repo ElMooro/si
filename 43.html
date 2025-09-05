@@ -402,11 +402,11 @@
             showStatus('Loading key Fed metrics...', 'info');
             
             try {
-                const response = await fetch(`${API_BASE}?series=summary`);
-                if (!response.ok) throw new Error('Failed to fetch summary');
+                // Try with path parameter for Lambda function URL
+                const url = `${API_BASE}/?path=/fed_liquidity&queryStringParameters=${encodeURIComponent(JSON.stringify({series: 'summary'}))}`;
+                console.log('Fetching from:', url);
                 
-                const data = await response.json();
-                console.log('Summary response:', data);
+                const response = await fetch(url
                 
                 // Parse the body if it's a string
                 let parsedData = data;
@@ -601,8 +601,11 @@
             showStatus(`Loading chart data for ${seriesId}...`, 'info');
             
             try {
-                const response = await fetch(`${API_BASE}?series=${seriesId}`);
-                if (!response.ok) throw new Error('Failed to fetch series');
+                const url = `${API_BASE}/?series=${seriesId}`;
+                console.log('Series fetch from:', url);
+                
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 
                 const data = await response.json();
                 
