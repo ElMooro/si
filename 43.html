@@ -942,18 +942,27 @@
                         method: 'GET',
                         headers: {
                             'Accept': 'application/json',
-                        }
+                            'Content-Type': 'application/json'
+                        },
+                        mode: 'cors'
                     });
 
                     if (!response.ok) {
+                        console.error(`HTTP ${response.status} for ${url}`);
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
 
                     const data = await response.json();
+                    console.log('Response data:', data);
                     return data;
                 } catch (error) {
-                    console.error('API Error:', error);
-                    this.showError(`API Error: ${error.message}`);
+                    console.error('API Error for endpoint', endpoint, ':', error);
+                    
+                    // Log more details for debugging
+                    if (error.message.includes('Failed to fetch')) {
+                        console.error('This usually means CORS is blocking the request or the API is unreachable');
+                    }
+                    
                     return null;
                 }
             }
