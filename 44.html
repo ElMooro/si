@@ -115,6 +115,41 @@
             border: none;
         }
         
+        /* Tab action buttons */
+        .tab-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 6px;
+            color: #00ff88;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+        }
+        
+        .action-btn:hover {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: #00ff88;
+        }
+        
+        .action-btn.favorite-btn {
+            background: rgba(255, 215, 0, 0.1);
+            border-color: rgba(255, 215, 0, 0.3);
+            color: #ffd700;
+        }
+        
+        .action-btn.favorite-btn:hover {
+            background: rgba(255, 215, 0, 0.2);
+            border-color: #ffd700;
+        }
+        
         /* Data Display Section */
         .data-section {
             background: rgba(255, 255, 255, 0.03);
@@ -151,7 +186,7 @@
         .data-table table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 900px;
+            min-width: 1000px;
         }
         
         .data-table th {
@@ -173,6 +208,21 @@
         
         .data-table tr:hover {
             background: rgba(0, 255, 136, 0.05);
+        }
+        
+        /* Favorite star */
+        .favorite-star {
+            cursor: pointer;
+            color: #444;
+            transition: color 0.3s;
+        }
+        
+        .favorite-star.active {
+            color: #ffd700;
+        }
+        
+        .favorite-star:hover {
+            color: #ffd700;
         }
         
         /* Loading States */
@@ -328,12 +378,22 @@
         
         <!-- Filter buttons -->
         <div class="filter-container">
-            <button class="filter-btn active" onclick="filterBySeries('all')">📊 All Series (162)</button>
+            <button class="filter-btn active" onclick="filterBySeries('all')">📊 All Series</button>
             <button class="filter-btn" onclick="filterBySeries('yields')">📈 Yields</button>
             <button class="filter-btn" onclick="filterBySeries('spreads')">📉 Spreads/OAS</button>
             <button class="filter-btn" onclick="filterBySeries('returns')">💹 Total Returns</button>
-            <button class="filter-btn" onclick="loadAllSeriesData()">🔄 Load All Data</button>
-            <button class="filter-btn" onclick="exportToCSV()">📥 Export CSV</button>
+            <button class="filter-btn" onclick="filterBySeries('emerging')">🌍 Emerging Markets</button>
+            <button class="filter-btn" onclick="filterBySeries('euro')">€ Euro</button>
+            <button class="filter-btn" onclick="filterBySeries('favorites')">⭐ Favorites</button>
+        </div>
+        
+        <!-- Tab-specific action buttons -->
+        <div class="tab-actions" id="tabActions">
+            <button class="action-btn" onclick="loadTabData()">🔄 Load Tab Data</button>
+            <button class="action-btn" onclick="refreshTabData()">🔃 Refresh Tab</button>
+            <button class="action-btn" onclick="loadAllSeriesData()">📥 Load All Data</button>
+            <button class="action-btn" onclick="exportToCSV()">📥 Export CSV</button>
+            <button class="action-btn favorite-btn" onclick="clearAllFavorites()">🗑️ Clear Favorites</button>
         </div>
         
         <!-- Main Data Section -->
@@ -347,6 +407,7 @@
                 <table>
                     <thead>
                         <tr>
+                            <th>⭐</th>
                             <th onclick="sortTable('id')">Series ID ↕</th>
                             <th onclick="sortTable('name')">Description ↕</th>
                             <th onclick="sortTable('value')">Current Value ↕</th>
@@ -358,7 +419,7 @@
                         </tr>
                     </thead>
                     <tbody id="mainTableBody">
-                        <tr><td colspan="9" class="loading">Click "Load All (Cached)" to fetch series data from cache...</td></tr>
+                        <tr><td colspan="9" class="loading">Select a tab and click "Load Tab Data" to fetch series data...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -375,6 +436,7 @@
         let currentFilter = 'all';
         let sortColumn = 'id';
         let sortDirection = 'asc';
+        let favorites = JSON.parse(localStorage.getItem('iceBofaFavorites') || '[]');
         
         // Initialize
         async function initialize() {
@@ -407,32 +469,112 @@
             }
         }
         
-        // Load all series data
-        async function loadAllSeriesData() {
-            const seriesIds = Object.keys(allSeriesMetadata);
-            const totalCount = seriesIds.length;
+        // Load data for current tab only
+        async function loadTabData() {
+            const seriesToLoad = getSeriesForCurrentTab();
             
-            if (totalCount === 0) {
-                showStatus('No series to load. Refresh the page.', 'error');
+            if (seriesToLoad.length === 0) {
+                showStatus('No series to load for this tab.', 'info');
                 return;
             }
             
-            console.log(`📊 Starting to load ${totalCount} series...`);
-            showStatus(`Loading ${totalCount} series...`, 'info');
+            await loadSeriesDataBatch(seriesToLoad);
+        }
+        
+        // Refresh data for current tab
+        async function refreshTabData() {
+            const seriesToLoad = getSeriesForCurrentTab();
+            
+            if (seriesToLoad.length === 0) {
+                showStatus('No series to refresh for this tab.', 'info');
+                return;
+            }
+            
+            // Clear existing data for these series
+            const seriesToLoadSet = new Set(seriesToLoad);
+            allSeriesData = allSeriesData.filter(s => !seriesToLoadSet.has(s.id));
+            
+            await loadSeriesDataBatch(seriesToLoad);
+        }
+        
+        // Get series IDs for the current tab
+        function getSeriesForCurrentTab() {
+            let seriesIds = Object.keys(allSeriesMetadata);
+            
+            switch(currentFilter) {
+                case 'yields':
+                    return seriesIds.filter(id => 
+                        id.includes('EY') || id.includes('SYTW') || 
+                        allSeriesMetadata[id].toLowerCase().includes('yield')
+                    );
+                    
+                case 'spreads':
+                    return seriesIds.filter(id => 
+                        id.includes('OAS') || id.includes('SPREAD') || id.includes('SEMIWORST') ||
+                        allSeriesMetadata[id].toLowerCase().includes('spread') ||
+                        allSeriesMetadata[id].toLowerCase().includes('option-adjusted')
+                    );
+                    
+                case 'returns':
+                    return seriesIds.filter(id => 
+                        id.includes('TRIV') || 
+                        allSeriesMetadata[id].toLowerCase().includes('total return')
+                    );
+                    
+                case 'emerging':
+                    return seriesIds.filter(id => {
+                        const name = allSeriesMetadata[id].toLowerCase();
+                        return id.includes('EM') || id.includes('EMB') || 
+                               name.includes('emerging') || name.includes('em ') ||
+                               name.includes('brazil') || name.includes('mexico') ||
+                               name.includes('turkey') || name.includes('indonesia') ||
+                               name.includes('south africa') || name.includes('china') ||
+                               name.includes('india') || name.includes('russia');
+                    });
+                    
+                case 'euro':
+                    return seriesIds.filter(id => {
+                        const name = allSeriesMetadata[id].toLowerCase();
+                        return id.includes('EUR') || id.includes('EU') || 
+                               name.includes('euro') || name.includes('european') ||
+                               name.includes('germany') || name.includes('france') ||
+                               name.includes('italy') || name.includes('spain') ||
+                               name.includes('netherlands') || name.includes('belgium');
+                    });
+                    
+                case 'favorites':
+                    return favorites.filter(id => seriesIds.includes(id));
+                    
+                case 'all':
+                default:
+                    return seriesIds;
+            }
+        }
+        
+        // Load series data in batches
+        async function loadSeriesDataBatch(seriesIds) {
+            const totalCount = seriesIds.length;
+            
+            if (totalCount === 0) {
+                showStatus('No series to load.', 'info');
+                return;
+            }
+            
+            console.log(`📊 Starting to load ${totalCount} series for ${currentFilter} tab...`);
+            showStatus(`Loading ${totalCount} series for ${currentFilter} tab...`, 'info');
             
             // Show progress bar
             const progressContainer = document.getElementById('progressContainer');
             const progressBar = document.getElementById('progressBar');
             progressContainer.style.display = 'block';
             
-            // Clear existing data
-            allSeriesData = [];
-            document.getElementById('mainTableBody').innerHTML = '<tr><td colspan="8" class="loading"><div class="loading-spinner"></div> Loading data...</td></tr>';
+            // Clear table for loading state
+            document.getElementById('mainTableBody').innerHTML = '<tr><td colspan="9" class="loading"><div class="loading-spinner"></div> Loading data...</td></tr>';
             
             let loaded = 0;
             let failed = 0;
             
-            // Process in smaller batches to avoid overwhelming the API
+            // Process in smaller batches
             const batchSize = 3;
             
             for (let i = 0; i < seriesIds.length; i += batchSize) {
@@ -441,9 +583,20 @@
                 // Process batch in parallel
                 const batchPromises = batch.map(async (seriesId) => {
                     try {
+                        // Check if already loaded
+                        const existing = allSeriesData.find(s => s.id === seriesId);
+                        if (existing && !existing.error) {
+                            loaded++;
+                            console.log(`✓ Already loaded ${seriesId} (${loaded}/${totalCount})`);
+                            return;
+                        }
+                        
                         const response = await fetch(`${API_BASE}/ice_bofa?series=${seriesId}`);
                         if (response.ok) {
                             const data = await response.json();
+                            
+                            // Remove old entry if exists
+                            allSeriesData = allSeriesData.filter(s => s.id !== seriesId);
                             
                             // Store the full series data
                             allSeriesData.push({
@@ -462,6 +615,9 @@
                         }
                     } catch (err) {
                         console.error(`✗ Failed to load ${seriesId}:`, err.message);
+                        
+                        // Remove old entry if exists
+                        allSeriesData = allSeriesData.filter(s => s.id !== seriesId);
                         
                         // Add placeholder for failed series
                         allSeriesData.push({
@@ -484,15 +640,7 @@
                 progressBar.style.width = `${progress}%`;
                 progressBar.textContent = `${progress}%`;
                 
-                document.getElementById('loadedSeries').textContent = loaded;
-                document.getElementById('seriesCount').textContent = `${loaded} of 192 loaded`;
-                
-                // Update status
-                if (failed > 0) {
-                    showStatus(`Loading: ${loaded} successful, ${failed} failed...`, 'info');
-                } else {
-                    showStatus(`Loading: ${loaded}/${totalCount}...`, 'info');
-                }
+                document.getElementById('loadedSeries').textContent = allSeriesData.filter(s => !s.error).length;
                 
                 // Small delay between batches
                 if (i + batchSize < seriesIds.length) {
@@ -503,18 +651,22 @@
             // Hide progress bar
             progressContainer.style.display = 'none';
             
-            // Display all data
+            // Display data
             displaySeriesData();
             updateLastUpdateTime();
             
             // Final status
             if (failed > 0) {
-                showStatus(`Loaded ${loaded} series successfully. ${failed} series failed to load.`, 'info');
+                showStatus(`Loaded ${loaded} series for ${currentFilter} tab. ${failed} series failed.`, 'info');
             } else {
-                showStatus(`Successfully loaded all ${loaded} series!`, 'success');
+                showStatus(`Successfully loaded ${loaded} series for ${currentFilter} tab!`, 'success');
             }
-            
-            console.log(`\n📊 Final Results:\n✅ Loaded: ${loaded}\n❌ Failed: ${failed}\n📈 Total: ${totalCount}`);
+        }
+        
+        // Load all series data
+        async function loadAllSeriesData() {
+            const seriesIds = Object.keys(allSeriesMetadata);
+            await loadSeriesDataBatch(seriesIds);
         }
         
         // Display series data in the table
@@ -529,11 +681,33 @@
                     
                     switch(currentFilter) {
                         case 'yields':
-                            return id.includes('EY') || name.includes('yield');
+                            return id.includes('EY') || id.includes('SYTW') || name.includes('yield');
+                            
                         case 'spreads':
-                            return id.includes('OAS') || name.includes('spread');
+                            return id.includes('OAS') || id.includes('SPREAD') || id.includes('SEMIWORST') ||
+                                   name.includes('spread') || name.includes('option-adjusted');
+                            
                         case 'returns':
                             return id.includes('TRIV') || name.includes('total return');
+                            
+                        case 'emerging':
+                            return id.includes('EM') || id.includes('EMB') || 
+                                   name.includes('emerging') || name.includes('em ') ||
+                                   name.includes('brazil') || name.includes('mexico') ||
+                                   name.includes('turkey') || name.includes('indonesia') ||
+                                   name.includes('south africa') || name.includes('china') ||
+                                   name.includes('india') || name.includes('russia');
+                            
+                        case 'euro':
+                            return id.includes('EUR') || id.includes('EU') || 
+                                   name.includes('euro') || name.includes('european') ||
+                                   name.includes('germany') || name.includes('france') ||
+                                   name.includes('italy') || name.includes('spain') ||
+                                   name.includes('netherlands') || name.includes('belgium');
+                            
+                        case 'favorites':
+                            return favorites.includes(id);
+                            
                         default:
                             return true;
                     }
@@ -602,13 +776,16 @@
             const tbody = document.getElementById('mainTableBody');
             
             if (filteredData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #888;">No data to display</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #888;">No data to display. Click "Load Tab Data" to load series for this tab.</td></tr>';
+                document.getElementById('seriesCount').textContent = `0 series displayed`;
                 return;
             }
             
             const rows = filteredData.map(series => {
+                const isFavorite = favorites.includes(series.id);
                 return `
                     <tr>
+                        <td><span class="favorite-star ${isFavorite ? 'active' : ''}" onclick="toggleFavorite('${series.id}')">★</span></td>
                         <td class="series-id">${series.id}</td>
                         <td>${series.name}</td>
                         <td class="value-cell ${series.error ? 'neutral' : ''}">${formatValue(series.latest.value, series.id)}</td>
@@ -623,10 +800,42 @@
             
             tbody.innerHTML = rows;
             
-            // Update title
-            document.getElementById('mainTitle').textContent = 
-                currentFilter === 'all' ? 'All ICE BofA Series' : 
-                `Filtered: ${filteredData.length} series`;
+            // Update title and count
+            const tabNames = {
+                'all': 'All ICE BofA Series',
+                'yields': 'Yield Indices',
+                'spreads': 'Spreads/OAS Indices',
+                'returns': 'Total Return Indices',
+                'emerging': 'Emerging Markets Indices',
+                'euro': 'Euro Indices',
+                'favorites': 'Favorite Indices'
+            };
+            
+            document.getElementById('mainTitle').textContent = tabNames[currentFilter] || 'Filtered Series';
+            document.getElementById('seriesCount').textContent = `${filteredData.length} series displayed`;
+        }
+        
+        // Toggle favorite
+        function toggleFavorite(seriesId) {
+            const index = favorites.indexOf(seriesId);
+            if (index > -1) {
+                favorites.splice(index, 1);
+            } else {
+                favorites.push(seriesId);
+            }
+            
+            localStorage.setItem('iceBofaFavorites', JSON.stringify(favorites));
+            displaySeriesData();
+        }
+        
+        // Clear all favorites
+        function clearAllFavorites() {
+            if (confirm('Are you sure you want to clear all favorites?')) {
+                favorites = [];
+                localStorage.setItem('iceBofaFavorites', JSON.stringify(favorites));
+                displaySeriesData();
+                showStatus('All favorites cleared', 'success');
+            }
         }
         
         // Format value based on series type
@@ -673,9 +882,13 @@
             });
             event.target.classList.add('active');
             
-            if (allSeriesData.length > 0) {
-                displaySeriesData();
+            // Show/hide favorite clear button
+            const clearFavBtn = document.querySelector('.favorite-btn');
+            if (clearFavBtn) {
+                clearFavBtn.style.display = filter === 'favorites' ? 'inline-block' : 'none';
             }
+            
+            displaySeriesData();
         }
         
         // Sort table
@@ -706,7 +919,7 @@
                 return;
             }
             
-            let csv = 'Series ID,Description,Current Value,WoW%,MoM%,QoQ%,YoY%,Last Updated\n';
+            let csv = 'Series ID,Description,Current Value,WoW%,MoM%,QoQ%,YoY%,Last Updated,Favorite\n';
             
             allSeriesData.forEach(series => {
                 const value = series.latest.value !== null ? formatValue(series.latest.value, series.id) : 'N/A';
@@ -714,18 +927,19 @@
                 const mom = series.changes['MoM%'] !== undefined ? series.changes['MoM%'].toFixed(2) : 'N/A';
                 const qoq = series.changes['QoQ%'] !== undefined ? series.changes['QoQ%'].toFixed(2) : 'N/A';
                 const yoy = series.changes['YoY%'] !== undefined ? series.changes['YoY%'].toFixed(2) : 'N/A';
+                const isFav = favorites.includes(series.id) ? 'Yes' : 'No';
                 
-                csv += `"${series.id}","${series.name}","${value}","${wow}","${mom}","${qoq}","${yoy}","${series.latest.date || 'N/A'}"\n`;
+                csv += `"${series.id}","${series.name}","${value}","${wow}","${mom}","${qoq}","${yoy}","${series.latest.date || 'N/A'}","${isFav}"\n`;
             });
             
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `ice_bofa_data_${new Date().toISOString().split('T')[0]}.csv`;
+            a.download = `ice_bofa_data_${currentFilter}_${new Date().toISOString().split('T')[0]}.csv`;
             a.click();
             
-            showStatus('Data exported to CSV', 'success');
+            showStatus(`Data exported to CSV (${currentFilter} filter)`, 'success');
         }
         
         // Show status message
@@ -751,12 +965,6 @@
         
         // Initialize on load
         document.addEventListener('DOMContentLoaded', initialize);
-        
-        // Make functions available globally for debugging
-        window.diagnoseProblem = diagnoseProblem;
-        window.loadAllSlow = loadAllSlow;
-        window.retryFailedSeries = retryFailedSeries;
-        window.showWorkingSeries = showWorkingSeries;
     </script>
 </body>
 </html>
