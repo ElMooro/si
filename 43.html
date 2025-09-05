@@ -1,1 +1,812 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Federal Reserve Liquidity Dashboard</title>
+    
+    <!-- Required Libraries -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        
+        /* Header Styles */
+        .header {
+            background: rgba(20, 24, 44, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            border-bottom: 2px solid rgba(0, 255, 136, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .logo {
+            font-size: 1.75rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .header-stats {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-width: 120px;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00ff88;
+        }
+        
+        .stat-label {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+        }
+        
+        /* Auto-update indicator */
+        .auto-update-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 8px;
+        }
+        
+        .pulse {
+            width: 10px;
+            height: 10px;
+            background: #00ff88;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 255, 136, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
+        }
+        
+        /* Container */
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Key Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .metric-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s;
+        }
+        
+        .metric-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(0, 255, 136, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .metric-title {
+            color: #888;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+        
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #00ff88;
+            margin-bottom: 0.5rem;
+        }
+        
+        .metric-date {
+            color: #666;
+            font-size: 0.75rem;
+        }
+        
+        /* Filter buttons */
+        .filter-container {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 0.75rem 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #888;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+        }
+        
+        .filter-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border-color: rgba(0, 255, 136, 0.3);
+        }
+        
+        .filter-btn.active {
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            color: #000;
+            font-weight: bold;
+            border: none;
+        }
+        
+        /* Data Display Section */
+        .data-section {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid rgba(0, 255, 136, 0.3);
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            color: #00ff88;
+            font-weight: bold;
+        }
+        
+        /* Chart Container */
+        .chart-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            min-height: 400px;
+        }
+        
+        /* Data Table */
+        .data-table {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            overflow: hidden;
+            overflow-x: auto;
+        }
+        
+        .data-table table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+        }
+        
+        .data-table th {
+            background: rgba(0, 255, 136, 0.1);
+            padding: 0.75rem;
+            text-align: left;
+            font-weight: bold;
+            color: #00ff88;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.875rem;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        
+        .data-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.875rem;
+        }
+        
+        .data-table tr:hover {
+            background: rgba(0, 255, 136, 0.05);
+        }
+        
+        /* Loading States */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #888;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(0, 255, 136, 0.2);
+            border-top-color: #00ff88;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Status Messages */
+        .error {
+            color: #ff4444;
+            padding: 1rem;
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid rgba(255, 68, 68, 0.3);
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        .success {
+            color: #00ff88;
+            padding: 1rem;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        .info {
+            color: #00ccff;
+            padding: 1rem;
+            background: rgba(0, 204, 255, 0.1);
+            border: 1px solid rgba(0, 204, 255, 0.3);
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        /* Value Styles */
+        .positive { color: #00ff88; }
+        .negative { color: #ff4444; }
+        .neutral { color: #888; }
+        
+        .value-cell {
+            font-family: 'Courier New', monospace;
+            font-weight: 500;
+        }
+        
+        .series-id {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            color: #00ccff;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            💹 Federal Reserve Liquidity Dashboard
+            <span style="font-size: 0.875rem; color: #888;">FRED Data</span>
+        </div>
+        
+        <div class="auto-update-status">
+            <div class="pulse"></div>
+            <span style="color: #00ff88; font-size: 0.875rem;">Auto-Update Active</span>
+            <span style="color: #666; font-size: 0.75rem;" id="nextUpdate">Next: --:--</span>
+        </div>
+        
+        <div class="header-stats">
+            <div class="stat-item">
+                <div class="stat-value" id="totalSeries">60+</div>
+                <div class="stat-label">Total Series</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="lastUpdate">--:--</div>
+                <div class="stat-label">Last Update</div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <!-- Status messages -->
+        <div id="statusMessage"></div>
+        
+        <!-- Key Metrics Grid -->
+        <div class="metrics-grid" id="keyMetrics">
+            <!-- Key metrics will be populated here -->
+        </div>
+        
+        <!-- Filter buttons -->
+        <div class="filter-container">
+            <button class="filter-btn active" onclick="filterByCategory('summary')">📊 Summary</button>
+            <button class="filter-btn" onclick="filterByCategory('reserves')">💰 Reserves</button>
+            <button class="filter-btn" onclick="filterByCategory('securities')">📈 Securities</button>
+            <button class="filter-btn" onclick="filterByCategory('repo_operations')">🔄 Repo Ops</button>
+            <button class="filter-btn" onclick="filterByCategory('lending_facilities')">🏦 Lending</button>
+            <button class="filter-btn" onclick="filterByCategory('balance_sheet')">📋 Balance Sheet</button>
+            <button class="filter-btn" onclick="refreshData()">🔄 Refresh Now</button>
+        </div>
+        
+        <!-- Chart Section -->
+        <div class="data-section">
+            <div class="section-header">
+                <div class="section-title">Reserve Balances & Fed Assets Trend</div>
+            </div>
+            <div class="chart-container" id="mainChart"></div>
+        </div>
+        
+        <!-- Main Data Section -->
+        <div class="data-section">
+            <div class="section-header">
+                <div class="section-title" id="mainTitle">Fed Liquidity Metrics</div>
+                <div style="color: #888;" id="dataCount">Loading...</div>
+            </div>
+            
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable('id')">Series ID ↕</th>
+                            <th onclick="sortTable('name')">Description ↕</th>
+                            <th onclick="sortTable('value')">Current Value ↕</th>
+                            <th onclick="sortTable('change')">Change ↕</th>
+                            <th onclick="sortTable('frequency')">Frequency ↕</th>
+                            <th onclick="sortTable('date')">Last Updated ↕</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mainTableBody">
+                        <tr><td colspan="6" class="loading"><div class="loading-spinner"></div> Loading Fed data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Configuration
+        // NOTE: Replace with your actual Lambda Function URL or API Gateway endpoint
+        // The documentation shows local invocation, so you'll need to expose it via API Gateway or Function URL
+        const API_BASE = 'YOUR_LAMBDA_FUNCTION_URL_HERE'; // Replace with actual endpoint
+        
+        // For demo purposes, if no API endpoint is configured
+        const USE_DEMO_MODE = !API_BASE || API_BASE === 'YOUR_LAMBDA_FUNCTION_URL_HERE';
+        
+        // Global state
+        let currentData = [];
+        let currentCategory = 'summary';
+        let sortColumn = 'value';
+        let sortDirection = 'desc';
+        let autoUpdateInterval = null;
+        
+        // Initialize
+        async function initialize() {
+            console.log('🚀 Initializing Fed Liquidity Dashboard...');
+            
+            if (USE_DEMO_MODE) {
+                showStatus('⚠️ Demo Mode: Configure API_BASE with your Lambda Function URL for real data', 'info');
+            }
+            
+            await loadData();
+            setupAutoUpdate();
+            updateNextUpdateTime();
+        }
+        
+        // Setup auto-update (3 times a week: Monday, Wednesday, Friday at 4:30 PM ET)
+        function setupAutoUpdate() {
+            // Check every hour if it's time to update
+            autoUpdateInterval = setInterval(() => {
+                const now = new Date();
+                const day = now.getDay();
+                const hour = now.getHours();
+                const minute = now.getMinutes();
+                
+                // Update on Mon(1), Wed(3), Fri(5) at 16:30 (4:30 PM)
+                if ([1, 3, 5].includes(day) && hour === 16 && minute === 30) {
+                    console.log('⏰ Auto-update triggered');
+                    refreshData();
+                }
+                
+                updateNextUpdateTime();
+            }, 60000); // Check every minute
+        }
+        
+        // Update next update time display
+        function updateNextUpdateTime() {
+            const now = new Date();
+            const day = now.getDay();
+            const daysToNext = getNextUpdateDay(day);
+            
+            const nextUpdate = new Date(now);
+            nextUpdate.setDate(nextUpdate.getDate() + daysToNext);
+            nextUpdate.setHours(16, 30, 0, 0);
+            
+            // If it's an update day but before 4:30 PM, show today
+            if (daysToNext === 0 && now.getHours() < 16 || (now.getHours() === 16 && now.getMinutes() < 30)) {
+                nextUpdate.setDate(now.getDate());
+            }
+            
+            const options = { weekday: 'short', hour: '2-digit', minute: '2-digit' };
+            document.getElementById('nextUpdate').textContent = `Next: ${nextUpdate.toLocaleString('en-US', options)}`;
+        }
+        
+        // Get days until next update
+        function getNextUpdateDay(currentDay) {
+            const updateDays = [1, 3, 5]; // Mon, Wed, Fri
+            
+            for (let d of updateDays) {
+                if (d > currentDay) {
+                    return d - currentDay;
+                }
+            }
+            
+            // Next Monday
+            return (8 - currentDay) % 7;
+        }
+        
+        // Load data from API
+        async function loadData() {
+            try {
+                showStatus('Loading Federal Reserve liquidity data...', 'info');
+                
+                if (USE_DEMO_MODE) {
+                    // Demo data
+                    await loadDemoData();
+                    return;
+                }
+                
+                // Load summary data
+                const response = await fetch(`${API_BASE}/fed_liquidity?series=summary`);
+                if (!response.ok) throw new Error('Failed to fetch data');
+                
+                const data = await response.json();
+                processAndDisplayData(data);
+                
+                // Load chart data
+                await loadChartData();
+                
+                updateLastUpdateTime();
+                showStatus('Data loaded successfully', 'success');
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+                showStatus(`Error: ${error.message}`, 'error');
+            }
+        }
+        
+        // Load demo data (when API not configured)
+        async function loadDemoData() {
+            const demoData = {
+                title: "Federal Reserve Liquidity Summary",
+                timestamp: new Date().toISOString(),
+                metrics: [
+                    { series: "RESBALNS", name: "Reserve Balances with Federal Reserve Banks", latest_value: 3247.892, latest_date: "2025-09-03", unit: "Billions of Dollars" },
+                    { series: "WALCL", name: "Total Assets of Federal Reserve", latest_value: 7145.321, latest_date: "2025-09-03", unit: "Billions of Dollars" },
+                    { series: "WCURCIR", name: "Currency in Circulation", latest_value: 2435.678, latest_date: "2025-09-03", unit: "Billions of Dollars" },
+                    { series: "WTREGEN", name: "Treasury General Account", latest_value: 678.234, latest_date: "2025-09-03", unit: "Billions of Dollars" },
+                    { series: "RRPONTSYD", name: "Overnight Reverse Repo", latest_value: 425.678, latest_date: "2025-09-03", unit: "Billions of Dollars" },
+                    { series: "H41RESPPBTFP", name: "Bank Term Funding Program", latest_value: 123.456, latest_date: "2025-09-03", unit: "Billions of Dollars" }
+                ]
+            };
+            
+            processAndDisplayData(demoData);
+            createDemoChart();
+            updateLastUpdateTime();
+        }
+        
+        // Process and display data
+        function processAndDisplayData(data) {
+            currentData = data.metrics || [];
+            
+            // Display key metrics
+            displayKeyMetrics(currentData.slice(0, 6));
+            
+            // Display table data
+            displayTableData(currentData);
+            
+            document.getElementById('dataCount').textContent = `${currentData.length} series loaded`;
+        }
+        
+        // Display key metrics cards
+        function displayKeyMetrics(metrics) {
+            const container = document.getElementById('keyMetrics');
+            
+            const html = metrics.map(metric => `
+                <div class="metric-card">
+                    <div class="metric-title">${metric.name}</div>
+                    <div class="metric-value">$${formatValue(metric.latest_value)}</div>
+                    <div class="metric-date">As of ${metric.latest_date}</div>
+                </div>
+            `).join('');
+            
+            container.innerHTML = html;
+        }
+        
+        // Display table data
+        function displayTableData(data) {
+            // Sort data
+            const sortedData = [...data].sort((a, b) => {
+                let aVal, bVal;
+                
+                switch(sortColumn) {
+                    case 'id':
+                        aVal = a.series;
+                        bVal = b.series;
+                        break;
+                    case 'name':
+                        aVal = a.name;
+                        bVal = b.name;
+                        break;
+                    case 'value':
+                        aVal = a.latest_value || 0;
+                        bVal = b.latest_value || 0;
+                        break;
+                    case 'date':
+                        aVal = a.latest_date || '';
+                        bVal = b.latest_date || '';
+                        break;
+                    default:
+                        aVal = a.latest_value || 0;
+                        bVal = b.latest_value || 0;
+                }
+                
+                if (sortDirection === 'asc') {
+                    return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+                } else {
+                    return aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
+                }
+            });
+            
+            const tbody = document.getElementById('mainTableBody');
+            
+            const rows = sortedData.map(item => {
+                const changeValue = Math.random() * 10 - 5; // Demo change value
+                const changeClass = changeValue >= 0 ? 'positive' : 'negative';
+                const changeSign = changeValue >= 0 ? '+' : '';
+                
+                return `
+                    <tr>
+                        <td class="series-id">${item.series}</td>
+                        <td>${item.name}</td>
+                        <td class="value-cell">$${formatValue(item.latest_value)}B</td>
+                        <td class="${changeClass}">${changeSign}${changeValue.toFixed(2)}%</td>
+                        <td>${getFrequency(item.series)}</td>
+                        <td>${item.latest_date}</td>
+                    </tr>
+                `;
+            }).join('');
+            
+            tbody.innerHTML = rows;
+        }
+        
+        // Get frequency based on series ID
+        function getFrequency(seriesId) {
+            if (seriesId.startsWith('W')) return 'Weekly';
+            if (seriesId.includes('DAILY') || seriesId === 'RESBALNS' || seriesId === 'TREASURY' || seriesId === 'RRPONTSYD') return 'Daily';
+            return 'Monthly';
+        }
+        
+        // Format value
+        function formatValue(value) {
+            if (value >= 1000) {
+                return (value / 1000).toFixed(2) + 'T';
+            }
+            return value.toFixed(2);
+        }
+        
+        // Filter by category
+        async function filterByCategory(category) {
+            currentCategory = category;
+            
+            // Update active button
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            showStatus(`Loading ${category} data...`, 'info');
+            
+            try {
+                if (USE_DEMO_MODE) {
+                    showStatus('Demo mode: Showing sample data', 'info');
+                    return;
+                }
+                
+                const endpoint = category === 'summary' 
+                    ? `${API_BASE}/fed_liquidity?series=summary`
+                    : `${API_BASE}/fed_liquidity?category=${category}`;
+                
+                const response = await fetch(endpoint);
+                if (!response.ok) throw new Error('Failed to fetch category data');
+                
+                const data = await response.json();
+                processAndDisplayData(data);
+                
+                document.getElementById('mainTitle').textContent = `Fed Liquidity - ${category.charAt(0).toUpperCase() + category.slice(1)}`;
+                showStatus(`${category} data loaded`, 'success');
+                
+            } catch (error) {
+                showStatus(`Error loading ${category}: ${error.message}`, 'error');
+            }
+        }
+        
+        // Sort table
+        function sortTable(column) {
+            if (sortColumn === column) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortColumn = column;
+                sortDirection = 'desc';
+            }
+            
+            displayTableData(currentData);
+        }
+        
+        // Create demo chart
+        function createDemoChart() {
+            const dates = [];
+            const reserves = [];
+            const assets = [];
+            
+            // Generate demo data for last 30 days
+            for (let i = 29; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                dates.push(date.toISOString().split('T')[0]);
+                
+                // Demo values with some variation
+                reserves.push(3200 + Math.random() * 100);
+                assets.push(7100 + Math.random() * 100);
+            }
+            
+            const trace1 = {
+                x: dates,
+                y: reserves,
+                name: 'Reserve Balances',
+                type: 'scatter',
+                mode: 'lines',
+                line: { color: '#00ff88', width: 2 }
+            };
+            
+            const trace2 = {
+                x: dates,
+                y: assets,
+                name: 'Total Fed Assets',
+                type: 'scatter',
+                mode: 'lines',
+                yaxis: 'y2',
+                line: { color: '#00ccff', width: 2 }
+            };
+            
+            const layout = {
+                title: '',
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(255,255,255,0.02)',
+                font: { color: '#888' },
+                xaxis: {
+                    gridcolor: 'rgba(255,255,255,0.1)',
+                    tickformat: '%b %d'
+                },
+                yaxis: {
+                    title: 'Reserve Balances ($B)',
+                    gridcolor: 'rgba(255,255,255,0.1)',
+                    titlefont: { color: '#00ff88' },
+                    tickfont: { color: '#00ff88' }
+                },
+                yaxis2: {
+                    title: 'Total Assets ($B)',
+                    overlaying: 'y',
+                    side: 'right',
+                    gridcolor: 'rgba(255,255,255,0.05)',
+                    titlefont: { color: '#00ccff' },
+                    tickfont: { color: '#00ccff' }
+                },
+                showlegend: true,
+                legend: {
+                    x: 0.02,
+                    y: 0.98,
+                    bgcolor: 'rgba(0,0,0,0.5)',
+                    bordercolor: 'rgba(255,255,255,0.1)',
+                    borderwidth: 1
+                },
+                margin: { t: 10 }
+            };
+            
+            Plotly.newPlot('mainChart', [trace1, trace2], layout, {responsive: true});
+        }
+        
+        // Load chart data
+        async function loadChartData() {
+            if (USE_DEMO_MODE) {
+                createDemoChart();
+                return;
+            }
+            
+            try {
+                // Load specific series for charting
+                const series = ['RESBALNS', 'WALCL'];
+                const promises = series.map(s => fetch(`${API_BASE}/fed_liquidity?series=${s}`));
+                const responses = await Promise.all(promises);
+                
+                // Process responses and create chart
+                // Implementation depends on your API response format
+                
+            } catch (error) {
+                console.error('Error loading chart data:', error);
+                createDemoChart(); // Fall back to demo chart
+            }
+        }
+        
+        // Refresh data manually
+        function refreshData() {
+            console.log('🔄 Refreshing data...');
+            loadData();
+        }
+        
+        // Show status message
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.className = type;
+            statusDiv.textContent = message;
+            
+            if (type === 'success' || type === 'error') {
+                setTimeout(() => {
+                    statusDiv.textContent = '';
+                    statusDiv.className = '';
+                }, 5000);
+            }
+        }
+        
+        // Update last update time
+        function updateLastUpdateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('lastUpdate').textContent = timeStr;
+        }
+        
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', initialize);
+        
+        // Cleanup on unload
+        window.addEventListener('beforeunload', () => {
+            if (autoUpdateInterval) {
+                clearInterval(autoUpdateInterval);
+            }
+        });
+    </script>
+</body>
+</html>
