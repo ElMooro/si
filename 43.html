@@ -36,42 +36,45 @@
         h1 {
             color: #fff;
             font-size: 2.5em;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
-        .api-config {
+        .status-bar {
             background: rgba(255, 255, 255, 0.05);
-            padding: 20px;
+            padding: 15px;
             border-radius: 10px;
             margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .api-config label {
-            color: #fff;
-            display: block;
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
-
-        .api-config input {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            background: rgba(255, 255, 255, 0.1);
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
             color: #fff;
             font-size: 14px;
         }
 
-        .api-config input::placeholder {
-            color: rgba(255, 255, 255, 0.5);
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #10b981;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.error {
+            background: #ef4444;
+            animation: none;
         }
 
         .button-group {
             display: flex;
             gap: 10px;
-            margin-top: 15px;
+            margin-bottom: 20px;
             flex-wrap: wrap;
         }
 
@@ -138,6 +141,18 @@
             padding: 20px;
             border: 1px solid rgba(255, 255, 255, 0.2);
             transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
         }
 
         .metric-card:hover {
@@ -299,9 +314,18 @@
         }
 
         @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
+            0% { 
+                opacity: 1;
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            }
+            70% {
+                opacity: 1;
+                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+            }
+            100% { 
+                opacity: 1;
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
         }
 
         .loading-dots {
@@ -317,21 +341,30 @@
             margin: 20px 0;
             font-size: 14px;
         }
+
+        .skeleton {
+            background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>🏛️ Federal Reserve Liquidity Dashboard</h1>
-            <div class="api-config">
-                <label for="apiEndpoint">API Gateway Endpoint URL:</label>
-                <input type="text" id="apiEndpoint" placeholder="https://your-api-gateway-id.execute-api.us-east-1.amazonaws.com/prod">
-                <div class="info-box">
-                    Enter your API Gateway endpoint URL above. This should be the base URL without the /fed_liquidity path.
-                    Example: https://abc123.execute-api.us-east-1.amazonaws.com/prod
+            <div class="status-bar">
+                <div class="status-indicator">
+                    <span class="status-dot" id="statusDot"></span>
+                    <span id="statusText">Connecting to Fed Liquidity API...</span>
                 </div>
                 <div class="button-group">
-                    <button onclick="loadSummary()">Load Summary</button>
+                    <button onclick="loadSummary()">Refresh Summary</button>
                     <button onclick="loadAllCategories()">Load All Categories</button>
                     <button onclick="loadSeriesList()">Show All Series</button>
                     <button onclick="loadBatchData()">Load Key Metrics</button>
@@ -346,13 +379,19 @@
         <div class="error" id="error"></div>
 
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('summary')">Summary</button>
-            <button class="tab" onclick="switchTab('categories')">By Category</button>
-            <button class="tab" onclick="switchTab('series')">All Series</button>
+            <button class="tab active" onclick="switchTab('summary', event)">Summary</button>
+            <button class="tab" onclick="switchTab('categories', event)">By Category</button>
+            <button class="tab" onclick="switchTab('series', event)">All Series</button>
         </div>
 
         <div id="summary-tab" class="tab-content active">
-            <div class="summary-grid" id="summaryGrid"></div>
+            <div class="summary-grid" id="summaryGrid">
+                <!-- Loading skeletons -->
+                <div class="metric-card skeleton" style="height: 150px;"></div>
+                <div class="metric-card skeleton" style="height: 150px;"></div>
+                <div class="metric-card skeleton" style="height: 150px;"></div>
+                <div class="metric-card skeleton" style="height: 150px;"></div>
+            </div>
         </div>
 
         <div id="categories-tab" class="tab-content">
@@ -367,17 +406,26 @@
     </div>
 
     <script>
+        // Hardcoded API endpoint
+        const API_BASE_URL = 'https://kn57fswro4ym2oobweul2quuza0cnthk.lambda-url.us-east-1.on.aws';
+        
         let charts = {};
         let allData = {};
+        let connectionStatus = 'connecting';
 
-        function getApiUrl() {
-            const baseUrl = document.getElementById('apiEndpoint').value.trim();
-            if (!baseUrl) {
-                showError('API endpoint URL is missing');
-                return null;
+        function updateStatus(status, message) {
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+            
+            statusText.textContent = message;
+            
+            if (status === 'connected') {
+                statusDot.classList.remove('error');
+                connectionStatus = 'connected';
+            } else if (status === 'error') {
+                statusDot.classList.add('error');
+                connectionStatus = 'error';
             }
-            // For Lambda Function URLs, the path is part of the query
-            return baseUrl + '/fed_liquidity';
         }
 
         function showLoading() {
@@ -394,6 +442,7 @@
             errorEl.textContent = `Error: ${message}`;
             errorEl.classList.add('active');
             hideLoading();
+            updateStatus('error', 'Connection failed');
         }
 
         function hideError() {
@@ -414,28 +463,39 @@
         }
 
         async function fetchData(endpoint) {
-            const apiUrl = getApiUrl();
-            if (!apiUrl) return null;
-
             try {
                 showLoading();
                 hideError();
                 
-                const response = await fetch(apiUrl + endpoint);
+                // Construct URL for Lambda Function URL
+                const url = `${API_BASE_URL}/fed_liquidity${endpoint}`;
+                console.log('Fetching:', url);
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                    }
+                });
+                
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
                 const data = await response.json();
+                console.log('Response:', data);
                 
                 // Handle Lambda response format
                 if (data.statusCode && data.body) {
                     const bodyData = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
+                    updateStatus('connected', 'Connected to Fed Liquidity API');
                     return bodyData;
                 }
                 
+                updateStatus('connected', 'Connected to Fed Liquidity API');
                 return data;
             } catch (error) {
+                console.error('Fetch error:', error);
                 showError(error.message);
                 return null;
             } finally {
@@ -445,7 +505,12 @@
 
         async function loadSummary() {
             const data = await fetchData('?series=summary');
-            if (!data || !data.metrics) return;
+            if (!data || !data.metrics) {
+                // If summary fails, try loading specific series
+                console.log('Summary failed, trying specific series...');
+                await loadBatchData();
+                return;
+            }
 
             const summaryGrid = document.getElementById('summaryGrid');
             summaryGrid.innerHTML = '';
@@ -472,60 +537,54 @@
             ];
 
             const container = document.getElementById('categoriesContainer');
-            container.innerHTML = '';
+            container.innerHTML = '<div class="loading active">Loading all categories...</div>';
+
+            let allSections = '';
 
             for (const category of categories) {
                 const data = await fetchData(`?category=${category}`);
                 if (!data || !data.data) continue;
 
-                const section = document.createElement('div');
-                section.className = 'category-section';
-                
-                const title = document.createElement('h2');
-                title.className = 'category-title';
-                title.textContent = category.replace(/_/g, ' ');
-                section.appendChild(title);
-
-                const seriesContainer = document.createElement('div');
-                seriesContainer.className = 'series-container';
+                let sectionHTML = `
+                    <div class="category-section">
+                        <h2 class="category-title">${category.replace(/_/g, ' ')}</h2>
+                        <div class="series-container">
+                `;
 
                 data.data.forEach((series, index) => {
                     if (series.error) return;
 
-                    const card = document.createElement('div');
-                    card.className = 'series-card';
-                    
                     const chartId = `chart-${category}-${index}`;
                     
-                    card.innerHTML = `
-                        <div class="series-header">
-                            <div class="series-title">${series.name}</div>
-                            <div class="series-id">${series.series_id}</div>
-                        </div>
-                        <div class="series-stats">
-                            <div class="stat-item">
-                                <div class="stat-label">Latest Value</div>
-                                <div class="stat-value">${series.latest ? formatValue(series.latest.value) : 'N/A'}</div>
+                    sectionHTML += `
+                        <div class="series-card">
+                            <div class="series-header">
+                                <div class="series-title">${series.name}</div>
+                                <div class="series-id">${series.series_id}</div>
                             </div>
-                            <div class="stat-item">
-                                <div class="stat-label">Date</div>
-                                <div class="stat-value">${series.latest ? formatDate(series.latest.date) : 'N/A'}</div>
+                            <div class="series-stats">
+                                <div class="stat-item">
+                                    <div class="stat-label">Latest Value</div>
+                                    <div class="stat-value">${series.latest ? formatValue(series.latest.value) : 'N/A'}</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-label">Date</div>
+                                    <div class="stat-value">${series.latest ? formatDate(series.latest.date) : 'N/A'}</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-label">Frequency</div>
+                                    <div class="stat-value">${series.frequency || 'N/A'}</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-label">Data Points</div>
+                                    <div class="stat-value">${series.count || 0}</div>
+                                </div>
                             </div>
-                            <div class="stat-item">
-                                <div class="stat-label">Frequency</div>
-                                <div class="stat-value">${series.frequency || 'N/A'}</div>
+                            <div class="chart-container">
+                                <canvas id="${chartId}"></canvas>
                             </div>
-                            <div class="stat-item">
-                                <div class="stat-label">Data Points</div>
-                                <div class="stat-value">${series.count || 0}</div>
-                            </div>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="${chartId}"></canvas>
                         </div>
                     `;
-                    
-                    seriesContainer.appendChild(card);
                     
                     // Create chart after DOM is updated
                     setTimeout(() => {
@@ -535,11 +594,12 @@
                     }, 100);
                 });
 
-                section.appendChild(seriesContainer);
-                container.appendChild(section);
+                sectionHTML += '</div></div>';
+                allSections += sectionHTML;
             }
 
-            switchTab('categories');
+            container.innerHTML = allSections;
+            switchTab('categories', null);
         }
 
         async function loadSeriesList() {
@@ -547,23 +607,23 @@
             if (!data || !data.series) return;
 
             const container = document.getElementById('seriesListContainer');
-            container.innerHTML = '<div class="category-section"><h2 class="category-title">All Available Series</h2><div class="series-container">';
+            let html = '<div class="category-section"><h2 class="category-title">All Available Series</h2><div class="series-container">';
 
             Object.entries(data.series).forEach(([code, description]) => {
-                const card = document.createElement('div');
-                card.className = 'series-card';
-                card.innerHTML = `
-                    <div class="series-header">
-                        <div class="series-title">${description}</div>
-                        <div class="series-id">${code}</div>
+                html += `
+                    <div class="series-card">
+                        <div class="series-header">
+                            <div class="series-title">${description}</div>
+                            <div class="series-id">${code}</div>
+                        </div>
+                        <button onclick="loadSingleSeries('${code}')">Load Data</button>
                     </div>
-                    <button onclick="loadSingleSeries('${code}')">Load Data</button>
                 `;
-                container.querySelector('.series-container').appendChild(card);
             });
 
-            container.innerHTML += '</div></div>';
-            switchTab('series');
+            html += '</div></div>';
+            container.innerHTML = html;
+            switchTab('series', null);
         }
 
         async function loadSingleSeries(seriesId) {
@@ -577,10 +637,15 @@
             const keyMetrics = 'RESBALNS,WALCL,RRPONTSYD,WCURCIR,WTREGEN,MBST,H41RESPPBTFP,EXCSRESNS';
             const data = await fetchData(`?series=batch&list=${keyMetrics}`);
             
-            if (!data || !data.data) return;
+            if (!data || !data.data) {
+                // Try individual series if batch fails
+                console.log('Batch failed, trying individual series...');
+                await loadIndividualSeries();
+                return;
+            }
 
             const summaryGrid = document.getElementById('summaryGrid');
-            summaryGrid.innerHTML = '<h2 style="color: white; margin-bottom: 20px;">Key Fed Metrics (Batch Load)</h2>';
+            summaryGrid.innerHTML = '';
 
             data.data.forEach(series => {
                 if (series.error) return;
@@ -596,7 +661,31 @@
                 summaryGrid.appendChild(card);
             });
 
-            switchTab('summary');
+            document.getElementById('timestamp').textContent = `Last updated: ${new Date().toLocaleString()}`;
+            switchTab('summary', null);
+        }
+
+        async function loadIndividualSeries() {
+            const keySeries = ['RESBALNS', 'WALCL', 'RRPONTSYD', 'WCURCIR'];
+            const summaryGrid = document.getElementById('summaryGrid');
+            summaryGrid.innerHTML = '';
+
+            for (const seriesId of keySeries) {
+                const data = await fetchData(`?series=${seriesId}`);
+                if (!data) continue;
+
+                const card = document.createElement('div');
+                card.className = 'metric-card';
+                card.innerHTML = `
+                    <div class="metric-label">${data.series_id}</div>
+                    <div class="metric-value">${data.latest ? formatValue(data.latest.value) : 'N/A'}</div>
+                    <div class="metric-name">${data.name}</div>
+                    <div class="metric-date">${data.latest ? `As of ${formatDate(data.latest.date)}` : 'No data'}</div>
+                `;
+                summaryGrid.appendChild(card);
+            }
+
+            document.getElementById('timestamp').textContent = `Last updated: ${new Date().toLocaleString()}`;
         }
 
         function createChart(canvasId, seriesData) {
@@ -666,7 +755,7 @@
             });
         }
 
-        function switchTab(tabName) {
+        function switchTab(tabName, event) {
             // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
@@ -681,27 +770,50 @@
             document.getElementById(`${tabName}-tab`).classList.add('active');
             
             // Add active class to clicked tab button
-            event.target.classList.add('active');
+            if (event && event.target) {
+                event.target.classList.add('active');
+            } else {
+                // Find the tab button by name
+                document.querySelectorAll('.tab').forEach(tab => {
+                    if (tab.textContent.toLowerCase().includes(tabName)) {
+                        tab.classList.add('active');
+                    }
+                });
+            }
         }
 
-        // Initialize with instructions
-        window.onload = function() {
-            const infoBox = document.createElement('div');
-            infoBox.className = 'info-box';
-            infoBox.style.margin = '20px';
-            infoBox.innerHTML = `
-                <h3 style="margin-bottom: 10px;">📊 Welcome to the Fed Liquidity Dashboard</h3>
-                <p>This dashboard fetches REAL data from your Fed Liquidity API Lambda function.</p>
-                <p style="margin-top: 10px;"><strong>To get started:</strong></p>
-                <ol style="margin-left: 20px; margin-top: 10px;">
-                    <li>Enter your API Gateway endpoint URL in the field above</li>
-                    <li>Click "Load Summary" to fetch the latest Fed liquidity metrics</li>
-                    <li>Use "Load All Categories" to see detailed data organized by category</li>
-                    <li>Click "Show All Series" to browse all 60+ available data series</li>
-                </ol>
-            `;
-            document.getElementById('summaryGrid').appendChild(infoBox);
+        // Auto-load data on page load
+        window.onload = async function() {
+            updateStatus('connecting', 'Connecting to Fed Liquidity API...');
+            
+            // Try to load summary data
+            await loadSummary();
+            
+            // If connection failed, show error message
+            if (connectionStatus === 'error') {
+                const summaryGrid = document.getElementById('summaryGrid');
+                summaryGrid.innerHTML = `
+                    <div class="info-box" style="grid-column: 1 / -1;">
+                        <h3 style="margin-bottom: 10px;">⚠️ Connection Issue</h3>
+                        <p>Unable to connect to the Fed Liquidity API.</p>
+                        <p style="margin-top: 10px;">Possible issues:</p>
+                        <ul style="margin-left: 20px; margin-top: 10px;">
+                            <li>Lambda function may need to be deployed</li>
+                            <li>CORS headers may need configuration</li>
+                            <li>API endpoint may be temporarily unavailable</li>
+                        </ul>
+                        <p style="margin-top: 10px;">Try clicking "Refresh Summary" to retry.</p>
+                    </div>
+                `;
+            }
         };
+
+        // Auto-refresh every 5 minutes
+        setInterval(() => {
+            if (connectionStatus === 'connected') {
+                loadSummary();
+            }
+        }, 300000);
     </script>
 </body>
 </html>
