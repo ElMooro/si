@@ -318,6 +318,9 @@
         <div class="filter-container">
             <button class="filter-btn active" onclick="loadSummary()">⚡ Load Key Metrics</button>
             <button class="filter-btn" onclick="loadBatchSeries()">📊 Load All Series</button>
+            <button class="filter-btn" onclick="loadByCategory('reserves')">💰 Reserves</button>
+            <button class="filter-btn" onclick="loadByCategory('securities')">📈 Securities</button>
+            <button class="filter-btn" onclick="loadByCategory('repo_operations')">🔄 Repo Ops</button>
             <button class="filter-btn" onclick="exportToCSV()">📥 Export CSV</button>
         </div>
         
@@ -356,8 +359,8 @@
     </div>
     
     <script>
-        // API Configuration
-        const API_BASE = 'https://nmkverrwjnxsmgnogzckkoyuce0bqxyk.lambda-url.us-east-1.on.aws';
+        // API Configuration - Your Lambda URL
+        const API_BASE = 'https://nmkverrwjnxsmgnogzckkoyuce0bqxyk.lambda-url.us-east-1.on.aws/fed_liquidity';
         
         // Global state
         let allSeriesData = [];
@@ -381,7 +384,9 @@
             "MBST": "Mortgage-Backed Securities Held by Fed",
             "BOGMBASE": "Monetary Base: Total",
             "RESPPANWW": "Total Factors Supplying Reserve Funds (Weekly)",
-            "WOTHLL": "Other Liabilities and Capital"
+            "WOTHLL": "Other Liabilities and Capital",
+            "RESBALNS": "Reserve Balances with Federal Reserve Banks (Daily)",
+            "RESBALNSW": "Reserve Balances with Federal Reserve Banks (Wednesday Level)"
         };
         
         // Initialize
@@ -397,29 +402,35 @@
             showStatus('Loading key Fed metrics...', 'info');
             
             try {
-                const response = await fetch(`${API_BASE}/?series=summary`);
+                const response = await fetch(`${API_BASE}?series=summary`);
                 if (!response.ok) throw new Error('Failed to fetch summary');
                 
                 const data = await response.json();
-                console.log('Summary data:', data);
+                console.log('Summary response:', data);
                 
-                if (data.metrics && data.metrics.length > 0) {
+                // Parse the body if it's a string
+                let parsedData = data;
+                if (data.body && typeof data.body === 'string') {
+                    parsedData = JSON.parse(data.body);
+                }
+                
+                if (parsedData.metrics && parsedData.metrics.length > 0) {
                     // Display key metrics in cards
-                    displayMetricsCards(data.metrics);
+                    displayMetricsCards(parsedData.metrics);
                     
                     // Store and display in table
-                    allSeriesData = data.metrics.map(metric => ({
+                    allSeriesData = parsedData.metrics.map(metric => ({
                         id: metric.series,
                         name: metric.name,
                         value: metric.latest_value,
                         date: metric.latest_date,
-                        units: metric.unit || 'Millions of Dollars'
+                        units: metric.unit || 'Billions of Dollars'
                     }));
                     
                     displaySeriesTable();
                     document.getElementById('totalSeries').textContent = allSeriesData.length;
                     
-                    showStatus(`Loaded ${data.metrics.length} key metrics successfully!`, 'success');
+                    showStatus(`Loaded ${parsedData.metrics.length} key metrics successfully!`, 'success');
                 } else {
                     throw new Error('No data received from API');
                 }
@@ -428,11 +439,13 @@
                 console.error('Error:', error);
                 showStatus(`Error: ${error.message}`, 'error');
             }
+            
+            updateLastUpdateTime();
         }
         
         // Load batch series
         async function loadBatchSeries() {
-            showStatus('Loading all Fed series...', 'info');
+            showStatus('Loading all Fed series (this may take a moment)...', 'info');
             allSeriesData = [];
             
             const seriesList = Object.keys(ALL_FED_SERIES);
@@ -443,19 +456,25 @@
                 const batch = seriesList.slice(i, i + batchSize).join(',');
                 
                 try {
-                    const response = await fetch(`${API_BASE}/?series=batch&list=${batch}`);
+                    const response = await fetch(`${API_BASE}?series=batch&list=${batch}`);
                     if (response.ok) {
                         const data = await response.json();
                         
-                        if (data.data) {
-                            data.data.forEach(series => {
+                        // Parse the body if it's a string
+                        let parsedData = data;
+                        if (data.body && typeof data.body === 'string') {
+                            parsedData = JSON.parse(data.body);
+                        }
+                        
+                        if (parsedData.data) {
+                            parsedData.data.forEach(series => {
                                 if (series.latest) {
                                     allSeriesData.push({
                                         id: series.series_id,
                                         name: series.name || ALL_FED_SERIES[series.series_id],
                                         value: series.latest.value,
                                         date: series.latest.date,
-                                        units: series.units || 'Millions of Dollars',
+                                        units: series.units || 'Billions of Dollars',
                                         observations: series.observations
                                     });
                                     loaded++;
@@ -467,9 +486,10 @@
                     console.error('Batch error:', err);
                 }
                 
-                // Update display
+                // Update display progressively
                 displaySeriesTable();
                 document.getElementById('totalSeries').textContent = loaded;
+                showStatus(`Loading... ${loaded}/${seriesList.length} series`, 'info');
                 
                 // Small delay between batches
                 await new Promise(resolve => setTimeout(resolve, 200));
@@ -479,11 +499,54 @@
             updateLastUpdateTime();
         }
         
+        // Load by category
+        async function loadByCategory(category) {
+            showStatus(`Loading ${category} series...`, 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}?category=${category}`);
+                if (!response.ok) throw new Error('Failed to fetch category');
+                
+                const data = await response.json();
+                
+                // Parse the body if it's a string
+                let parsedData = data;
+                if (data.body && typeof data.body === 'string') {
+                    parsedData = JSON.parse(data.body);
+                }
+                
+                if (parsedData.data && parsedData.data.length > 0) {
+                    allSeriesData = parsedData.data.map(series => ({
+                        id: series.series_id,
+                        name: series.name,
+                        value: series.latest ? series.latest.value : null,
+                        date: series.latest ? series.latest.date : 'N/A',
+                        units: series.units || 'Billions of Dollars',
+                        observations: series.observations
+                    }));
+                    
+                    displaySeriesTable();
+                    document.getElementById('totalSeries').textContent = allSeriesData.length;
+                    document.getElementById('mainTitle').textContent = `${category.charAt(0).toUpperCase() + category.slice(1).replace(/_/g, ' ')} Series`;
+                    
+                    showStatus(`Loaded ${parsedData.data.length} ${category} series`, 'success');
+                } else {
+                    showStatus('No data available for this category', 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus(`Error: ${error.message}`, 'error');
+            }
+            
+            updateLastUpdateTime();
+        }
+        
         // Display metrics cards
         function displayMetricsCards(metrics) {
             const grid = document.getElementById('metricsGrid');
             
-            const cards = metrics.slice(0, 6).map(metric => {
+            const cards = metrics.slice(0, 8).map(metric => {
                 const value = formatLargeValue(metric.latest_value);
                 
                 return `
@@ -511,7 +574,7 @@
             }
             
             const rows = allSeriesData.map(series => {
-                const formattedValue = formatLargeValue(series.value);
+                const formattedValue = series.value !== null ? formatLargeValue(series.value) : 'N/A';
                 
                 return `
                     <tr>
@@ -538,15 +601,25 @@
             showStatus(`Loading chart data for ${seriesId}...`, 'info');
             
             try {
-                const response = await fetch(`${API_BASE}/?series=${seriesId}`);
+                const response = await fetch(`${API_BASE}?series=${seriesId}`);
                 if (!response.ok) throw new Error('Failed to fetch series');
                 
                 const data = await response.json();
                 
-                if (data.observations && data.observations.length > 0) {
-                    plotSeries(data);
+                // Parse the body if it's a string
+                let parsedData = data;
+                if (data.body && typeof data.body === 'string') {
+                    parsedData = JSON.parse(data.body);
+                }
+                
+                if (parsedData.observations && parsedData.observations.length > 0) {
+                    plotSeries(parsedData);
                     document.getElementById('chartContainer').style.display = 'block';
-                    showStatus(`Charted ${data.observations.length} data points`, 'success');
+                    
+                    // Scroll to chart
+                    document.getElementById('chartContainer').scrollIntoView({ behavior: 'smooth' });
+                    
+                    showStatus(`Charted ${parsedData.observations.length} data points for ${seriesId}`, 'success');
                 } else {
                     showStatus('No chart data available', 'error');
                 }
@@ -571,13 +644,14 @@
                 line: {
                     color: '#00ff88',
                     width: 2
-                }
+                },
+                hovertemplate: '%{x}<br>Value: %{y:,.2f}<extra></extra>'
             };
             
             const layout = {
                 title: {
                     text: `${seriesData.name || seriesData.series_id}`,
-                    font: { color: '#00ff88' }
+                    font: { color: '#00ff88', size: 18 }
                 },
                 paper_bgcolor: 'rgba(0, 0, 0, 0)',
                 plot_bgcolor: 'rgba(255, 255, 255, 0.02)',
@@ -585,21 +659,26 @@
                     title: 'Date',
                     gridcolor: 'rgba(255, 255, 255, 0.1)',
                     tickfont: { color: '#888' },
-                    titlefont: { color: '#888' }
+                    titlefont: { color: '#888' },
+                    rangeslider: { visible: false }
                 },
                 yaxis: {
-                    title: seriesData.units || 'Value',
+                    title: seriesData.units || 'Value (Billions of Dollars)',
                     gridcolor: 'rgba(255, 255, 255, 0.1)',
                     tickfont: { color: '#888' },
-                    titlefont: { color: '#888' }
+                    titlefont: { color: '#888' },
+                    tickformat: ',.0f'
                 },
                 margin: { t: 60, b: 60, l: 80, r: 20 },
-                hovermode: 'x unified'
+                hovermode: 'x unified',
+                showlegend: false
             };
             
             const config = {
                 responsive: true,
-                displayModeBar: false
+                displayModeBar: true,
+                displaylogo: false,
+                modeBarButtonsToRemove: ['pan2d', 'select2d', 'lasso2d', 'autoScale2d']
             };
             
             Plotly.newPlot('mainChart', [trace], layout, config);
@@ -609,17 +688,23 @@
         function formatLargeValue(value) {
             if (value === null || value === undefined) return 'N/A';
             
-            // Value is in millions of dollars
-            const billions = value / 1000;
-            const trillions = billions / 1000;
+            // Values from API are already in billions
+            const absValue = Math.abs(value);
+            const isNegative = value < 0;
+            let formatted = '';
             
-            if (trillions >= 1) {
-                return `$${trillions.toFixed(2)}T`;
-            } else if (billions >= 1) {
-                return `$${billions.toFixed(1)}B`;
+            if (absValue >= 1000) {
+                // Trillions
+                formatted = `${(absValue / 1000).toFixed(2)}T`;
+            } else if (absValue >= 1) {
+                // Billions
+                formatted = `${absValue.toFixed(1)}B`;
             } else {
-                return `$${value.toFixed(0)}M`;
+                // Millions
+                formatted = `${(absValue * 1000).toFixed(0)}M`;
             }
+            
+            return `${isNegative ? '-' : ''}$${formatted}`;
         }
         
         // Export to CSV
@@ -629,10 +714,11 @@
                 return;
             }
             
-            let csv = 'Series ID,Description,Current Value,Units,Last Updated\n';
+            let csv = 'Series ID,Description,Current Value (Billions),Units,Last Updated\n';
             
             allSeriesData.forEach(series => {
-                csv += `"${series.id}","${series.name}","${formatLargeValue(series.value)}","${series.units}","${series.date || 'N/A'}"\n`;
+                const value = series.value !== null ? series.value : 'N/A';
+                csv += `"${series.id}","${series.name}","${value}","${series.units}","${series.date || 'N/A'}"\n`;
             });
             
             const blob = new Blob([csv], { type: 'text/csv' });
@@ -641,6 +727,7 @@
             a.href = url;
             a.download = `fed_liquidity_${new Date().toISOString().split('T')[0]}.csv`;
             a.click();
+            URL.revokeObjectURL(url);
             
             showStatus('Data exported to CSV', 'success');
         }
