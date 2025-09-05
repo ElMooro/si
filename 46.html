@@ -1968,8 +1968,9 @@
                 return;
             }
             
-            console.log(`📊 Loading ${totalCount} series...`);
-            showStatus(`Loading ${totalCount} series...`, 'info');
+            console.log(`📊 Loading ${totalCount} series from API...`);
+            console.log('Series to load:', seriesIds.slice(0, 5), '...');
+            showStatus(`Loading ${totalCount} series from API...`, 'info');
             
             // Show progress bar
             const progressContainer = document.getElementById('progressContainer');
@@ -1982,24 +1983,30 @@
             let loaded = 0;
             let failed = 0;
             
-            // Progressive loading
-            const batchSize = 3;
+            // Rate limiting: max 120 requests per minute
+            const batchSize = 5; // Process 5 at a time
+            const delayBetweenBatches = 500; // 0.5 second delay
             
             for (let i = 0; i < seriesIds.length; i += batchSize) {
                 const batch = seriesIds.slice(i, i + batchSize);
+                console.log(`Processing batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(seriesIds.length/batchSize)}`);
                 
                 const batchPromises = batch.map(async (seriesId) => {
                     try {
                         // Check if already loaded
                         const existing = allSeriesData.find(s => s.id === seriesId);
                         if (existing && !existing.error) {
+                            console.log(`✓ Already loaded: ${seriesId}`);
                             loaded++;
                             return;
                         }
                         
+                        console.log(`Fetching: ${seriesId}`);
                         const response = await fetch(`${API_BASE}/ice_bofa?series=${seriesId}`);
+                        
                         if (response.ok) {
                             const data = await response.json();
+                            console.log(`✓ Success: ${seriesId}`, data.latest?.value);
                             
                             // Remove old entry if exists
                             allSeriesData = allSeriesData.filter(s => s.id !== seriesId);
@@ -2007,32 +2014,34 @@
                             // Store the full series data
                             allSeriesData.push({
                                 id: seriesId,
-                                name: data.name || allSeriesMetadata[seriesId],
-                                latest: data.latest || {},
+                                name: data.name || allSeriesMetadata[seriesId] || seriesId,
+                                latest: data.latest || { value: null, date: null },
                                 changes: data.percentage_changes || {},
-                                frequency: data.frequency,
-                                units: data.units
+                                frequency: data.frequency || 'N/A',
+                                units: data.units || 'N/A'
                             });
                             
                             loaded++;
                             
-                            // Progressive display
-                            if (loaded % 10 === 0) {
+                            // Progressive display every 5 items
+                            if (loaded % 5 === 0) {
                                 displaySeriesData();
                             }
                         } else {
                             throw new Error(`HTTP ${response.status}`);
                         }
                     } catch (err) {
-                        console.error(`Failed: ${seriesId}:`, err.message);
+                        console.error(`✗ Failed ${seriesId}:`, err.message);
                         
+                        // Add error placeholder
                         allSeriesData = allSeriesData.filter(s => s.id !== seriesId);
                         allSeriesData.push({
                             id: seriesId,
-                            name: allSeriesMetadata[seriesId],
+                            name: allSeriesMetadata[seriesId] || seriesId,
                             latest: { value: null, date: null },
                             changes: {},
-                            error: true
+                            error: true,
+                            errorMessage: err.message
                         });
                         
                         failed++;
@@ -2048,8 +2057,9 @@
                 
                 document.getElementById('loadedSeries').textContent = allSeriesData.filter(s => !s.error).length;
                 
+                // Add delay between batches to respect rate limits
                 if (i + batchSize < seriesIds.length) {
-                    await new Promise(resolve => setTimeout(resolve, 50));
+                    await new Promise(resolve => setTimeout(resolve, delayBetweenBatches));
                 }
             }
             
@@ -2060,8 +2070,12 @@
             displaySeriesData();
             updateLastUpdateTime();
             
+            console.log(`✅ Loading complete: ${loaded} success, ${failed} failed`);
+            
             if (failed > 0) {
-                showStatus(`Loaded ${loaded} series. ${failed} failed.`, 'info');
+                showStatus(`Loaded ${loaded} series. ${failed} failed. Check console for details.`, 'info');
+            } else if (loaded === 0) {
+                showStatus(`No data was loaded. Please check your connection and try again.`, 'error');
             } else {
                 showStatus(`Successfully loaded ${loaded} series!`, 'success');
             }
