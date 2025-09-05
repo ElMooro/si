@@ -1627,11 +1627,29 @@
             async refreshData() {
                 await this.loadSummaryData();
                 this.updateTimestamp();
+                this.showSuccess('Dashboard refreshed with latest data');
             }
 
             updateTimestamp() {
                 const timestamp = new Date().toLocaleString();
                 document.getElementById('footerTimestamp').textContent = timestamp;
+            }
+
+            async testBatchLoad() {
+                this.showLoading();
+                // Test batch loading with key series
+                const testBatch = 'WALCL,WRBWFRBL,WCURCIR,WTREGEN,RRPONTSYD';
+                const data = await this.fetchAPI(`/?series=batch&list=${testBatch}`);
+                
+                if (data && data.data) {
+                    console.log('Batch load successful:', data.data.length, 'series loaded');
+                    this.showSuccess(`Batch test successful: ${data.data.length} series loaded`);
+                } else {
+                    console.log('Batch load failed');
+                    this.showError('Batch loading not available, will load series individually');
+                }
+                
+                this.hideLoading();
             }
 
             filterCategories(searchTerm) {
