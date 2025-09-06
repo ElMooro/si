@@ -3,1001 +3,1015 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fed Liquidity Dashboard - Complete 62 Indicators</title>
-    
+    <title>Fed Liquidity Dashboard - Real-Time Financial Metrics</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
+        :root {
+            --primary: #1a1f3a;
+            --secondary: #2c3e50;
+            --accent: #3498db;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --background: #0f1419;
+            --surface: #1a1f2e;
+            --text: #ecf0f1;
+            --text-secondary: #95a5a6;
+            --border: #2c3e50;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: linear-gradient(135deg, #0a0e27 0%, #151932 100%);
-            color: #e0e0e0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 100%);
+            color: var(--text);
             min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
             padding: 20px;
         }
-        
-        .header {
-            background: rgba(20, 24, 44, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 1.5rem;
+
+        header {
+            background: var(--surface);
+            padding: 25px;
             border-radius: 12px;
-            margin-bottom: 2rem;
-            border: 1px solid rgba(0, 255, 136, 0.2);
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: 1px solid var(--border);
         }
-        
+
         .header-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 1rem;
+            gap: 20px;
         }
-        
-        .title {
+
+        h1 {
             font-size: 2rem;
-            font-weight: bold;
-            background: linear-gradient(45deg, #00ff88, #00ccff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .api-status {
+            color: var(--accent);
             display: flex;
             align-items: center;
-            gap: 1rem;
-            padding: 0.75rem 1.5rem;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
+            gap: 10px;
         }
-        
-        .status-dot {
-            width: 10px;
-            height: 10px;
+
+        .status-bar {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(52, 152, 219, 0.1);
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
+            background: var(--success);
             animation: pulse 2s infinite;
         }
-        
-        .status-dot.connected {
-            background: #00ff88;
-        }
-        
-        .status-dot.loading {
-            background: #ffaa00;
-        }
-        
-        .status-dot.error {
-            background: #ff4444;
-        }
-        
+
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
         }
-        
-        .stats-bar {
-            display: flex;
-            gap: 2rem;
-            margin-top: 1rem;
-            flex-wrap: wrap;
+
+        .risk-panel {
+            background: var(--surface);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
-        
-        .stat-item {
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
+
+        .risk-indicators {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
         }
-        
-        .stat-value {
+
+        .risk-indicator {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            transition: transform 0.3s ease;
+        }
+
+        .risk-indicator:hover {
+            transform: translateY(-2px);
+        }
+
+        .risk-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+
+        .risk-value {
             font-size: 1.5rem;
             font-weight: bold;
-            color: #00ff88;
+            margin-bottom: 5px;
         }
-        
-        .stat-label {
-            font-size: 0.875rem;
-            color: #888;
-            text-transform: uppercase;
+
+        .risk-bar {
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 8px;
         }
-        
-        .controls {
-            background: rgba(20, 24, 44, 0.95);
-            padding: 1rem;
-            border-radius: 12px;
-            margin-bottom: 2rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+
+        .risk-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s ease;
         }
-        
-        .category-tabs {
+
+        .tabs {
             display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-            margin-bottom: 1rem;
+            gap: 10px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 10px;
         }
-        
-        .tab-btn {
-            padding: 0.75rem 1.5rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            color: #888;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 0.875rem;
-        }
-        
-        .tab-btn:hover {
-            background: rgba(0, 255, 136, 0.1);
-            border-color: #00ff88;
-            color: #fff;
-        }
-        
-        .tab-btn.active {
-            background: #00ff88;
-            color: #000;
-            font-weight: bold;
-        }
-        
-        .tab-btn.favorites {
-            background: linear-gradient(135deg, #ff6b6b, #ff9f43);
-        }
-        
-        .tab-btn.favorites.active {
-            background: linear-gradient(135deg, #ff6b6b, #ff9f43);
-            color: #fff;
-        }
-        
-        .search-bar {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-        }
-        
-        .search-input {
-            flex: 1;
-            padding: 0.75rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            color: #fff;
-            font-size: 1rem;
-        }
-        
-        .search-input:focus {
-            outline: none;
-            border-color: #00ff88;
-            background: rgba(0, 255, 136, 0.05);
-        }
-        
-        .refresh-btn {
-            padding: 0.75rem 1.5rem;
-            background: linear-gradient(135deg, #00ff88, #00ccff);
+
+        .tab {
+            padding: 10px 20px;
+            background: transparent;
+            color: var(--text-secondary);
             border: none;
-            border-radius: 8px;
-            color: #000;
-            font-weight: bold;
             cursor: pointer;
-            transition: all 0.3s;
+            border-radius: 8px 8px 0 0;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            position: relative;
         }
-        
-        .refresh-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+
+        .tab:hover {
+            background: rgba(52, 152, 219, 0.1);
+            color: var(--text);
         }
-        
-        .refresh-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+
+        .tab.active {
+            background: var(--accent);
+            color: white;
         }
-        
-        .indicators-grid {
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 40px 12px 15px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .filter-btn {
+            padding: 12px 20px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .filter-btn:hover {
+            background: rgba(52, 152, 219, 0.1);
+            border-color: var(--accent);
+        }
+
+        .filter-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .indices-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
+            gap: 20px;
+            margin-top: 20px;
         }
-        
-        .indicator-card {
-            background: rgba(20, 24, 44, 0.95);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+
+        .index-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
             border-radius: 12px;
-            padding: 1.5rem;
-            transition: all 0.3s;
+            padding: 20px;
+            transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
         }
-        
-        .indicator-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.2);
-            border-color: #00ff88;
+
+        .index-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--accent);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
         }
-        
-        .indicator-header {
+
+        .index-card:hover::before {
+            transform: scaleY(1);
+        }
+
+        .index-card:hover {
+            transform: translateX(4px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+
+        .index-header {
             display: flex;
             justify-content: space-between;
-            align-items: start;
-            margin-bottom: 1rem;
+            align-items: flex-start;
+            margin-bottom: 15px;
         }
-        
-        .indicator-title-wrapper {
+
+        .index-info {
             flex: 1;
-            margin-right: 1rem;
         }
-        
-        .indicator-title {
-            font-size: 0.875rem;
-            color: #00ff88;
-            font-weight: bold;
-            word-break: break-word;
-            cursor: text;
-            padding: 4px 8px;
-            border-radius: 4px;
-            transition: all 0.3s;
-            display: inline-block;
+
+        .index-id {
+            font-size: 0.85rem;
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 5px;
         }
-        
-        .indicator-title:hover {
-            background: rgba(255, 255, 255, 0.1);
-            box-shadow: 0 0 0 1px rgba(0, 255, 136, 0.3);
-        }
-        
-        .indicator-title.editing {
-            background: rgba(0, 255, 136, 0.2);
-            box-shadow: 0 0 0 2px #00ff88;
-        }
-        
-        .edit-btn {
-            position: absolute;
-            top: 10px;
-            right: 45px;
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            border-radius: 4px;
-            padding: 6px 10px;
-            color: #888;
+
+        .index-name {
+            font-size: 1.1rem;
+            color: var(--text);
+            margin-bottom: 10px;
             cursor: pointer;
-            font-size: 0.75rem;
-            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        
-        .edit-btn:hover {
-            background: rgba(0, 255, 136, 0.2);
-            color: #00ff88;
+
+        .index-name input {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text);
+            font-size: 1.1rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            width: 100%;
         }
-        
+
+        .index-name input:focus {
+            outline: none;
+            background: rgba(52, 152, 219, 0.1);
+            border-color: var(--accent);
+        }
+
         .favorite-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
             background: transparent;
             border: none;
-            font-size: 1.25rem;
             cursor: pointer;
-            transition: all 0.3s;
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+            padding: 5px;
         }
-        
+
         .favorite-btn:hover {
             transform: scale(1.2);
         }
-        
-        .favorite-btn.favorited {
-            color: #ff6b6b;
+
+        .favorite-btn.active {
+            color: #f39c12;
         }
-        
-        .favorite-btn:not(.favorited) {
-            color: #666;
-        }
-        
-        .indicator-symbol {
-            font-size: 0.75rem;
-            padding: 0.25rem 0.5rem;
-            background: rgba(0, 255, 136, 0.2);
-            border-radius: 4px;
-            color: #00ff88;
-            white-space: nowrap;
-            margin-top: 0.5rem;
-        }
-        
-        .indicator-value {
-            font-size: 2rem;
+
+        .index-value {
+            font-size: 1.8rem;
             font-weight: bold;
-            margin-bottom: 1rem;
-            color: #fff;
+            color: var(--text);
+            margin-bottom: 15px;
         }
-        
-        .indicator-date {
-            font-size: 0.75rem;
-            color: #666;
-            margin-bottom: 1rem;
+
+        .index-date {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 15px;
         }
-        
+
         .changes-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 0.75rem;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
         }
-        
+
         .change-item {
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
             border-radius: 6px;
-            padding: 0.5rem;
             text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
         }
-        
-        .change-period {
-            font-size: 0.625rem;
-            color: #666;
-            text-transform: uppercase;
-            margin-bottom: 0.25rem;
+
+        .change-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
         }
-        
+
         .change-value {
-            font-size: 1.125rem;
+            font-size: 1.1rem;
             font-weight: bold;
         }
-        
-        .positive { color: #00ff88; }
-        .negative { color: #ff4444; }
-        .neutral { color: #888; }
-        
+
+        .positive { color: var(--success); }
+        .negative { color: var(--danger); }
+        .neutral { color: var(--text-secondary); }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+        }
+
         .loading-spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(0, 255, 136, 0.3);
-            border-top-color: #00ff88;
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
             border-radius: 50%;
             animation: spin 1s linear infinite;
+            margin: 20px auto;
         }
-        
+
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-        
+
         .error-message {
-            background: rgba(255, 68, 68, 0.1);
-            border: 1px solid #ff4444;
-            color: #ff6666;
-            padding: 1rem;
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            padding: 15px;
             border-radius: 8px;
-            margin: 1rem 0;
-        }
-        
-        .last-update {
+            margin: 20px 0;
             text-align: center;
-            font-size: 0.875rem;
-            color: #666;
-            margin-top: 2rem;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .refresh-btn {
+            padding: 10px 20px;
+            background: var(--accent);
+            color: white;
+            border: none;
             border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        
-        .category-header {
-            grid-column: 1 / -1;
-            background: linear-gradient(90deg, rgba(0, 255, 136, 0.1), transparent);
-            padding: 1rem;
-            border-radius: 8px;
-            margin: 1rem 0;
-            font-size: 1.125rem;
-            font-weight: bold;
-            color: #00ff88;
-            border-left: 4px solid #00ff88;
+
+        .refresh-btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
         }
-        
-        .empty-favorites {
-            grid-column: 1 / -1;
-            text-align: center;
-            padding: 3rem;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            border: 1px dashed rgba(255, 255, 255, 0.2);
+
+        .refresh-btn:active {
+            transform: translateY(0);
         }
-        
-        .empty-favorites h3 {
-            margin-bottom: 1rem;
-            color: #888;
-        }
-        
-        .empty-favorites p {
-            color: #666;
-        }
-        
+
         @media (max-width: 768px) {
-            .indicators-grid {
-                grid-template-columns: 1fr;
+            .container {
+                padding: 10px;
             }
             
-            .title {
+            h1 {
                 font-size: 1.5rem;
             }
             
-            .changes-grid {
+            .risk-indicators {
                 grid-template-columns: 1fr;
             }
+            
+            .changes-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .category-section {
+            margin-bottom: 30px;
+        }
+
+        .category-header {
+            background: rgba(52, 152, 219, 0.1);
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--accent);
+            border-left: 4px solid var(--accent);
+        }
+
+        .no-favorites {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .no-favorites .icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="header-content">
-            <h1 class="title">Fed Liquidity Dashboard</h1>
-            <div class="api-status">
-                <div class="status-dot loading" id="apiStatus"></div>
-                <span id="statusText">Connecting...</span>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <h1>
+                    <span>📊</span>
+                    Fed Liquidity Dashboard
+                </h1>
+                <div class="status-bar">
+                    <div class="status-item">
+                        <div class="status-indicator"></div>
+                        <span id="api-status">Connected</span>
+                    </div>
+                    <div class="status-item">
+                        <span id="last-update">Last Update: --</span>
+                    </div>
+                    <div class="status-item">
+                        <span id="next-update">Next Auto-Update: --</span>
+                    </div>
+                    <button class="refresh-btn" onclick="refreshData()">
+                        <span>🔄</span>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="risk-panel">
+            <h2 style="margin-bottom: 10px; color: var(--accent);">🚨 Global Risk Indicators</h2>
+            <div class="risk-indicators" id="risk-indicators">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    Loading risk indicators...
+                </div>
             </div>
         </div>
-        <div class="stats-bar">
-            <div class="stat-item">
-                <div class="stat-value" id="totalIndicators">0</div>
-                <div class="stat-label">Total Indicators</div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('all')">
+                All Indices (124)
+            </button>
+            <button class="tab" onclick="switchTab('favorites')">
+                ⭐ Favorites (<span id="favorites-count">0</span>)
+            </button>
+            <button class="tab" onclick="switchTab('categories')">
+                📁 Categories
+            </button>
+        </div>
+
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search indices by name or ID..." oninput="filterIndices()">
             </div>
-            <div class="stat-item">
-                <div class="stat-value" id="fedBalance">-</div>
-                <div class="stat-label">Fed Balance Sheet</div>
+            <div class="filter-buttons">
+                <button class="filter-btn active" onclick="setFilter('all')">All</button>
+                <button class="filter-btn" onclick="setFilter('positive')">Positive</button>
+                <button class="filter-btn" onclick="setFilter('negative')">Negative</button>
             </div>
-            <div class="stat-item">
-                <div class="stat-value" id="reserveBalances">-</div>
-                <div class="stat-label">Reserve Balances</div>
+        </div>
+
+        <div id="all-tab" class="tab-content active">
+            <div class="indices-grid" id="indices-grid">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    Loading indices...
+                </div>
             </div>
-            <div class="stat-item">
-                <div class="stat-value" id="overnightRRP">-</div>
-                <div class="stat-label">Overnight RRP</div>
+        </div>
+
+        <div id="favorites-tab" class="tab-content">
+            <div class="indices-grid" id="favorites-grid">
+                <div class="no-favorites">
+                    <div class="icon">⭐</div>
+                    <p>No favorites yet. Click the star icon on any index to add it to favorites.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="categories-tab" class="tab-content">
+            <div id="categories-content">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    Loading categories...
+                </div>
             </div>
         </div>
     </div>
-    
-    <div class="controls">
-        <div class="category-tabs">
-            <button class="tab-btn favorites" data-category="favorites">⭐ Favorites</button>
-            <button class="tab-btn active" data-category="all">All Indicators</button>
-            <button class="tab-btn" data-category="reserves">Reserves</button>
-            <button class="tab-btn" data-category="currency">Currency</button>
-            <button class="tab-btn" data-category="treasury_account">Treasury</button>
-            <button class="tab-btn" data-category="repo_operations">Repo Ops</button>
-            <button class="tab-btn" data-category="securities">Securities</button>
-            <button class="tab-btn" data-category="lending_facilities">Lending</button>
-            <button class="tab-btn" data-category="balance_sheet">Balance Sheet</button>
-            <button class="tab-btn" data-category="other_assets">Other</button>
-        </div>
-        <div class="search-bar">
-            <input type="text" class="search-input" id="searchInput" placeholder="Search indicators (e.g., WALCL, Reserve, Balance)">
-            <button class="refresh-btn" id="refreshBtn" onclick="loadAllData()">Refresh Data</button>
-        </div>
-    </div>
-    
-    <div class="indicators-grid" id="indicatorsGrid">
-        <div style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
-            <div class="loading-spinner"></div>
-            <p style="margin-top: 1rem;">Loading Fed liquidity data...</p>
-        </div>
-    </div>
-    
-    <div class="last-update" id="lastUpdate">
-        Last Updated: Never
-    </div>
-    
+
     <script>
-        // Fed Liquidity API Configuration
-        const FED_API_URL = 'https://nmkverrwjnxsmgnogzckkoyuce0bqxyk.lambda-url.us-east-1.on.aws';
+        const API_URL = 'https://gxjvtintcxjn3f7cxvkirfm5wy0doaoy.lambda-url.us-east-1.on.aws';
         
-        // Categories from the API documentation
-        const FED_LIQUIDITY_CATEGORIES = {
-            "reserves": ["WRBWFRBL", "RESBALNS", "RESBALNSW", "REQRESNS", "EXCSRESNS", "TOTRESNS"],
-            "currency": ["WCURCIR", "CURRCIR", "BOGMBBM"],
-            "treasury_account": ["WTREGEN", "TREASURY"],
-            "repo_operations": ["WREPODEL", "WREPOFOR", "RRPONTSYD", "RPONTSYD", "H41RESPPREPO", "H41RESPPFIMA"],
-            "securities": ["WSHOTSL", "WSHOSHO", "WSHOTS", "WSHOMCB", "WSHOFDEB", "TREAST", "TREASLT5", "TREASG5T10", "TREASG10", "TIPS", "FPCPN", "MBST", "CMBS"],
-            "lending_facilities": ["WLCFLL", "WPCREDIT", "DISCBORR", "WSCREDIT", "PDCB", "TAF", "H41RESPPBTFP"],
-            "emergency_programs": ["RESPPALLEX", "PPPLF", "MSLP", "MLF", "CPFF", "PMCCF", "SMCCF", "TALF", "MMLF"],
-            "balance_sheet": ["WALCL", "RESPPANWW", "BOGMBASE", "WOTHLL"],
-            "other_assets": ["WFCDA", "WUPSHO", "WUDSON", "SWPT", "CLBSWP", "WORAL", "WGCAL", "WSDRAL", "COINAL", "WDTGAL", "TERMAUC"]
+        let allIndices = [];
+        let currentFilter = 'all';
+        let currentTab = 'all';
+        let favorites = JSON.parse(localStorage.getItem('fedFavorites') || '[]');
+        let customNames = JSON.parse(localStorage.getItem('fedCustomNames') || '{}');
+        let lastUpdateTime = null;
+
+        const CATEGORIES = {
+            'Federal Reserve Metrics': ['WALCL', 'RRPONTSYD', 'WTREGEN', 'BOGMBASE', 'BOGMBBM', 'WCURCIR', 'CURRCIR', 'TOTRESNS', 'WRBWFRBL', 'WREPODEL', 'WREPOFOR'],
+            'Money Supply': ['M1SL', 'M2SL', 'M1NS', 'M2NS', 'CURRNS', 'M1V', 'M2V', 'MZMSL', 'SAVINGS', 'DPSACBW027SBOG'],
+            'Treasury Rates': ['DGS1MO', 'DGS3MO', 'DGS6MO', 'DGS1', 'DGS2', 'DGS3', 'DGS5', 'DGS7', 'DGS10', 'DGS20', 'DGS30'],
+            'Yield Spreads & Inflation': ['T10Y2Y', 'T10Y3M', 'T30Y10Y', 'T5YIE', 'T10YIE', 'T5YIFR', 'TEDRATE', 'TB3SMFFM'],
+            'Bond Market Stress': ['MORTGAGE30US', 'MORTGAGE15US', 'DPRIME', 'TB3MS', 'TB6MS', 'RIFLGFCY10', 'RIFLGFCY05', 'DFII10', 'DFII5', 'DFII30'],
+            'Corporate Bond Spreads': ['AAA10Y', 'BAA10Y', 'HQMCB10YR', 'HQMCB20YR', 'HQMCB30YR', 'BAMLC0A1CAAA', 'BAMLC0A2CAA', 'BAMLC0A3CA', 'BAMLC0A4CBBB', 'BAMLH0A0HYM2', 'BAMLH0A0HYM2EY', 'BAMLC0A0CM', 'BAMLC0A0CMEY', 'DAAA', 'DBAA'],
+            'Emerging Markets': ['BAMLEMCBPIOAS', 'BAMLEMHYHYCEY', 'EMLC', 'DEXKOUS', 'DEXMXUS', 'DEXBZUS', 'DEXINUS', 'DEXSFUS'],
+            'Bank Stress': ['DRTSCIS', 'DRTSCILM', 'SUBLPDRCILM', 'DRTSCLCC', 'STLFSI3', 'NFCI', 'ANFCI'],
+            'Liquidity & Funding': ['WLRRAL', 'IOER', 'IORB', 'SOFR', 'OBFR', 'EFFR', 'DFF', 'RRPONTTLD', 'RPONTSYD'],
+            'Volatility': ['VIXCLS', 'VXVCLS', 'OVXCLS', 'GVZCLS', 'EVZCLS', 'RVXCLS', 'TYVIX', 'SRVIX'],
+            'Dollar & Currencies': ['DTWEXBGS', 'DTWEXAFEGS', 'DTWEXEMEGS', 'DEXUSEU', 'DEXJPUS', 'DEXUSUK', 'DEXCHUS', 'DEXSZUS', 'DEXCAUS', 'DEXUSAL'],
+            'Commodities': ['DCOILWTICO', 'DCOILBRENTEU', 'GASREGW', 'DHHNGSP', 'GOLDAMGBD228NLBM'],
+            'Economic Indicators': ['DSPIC96', 'GFDEBTN', 'GFDEGDQ188S', 'FYGFD', 'FDHBFIN', 'FYGFGDN'],
+            'Fed Policy Rates': ['DFEDTARU', 'DFEDTARL'],
+            'Financial Leverage': ['NFCINONFINLEVERAGE', 'NFCILEVERAGE', 'NFCICREDIT', 'NFCIRISK']
         };
-        
-        // Global state
-        let allIndicatorData = {};
-        let currentCategory = 'all';
-        let searchTerm = '';
-        let autoRefreshInterval = null;
-        let customNames = {};
-        let favorites = [];
-        
-        // Load saved data from localStorage
-        function loadSavedData() {
-            const savedNames = localStorage.getItem('fedLiquidityCustomNames');
-            if (savedNames) {
-                customNames = JSON.parse(savedNames);
-            }
-            
-            const savedFavorites = localStorage.getItem('fedLiquidityFavorites');
-            if (savedFavorites) {
-                favorites = JSON.parse(savedFavorites);
-            }
-        }
-        
-        // Save custom names
-        function saveCustomNames() {
-            localStorage.setItem('fedLiquidityCustomNames', JSON.stringify(customNames));
-        }
-        
-        // Save favorites
-        function saveFavorites() {
-            localStorage.setItem('fedLiquidityFavorites', JSON.stringify(favorites));
-        }
-        
-        // Toggle favorite status
-        function toggleFavorite(series) {
-            const index = favorites.indexOf(series);
-            if (index > -1) {
-                favorites.splice(index, 1);
-            } else {
-                favorites.push(series);
-            }
-            saveFavorites();
-            filterAndDisplayIndicators();
-        }
-        
-        // Edit indicator name
-        function editIndicatorName(series, currentName) {
-            const newName = prompt('Enter new name for this indicator:', currentName);
-            if (newName && newName !== currentName) {
-                customNames[series] = newName;
-                saveCustomNames();
-                filterAndDisplayIndicators();
-            }
-        }
-        
-        // Initialize the dashboard
-        async function initDashboard() {
-            console.log('Initializing Fed Liquidity Dashboard...');
-            
-            // Load saved data
-            loadSavedData();
-            
-            // Set up event listeners
-            setupEventListeners();
-            
-            // Load initial data
-            await loadAllData();
-            
-            // Set up auto-refresh (twice weekly: Wednesday and Saturday at 9 AM)
-            setupAutoRefresh();
-        }
-        
-        // Setup event listeners
-        function setupEventListeners() {
-            // Category tabs
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                    e.target.classList.add('active');
-                    currentCategory = e.target.dataset.category;
-                    filterAndDisplayIndicators();
-                });
-            });
-            
-            // Search input
-            document.getElementById('searchInput').addEventListener('input', (e) => {
-                searchTerm = e.target.value.toLowerCase();
-                filterAndDisplayIndicators();
-            });
-        }
-        
-        // Load all data from the Fed API
-        async function loadAllData() {
-            const refreshBtn = document.getElementById('refreshBtn');
-            refreshBtn.disabled = true;
-            refreshBtn.textContent = 'Loading...';
-            
-            updateStatus('loading', 'Loading data...');
-            
+
+        async function fetchData() {
             try {
-                // Simple fetch like the working OpenBB code
-                const summaryResponse = await fetch(`${FED_API_URL}/?series=summary`);
+                document.getElementById('api-status').textContent = 'Loading...';
+                
+                // Fetch all series list
+                const allResponse = await fetch(`${API_URL}/?series=all`);
+                const allData = await allResponse.json();
+                
+                // Fetch summary with current values
+                const summaryResponse = await fetch(`${API_URL}/?series=summary`);
                 const summaryData = await summaryResponse.json();
                 
-                // Process summary data
+                // Fetch risk indicators
+                const riskResponse = await fetch(`${API_URL}/?series=risk`);
+                const riskData = await riskResponse.json();
+                
+                // Process data
                 if (summaryData.metrics) {
-                    summaryData.metrics.forEach(metric => {
-                        allIndicatorData[metric.series] = {
-                            name: metric.name,
-                            value: metric.latest_value,
-                            date: metric.latest_date,
-                            week_change: metric.week_change || 0,
-                            cached: metric.cached
-                        };
+                    allIndices = summaryData.metrics;
+                    
+                    // Add QoQ calculation
+                    allIndices = allIndices.map(index => {
+                        const qoq = calculateQoQ(index);
+                        return { ...index, changes: { ...index.changes, qoq } };
                     });
+                    
+                    displayIndices();
+                    displayCategories();
                 }
                 
-                // Load percentage changes for all indicators
-                await loadPercentageChanges();
-                
-                // Update header stats
-                updateHeaderStats();
-                
-                // Display all indicators
-                filterAndDisplayIndicators();
+                if (riskData.indicators) {
+                    displayRiskIndicators(riskData.indicators);
+                }
                 
                 // Update status
-                updateStatus('connected', 'Connected');
-                
-                // Update last update time
-                document.getElementById('lastUpdate').textContent = 
-                    `Last Updated: ${new Date().toLocaleString()} | Auto-refresh: Wed & Sat 9 AM ET`;
-                
-                // Update total indicators count
-                document.getElementById('totalIndicators').textContent = 
-                    Object.keys(allIndicatorData).length;
+                document.getElementById('api-status').textContent = 'Connected';
+                lastUpdateTime = new Date();
+                updateTimestamps();
                 
             } catch (error) {
-                console.error('Error loading data:', error);
-                updateStatus('error', 'Connection error');
+                console.error('Error fetching data:', error);
+                document.getElementById('api-status').textContent = 'Error';
+                showError('Failed to fetch data. Please try again.');
+            }
+        }
+
+        function calculateQoQ(index) {
+            // Approximate QoQ using 3x MoM
+            if (index.changes && index.changes.mom) {
+                return index.changes.mom * 3;
+            }
+            return null;
+        }
+
+        function displayRiskIndicators(indicators) {
+            const container = document.getElementById('risk-indicators');
+            
+            const riskHTML = Object.entries(indicators).map(([key, data]) => {
+                const color = getRiskColor(data.probability);
+                const displayName = key.replace(/_/g, ' ').toUpperCase();
                 
-                // Show error in grid
-                const grid = document.getElementById('indicatorsGrid');
-                grid.innerHTML = `
-                    <div style="grid-column: 1 / -1;">
-                        <div class="error-message">
-                            <h3>Connection Error</h3>
-                            <p>Unable to connect to Fed Liquidity API</p>
-                            <p style="margin-top: 1rem;">Error: ${error.message}</p>
+                return `
+                    <div class="risk-indicator">
+                        <div class="risk-label">${displayName}</div>
+                        <div class="risk-value" style="color: ${color}">
+                            ${data.probability}%
+                        </div>
+                        <div class="risk-bar">
+                            <div class="risk-fill" style="width: ${data.probability}%; background: ${color}"></div>
+                        </div>
+                        <div style="font-size: 0.8rem; margin-top: 5px; color: ${color}">
+                            ${data.status}
                         </div>
                     </div>
                 `;
-                
-            } finally {
-                refreshBtn.disabled = false;
-                refreshBtn.textContent = 'Refresh Data';
-            }
+            }).join('');
+            
+            container.innerHTML = riskHTML;
         }
-        
-        // Load percentage changes for all key indicators
-        async function loadPercentageChanges() {
-            // Get percentage changes for key series
-            const keySeriesList = [
-                'WRBWFRBL', 'WALCL', 'WCURCIR', 'WTREGEN', 'RRPONTSYD',
-                'TOTRESNS', 'WSHOTSL', 'WLCFLL', 'BOGMBASE', 'RESPPANWW'
-            ];
-            
-            for (const series of keySeriesList) {
-                try {
-                    // Use axios like the working OpenBB code
-                    const changesResponse = await axios.get(
-                        `${FED_API_URL}/?action=changes&series=${series}&period=all`
-                    );
-                    const changesData = changesResponse.data;
-                    
-                    if (!changesData.error) {
-                        // Merge changes data with existing indicator data
-                        if (!allIndicatorData[series]) {
-                            allIndicatorData[series] = {};
-                        }
-                        
-                        allIndicatorData[series] = {
-                            ...allIndicatorData[series],
-                            name: changesData.name || allIndicatorData[series]?.name || series,
-                            value: changesData.latest_value,
-                            date: changesData.latest_date,
-                            week_change: changesData.week_change?.percentage || 0,
-                            month_change: changesData.month_change?.percentage || 0,
-                            quarter_change: changesData.quarter_change?.percentage || 0,
-                            year_change: changesData.year_change?.percentage || 0
-                        };
-                    }
-                } catch (error) {
-                    console.error(`Error loading changes for ${series}:`, error);
-                }
-            }
-            
-            // Load individual series data for remaining indicators
-            const allSeries = Object.keys(FED_LIQUIDITY_CATEGORIES).flatMap(
-                cat => FED_LIQUIDITY_CATEGORIES[cat]
-            );
-            
-            // Batch load remaining series (limit concurrent requests)
-            const batchSize = 5;
-            for (let i = 0; i < allSeries.length; i += batchSize) {
-                const batch = allSeries.slice(i, i + batchSize);
-                const promises = batch.map(series => loadSeriesData(series));
-                await Promise.allSettled(promises);
-            }
+
+        function getRiskColor(probability) {
+            if (probability < 20) return 'var(--success)';
+            if (probability < 40) return 'var(--warning)';
+            if (probability < 60) return '#ff9800';
+            return 'var(--danger)';
         }
-        
-        // Load data for a single series
-        async function loadSeriesData(series) {
-            if (allIndicatorData[series]?.week_change !== undefined) {
-                return; // Already loaded with changes
-            }
+
+        function displayIndices() {
+            const grid = document.getElementById('indices-grid');
+            const favGrid = document.getElementById('favorites-grid');
             
-            try {
-                // Use axios like the working OpenBB code
-                const response = await axios.get(`${FED_API_URL}/?series=${series}`);
-                const data = response.data;
-                
-                if (!data.error && data.latest) {
-                    // Calculate simple percentage changes from observations if available
-                    let weekChange = 0, monthChange = 0, quarterChange = 0, yearChange = 0;
-                    
-                    if (data.observations && data.observations.length > 1) {
-                        const latest = data.observations[0].value;
-                        
-                        // Find historical values for comparison
-                        data.observations.forEach((obs, index) => {
-                            const daysAgo = Math.floor(
-                                (new Date() - new Date(obs.date)) / (1000 * 60 * 60 * 24)
-                            );
-                            
-                            if (daysAgo >= 7 && daysAgo <= 10 && weekChange === 0) {
-                                weekChange = ((latest - obs.value) / obs.value * 100);
-                            }
-                            if (daysAgo >= 28 && daysAgo <= 35 && monthChange === 0) {
-                                monthChange = ((latest - obs.value) / obs.value * 100);
-                            }
-                            if (daysAgo >= 85 && daysAgo <= 95 && quarterChange === 0) {
-                                quarterChange = ((latest - obs.value) / obs.value * 100);
-                            }
-                            if (daysAgo >= 360 && daysAgo <= 370 && yearChange === 0) {
-                                yearChange = ((latest - obs.value) / obs.value * 100);
-                            }
-                        });
-                    }
-                    
-                    allIndicatorData[series] = {
-                        name: data.name || series,
-                        value: data.latest.value,
-                        date: data.latest.date,
-                        week_change: weekChange,
-                        month_change: monthChange,
-                        quarter_change: quarterChange,
-                        year_change: yearChange,
-                        cached: data.cached || false
-                    };
-                }
-            } catch (error) {
-                console.error(`Error loading ${series}:`, error);
-            }
-        }
-        
-        // Update header statistics
-        function updateHeaderStats() {
-            // Fed Balance Sheet (WALCL)
-            if (allIndicatorData.WALCL) {
-                const value = allIndicatorData.WALCL.value;
-                const formatted = value ? `$${(value / 1000000).toFixed(2)}T` : '-';
-                document.getElementById('fedBalance').textContent = formatted;
-            }
+            let filtered = filterAndSearchIndices();
             
-            // Reserve Balances (WRBWFRBL)
-            if (allIndicatorData.WRBWFRBL) {
-                const value = allIndicatorData.WRBWFRBL.value;
-                const formatted = value ? `$${(value / 1000000).toFixed(2)}T` : '-';
-                document.getElementById('reserveBalances').textContent = formatted;
-            }
-            
-            // Overnight RRP (RRPONTSYD)
-            if (allIndicatorData.RRPONTSYD) {
-                const value = allIndicatorData.RRPONTSYD.value;
-                const formatted = value ? `$${value.toFixed(0)}B` : '-';
-                document.getElementById('overnightRRP').textContent = formatted;
-            }
-        }
-        
-        // Filter and display indicators based on category and search
-        function filterAndDisplayIndicators() {
-            const grid = document.getElementById('indicatorsGrid');
-            grid.innerHTML = '';
-            
-            if (currentCategory === 'favorites') {
-                // Show favorites
-                if (favorites.length === 0) {
-                    grid.innerHTML = `
-                        <div class="empty-favorites">
-                            <h3>No Favorites Yet</h3>
-                            <p>Click the star icon on any indicator to add it to your favorites</p>
-                        </div>
-                    `;
-                } else {
-                    favorites.forEach(series => {
-                        if (shouldShowIndicator(series)) {
-                            const card = createIndicatorCard(series);
-                            if (card) grid.appendChild(card);
-                        }
-                    });
-                }
-            } else if (currentCategory === 'all') {
-                // Show all indicators grouped by category
-                Object.keys(FED_LIQUIDITY_CATEGORIES).forEach(category => {
-                    const categoryIndicators = FED_LIQUIDITY_CATEGORIES[category];
-                    
-                    // Add category header
-                    const header = document.createElement('div');
-                    header.className = 'category-header';
-                    header.textContent = getCategoryDisplayName(category);
-                    grid.appendChild(header);
-                    
-                    // Add indicators for this category
-                    categoryIndicators.forEach(series => {
-                        if (shouldShowIndicator(series)) {
-                            const card = createIndicatorCard(series);
-                            if (card) grid.appendChild(card);
-                        }
-                    });
-                });
+            // Display all indices
+            if (filtered.length === 0) {
+                grid.innerHTML = '<div class="error-message">No indices match your search criteria</div>';
             } else {
-                // Show specific category
-                const categoryIndicators = FED_LIQUIDITY_CATEGORIES[currentCategory] || [];
-                categoryIndicators.forEach(series => {
-                    if (shouldShowIndicator(series)) {
-                        const card = createIndicatorCard(series);
-                        if (card) grid.appendChild(card);
-                    }
-                });
+                grid.innerHTML = filtered.map(index => createIndexCard(index)).join('');
             }
             
-            if (grid.children.length === 0) {
-                grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 2rem;">No indicators found matching your criteria.</div>';
+            // Display favorites
+            const favoriteIndices = allIndices.filter(index => favorites.includes(index.series_id));
+            if (favoriteIndices.length === 0) {
+                favGrid.innerHTML = `
+                    <div class="no-favorites">
+                        <div class="icon">⭐</div>
+                        <p>No favorites yet. Click the star icon on any index to add it to favorites.</p>
+                    </div>
+                `;
+            } else {
+                favGrid.innerHTML = favoriteIndices.map(index => createIndexCard(index)).join('');
             }
+            
+            // Update favorites count
+            document.getElementById('favorites-count').textContent = favorites.length;
         }
-        
-        // Check if indicator should be shown based on search
-        function shouldShowIndicator(series) {
-            if (!searchTerm) return true;
+
+        function displayCategories() {
+            const container = document.getElementById('categories-content');
             
-            const data = allIndicatorData[series];
-            if (!data) return false;
+            const categoriesHTML = Object.entries(CATEGORIES).map(([category, seriesIds]) => {
+                const categoryIndices = allIndices.filter(index => 
+                    seriesIds.includes(index.series_id)
+                );
+                
+                if (categoryIndices.length === 0) return '';
+                
+                return `
+                    <div class="category-section">
+                        <div class="category-header">${category} (${categoryIndices.length})</div>
+                        <div class="indices-grid">
+                            ${categoryIndices.map(index => createIndexCard(index)).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
             
-            const displayName = customNames[series] || data.name;
-            
-            return series.toLowerCase().includes(searchTerm) ||
-                   displayName.toLowerCase().includes(searchTerm);
+            container.innerHTML = categoriesHTML || '<div class="error-message">No categories available</div>';
         }
-        
-        // Create indicator card element
-        function createIndicatorCard(series) {
-            const data = allIndicatorData[series];
-            if (!data) return null;
+
+        function createIndexCard(index) {
+            const isFavorite = favorites.includes(index.series_id);
+            const customName = customNames[index.series_id] || index.name;
+            const latestValue = index.latest ? index.latest.value : 'N/A';
+            const latestDate = index.latest ? index.latest.date : 'N/A';
             
-            const card = document.createElement('div');
-            card.className = 'indicator-card';
+            const changes = index.changes || {};
             
-            // Get custom name or use default
-            const displayName = customNames[series] || data.name || series;
-            const isFavorited = favorites.includes(series);
-            
-            // Format value
-            let formattedValue = '-';
-            if (data.value !== null && data.value !== undefined) {
-                if (series.includes('WALCL') || series.includes('BALANCE') || 
-                    series.includes('WRBWFRBL') || series.includes('TOTRESNS')) {
-                    // Large values in trillions
-                    formattedValue = `$${(data.value / 1000000).toFixed(3)}T`;
-                } else if (series.includes('RATE') || series.includes('DGS')) {
-                    // Rates as percentages
-                    formattedValue = `${data.value.toFixed(3)}%`;
-                } else if (data.value > 1000000) {
-                    // Large values in trillions
-                    formattedValue = `$${(data.value / 1000000).toFixed(3)}T`;
-                } else if (data.value > 1000) {
-                    // Values in billions
-                    formattedValue = `$${(data.value / 1000).toFixed(1)}B`;
-                } else {
-                    formattedValue = data.value.toFixed(2);
-                }
-            }
-            
-            card.innerHTML = `
-                <button class="edit-btn" onclick="editIndicatorName('${series}', '${displayName.replace(/'/g, "\\'")}')">✏️</button>
-                <button class="favorite-btn ${isFavorited ? 'favorited' : ''}" onclick="toggleFavorite('${series}')">
-                    ${isFavorited ? '⭐' : '☆'}
-                </button>
-                <div class="indicator-header">
-                    <div class="indicator-title-wrapper">
-                        <div class="indicator-title" ondblclick="editIndicatorName('${series}', '${displayName.replace(/'/g, "\\'")}')">${displayName}</div>
-                        <div class="indicator-symbol">${series}</div>
-                    </div>
-                </div>
-                <div class="indicator-value">${formattedValue}</div>
-                <div class="indicator-date">Latest: ${data.date || 'N/A'}</div>
-                <div class="changes-grid">
-                    <div class="change-item">
-                        <div class="change-period">Week</div>
-                        <div class="change-value ${getChangeClass(data.week_change)}">
-                            ${formatChange(data.week_change)}
+            return `
+                <div class="index-card" data-series="${index.series_id}">
+                    <div class="index-header">
+                        <div class="index-info">
+                            <div class="index-id">${index.series_id}</div>
+                            <div class="index-name">
+                                <input type="text" 
+                                       value="${customName}" 
+                                       data-series="${index.series_id}"
+                                       onblur="updateCustomName('${index.series_id}', this.value)"
+                                       onclick="event.stopPropagation()"
+                                       title="Click to edit name">
+                            </div>
                         </div>
+                        <button class="favorite-btn ${isFavorite ? 'active' : ''}" 
+                                onclick="toggleFavorite('${index.series_id}')">
+                            ${isFavorite ? '⭐' : '☆'}
+                        </button>
                     </div>
-                    <div class="change-item">
-                        <div class="change-period">Month</div>
-                        <div class="change-value ${getChangeClass(data.month_change)}">
-                            ${formatChange(data.month_change)}
-                        </div>
-                    </div>
-                    <div class="change-item">
-                        <div class="change-period">Quarter</div>
-                        <div class="change-value ${getChangeClass(data.quarter_change)}">
-                            ${formatChange(data.quarter_change)}
-                        </div>
-                    </div>
-                    <div class="change-item">
-                        <div class="change-period">Year</div>
-                        <div class="change-value ${getChangeClass(data.year_change)}">
-                            ${formatChange(data.year_change)}
-                        </div>
+                    <div class="index-value">${formatValue(latestValue)}</div>
+                    <div class="index-date">Last Update: ${latestDate}</div>
+                    <div class="changes-grid">
+                        ${createChangeItem('WoW', changes.wow)}
+                        ${createChangeItem('MoM', changes.mom)}
+                        ${createChangeItem('QoQ', changes.qoq)}
+                        ${createChangeItem('YoY', changes.yoy)}
                     </div>
                 </div>
             `;
-            
-            return card;
         }
-        
-        // Get category display name
-        function getCategoryDisplayName(category) {
-            const names = {
-                'reserves': '🏦 RESERVES',
-                'currency': '💵 CURRENCY',
-                'treasury_account': '🏛️ TREASURY ACCOUNT',
-                'repo_operations': '🔄 REPO OPERATIONS',
-                'securities': '📊 SECURITIES',
-                'lending_facilities': '💰 LENDING FACILITIES',
-                'emergency_programs': '🚨 EMERGENCY PROGRAMS',
-                'balance_sheet': '📈 BALANCE SHEET',
-                'other_assets': '📦 OTHER ASSETS'
-            };
-            return names[category] || category.toUpperCase();
-        }
-        
-        // Format percentage change
-        function formatChange(change) {
-            if (change === null || change === undefined || change === 0) {
-                return '0.00%';
-            }
-            const sign = change > 0 ? '+' : '';
-            return `${sign}${change.toFixed(2)}%`;
-        }
-        
-        // Get CSS class for change value
-        function getChangeClass(change) {
-            if (change === null || change === undefined) return 'neutral';
-            if (change > 0) return 'positive';
-            if (change < 0) return 'negative';
-            return 'neutral';
-        }
-        
-        // Update status indicator
-        function updateStatus(status, text) {
-            const statusDot = document.getElementById('apiStatus');
-            const statusText = document.getElementById('statusText');
-            
-            statusDot.className = `status-dot ${status}`;
-            statusText.textContent = text;
-        }
-        
-        // Setup auto-refresh (twice weekly)
-        function setupAutoRefresh() {
-            // Clear existing interval if any
-            if (autoRefreshInterval) {
-                clearInterval(autoRefreshInterval);
+
+        function createChangeItem(label, value) {
+            if (value === null || value === undefined) {
+                return `
+                    <div class="change-item">
+                        <div class="change-label">${label}</div>
+                        <div class="change-value neutral">--</div>
+                    </div>
+                `;
             }
             
-            // Check every hour if it's time to refresh
-            autoRefreshInterval = setInterval(() => {
-                const now = new Date();
-                const day = now.getDay();
-                const hour = now.getHours();
+            const colorClass = value > 0 ? 'positive' : value < 0 ? 'negative' : 'neutral';
+            const arrow = value > 0 ? '↑' : value < 0 ? '↓' : '';
+            
+            return `
+                <div class="change-item">
+                    <div class="change-label">${label}</div>
+                    <div class="change-value ${colorClass}">
+                        ${arrow} ${Math.abs(value).toFixed(2)}%
+                    </div>
+                </div>
+            `;
+        }
+
+        function formatValue(value) {
+            if (value === 'N/A' || value === null || value === undefined) return 'N/A';
+            
+            const num = parseFloat(value);
+            if (Math.abs(num) >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+            if (Math.abs(num) >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+            if (Math.abs(num) >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+            return num.toFixed(2);
+        }
+
+        function toggleFavorite(seriesId) {
+            const index = favorites.indexOf(seriesId);
+            if (index > -1) {
+                favorites.splice(index, 1);
+            } else {
+                favorites.push(seriesId);
+            }
+            
+            localStorage.setItem('fedFavorites', JSON.stringify(favorites));
+            displayIndices();
+        }
+
+        function updateCustomName(seriesId, newName) {
+            if (newName.trim()) {
+                customNames[seriesId] = newName.trim();
+                localStorage.setItem('fedCustomNames', JSON.stringify(customNames));
+            }
+        }
+
+        function filterAndSearchIndices() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            
+            let filtered = allIndices;
+            
+            // Apply search filter
+            if (searchTerm) {
+                filtered = filtered.filter(index => {
+                    const customName = customNames[index.series_id] || index.name;
+                    return index.series_id.toLowerCase().includes(searchTerm) ||
+                           customName.toLowerCase().includes(searchTerm);
+                });
+            }
+            
+            // Apply change filter
+            if (currentFilter === 'positive') {
+                filtered = filtered.filter(index => 
+                    index.changes && (index.changes.wow > 0 || index.changes.mom > 0 || index.changes.yoy > 0)
+                );
+            } else if (currentFilter === 'negative') {
+                filtered = filtered.filter(index => 
+                    index.changes && (index.changes.wow < 0 || index.changes.mom < 0 || index.changes.yoy < 0)
+                );
+            }
+            
+            return filtered;
+        }
+
+        function filterIndices() {
+            displayIndices();
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            
+            // Update button states
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            displayIndices();
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(t => {
+                t.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`${tab}-tab`).classList.add('active');
+        }
+
+        function refreshData() {
+            const btn = event.target.closest('.refresh-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span>⏳</span> Refreshing...';
+            
+            fetchData().finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<span>🔄</span> Refresh';
+            });
+        }
+
+        function showError(message) {
+            const grid = document.getElementById('indices-grid');
+            grid.innerHTML = `<div class="error-message">${message}</div>`;
+        }
+
+        function updateTimestamps() {
+            if (lastUpdateTime) {
+                const timeStr = lastUpdateTime.toLocaleString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                document.getElementById('last-update').textContent = `Last Update: ${timeStr}`;
+            }
+            
+            // Calculate next update (Tuesday or Saturday at 5 AM EST)
+            const now = new Date();
+            const nextUpdate = getNextUpdateTime(now);
+            const nextStr = nextUpdate.toLocaleString('en-US', {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            document.getElementById('next-update').textContent = `Next Auto-Update: ${nextStr}`;
+        }
+
+        function getNextUpdateTime(currentDate) {
+            const next = new Date(currentDate);
+            const dayOfWeek = next.getDay();
+            const hour = next.getHours();
+            
+            // Tuesday = 2, Saturday = 6
+            let daysToAdd = 0;
+            
+            if (dayOfWeek === 2 && hour < 5) {
+                // It's Tuesday before 5 AM
+                daysToAdd = 0;
+            } else if (dayOfWeek < 2) {
+                // Before Tuesday
+                daysToAdd = 2 - dayOfWeek;
+            } else if (dayOfWeek === 2 || dayOfWeek < 6) {
+                // Tuesday after 5 AM or before Saturday
+                daysToAdd = 6 - dayOfWeek;
+            } else if (dayOfWeek === 6 && hour < 5) {
+                // Saturday before 5 AM
+                daysToAdd = 0;
+            } else {
+                // Saturday after 5 AM or Sunday
+                daysToAdd = (9 - dayOfWeek) % 7;
+            }
+            
+            next.setDate(next.getDate() + daysToAdd);
+            next.setHours(5, 0, 0, 0);
+            
+            return next;
+        }
+
+        function autoRefresh() {
+            const now = new Date();
+            const day = now.getDay();
+            const hour = now.getHours();
+            
+            // Auto-refresh on Tuesday (2) and Saturday (6) at 5 AM
+            if ((day === 2 || day === 6) && hour === 5) {
+                const lastAutoRefresh = localStorage.getItem('lastAutoRefresh');
+                const today = now.toDateString();
                 
-                // Refresh on Wednesday (3) and Saturday (6) at 9 AM
-                if ((day === 3 || day === 6) && hour === 9) {
-                    console.log('Auto-refreshing data...');
-                    loadAllData();
+                if (lastAutoRefresh !== today) {
+                    localStorage.setItem('lastAutoRefresh', today);
+                    refreshData();
                 }
-            }, 3600000); // Check every hour
+            }
         }
-        
-        // Initialize dashboard on page load
-        document.addEventListener('DOMContentLoaded', initDashboard);
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchData();
+            
+            // Set up auto-refresh check every hour
+            setInterval(() => {
+                autoRefresh();
+                updateTimestamps();
+            }, 3600000); // Check every hour
+            
+            // Update timestamps every minute
+            setInterval(updateTimestamps, 60000);
+        });
+
+        // Handle keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'r' && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                refreshData();
+            }
+            
+            if (e.key === '/' && !e.ctrlKey && !e.metaKey) {
+                e.preventDefault();
+                document.getElementById('search-input').focus();
+            }
+        });
     </script>
 </body>
 </html>
