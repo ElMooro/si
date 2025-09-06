@@ -665,11 +665,11 @@
             
             for (const series of keySeriesList) {
                 try {
-                    // Simple fetch like the working OpenBB code
-                    const changesResponse = await fetch(
+                    // Use axios like the working OpenBB code
+                    const changesResponse = await axios.get(
                         `${FED_API_URL}/?action=changes&series=${series}&period=all`
                     );
-                    const changesData = await changesResponse.json();
+                    const changesData = changesResponse.data;
                     
                     if (!changesData.error) {
                         // Merge changes data with existing indicator data
@@ -714,8 +714,9 @@
             }
             
             try {
-                const response = await fetch(`${FED_API_URL}/?series=${series}`);
-                const data = await response.json();
+                // Use axios like the working OpenBB code
+                const response = await axios.get(`${FED_API_URL}/?series=${series}`);
+                const data = response.data;
                 
                 if (!data.error && data.latest) {
                     // Calculate simple percentage changes from observations if available
