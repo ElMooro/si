@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fed Data Terminal - Global Central Bank Monitor</title>
+    <title>Fed Liquidity Terminal - 252 Economic Indicators</title>
     <style>
         * {
             margin: 0;
@@ -17,6 +17,16 @@
             100% { background-position: 0% 50%; }
         }
 
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(74, 222, 128, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #0f0c29);
@@ -28,7 +38,7 @@
         }
 
         .dashboard {
-            max-width: 1800px;
+            max-width: 1900px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -86,6 +96,11 @@
             transition: all 0.3s ease;
         }
 
+        .status-pill:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
         .pulse-dot {
             width: 8px;
             height: 8px;
@@ -94,21 +109,40 @@
             animation: pulse 2s infinite;
         }
 
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(74, 222, 128, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+        /* Auto-update notification */
+        .update-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            z-index: 1000;
+            display: none;
+            animation: slideIn 0.3s ease;
         }
 
-        /* Key Metrics */
-        .metrics-row {
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Summary Grid */
+        .summary-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px;
             margin-bottom: 30px;
         }
 
-        .metric-card {
+        .summary-card {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
             border-radius: 15px;
@@ -118,22 +152,22 @@
             cursor: pointer;
         }
 
-        .metric-card:hover {
+        .summary-card:hover {
             transform: translateY(-3px);
             background: rgba(255, 255, 255, 0.08);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
 
-        .metric-label {
-            font-size: 0.85rem;
+        .summary-label {
+            font-size: 0.8rem;
             color: rgba(255, 255, 255, 0.6);
             margin-bottom: 8px;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
 
-        .metric-value {
-            font-size: 2rem;
+        .summary-value {
+            font-size: 1.8rem;
             font-weight: 800;
             background: linear-gradient(135deg, #fff, rgba(255, 255, 255, 0.8));
             -webkit-background-clip: text;
@@ -141,43 +175,38 @@
             margin-bottom: 5px;
         }
 
-        .metric-date {
-            font-size: 0.75rem;
-            color: rgba(255, 255, 255, 0.4);
+        /* Category Tabs */
+        .tabs-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 10px;
+            margin-bottom: 25px;
+            overflow-x: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
         }
 
-        .metric-change {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-top: 5px;
+        .tabs-container::-webkit-scrollbar {
+            height: 6px;
         }
 
-        .positive {
-            background: rgba(74, 222, 128, 0.2);
-            color: #4ade80;
+        .tabs-container::-webkit-scrollbar-track {
+            background: transparent;
         }
 
-        .negative {
-            background: rgba(248, 113, 113, 0.2);
-            color: #f87171;
+        .tabs-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
         }
 
-        /* Categories */
         .category-tabs {
             display: flex;
             gap: 10px;
-            margin-bottom: 25px;
-            padding: 5px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-            overflow-x: auto;
+            min-width: fit-content;
         }
 
-        .category-tab {
+        .tab {
             padding: 12px 20px;
             background: transparent;
             border: none;
@@ -190,19 +219,28 @@
             white-space: nowrap;
         }
 
-        .category-tab:hover {
+        .tab:hover {
             color: #fff;
             background: rgba(255, 255, 255, 0.05);
         }
 
-        .category-tab.active {
+        .tab.active {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: #fff;
         }
 
-        /* Search */
-        .search-box {
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 20px;
             margin-bottom: 25px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 300px;
         }
 
         .search-input {
@@ -226,10 +264,31 @@
             border-color: #667eea;
         }
 
+        .btn {
+            padding: 15px 25px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         /* Series Grid */
         .series-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 20px;
             margin-bottom: 30px;
         }
@@ -237,7 +296,7 @@
         .series-card {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
-            border-radius: 15px;
+            border-radius: 12px;
             padding: 20px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             transition: all 0.3s ease;
@@ -252,7 +311,7 @@
             top: 0;
             left: 0;
             width: 100%;
-            height: 3px;
+            height: 2px;
             background: linear-gradient(90deg, #667eea, #764ba2);
             transform: scaleX(0);
             transition: transform 0.3s ease;
@@ -263,116 +322,73 @@
         }
 
         .series-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-3px);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
 
-        .series-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: start;
-            margin-bottom: 15px;
-        }
-
         .series-id {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: #667eea;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
         }
 
         .series-name {
-            font-size: 1.1rem;
+            font-size: 0.95rem;
             font-weight: 600;
             color: #fff;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            min-height: 40px;
+            line-height: 1.3;
         }
 
         .series-value {
             font-size: 1.8rem;
             font-weight: 800;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             background: linear-gradient(135deg, #fff, rgba(255, 255, 255, 0.8));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
         .series-date {
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             color: rgba(255, 255, 255, 0.5);
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
-        .sparkline {
-            height: 40px;
-            margin-top: 10px;
-            opacity: 0.7;
+        .series-changes {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
         }
 
-        /* Chart Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(5px);
-            z-index: 1000;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .modal.active {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-content {
-            background: linear-gradient(135deg, #1a1f2e, #0f1419);
-            border-radius: 20px;
-            padding: 30px;
-            max-width: 90%;
-            max-height: 90%;
-            overflow: auto;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-        }
-
-        .modal-header {
+        .change-item {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
+            padding: 4px 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
         }
 
-        .modal-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #fff;
+        .change-label {
+            color: rgba(255, 255, 255, 0.6);
         }
 
-        .close-btn {
-            background: transparent;
-            border: none;
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 2rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
+        .positive {
+            color: #4ade80;
         }
 
-        .close-btn:hover {
-            color: #fff;
-            transform: rotate(90deg);
+        .negative {
+            color: #f87171;
         }
 
-        #chart-container {
-            width: 100%;
-            height: 400px;
-            margin-top: 20px;
+        .neutral {
+            color: rgba(255, 255, 255, 0.5);
         }
 
         /* Loading */
@@ -392,13 +408,86 @@
             margin: 20px auto;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        /* Stats Overview */
+        .stats-overview {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 5px;
+        }
+
+        /* Modal for detailed view */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1a1a2e, #0f0f1e);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .close-btn:hover {
+            color: #fff;
         }
 
         @media (max-width: 768px) {
@@ -410,20 +499,25 @@
                 grid-template-columns: 1fr;
             }
             
-            .metrics-row {
-                grid-template-columns: 1fr;
+            .summary-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
     </style>
 </head>
 <body>
     <div class="dashboard">
+        <!-- Update Notification -->
+        <div class="update-notification" id="update-notification">
+            🔄 Data refreshed successfully!
+        </div>
+
         <!-- Header -->
         <div class="header">
             <div class="header-content">
                 <div>
-                    <h1 class="title">Fed Data Terminal</h1>
-                    <div class="subtitle">Global Central Bank & Economic Intelligence System</div>
+                    <h1 class="title">Fed Liquidity Terminal</h1>
+                    <div class="subtitle">Complete Economic Intelligence - 252 Live Indicators</div>
                 </div>
                 <div class="status-bar">
                     <div class="status-pill">
@@ -431,458 +525,798 @@
                         <span id="api-status">Connecting...</span>
                     </div>
                     <div class="status-pill">
-                        <span id="series-count">48 Series</span>
+                        <span id="series-count">252 Indicators</span>
                     </div>
                     <div class="status-pill">
                         <span id="last-update">--:--</span>
+                    </div>
+                    <div class="status-pill">
+                        <span id="next-update">Next: --</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Key Metrics -->
-        <div class="metrics-row" id="key-metrics">
-            <div class="metric-card" onclick="loadSeriesData('WALCL')">
-                <div class="metric-label">Fed Balance Sheet</div>
-                <div class="metric-value" id="walcl-value">--</div>
-                <div class="metric-date" id="walcl-date">--</div>
+        <!-- Stats Overview -->
+        <div class="stats-overview">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="total-loaded">0</div>
+                    <div class="stat-label">Indicators Loaded</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="positive-count">0</div>
+                    <div class="stat-label">Positive Week</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="negative-count">0</div>
+                    <div class="stat-label">Negative Week</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="avg-change">0%</div>
+                    <div class="stat-label">Avg Week Change</div>
+                </div>
             </div>
-            <div class="metric-card" onclick="loadSeriesData('JPNASSETS')">
-                <div class="metric-label">Japan CB Assets</div>
-                <div class="metric-value" id="jpn-value">--</div>
-                <div class="metric-date" id="jpn-date">--</div>
-            </div>
-            <div class="metric-card" onclick="loadSeriesData('ECBASSETSW')">
-                <div class="metric-label">ECB Total Assets</div>
-                <div class="metric-value" id="ecb-value">--</div>
-                <div class="metric-date" id="ecb-date">--</div>
-            </div>
-            <div class="metric-card" onclick="loadSeriesData('WRESBAL')">
-                <div class="metric-label">Reserve Balances</div>
-                <div class="metric-value" id="reserves-value">--</div>
-                <div class="metric-date" id="reserves-date">--</div>
-            </div>
-            <div class="metric-card" onclick="loadSeriesData('SP500')">
-                <div class="metric-label">S&P 500</div>
-                <div class="metric-value" id="sp500-value">--</div>
-                <div class="metric-date" id="sp500-date">--</div>
-            </div>
-            <div class="metric-card" onclick="loadSeriesData('VIXCLS')">
-                <div class="metric-label">VIX Index</div>
-                <div class="metric-value" id="vix-value">--</div>
-                <div class="metric-date" id="vix-date">--</div>
+        </div>
+
+        <!-- Key Metrics Summary -->
+        <div class="summary-grid" id="summary-grid">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading key metrics...</p>
             </div>
         </div>
 
         <!-- Category Tabs -->
-        <div class="category-tabs">
-            <button class="category-tab active" onclick="filterByCategory('all')">All (48)</button>
-            <button class="category-tab" onclick="filterByCategory('central-banks')">Central Banks</button>
-            <button class="category-tab" onclick="filterByCategory('liquidity')">Liquidity</button>
-            <button class="category-tab" onclick="filterByCategory('federal-reserve')">Federal Reserve</button>
-            <button class="category-tab" onclick="filterByCategory('money-supply')">Money Supply</button>
-            <button class="category-tab" onclick="filterByCategory('economic')">Economic</button>
-            <button class="category-tab" onclick="filterByCategory('markets')">Markets</button>
+        <div class="tabs-container">
+            <div class="category-tabs">
+                <button class="tab active" onclick="showCategory('all')">All 252 Indicators</button>
+                <button class="tab" onclick="showCategory('summary')">Summary (12)</button>
+                <button class="tab" onclick="showCategory('federal_reserve')">Federal Reserve</button>
+                <button class="tab" onclick="showCategory('money_supply')">Money Supply</button>
+                <button class="tab" onclick="showCategory('treasury')">Treasury Rates</button>
+                <button class="tab" onclick="showCategory('corporate')">Corporate Bonds</button>
+                <button class="tab" onclick="showCategory('volatility')">Volatility</button>
+                <button class="tab" onclick="showCategory('currencies')">Currencies</button>
+                <button class="tab" onclick="showCategory('commodities')">Commodities</button>
+                <button class="tab" onclick="showCategory('liquidity')">Liquidity</button>
+                <button class="tab" onclick="showCategory('economic')">Economic</button>
+                <button class="tab" onclick="showCategory('stress')">Bank Stress</button>
+            </div>
         </div>
 
-        <!-- Search -->
-        <div class="search-box">
-            <input type="text" class="search-input" id="search-input" 
-                   placeholder="Search series by code or name..." 
-                   oninput="searchSeries()">
+        <!-- Controls -->
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" class="search-input" id="search-input" 
+                       placeholder="Search 252 indicators by code or name..." 
+                       oninput="searchSeries()">
+            </div>
+            <button class="btn" onclick="refreshAll()" id="refresh-btn">🔄 Refresh All</button>
+            <button class="btn" onclick="exportData()">📊 Export Data</button>
+            <button class="btn" onclick="toggleAutoUpdate()" id="auto-update-btn">⏸️ Pause Auto</button>
         </div>
 
         <!-- Series Grid -->
         <div class="series-grid" id="series-grid">
             <div class="loading">
                 <div class="spinner"></div>
-                <p>Loading series data...</p>
+                <p>Loading all 252 indicators...</p>
+            </div>
+        </div>
+
+        <!-- Modal for detailed view -->
+        <div class="modal" id="detail-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title" id="modal-title">Indicator Details</h2>
+                    <button class="close-btn" onclick="closeModal()">&times;</button>
+                </div>
+                <div id="modal-body"></div>
             </div>
         </div>
     </div>
 
-    <!-- Chart Modal -->
-    <div class="modal" id="chart-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title" id="modal-title">Series Data</h2>
-                <button class="close-btn" onclick="closeModal()">&times;</button>
-            </div>
-            <canvas id="chart-container"></canvas>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        const API_URL = 'https://3g3r3xf0nb.execute-api.us-east-1.amazonaws.com/prod';
+        const API_URL = 'https://occdgwanqvbjd2qnnuyafvkvei0ptinb.lambda-url.us-east-1.on.aws';
         
-        let allSeries = {};
+        // Data storage
+        let allIndicators = {};
+        let summaryData = {};
+        let fullData = {};
         let currentCategory = 'all';
-        let chartInstance = null;
+        let categoriesData = {};
+        let autoUpdateEnabled = true;
+        let updateInterval;
         
-        // Series categories
-        const CATEGORIES = {
-            'central-banks': ['JPNASSETS', 'ECBASSETSW', 'BSFGLV02EZM460S', 'BSOBLV02EZM460S'],
-            'liquidity': ['SWP1690', 'OTHL1690', 'REP1690', 'RREP15', 'OTHL15', 'SWP15', 'OTHL91T1Y'],
-            'federal-reserve': ['WALCL', 'WRESBAL', 'NONBORRES', 'TOTRESNS'],
-            'money-supply': ['M2SL', 'RMFSL'],
-            'economic': ['GDP', 'CPIAUCSL', 'UNRATE', 'MNFCTRIRSA', 'ISRATIO', 'REVOLSL'],
-            'markets': ['SP500', 'VIXCLS', 'DTWEXBGS', 'T10YIE', 'IGREA']
-        };
-        
-        // Series metadata
-        const SERIES_INFO = {
-            'RESPPALGUOXAWXCH52NWW': { name: 'Reserve Position All Other', unit: 'Millions USD' },
-            'RESPPALGUONNWW': { name: 'Reserve Position ON', unit: 'Millions USD' },
-            'SWP1690': { name: 'Swap Lines 1690', unit: 'Millions USD' },
-            'OTHL1690': { name: 'Other Liquidity 1690', unit: 'Millions USD' },
-            'SUBLPDCISTQNQ': { name: 'Subordinated Debt', unit: 'Billions USD' },
-            'DRISCFLM': { name: 'Discount Rate FLM', unit: 'Percent' },
-            'RMFSL': { name: 'Reserve Money Supply', unit: 'Billions USD' },
-            'SBCACBW027SBOG': { name: 'Small Bank Credit', unit: 'Billions USD' },
-            'RREP15': { name: 'Reverse Repo 15', unit: 'Millions USD' },
-            'OTHL15': { name: 'Other Liquidity 15', unit: 'Millions USD' },
-            'RESH4MFNWW': { name: 'Reserve H4', unit: 'Millions USD' },
-            'BOGZ1FL663067003Q': { name: 'Flow of Funds', unit: 'Billions USD' },
-            'RESPPNTEPNWW': { name: 'Reserve Position NTE', unit: 'Millions USD' },
-            'OTHL91T1Y': { name: 'Other Liquidity 91T1Y', unit: 'Millions USD' },
-            'SWP15': { name: 'Swap Lines 15', unit: 'Millions USD' },
-            'RESPPALGUMDXCH1NWW': { name: 'Reserve Position MX', unit: 'Millions USD' },
-            'REP1690': { name: 'Repo 1690', unit: 'Millions USD' },
-            'JPNASSETS': { name: 'Japan Central Bank Assets', unit: 'Millions JPY' },
-            'ECBASSETSW': { name: 'ECB Total Assets', unit: 'Millions EUR' },
-            'BSFGLV02EZM460S': { name: 'ECB Balance Sheet FG', unit: 'Millions EUR' },
-            'BSOBLV02EZM460S': { name: 'ECB Other Liabilities', unit: 'Millions EUR' },
-            'WALCL': { name: 'Fed Total Assets', unit: 'Millions USD' },
-            'WRESBAL': { name: 'Reserve Balances', unit: 'Billions USD' },
-            'NONBORRES': { name: 'Non-Borrowed Reserves', unit: 'Billions USD' },
-            'TOTRESNS': { name: 'Total Reserves', unit: 'Billions USD' },
-            'M2SL': { name: 'M2 Money Supply', unit: 'Billions USD' },
-            'G7LOLITOAASTSA': { name: 'G7 Central Banks Assets', unit: 'Index' },
-            'GDP': { name: 'Gross Domestic Product', unit: 'Billions USD' },
-            'CPIAUCSL': { name: 'Consumer Price Index', unit: 'Index' },
-            'UNRATE': { name: 'Unemployment Rate', unit: 'Percent' },
-            'MNFCTRIRSA': { name: 'Manufacturing IR', unit: 'Index' },
-            'ISRATIO': { name: 'Inventory Sales Ratio', unit: 'Ratio' },
-            'REVOLSL': { name: 'Revolving Credit', unit: 'Billions USD' },
-            'RETAILIMSA': { name: 'Retail Imports SA', unit: 'Millions USD' },
-            'INTGSTMXM193N': { name: 'Interest Rate MX', unit: 'Percent' },
-            'AMERIBOR': { name: 'AMERIBOR Rate', unit: 'Percent' },
-            'SP500': { name: 'S&P 500 Index', unit: 'Index' },
-            'VIXCLS': { name: 'VIX Volatility Index', unit: 'Index' },
-            'DTWEXBGS': { name: 'US Dollar Index', unit: 'Index' },
-            'T10YIE': { name: '10-Year Inflation Expectation', unit: 'Percent' },
-            'IGREA': { name: 'IG Real Estate', unit: 'Index' },
-            'DFF': { name: 'Federal Funds Rate', unit: 'Percent' },
-            'DGS10': { name: '10-Year Treasury', unit: 'Percent' },
-            'TREAS911Y': { name: 'Treasury 911Y', unit: 'Millions USD' },
-            'TREAS1590': { name: 'Treasury 1590', unit: 'Millions USD' },
-            'MABMM301EZM189S': { name: 'Money Market EU', unit: 'Millions EUR' },
-            'MABMM301JPM189S': { name: 'Money Market JP', unit: 'Millions JPY' },
-            'DRISCFS': { name: 'Discount Rate FS', unit: 'Percent' }
+        // All 252 indicators organized by category
+        const INDICATOR_CATEGORIES = {
+            federal_reserve: ['WALCL', 'RRPONTSYD', 'WTREGEN', 'BOGMBASE', 'BOGMBBM', 'WCURCIR', 'CURRCIR', 'TOTRESNS', 'WRBWFRBL', 'WREPODEL', 'WREPOFOR'],
+            money_supply: ['M1SL', 'M2SL', 'M1NS', 'M2NS', 'CURRNS', 'M1V', 'M2V', 'MZMSL', 'SAVINGS', 'DPSACBW027SBOG'],
+            treasury: ['DGS1MO', 'DGS3MO', 'DGS6MO', 'DGS1', 'DGS2', 'DGS3', 'DGS5', 'DGS7', 'DGS10', 'DGS20', 'DGS30'],
+            spreads: ['T10Y2Y', 'T10Y3M', 'T30Y10Y', 'T5YIE', 'T10YIE', 'T5YIFR', 'TEDRATE', 'TB3SMFFM'],
+            bond_stress: ['MORTGAGE30US', 'MORTGAGE15US', 'DPRIME', 'TB3MS', 'TB6MS', 'RIFLGFCY10', 'RIFLGFCY05', 'DFII10', 'DFII5', 'DFII30'],
+            corporate: ['AAA10Y', 'BAA10Y', 'HQMCB10YR', 'HQMCB20YR', 'HQMCB30YR', 'BAMLC0A1CAAA', 'BAMLC0A2CAA', 'BAMLC0A3CA', 'BAMLC0A4CBBB', 'BAMLH0A0HYM2', 'BAMLH0A0HYM2EY', 'BAMLC0A0CM', 'BAMLC0A0CMEY', 'DAAA', 'DBAA'],
+            emerging: ['BAMLEMCBPIOAS', 'BAMLEMHYHYCEY', 'EMLC', 'DEXKOUS', 'DEXMXUS', 'DEXBZUS', 'DEXINUS', 'DEXSFUS'],
+            stress: ['DRTSCIS', 'DRTSCILM', 'SUBLPDRCILM', 'DRTSCLCC', 'STLFSI3', 'NFCI', 'ANFCI'],
+            liquidity: ['WLRRAL', 'IOER', 'IORB', 'SOFR', 'OBFR', 'EFFR', 'DFF', 'RRPONTTLD', 'RPONTSYD'],
+            volatility: ['VIXCLS', 'VXVCLS', 'OVXCLS', 'GVZCLS', 'EVZCLS', 'RVXCLS', 'TYVIX', 'SRVIX'],
+            currencies: ['DTWEXBGS', 'DTWEXAFEGS', 'DTWEXEMEGS', 'DEXUSEU', 'DEXJPUS', 'DEXUSUK', 'DEXCHUS', 'DEXSZUS', 'DEXCAUS', 'DEXUSAL'],
+            commodities: ['DCOILWTICO', 'DCOILBRENTEU', 'GASREGW', 'DHHNGSP', 'GOLDAMGBD228NLBM'],
+            economic: ['DSPIC96', 'GFDEBTN', 'GFDEGDQ188S', 'FYGFD', 'FDHBFIN', 'FYGFGDN', 'GDP', 'CPIAUCSL', 'UNRATE', 'MNFCTRIRSA', 'ISRATIO', 'REVOLSL', 'RETAILIMSA', 'INTGSTMXM193N', 'AMERIBOR'],
+            policy: ['DFEDTARU', 'DFEDTARL'],
+            leverage: ['NFCINONFINLEVERAGE', 'NFCILEVERAGE', 'NFCICREDIT', 'NFCIRISK'],
+            special_liquidity: ['RESPPALGUOXAWXCH52NWW', 'RESPPALGUONNWW', 'SWP1690', 'OTHL1690', 'SUBLPDCISTQNQ', 'DRISCFLM', 'RMFSL', 'SBCACBW027SBOG', 'RREP15', 'OTHL15', 'RESH4MFNWW', 'BOGZ1FL663067003Q', 'RESPPNTEPNWW', 'OTHL91T1Y', 'SWP15', 'RESPPALGUMDXCH1NWW', 'REP1690'],
+            central_banks: ['JPNASSETS', 'ECBASSETSW', 'BSFGLV02EZM460S', 'BSOBLV02EZM460S'],
+            fed_reserve_data: ['WRESBAL', 'NONBORRES', 'G7LOLITOAASTSA', 'RESBALNS', 'WLCFLPCL', 'WUDSN', 'WGCAL', 'WORAL', 'WSHOSL', 'WSHOMCB', 'WUSDL', 'WGCSL', 'TERMT', 'PDCBL', 'CPCRL', 'MMMFL', 'PPPCRL', 'MSNLFL', 'SMCCFL', 'MLFL', 'WCURFSL', 'REQRESNS', 'EXCSRESNS', 'WACBS', 'WLCFLL', 'WSHOTS', 'WLODLL', 'WDTGAL', 'WDPSAL', 'BUSLOANS', 'REALLN', 'CONSUMER', 'RBSRESNS', 'RBLRESNS', 'CASACBW027SBOG', 'TLAACBW027SBOG', 'CPLTTLL', 'MMMFFASW', 'WDCRL', 'WAML', 'WLCFPCL', 'WOBLAL', 'RESPPLLOPNWW', 'H41RESPPLOPNNWW', 'WGSEC', 'WIMFSL', 'WACBSL', 'WIMFCL', 'WGCRL', 'DPCREDIT'],
+            market: ['SP500', 'IGREA'],
+            treasury_mm: ['TREAS911Y', 'TREAS1590', 'MABMM301EZM189S', 'MABMM301JPM189S', 'DRISCFS'],
+            hqm_spot: ['HQMCB01YR', 'HQMCB02YR', 'HQMCB03YR', 'HQMCB04YR', 'HQMCB05YR', 'HQMCB06YR', 'HQMCB07YR', 'HQMCB08YR', 'HQMCB09YR', 'HQMCB11YR', 'HQMCB12YR', 'HQMCB13YR', 'HQMCB14YR', 'HQMCB15YR', 'HQMCB16YR', 'HQMCB17YR', 'HQMCB18YR', 'HQMCB19YR', 'HQMCB21YR', 'HQMCB22YR', 'HQMCB23YR', 'HQMCB24YR', 'HQMCB25YR', 'HQMCB26YR', 'HQMCB27YR', 'HQMCB28YR', 'HQMCB29YR', 'HQMCB40YR', 'HQMCB50YR', 'HQMCB60YR', 'HQMCB70YR', 'HQMCB80YR', 'HQMCB90YR', 'HQMCB100YR'],
+            hqm_par: ['HQMCB1YRP', 'HQMCB5YRP', 'HQMCB10YRP', 'HQMCB15YRP', 'HQMCB20YRP', 'HQMCB25YRP', 'HQMCB30YRP']
         };
 
+        // Summary indicators (12 key metrics)
+        const SUMMARY_INDICATORS = ['WALCL', 'RESBALNS', 'RRPONTSYD', 'M2SL', 'DFF', 'DGS10', 'VIXCLS', 'DTWEXBGS', 'SP500', 'STLFSI3', 'T10Y2Y', 'BAMLH0A0HYM2'];
+
+        // Initialize on page load
         async function init() {
             try {
                 document.getElementById('api-status').textContent = 'Loading...';
                 
-                // Fetch series list
-                const response = await fetch(`${API_URL}?series=list`);
-                const data = await response.json();
-                
-                if (data.series) {
-                    await loadKeyMetrics();
-                    displayAllSeries(data.series);
-                }
+                // Load all data
+                await loadAllData();
                 
                 document.getElementById('api-status').textContent = 'Live';
-                document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+                updateTimestamp();
+                
+                // Setup auto-update
+                setupAutoUpdate();
+                
+                // Update stats
+                updateStats();
                 
             } catch (error) {
-                console.error('Error:', error);
+                console.error('Error initializing:', error);
                 document.getElementById('api-status').textContent = 'Error';
             }
         }
 
-        async function loadKeyMetrics() {
-            const keyMetrics = [
-                { id: 'WALCL', elementId: 'walcl' },
-                { id: 'JPNASSETS', elementId: 'jpn' },
-                { id: 'ECBASSETSW', elementId: 'ecb' },
-                { id: 'WRESBAL', elementId: 'reserves' },
-                { id: 'SP500', elementId: 'sp500' },
-                { id: 'VIXCLS', elementId: 'vix' }
-            ];
+        async function loadAllData() {
+            try {
+                // First load the full list of indicators
+                const allResponse = await fetch(`${API_URL}/?series=all`);
+                const allData = await allResponse.json();
+                
+                if (allData.series) {
+                    allIndicators = allData.series;
+                    document.getElementById('series-count').textContent = `${Object.keys(allIndicators).length} Indicators`;
+                }
+                
+                // Load summary data
+                const summaryResponse = await fetch(`${API_URL}/?series=summary`);
+                const summaryResult = await summaryResponse.json();
+                
+                if (summaryResult.summary) {
+                    summaryData = summaryResult.summary;
+                    displaySummary();
+                }
+                
+                // Load all indicators with batch requests
+                await loadAllIndicatorData();
+                
+                // Display current view
+                displayCurrentView();
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+                showNotification('Failed to load data', 'error');
+            }
+        }
+
+        async function loadAllIndicatorData() {
+            const batchSize = 20;
+            const allCodes = Object.keys(allIndicators);
             
-            for (const metric of keyMetrics) {
+            for (let i = 0; i < allCodes.length; i += batchSize) {
+                const batch = allCodes.slice(i, i + batchSize);
+                const batchString = batch.join(',');
+                
                 try {
-                    const response = await fetch(`${API_URL}?series=${metric.id}`);
+                    const response = await fetch(`${API_URL}/?series=batch&list=${batchString}`);
                     const data = await response.json();
                     
-                    if (data.latest_value !== undefined) {
-                        allSeries[metric.id] = data;
-                        
-                        const value = formatValue(data.latest_value, metric.id);
-                        document.getElementById(`${metric.elementId}-value`).textContent = value;
-                        document.getElementById(`${metric.elementId}-date`).textContent = formatDate(data.latest_date);
-                        
-                        // Calculate change
-                        if (data.data && data.data.length > 1) {
-                            const change = ((data.data[0].value - data.data[1].value) / data.data[1].value * 100).toFixed(2);
-                            const changeElement = document.createElement('div');
-                            changeElement.className = `metric-change ${change >= 0 ? 'positive' : 'negative'}`;
-                            changeElement.textContent = `${change >= 0 ? '↑' : '↓'} ${Math.abs(change)}%`;
-                            document.getElementById(`${metric.elementId}-date`).parentNode.appendChild(changeElement);
-                        }
-                    }
+                    // Store the data
+                    Object.assign(fullData, data);
+                    
+                    // Update progress
+                    const progress = Math.min(100, ((i + batchSize) / allCodes.length) * 100);
+                    document.getElementById('total-loaded').textContent = Math.min(i + batchSize, allCodes.length);
+                    
                 } catch (error) {
-                    console.error(`Error loading ${metric.id}:`, error);
+                    console.error(`Error loading batch ${i}:`, error);
                 }
             }
         }
 
-        function displayAllSeries(seriesList) {
+        function displaySummary() {
+            const grid = document.getElementById('summary-grid');
+            let html = '';
+            
+            for (const code of SUMMARY_INDICATORS) {
+                const data = summaryData[code] || fullData[code];
+                if (data) {
+                    html += createSummaryCard(code, data);
+                }
+            }
+            
+            grid.innerHTML = html;
+        }
+
+        function createSummaryCard(code, data) {
+            const changes = calculateAllChanges(data);
+            
+            return `
+                <div class="summary-card" onclick="showDetails('${code}')">
+                    <div class="summary-label">${code}</div>
+                    <div class="summary-value">${formatValue(data.latest_value, code)}</div>
+                    <div class="series-changes">
+                        <div class="change-item">
+                            <span class="change-label">W:</span>
+                            <span class="${changes.week >= 0 ? 'positive' : 'negative'}">
+                                ${changes.week >= 0 ? '+' : ''}${changes.week.toFixed(2)}%
+                            </span>
+                        </div>
+                        <div class="change-item">
+                            <span class="change-label">M:</span>
+                            <span class="${changes.month >= 0 ? 'positive' : 'negative'}">
+                                ${changes.month >= 0 ? '+' : ''}${changes.month.toFixed(2)}%
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function displayCurrentView() {
+            if (currentCategory === 'all') {
+                displayAllIndicators();
+            } else if (currentCategory === 'summary') {
+                displaySummaryView();
+            } else {
+                displayCategoryIndicators(currentCategory);
+            }
+        }
+
+        function displayAllIndicators() {
             const grid = document.getElementById('series-grid');
             let html = '';
             
-            const filteredSeries = filterSeriesByCategory(seriesList);
+            // Display all 252 indicators
+            for (const [code, name] of Object.entries(allIndicators)) {
+                const data = fullData[code] || summaryData[code] || { name };
+                html += createSeriesCard(code, data);
+            }
             
-            for (const seriesId of filteredSeries) {
-                const info = SERIES_INFO[seriesId] || { name: seriesId, unit: 'Value' };
-                const cachedData = allSeries[seriesId];
-                
-                html += `
-                    <div class="series-card" onclick="loadSeriesData('${seriesId}')" id="card-${seriesId}">
-                        <div class="series-header">
-                            <div>
-                                <div class="series-id">${seriesId}</div>
-                                <div class="series-name">${info.name}</div>
-                            </div>
+            grid.innerHTML = html || '<div class="loading">Loading indicators...</div>';
+            updateStats();
+        }
+
+        function displaySummaryView() {
+            const grid = document.getElementById('series-grid');
+            let html = '';
+            
+            for (const code of SUMMARY_INDICATORS) {
+                const data = summaryData[code] || fullData[code];
+                if (data) {
+                    html += createSeriesCard(code, data);
+                }
+            }
+            
+            grid.innerHTML = html;
+        }
+
+        function displayCategoryIndicators(category) {
+            const grid = document.getElementById('series-grid');
+            let html = '';
+            
+            const indicators = INDICATOR_CATEGORIES[category] || [];
+            
+            for (const code of indicators) {
+                const data = fullData[code] || summaryData[code] || { name: allIndicators[code] };
+                html += createSeriesCard(code, data);
+            }
+            
+            grid.innerHTML = html || '<div class="loading">No indicators in this category</div>';
+        }
+
+        function createSeriesCard(code, data) {
+            const value = data.latest_value !== undefined ? formatValue(data.latest_value, code) : '--';
+            const date = data.latest_date || '--';
+            const name = data.name || allIndicators[code] || code;
+            const changes = calculateAllChanges(data);
+            
+            return `
+                <div class="series-card" onclick="showDetails('${code}')">
+                    <div class="series-id">${code}</div>
+                    <div class="series-name" title="${name}">${name}</div>
+                    <div class="series-value">${value}</div>
+                    <div class="series-date">Last: ${formatDate(date)}</div>
+                    <div class="series-changes">
+                        <div class="change-item">
+                            <span class="change-label">Week:</span>
+                            <span class="${changes.week >= 0 ? 'positive' : 'negative'}">
+                                ${changes.week >= 0 ? '+' : ''}${changes.week.toFixed(2)}%
+                            </span>
                         </div>
-                        <div class="series-value" id="${seriesId}-value">
-                            ${cachedData ? formatValue(cachedData.latest_value, seriesId) : 'Loading...'}
+                        <div class="change-item">
+                            <span class="change-label">Month:</span>
+                            <span class="${changes.month >= 0 ? 'positive' : 'negative'}">
+                                ${changes.month >= 0 ? '+' : ''}${changes.month.toFixed(2)}%
+                            </span>
                         </div>
-                        <div class="series-date" id="${seriesId}-date">
-                            ${cachedData ? formatDate(cachedData.latest_date) : '--'}
+                        <div class="change-item">
+                            <span class="change-label">Quarter:</span>
+                            <span class="${changes.quarter >= 0 ? 'positive' : 'negative'}">
+                                ${changes.quarter >= 0 ? '+' : ''}${changes.quarter.toFixed(2)}%
+                            </span>
+                        </div>
+                        <div class="change-item">
+                            <span class="change-label">Year:</span>
+                            <span class="${changes.year >= 0 ? 'positive' : 'negative'}">
+                                ${changes.year >= 0 ? '+' : ''}${changes.year.toFixed(2)}%
+                            </span>
                         </div>
                     </div>
-                `;
+                </div>
+            `;
+        }
+
+        function calculateAllChanges(data) {
+            const changes = {
+                week: 0,
+                month: 0,
+                quarter: 0,
+                year: 0
+            };
+            
+            if (!data || !data.data || !Array.isArray(data.data)) {
+                // Use provided changes if available
+                if (data.week_change !== undefined) changes.week = data.week_change;
+                if (data.month_change !== undefined) changes.month = data.month_change;
+                return changes;
             }
             
-            grid.innerHTML = html || '<div class="loading">No series found</div>';
+            const sortedData = data.data.sort((a, b) => new Date(b.date) - new Date(a.date));
+            const latest = sortedData[0];
+            if (!latest) return changes;
             
-            // Load data for visible series that don't have data yet
-            setTimeout(() => {
-                loadVisibleSeriesData(filteredSeries);
-            }, 100);
-        }
-        
-        async function loadVisibleSeriesData(seriesList) {
-            // Load data for all series that are visible and don't have data
-            for (const seriesId of seriesList) {
-                if (!allSeries[seriesId]) {
-                    try {
-                        const response = await fetch(`${API_URL}?series=${seriesId}`);
-                        const data = await response.json();
-                        
-                        if (data.latest_value !== undefined) {
-                            allSeries[seriesId] = data;
-                            
-                            // Update the card display
-                            const valueEl = document.getElementById(`${seriesId}-value`);
-                            const dateEl = document.getElementById(`${seriesId}-date`);
-                            
-                            if (valueEl) {
-                                valueEl.textContent = formatValue(data.latest_value, seriesId);
-                                
-                                // Add change indicator
-                                if (data.data && data.data.length > 1) {
-                                    const change = ((data.data[0].value - data.data[1].value) / data.data[1].value * 100);
-                                    if (!isNaN(change) && isFinite(change)) {
-                                        const changeSpan = document.createElement('span');
-                                        changeSpan.style.marginLeft = '10px';
-                                        changeSpan.style.fontSize = '0.9rem';
-                                        changeSpan.style.color = change >= 0 ? '#4ade80' : '#f87171';
-                                        changeSpan.textContent = `${change >= 0 ? '↑' : '↓'} ${Math.abs(change).toFixed(2)}%`;
-                                        valueEl.appendChild(changeSpan);
-                                    }
-                                }
-                            }
-                            if (dateEl) dateEl.textContent = formatDate(data.latest_date);
-                        }
-                    } catch (error) {
-                        console.error(`Error loading ${seriesId}:`, error);
-                        const valueEl = document.getElementById(`${seriesId}-value`);
-                        if (valueEl) valueEl.textContent = 'Error';
-                    }
+            const latestDate = new Date(latest.date);
+            const latestValue = parseFloat(latest.value);
+            
+            // Calculate changes for different periods
+            const periods = {
+                week: 7,
+                month: 30,
+                quarter: 90,
+                year: 365
+            };
+            
+            for (const [period, days] of Object.entries(periods)) {
+                const targetDate = new Date(latestDate);
+                targetDate.setDate(targetDate.getDate() - days);
+                
+                // Find the closest data point to target date
+                let closestData = null;
+                let minDiff = Infinity;
+                
+                for (const point of sortedData) {
+                    const pointDate = new Date(point.date);
+                    const diff = Math.abs(pointDate - targetDate);
                     
-                    // Small delay between requests to avoid overwhelming the API
-                    await new Promise(resolve => setTimeout(resolve, 100));
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        closestData = point;
+                    }
+                }
+                
+                if (closestData && closestData.value) {
+                    const oldValue = parseFloat(closestData.value);
+                    if (oldValue !== 0) {
+                        changes[period] = ((latestValue - oldValue) / oldValue) * 100;
+                    }
                 }
             }
-        }
-
-        function filterSeriesByCategory(seriesList) {
-            if (currentCategory === 'all') return seriesList;
             
-            const categorySeriesList = CATEGORIES[currentCategory] || [];
-            return seriesList.filter(s => categorySeriesList.includes(s));
+            return changes;
         }
 
-        function filterByCategory(category) {
+        async function showCategory(category) {
             currentCategory = category;
-            document.querySelectorAll('.category-tab').forEach(tab => {
+            
+            // Update tab states
+            document.querySelectorAll('.tab').forEach(tab => {
                 tab.classList.remove('active');
-                if (tab.textContent.toLowerCase().includes(category.replace('-', ' '))) {
-                    tab.classList.add('active');
-                }
             });
             
-            // Rerender with current series
-            const allSeriesIds = Object.keys(SERIES_INFO);
-            displayAllSeries(allSeriesIds);
+            event.target.classList.add('active');
+            
+            // If we need to load category data
+            if (!fullData[INDICATOR_CATEGORIES[category]?.[0]] && category !== 'all' && category !== 'summary') {
+                const grid = document.getElementById('series-grid');
+                grid.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading category...</p></div>';
+                
+                // Load category data
+                const indicators = INDICATOR_CATEGORIES[category] || [];
+                if (indicators.length > 0) {
+                    const batchString = indicators.join(',');
+                    try {
+                        const response = await fetch(`${API_URL}/?series=batch&list=${batchString}`);
+                        const data = await response.json();
+                        Object.assign(fullData, data);
+                    } catch (error) {
+                        console.error(`Error loading category ${category}:`, error);
+                    }
+                }
+            }
+            
+            displayCurrentView();
+        }
+
+        async function showDetails(code) {
+            const modal = document.getElementById('detail-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalBody = document.getElementById('modal-body');
+            
+            modalTitle.textContent = `${code} - ${allIndicators[code] || code}`;
+            modalBody.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading details...</p></div>';
+            
+            modal.style.display = 'flex';
+            
+            try {
+                // Fetch full data for the indicator
+                const response = await fetch(`${API_URL}/?series=${code}`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    modalBody.innerHTML = `<p style="color: #f87171;">Error: ${data.error}</p>`;
+                    return;
+                }
+                
+                const changes = calculateAllChanges(data);
+                
+                let html = `
+                    <div style="display: grid; gap: 20px;">
+                        <div>
+                            <h3 style="color: #667eea; margin-bottom: 10px;">Current Value</h3>
+                            <div style="font-size: 2rem; font-weight: 800; color: #fff;">
+                                ${formatValue(data.latest_value, code)}
+                            </div>
+                            <div style="color: rgba(255,255,255,0.6); margin-top: 5px;">
+                                As of ${formatDate(data.latest_date)}
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 style="color: #667eea; margin-bottom: 10px;">Percentage Changes</h3>
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                                <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;">
+                                    <div style="color: rgba(255,255,255,0.6); font-size: 0.9rem;">Week</div>
+                                    <div class="${changes.week >= 0 ? 'positive' : 'negative'}" style="font-size: 1.3rem; font-weight: 600;">
+                                        ${changes.week >= 0 ? '+' : ''}${changes.week.toFixed(2)}%
+                                    </div>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;">
+                                    <div style="color: rgba(255,255,255,0.6); font-size: 0.9rem;">Month</div>
+                                    <div class="${changes.month >= 0 ? 'positive' : 'negative'}" style="font-size: 1.3rem; font-weight: 600;">
+                                        ${changes.month >= 0 ? '+' : ''}${changes.month.toFixed(2)}%
+                                    </div>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;">
+                                    <div style="color: rgba(255,255,255,0.6); font-size: 0.9rem;">Quarter</div>
+                                    <div class="${changes.quarter >= 0 ? 'positive' : 'negative'}" style="font-size: 1.3rem; font-weight: 600;">
+                                        ${changes.quarter >= 0 ? '+' : ''}${changes.quarter.toFixed(2)}%
+                                    </div>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;">
+                                    <div style="color: rgba(255,255,255,0.6); font-size: 0.9rem;">Year</div>
+                                    <div class="${changes.year >= 0 ? 'positive' : 'negative'}" style="font-size: 1.3rem; font-weight: 600;">
+                                        ${changes.year >= 0 ? '+' : ''}${changes.year.toFixed(2)}%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        ${data.metadata ? `
+                        <div>
+                            <h3 style="color: #667eea; margin-bottom: 10px;">Metadata</h3>
+                            <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
+                                <p style="margin-bottom: 8px;"><strong>Title:</strong> ${data.metadata.title || 'N/A'}</p>
+                                <p style="margin-bottom: 8px;"><strong>Units:</strong> ${data.metadata.units || 'N/A'}</p>
+                                <p style="margin-bottom: 8px;"><strong>Frequency:</strong> ${data.metadata.frequency || 'N/A'}</p>
+                                <p><strong>Last Updated:</strong> ${data.metadata.last_updated || 'N/A'}</p>
+                            </div>
+                        </div>
+                        ` : ''}
+                        
+                        ${data.data && data.data.length > 0 ? `
+                        <div>
+                            <h3 style="color: #667eea; margin-bottom: 10px;">Recent Data Points</h3>
+                            <div style="max-height: 200px; overflow-y: auto; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
+                                ${data.data.slice(0, 10).map(point => `
+                                    <div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                        <span>${formatDate(point.date)}</span>
+                                        <span style="font-weight: 600;">${formatValue(point.value, code)}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+                
+                modalBody.innerHTML = html;
+                
+            } catch (error) {
+                console.error(`Error loading details for ${code}:`, error);
+                modalBody.innerHTML = `<p style="color: #f87171;">Failed to load details</p>`;
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('detail-modal').style.display = 'none';
         }
 
         function searchSeries() {
             const searchTerm = document.getElementById('search-input').value.toLowerCase();
-            const allSeriesIds = Object.keys(SERIES_INFO);
+            const cards = document.querySelectorAll('.series-card');
             
-            const filtered = allSeriesIds.filter(id => {
-                const info = SERIES_INFO[id];
-                return id.toLowerCase().includes(searchTerm) || 
-                       info.name.toLowerCase().includes(searchTerm);
-            });
-            
-            displayAllSeries(filtered);
-        }
-
-        async function loadSeriesData(seriesId) {
-            try {
-                const response = await fetch(`${API_URL}?series=${seriesId}`);
-                const data = await response.json();
+            let visibleCount = 0;
+            cards.forEach(card => {
+                const code = card.querySelector('.series-id').textContent.toLowerCase();
+                const name = card.querySelector('.series-name').textContent.toLowerCase();
                 
-                if (data.data) {
-                    allSeries[seriesId] = data;
-                    showChart(data);
-                    
-                    // Update card if it exists
-                    const valueEl = document.getElementById(`${seriesId}-value`);
-                    const dateEl = document.getElementById(`${seriesId}-date`);
-                    if (valueEl) valueEl.textContent = formatValue(data.latest_value, seriesId);
-                    if (dateEl) dateEl.textContent = formatDate(data.latest_date);
-                }
-            } catch (error) {
-                console.error('Error loading series:', error);
-            }
-        }
-
-        function showChart(seriesData) {
-            const modal = document.getElementById('chart-modal');
-            const title = document.getElementById('modal-title');
-            const info = SERIES_INFO[seriesData.series] || { name: seriesData.series };
-            
-            title.textContent = `${info.name} (${seriesData.series})`;
-            modal.classList.add('active');
-            
-            // Prepare chart data
-            const chartData = seriesData.data.slice(0, 50).reverse();
-            const labels = chartData.map(d => formatDate(d.date));
-            const values = chartData.map(d => d.value);
-            
-            // Destroy existing chart
-            if (chartInstance) {
-                chartInstance.destroy();
-            }
-            
-            // Create new chart
-            const ctx = document.getElementById('chart-container').getContext('2d');
-            chartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: info.name,
-                        data: values,
-                        borderColor: '#667eea',
-                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                        borderWidth: 2,
-                        pointRadius: 0,
-                        pointHoverRadius: 5,
-                        tension: 0.2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.05)'
-                            },
-                            ticks: {
-                                color: 'rgba(255, 255, 255, 0.7)'
-                            }
-                        },
-                        y: {
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.05)'
-                            },
-                            ticks: {
-                                color: 'rgba(255, 255, 255, 0.7)',
-                                callback: function(value) {
-                                    return formatValue(value, seriesData.series);
-                                }
-                            }
-                        }
-                    }
+                if (code.includes(searchTerm) || name.includes(searchTerm)) {
+                    card.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
                 }
             });
+            
+            // Update count
+            document.getElementById('total-loaded').textContent = visibleCount;
         }
 
-        function closeModal() {
-            document.getElementById('chart-modal').classList.remove('active');
-        }
-
-        function formatValue(value, seriesId) {
+        function formatValue(value, code) {
             if (value === null || value === undefined) return '--';
             
-            const info = SERIES_INFO[seriesId] || {};
             const num = parseFloat(value);
             
-            if (info.unit && info.unit.includes('Percent')) {
-                return num.toFixed(2) + '%';
-            } else if (info.unit && info.unit.includes('Index')) {
-                return num.toFixed(1);
-            } else if (Math.abs(num) >= 1e9) {
-                return (num / 1e9).toFixed(2) + 'T';
-            } else if (Math.abs(num) >= 1e6) {
-                return (num / 1e6).toFixed(2) + 'B';
-            } else if (Math.abs(num) >= 1e3) {
-                return (num / 1e3).toFixed(2) + 'M';
+            // Percentage indicators
+            if (code.includes('RATE') || code.includes('DGS') || code.includes('DFF') || 
+                code.includes('T10Y') || code.includes('T5Y') || code.includes('DPS') ||
+                code.includes('TB3') || code.includes('TB6') || code.includes('MORTGAGE') ||
+                code.includes('DPRIME') || code.includes('DFII') || code.includes('AAA') ||
+                code.includes('BAA') || code.includes('DAAA') || code.includes('DBAA')) {
+                return num.toFixed(3) + '%';
             }
+            
+            // Index values
+            if (code.includes('VIX') || code.includes('VXV') || code.includes('OVX') ||
+                code.includes('GVZ') || code.includes('EVZ') || code.includes('RVX') ||
+                code.includes('TYVIX') || code.includes('SRVIX')) {
+                return num.toFixed(2);
+            }
+            
+            // Currency rates
+            if (code.includes('DEX') || code.includes('DTW')) {
+                return num.toFixed(4);
+            }
+            
+            // Large numbers (in millions/billions/trillions)
+            if (Math.abs(num) >= 1e12) {
+                return (num / 1e12).toFixed(2) + 'T';
+            } else if (Math.abs(num) >= 1e9) {
+                return (num / 1e9).toFixed(2) + 'B';
+            } else if (Math.abs(num) >= 1e6) {
+                return (num / 1e6).toFixed(2) + 'M';
+            } else if (Math.abs(num) >= 1e3) {
+                return (num / 1e3).toFixed(2) + 'K';
+            }
+            
             return num.toFixed(2);
         }
 
         function formatDate(dateStr) {
-            if (!dateStr) return '--';
+            if (!dateStr || dateStr === '--') return '--';
             const date = new Date(dateStr);
-            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            return date.toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric',
+                year: 'numeric'
+            });
+        }
+
+        function updateTimestamp() {
+            const now = new Date();
+            document.getElementById('last-update').textContent = 
+                now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function updateStats() {
+            let positiveCount = 0;
+            let negativeCount = 0;
+            let totalChange = 0;
+            let validCount = 0;
+            
+            for (const data of Object.values(fullData)) {
+                const changes = calculateAllChanges(data);
+                if (changes.week !== 0) {
+                    if (changes.week > 0) positiveCount++;
+                    else negativeCount++;
+                    totalChange += changes.week;
+                    validCount++;
+                }
+            }
+            
+            document.getElementById('positive-count').textContent = positiveCount;
+            document.getElementById('negative-count').textContent = negativeCount;
+            document.getElementById('avg-change').textContent = 
+                validCount > 0 ? (totalChange / validCount).toFixed(2) + '%' : '0%';
+        }
+
+        function setupAutoUpdate() {
+            // Calculate next update time (Mondays and Thursdays at 9 AM)
+            const now = new Date();
+            const nextUpdate = getNextUpdateTime();
+            
+            document.getElementById('next-update').textContent = 
+                `Next: ${nextUpdate.toLocaleDateString('en-US', { weekday: 'short' })} ${nextUpdate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`;
+            
+            // Set interval for auto-update check (every hour)
+            updateInterval = setInterval(() => {
+                const currentTime = new Date();
+                if (shouldUpdate(currentTime) && autoUpdateEnabled) {
+                    refreshAll();
+                }
+            }, 3600000); // Check every hour
+        }
+
+        function getNextUpdateTime() {
+            const now = new Date();
+            const day = now.getDay();
+            const hour = now.getHours();
+            
+            let daysToAdd = 0;
+            
+            // Monday = 1, Thursday = 4
+            if (day === 0) daysToAdd = 1; // Sunday -> Monday
+            else if (day === 1 && hour >= 9) daysToAdd = 3; // Monday after 9am -> Thursday
+            else if (day === 2 || day === 3) daysToAdd = 4 - day; // Tue/Wed -> Thursday
+            else if (day === 4 && hour >= 9) daysToAdd = 4; // Thursday after 9am -> Monday
+            else if (day === 5 || day === 6) daysToAdd = 8 - day; // Fri/Sat -> Monday
+            
+            const nextUpdate = new Date(now);
+            nextUpdate.setDate(nextUpdate.getDate() + daysToAdd);
+            nextUpdate.setHours(9, 0, 0, 0);
+            
+            return nextUpdate;
+        }
+
+        function shouldUpdate(currentTime) {
+            const day = currentTime.getDay();
+            const hour = currentTime.getHours();
+            const minute = currentTime.getMinutes();
+            
+            // Update on Mondays and Thursdays at 9:00 AM
+            return (day === 1 || day === 4) && hour === 9 && minute < 5;
+        }
+
+        async function refreshAll() {
+            document.getElementById('api-status').textContent = 'Refreshing...';
+            document.getElementById('refresh-btn').disabled = true;
+            
+            try {
+                await loadAllData();
+                
+                document.getElementById('api-status').textContent = 'Live';
+                updateTimestamp();
+                updateStats();
+                
+                // Show notification
+                showNotification('Data refreshed successfully!', 'success');
+                
+            } catch (error) {
+                console.error('Error refreshing:', error);
+                document.getElementById('api-status').textContent = 'Error';
+                showNotification('Failed to refresh data', 'error');
+            } finally {
+                document.getElementById('refresh-btn').disabled = false;
+            }
+        }
+
+        function toggleAutoUpdate() {
+            autoUpdateEnabled = !autoUpdateEnabled;
+            const btn = document.getElementById('auto-update-btn');
+            
+            if (autoUpdateEnabled) {
+                btn.textContent = '⏸️ Pause Auto';
+                showNotification('Auto-update enabled', 'success');
+            } else {
+                btn.textContent = '▶️ Resume Auto';
+                showNotification('Auto-update paused', 'info');
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('update-notification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+            
+            if (type === 'error') {
+                notification.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+            } else if (type === 'success') {
+                notification.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+            } else {
+                notification.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
+            }
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        function exportData() {
+            const exportData = {
+                timestamp: new Date().toISOString(),
+                indicators: fullData,
+                summary: summaryData
+            };
+            
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `fed-liquidity-data-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showNotification('Data exported successfully!', 'success');
+        }
+
+        // Modal close on outside click
+        window.onclick = function(event) {
+            const modal = document.getElementById('detail-modal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
         }
 
         // Initialize on load
         document.addEventListener('DOMContentLoaded', init);
-        
-        // Close modal on outside click
-        document.getElementById('chart-modal').addEventListener('click', (e) => {
-            if (e.target.id === 'chart-modal') {
-                closeModal();
+
+        // Refresh data on visibility change (when tab becomes active)
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && autoUpdateEnabled) {
+                const lastUpdateStr = document.getElementById('last-update').textContent;
+                if (lastUpdateStr !== '--:--') {
+                    const now = new Date();
+                    const lastUpdate = new Date();
+                    const [time, period] = lastUpdateStr.split(' ');
+                    const [hours, minutes] = time.split(':');
+                    lastUpdate.setHours(
+                        period === 'PM' && hours !== '12' ? parseInt(hours) + 12 : parseInt(hours),
+                        parseInt(minutes)
+                    );
+                    
+                    // If more than 1 hour since last update, refresh
+                    if (now - lastUpdate > 3600000) {
+                        refreshAll();
+                    }
+                }
             }
         });
+
     </script>
 </body>
 </html>
