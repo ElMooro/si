@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fed Liquidity Terminal - Enhanced Edition</title>
+    <title>Fed Liquidity Terminal - 252 Economic Indicators</title>
     <style>
         * {
             margin: 0;
@@ -96,28 +96,11 @@
             transition: all 0.3s ease;
         }
 
-        .status-pill:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-2px);
-        }
-
         .pulse-dot {
             width: 8px;
             height: 8px;
             background: #4ade80;
             border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-
-        .cache-indicator {
-            display: inline-block;
-            padding: 0.25rem 0.5rem;
-            background: rgba(255, 215, 0, 0.1);
-            border: 1px solid rgba(255, 215, 0, 0.3);
-            border-radius: 4px;
-            font-size: 0.75rem;
-            color: #ffd700;
-            margin-left: 0.5rem;
             animation: pulse 2s infinite;
         }
 
@@ -146,7 +129,7 @@
             transition: width 0.3s ease;
         }
 
-        /* Progress Container */
+        /* Progress */
         .progress-container {
             width: 100%;
             height: 30px;
@@ -168,7 +151,7 @@
             font-weight: bold;
         }
 
-        /* Stats Overview */
+        /* Stats */
         .stats-overview {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
@@ -200,7 +183,7 @@
             margin-top: 5px;
         }
 
-        /* Category Tabs */
+        /* Tabs */
         .tabs-container {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
@@ -208,8 +191,6 @@
             padding: 10px;
             margin-bottom: 25px;
             overflow-x: auto;
-            scrollbar-width: thin;
-            scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
         }
 
         .category-tabs {
@@ -300,16 +281,6 @@
             transition: all 0.3s ease;
         }
 
-        .search-input::placeholder {
-            color: rgba(255, 255, 255, 0.4);
-        }
-
-        .search-input:focus {
-            outline: none;
-            background: rgba(255, 255, 255, 0.08);
-            border-color: #667eea;
-        }
-
         .btn {
             padding: 15px 25px;
             background: linear-gradient(135deg, #667eea, #764ba2);
@@ -335,7 +306,7 @@
             background: linear-gradient(135deg, #f59e0b, #d97706);
         }
 
-        /* Series Grid */
+        /* Grid */
         .series-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -352,23 +323,6 @@
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
-            cursor: pointer;
-        }
-
-        .series-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: linear-gradient(90deg, #667eea, #764ba2);
-            transform: scaleX(0);
-            transition: transform 0.3s ease;
-        }
-
-        .series-card:hover::before {
-            transform: scaleX(1);
         }
 
         .series-card:hover {
@@ -470,43 +424,9 @@
             border-radius: 5px;
         }
 
-        .change-label {
-            color: rgba(255, 255, 255, 0.6);
-        }
+        .positive { color: #4ade80; }
+        .negative { color: #f87171; }
 
-        .cache-badge {
-            display: inline-block;
-            padding: 0.125rem 0.25rem;
-            background: rgba(255, 215, 0, 0.2);
-            border-radius: 3px;
-            font-size: 0.625rem;
-            color: #ffd700;
-            margin-left: 0.25rem;
-        }
-
-        .fresh-badge {
-            display: inline-block;
-            padding: 0.125rem 0.25rem;
-            background: rgba(0, 255, 136, 0.2);
-            border-radius: 3px;
-            font-size: 0.625rem;
-            color: #00ff88;
-            margin-left: 0.25rem;
-        }
-
-        .positive {
-            color: #4ade80;
-        }
-
-        .negative {
-            color: #f87171;
-        }
-
-        .neutral {
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        /* Loading */
         .loading {
             text-align: center;
             padding: 60px;
@@ -523,7 +443,6 @@
             margin: 20px auto;
         }
 
-        /* Update Notification */
         .update-notification {
             position: fixed;
             top: 20px;
@@ -538,42 +457,21 @@
         }
 
         @keyframes slideIn {
-            from {
-                transform: translateX(400px);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .title {
-                font-size: 1.8rem;
-            }
-            
-            .series-grid {
-                grid-template-columns: 1fr;
-            }
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
     </style>
 </head>
 <body>
     <div class="dashboard">
-        <!-- Update Notification -->
-        <div class="update-notification" id="update-notification">
-            🔄 Data refreshed successfully!
-        </div>
+        <div class="update-notification" id="update-notification"></div>
 
         <!-- Header -->
         <div class="header">
             <div class="header-content">
                 <div>
-                    <h1 class="title">Fed Liquidity Terminal
-                        <span class="cache-indicator">CACHED</span>
-                    </h1>
-                    <div class="subtitle">Complete Economic Intelligence - 252 Live Indicators</div>
+                    <h1 class="title">Fed Liquidity Terminal</h1>
+                    <div class="subtitle">Complete Economic Intelligence - 252 Live Indicators (No Cache)</div>
                 </div>
                 <div class="rate-limit-indicator">
                     <span>Rate Limit:</span>
@@ -589,9 +487,6 @@
                     </div>
                     <div class="status-pill">
                         <span id="loaded-count">0/252 Loaded</span>
-                    </div>
-                    <div class="status-pill">
-                        <span id="cached-count">0 Cached</span>
                     </div>
                     <div class="status-pill">
                         <span id="last-update">--:--</span>
@@ -610,11 +505,11 @@
             <div class="stats-grid">
                 <div class="stat-item">
                     <div class="stat-value" id="total-loaded">0</div>
-                    <div class="stat-label">Indicators Loaded</div>
+                    <div class="stat-label">Loaded</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-value" id="missing-count">252</div>
-                    <div class="stat-label">Missing Indicators</div>
+                    <div class="stat-label">Missing</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-value" id="positive-count">0</div>
@@ -624,34 +519,27 @@
                     <div class="stat-value" id="negative-count">0</div>
                     <div class="stat-label">Negative Week</div>
                 </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="avg-change">0%</div>
-                    <div class="stat-label">Avg Week Change</div>
-                </div>
             </div>
         </div>
 
         <!-- Category Tabs -->
         <div class="tabs-container">
             <div class="category-tabs">
-                <button class="tab active" onclick="showCategory('all')">All 252 Indicators</button>
+                <button class="tab active" onclick="showCategory('all')">All 252</button>
                 <button class="tab" onclick="showCategory('favorites')">⭐ Favorites</button>
-                <button class="tab" onclick="showCategory('summary')">Summary (12)</button>
-                <button class="tab" onclick="showCategory('federal_reserve')">Federal Reserve</button>
-                <button class="tab" onclick="showCategory('money_supply')">Money Supply</button>
-                <button class="tab" onclick="showCategory('treasury')">Treasury Rates</button>
-                <button class="tab" onclick="showCategory('corporate')">Corporate Bonds</button>
+                <button class="tab" onclick="showCategory('federal_reserve')">Fed Reserve</button>
+                <button class="tab" onclick="showCategory('treasury')">Treasury</button>
+                <button class="tab" onclick="showCategory('corporate')">Corporate</button>
                 <button class="tab" onclick="showCategory('volatility')">Volatility</button>
                 <button class="tab" onclick="showCategory('currencies')">Currencies</button>
                 <button class="tab" onclick="showCategory('commodities')">Commodities</button>
-                <button class="tab" onclick="showCategory('liquidity')">Liquidity</button>
                 <button class="tab" onclick="showCategory('economic')">Economic</button>
             </div>
         </div>
 
         <!-- Sort Controls -->
         <div class="sort-controls">
-            <span style="margin-right: 10px;">Sort by:</span>
+            <span>Sort by:</span>
             <button class="sort-btn" onclick="sortBy('name')">Name</button>
             <button class="sort-btn" onclick="sortBy('value')">Value</button>
             <button class="sort-btn" onclick="sortBy('week')">Week %</button>
@@ -659,185 +547,120 @@
             <button class="sort-btn" onclick="sortBy('quarter')">Quarter %</button>
             <button class="sort-btn" onclick="sortBy('year')">Year %</button>
             <span style="margin: 0 10px;">|</span>
-            <button class="sort-btn" onclick="toggleSortOrder()">↕ Order: <span id="sort-order">Desc</span></button>
+            <button class="sort-btn" onclick="toggleSortOrder()">↕ <span id="sort-order">Desc</span></button>
         </div>
 
         <!-- Controls -->
         <div class="controls">
             <div class="search-box">
                 <input type="text" class="search-input" id="search-input" 
-                       placeholder="Search 252 indicators by code or name..." 
+                       placeholder="Search indicators..." 
                        oninput="searchSeries()">
             </div>
-            <button class="btn" onclick="loadTabData()" id="loadTabBtn">📥 Load Tab Data</button>
-            <button class="btn warning" onclick="loadMissingData()" id="loadMissingBtn">🔍 Load Missing Only</button>
-            <button class="btn" onclick="refreshAllData()" id="refreshBtn">🔄 Refresh Loaded</button>
-            <button class="btn" onclick="clearCache()" id="clearCacheBtn">🗑️ Clear Cache</button>
-            <button class="btn" onclick="exportData()">📊 Export Data</button>
+            <button class="btn" onclick="loadAllData()" id="loadAllBtn">📥 Load All 252</button>
+            <button class="btn warning" onclick="loadMissing()" id="loadMissingBtn">🔍 Load Missing</button>
+            <button class="btn" onclick="exportData()">📊 Export</button>
         </div>
 
         <!-- Series Grid -->
         <div class="series-grid" id="series-grid">
-            <div class="loading">Ready to load data. Click "Load Tab Data" to start.</div>
+            <div class="loading">Click "Load All 252" to start loading indicators</div>
         </div>
     </div>
 
     <script>
-        // ============================================
         // Configuration
-        // ============================================
         const API_URL = 'https://occdgwanqvbjd2qnnuyafvkvei0ptinb.lambda-url.us-east-1.on.aws';
-        const RATE_LIMIT = 120; // requests per minute
-        const RATE_WINDOW = 60000; // 1 minute in ms
-        const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
-        const MAX_CACHE_SIZE = 50 * 1024; // 50KB per item max
+        const RATE_LIMIT = 120;
+        const RATE_WINDOW = 60000;
         
-        // ============================================
-        // Global State
-        // ============================================
+        // State - ALL IN MEMORY
+        const dataStore = new Map(); // Main data storage
         let allIndicators = {};
-        let allSeriesData = [];
         let currentCategory = 'all';
         let sortColumn = 'name';
         let sortOrder = 'desc';
         let favorites = JSON.parse(localStorage.getItem('fed_favorites') || '[]');
         let customNames = JSON.parse(localStorage.getItem('fed_custom_names') || '{}');
         
-        // Rate limiting state
+        // Rate limiting
         let requestQueue = [];
         let requestsInWindow = [];
         let isProcessingQueue = false;
         let availableRequests = RATE_LIMIT;
         
-        // All indicators organized by category
-        const INDICATOR_CATEGORIES = {
+        // All 252 indicators list
+        const ALL_INDICATORS = [
+            // Federal Reserve
+            'WALCL', 'RRPONTSYD', 'WTREGEN', 'BOGMBASE', 'BOGMBBM', 'WCURCIR', 'CURRCIR', 'TOTRESNS', 'WRBWFRBL', 'WREPODEL', 'WREPOFOR',
+            // Money Supply
+            'M1SL', 'M2SL', 'M1NS', 'M2NS', 'CURRNS', 'M1V', 'M2V', 'MZMSL', 'SAVINGS', 'DPSACBW027SBOG',
+            // Treasury
+            'DGS1MO', 'DGS3MO', 'DGS6MO', 'DGS1', 'DGS2', 'DGS3', 'DGS5', 'DGS7', 'DGS10', 'DGS20', 'DGS30',
+            // Spreads
+            'T10Y2Y', 'T10Y3M', 'T30Y10Y', 'T5YIE', 'T10YIE', 'T5YIFR', 'TEDRATE', 'TB3SMFFM',
+            // Bond Stress
+            'MORTGAGE30US', 'MORTGAGE15US', 'DPRIME', 'TB3MS', 'TB6MS', 'RIFLGFCY10', 'RIFLGFCY05', 'DFII10', 'DFII5', 'DFII30',
+            // Corporate
+            'AAA10Y', 'BAA10Y', 'HQMCB10YR', 'HQMCB20YR', 'HQMCB30YR', 'BAMLC0A1CAAA', 'BAMLC0A2CAA', 'BAMLC0A3CA', 'BAMLC0A4CBBB', 
+            'BAMLH0A0HYM2', 'BAMLH0A0HYM2EY', 'BAMLC0A0CM', 'BAMLC0A0CMEY', 'DAAA', 'DBAA',
+            // Emerging
+            'BAMLEMCBPIOAS', 'BAMLEMHYHYCEY', 'EMLC', 'DEXKOUS', 'DEXMXUS', 'DEXBZUS', 'DEXINUS', 'DEXSFUS',
+            // Stress
+            'DRTSCIS', 'DRTSCILM', 'SUBLPDRCILM', 'DRTSCLCC', 'STLFSI3', 'NFCI', 'ANFCI',
+            // Liquidity
+            'WLRRAL', 'IOER', 'IORB', 'SOFR', 'OBFR', 'EFFR', 'DFF', 'RRPONTTLD', 'RPONTSYD',
+            // Volatility
+            'VIXCLS', 'VXVCLS', 'OVXCLS', 'GVZCLS', 'EVZCLS', 'RVXCLS', 'TYVIX', 'SRVIX',
+            // Currencies
+            'DTWEXBGS', 'DTWEXAFEGS', 'DTWEXEMEGS', 'DEXUSEU', 'DEXJPUS', 'DEXUSUK', 'DEXCHUS', 'DEXSZUS', 'DEXCAUS', 'DEXUSAL',
+            // Commodities
+            'DCOILWTICO', 'DCOILBRENTEU', 'GASREGW', 'DHHNGSP', 'GOLDAMGBD228NLBM',
+            // Economic
+            'DSPIC96', 'GFDEBTN', 'GFDEGDQ188S', 'FYGFD', 'FDHBFIN', 'FYGFGDN', 'GDP', 'CPIAUCSL', 'UNRATE', 'MNFCTRIRSA', 
+            'ISRATIO', 'REVOLSL', 'RETAILIMSA', 'INTGSTMXM193N', 'AMERIBOR',
+            // Policy
+            'DFEDTARU', 'DFEDTARL',
+            // Leverage
+            'NFCINONFINLEVERAGE', 'NFCILEVERAGE', 'NFCICREDIT', 'NFCIRISK',
+            // Special Liquidity
+            'RESPPALGUOXAWXCH52NWW', 'RESPPALGUONNWW', 'SWP1690', 'OTHL1690', 'SUBLPDCISTQNQ', 'DRISCFLM', 'RMFSL', 
+            'SBCACBW027SBOG', 'RREP15', 'OTHL15', 'RESH4MFNWW', 'BOGZ1FL663067003Q', 'RESPPNTEPNWW', 'OTHL91T1Y', 
+            'SWP15', 'RESPPALGUMDXCH1NWW', 'REP1690',
+            // Central Banks
+            'JPNASSETS', 'ECBASSETSW', 'BSFGLV02EZM460S', 'BSOBLV02EZM460S',
+            // Fed Reserve Data
+            'RESBALNS', 'WRESBAL', 'NONBORRES', 'G7LOLITOAASTSA', 'WLCFLPCL', 'WUDSN', 'WGCAL', 'WORAL', 'WSHOSL', 
+            'WSHOMCB', 'WUSDL', 'WGCSL', 'TERMT', 'PDCBL', 'CPCRL', 'MMMFL', 'PPPCRL', 'MSNLFL', 'SMCCFL', 'MLFL', 
+            'WCURFSL', 'REQRESNS', 'EXCSRESNS', 'WACBS', 'WLCFLL', 'WSHOTS', 'WLODLL', 'WDTGAL', 'WDPSAL', 'BUSLOANS', 
+            'REALLN', 'CONSUMER', 'RBSRESNS', 'RBLRESNS', 'CASACBW027SBOG', 'TLAACBW027SBOG', 'CPLTTLL', 'MMMFFASW', 
+            'WDCRL', 'WAML', 'WOBLAL', 'RESPPLLOPNWW', 'H41RESPPLOPNNWW', 'WGSEC', 'WIMFSL', 'WACBSL', 'WIMFCL', 
+            'WGCRL', 'DPCREDIT',
+            // Market
+            'SP500', 'IGREA',
+            // Treasury MM
+            'TREAS911Y', 'TREAS1590', 'MABMM301EZM189S', 'MABMM301JPM189S', 'DRISCFS',
+            // HQM Spot (these are the problem ones)
+            'HQMCB01YR', 'HQMCB02YR', 'HQMCB03YR', 'HQMCB04YR', 'HQMCB05YR', 'HQMCB06YR', 'HQMCB07YR', 'HQMCB08YR', 
+            'HQMCB09YR', 'HQMCB11YR', 'HQMCB12YR', 'HQMCB13YR', 'HQMCB14YR', 'HQMCB15YR', 'HQMCB16YR', 'HQMCB17YR', 
+            'HQMCB18YR', 'HQMCB19YR', 'HQMCB21YR', 'HQMCB22YR', 'HQMCB23YR', 'HQMCB24YR', 'HQMCB25YR', 'HQMCB26YR', 
+            'HQMCB27YR', 'HQMCB28YR', 'HQMCB29YR', 'HQMCB40YR', 'HQMCB50YR', 'HQMCB60YR', 'HQMCB70YR', 'HQMCB80YR', 
+            'HQMCB90YR', 'HQMCB100YR',
+            // HQM Par
+            'HQMCB1YRP', 'HQMCB5YRP', 'HQMCB10YRP', 'HQMCB15YRP', 'HQMCB20YRP', 'HQMCB25YRP', 'HQMCB30YRP'
+        ];
+
+        const CATEGORIES = {
             federal_reserve: ['WALCL', 'RRPONTSYD', 'WTREGEN', 'BOGMBASE', 'BOGMBBM', 'WCURCIR', 'CURRCIR', 'TOTRESNS', 'WRBWFRBL', 'WREPODEL', 'WREPOFOR'],
-            money_supply: ['M1SL', 'M2SL', 'M1NS', 'M2NS', 'CURRNS', 'M1V', 'M2V', 'MZMSL', 'SAVINGS', 'DPSACBW027SBOG'],
             treasury: ['DGS1MO', 'DGS3MO', 'DGS6MO', 'DGS1', 'DGS2', 'DGS3', 'DGS5', 'DGS7', 'DGS10', 'DGS20', 'DGS30'],
             corporate: ['AAA10Y', 'BAA10Y', 'HQMCB10YR', 'HQMCB20YR', 'HQMCB30YR', 'DAAA', 'DBAA'],
             volatility: ['VIXCLS', 'VXVCLS', 'OVXCLS', 'GVZCLS', 'EVZCLS', 'RVXCLS', 'TYVIX', 'SRVIX'],
             currencies: ['DTWEXBGS', 'DTWEXAFEGS', 'DTWEXEMEGS', 'DEXUSEU', 'DEXJPUS', 'DEXUSUK', 'DEXCHUS', 'DEXSZUS', 'DEXCAUS', 'DEXUSAL'],
             commodities: ['DCOILWTICO', 'DCOILBRENTEU', 'GASREGW', 'DHHNGSP', 'GOLDAMGBD228NLBM'],
-            liquidity: ['WLRRAL', 'IOER', 'IORB', 'SOFR', 'OBFR', 'EFFR', 'DFF', 'RRPONTTLD', 'RPONTSYD'],
             economic: ['DSPIC96', 'GFDEBTN', 'GFDEGDQ188S', 'GDP', 'CPIAUCSL', 'UNRATE']
         };
 
-        // Summary indicators
-        const SUMMARY_INDICATORS = ['WALCL', 'RESBALNS', 'RRPONTSYD', 'M2SL', 'DFF', 'DGS10', 'VIXCLS', 'DTWEXBGS', 'SP500', 'STLFSI3', 'T10Y2Y', 'BAMLH0A0HYM2'];
-
-        // ============================================
-        // Cache Management
-        // ============================================
-        
-        function getCacheKey(seriesId) {
-            return `fed_v2_${seriesId}`;
-        }
-        
-        function getCachedData(seriesId) {
-            const key = getCacheKey(seriesId);
-            try {
-                const cached = localStorage.getItem(key);
-                if (!cached) return null;
-                
-                const data = JSON.parse(cached);
-                const now = Date.now();
-                
-                // Check if cache is still valid (24 hours)
-                if (data.timestamp && (now - data.timestamp) < CACHE_DURATION) {
-                    return data;
-                }
-                
-                // Cache expired
-                localStorage.removeItem(key);
-                return null;
-            } catch (e) {
-                console.error('Cache read error:', e);
-                return null;
-            }
-        }
-        
-        function setCachedData(seriesId, data) {
-            const key = getCacheKey(seriesId);
-            const cacheData = {
-                ...data,
-                timestamp: Date.now(),
-                cached: true
-            };
-            
-            try {
-                const dataStr = JSON.stringify(cacheData);
-                // Skip if too large
-                if (dataStr.length > MAX_CACHE_SIZE) {
-                    console.log(`Skipping cache for ${seriesId} - too large`);
-                    return;
-                }
-                
-                localStorage.setItem(key, dataStr);
-                updateCacheCount();
-            } catch (e) {
-                console.warn('Cache write failed:', e);
-                // Try to clear some space
-                clearOldCacheEntries(5);
-            }
-        }
-        
-        function clearOldCacheEntries(count = 5) {
-            const keys = Object.keys(localStorage);
-            const cacheEntries = [];
-            
-            keys.forEach(key => {
-                if (key.startsWith('fed_v2_')) {
-                    try {
-                        const data = JSON.parse(localStorage.getItem(key));
-                        if (data.timestamp) {
-                            cacheEntries.push({
-                                key: key,
-                                timestamp: data.timestamp
-                            });
-                        }
-                    } catch (e) {
-                        localStorage.removeItem(key);
-                    }
-                }
-            });
-            
-            // Sort by timestamp (oldest first)
-            cacheEntries.sort((a, b) => a.timestamp - b.timestamp);
-            
-            // Remove oldest
-            const toRemove = Math.min(count, cacheEntries.length);
-            for (let i = 0; i < toRemove; i++) {
-                localStorage.removeItem(cacheEntries[i].key);
-            }
-        }
-        
-        function clearCache() {
-            const keys = Object.keys(localStorage);
-            let clearedCount = 0;
-            
-            keys.forEach(key => {
-                if (key.startsWith('fed_v2_')) {
-                    localStorage.removeItem(key);
-                    clearedCount++;
-                }
-            });
-            
-            allSeriesData = [];
-            updateCacheCount();
-            showNotification(`Cache cleared (${clearedCount} items)`, 'success');
-            displayCurrentView();
-        }
-        
-        function updateCacheCount() {
-            const keys = Object.keys(localStorage);
-            const cacheCount = keys.filter(key => key.startsWith('fed_v2_')).length;
-            document.getElementById('cached-count').textContent = `${cacheCount} Cached`;
-        }
-        
-        // ============================================
-        // Rate Limiting
-        // ============================================
-        
+        // Rate limiting
         function updateRateLimit() {
             const now = Date.now();
             requestsInWindow = requestsInWindow.filter(time => now - time < RATE_WINDOW);
@@ -847,17 +670,14 @@
             document.getElementById('rateLimitBar').style.width = `${percentage}%`;
             document.getElementById('rateLimitText').textContent = `${availableRequests}/${RATE_LIMIT}`;
         }
-        
+
         async function makeRateLimitedRequest(seriesId) {
             return new Promise((resolve, reject) => {
                 requestQueue.push({ seriesId, resolve, reject });
-                
-                if (!isProcessingQueue) {
-                    processQueue();
-                }
+                if (!isProcessingQueue) processQueue();
             });
         }
-        
+
         async function processQueue() {
             if (isProcessingQueue) return;
             isProcessingQueue = true;
@@ -873,49 +693,34 @@
                 const request = requestQueue.shift();
                 
                 try {
-                    // Check cache first
-                    const cachedData = getCachedData(request.seriesId);
-                    if (cachedData) {
-                        request.resolve(cachedData);
-                        continue;
-                    }
-                    
-                    // Make API request
                     const response = await fetch(`${API_URL}/?series=${request.seriesId}`);
                     requestsInWindow.push(Date.now());
                     
                     if (response.ok) {
                         const rawData = await response.json();
                         const parsedData = parseApiResponse(request.seriesId, rawData);
-                        
-                        // Cache if valid
-                        if (parsedData.latest_value !== null) {
-                            setCachedData(request.seriesId, parsedData);
-                        }
-                        
                         request.resolve(parsedData);
                     } else {
                         throw new Error(`HTTP ${response.status}`);
                     }
                 } catch (error) {
-                    console.error(`Error fetching ${request.seriesId}:`, error);
+                    console.error(`Failed ${request.seriesId}:`, error);
                     request.reject(error);
                 }
                 
-                await new Promise(resolve => setTimeout(resolve, 300));
+                await new Promise(resolve => setTimeout(resolve, 200));
             }
             
             isProcessingQueue = false;
         }
-        
+
         function parseApiResponse(seriesId, rawData) {
             let result = {
                 id: seriesId,
                 name: customNames[seriesId] || allIndicators[seriesId] || seriesId,
                 latest_value: null,
                 latest_date: null,
-                data: [],
-                metadata: {}
+                data: []
             };
             
             // Parse value from various formats
@@ -934,7 +739,7 @@
                     const latest = validObs[validObs.length - 1];
                     result.latest_value = parseFloat(latest.value);
                     result.latest_date = latest.date;
-                    result.data = validObs.map(obs => ({
+                    result.data = validObs.slice(-100).map(obs => ({
                         date: obs.date,
                         value: parseFloat(obs.value)
                     }));
@@ -947,86 +752,79 @@
                     const sortedData = validData.sort((a, b) => new Date(b.date) - new Date(a.date));
                     result.latest_value = parseFloat(sortedData[0].value);
                     result.latest_date = sortedData[0].date;
-                    result.data = sortedData.map(d => ({
-                        date: d.date,
-                        value: parseFloat(d.value)
-                    }));
+                    result.data = sortedData.slice(0, 100);
                 }
             }
             
-            // Add metadata
-            if (rawData.metadata) result.metadata = rawData.metadata;
-            
             return result;
         }
-        
-        // ============================================
-        // Data Loading
-        // ============================================
-        
+
+        // Initialize
         async function init() {
-            document.getElementById('api-status').textContent = 'Loading...';
-            
-            updateCacheCount();
+            document.getElementById('api-status').textContent = 'Ready';
             updateTimestamp();
             setInterval(updateRateLimit, 1000);
             
-            await loadIndicatorsList();
-            
-            document.getElementById('api-status').textContent = 'Ready';
-        }
-        
-        async function loadIndicatorsList() {
+            // Load indicator names
             try {
                 const response = await fetch(`${API_URL}/?series=all`);
-                if (!response.ok) throw new Error('Failed to fetch series list');
-                
                 const data = await response.json();
                 allIndicators = data.series || {};
-                
-                updateLoadedCount();
-                
-            } catch (error) {
-                console.error('Error loading indicators list:', error);
-                showNotification('Failed to load indicators list', 'error');
+            } catch (e) {
+                console.error('Failed to load indicator names');
             }
-        }
-        
-        async function loadTabData() {
-            const seriesToLoad = getSeriesForCurrentTab();
-            await loadSeriesDataBatch(seriesToLoad);
-        }
-        
-        async function loadMissingData() {
-            const loadedIds = new Set(allSeriesData.map(s => s.id));
-            const seriesToLoad = getSeriesForCurrentTab().filter(id => !loadedIds.has(id));
             
-            if (seriesToLoad.length === 0) {
-                showNotification('No missing indicators to load', 'info');
+            // Initialize empty placeholders for all 252
+            ALL_INDICATORS.forEach(id => {
+                if (!dataStore.has(id)) {
+                    dataStore.set(id, {
+                        id: id,
+                        name: customNames[id] || allIndicators[id] || id,
+                        latest_value: null,
+                        latest_date: null,
+                        data: []
+                    });
+                }
+            });
+            
+            displayCurrentView();
+            updateLoadedCount();
+        }
+
+        // Load all data
+        async function loadAllData() {
+            const missing = ALL_INDICATORS.filter(id => {
+                const data = dataStore.get(id);
+                return !data || data.latest_value === null;
+            });
+            
+            await loadBatch(missing);
+        }
+
+        // Load missing only
+        async function loadMissing() {
+            const missing = ALL_INDICATORS.filter(id => {
+                const data = dataStore.get(id);
+                return !data || data.latest_value === null;
+            });
+            
+            console.log(`Missing ${missing.length} indicators:`, missing);
+            
+            if (missing.length === 0) {
+                showNotification('All indicators loaded!', 'success');
                 return;
             }
             
-            await loadSeriesDataBatch(seriesToLoad);
+            await loadBatch(missing);
         }
-        
-        function getSeriesForCurrentTab() {
-            if (currentCategory === 'favorites') {
-                return favorites;
-            } else if (currentCategory === 'summary') {
-                return SUMMARY_INDICATORS;
-            } else if (currentCategory === 'all') {
-                return Object.keys(allIndicators);
-            } else {
-                return INDICATOR_CATEGORIES[currentCategory] || [];
-            }
-        }
-        
-        async function loadSeriesDataBatch(seriesIds) {
-            const totalCount = seriesIds.length;
+
+        // Load batch
+        async function loadBatch(seriesIds) {
+            if (seriesIds.length === 0) return;
             
-            showNotification(`Loading ${totalCount} series...`, 'info');
+            showNotification(`Loading ${seriesIds.length} indicators...`, 'info');
             
-            document.getElementById('loadTabBtn').disabled = true;
+            document.getElementById('loadAllBtn').disabled = true;
             document.getElementById('loadMissingBtn').disabled = true;
             
             const progressContainer = document.getElementById('progressContainer');
@@ -1035,121 +833,82 @@
             
             let loaded = 0;
             let failed = 0;
-            let cached = 0;
             
             for (const seriesId of seriesIds) {
                 try {
-                    // Skip if already loaded
-                    const existing = allSeriesData.find(s => s.id === seriesId);
-                    if (existing && existing.latest_value !== null) {
-                        loaded++;
-                        continue;
-                    }
-                    
-                    // Get data (from cache or API)
-                    const parsedData = await makeRateLimitedRequest(seriesId);
-                    
-                    if (parsedData.cached) cached++;
-                    
-                    // Update or add to allSeriesData
-                    const index = allSeriesData.findIndex(s => s.id === seriesId);
-                    if (index >= 0) {
-                        allSeriesData[index] = parsedData;
-                    } else {
-                        allSeriesData.push(parsedData);
-                    }
-                    
+                    const data = await makeRateLimitedRequest(seriesId);
+                    dataStore.set(seriesId, data);
                     loaded++;
                     
-                    // Update progress
-                    const progress = Math.round((loaded / totalCount) * 100);
+                    const progress = Math.round((loaded / seriesIds.length) * 100);
                     progressBar.style.width = `${progress}%`;
-                    progressBar.textContent = `${progress}%`;
+                    progressBar.textContent = `${progress}% (${loaded}/${seriesIds.length})`;
                     
-                    // Update display periodically
-                    if (loaded % 10 === 0 || loaded === totalCount) {
+                    if (loaded % 5 === 0 || loaded === seriesIds.length) {
                         displayCurrentView();
                         updateLoadedCount();
                     }
-                    
                 } catch (error) {
-                    console.error(`Failed ${seriesId}:`, error);
                     failed++;
+                    console.error(`Failed to load ${seriesId}`);
                 }
             }
             
             progressContainer.style.display = 'none';
-            
-            document.getElementById('loadTabBtn').disabled = false;
+            document.getElementById('loadAllBtn').disabled = false;
             document.getElementById('loadMissingBtn').disabled = false;
             
             displayCurrentView();
             updateLoadedCount();
-            updateStats();
             
-            const withData = allSeriesData.filter(s => s.latest_value !== null).length;
-            showNotification(`Loaded ${withData} indicators (${cached} from cache)`, 'success');
+            const message = failed > 0 ? 
+                `Loaded ${loaded} indicators, ${failed} failed` : 
+                `Successfully loaded ${loaded} indicators`;
+            showNotification(message, failed > 0 ? 'warning' : 'success');
         }
-        
-        // ============================================
-        // Display Functions
-        // ============================================
-        
+
+        // Display
         function displayCurrentView() {
             const grid = document.getElementById('series-grid');
-            let html = '';
             
             let seriesToShow = [];
-            
             if (currentCategory === 'favorites') {
                 seriesToShow = favorites;
             } else if (currentCategory === 'all') {
-                seriesToShow = Object.keys(allIndicators);
-            } else if (currentCategory === 'summary') {
-                seriesToShow = SUMMARY_INDICATORS;
+                seriesToShow = ALL_INDICATORS;
             } else {
-                seriesToShow = INDICATOR_CATEGORIES[currentCategory] || [];
+                seriesToShow = CATEGORIES[currentCategory] || [];
             }
             
-            // Get data for series
-            let displayData = seriesToShow.map(id => {
-                const data = allSeriesData.find(s => s.id === id);
-                return data || {
-                    id: id,
-                    name: customNames[id] || allIndicators[id] || id,
-                    latest_value: null,
-                    latest_date: null,
-                    data: []
-                };
+            let displayData = seriesToShow.map(id => dataStore.get(id) || {
+                id: id,
+                name: customNames[id] || allIndicators[id] || id,
+                latest_value: null,
+                latest_date: null,
+                data: []
             });
             
-            // Apply sorting
             displayData = sortData(displayData);
             
-            // Create cards
+            let html = '';
             for (const data of displayData) {
                 html += createSeriesCard(data);
             }
             
-            grid.innerHTML = html || '<div class="loading">No data to display. Click "Load Tab Data" to start.</div>';
-            
-            updateStats();
+            grid.innerHTML = html || '<div class="loading">No data to display</div>';
         }
-        
+
         function createSeriesCard(data) {
             const value = data.latest_value !== null ? formatValue(data.latest_value, data.id) : '--';
             const date = data.latest_date || '--';
-            const name = customNames[data.id] || data.name || allIndicators[data.id] || data.id;
-            const changes = calculateAllChanges(data);
+            const name = customNames[data.id] || data.name || data.id;
+            const changes = calculateChanges(data);
             const isFavorite = favorites.includes(data.id);
-            const sourceLabel = data.cached ? 
-                '<span class="cache-badge">CACHED</span>' : 
-                data.latest_value !== null ? '<span class="fresh-badge">FRESH</span>' : '';
             
             return `
                 <div class="series-card">
                     <div class="series-header">
-                        <div class="series-id">${data.id} ${sourceLabel}</div>
+                        <div class="series-id">${data.id}</div>
                         <div class="series-actions">
                             <span class="edit-btn" onclick="editName('${data.id}')">✏️</span>
                             <span class="favorite-star ${isFavorite ? 'active' : ''}" 
@@ -1165,25 +924,25 @@
                     <div class="series-date">Last: ${formatDate(date)}</div>
                     <div class="series-changes">
                         <div class="change-item">
-                            <span class="change-label">Week:</span>
+                            <span>Week:</span>
                             <span class="${changes.week >= 0 ? 'positive' : 'negative'}">
                                 ${changes.week >= 0 ? '+' : ''}${changes.week.toFixed(2)}%
                             </span>
                         </div>
                         <div class="change-item">
-                            <span class="change-label">Month:</span>
+                            <span>Month:</span>
                             <span class="${changes.month >= 0 ? 'positive' : 'negative'}">
                                 ${changes.month >= 0 ? '+' : ''}${changes.month.toFixed(2)}%
                             </span>
                         </div>
                         <div class="change-item">
-                            <span class="change-label">Quarter:</span>
+                            <span>Quarter:</span>
                             <span class="${changes.quarter >= 0 ? 'positive' : 'negative'}">
                                 ${changes.quarter >= 0 ? '+' : ''}${changes.quarter.toFixed(2)}%
                             </span>
                         </div>
                         <div class="change-item">
-                            <span class="change-label">Year:</span>
+                            <span>Year:</span>
                             <span class="${changes.year >= 0 ? 'positive' : 'negative'}">
                                 ${changes.year >= 0 ? '+' : ''}${changes.year.toFixed(2)}%
                             </span>
@@ -1192,53 +951,14 @@
                 </div>
             `;
         }
-        
-        function sortData(data) {
-            return data.sort((a, b) => {
-                let aVal, bVal;
-                
-                switch(sortColumn) {
-                    case 'name':
-                        aVal = customNames[a.id] || a.name || a.id;
-                        bVal = customNames[b.id] || b.name || b.id;
-                        break;
-                    case 'value':
-                        aVal = a.latest_value || 0;
-                        bVal = b.latest_value || 0;
-                        break;
-                    case 'week':
-                    case 'month':
-                    case 'quarter':
-                    case 'year':
-                        const aChanges = calculateAllChanges(a);
-                        const bChanges = calculateAllChanges(b);
-                        aVal = aChanges[sortColumn];
-                        bVal = bChanges[sortColumn];
-                        break;
-                    default:
-                        aVal = a.id;
-                        bVal = b.id;
-                }
-                
-                if (sortOrder === 'asc') {
-                    return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
-                } else {
-                    return aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
-                }
-            });
-        }
-        
-        function calculateAllChanges(data) {
+
+        function calculateChanges(data) {
             const changes = { week: 0, month: 0, quarter: 0, year: 0 };
             
-            if (!data || !data.data || !Array.isArray(data.data) || data.data.length === 0) {
-                return changes;
-            }
+            if (!data.data || data.data.length < 2) return changes;
             
             const sortedData = data.data.sort((a, b) => new Date(b.date) - new Date(a.date));
             const latest = sortedData[0];
-            if (!latest) return changes;
-            
             const latestDate = new Date(latest.date);
             const latestValue = parseFloat(latest.value);
             
@@ -1252,9 +972,7 @@
                 let minDiff = Infinity;
                 
                 for (const point of sortedData) {
-                    const pointDate = new Date(point.date);
-                    const diff = Math.abs(pointDate - targetDate);
-                    
+                    const diff = Math.abs(new Date(point.date) - targetDate);
                     if (diff < minDiff) {
                         minDiff = diff;
                         closestData = point;
@@ -1271,11 +989,43 @@
             
             return changes;
         }
-        
-        // ============================================
-        // User Actions
-        // ============================================
-        
+
+        function sortData(data) {
+            return data.sort((a, b) => {
+                let aVal, bVal;
+                
+                switch(sortColumn) {
+                    case 'name':
+                        aVal = a.name || a.id;
+                        bVal = b.name || b.id;
+                        break;
+                    case 'value':
+                        aVal = a.latest_value || 0;
+                        bVal = b.latest_value || 0;
+                        break;
+                    case 'week':
+                    case 'month':
+                    case 'quarter':
+                    case 'year':
+                        const aChanges = calculateChanges(a);
+                        const bChanges = calculateChanges(b);
+                        aVal = aChanges[sortColumn];
+                        bVal = bChanges[sortColumn];
+                        break;
+                    default:
+                        aVal = a.id;
+                        bVal = b.id;
+                }
+                
+                if (sortOrder === 'asc') {
+                    return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+                } else {
+                    return aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
+                }
+            });
+        }
+
+        // User actions
         function toggleFavorite(seriesId) {
             const index = favorites.indexOf(seriesId);
             if (index > -1) {
@@ -1283,17 +1033,16 @@
             } else {
                 favorites.push(seriesId);
             }
-            
             localStorage.setItem('fed_favorites', JSON.stringify(favorites));
             displayCurrentView();
         }
-        
+
         function editName(seriesId) {
             document.getElementById(`name-${seriesId}`).style.display = 'none';
             document.getElementById(`input-${seriesId}`).style.display = 'block';
             document.getElementById(`input-${seriesId}`).focus();
         }
-        
+
         function saveName(seriesId) {
             const input = document.getElementById(`input-${seriesId}`);
             const nameDiv = document.getElementById(`name-${seriesId}`);
@@ -1305,8 +1054,7 @@
                     localStorage.setItem('fed_custom_names', JSON.stringify(customNames));
                     nameDiv.textContent = newName;
                     
-                    // Update the data
-                    const data = allSeriesData.find(s => s.id === seriesId);
+                    const data = dataStore.get(seriesId);
                     if (data) {
                         data.name = newName;
                     }
@@ -1316,37 +1064,27 @@
                 nameDiv.style.display = 'block';
             }
         }
-        
+
         function sortBy(column) {
             sortColumn = column;
-            
-            document.querySelectorAll('.sort-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
+            document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
-            
             displayCurrentView();
         }
-        
+
         function toggleSortOrder() {
             sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
             document.getElementById('sort-order').textContent = sortOrder === 'asc' ? 'Asc' : 'Desc';
             displayCurrentView();
         }
-        
-        async function showCategory(category) {
+
+        function showCategory(category) {
             currentCategory = category;
-            
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             event.target.classList.add('active');
-            
             displayCurrentView();
-            updateLoadedCount();
         }
-        
+
         function searchSeries() {
             const searchTerm = document.getElementById('search-input').value.toLowerCase();
             const cards = document.querySelectorAll('.series-card');
@@ -1362,39 +1100,26 @@
                 }
             });
         }
-        
-        // ============================================
-        // Utility Functions
-        // ============================================
-        
+
+        // Utilities
         function formatValue(value, code) {
             if (value === null || value === undefined) return '--';
-            
             const num = parseFloat(value);
             
             if (code.includes('RATE') || code.includes('DGS') || code.includes('DFF')) {
                 return num.toFixed(3) + '%';
             }
             
-            if (code.includes('VIX')) {
-                return num.toFixed(2);
-            }
+            if (code.includes('VIX')) return num.toFixed(2);
+            if (code.includes('DEX') || code.includes('DTW')) return num.toFixed(4);
             
-            if (code.includes('DEX') || code.includes('DTW')) {
-                return num.toFixed(4);
-            }
-            
-            if (Math.abs(num) >= 1e12) {
-                return (num / 1e12).toFixed(2) + 'T';
-            } else if (Math.abs(num) >= 1e9) {
-                return (num / 1e9).toFixed(2) + 'B';
-            } else if (Math.abs(num) >= 1e6) {
-                return (num / 1e6).toFixed(2) + 'M';
-            }
+            if (Math.abs(num) >= 1e12) return (num / 1e12).toFixed(2) + 'T';
+            if (Math.abs(num) >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+            if (Math.abs(num) >= 1e6) return (num / 1e6).toFixed(2) + 'M';
             
             return num.toFixed(2);
         }
-        
+
         function formatDate(dateStr) {
             if (!dateStr || dateStr === '--') return '--';
             const date = new Date(dateStr);
@@ -1404,46 +1129,40 @@
                 year: 'numeric'
             });
         }
-        
+
         function updateTimestamp() {
             const now = new Date();
             document.getElementById('last-update').textContent = 
                 now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
         }
-        
+
         function updateLoadedCount() {
-            const loaded = allSeriesData.filter(s => s.latest_value !== null).length;
-            const total = Object.keys(allIndicators).length;
-            const missing = total - loaded;
+            let loaded = 0;
+            dataStore.forEach(data => {
+                if (data.latest_value !== null) loaded++;
+            });
             
-            document.getElementById('loaded-count').textContent = `${loaded}/${total} Loaded`;
+            const missing = ALL_INDICATORS.length - loaded;
+            document.getElementById('loaded-count').textContent = `${loaded}/252 Loaded`;
             document.getElementById('total-loaded').textContent = loaded;
             document.getElementById('missing-count').textContent = missing;
-        }
-        
-        function updateStats() {
+            
+            // Update stats
             let positiveCount = 0;
             let negativeCount = 0;
-            let totalChange = 0;
-            let validCount = 0;
             
-            for (const data of allSeriesData) {
-                if (!data.data || data.data.length === 0) continue;
-                const changes = calculateAllChanges(data);
-                if (changes.week !== 0) {
+            dataStore.forEach(data => {
+                if (data.data && data.data.length > 0) {
+                    const changes = calculateChanges(data);
                     if (changes.week > 0) positiveCount++;
-                    else negativeCount++;
-                    totalChange += changes.week;
-                    validCount++;
+                    else if (changes.week < 0) negativeCount++;
                 }
-            }
+            });
             
             document.getElementById('positive-count').textContent = positiveCount;
             document.getElementById('negative-count').textContent = negativeCount;
-            document.getElementById('avg-change').textContent = 
-                validCount > 0 ? (totalChange / validCount).toFixed(2) + '%' : '0%';
         }
-        
+
         function showNotification(message, type = 'info') {
             const notification = document.getElementById('update-notification');
             notification.textContent = message;
@@ -1453,17 +1172,19 @@
                 notification.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
             } else if (type === 'success') {
                 notification.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+            } else if (type === 'warning') {
+                notification.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
             }
             
             setTimeout(() => {
                 notification.style.display = 'none';
             }, 3000);
         }
-        
+
         function exportData() {
             const exportData = {
                 timestamp: new Date().toISOString(),
-                indicators: allSeriesData,
+                indicators: Array.from(dataStore.values()),
                 favorites: favorites,
                 customNames: customNames
             };
@@ -1478,7 +1199,7 @@
             
             showNotification('Data exported successfully!', 'success');
         }
-        
+
         // Initialize on load
         document.addEventListener('DOMContentLoaded', init);
     </script>
