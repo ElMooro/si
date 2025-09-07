@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fed Liquidity Terminal - Core Economic Indicators</title>
+    <title>Fed Liquidity Terminal - Essential Economic Indicators</title>
     <style>
         * {
             margin: 0;
@@ -646,7 +646,7 @@
             <div class="header-content">
                 <div>
                     <h1 class="title">Fed Liquidity Terminal</h1>
-                    <div class="subtitle">Core Economic Intelligence - 112 Live Indicators</div>
+                    <div class="subtitle">Essential Economic Intelligence - 65 Core Indicators</div>
                 </div>
                 <div class="rate-limit-indicator">
                     <span>Rate Limit:</span>
@@ -661,7 +661,7 @@
                         <span id="api-status">Ready</span>
                     </div>
                     <div class="status-pill">
-                        <span id="loaded-count">0/112 Loaded</span>
+                        <span id="loaded-count">0/65 Loaded</span>
                     </div>
                     <div class="status-pill">
                         <span id="last-update">--:--</span>
@@ -683,7 +683,7 @@
                     <div class="stat-label">Loaded</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-value" id="missing-count">112</div>
+                    <div class="stat-value" id="missing-count">65</div>
                     <div class="stat-label">Missing</div>
                 </div>
                 <div class="stat-item">
@@ -704,7 +704,7 @@
         <!-- Category Tabs -->
         <div class="tabs-container">
             <div class="category-tabs">
-                <button class="tab active" onclick="showCategory('all')">All 112</button>
+                <button class="tab active" onclick="showCategory('all')">All 65</button>
                 <button class="tab" onclick="showCategory('favorites')">⭐ Favorites</button>
                 <button class="tab" onclick="showCategory('federal_reserve')">Fed Reserve</button>
                 <button class="tab" onclick="showCategory('treasury')">Treasury</button>
@@ -712,7 +712,6 @@
                 <button class="tab" onclick="showCategory('volatility')">Volatility</button>
                 <button class="tab" onclick="showCategory('currencies')">Currencies</button>
                 <button class="tab" onclick="showCategory('commodities')">Commodities</button>
-                <button class="tab" onclick="showCategory('money_supply')">Money Supply</button>
                 <button class="tab" onclick="showCategory('stress')">Stress</button>
             </div>
         </div>
@@ -734,7 +733,7 @@
         <div class="controls">
             <div class="search-box">
                 <input type="text" class="search-input" id="search-input" 
-                       placeholder="Search core indicators..." 
+                       placeholder="Search essential indicators..." 
                        oninput="searchSeries()">
             </div>
             <button class="btn" onclick="loadAllData()" id="loadAllBtn">📥 Load All Indicators</button>
@@ -746,7 +745,7 @@
         <div class="series-grid" id="series-grid">
             <div class="loading">
                 <div class="spinner"></div>
-                Click "Load All 112" to start loading core economic indicators
+                Click "Load All 65" to start loading essential economic indicators
             </div>
         </div>
     </div>
@@ -772,64 +771,47 @@
         let isProcessingQueue = false;
         let availableRequests = RATE_LIMIT;
         
-        // Core 112 indicators list (removed the specified series)
+        // Essential 65 indicators list (removed all specified series)
         const ALL_INDICATORS = [
             // Federal Reserve Core
-            'WALCL', 'RRPONTSYD', 'WTREGEN', 'BOGMBASE', 'BOGMBBM', 'TOTRESNS', 'WRBWFRBL', 'WREPODEL', 'WREPOFOR',
-            // Money Supply Core
-            'M2SL', 'M2V',
+            'WALCL', 'RRPONTSYD', 'WTREGEN', 'BOGMBASE', 'TOTRESNS', 'WRBWFRBL',
             // Treasury Core
             'DGS3MO', 'DGS6MO', 'DGS1', 'DGS2', 'DGS3', 'DGS5', 'DGS7', 'DGS10', 'DGS20', 'DGS30',
             // Spreads
             'T10Y2Y', 'T10Y3M', 'T30Y10Y', 'TB3SMFFM',
-            // Bond Stress
-            'MORTGAGE30US', 'DPRIME', 'TB3MS', 'TB6MS', 'RIFLGFCY10', 'RIFLGFCY05',
+            // Bond Core
+            'MORTGAGE30US', 'DPRIME', 'TB3MS', 'TB6MS',
             // Corporate
             'AAA10Y', 'BAA10Y', 'HQMCB10YR', 'HQMCB20YR', 'HQMCB30YR', 'BAMLC0A1CAAA', 'BAMLC0A2CAA', 'BAMLC0A3CA', 'BAMLC0A4CBBB', 
             'BAMLH0A0HYM2', 'BAMLH0A0HYM2EY', 'BAMLC0A0CM', 'BAMLC0A0CMEY',
             // Emerging
-            'BAMLEMCBPIOAS', 'BAMLEMHYHYCEY', 'EMLC', 'DEXKOUS', 'DEXMXUS', 'DEXBZUS', 'DEXINUS', 'DEXSFUS',
+            'BAMLEMCBPIOAS', 'BAMLEMHYHYCEY', 'EMLC',
             // Stress
-            'DRTSCIS', 'DRTSCILM', 'SUBLPDRCILM', 'DRTSCLCC', 'STLFSI3', 'NFCI', 'ANFCI',
+            'DRTSCIS', 'DRTSCILM', 'STLFSI3', 'NFCI', 'ANFCI',
             // Liquidity
-            'WLRRAL', 'IORB', 'SOFR', 'OBFR', 'EFFR', 'DFF', 'RRPONTTLD', 'RPONTSYD',
+            'SOFR', 'OBFR', 'EFFR', 'DFF', 'RRPONTTLD', 'RPONTSYD',
             // Volatility
-            'VIXCLS', 'VXVCLS', 'OVXCLS', 'GVZCLS', 'EVZCLS', 'RVXCLS', 'TYVIX', 'SRVIX',
+            'VIXCLS', 'VXVCLS', 'OVXCLS', 'GVZCLS', 'EVZCLS', 'RVXCLS', 'TYVIX',
             // Currencies
-            'DTWEXBGS', 'DTWEXAFEGS', 'DTWEXEMEGS', 'DEXUSEU', 'DEXJPUS', 'DEXUSUK', 'DEXCHUS', 'DEXSZUS', 'DEXCAUS', 'DEXUSAL',
+            'DTWEXBGS', 'DTWEXAFEGS', 'DTWEXEMEGS', 'DEXUSEU', 'DEXJPUS', 'DEXUSUK', 'DEXCHUS',
             // Commodities
             'DCOILWTICO', 'DCOILBRENTEU',
             // Economic Core
-            'DSPIC96', 'UNRATE', 'MNFCTRIRSA', 'ISRATIO', 'REVOLSL', 'RETAILIMSA', 'INTGSTMXM193N', 'AMERIBOR',
+            'UNRATE', 'AMERIBOR',
             // Policy
             'DFEDTARU', 'DFEDTARL',
-            // Leverage
-            'NFCINONFINLEVERAGE', 'NFCILEVERAGE', 'NFCICREDIT', 'NFCIRISK',
-            // Special Liquidity
-            'RESPPALGUOXAWXCH52NWW', 'RESPPALGUONNWW', 'SWP1690', 'OTHL1690', 'SUBLPDCISTQNQ', 'DRISCFLM', 'RMFSL', 
-            'SBCACBW027SBOG', 'RESH4MFNWW', 'BOGZ1FL663067003Q', 'RESPPNTEPNWW',
-            // Central Banks
-            'JPNASSETS', 'ECBASSETSW', 'BSFGLV02EZM460S', 'BSOBLV02EZM460S',
-            // Fed Reserve Data
-            'RESBALNS', 'WRESBAL', 'NONBORRES', 'G7LOLITOAASTSA', 'WLCFLPCL', 'WUDSN', 'WGCAL', 'WORAL', 'WSHOSL', 
-            'WSHOMCB', 'WUSDL', 'WGCSL', 'TERMT', 'PDCBL', 'CPCRL', 'MMMFL', 'PPPCRL', 'MSNLFL', 'SMCCFL', 'MLFL', 
-            'WCURFSL', 'WACBS', 'WLCFLL', 'WSHOTS', 'WLODLL', 'WDTGAL', 'WDPSAL', 'BUSLOANS', 
-            'REALLN', 'CONSUMER', 'RBSRESNS', 'RBLRESNS', 'CASACBW027SBOG', 'TLAACBW027SBOG', 'CPLTTLL', 'MMMFFASW', 
-            'WDCRL', 'WAML', 'WOBLAL', 'RESPPLLOPNWW', 'H41RESPPLOPNNWW', 'WGSEC', 'WIMFSL', 'WACBSL', 'WIMFCL', 
-            'WGCRL', 'DPCREDIT',
             // Market
-            'SP500', 'IGREA'
+            'SP500'
         ];
 
         const CATEGORIES = {
-            federal_reserve: ['WALCL', 'RRPONTSYD', 'WTREGEN', 'BOGMBASE', 'BOGMBBM', 'TOTRESNS', 'WRBWFRBL', 'WREPODEL', 'WREPOFOR'],
+            federal_reserve: ['WALCL', 'RRPONTSYD', 'WTREGEN', 'BOGMBASE', 'TOTRESNS', 'WRBWFRBL'],
             treasury: ['DGS3MO', 'DGS6MO', 'DGS1', 'DGS2', 'DGS3', 'DGS5', 'DGS7', 'DGS10', 'DGS20', 'DGS30'],
             corporate: ['AAA10Y', 'BAA10Y', 'HQMCB10YR', 'HQMCB20YR', 'HQMCB30YR', 'BAMLC0A1CAAA', 'BAMLC0A2CAA', 'BAMLC0A3CA', 'BAMLC0A4CBBB'],
-            volatility: ['VIXCLS', 'VXVCLS', 'OVXCLS', 'GVZCLS', 'EVZCLS', 'RVXCLS', 'TYVIX', 'SRVIX'],
-            currencies: ['DTWEXBGS', 'DTWEXAFEGS', 'DTWEXEMEGS', 'DEXUSEU', 'DEXJPUS', 'DEXUSUK', 'DEXCHUS', 'DEXSZUS', 'DEXCAUS', 'DEXUSAL'],
+            volatility: ['VIXCLS', 'VXVCLS', 'OVXCLS', 'GVZCLS', 'EVZCLS', 'RVXCLS', 'TYVIX'],
+            currencies: ['DTWEXBGS', 'DTWEXAFEGS', 'DTWEXEMEGS', 'DEXUSEU', 'DEXJPUS', 'DEXUSUK', 'DEXCHUS'],
             commodities: ['DCOILWTICO', 'DCOILBRENTEU'],
-            money_supply: ['M2SL', 'M2V'],
-            stress: ['DRTSCIS', 'DRTSCILM', 'SUBLPDRCILM', 'DRTSCLCC', 'STLFSI3', 'NFCI', 'ANFCI']
+            stress: ['DRTSCIS', 'DRTSCILM', 'STLFSI3', 'NFCI', 'ANFCI']
         };
 
         // Rate limiting
@@ -963,7 +945,7 @@
             updateLoadedCount();
             
             // Show total count
-            console.log(`Dashboard initialized with ${ALL_INDICATORS.length} core indicators`);
+            console.log(`Dashboard initialized with ${ALL_INDICATORS.length} essential indicators`);
         }
 
         // Load all data
@@ -1334,7 +1316,7 @@
             const missing = ALL_INDICATORS.length - loaded;
             const avgChange = validChanges > 0 ? (totalWeekChange / validChanges) : 0;
             
-            document.getElementById('loaded-count').textContent = `${loaded}/112 Loaded`;
+            document.getElementById('loaded-count').textContent = `${loaded}/65 Loaded`;
             document.getElementById('total-loaded').textContent = loaded;
             document.getElementById('missing-count').textContent = missing;
             document.getElementById('avg-change').textContent = `${avgChange >= 0 ? '+' : ''}${avgChange.toFixed(2)}%`;
@@ -1385,11 +1367,11 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `fed-liquidity-core-${new Date().toISOString().split('T')[0]}.json`;
+            a.download = `fed-liquidity-essential-${new Date().toISOString().split('T')[0]}.json`;
             a.click();
             URL.revokeObjectURL(url);
             
-            showNotification('Core indicators exported successfully!', 'success');
+            showNotification('Essential indicators exported successfully!', 'success');
         }
 
         // Initialize on load
