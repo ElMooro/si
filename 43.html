@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fed Liquidity Terminal - 252 Economic Indicators (Cached)</title>
+    <title>Fed Liquidity Terminal - 252 Economic Indicators (No Cache)</title>
     <style>
         * {
             margin: 0;
@@ -109,16 +109,15 @@
             animation: pulse 2s infinite;
         }
 
-        .cache-indicator {
+        .no-cache-indicator {
             display: inline-block;
             padding: 0.25rem 0.5rem;
-            background: rgba(255, 215, 0, 0.1);
-            border: 1px solid rgba(255, 215, 0, 0.3);
+            background: rgba(255, 165, 0, 0.1);
+            border: 1px solid rgba(255, 165, 0, 0.3);
             border-radius: 4px;
             font-size: 0.75rem;
-            color: #ffd700;
+            color: #ffa500;
             margin-left: 0.5rem;
-            animation: pulse 2s infinite;
         }
 
         .rate-limit-indicator {
@@ -146,17 +145,26 @@
             transition: width 0.3s ease;
         }
 
-        /* Queue Status */
-        .queue-status {
-            padding: 0.75rem;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-            margin-bottom: 1rem;
+        /* Progress Container */
+        .progress-container {
+            width: 100%;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 1rem 0;
             display: none;
         }
 
-        .queue-status.active {
-            display: block;
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00ccff);
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-weight: bold;
         }
 
         /* Update Notification */
@@ -184,67 +192,36 @@
             }
         }
 
-        /* Progress Container */
-        .progress-container {
-            width: 100%;
-            height: 30px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            overflow: hidden;
-            margin: 1rem 0;
-            display: none;
-        }
-
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #00ff88, #00ccff);
-            transition: width 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #000;
-            font-weight: bold;
-        }
-
-        /* Summary Grid */
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .summary-card {
+        /* Stats Overview */
+        .stats-overview {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
             border-radius: 15px;
             padding: 20px;
+            margin-bottom: 25px;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
-            cursor: pointer;
         }
 
-        .summary-card:hover {
-            transform: translateY(-3px);
-            background: rgba(255, 255, 255, 0.08);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
         }
 
-        .summary-label {
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #667eea;
+        }
+
+        .stat-label {
             font-size: 0.8rem;
             color: rgba(255, 255, 255, 0.6);
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .summary-value {
-            font-size: 1.8rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #fff, rgba(255, 255, 255, 0.8));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 5px;
+            margin-top: 5px;
         }
 
         /* Category Tabs */
@@ -357,38 +334,6 @@
             cursor: not-allowed;
         }
 
-        /* Stats Overview */
-        .stats-overview {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 25px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-        }
-
-        .stat-item {
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: #667eea;
-        }
-
-        .stat-label {
-            font-size: 0.8rem;
-            color: rgba(255, 255, 255, 0.6);
-            margin-top: 5px;
-        }
-
         /* Series Grid */
         .series-grid {
             display: grid;
@@ -483,26 +428,6 @@
             color: rgba(255, 255, 255, 0.6);
         }
 
-        .cache-badge {
-            display: inline-block;
-            padding: 0.125rem 0.25rem;
-            background: rgba(255, 215, 0, 0.2);
-            border-radius: 3px;
-            font-size: 0.625rem;
-            color: #ffd700;
-            margin-left: 0.25rem;
-        }
-
-        .fresh-badge {
-            display: inline-block;
-            padding: 0.125rem 0.25rem;
-            background: rgba(0, 255, 136, 0.2);
-            border-radius: 3px;
-            font-size: 0.625rem;
-            color: #00ff88;
-            margin-left: 0.25rem;
-        }
-
         .positive {
             color: #4ade80;
         }
@@ -532,56 +457,6 @@
             margin: 20px auto;
         }
 
-        /* Modal for detailed view */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 2000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-content {
-            background: linear-gradient(135deg, #1a1a2e, #0f0f1e);
-            border-radius: 20px;
-            padding: 30px;
-            max-width: 800px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .modal-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #667eea;
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
-
-        .close-btn:hover {
-            color: #fff;
-        }
-
         @media (max-width: 768px) {
             .title {
                 font-size: 1.8rem;
@@ -589,10 +464,6 @@
             
             .series-grid {
                 grid-template-columns: 1fr;
-            }
-            
-            .summary-grid {
-                grid-template-columns: repeat(2, 1fr);
             }
         }
     </style>
@@ -609,9 +480,9 @@
             <div class="header-content">
                 <div>
                     <h1 class="title">Fed Liquidity Terminal
-                        <span class="cache-indicator">CACHED</span>
+                        <span class="no-cache-indicator">NO CACHE</span>
                     </h1>
-                    <div class="subtitle">Complete Economic Intelligence - 252 Live Indicators</div>
+                    <div class="subtitle">Complete Economic Intelligence - 252 Live Indicators (Direct API)</div>
                 </div>
                 <div class="rate-limit-indicator">
                     <span>Rate Limit:</span>
@@ -623,26 +494,16 @@
                 <div class="status-bar">
                     <div class="status-pill">
                         <div class="pulse-dot"></div>
-                        <span id="api-status">Connecting...</span>
+                        <span id="api-status">Ready</span>
                     </div>
                     <div class="status-pill">
                         <span id="series-count">252 Indicators</span>
-                    </div>
-                    <div class="status-pill">
-                        <span id="cached-count">0 Cached</span>
                     </div>
                     <div class="status-pill">
                         <span id="last-update">--:--</span>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <!-- Queue status -->
-        <div class="queue-status" id="queueStatus">
-            <strong>Loading Queue:</strong> <span id="queueInfo">0 items waiting</span> | 
-            <strong>Processing:</strong> <span id="processingInfo">Idle</span> | 
-            <strong>Requests/min:</strong> <span id="requestRate">0</span>/120
         </div>
 
         <!-- Progress Bar -->
@@ -672,14 +533,6 @@
             </div>
         </div>
 
-        <!-- Key Metrics Summary -->
-        <div class="summary-grid" id="summary-grid">
-            <div class="loading">
-                <div class="spinner"></div>
-                <p>Loading key metrics...</p>
-            </div>
-        </div>
-
         <!-- Category Tabs -->
         <div class="tabs-container">
             <div class="category-tabs">
@@ -694,7 +547,6 @@
                 <button class="tab" onclick="showCategory('commodities')">Commodities</button>
                 <button class="tab" onclick="showCategory('liquidity')">Liquidity</button>
                 <button class="tab" onclick="showCategory('economic')">Economic</button>
-                <button class="tab" onclick="showCategory('stress')">Bank Stress</button>
             </div>
         </div>
 
@@ -706,29 +558,12 @@
                        oninput="searchSeries()">
             </div>
             <button class="btn" onclick="loadTabData()" id="loadTabBtn">📥 Load Tab Data</button>
-            <button class="btn" onclick="refreshTabData()" id="refreshTabBtn">🔃 Refresh Tab</button>
-            <button class="btn" onclick="clearCache()" id="clearCacheBtn">🗑️ Clear Cache</button>
-            <button class="btn" onclick="localStorage.clear(); location.reload();" style="background: linear-gradient(135deg, #ef4444, #dc2626);">💣 Clear ALL Storage</button>
             <button class="btn" onclick="exportData()">📊 Export Data</button>
         </div>
 
         <!-- Series Grid -->
         <div class="series-grid" id="series-grid">
-            <div class="loading">
-                <div class="spinner"></div>
-                <p>Ready to load data. Click "Load Tab Data" to start.</p>
-            </div>
-        </div>
-
-        <!-- Modal for detailed view -->
-        <div class="modal" id="detail-modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2 class="modal-title" id="modal-title">Indicator Details</h2>
-                    <button class="close-btn" onclick="closeModal()">&times;</button>
-                </div>
-                <div id="modal-body"></div>
-            </div>
+            <div class="loading">Ready to load data. Click "Load Tab Data" to start.</div>
         </div>
     </div>
 
@@ -739,16 +574,13 @@
         const API_URL = 'https://occdgwanqvbjd2qnnuyafvkvei0ptinb.lambda-url.us-east-1.on.aws';
         const RATE_LIMIT = 120; // requests per minute
         const RATE_WINDOW = 60000; // 1 minute in ms
-        const CACHE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days
         
         // ============================================
-        // Global State
+        // Global State (NO CACHING)
         // ============================================
         let allIndicators = {};
         let allSeriesData = [];
-        let dataCache = {};
         let currentCategory = 'all';
-        let currentFilter = 'all';
         
         // Rate limiting state
         let requestQueue = [];
@@ -756,122 +588,22 @@
         let isProcessingQueue = false;
         let availableRequests = RATE_LIMIT;
         
-        // All 252 indicators organized by category
+        // All indicators organized by category
         const INDICATOR_CATEGORIES = {
             federal_reserve: ['WALCL', 'RRPONTSYD', 'WTREGEN', 'BOGMBASE', 'BOGMBBM', 'WCURCIR', 'CURRCIR', 'TOTRESNS', 'WRBWFRBL', 'WREPODEL', 'WREPOFOR'],
             money_supply: ['M1SL', 'M2SL', 'M1NS', 'M2NS', 'CURRNS', 'M1V', 'M2V', 'MZMSL', 'SAVINGS', 'DPSACBW027SBOG'],
             treasury: ['DGS1MO', 'DGS3MO', 'DGS6MO', 'DGS1', 'DGS2', 'DGS3', 'DGS5', 'DGS7', 'DGS10', 'DGS20', 'DGS30'],
-            spreads: ['T10Y2Y', 'T10Y3M', 'T30Y10Y', 'T5YIE', 'T10YIE', 'T5YIFR', 'TEDRATE', 'TB3SMFFM'],
-            bond_stress: ['MORTGAGE30US', 'MORTGAGE15US', 'DPRIME', 'TB3MS', 'TB6MS', 'RIFLGFCY10', 'RIFLGFCY05', 'DFII10', 'DFII5', 'DFII30'],
-            corporate: ['AAA10Y', 'BAA10Y', 'HQMCB10YR', 'HQMCB20YR', 'HQMCB30YR', 'BAMLC0A1CAAA', 'BAMLC0A2CAA', 'BAMLC0A3CA', 'BAMLC0A4CBBB', 'BAMLH0A0HYM2', 'BAMLH0A0HYM2EY', 'BAMLC0A0CM', 'BAMLC0A0CMEY', 'DAAA', 'DBAA'],
-            emerging: ['BAMLEMCBPIOAS', 'BAMLEMHYHYCEY', 'EMLC', 'DEXKOUS', 'DEXMXUS', 'DEXBZUS', 'DEXINUS', 'DEXSFUS'],
-            stress: ['DRTSCIS', 'DRTSCILM', 'SUBLPDRCILM', 'DRTSCLCC', 'STLFSI3', 'NFCI', 'ANFCI'],
-            liquidity: ['WLRRAL', 'IOER', 'IORB', 'SOFR', 'OBFR', 'EFFR', 'DFF', 'RRPONTTLD', 'RPONTSYD'],
+            corporate: ['AAA10Y', 'BAA10Y', 'HQMCB10YR', 'HQMCB20YR', 'HQMCB30YR', 'DAAA', 'DBAA'],
             volatility: ['VIXCLS', 'VXVCLS', 'OVXCLS', 'GVZCLS', 'EVZCLS', 'RVXCLS', 'TYVIX', 'SRVIX'],
             currencies: ['DTWEXBGS', 'DTWEXAFEGS', 'DTWEXEMEGS', 'DEXUSEU', 'DEXJPUS', 'DEXUSUK', 'DEXCHUS', 'DEXSZUS', 'DEXCAUS', 'DEXUSAL'],
             commodities: ['DCOILWTICO', 'DCOILBRENTEU', 'GASREGW', 'DHHNGSP', 'GOLDAMGBD228NLBM'],
-            economic: ['DSPIC96', 'GFDEBTN', 'GFDEGDQ188S', 'FYGFD', 'FDHBFIN', 'FYGFGDN', 'GDP', 'CPIAUCSL', 'UNRATE', 'MNFCTRIRSA', 'ISRATIO', 'REVOLSL', 'RETAILIMSA', 'INTGSTMXM193N', 'AMERIBOR'],
-            policy: ['DFEDTARU', 'DFEDTARL'],
-            leverage: ['NFCINONFINLEVERAGE', 'NFCILEVERAGE', 'NFCICREDIT', 'NFCIRISK']
+            liquidity: ['WLRRAL', 'IOER', 'IORB', 'SOFR', 'OBFR', 'EFFR', 'DFF', 'RRPONTTLD', 'RPONTSYD'],
+            economic: ['DSPIC96', 'GFDEBTN', 'GFDEGDQ188S', 'GDP', 'CPIAUCSL', 'UNRATE']
         };
 
         // Summary indicators (12 key metrics)
         const SUMMARY_INDICATORS = ['WALCL', 'RESBALNS', 'RRPONTSYD', 'M2SL', 'DFF', 'DGS10', 'VIXCLS', 'DTWEXBGS', 'SP500', 'STLFSI3', 'T10Y2Y', 'BAMLH0A0HYM2'];
 
-        // ============================================
-        // Cache Management
-        // ============================================
-        
-        function getCacheKey(seriesId) {
-            return `fed_liquidity_${seriesId}`;
-        }
-        
-        function getCachedData(seriesId) {
-            const key = getCacheKey(seriesId);
-            const cached = localStorage.getItem(key);
-            
-            if (!cached) return null;
-            
-            try {
-                const data = JSON.parse(cached);
-                const now = Date.now();
-                
-                // Check if cache is still valid (7 days)
-                if (data.timestamp && (now - data.timestamp) < CACHE_DURATION) {
-                    return data;
-                }
-                
-                // Cache expired
-                localStorage.removeItem(key);
-                return null;
-            } catch (e) {
-                console.error('Cache parse error:', e);
-                localStorage.removeItem(key);
-                return null;
-            }
-        }
-        
-        function setCachedData(seriesId, data) {
-            const key = getCacheKey(seriesId);
-            const cacheData = {
-                ...data,
-                timestamp: Date.now(),
-                cached: true
-            };
-            
-            try {
-                localStorage.setItem(key, JSON.stringify(cacheData));
-                updateCacheCount();
-            } catch (e) {
-                console.error('Cache storage error:', e);
-                // Clear some old cache if storage is full
-                clearOldestCache();
-            }
-        }
-        
-        function clearCache() {
-            const keys = Object.keys(localStorage);
-            keys.forEach(key => {
-                if (key.startsWith('fed_liquidity_')) {
-                    localStorage.removeItem(key);
-                }
-            });
-            
-            dataCache = {};
-            allSeriesData = [];
-            updateCacheCount();
-            showNotification('Cache cleared', 'success');
-            displayCurrentView();
-        }
-        
-        function clearOldestCache() {
-            const keys = Object.keys(localStorage);
-            let oldestKey = null;
-            let oldestTime = Date.now();
-            
-            keys.forEach(key => {
-                if (key.startsWith('fed_liquidity_')) {
-                    try {
-                        const data = JSON.parse(localStorage.getItem(key));
-                        if (data.timestamp < oldestTime) {
-                            oldestTime = data.timestamp;
-                            oldestKey = key;
-                        }
-                    } catch (e) {}
-                }
-            });
-            
-            if (oldestKey) {
-                localStorage.removeItem(oldestKey);
-            }
-        }
-        
-        function updateCacheCount() {
-            const keys = Object.keys(localStorage);
-            const cacheCount = keys.filter(key => key.startsWith('fed_liquidity_')).length;
-            document.getElementById('cached-count').textContent = `${cacheCount} Cached`;
-        }
-        
         // ============================================
         // Rate Limiting
         // ============================================
@@ -889,9 +621,6 @@
             const percentage = (availableRequests / RATE_LIMIT) * 100;
             document.getElementById('rateLimitBar').style.width = `${percentage}%`;
             document.getElementById('rateLimitText').textContent = `${availableRequests}/${RATE_LIMIT}`;
-            
-            // Update rate display
-            document.getElementById('requestRate').textContent = requestsInWindow.length;
         }
         
         async function makeRateLimitedRequest(seriesId) {
@@ -908,52 +637,122 @@
             if (isProcessingQueue) return;
             isProcessingQueue = true;
             
-            document.getElementById('queueStatus').classList.add('active');
-            
             while (requestQueue.length > 0) {
                 updateRateLimit();
                 
                 if (availableRequests <= 0) {
                     // Wait for rate limit to reset
-                    document.getElementById('processingInfo').textContent = 'Waiting for rate limit...';
                     await new Promise(resolve => setTimeout(resolve, 1000));
                     continue;
                 }
                 
                 const request = requestQueue.shift();
-                document.getElementById('queueInfo').textContent = `${requestQueue.length} items waiting`;
-                document.getElementById('processingInfo').textContent = `Loading ${request.seriesId}`;
                 
                 try {
-                    // Check cache first
-                    const cachedData = getCachedData(request.seriesId);
-                    if (cachedData) {
-                        request.resolve(cachedData);
-                        continue;
-                    }
-                    
                     // Make actual API request
+                    console.log(`Fetching ${request.seriesId} from API...`);
                     const response = await fetch(`${API_URL}/?series=${request.seriesId}`);
                     requestsInWindow.push(Date.now());
                     
                     if (response.ok) {
-                        const data = await response.json();
-                        setCachedData(request.seriesId, data);
-                        request.resolve(data);
+                        const rawData = await response.json();
+                        console.log(`Raw API response for ${request.seriesId}:`, rawData);
+                        
+                        // Parse the API response
+                        const parsedData = parseApiResponse(request.seriesId, rawData);
+                        request.resolve(parsedData);
                     } else {
                         throw new Error(`HTTP ${response.status}`);
                     }
                 } catch (error) {
+                    console.error(`Error fetching ${request.seriesId}:`, error);
                     request.reject(error);
                 }
                 
-                // Small delay between requests to be nice to the API
-                await new Promise(resolve => setTimeout(resolve, 500));
+                // Small delay between requests
+                await new Promise(resolve => setTimeout(resolve, 300));
             }
             
             isProcessingQueue = false;
-            document.getElementById('processingInfo').textContent = 'Idle';
-            document.getElementById('queueStatus').classList.remove('active');
+        }
+        
+        function parseApiResponse(seriesId, rawData) {
+            console.log(`\n=== Parsing ${seriesId} ===`);
+            console.log('Raw data keys:', Object.keys(rawData));
+            
+            let result = {
+                id: seriesId,
+                name: allIndicators[seriesId] || seriesId,
+                latest_value: null,
+                latest_date: null,
+                data: [],
+                metadata: {}
+            };
+            
+            // Try every possible data structure
+            
+            // 1. Direct fields
+            if (rawData.value !== undefined && rawData.value !== null && rawData.value !== '' && rawData.value !== '.') {
+                result.latest_value = parseFloat(rawData.value);
+                result.latest_date = rawData.date || rawData.last_updated;
+                console.log(`✓ Found in 'value' field: ${result.latest_value}`);
+            }
+            // 2. Latest value field
+            else if (rawData.latest_value !== undefined && rawData.latest_value !== null) {
+                result.latest_value = parseFloat(rawData.latest_value);
+                result.latest_date = rawData.latest_date;
+                result.data = rawData.data || [];
+                console.log(`✓ Found in 'latest_value' field: ${result.latest_value}`);
+            }
+            // 3. FRED observations
+            else if (rawData.observations && Array.isArray(rawData.observations)) {
+                const validObs = rawData.observations.filter(obs => 
+                    obs.value !== '.' && obs.value !== '' && obs.value !== null
+                );
+                if (validObs.length > 0) {
+                    const latest = validObs[validObs.length - 1];
+                    result.latest_value = parseFloat(latest.value);
+                    result.latest_date = latest.date;
+                    result.data = validObs.map(obs => ({
+                        date: obs.date,
+                        value: parseFloat(obs.value)
+                    }));
+                    console.log(`✓ Found in 'observations': ${result.latest_value}`);
+                }
+            }
+            // 4. Data array
+            else if (rawData.data && Array.isArray(rawData.data) && rawData.data.length > 0) {
+                const validData = rawData.data.filter(d => 
+                    d.value !== null && d.value !== undefined && d.value !== '' && d.value !== '.'
+                );
+                
+                if (validData.length > 0) {
+                    const sortedData = validData.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    result.latest_value = parseFloat(sortedData[0].value);
+                    result.latest_date = sortedData[0].date;
+                    result.data = sortedData.map(d => ({
+                        date: d.date,
+                        value: parseFloat(d.value)
+                    }));
+                    console.log(`✓ Found in 'data' array: ${result.latest_value}`);
+                }
+            }
+            
+            // Add metadata
+            if (rawData.name) result.name = rawData.name;
+            if (rawData.title) result.name = rawData.title;
+            if (rawData.metadata) {
+                result.metadata = rawData.metadata;
+                if (rawData.metadata.title) result.name = rawData.metadata.title;
+            }
+            
+            console.log(`Final result for ${seriesId}:`, {
+                value: result.latest_value,
+                date: result.latest_date,
+                dataPoints: result.data.length
+            });
+            
+            return result;
         }
         
         // ============================================
@@ -964,7 +763,6 @@
             try {
                 document.getElementById('api-status').textContent = 'Loading...';
                 
-                updateCacheCount();
                 updateTimestamp();
                 
                 // Set up rate limit display update
@@ -983,33 +781,13 @@
         
         async function loadIndicatorsList() {
             try {
-                // Check if we have cached list
-                const cachedList = localStorage.getItem('fed_liquidity_indicators_list');
-                if (cachedList) {
-                    const data = JSON.parse(cachedList);
-                    if (data.timestamp && (Date.now() - data.timestamp) < CACHE_DURATION) {
-                        allIndicators = data.series;
-                        document.getElementById('series-count').textContent = `${Object.keys(allIndicators).length} Indicators`;
-                        displayCurrentView();
-                        return;
-                    }
-                }
-                
-                // Fetch fresh list
                 const response = await fetch(`${API_URL}/?series=all`);
                 if (!response.ok) throw new Error('Failed to fetch series list');
                 
                 const data = await response.json();
                 allIndicators = data.series || {};
                 
-                // Cache the list
-                localStorage.setItem('fed_liquidity_indicators_list', JSON.stringify({
-                    series: allIndicators,
-                    timestamp: Date.now()
-                }));
-                
                 document.getElementById('series-count').textContent = `${Object.keys(allIndicators).length} Indicators`;
-                displayCurrentView();
                 
             } catch (error) {
                 console.error('Error loading indicators list:', error);
@@ -1028,34 +806,11 @@
             await loadSeriesDataBatch(seriesToLoad);
         }
         
-        async function refreshTabData() {
-            const seriesToLoad = getSeriesForCurrentTab();
-            
-            if (seriesToLoad.length === 0) {
-                showNotification('No series to refresh.', 'info');
-                return;
-            }
-            
-            // Clear cache for these series
-            seriesToLoad.forEach(seriesId => {
-                const key = getCacheKey(seriesId);
-                localStorage.removeItem(key);
-            });
-            
-            // Clear from loaded data
-            const seriesToLoadSet = new Set(seriesToLoad);
-            allSeriesData = allSeriesData.filter(s => !seriesToLoadSet.has(s.id));
-            
-            await loadSeriesDataBatch(seriesToLoad);
-        }
-        
         function getSeriesForCurrentTab() {
-            let seriesIds = Object.keys(allIndicators);
-            
             if (currentCategory === 'summary') {
                 return SUMMARY_INDICATORS;
             } else if (currentCategory === 'all') {
-                return seriesIds;
+                return Object.keys(allIndicators);
             } else {
                 return INDICATOR_CATEGORIES[currentCategory] || [];
             }
@@ -1064,18 +819,11 @@
         async function loadSeriesDataBatch(seriesIds) {
             const totalCount = seriesIds.length;
             
-            if (totalCount === 0) {
-                showNotification('No series to load.', 'info');
-                return;
-            }
+            console.log(`\n📊 Loading ${totalCount} series...`);
+            showNotification(`Loading ${totalCount} series...`, 'info');
             
-            console.log(`📊 Loading ${totalCount} series with rate limiting...`);
-            showNotification(`Loading ${totalCount} series (rate limited to ${RATE_LIMIT}/min)...`, 'info');
-            
-            // Disable buttons during loading
+            // Disable button during loading
             document.getElementById('loadTabBtn').disabled = true;
-            document.getElementById('refreshTabBtn').disabled = true;
-            document.getElementById('clearCacheBtn').disabled = true;
             
             // Show progress
             const progressContainer = document.getElementById('progressContainer');
@@ -1084,73 +832,47 @@
             
             document.getElementById('series-grid').innerHTML = '<div class="loading"><div class="spinner"></div> Loading data...</div>';
             
+            // Clear existing data
+            allSeriesData = [];
+            
             let loaded = 0;
             let failed = 0;
-            let cached = 0;
+            let withData = 0;
             
             for (const seriesId of seriesIds) {
                 try {
-                    // Check if already loaded
-                    const existing = allSeriesData.find(s => s.id === seriesId);
-                    if (existing && !existing.error) {
-                        loaded++;
-                        continue;
-                    }
-                    
-                    // Check cache first
-                    const cachedData = getCachedData(seriesId);
-                    
-                    let data;
-                    if (cachedData) {
-                        data = cachedData;
-                        cached++;
-                    } else {
-                        // Use rate-limited request
-                        data = await makeRateLimitedRequest(seriesId);
-                    }
-                    
-                    // Remove old entry
-                    allSeriesData = allSeriesData.filter(s => s.id !== seriesId);
+                    // Fetch data
+                    const parsedData = await makeRateLimitedRequest(seriesId);
                     
                     // Store the data
                     allSeriesData.push({
                         id: seriesId,
-                        name: data.name || data.metadata?.title || allIndicators[seriesId] || seriesId,
-                        latest_value: data.latest_value,
-                        latest_date: data.latest_date,
-                        data: data.data,
-                        metadata: data.metadata,
-                        cached: data.cached || false,
-                        week_change: data.week_change,
-                        month_change: data.month_change
+                        name: parsedData.name || allIndicators[seriesId] || seriesId,
+                        latest_value: parsedData.latest_value,
+                        latest_date: parsedData.latest_date,
+                        data: parsedData.data || [],
+                        metadata: parsedData.metadata || {}
                     });
                     
                     loaded++;
+                    if (parsedData.latest_value !== null) {
+                        withData++;
+                    }
                     
                     // Update progress
                     const progress = Math.round((loaded / totalCount) * 100);
                     progressBar.style.width = `${progress}%`;
                     progressBar.textContent = `${progress}%`;
                     
-                    document.getElementById('total-loaded').textContent = allSeriesData.filter(s => !s.error).length;
+                    document.getElementById('total-loaded').textContent = withData;
                     
                     // Update display periodically
-                    if (loaded % 10 === 0 || loaded === totalCount) {
+                    if (loaded % 5 === 0 || loaded === totalCount) {
                         displayCurrentView();
                     }
                     
                 } catch (error) {
                     console.error(`Failed ${seriesId}:`, error);
-                    
-                    allSeriesData = allSeriesData.filter(s => s.id !== seriesId);
-                    allSeriesData.push({
-                        id: seriesId,
-                        name: allIndicators[seriesId] || seriesId,
-                        latest_value: null,
-                        latest_date: null,
-                        error: true
-                    });
-                    
                     failed++;
                 }
             }
@@ -1158,17 +880,19 @@
             // Hide progress
             progressContainer.style.display = 'none';
             
-            // Re-enable buttons
+            // Re-enable button
             document.getElementById('loadTabBtn').disabled = false;
-            document.getElementById('refreshTabBtn').disabled = false;
-            document.getElementById('clearCacheBtn').disabled = false;
             
             // Final display
             displayCurrentView();
             updateTimestamp();
             updateStats();
             
-            const statusMsg = `Loaded ${loaded} series (${cached} from cache, ${loaded - cached} from API). ${failed > 0 ? `${failed} failed.` : ''}`;
+            console.log(`\n=== LOADING COMPLETE ===`);
+            console.log(`Total: ${loaded}, With data: ${withData}, Failed: ${failed}`);
+            console.log('All series data:', allSeriesData);
+            
+            const statusMsg = `Loaded ${withData} indicators with valid data. ${failed > 0 ? `${failed} failed.` : ''}`;
             showNotification(statusMsg, failed > 0 ? 'info' : 'success');
         }
         
@@ -1181,20 +905,10 @@
             let html = '';
             
             // Get data for current category
-            let seriesToShow = [];
-            
-            if (currentCategory === 'all') {
-                seriesToShow = Object.keys(allIndicators);
-            } else if (currentCategory === 'summary') {
-                seriesToShow = SUMMARY_INDICATORS;
-            } else {
-                seriesToShow = INDICATOR_CATEGORIES[currentCategory] || [];
-            }
+            let seriesToShow = getSeriesForCurrentTab();
             
             // Check if we have data loaded
-            const hasData = allSeriesData.length > 0;
-            
-            if (!hasData) {
+            if (allSeriesData.length === 0) {
                 grid.innerHTML = '<div class="loading">Ready to load data. Click "Load Tab Data" to start.</div>';
                 return;
             }
@@ -1207,24 +921,23 @@
                 }
             }
             
-            grid.innerHTML = html || '<div class="loading">No data loaded for this category. Click "Load Tab Data" to load.</div>';
+            grid.innerHTML = html || '<div class="loading">No data loaded for this category.</div>';
             
             updateStats();
         }
         
         function createSeriesCard(code, data) {
-            const value = data.latest_value !== undefined && data.latest_value !== null ? 
+            console.log(`Creating card for ${code}, value: ${data.latest_value}`);
+            
+            const value = data.latest_value !== null && data.latest_value !== undefined ? 
                 formatValue(data.latest_value, code) : '--';
             const date = data.latest_date || '--';
             const name = data.name || allIndicators[code] || code;
             const changes = calculateAllChanges(data);
-            const sourceLabel = data.cached ? 
-                '<span class="cache-badge">CACHED</span>' : 
-                '<span class="fresh-badge">FRESH</span>';
             
             return `
-                <div class="series-card" onclick="showDetails('${code}')">
-                    <div class="series-id">${code} ${sourceLabel}</div>
+                <div class="series-card">
+                    <div class="series-id">${code}</div>
                     <div class="series-name" title="${name}">${name}</div>
                     <div class="series-value">${value}</div>
                     <div class="series-date">Last: ${formatDate(date)}</div>
@@ -1266,11 +979,7 @@
                 year: 0
             };
             
-            // Use provided changes if available
-            if (data.week_change !== undefined) changes.week = data.week_change;
-            if (data.month_change !== undefined) changes.month = data.month_change;
-            
-            if (!data || !data.data || !Array.isArray(data.data)) {
+            if (!data || !data.data || !Array.isArray(data.data) || data.data.length === 0) {
                 return changes;
             }
             
@@ -1320,7 +1029,6 @@
         
         async function showCategory(category) {
             currentCategory = category;
-            currentFilter = category;
             
             // Update tab states
             document.querySelectorAll('.tab').forEach(tab => {
@@ -1330,124 +1038,6 @@
             event.target.classList.add('active');
             
             displayCurrentView();
-        }
-        
-        async function showDetails(code) {
-            const modal = document.getElementById('detail-modal');
-            const modalTitle = document.getElementById('modal-title');
-            const modalBody = document.getElementById('modal-body');
-            
-            modalTitle.textContent = `${code} - ${allIndicators[code] || code}`;
-            modalBody.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading details...</p></div>';
-            
-            modal.style.display = 'flex';
-            
-            try {
-                // Check if we have the data already
-                let data = allSeriesData.find(s => s.id === code);
-                console.log(`Details for ${code}:`, data);
-                
-                if (!data || !data.data || data.data.length === 0) {
-                    // Need to fetch it
-                    const parsedData = await makeRateLimitedRequest(code);
-                    
-                    // Update our stored data if we got better info
-                    if (parsedData && parsedData.latest_value !== null) {
-                        const index = allSeriesData.findIndex(s => s.id === code);
-                        if (index >= 0) {
-                            allSeriesData[index] = {
-                                ...allSeriesData[index],
-                                ...parsedData
-                            };
-                        }
-                        data = parsedData;
-                    }
-                }
-                
-                const changes = calculateAllChanges(data);
-                const displayValue = data.latest_value !== null && data.latest_value !== undefined ? 
-                    formatValue(data.latest_value, code) : '--';
-                
-                let html = `
-                    <div style="display: grid; gap: 20px;">
-                        <div>
-                            <h3 style="color: #667eea; margin-bottom: 10px;">Current Value</h3>
-                            <div style="font-size: 2rem; font-weight: 800; color: #fff;">
-                                ${displayValue}
-                            </div>
-                            <div style="color: rgba(255,255,255,0.6); margin-top: 5px;">
-                                As of ${formatDate(data.latest_date)}
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <h3 style="color: #667eea; margin-bottom: 10px;">Percentage Changes</h3>
-                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
-                                <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;">
-                                    <div style="color: rgba(255,255,255,0.6); font-size: 0.9rem;">Week</div>
-                                    <div class="${changes.week >= 0 ? 'positive' : 'negative'}" style="font-size: 1.3rem; font-weight: 600;">
-                                        ${changes.week >= 0 ? '+' : ''}${changes.week.toFixed(2)}%
-                                    </div>
-                                </div>
-                                <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;">
-                                    <div style="color: rgba(255,255,255,0.6); font-size: 0.9rem;">Month</div>
-                                    <div class="${changes.month >= 0 ? 'positive' : 'negative'}" style="font-size: 1.3rem; font-weight: 600;">
-                                        ${changes.month >= 0 ? '+' : ''}${changes.month.toFixed(2)}%
-                                    </div>
-                                </div>
-                                <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;">
-                                    <div style="color: rgba(255,255,255,0.6); font-size: 0.9rem;">Quarter</div>
-                                    <div class="${changes.quarter >= 0 ? 'positive' : 'negative'}" style="font-size: 1.3rem; font-weight: 600;">
-                                        ${changes.quarter >= 0 ? '+' : ''}${changes.quarter.toFixed(2)}%
-                                    </div>
-                                </div>
-                                <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;">
-                                    <div style="color: rgba(255,255,255,0.6); font-size: 0.9rem;">Year</div>
-                                    <div class="${changes.year >= 0 ? 'positive' : 'negative'}" style="font-size: 1.3rem; font-weight: 600;">
-                                        ${changes.year >= 0 ? '+' : ''}${changes.year.toFixed(2)}%
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        ${data.metadata && Object.keys(data.metadata).length > 0 ? `
-                        <div>
-                            <h3 style="color: #667eea; margin-bottom: 10px;">Metadata</h3>
-                            <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
-                                <p style="margin-bottom: 8px;"><strong>Title:</strong> ${data.metadata.title || data.name || 'N/A'}</p>
-                                <p style="margin-bottom: 8px;"><strong>Units:</strong> ${data.metadata.units || data.units || 'N/A'}</p>
-                                <p style="margin-bottom: 8px;"><strong>Frequency:</strong> ${data.metadata.frequency || data.frequency || 'N/A'}</p>
-                                <p><strong>Last Updated:</strong> ${data.metadata.last_updated || formatDate(data.latest_date) || 'N/A'}</p>
-                            </div>
-                        </div>
-                        ` : ''}
-                        
-                        ${data.data && data.data.length > 0 ? `
-                        <div>
-                            <h3 style="color: #667eea; margin-bottom: 10px;">Recent Data Points</h3>
-                            <div style="max-height: 200px; overflow-y: auto; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
-                                ${data.data.slice(0, 10).map(point => `
-                                    <div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                                        <span>${formatDate(point.date)}</span>
-                                        <span style="font-weight: 600;">${formatValue(point.value, code)}</span>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                        ` : ''}
-                    </div>
-                `;
-                
-                modalBody.innerHTML = html;
-                
-            } catch (error) {
-                console.error(`Error loading details for ${code}:`, error);
-                modalBody.innerHTML = `<p style="color: #f87171;">Failed to load details</p>`;
-            }
-        }
-        
-        function closeModal() {
-            document.getElementById('detail-modal').style.display = 'none';
         }
         
         function searchSeries() {
@@ -1467,7 +1057,6 @@
                 }
             });
             
-            // Update count
             document.getElementById('total-loaded').textContent = visibleCount;
         }
         
@@ -1478,17 +1067,14 @@
             
             // Percentage indicators
             if (code.includes('RATE') || code.includes('DGS') || code.includes('DFF') || 
-                code.includes('T10Y') || code.includes('T5Y') || code.includes('DPS') ||
-                code.includes('TB3') || code.includes('TB6') || code.includes('MORTGAGE') ||
-                code.includes('DPRIME') || code.includes('DFII') || code.includes('AAA') ||
-                code.includes('BAA') || code.includes('DAAA') || code.includes('DBAA')) {
+                code.includes('T10Y') || code.includes('T5Y') || code.includes('TB3') || 
+                code.includes('TB6') || code.includes('MORTGAGE') || code.includes('DPRIME') || 
+                code.includes('AAA') || code.includes('BAA')) {
                 return num.toFixed(3) + '%';
             }
             
             // Index values
-            if (code.includes('VIX') || code.includes('VXV') || code.includes('OVX') ||
-                code.includes('GVZ') || code.includes('EVZ') || code.includes('RVX') ||
-                code.includes('TYVIX') || code.includes('SRVIX')) {
+            if (code.includes('VIX') || code.includes('VXV') || code.includes('OVX')) {
                 return num.toFixed(2);
             }
             
@@ -1497,7 +1083,7 @@
                 return num.toFixed(4);
             }
             
-            // Large numbers (in millions/billions/trillions)
+            // Large numbers
             if (Math.abs(num) >= 1e12) {
                 return (num / 1e12).toFixed(2) + 'T';
             } else if (Math.abs(num) >= 1e9) {
@@ -1534,7 +1120,7 @@
             let validCount = 0;
             
             for (const data of allSeriesData) {
-                if (data.error) continue;
+                if (data.error || !data.data || data.data.length === 0) continue;
                 const changes = calculateAllChanges(data);
                 if (changes.week !== 0) {
                     if (changes.week > 0) positiveCount++;
@@ -1583,14 +1169,6 @@
             URL.revokeObjectURL(url);
             
             showNotification('Data exported successfully!', 'success');
-        }
-        
-        // Modal close on outside click
-        window.onclick = function(event) {
-            const modal = document.getElementById('detail-modal');
-            if (event.target === modal) {
-                modal.style.display = 'none';
-            }
         }
         
         // Initialize on load
