@@ -1339,7 +1339,7 @@
             const missing = ALL_INDICATORS.length - loaded;
             const avgChange = validChanges > 0 ? (totalWeekChange / validChanges) : 0;
             
-            document.getElementById('loaded-count').textContent = `${loaded}/128 Loaded`;
+            document.getElementById('loaded-count').textContent = `${loaded}/123 Loaded`;
             document.getElementById('total-loaded').textContent = loaded;
             document.getElementById('missing-count').textContent = missing;
             document.getElementById('avg-change').textContent = `${avgChange >= 0 ? '+' : ''}${avgChange.toFixed(2)}%`;
