@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fed Liquidity Terminal - 252 Economic Indicators</title>
+    <title>Fed Liquidity Terminal - 252 Economic Indicators (Cached)</title>
     <style>
         * {
             margin: 0;
@@ -109,7 +109,57 @@
             animation: pulse 2s infinite;
         }
 
-        /* Auto-update notification */
+        .cache-indicator {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: #ffd700;
+            margin-left: 0.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        .rate-limit-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 204, 255, 0.1);
+            border: 1px solid rgba(0, 204, 255, 0.3);
+            border-radius: 8px;
+            font-size: 0.875rem;
+        }
+
+        .rate-limit-bar {
+            width: 100px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .rate-limit-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00ccff);
+            transition: width 0.3s ease;
+        }
+
+        /* Queue Status */
+        .queue-status {
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .queue-status.active {
+            display: block;
+        }
+
+        /* Update Notification */
         .update-notification {
             position: fixed;
             top: 20px;
@@ -132,6 +182,28 @@
                 transform: translateX(0);
                 opacity: 1;
             }
+        }
+
+        /* Progress Container */
+        .progress-container {
+            width: 100%;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 1rem 0;
+            display: none;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00ccff);
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-weight: bold;
         }
 
         /* Summary Grid */
@@ -285,6 +357,38 @@
             cursor: not-allowed;
         }
 
+        /* Stats Overview */
+        .stats-overview {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 5px;
+        }
+
         /* Series Grid */
         .series-grid {
             display: grid;
@@ -379,6 +483,26 @@
             color: rgba(255, 255, 255, 0.6);
         }
 
+        .cache-badge {
+            display: inline-block;
+            padding: 0.125rem 0.25rem;
+            background: rgba(255, 215, 0, 0.2);
+            border-radius: 3px;
+            font-size: 0.625rem;
+            color: #ffd700;
+            margin-left: 0.25rem;
+        }
+
+        .fresh-badge {
+            display: inline-block;
+            padding: 0.125rem 0.25rem;
+            background: rgba(0, 255, 136, 0.2);
+            border-radius: 3px;
+            font-size: 0.625rem;
+            color: #00ff88;
+            margin-left: 0.25rem;
+        }
+
         .positive {
             color: #4ade80;
         }
@@ -406,38 +530,6 @@
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 20px auto;
-        }
-
-        /* Stats Overview */
-        .stats-overview {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 25px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-        }
-
-        .stat-item {
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: #667eea;
-        }
-
-        .stat-label {
-            font-size: 0.8rem;
-            color: rgba(255, 255, 255, 0.6);
-            margin-top: 5px;
         }
 
         /* Modal for detailed view */
@@ -516,8 +608,17 @@
         <div class="header">
             <div class="header-content">
                 <div>
-                    <h1 class="title">Fed Liquidity Terminal</h1>
+                    <h1 class="title">Fed Liquidity Terminal
+                        <span class="cache-indicator">CACHED</span>
+                    </h1>
                     <div class="subtitle">Complete Economic Intelligence - 252 Live Indicators</div>
+                </div>
+                <div class="rate-limit-indicator">
+                    <span>Rate Limit:</span>
+                    <div class="rate-limit-bar">
+                        <div class="rate-limit-fill" id="rateLimitBar" style="width: 100%;"></div>
+                    </div>
+                    <span id="rateLimitText">120/120</span>
                 </div>
                 <div class="status-bar">
                     <div class="status-pill">
@@ -528,13 +629,25 @@
                         <span id="series-count">252 Indicators</span>
                     </div>
                     <div class="status-pill">
-                        <span id="last-update">--:--</span>
+                        <span id="cached-count">0 Cached</span>
                     </div>
                     <div class="status-pill">
-                        <span id="next-update">Next: --</span>
+                        <span id="last-update">--:--</span>
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Queue status -->
+        <div class="queue-status" id="queueStatus">
+            <strong>Loading Queue:</strong> <span id="queueInfo">0 items waiting</span> | 
+            <strong>Processing:</strong> <span id="processingInfo">Idle</span> | 
+            <strong>Requests/min:</strong> <span id="requestRate">0</span>/120
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar" id="progressBar">0%</div>
         </div>
 
         <!-- Stats Overview -->
@@ -592,16 +705,17 @@
                        placeholder="Search 252 indicators by code or name..." 
                        oninput="searchSeries()">
             </div>
-            <button class="btn" onclick="refreshAll()" id="refresh-btn">🔄 Refresh All</button>
+            <button class="btn" onclick="loadTabData()" id="loadTabBtn">📥 Load Tab Data</button>
+            <button class="btn" onclick="refreshTabData()" id="refreshTabBtn">🔃 Refresh Tab</button>
+            <button class="btn" onclick="clearCache()" id="clearCacheBtn">🗑️ Clear Cache</button>
             <button class="btn" onclick="exportData()">📊 Export Data</button>
-            <button class="btn" onclick="toggleAutoUpdate()" id="auto-update-btn">⏸️ Pause Auto</button>
         </div>
 
         <!-- Series Grid -->
         <div class="series-grid" id="series-grid">
             <div class="loading">
                 <div class="spinner"></div>
-                <p>Loading all 252 indicators...</p>
+                <p>Ready to load data. Click "Load Tab Data" to start.</p>
             </div>
         </div>
 
@@ -618,16 +732,28 @@
     </div>
 
     <script>
+        // ============================================
+        // Configuration
+        // ============================================
         const API_URL = 'https://occdgwanqvbjd2qnnuyafvkvei0ptinb.lambda-url.us-east-1.on.aws';
+        const RATE_LIMIT = 120; // requests per minute
+        const RATE_WINDOW = 60000; // 1 minute in ms
+        const CACHE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days
         
-        // Data storage
+        // ============================================
+        // Global State
+        // ============================================
         let allIndicators = {};
-        let summaryData = {};
-        let fullData = {};
+        let allSeriesData = [];
+        let dataCache = {};
         let currentCategory = 'all';
-        let categoriesData = {};
-        let autoUpdateEnabled = true;
-        let updateInterval;
+        let currentFilter = 'all';
+        
+        // Rate limiting state
+        let requestQueue = [];
+        let requestsInWindow = [];
+        let isProcessingQueue = false;
+        let availableRequests = RATE_LIMIT;
         
         // All 252 indicators organized by category
         const INDICATOR_CATEGORIES = {
@@ -645,199 +771,459 @@
             commodities: ['DCOILWTICO', 'DCOILBRENTEU', 'GASREGW', 'DHHNGSP', 'GOLDAMGBD228NLBM'],
             economic: ['DSPIC96', 'GFDEBTN', 'GFDEGDQ188S', 'FYGFD', 'FDHBFIN', 'FYGFGDN', 'GDP', 'CPIAUCSL', 'UNRATE', 'MNFCTRIRSA', 'ISRATIO', 'REVOLSL', 'RETAILIMSA', 'INTGSTMXM193N', 'AMERIBOR'],
             policy: ['DFEDTARU', 'DFEDTARL'],
-            leverage: ['NFCINONFINLEVERAGE', 'NFCILEVERAGE', 'NFCICREDIT', 'NFCIRISK'],
-            special_liquidity: ['RESPPALGUOXAWXCH52NWW', 'RESPPALGUONNWW', 'SWP1690', 'OTHL1690', 'SUBLPDCISTQNQ', 'DRISCFLM', 'RMFSL', 'SBCACBW027SBOG', 'RREP15', 'OTHL15', 'RESH4MFNWW', 'BOGZ1FL663067003Q', 'RESPPNTEPNWW', 'OTHL91T1Y', 'SWP15', 'RESPPALGUMDXCH1NWW', 'REP1690'],
-            central_banks: ['JPNASSETS', 'ECBASSETSW', 'BSFGLV02EZM460S', 'BSOBLV02EZM460S'],
-            fed_reserve_data: ['WRESBAL', 'NONBORRES', 'G7LOLITOAASTSA', 'RESBALNS', 'WLCFLPCL', 'WUDSN', 'WGCAL', 'WORAL', 'WSHOSL', 'WSHOMCB', 'WUSDL', 'WGCSL', 'TERMT', 'PDCBL', 'CPCRL', 'MMMFL', 'PPPCRL', 'MSNLFL', 'SMCCFL', 'MLFL', 'WCURFSL', 'REQRESNS', 'EXCSRESNS', 'WACBS', 'WLCFLL', 'WSHOTS', 'WLODLL', 'WDTGAL', 'WDPSAL', 'BUSLOANS', 'REALLN', 'CONSUMER', 'RBSRESNS', 'RBLRESNS', 'CASACBW027SBOG', 'TLAACBW027SBOG', 'CPLTTLL', 'MMMFFASW', 'WDCRL', 'WAML', 'WLCFPCL', 'WOBLAL', 'RESPPLLOPNWW', 'H41RESPPLOPNNWW', 'WGSEC', 'WIMFSL', 'WACBSL', 'WIMFCL', 'WGCRL', 'DPCREDIT'],
-            market: ['SP500', 'IGREA'],
-            treasury_mm: ['TREAS911Y', 'TREAS1590', 'MABMM301EZM189S', 'MABMM301JPM189S', 'DRISCFS'],
-            hqm_spot: ['HQMCB01YR', 'HQMCB02YR', 'HQMCB03YR', 'HQMCB04YR', 'HQMCB05YR', 'HQMCB06YR', 'HQMCB07YR', 'HQMCB08YR', 'HQMCB09YR', 'HQMCB11YR', 'HQMCB12YR', 'HQMCB13YR', 'HQMCB14YR', 'HQMCB15YR', 'HQMCB16YR', 'HQMCB17YR', 'HQMCB18YR', 'HQMCB19YR', 'HQMCB21YR', 'HQMCB22YR', 'HQMCB23YR', 'HQMCB24YR', 'HQMCB25YR', 'HQMCB26YR', 'HQMCB27YR', 'HQMCB28YR', 'HQMCB29YR', 'HQMCB40YR', 'HQMCB50YR', 'HQMCB60YR', 'HQMCB70YR', 'HQMCB80YR', 'HQMCB90YR', 'HQMCB100YR'],
-            hqm_par: ['HQMCB1YRP', 'HQMCB5YRP', 'HQMCB10YRP', 'HQMCB15YRP', 'HQMCB20YRP', 'HQMCB25YRP', 'HQMCB30YRP']
+            leverage: ['NFCINONFINLEVERAGE', 'NFCILEVERAGE', 'NFCICREDIT', 'NFCIRISK']
         };
 
         // Summary indicators (12 key metrics)
         const SUMMARY_INDICATORS = ['WALCL', 'RESBALNS', 'RRPONTSYD', 'M2SL', 'DFF', 'DGS10', 'VIXCLS', 'DTWEXBGS', 'SP500', 'STLFSI3', 'T10Y2Y', 'BAMLH0A0HYM2'];
 
-        // Initialize on page load
+        // ============================================
+        // Cache Management
+        // ============================================
+        
+        function getCacheKey(seriesId) {
+            return `fed_liquidity_${seriesId}`;
+        }
+        
+        function getCachedData(seriesId) {
+            const key = getCacheKey(seriesId);
+            const cached = localStorage.getItem(key);
+            
+            if (!cached) return null;
+            
+            try {
+                const data = JSON.parse(cached);
+                const now = Date.now();
+                
+                // Check if cache is still valid (7 days)
+                if (data.timestamp && (now - data.timestamp) < CACHE_DURATION) {
+                    return data;
+                }
+                
+                // Cache expired
+                localStorage.removeItem(key);
+                return null;
+            } catch (e) {
+                console.error('Cache parse error:', e);
+                localStorage.removeItem(key);
+                return null;
+            }
+        }
+        
+        function setCachedData(seriesId, data) {
+            const key = getCacheKey(seriesId);
+            const cacheData = {
+                ...data,
+                timestamp: Date.now(),
+                cached: true
+            };
+            
+            try {
+                localStorage.setItem(key, JSON.stringify(cacheData));
+                updateCacheCount();
+            } catch (e) {
+                console.error('Cache storage error:', e);
+                // Clear some old cache if storage is full
+                clearOldestCache();
+            }
+        }
+        
+        function clearCache() {
+            const keys = Object.keys(localStorage);
+            keys.forEach(key => {
+                if (key.startsWith('fed_liquidity_')) {
+                    localStorage.removeItem(key);
+                }
+            });
+            
+            dataCache = {};
+            allSeriesData = [];
+            updateCacheCount();
+            showNotification('Cache cleared', 'success');
+            displayCurrentView();
+        }
+        
+        function clearOldestCache() {
+            const keys = Object.keys(localStorage);
+            let oldestKey = null;
+            let oldestTime = Date.now();
+            
+            keys.forEach(key => {
+                if (key.startsWith('fed_liquidity_')) {
+                    try {
+                        const data = JSON.parse(localStorage.getItem(key));
+                        if (data.timestamp < oldestTime) {
+                            oldestTime = data.timestamp;
+                            oldestKey = key;
+                        }
+                    } catch (e) {}
+                }
+            });
+            
+            if (oldestKey) {
+                localStorage.removeItem(oldestKey);
+            }
+        }
+        
+        function updateCacheCount() {
+            const keys = Object.keys(localStorage);
+            const cacheCount = keys.filter(key => key.startsWith('fed_liquidity_')).length;
+            document.getElementById('cached-count').textContent = `${cacheCount} Cached`;
+        }
+        
+        // ============================================
+        // Rate Limiting
+        // ============================================
+        
+        function updateRateLimit() {
+            const now = Date.now();
+            
+            // Remove requests older than the rate window
+            requestsInWindow = requestsInWindow.filter(time => now - time < RATE_WINDOW);
+            
+            // Calculate available requests
+            availableRequests = RATE_LIMIT - requestsInWindow.length;
+            
+            // Update UI
+            const percentage = (availableRequests / RATE_LIMIT) * 100;
+            document.getElementById('rateLimitBar').style.width = `${percentage}%`;
+            document.getElementById('rateLimitText').textContent = `${availableRequests}/${RATE_LIMIT}`;
+            
+            // Update rate display
+            document.getElementById('requestRate').textContent = requestsInWindow.length;
+        }
+        
+        async function makeRateLimitedRequest(seriesId) {
+            return new Promise((resolve, reject) => {
+                requestQueue.push({ seriesId, resolve, reject });
+                
+                if (!isProcessingQueue) {
+                    processQueue();
+                }
+            });
+        }
+        
+        async function processQueue() {
+            if (isProcessingQueue) return;
+            isProcessingQueue = true;
+            
+            document.getElementById('queueStatus').classList.add('active');
+            
+            while (requestQueue.length > 0) {
+                updateRateLimit();
+                
+                if (availableRequests <= 0) {
+                    // Wait for rate limit to reset
+                    document.getElementById('processingInfo').textContent = 'Waiting for rate limit...';
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    continue;
+                }
+                
+                const request = requestQueue.shift();
+                document.getElementById('queueInfo').textContent = `${requestQueue.length} items waiting`;
+                document.getElementById('processingInfo').textContent = `Loading ${request.seriesId}`;
+                
+                try {
+                    // Check cache first
+                    const cachedData = getCachedData(request.seriesId);
+                    if (cachedData) {
+                        request.resolve(cachedData);
+                        continue;
+                    }
+                    
+                    // Make actual API request
+                    const response = await fetch(`${API_URL}/?series=${request.seriesId}`);
+                    requestsInWindow.push(Date.now());
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        setCachedData(request.seriesId, data);
+                        request.resolve(data);
+                    } else {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                } catch (error) {
+                    request.reject(error);
+                }
+                
+                // Small delay between requests to be nice to the API
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            isProcessingQueue = false;
+            document.getElementById('processingInfo').textContent = 'Idle';
+            document.getElementById('queueStatus').classList.remove('active');
+        }
+        
+        // ============================================
+        // Data Loading
+        // ============================================
+        
         async function init() {
             try {
                 document.getElementById('api-status').textContent = 'Loading...';
                 
-                // Load all data
-                await loadAllData();
-                
-                document.getElementById('api-status').textContent = 'Live';
+                updateCacheCount();
                 updateTimestamp();
                 
-                // Setup auto-update
-                setupAutoUpdate();
+                // Set up rate limit display update
+                setInterval(updateRateLimit, 1000);
                 
-                // Update stats
-                updateStats();
+                // Load indicators list
+                await loadIndicatorsList();
+                
+                document.getElementById('api-status').textContent = 'Ready';
                 
             } catch (error) {
                 console.error('Error initializing:', error);
                 document.getElementById('api-status').textContent = 'Error';
             }
         }
-
-        async function loadAllData() {
+        
+        async function loadIndicatorsList() {
             try {
-                // First load the full list of indicators
-                const allResponse = await fetch(`${API_URL}/?series=all`);
-                const allData = await allResponse.json();
-                
-                if (allData.series) {
-                    allIndicators = allData.series;
-                    document.getElementById('series-count').textContent = `${Object.keys(allIndicators).length} Indicators`;
+                // Check if we have cached list
+                const cachedList = localStorage.getItem('fed_liquidity_indicators_list');
+                if (cachedList) {
+                    const data = JSON.parse(cachedList);
+                    if (data.timestamp && (Date.now() - data.timestamp) < CACHE_DURATION) {
+                        allIndicators = data.series;
+                        document.getElementById('series-count').textContent = `${Object.keys(allIndicators).length} Indicators`;
+                        displayCurrentView();
+                        return;
+                    }
                 }
                 
-                // Load summary data
-                const summaryResponse = await fetch(`${API_URL}/?series=summary`);
-                const summaryResult = await summaryResponse.json();
+                // Fetch fresh list
+                const response = await fetch(`${API_URL}/?series=all`);
+                if (!response.ok) throw new Error('Failed to fetch series list');
                 
-                if (summaryResult.summary) {
-                    summaryData = summaryResult.summary;
-                    displaySummary();
-                }
+                const data = await response.json();
+                allIndicators = data.series || {};
                 
-                // Load all indicators with batch requests
-                await loadAllIndicatorData();
+                // Cache the list
+                localStorage.setItem('fed_liquidity_indicators_list', JSON.stringify({
+                    series: allIndicators,
+                    timestamp: Date.now()
+                }));
                 
-                // Display current view
+                document.getElementById('series-count').textContent = `${Object.keys(allIndicators).length} Indicators`;
                 displayCurrentView();
                 
             } catch (error) {
-                console.error('Error loading data:', error);
-                showNotification('Failed to load data', 'error');
+                console.error('Error loading indicators list:', error);
+                showNotification('Failed to load indicators list', 'error');
             }
         }
-
-        async function loadAllIndicatorData() {
-            const batchSize = 20;
-            const allCodes = Object.keys(allIndicators);
+        
+        async function loadTabData() {
+            const seriesToLoad = getSeriesForCurrentTab();
             
-            for (let i = 0; i < allCodes.length; i += batchSize) {
-                const batch = allCodes.slice(i, i + batchSize);
-                const batchString = batch.join(',');
-                
+            if (seriesToLoad.length === 0) {
+                showNotification('No series to load for this tab.', 'info');
+                return;
+            }
+            
+            await loadSeriesDataBatch(seriesToLoad);
+        }
+        
+        async function refreshTabData() {
+            const seriesToLoad = getSeriesForCurrentTab();
+            
+            if (seriesToLoad.length === 0) {
+                showNotification('No series to refresh.', 'info');
+                return;
+            }
+            
+            // Clear cache for these series
+            seriesToLoad.forEach(seriesId => {
+                const key = getCacheKey(seriesId);
+                localStorage.removeItem(key);
+            });
+            
+            // Clear from loaded data
+            const seriesToLoadSet = new Set(seriesToLoad);
+            allSeriesData = allSeriesData.filter(s => !seriesToLoadSet.has(s.id));
+            
+            await loadSeriesDataBatch(seriesToLoad);
+        }
+        
+        function getSeriesForCurrentTab() {
+            let seriesIds = Object.keys(allIndicators);
+            
+            if (currentCategory === 'summary') {
+                return SUMMARY_INDICATORS;
+            } else if (currentCategory === 'all') {
+                return seriesIds;
+            } else {
+                return INDICATOR_CATEGORIES[currentCategory] || [];
+            }
+        }
+        
+        async function loadSeriesDataBatch(seriesIds) {
+            const totalCount = seriesIds.length;
+            
+            if (totalCount === 0) {
+                showNotification('No series to load.', 'info');
+                return;
+            }
+            
+            console.log(`📊 Loading ${totalCount} series with rate limiting...`);
+            showNotification(`Loading ${totalCount} series (rate limited to ${RATE_LIMIT}/min)...`, 'info');
+            
+            // Disable buttons during loading
+            document.getElementById('loadTabBtn').disabled = true;
+            document.getElementById('refreshTabBtn').disabled = true;
+            document.getElementById('clearCacheBtn').disabled = true;
+            
+            // Show progress
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            progressContainer.style.display = 'block';
+            
+            document.getElementById('series-grid').innerHTML = '<div class="loading"><div class="spinner"></div> Loading data...</div>';
+            
+            let loaded = 0;
+            let failed = 0;
+            let cached = 0;
+            
+            for (const seriesId of seriesIds) {
                 try {
-                    const response = await fetch(`${API_URL}/?series=batch&list=${batchString}`);
-                    const data = await response.json();
+                    // Check if already loaded
+                    const existing = allSeriesData.find(s => s.id === seriesId);
+                    if (existing && !existing.error) {
+                        loaded++;
+                        continue;
+                    }
+                    
+                    // Check cache first
+                    const cachedData = getCachedData(seriesId);
+                    
+                    let data;
+                    if (cachedData) {
+                        data = cachedData;
+                        cached++;
+                    } else {
+                        // Use rate-limited request
+                        data = await makeRateLimitedRequest(seriesId);
+                    }
+                    
+                    // Remove old entry
+                    allSeriesData = allSeriesData.filter(s => s.id !== seriesId);
                     
                     // Store the data
-                    Object.assign(fullData, data);
+                    allSeriesData.push({
+                        id: seriesId,
+                        name: data.name || data.metadata?.title || allIndicators[seriesId] || seriesId,
+                        latest_value: data.latest_value,
+                        latest_date: data.latest_date,
+                        data: data.data,
+                        metadata: data.metadata,
+                        cached: data.cached || false,
+                        week_change: data.week_change,
+                        month_change: data.month_change
+                    });
+                    
+                    loaded++;
                     
                     // Update progress
-                    const progress = Math.min(100, ((i + batchSize) / allCodes.length) * 100);
-                    document.getElementById('total-loaded').textContent = Math.min(i + batchSize, allCodes.length);
+                    const progress = Math.round((loaded / totalCount) * 100);
+                    progressBar.style.width = `${progress}%`;
+                    progressBar.textContent = `${progress}%`;
+                    
+                    document.getElementById('total-loaded').textContent = allSeriesData.filter(s => !s.error).length;
+                    
+                    // Update display periodically
+                    if (loaded % 10 === 0 || loaded === totalCount) {
+                        displayCurrentView();
+                    }
                     
                 } catch (error) {
-                    console.error(`Error loading batch ${i}:`, error);
+                    console.error(`Failed ${seriesId}:`, error);
+                    
+                    allSeriesData = allSeriesData.filter(s => s.id !== seriesId);
+                    allSeriesData.push({
+                        id: seriesId,
+                        name: allIndicators[seriesId] || seriesId,
+                        latest_value: null,
+                        latest_date: null,
+                        error: true
+                    });
+                    
+                    failed++;
                 }
             }
-        }
-
-        function displaySummary() {
-            const grid = document.getElementById('summary-grid');
-            let html = '';
             
-            for (const code of SUMMARY_INDICATORS) {
-                const data = summaryData[code] || fullData[code];
-                if (data) {
-                    html += createSummaryCard(code, data);
-                }
-            }
+            // Hide progress
+            progressContainer.style.display = 'none';
             
-            grid.innerHTML = html;
-        }
-
-        function createSummaryCard(code, data) {
-            const changes = calculateAllChanges(data);
+            // Re-enable buttons
+            document.getElementById('loadTabBtn').disabled = false;
+            document.getElementById('refreshTabBtn').disabled = false;
+            document.getElementById('clearCacheBtn').disabled = false;
             
-            return `
-                <div class="summary-card" onclick="showDetails('${code}')">
-                    <div class="summary-label">${code}</div>
-                    <div class="summary-value">${formatValue(data.latest_value, code)}</div>
-                    <div class="series-changes">
-                        <div class="change-item">
-                            <span class="change-label">W:</span>
-                            <span class="${changes.week >= 0 ? 'positive' : 'negative'}">
-                                ${changes.week >= 0 ? '+' : ''}${changes.week.toFixed(2)}%
-                            </span>
-                        </div>
-                        <div class="change-item">
-                            <span class="change-label">M:</span>
-                            <span class="${changes.month >= 0 ? 'positive' : 'negative'}">
-                                ${changes.month >= 0 ? '+' : ''}${changes.month.toFixed(2)}%
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            `;
+            // Final display
+            displayCurrentView();
+            updateTimestamp();
+            updateStats();
+            
+            const statusMsg = `Loaded ${loaded} series (${cached} from cache, ${loaded - cached} from API). ${failed > 0 ? `${failed} failed.` : ''}`;
+            showNotification(statusMsg, failed > 0 ? 'info' : 'success');
         }
-
+        
+        // ============================================
+        // Display Functions
+        // ============================================
+        
         function displayCurrentView() {
-            if (currentCategory === 'all') {
-                displayAllIndicators();
-            } else if (currentCategory === 'summary') {
-                displaySummaryView();
-            } else {
-                displayCategoryIndicators(currentCategory);
-            }
-        }
-
-        function displayAllIndicators() {
             const grid = document.getElementById('series-grid');
             let html = '';
             
-            // Display all 252 indicators
-            for (const [code, name] of Object.entries(allIndicators)) {
-                const data = fullData[code] || summaryData[code] || { name };
-                html += createSeriesCard(code, data);
+            // Get data for current category
+            let seriesToShow = [];
+            
+            if (currentCategory === 'all') {
+                seriesToShow = Object.keys(allIndicators);
+            } else if (currentCategory === 'summary') {
+                seriesToShow = SUMMARY_INDICATORS;
+            } else {
+                seriesToShow = INDICATOR_CATEGORIES[currentCategory] || [];
             }
             
-            grid.innerHTML = html || '<div class="loading">Loading indicators...</div>';
+            // Check if we have data loaded
+            const hasData = allSeriesData.length > 0;
+            
+            if (!hasData) {
+                grid.innerHTML = '<div class="loading">Ready to load data. Click "Load Tab Data" to start.</div>';
+                return;
+            }
+            
+            // Create cards for series
+            for (const seriesId of seriesToShow) {
+                const data = allSeriesData.find(s => s.id === seriesId);
+                if (data) {
+                    html += createSeriesCard(seriesId, data);
+                }
+            }
+            
+            grid.innerHTML = html || '<div class="loading">No data loaded for this category. Click "Load Tab Data" to load.</div>';
+            
             updateStats();
         }
-
-        function displaySummaryView() {
-            const grid = document.getElementById('series-grid');
-            let html = '';
-            
-            for (const code of SUMMARY_INDICATORS) {
-                const data = summaryData[code] || fullData[code];
-                if (data) {
-                    html += createSeriesCard(code, data);
-                }
-            }
-            
-            grid.innerHTML = html;
-        }
-
-        function displayCategoryIndicators(category) {
-            const grid = document.getElementById('series-grid');
-            let html = '';
-            
-            const indicators = INDICATOR_CATEGORIES[category] || [];
-            
-            for (const code of indicators) {
-                const data = fullData[code] || summaryData[code] || { name: allIndicators[code] };
-                html += createSeriesCard(code, data);
-            }
-            
-            grid.innerHTML = html || '<div class="loading">No indicators in this category</div>';
-        }
-
+        
         function createSeriesCard(code, data) {
-            const value = data.latest_value !== undefined ? formatValue(data.latest_value, code) : '--';
+            const value = data.latest_value !== undefined && data.latest_value !== null ? 
+                formatValue(data.latest_value, code) : '--';
             const date = data.latest_date || '--';
             const name = data.name || allIndicators[code] || code;
             const changes = calculateAllChanges(data);
+            const sourceLabel = data.cached ? 
+                '<span class="cache-badge">CACHED</span>' : 
+                '<span class="fresh-badge">FRESH</span>';
             
             return `
                 <div class="series-card" onclick="showDetails('${code}')">
-                    <div class="series-id">${code}</div>
+                    <div class="series-id">${code} ${sourceLabel}</div>
                     <div class="series-name" title="${name}">${name}</div>
                     <div class="series-value">${value}</div>
                     <div class="series-date">Last: ${formatDate(date)}</div>
@@ -870,7 +1256,7 @@
                 </div>
             `;
         }
-
+        
         function calculateAllChanges(data) {
             const changes = {
                 week: 0,
@@ -879,10 +1265,11 @@
                 year: 0
             };
             
+            // Use provided changes if available
+            if (data.week_change !== undefined) changes.week = data.week_change;
+            if (data.month_change !== undefined) changes.month = data.month_change;
+            
             if (!data || !data.data || !Array.isArray(data.data)) {
-                // Use provided changes if available
-                if (data.week_change !== undefined) changes.week = data.week_change;
-                if (data.month_change !== undefined) changes.month = data.month_change;
                 return changes;
             }
             
@@ -929,9 +1316,10 @@
             
             return changes;
         }
-
+        
         async function showCategory(category) {
             currentCategory = category;
+            currentFilter = category;
             
             // Update tab states
             document.querySelectorAll('.tab').forEach(tab => {
@@ -940,28 +1328,9 @@
             
             event.target.classList.add('active');
             
-            // If we need to load category data
-            if (!fullData[INDICATOR_CATEGORIES[category]?.[0]] && category !== 'all' && category !== 'summary') {
-                const grid = document.getElementById('series-grid');
-                grid.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading category...</p></div>';
-                
-                // Load category data
-                const indicators = INDICATOR_CATEGORIES[category] || [];
-                if (indicators.length > 0) {
-                    const batchString = indicators.join(',');
-                    try {
-                        const response = await fetch(`${API_URL}/?series=batch&list=${batchString}`);
-                        const data = await response.json();
-                        Object.assign(fullData, data);
-                    } catch (error) {
-                        console.error(`Error loading category ${category}:`, error);
-                    }
-                }
-            }
-            
             displayCurrentView();
         }
-
+        
         async function showDetails(code) {
             const modal = document.getElementById('detail-modal');
             const modalTitle = document.getElementById('modal-title');
@@ -973,13 +1342,12 @@
             modal.style.display = 'flex';
             
             try {
-                // Fetch full data for the indicator
-                const response = await fetch(`${API_URL}/?series=${code}`);
-                const data = await response.json();
+                // Check if we have the data already
+                let data = allSeriesData.find(s => s.id === code);
                 
-                if (data.error) {
-                    modalBody.innerHTML = `<p style="color: #f87171;">Error: ${data.error}</p>`;
-                    return;
+                if (!data || !data.data) {
+                    // Need to fetch it
+                    data = await makeRateLimitedRequest(code);
                 }
                 
                 const changes = calculateAllChanges(data);
@@ -1061,11 +1429,11 @@
                 modalBody.innerHTML = `<p style="color: #f87171;">Failed to load details</p>`;
             }
         }
-
+        
         function closeModal() {
             document.getElementById('detail-modal').style.display = 'none';
         }
-
+        
         function searchSeries() {
             const searchTerm = document.getElementById('search-input').value.toLowerCase();
             const cards = document.querySelectorAll('.series-card');
@@ -1086,7 +1454,7 @@
             // Update count
             document.getElementById('total-loaded').textContent = visibleCount;
         }
-
+        
         function formatValue(value, code) {
             if (value === null || value === undefined) return '--';
             
@@ -1126,7 +1494,7 @@
             
             return num.toFixed(2);
         }
-
+        
         function formatDate(dateStr) {
             if (!dateStr || dateStr === '--') return '--';
             const date = new Date(dateStr);
@@ -1136,20 +1504,21 @@
                 year: 'numeric'
             });
         }
-
+        
         function updateTimestamp() {
             const now = new Date();
             document.getElementById('last-update').textContent = 
                 now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
         }
-
+        
         function updateStats() {
             let positiveCount = 0;
             let negativeCount = 0;
             let totalChange = 0;
             let validCount = 0;
             
-            for (const data of Object.values(fullData)) {
+            for (const data of allSeriesData) {
+                if (data.error) continue;
                 const changes = calculateAllChanges(data);
                 if (changes.week !== 0) {
                     if (changes.week > 0) positiveCount++;
@@ -1164,90 +1533,7 @@
             document.getElementById('avg-change').textContent = 
                 validCount > 0 ? (totalChange / validCount).toFixed(2) + '%' : '0%';
         }
-
-        function setupAutoUpdate() {
-            // Calculate next update time (Mondays and Thursdays at 9 AM)
-            const now = new Date();
-            const nextUpdate = getNextUpdateTime();
-            
-            document.getElementById('next-update').textContent = 
-                `Next: ${nextUpdate.toLocaleDateString('en-US', { weekday: 'short' })} ${nextUpdate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`;
-            
-            // Set interval for auto-update check (every hour)
-            updateInterval = setInterval(() => {
-                const currentTime = new Date();
-                if (shouldUpdate(currentTime) && autoUpdateEnabled) {
-                    refreshAll();
-                }
-            }, 3600000); // Check every hour
-        }
-
-        function getNextUpdateTime() {
-            const now = new Date();
-            const day = now.getDay();
-            const hour = now.getHours();
-            
-            let daysToAdd = 0;
-            
-            // Monday = 1, Thursday = 4
-            if (day === 0) daysToAdd = 1; // Sunday -> Monday
-            else if (day === 1 && hour >= 9) daysToAdd = 3; // Monday after 9am -> Thursday
-            else if (day === 2 || day === 3) daysToAdd = 4 - day; // Tue/Wed -> Thursday
-            else if (day === 4 && hour >= 9) daysToAdd = 4; // Thursday after 9am -> Monday
-            else if (day === 5 || day === 6) daysToAdd = 8 - day; // Fri/Sat -> Monday
-            
-            const nextUpdate = new Date(now);
-            nextUpdate.setDate(nextUpdate.getDate() + daysToAdd);
-            nextUpdate.setHours(9, 0, 0, 0);
-            
-            return nextUpdate;
-        }
-
-        function shouldUpdate(currentTime) {
-            const day = currentTime.getDay();
-            const hour = currentTime.getHours();
-            const minute = currentTime.getMinutes();
-            
-            // Update on Mondays and Thursdays at 9:00 AM
-            return (day === 1 || day === 4) && hour === 9 && minute < 5;
-        }
-
-        async function refreshAll() {
-            document.getElementById('api-status').textContent = 'Refreshing...';
-            document.getElementById('refresh-btn').disabled = true;
-            
-            try {
-                await loadAllData();
-                
-                document.getElementById('api-status').textContent = 'Live';
-                updateTimestamp();
-                updateStats();
-                
-                // Show notification
-                showNotification('Data refreshed successfully!', 'success');
-                
-            } catch (error) {
-                console.error('Error refreshing:', error);
-                document.getElementById('api-status').textContent = 'Error';
-                showNotification('Failed to refresh data', 'error');
-            } finally {
-                document.getElementById('refresh-btn').disabled = false;
-            }
-        }
-
-        function toggleAutoUpdate() {
-            autoUpdateEnabled = !autoUpdateEnabled;
-            const btn = document.getElementById('auto-update-btn');
-            
-            if (autoUpdateEnabled) {
-                btn.textContent = '⏸️ Pause Auto';
-                showNotification('Auto-update enabled', 'success');
-            } else {
-                btn.textContent = '▶️ Resume Auto';
-                showNotification('Auto-update paused', 'info');
-            }
-        }
-
+        
         function showNotification(message, type = 'info') {
             const notification = document.getElementById('update-notification');
             notification.textContent = message;
@@ -1265,12 +1551,11 @@
                 notification.style.display = 'none';
             }, 3000);
         }
-
+        
         function exportData() {
             const exportData = {
                 timestamp: new Date().toISOString(),
-                indicators: fullData,
-                summary: summaryData
+                indicators: allSeriesData
             };
             
             const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
@@ -1283,7 +1568,7 @@
             
             showNotification('Data exported successfully!', 'success');
         }
-
+        
         // Modal close on outside click
         window.onclick = function(event) {
             const modal = document.getElementById('detail-modal');
@@ -1291,32 +1576,9 @@
                 modal.style.display = 'none';
             }
         }
-
+        
         // Initialize on load
         document.addEventListener('DOMContentLoaded', init);
-
-        // Refresh data on visibility change (when tab becomes active)
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden && autoUpdateEnabled) {
-                const lastUpdateStr = document.getElementById('last-update').textContent;
-                if (lastUpdateStr !== '--:--') {
-                    const now = new Date();
-                    const lastUpdate = new Date();
-                    const [time, period] = lastUpdateStr.split(' ');
-                    const [hours, minutes] = time.split(':');
-                    lastUpdate.setHours(
-                        period === 'PM' && hours !== '12' ? parseInt(hours) + 12 : parseInt(hours),
-                        parseInt(minutes)
-                    );
-                    
-                    // If more than 1 hour since last update, refresh
-                    if (now - lastUpdate > 3600000) {
-                        refreshAll();
-                    }
-                }
-            }
-        });
-
     </script>
 </body>
 </html>
