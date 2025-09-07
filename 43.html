@@ -652,7 +652,7 @@
                 const cachedData = allSeries[seriesId];
                 
                 html += `
-                    <div class="series-card" onclick="loadSeriesData('${seriesId}')">
+                    <div class="series-card" onclick="loadSeriesData('${seriesId}')" id="card-${seriesId}">
                         <div class="series-header">
                             <div>
                                 <div class="series-id">${seriesId}</div>
@@ -660,16 +660,66 @@
                             </div>
                         </div>
                         <div class="series-value" id="${seriesId}-value">
-                            ${cachedData ? formatValue(cachedData.latest_value, seriesId) : '--'}
+                            ${cachedData ? formatValue(cachedData.latest_value, seriesId) : 'Loading...'}
                         </div>
                         <div class="series-date" id="${seriesId}-date">
-                            ${cachedData ? formatDate(cachedData.latest_date) : 'Click to load'}
+                            ${cachedData ? formatDate(cachedData.latest_date) : '--'}
                         </div>
                     </div>
                 `;
             }
             
             grid.innerHTML = html || '<div class="loading">No series found</div>';
+            
+            // Load data for visible series that don't have data yet
+            setTimeout(() => {
+                loadVisibleSeriesData(filteredSeries);
+            }, 100);
+        }
+        
+        async function loadVisibleSeriesData(seriesList) {
+            // Load data for all series that are visible and don't have data
+            for (const seriesId of seriesList) {
+                if (!allSeries[seriesId]) {
+                    try {
+                        const response = await fetch(`${API_URL}?series=${seriesId}`);
+                        const data = await response.json();
+                        
+                        if (data.latest_value !== undefined) {
+                            allSeries[seriesId] = data;
+                            
+                            // Update the card display
+                            const valueEl = document.getElementById(`${seriesId}-value`);
+                            const dateEl = document.getElementById(`${seriesId}-date`);
+                            
+                            if (valueEl) {
+                                valueEl.textContent = formatValue(data.latest_value, seriesId);
+                                
+                                // Add change indicator
+                                if (data.data && data.data.length > 1) {
+                                    const change = ((data.data[0].value - data.data[1].value) / data.data[1].value * 100);
+                                    if (!isNaN(change) && isFinite(change)) {
+                                        const changeSpan = document.createElement('span');
+                                        changeSpan.style.marginLeft = '10px';
+                                        changeSpan.style.fontSize = '0.9rem';
+                                        changeSpan.style.color = change >= 0 ? '#4ade80' : '#f87171';
+                                        changeSpan.textContent = `${change >= 0 ? '↑' : '↓'} ${Math.abs(change).toFixed(2)}%`;
+                                        valueEl.appendChild(changeSpan);
+                                    }
+                                }
+                            }
+                            if (dateEl) dateEl.textContent = formatDate(data.latest_date);
+                        }
+                    } catch (error) {
+                        console.error(`Error loading ${seriesId}:`, error);
+                        const valueEl = document.getElementById(`${seriesId}-value`);
+                        if (valueEl) valueEl.textContent = 'Error';
+                    }
+                    
+                    // Small delay between requests to avoid overwhelming the API
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+            }
         }
 
         function filterSeriesByCategory(seriesList) {
