@@ -1344,20 +1344,35 @@
             try {
                 // Check if we have the data already
                 let data = allSeriesData.find(s => s.id === code);
+                console.log(`Details for ${code}:`, data);
                 
-                if (!data || !data.data) {
+                if (!data || !data.data || data.data.length === 0) {
                     // Need to fetch it
-                    data = await makeRateLimitedRequest(code);
+                    const parsedData = await makeRateLimitedRequest(code);
+                    
+                    // Update our stored data if we got better info
+                    if (parsedData && parsedData.latest_value !== null) {
+                        const index = allSeriesData.findIndex(s => s.id === code);
+                        if (index >= 0) {
+                            allSeriesData[index] = {
+                                ...allSeriesData[index],
+                                ...parsedData
+                            };
+                        }
+                        data = parsedData;
+                    }
                 }
                 
                 const changes = calculateAllChanges(data);
+                const displayValue = data.latest_value !== null && data.latest_value !== undefined ? 
+                    formatValue(data.latest_value, code) : '--';
                 
                 let html = `
                     <div style="display: grid; gap: 20px;">
                         <div>
                             <h3 style="color: #667eea; margin-bottom: 10px;">Current Value</h3>
                             <div style="font-size: 2rem; font-weight: 800; color: #fff;">
-                                ${formatValue(data.latest_value, code)}
+                                ${displayValue}
                             </div>
                             <div style="color: rgba(255,255,255,0.6); margin-top: 5px;">
                                 As of ${formatDate(data.latest_date)}
@@ -1394,14 +1409,14 @@
                             </div>
                         </div>
                         
-                        ${data.metadata ? `
+                        ${data.metadata && Object.keys(data.metadata).length > 0 ? `
                         <div>
                             <h3 style="color: #667eea; margin-bottom: 10px;">Metadata</h3>
                             <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
-                                <p style="margin-bottom: 8px;"><strong>Title:</strong> ${data.metadata.title || 'N/A'}</p>
-                                <p style="margin-bottom: 8px;"><strong>Units:</strong> ${data.metadata.units || 'N/A'}</p>
-                                <p style="margin-bottom: 8px;"><strong>Frequency:</strong> ${data.metadata.frequency || 'N/A'}</p>
-                                <p><strong>Last Updated:</strong> ${data.metadata.last_updated || 'N/A'}</p>
+                                <p style="margin-bottom: 8px;"><strong>Title:</strong> ${data.metadata.title || data.name || 'N/A'}</p>
+                                <p style="margin-bottom: 8px;"><strong>Units:</strong> ${data.metadata.units || data.units || 'N/A'}</p>
+                                <p style="margin-bottom: 8px;"><strong>Frequency:</strong> ${data.metadata.frequency || data.frequency || 'N/A'}</p>
+                                <p><strong>Last Updated:</strong> ${data.metadata.last_updated || formatDate(data.latest_date) || 'N/A'}</p>
                             </div>
                         </div>
                         ` : ''}
