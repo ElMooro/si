@@ -774,7 +774,7 @@
                 console.error('Failed to load indicator names');
             }
             
-            // Initialize empty placeholders for all 252
+            // Initialize empty placeholders for all indicators
             ALL_INDICATORS.forEach(id => {
                 if (!dataStore.has(id)) {
                     dataStore.set(id, {
@@ -789,6 +789,9 @@
             
             displayCurrentView();
             updateLoadedCount();
+            
+            // Show total count
+            console.log(`Dashboard initialized with ${ALL_INDICATORS.length} indicators`);
         }
 
         // Load all data
