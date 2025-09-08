@@ -1210,7 +1210,7 @@
         }
         
         // ============================================
-        // Rate Limiting
+        // Rate Limiting and Request Management
         // ============================================
         function updateRateLimit() {
             const now = Date.now();
@@ -1220,6 +1220,81 @@
             const percentage = (state.availableRequests / CONFIG.RATE_LIMIT) * 100;
             document.getElementById('rateLimitBar').style.width = `${percentage}%`;
             document.getElementById('rateLimitText').textContent = `${state.availableRequests}/${CONFIG.RATE_LIMIT}`;
+        }
+        
+        // Enhanced request with fallback logic
+        async function makeRequestWithFallback(primarySource, seriesId) {
+            console.log(`Attempting to fetch ${seriesId} from ${primarySource}`);
+            
+            // Try primary source first
+            try {
+                let url;
+                if (primarySource === 'fed') {
+                    url = `${CONFIG.FED_API}/?series=${seriesId}`;
+                } else {
+                    url = `${CONFIG.ICE_API}/ice_bofa?series=${seriesId}`;
+                }
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                // Check if we got an error response
+                if (data.error && data.error.includes('Unknown series')) {
+                    console.log(`Series ${seriesId} not found in ${primarySource}, trying fallback...`);
+                    
+                    // Try the other API
+                    const fallbackSource = primarySource === 'fed' ? 'ice' : 'fed';
+                    const fallbackUrl = fallbackSource === 'fed' 
+                        ? `${CONFIG.FED_API}/?series=${seriesId}`
+                        : `${CONFIG.ICE_API}/ice_bofa?series=${seriesId}`;
+                    
+                    const fallbackResponse = await fetch(fallbackUrl);
+                    const fallbackData = await fallbackResponse.json();
+                    
+                    if (fallbackData.error && fallbackData.error.includes('Unknown series')) {
+                        // If both APIs fail, try direct FRED API
+                        console.log(`Series ${seriesId} not found in either API, trying direct FRED...`);
+                        
+                        const fredUrl = `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${FRED_API_KEY}&file_type=json&limit=500&sort_order=desc`;
+                        const fredResponse = await fetch(fredUrl);
+                        
+                        if (fredResponse.ok) {
+                            const fredData = await fredResponse.json();
+                            
+                            if (fredData.observations && fredData.observations.length > 0) {
+                                // Convert FRED format to our expected format
+                                const convertedData = {
+                                    series_id: seriesId,
+                                    name: NEW_FED_INDICES[seriesId] || seriesId,
+                                    data: fredData.observations
+                                        .filter(obs => obs.value !== '.')
+                                        .map(obs => ({
+                                            date: obs.date,
+                                            value: parseFloat(obs.value)
+                                        })),
+                                    source: 'fred_direct'
+                                };
+                                
+                                console.log(`Successfully fetched ${seriesId} from direct FRED API`);
+                                return convertedData;
+                            }
+                        }
+                        
+                        throw new Error(`Series ${seriesId} not found in any source`);
+                    } else {
+                        console.log(`Found ${seriesId} in fallback source: ${fallbackSource}`);
+                        fallbackData.source = fallbackSource;
+                        return fallbackData;
+                    }
+                } else {
+                    // Success on primary source
+                    data.source = primarySource;
+                    return data;
+                }
+            } catch (error) {
+                console.error(`Error fetching ${seriesId}:`, error);
+                throw error;
+            }
         }
         
         async function makeRateLimitedRequest(source, seriesId) {
