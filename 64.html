@@ -1016,62 +1016,110 @@
         
         function processData(rawData, source, seriesId) {
             if (source === 'fed') {
-                // Parse Fed API response structure properly
+                // Parse Fed API response - matching the working Fed HTML format
                 let value = null;
                 let date = null;
                 let dataPoints = [];
                 let name = state.fedMetadata[seriesId] || seriesId;
                 
-                // Handle different Fed API response formats
-                if (rawData.latest_value !== undefined && rawData.latest_value !== null) {
-                    // Format 1: Direct latest_value
-                    value = parseFloat(rawData.latest_value);
-                    date = rawData.latest_date || rawData.date;
-                    dataPoints = rawData.data || [];
-                } else if (rawData.data && Array.isArray(rawData.data) && rawData.data.length > 0) {
-                    // Format 2: Data array
-                    const validData = rawData.data.filter(d => 
-                        d.value !== null && d.value !== undefined && d.value !== '.' && d.value !== ''
-                    );
-                    
-                    if (validData.length > 0) {
-                        const latest = validData[validData.length - 1];
-                        value = parseFloat(latest.value);
-                        date = latest.date;
-                        dataPoints = validData;
+                // The Fed API returns data directly with series_id, data array, and metadata
+                if (rawData.series_id === seriesId) {
+                    // This is the main format from the Fed API
+                    if (rawData.data && Array.isArray(rawData.data) && rawData.data.length > 0) {
+                        // Sort data by date to ensure latest is last
+                        const sortedData = rawData.data
+                            .filter(d => d.value !== null && d.value !== undefined && d.value !== '.' && d.value !== '')
+                            .sort((a, b) => new Date(a.date) - new Date(b.date));
+                        
+                        if (sortedData.length > 0) {
+                            const latest = sortedData[sortedData.length - 1];
+                            value = parseFloat(latest.value);
+                            date = latest.date;
+                            dataPoints = sortedData.map(d => ({
+                                date: d.date,
+                                value: parseFloat(d.value)
+                            }));
+                        }
                     }
-                } else if (rawData.observations && Array.isArray(rawData.observations)) {
-                    // Format 3: FRED observations format
-                    const validObs = rawData.observations.filter(obs => 
-                        obs.value !== '.' && obs.value !== '' && obs.value !== null
-                    );
                     
-                    if (validObs.length > 0) {
-                        const latest = validObs[validObs.length - 1];
-                        value = parseFloat(latest.value);
-                        date = latest.date;
-                        dataPoints = validObs.map(obs => ({
-                            date: obs.date,
-                            value: parseFloat(obs.value)
-                        }));
+                    // Get name from metadata if available
+                    if (rawData.metadata) {
+                        name = rawData.metadata.title || rawData.metadata.name || name;
+                    }
+                    if (rawData.name) {
+                        name = rawData.name;
                     }
                 } else if (rawData.value !== undefined && rawData.value !== null && rawData.value !== '.' && rawData.value !== '') {
-                    // Format 4: Direct value field
+                    // Simple value response format
                     value = parseFloat(rawData.value);
-                    date = rawData.date || rawData.last_updated;
+                    date = rawData.date || rawData.last_updated || new Date().toISOString().split('T')[0];
+                    
+                    // If we have historical data, use it
+                    if (rawData.data && Array.isArray(rawData.data)) {
+                        dataPoints = rawData.data
+                            .filter(d => d.value !== null && d.value !== undefined && d.value !== '.' && d.value !== '')
+                            .map(d => ({
+                                date: d.date,
+                                value: parseFloat(d.value)
+                            }));
+                    }
                 }
                 
-                // If we have metadata in the response, use it
-                if (rawData.metadata) {
-                    name = rawData.metadata.title || rawData.metadata.name || name;
-                }
+                // Calculate percentage changes from historical data
+                const changes = {
+                    week: null,
+                    month: null,
+                    quarter: null,
+                    year: null
+                };
                 
-                if (rawData.name) {
-                    name = rawData.name;
+                if (dataPoints.length > 0 && value !== null) {
+                    const now = new Date(date || new Date());
+                    
+                    // Week change (5-10 days ago for weekly data)
+                    const weekAgo = new Date(now);
+                    weekAgo.setDate(weekAgo.getDate() - 7);
+                    const weekData = dataPoints.find(d => {
+                        const diff = Math.abs(new Date(d.date) - weekAgo);
+                        return diff < 5 * 24 * 60 * 60 * 1000; // Within 5 days
+                    });
+                    if (weekData && weekData.value) {
+                        changes.week = ((value - weekData.value) / weekData.value) * 100;
+                    }
+                    
+                    // Month change
+                    const monthAgo = new Date(now);
+                    monthAgo.setDate(monthAgo.getDate() - 30);
+                    const monthData = dataPoints.find(d => {
+                        const diff = Math.abs(new Date(d.date) - monthAgo);
+                        return diff < 7 * 24 * 60 * 60 * 1000; // Within 7 days
+                    });
+                    if (monthData && monthData.value) {
+                        changes.month = ((value - monthData.value) / monthData.value) * 100;
+                    }
+                    
+                    // Quarter change
+                    const quarterAgo = new Date(now);
+                    quarterAgo.setDate(quarterAgo.getDate() - 90);
+                    const quarterData = dataPoints.find(d => {
+                        const diff = Math.abs(new Date(d.date) - quarterAgo);
+                        return diff < 10 * 24 * 60 * 60 * 1000; // Within 10 days
+                    });
+                    if (quarterData && quarterData.value) {
+                        changes.quarter = ((value - quarterData.value) / quarterData.value) * 100;
+                    }
+                    
+                    // Year change
+                    const yearAgo = new Date(now);
+                    yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+                    const yearData = dataPoints.find(d => {
+                        const diff = Math.abs(new Date(d.date) - yearAgo);
+                        return diff < 15 * 24 * 60 * 60 * 1000; // Within 15 days
+                    });
+                    if (yearData && yearData.value) {
+                        changes.year = ((value - yearData.value) / yearData.value) * 100;
+                    }
                 }
-                
-                // Calculate percentage changes
-                const changes = calculatePercentageChanges(dataPoints, value);
                 
                 return {
                     id: seriesId,
