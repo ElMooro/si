@@ -130,6 +130,7 @@
             border-radius: 10px;
             overflow: hidden;
             margin-bottom: 20px;
+            overflow-x: auto;
         }
 
         table {
@@ -236,13 +237,27 @@
             opacity: 1;
         }
 
+        .api-source {
+            font-size: 0.8em;
+            color: #888;
+            margin-left: 5px;
+        }
+
+        .api-fred {
+            color: #4a9eff;
+        }
+
+        .api-ice {
+            color: #ff9f4a;
+        }
+
         @media (max-width: 768px) {
             .table-container {
                 overflow-x: auto;
             }
             
             table {
-                min-width: 800px;
+                min-width: 1000px;
             }
         }
     </style>
@@ -265,8 +280,8 @@
                 <span id="nextUpdate">Calculating...</span>
             </div>
             <div class="status-item">
-                <span>API Key: </span>
-                <span id="apiKeyStatus">Not Set</span>
+                <span>Data Sources: </span>
+                <span id="apiStatus">FRED + ICE BofA APIs</span>
             </div>
         </div>
 
@@ -303,11 +318,16 @@
                         <th onclick="setSortAndSort('quarter')">Quarter Δ% <span class="sort-arrow" data-sort="quarter">↕</span></th>
                         <th onclick="setSortAndSort('year')">Year Δ% <span class="sort-arrow" data-sort="year">↕</span></th>
                         <th>Notes</th>
+                        <th>Source</th>
                         <th>Last Updated</th>
                     </tr>
                 </thead>
                 <tbody id="dataBody">
-                    <!-- Data will be populated here -->
+                    <tr>
+                        <td colspan="10" style="text-align: center; padding: 20px;">
+                            <div class="loading-spinner"></div> Loading data...
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -316,7 +336,8 @@
     <script>
         // Configuration
         const FRED_API_KEY = '2f057499936072679d8843d7fce99989';
-        const API_ENDPOINT = 'https://occdgwanqvbjd2qnnuyafvkvei0ptinb.lambda-url.us-east-1.on.aws/fred_api';
+        const FRED_API_ENDPOINT = 'https://occdgwanqvbjd2qnnuyafvkvei0ptinb.lambda-url.us-east-1.on.aws/fred_api';
+        const ICE_BOFA_ENDPOINT = 'https://lnd6erie7y4rw2u6r4dpv4enty0mhtua.lambda-url.us-east-1.on.aws/ice_bofa';
         
         // Series list from the document
         const SERIES_LIST = [
@@ -356,9 +377,9 @@
 
         // Initialize dashboard
         async function init() {
+            console.log('Initializing dashboard...');
             loadSavedData();
             updateStatus('loading', 'Initializing dashboard...');
-            document.getElementById('apiKeyStatus').textContent = FRED_API_KEY ? '✅ Set' : '❌ Not Set';
             
             // Set up auto-refresh schedule (Monday, Wednesday, Friday at 9 AM)
             setupAutoRefresh();
@@ -367,50 +388,120 @@
             await fetchAllData();
         }
 
-        // Fetch data for a single series
+        // Fetch data with fallback between APIs
         async function fetchSeriesData(seriesId) {
+            console.log(`Fetching data for ${seriesId}...`);
+            
+            // Try FRED API first
             try {
-                const response = await fetch(`${API_ENDPOINT}?series_id=${seriesId}`);
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const fredUrl = `${FRED_API_ENDPOINT}?series_id=${seriesId}`;
+                console.log(`Trying FRED API: ${fredUrl}`);
                 
-                const data = await response.json();
+                const fredResponse = await fetch(fredUrl);
+                const fredData = await fredResponse.json();
                 
-                if (data.observations && data.observations.length > 0) {
-                    // Sort observations by date
-                    data.observations.sort((a, b) => new Date(b.date) - new Date(a.date));
+                console.log(`FRED response for ${seriesId}:`, fredData);
+                
+                if (fredData.observations && fredData.observations.length > 0) {
+                    // Filter out invalid values
+                    const validObservations = fredData.observations.filter(obs => 
+                        obs.value && obs.value !== '.' && obs.value !== ''
+                    );
                     
-                    // Calculate percentage changes
-                    const current = parseFloat(data.observations[0].value);
-                    const weekAgo = findValueByDaysAgo(data.observations, 7);
-                    const monthAgo = findValueByDaysAgo(data.observations, 30);
-                    const quarterAgo = findValueByDaysAgo(data.observations, 90);
-                    const yearAgo = findValueByDaysAgo(data.observations, 365);
-                    
-                    return {
-                        seriesId,
-                        current,
-                        weekChange: calculatePercentChange(current, weekAgo),
-                        monthChange: calculatePercentChange(current, monthAgo),
-                        quarterChange: calculatePercentChange(current, quarterAgo),
-                        yearChange: calculatePercentChange(current, yearAgo),
-                        lastUpdated: data.observations[0].date,
-                        rawData: data.observations
-                    };
+                    if (validObservations.length > 0) {
+                        // Sort observations by date
+                        validObservations.sort((a, b) => new Date(b.date) - new Date(a.date));
+                        
+                        // Calculate percentage changes
+                        const current = parseFloat(validObservations[0].value);
+                        const weekAgo = findValueByDaysAgo(validObservations, 7);
+                        const monthAgo = findValueByDaysAgo(validObservations, 30);
+                        const quarterAgo = findValueByDaysAgo(validObservations, 90);
+                        const yearAgo = findValueByDaysAgo(validObservations, 365);
+                        
+                        return {
+                            seriesId,
+                            current,
+                            weekChange: calculatePercentChange(current, weekAgo),
+                            monthChange: calculatePercentChange(current, monthAgo),
+                            quarterChange: calculatePercentChange(current, quarterAgo),
+                            yearChange: calculatePercentChange(current, yearAgo),
+                            lastUpdated: validObservations[0].date,
+                            source: 'FRED',
+                            rawData: validObservations
+                        };
+                    }
                 }
-                return null;
             } catch (error) {
-                console.error(`Error fetching ${seriesId}:`, error);
-                return {
-                    seriesId,
-                    current: null,
-                    weekChange: null,
-                    monthChange: null,
-                    quarterChange: null,
-                    yearChange: null,
-                    lastUpdated: null,
-                    error: error.message
-                };
+                console.error(`FRED API error for ${seriesId}:`, error);
             }
+            
+            // Try ICE BofA API as fallback
+            try {
+                const iceUrl = `${ICE_BOFA_ENDPOINT}?series=${seriesId}`;
+                console.log(`Trying ICE BofA API: ${iceUrl}`);
+                
+                const iceResponse = await fetch(iceUrl);
+                const iceData = await iceResponse.json();
+                
+                console.log(`ICE BofA response for ${seriesId}:`, iceData);
+                
+                // Check if data exists in various possible formats
+                let observations = null;
+                
+                if (iceData.data && Array.isArray(iceData.data)) {
+                    observations = iceData.data;
+                } else if (iceData.observations && Array.isArray(iceData.observations)) {
+                    observations = iceData.observations;
+                } else if (Array.isArray(iceData)) {
+                    observations = iceData;
+                }
+                
+                if (observations && observations.length > 0) {
+                    // Filter and sort
+                    const validObservations = observations.filter(obs => 
+                        obs.value && obs.value !== '.' && obs.value !== ''
+                    );
+                    
+                    if (validObservations.length > 0) {
+                        validObservations.sort((a, b) => new Date(b.date) - new Date(a.date));
+                        
+                        const current = parseFloat(validObservations[0].value);
+                        const weekAgo = findValueByDaysAgo(validObservations, 7);
+                        const monthAgo = findValueByDaysAgo(validObservations, 30);
+                        const quarterAgo = findValueByDaysAgo(validObservations, 90);
+                        const yearAgo = findValueByDaysAgo(validObservations, 365);
+                        
+                        return {
+                            seriesId,
+                            current,
+                            weekChange: calculatePercentChange(current, weekAgo),
+                            monthChange: calculatePercentChange(current, monthAgo),
+                            quarterChange: calculatePercentChange(current, quarterAgo),
+                            yearChange: calculatePercentChange(current, yearAgo),
+                            lastUpdated: validObservations[0].date,
+                            source: 'ICE BofA',
+                            rawData: validObservations
+                        };
+                    }
+                }
+            } catch (error) {
+                console.error(`ICE BofA API error for ${seriesId}:`, error);
+            }
+            
+            // If both APIs fail, return error state
+            console.warn(`No data found for ${seriesId} from either API`);
+            return {
+                seriesId,
+                current: null,
+                weekChange: null,
+                monthChange: null,
+                quarterChange: null,
+                yearChange: null,
+                lastUpdated: null,
+                source: 'Error',
+                error: 'No data available'
+            };
         }
 
         // Find value by days ago
@@ -423,7 +514,7 @@
             let minDiff = Infinity;
             
             for (const obs of observations) {
-                if (obs.value === '.' || obs.value === null) continue;
+                if (obs.value === '.' || obs.value === null || obs.value === '') continue;
                 
                 const obsDate = new Date(obs.date);
                 const diff = Math.abs(obsDate - targetDate);
@@ -439,13 +530,13 @@
 
         // Calculate percentage change
         function calculatePercentChange(current, previous) {
-            if (!current || !previous) return null;
+            if (!current || !previous || previous === 0) return null;
             return ((current - previous) / previous) * 100;
         }
 
         // Fetch all data
         async function fetchAllData() {
-            updateStatus('loading', 'Fetching data from FRED API...');
+            updateStatus('loading', 'Fetching data from APIs...');
             
             // Fetch in batches to avoid overwhelming the API
             const batchSize = 5;
@@ -456,6 +547,9 @@
             }
             
             let completed = 0;
+            let successCount = 0;
+            let errorCount = 0;
+            
             for (const batch of batches) {
                 const promises = batch.map(series => fetchSeriesData(series));
                 const results = await Promise.all(promises);
@@ -463,14 +557,24 @@
                 results.forEach(result => {
                     if (result) {
                         seriesData[result.seriesId] = result;
+                        if (result.current !== null) {
+                            successCount++;
+                        } else {
+                            errorCount++;
+                        }
                     }
                 });
                 
                 completed += batch.length;
-                updateStatus('loading', `Loading: ${completed}/${SERIES_LIST.length} series...`);
+                updateStatus('loading', `Loading: ${completed}/${SERIES_LIST.length} series (${successCount} success, ${errorCount} errors)...`);
             }
             
-            updateStatus('active', 'Data loaded successfully');
+            if (successCount > 0) {
+                updateStatus('active', `Data loaded: ${successCount} series successful, ${errorCount} failed`);
+            } else {
+                updateStatus('error', 'Failed to load data from APIs');
+            }
+            
             document.getElementById('lastUpdate').textContent = new Date().toLocaleString();
             saveToLocalStorage();
             renderTable();
@@ -488,8 +592,16 @@
                 sortedData = sortData(sortedData, sortConfig.by, sortConfig.order);
             }
             
+            if (sortedData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 20px;">No data available</td></tr>';
+                return;
+            }
+            
             sortedData.forEach(data => {
                 const row = document.createElement('tr');
+                
+                const sourceClass = data.source === 'FRED' ? 'api-fred' : 
+                                   data.source === 'ICE BofA' ? 'api-ice' : '';
                 
                 row.innerHTML = `
                     <td>${data.seriesId}</td>
@@ -512,6 +624,7 @@
                                placeholder="Add notes..."
                                onchange="updateNote('${data.seriesId}', this.value)">
                     </td>
+                    <td><span class="api-source ${sourceClass}">${data.source || 'N/A'}</span></td>
                     <td>${data.lastUpdated || 'N/A'}</td>
                 `;
                 
@@ -656,15 +769,16 @@
 
         // Manual refresh
         async function manualRefresh() {
+            console.log('Manual refresh triggered');
             await fetchAllData();
         }
 
         // Export data to CSV
         function exportData() {
-            let csv = 'Series ID,Custom Name,Current Value,Week Change %,Month Change %,Quarter Change %,Year Change %,Notes,Last Updated\n';
+            let csv = 'Series ID,Custom Name,Current Value,Week Change %,Month Change %,Quarter Change %,Year Change %,Notes,Source,Last Updated\n';
             
             Object.values(seriesData).forEach(data => {
-                csv += `"${data.seriesId}","${customNames[data.seriesId] || ''}",${data.current || ''},${data.weekChange || ''},${data.monthChange || ''},${data.quarterChange || ''},${data.yearChange || ''},"${notes[data.seriesId] || ''}","${data.lastUpdated || ''}"\n`;
+                csv += `"${data.seriesId}","${customNames[data.seriesId] || ''}",${data.current || ''},${data.weekChange || ''},${data.monthChange || ''},${data.quarterChange || ''},${data.yearChange || ''},"${notes[data.seriesId] || ''}","${data.source || ''}","${data.lastUpdated || ''}"\n`;
             });
             
             const blob = new Blob([csv], { type: 'text/csv' });
@@ -699,6 +813,7 @@
                     const hourAgo = new Date(now - 60 * 60 * 1000);
                     
                     if (!lastRefresh || new Date(lastRefresh) < hourAgo) {
+                        console.log('Auto-refresh triggered');
                         fetchAllData();
                         localStorage.setItem('lastAutoRefresh', now.toISOString());
                     }
