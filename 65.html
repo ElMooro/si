@@ -1937,25 +1937,34 @@
             const value = formatValue(data.value, data.id);
             const customName = state.customNames[data.id] || data.name || data.id;
             
-            // Format percentage changes
+            // Format percentage changes with safety checks
             const formatChange = (val) => {
                 if (val === null || val === undefined) return '--';
                 const sign = val >= 0 ? '+' : '';
                 return `${sign}${val.toFixed(2)}%`;
             };
             
+            // Safely access changes with defaults
+            const changes = data.changes || { week: null, month: null, quarter: null, year: null };
+            
             // Determine if card should flash (for favorites)
             let alertClass = '';
             if (isFavorite && data.changes) {
-                const changes = [data.changes.week, data.changes.month, data.changes.quarter, data.changes.year];
-                const hasSignificantDecrease = changes.some(c => c !== null && c < -CONFIG.ALERT_THRESHOLD);
-                const hasSignificantIncrease = changes.some(c => c !== null && c > CONFIG.ALERT_THRESHOLD);
+                const changeValues = [changes.week, changes.month, changes.quarter, changes.year];
+                const hasSignificantDecrease = changeValues.some(c => c !== null && c < -CONFIG.ALERT_THRESHOLD);
+                const hasSignificantIncrease = changeValues.some(c => c !== null && c > CONFIG.ALERT_THRESHOLD);
                 
                 if (hasSignificantDecrease) {
                     alertClass = 'alert-red';
                 } else if (hasSignificantIncrease) {
                     alertClass = 'alert-green';
                 }
+            }
+            
+            // Determine value color based on week change
+            let valueColorClass = 'neutral';
+            if (changes.week !== null && changes.week !== undefined) {
+                valueColorClass = changes.week >= 0 ? 'positive' : 'negative';
             }
             
             return `
@@ -1977,30 +1986,30 @@
                            value="${customName}" 
                            onblur="saveName('${data.id}')"
                            onkeypress="if(event.key==='Enter') saveName('${data.id}')">
-                    <div class="data-value ${data.changes.week >= 0 ? 'positive' : data.changes.week < 0 ? 'negative' : 'neutral'}">${value}</div>
+                    <div class="data-value ${valueColorClass}">${value}</div>
                     <div class="changes-grid">
                         <div class="change-item">
                             <span class="change-label">Week:</span>
-                            <span class="${data.changes.week >= 0 ? 'positive' : data.changes.week < 0 ? 'negative' : 'neutral'}">
-                                ${formatChange(data.changes.week)}
+                            <span class="${changes.week >= 0 ? 'positive' : changes.week < 0 ? 'negative' : 'neutral'}">
+                                ${formatChange(changes.week)}
                             </span>
                         </div>
                         <div class="change-item">
                             <span class="change-label">Month:</span>
-                            <span class="${data.changes.month >= 0 ? 'positive' : data.changes.month < 0 ? 'negative' : 'neutral'}">
-                                ${formatChange(data.changes.month)}
+                            <span class="${changes.month >= 0 ? 'positive' : changes.month < 0 ? 'negative' : 'neutral'}">
+                                ${formatChange(changes.month)}
                             </span>
                         </div>
                         <div class="change-item">
                             <span class="change-label">Quarter:</span>
-                            <span class="${data.changes.quarter >= 0 ? 'positive' : data.changes.quarter < 0 ? 'negative' : 'neutral'}">
-                                ${formatChange(data.changes.quarter)}
+                            <span class="${changes.quarter >= 0 ? 'positive' : changes.quarter < 0 ? 'negative' : 'neutral'}">
+                                ${formatChange(changes.quarter)}
                             </span>
                         </div>
                         <div class="change-item">
                             <span class="change-label">Year:</span>
-                            <span class="${data.changes.year >= 0 ? 'positive' : data.changes.year < 0 ? 'negative' : 'neutral'}">
-                                ${formatChange(data.changes.year)}
+                            <span class="${changes.year >= 0 ? 'positive' : changes.year < 0 ? 'negative' : 'neutral'}">
+                                ${formatChange(changes.year)}
                             </span>
                         </div>
                     </div>
