@@ -1,0 +1,1803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fed Liquidity Terminal - Enhanced Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(74, 222, 128, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(-45deg, #0a0a0a, #1a1a2e, #16213e, #0f3460);
+            background-size: 400% 400%;
+            animation: gradient 20s ease infinite;
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .dashboard {
+            max-width: 2000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 35px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+            animation: slideUp 0.8s ease;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 25px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .title {
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1.5px;
+            text-shadow: 0 0 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 8px;
+            font-weight: 500;
+        }
+
+        .status-bar {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .status-pill {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.4s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .status-pill:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-2px);
+        }
+
+        .pulse-dot {
+            width: 10px;
+            height: 10px;
+            background: #4ade80;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .auto-update-status {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .rate-limit-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 204, 255, 0.1);
+            border: 1px solid rgba(0, 204, 255, 0.3);
+            border-radius: 12px;
+            font-size: 0.9rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .rate-limit-bar {
+            width: 120px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .rate-limit-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00ccff);
+            transition: width 0.4s ease;
+            border-radius: 4px;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 35px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            overflow: hidden;
+            margin: 1.5rem 0;
+            display: none;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+            background-size: 200% 100%;
+            animation: progressGlow 2s linear infinite;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .stats-overview {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: slideUp 0.8s ease 0.2s both;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .stat-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+            transform: translateY(-3px);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 8px;
+            font-weight: 500;
+        }
+
+        .tabs-container {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 15px;
+            margin-bottom: 30px;
+            overflow-x: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: slideUp 0.8s ease 0.4s both;
+        }
+
+        .category-tabs {
+            display: flex;
+            gap: 12px;
+            min-width: fit-content;
+        }
+
+        .tab {
+            padding: 15px 25px;
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: all 0.4s ease;
+            white-space: nowrap;
+            position: relative;
+        }
+
+        .tab:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .sort-controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            animation: slideUp 0.8s ease 0.6s both;
+        }
+
+        .sort-btn {
+            padding: 10px 18px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            color: rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .sort-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            transform: translateY(-1px);
+        }
+
+        .sort-btn.active {
+            background: rgba(102, 126, 234, 0.4);
+            border-color: #667eea;
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .controls {
+            display: flex;
+            gap: 25px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            align-items: center;
+            animation: slideUp 0.8s ease 0.8s both;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 350px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 18px 25px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            color: #fff;
+            font-size: 1.05rem;
+            transition: all 0.4s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 25px rgba(102, 126, 234, 0.3);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .btn {
+            padding: 18px 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            font-size: 0.95rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn.warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .btn.warning:hover {
+            box-shadow: 0 15px 35px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn.success {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .series-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .series-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border-radius: 18px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            animation: slideUp 0.6s ease var(--delay, 0s) both;
+        }
+
+        .series-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .series-card:hover::before {
+            opacity: 1;
+        }
+
+        .series-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .series-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .series-id {
+            font-size: 0.8rem;
+            color: #667eea;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            background: rgba(102, 126, 234, 0.1);
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+
+        .series-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .favorite-star {
+            cursor: pointer;
+            color: #555;
+            transition: all 0.3s;
+            font-size: 1.3rem;
+        }
+
+        .favorite-star:hover {
+            transform: scale(1.2);
+        }
+
+        .favorite-star.active {
+            color: #ffd700;
+            filter: drop-shadow(0 0 8px #ffd700);
+        }
+
+        .edit-btn, .note-btn {
+            cursor: pointer;
+            font-size: 1rem;
+            opacity: 0.7;
+            transition: all 0.3s;
+        }
+
+        .edit-btn {
+            color: #667eea;
+        }
+
+        .note-btn {
+            color: #f59e0b;
+        }
+
+        .edit-btn:hover, .note-btn:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .note-btn.has-note {
+            color: #ffd700;
+            opacity: 1;
+        }
+
+        .series-name {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 15px;
+            min-height: 45px;
+            line-height: 1.4;
+        }
+
+        .series-name-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            color: #fff;
+            padding: 8px;
+            font-size: 1rem;
+            display: none;
+        }
+
+        .series-value {
+            font-size: 2.2rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #fff, rgba(255, 255, 255, 0.8));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .series-date {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 15px;
+        }
+
+        .series-changes {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .change-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .change-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .positive { 
+            color: #4ade80; 
+            text-shadow: 0 0 10px rgba(74, 222, 128, 0.3);
+        }
+        .negative { 
+            color: #f87171; 
+            text-shadow: 0 0 10px rgba(248, 113, 113, 0.3);
+        }
+
+        /* Notes Modal */
+        .notes-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .notes-content {
+            background: linear-gradient(135deg, rgba(30, 30, 40, 0.95), rgba(40, 40, 60, 0.95));
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            animation: slideUp 0.3s ease;
+        }
+
+        .notes-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .notes-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .close-modal:hover {
+            color: #fff;
+            transform: rotate(90deg);
+        }
+
+        .notes-textarea {
+            width: 100%;
+            min-height: 200px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #fff;
+            padding: 15px;
+            font-size: 1rem;
+            resize: vertical;
+            margin-bottom: 20px;
+        }
+
+        .notes-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .notes-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+        }
+
+        .notes-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .notes-btn.save {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+        }
+
+        .notes-btn.delete {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .notes-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 80px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.1rem;
+        }
+
+        .spinner {
+            width: 70px;
+            height: 70px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 30px auto;
+        }
+
+        .update-notification {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: none;
+            animation: slideIn 0.5s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .series-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            .search-box {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="update-notification" id="update-notification"></div>
+
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <div>
+                    <h1 class="title">Fed Liquidity Terminal</h1>
+                    <div class="subtitle">Enhanced Dashboard - 130+ Indicators</div>
+                </div>
+                <div class="auto-update-status">
+                    <span>🔄 Auto-Update</span>
+                    <span id="next-update">Next: Mon 9:00 AM</span>
+                </div>
+                <div class="rate-limit-indicator">
+                    <span>Rate Limit:</span>
+                    <div class="rate-limit-bar">
+                        <div class="rate-limit-fill" id="rateLimitBar" style="width: 100%;"></div>
+                    </div>
+                    <span id="rateLimitText">120/120</span>
+                </div>
+                <div class="status-bar">
+                    <div class="status-pill">
+                        <div class="pulse-dot"></div>
+                        <span id="api-status">Ready</span>
+                    </div>
+                    <div class="status-pill">
+                        <span id="loaded-count">0/130 Loaded</span>
+                    </div>
+                    <div class="status-pill">
+                        <span id="last-update">--:--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar" id="progressBar">0%</div>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="stats-overview">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="total-loaded">0</div>
+                    <div class="stat-label">Loaded</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="missing-count">130</div>
+                    <div class="stat-label">Missing</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="positive-count">0</div>
+                    <div class="stat-label">Positive Week</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="negative-count">0</div>
+                    <div class="stat-label">Negative Week</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="avg-change">0.0%</div>
+                    <div class="stat-label">Avg Week Change</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Tabs -->
+        <div class="tabs-container">
+            <div class="category-tabs">
+                <button class="tab active" onclick="showCategory('all')">All Indicators</button>
+                <button class="tab" onclick="showCategory('favorites')">⭐ Favorites</button>
+                <button class="tab" onclick="showCategory('federal_reserve')">Fed Reserve</button>
+                <button class="tab" onclick="showCategory('treasury')">Treasury</button>
+                <button class="tab" onclick="showCategory('securities')">🏛️ Securities</button>
+                <button class="tab" onclick="showCategory('corporate')">Corporate</button>
+                <button class="tab" onclick="showCategory('volatility')">Volatility</button>
+                <button class="tab" onclick="showCategory('currencies')">Currencies</button>
+                <button class="tab" onclick="showCategory('commodities')">Commodities</button>
+                <button class="tab" onclick="showCategory('stress')">Stress</button>
+                <button class="tab" onclick="showCategory('money_supply')">Money Supply</button>
+                <button class="tab" onclick="showCategory('central_banks')">Central Banks</button>
+                <button class="tab" onclick="showCategory('economic')">Economic</button>
+                <button class="tab" onclick="showCategory('new_indicators')">🆕 New</button>
+            </div>
+        </div>
+
+        <!-- Sort Controls -->
+        <div class="sort-controls">
+            <span>Sort by:</span>
+            <button class="sort-btn" onclick="sortBy('name')">Name</button>
+            <button class="sort-btn" onclick="sortBy('value')">Value</button>
+            <button class="sort-btn" onclick="sortBy('week')">Week %</button>
+            <button class="sort-btn" onclick="sortBy('month')">Month %</button>
+            <button class="sort-btn" onclick="sortBy('quarter')">Quarter %</button>
+            <button class="sort-btn" onclick="sortBy('year')">Year %</button>
+            <span style="margin: 0 10px;">|</span>
+            <button class="sort-btn" onclick="toggleSortOrder()">↕ <span id="sort-order">Desc</span></button>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" class="search-input" id="search-input" 
+                       placeholder="Search indicators..." 
+                       oninput="searchSeries()">
+            </div>
+            <button class="btn" onclick="loadAllData()" id="loadAllBtn">📥 Load All Indicators</button>
+            <button class="btn warning" onclick="loadMissing()" id="loadMissingBtn">🔍 Load Missing</button>
+            <button class="btn success" onclick="toggleAutoUpdate()" id="autoUpdateBtn">🔄 Auto-Update: ON</button>
+            <button class="btn" onclick="exportData()">📊 Export</button>
+        </div>
+
+        <!-- Series Grid -->
+        <div class="series-grid" id="series-grid">
+            <div class="loading">
+                <div class="spinner"></div>
+                Click "Load All Indicators" to start loading data
+            </div>
+        </div>
+    </div>
+
+    <!-- Notes Modal -->
+    <div class="notes-modal" id="notesModal">
+        <div class="notes-content">
+            <div class="notes-header">
+                <h3 class="notes-title" id="notesTitle">Notes</h3>
+                <button class="close-modal" onclick="closeNotesModal()">✕</button>
+            </div>
+            <textarea class="notes-textarea" id="notesTextarea" placeholder="Add your notes here..."></textarea>
+            <div class="notes-actions">
+                <button class="notes-btn delete" onclick="deleteNote()">Delete Note</button>
+                <button class="notes-btn save" onclick="saveNote()">Save Note</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_URL = 'https://occdgwanqvbjd2qnnuyafvkvei0ptinb.lambda-url.us-east-1.on.aws';
+        const RATE_LIMIT = 120;
+        const RATE_WINDOW = 60000;
+        
+        // State - ALL IN MEMORY + localStorage for persistence
+        const dataStore = new Map();
+        const notesStore = new Map();
+        let allIndicators = {};
+        let currentCategory = 'all';
+        let sortColumn = 'name';
+        let sortOrder = 'desc';
+        let favorites = JSON.parse(localStorage.getItem('fed_favorites') || '[]');
+        let customNames = JSON.parse(localStorage.getItem('fed_custom_names') || '{}');
+        let userNotes = JSON.parse(localStorage.getItem('fed_notes') || '{}');
+        let autoUpdateEnabled = JSON.parse(localStorage.getItem('fed_auto_update') || 'true');
+        let autoUpdateInterval = null;
+        
+        // Rate limiting
+        let requestQueue = [];
+        let requestsInWindow = [];
+        let isProcessingQueue = false;
+        let availableRequests = RATE_LIMIT;
+        
+        // Updated indicators list with corrections
+        const ALL_INDICATORS = [
+            'WALCL', 'RRPONTSYD', 'WTREGEN', 'BOGMBASE', 'TOTRESNS', 'WRBWFRBL', 'WREPODEL', 'WREPOFOR',
+            'WRESBAL', 'NONBORRES', 'M2SL', 'RMFSL', 'DGS1MO', 'DGS3MO', 'DGS6MO', 'DGS1', 'DGS2', 'DGS3', 
+            'DGS5', 'DGS7', 'DGS10', 'DGS20', 'DGS30', 'T10YIE', 'T5YIE', 'T5YIFR', 'T10Y2Y', 'T10Y3M', 
+            'TB3SMFFM', 'MORTGAGE30US', 'DPRIME', 'TB3MS', 'TB6MS', 'AAA10Y', 'BAA10Y', 'DAAA', 'DBAA', 
+            'HQMCB10YR', 'HQMCB10YRP', 'HQMCB20YR', 'HQMCB30YR', 'BAMLC0A1CAAA', 'BAMLC0A2CAA', 'BAMLC0A3CA', 
+            'BAMLC0A4CBBB', 'BAMLH0A0HYM2', 'BAMLH0A0HYM2EY', 'BAMLC0A0CM', 'BAMLC0A0CMEY', 'BAMLEMCBPIOAS', 
+            'BAMLEMHYHYCEY', 'WSHOMCB', 'TREAS911Y', 'TREAS1590', 'GFDEBTN', 'FYGFD', 'DRTSCIS', 'DRTSCILM', 
+            'STLFSI3', 'NFCI', 'ANFCI', 'SOFR', 'OBFR', 'EFFR', 'DFF', 'RRPONTTLD', 'RPONTSYD', 'SWPT', 
+            'REP1690', 'OTHL1690', 'SUBLPDCISTQNQ', 'SBCACBW027SBOG', 'DRISCFS', 'OTHL15', 'RESH4MFNWW', 
+            'RESPPNTEPNWW', 'RESPPALGUOXAWXCH52NWW', 'SWP1690', 'BSFGLV02EZM460S', 'AMTMUO', 'USPHCI', 
+            'CES4348400001', 'G7LOLITOAASTSAM', 'BSOBLV02EZM460S', 'VIXCLS', 'VXVCLS', 'OVXCLS', 'GVZCLS', 
+            'EVZCLS', 'RVXCLS', 'DTWEXBGS', 'DTWEXAFEGS', 'DTWEXEMEGS', 'DEXUSEU', 'DEXJPUS', 'DEXUSUK', 
+            'DEXCHUS', 'DEXSZUS', 'DEXCAUS', 'DEXUSAL', 'DEXKOUS', 'DEXMXUS', 'DEXBZUS', 'DEXINUS', 'DEXSFUS', 
+            'DCOILWTICO', 'DCOILBRENTEU', 'UNRATE', 'AMERIBOR', 'MNFCTRIRSA', 'ISRATIO', 'REVOLSL', 'RETAILIMSA', 
+            'DFEDTARU', 'DFEDTARL', 'JPNASSETS', 'ECBASSETSW', 'SP500'
+        ];
+
+        const CATEGORIES = {
+            federal_reserve: ['WALCL', 'RRPONTSYD', 'WTREGEN', 'BOGMBASE', 'TOTRESNS', 'WRBWFRBL', 'WREPODEL', 'WREPOFOR', 'WRESBAL', 'NONBORRES'],
+            treasury: ['DGS1MO', 'DGS3MO', 'DGS6MO', 'DGS1', 'DGS2', 'DGS3', 'DGS5', 'DGS7', 'DGS10', 'DGS20', 'DGS30', 'T10YIE', 'T5YIE', 'T5YIFR', 'T10Y2Y', 'T10Y3M', 'TB3SMFFM'],
+            securities: ['WSHOMCB', 'TREAS911Y', 'TREAS1590', 'GFDEBTN', 'FYGFD'],
+            corporate: ['AAA10Y', 'BAA10Y', 'DAAA', 'DBAA', 'HQMCB10YR', 'HQMCB10YRP', 'HQMCB20YR', 'HQMCB30YR', 'BAMLC0A1CAAA', 'BAMLC0A2CAA', 'BAMLC0A3CA', 'BAMLC0A4CBBB'],
+            volatility: ['VIXCLS', 'VXVCLS', 'OVXCLS', 'GVZCLS', 'EVZCLS', 'RVXCLS'],
+            currencies: ['DTWEXBGS', 'DTWEXAFEGS', 'DTWEXEMEGS', 'DEXUSEU', 'DEXJPUS', 'DEXUSUK', 'DEXCHUS', 'DEXSZUS', 'DEXCAUS', 'DEXUSAL', 'DEXKOUS', 'DEXMXUS', 'DEXBZUS', 'DEXINUS', 'DEXSFUS'],
+            commodities: ['DCOILWTICO', 'DCOILBRENTEU'],
+            stress: ['DRTSCIS', 'DRTSCILM', 'STLFSI3', 'NFCI', 'ANFCI'],
+            money_supply: ['M2SL', 'RMFSL'],
+            central_banks: ['JPNASSETS', 'ECBASSETSW'],
+            economic: ['UNRATE', 'MNFCTRIRSA', 'ISRATIO', 'REVOLSL', 'RETAILIMSA'],
+            new_indicators: ['SWPT', 'REP1690', 'OTHL1690', 'SUBLPDCISTQNQ', 'SBCACBW027SBOG', 'DRISCFS', 'OTHL15', 'RESH4MFNWW', 'RESPPNTEPNWW', 'RESPPALGUOXAWXCH52NWW', 'SWP1690', 'BSFGLV02EZM460S', 'AMTMUO', 'USPHCI', 'CES4348400001', 'G7LOLITOAASTSAM', 'BSOBLV02EZM460S']
+        };
+
+        // Rate limiting functions
+        function updateRateLimit() {
+            const now = Date.now();
+            requestsInWindow = requestsInWindow.filter(time => now - time < RATE_WINDOW);
+            availableRequests = RATE_LIMIT - requestsInWindow.length;
+            
+            const percentage = (availableRequests / RATE_LIMIT) * 100;
+            document.getElementById('rateLimitBar').style.width = `${percentage}%`;
+            document.getElementById('rateLimitText').textContent = `${availableRequests}/${RATE_LIMIT}`;
+        }
+
+        async function makeRateLimitedRequest(seriesId) {
+            return new Promise((resolve, reject) => {
+                requestQueue.push({ seriesId, resolve, reject });
+                if (!isProcessingQueue) processQueue();
+            });
+        }
+
+        async function processQueue() {
+            if (isProcessingQueue) return;
+            isProcessingQueue = true;
+            
+            while (requestQueue.length > 0) {
+                updateRateLimit();
+                
+                if (availableRequests <= 0) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    continue;
+                }
+                
+                const request = requestQueue.shift();
+                
+                try {
+                    // Try your Lambda API first
+                    let response = await fetch(`${API_URL}/?series=${request.seriesId}`);
+                    requestsInWindow.push(Date.now());
+                    
+                    if (response.ok) {
+                        const rawData = await response.json();
+                        const parsedData = parseApiResponse(request.seriesId, rawData);
+                        
+                        // If no data returned, try direct FRED API as fallback
+                        if (parsedData.latest_value === null) {
+                            console.log(`No data from Lambda for ${request.seriesId}, trying FRED directly...`);
+                            const fredData = await fetchFromFredDirectly(request.seriesId);
+                            if (fredData && fredData.latest_value !== null) {
+                                request.resolve(fredData);
+                            } else {
+                                request.resolve(parsedData);
+                            }
+                        } else {
+                            request.resolve(parsedData);
+                        }
+                    } else {
+                        // If Lambda fails, try FRED directly
+                        console.log(`Lambda failed for ${request.seriesId}, trying FRED directly...`);
+                        const fredData = await fetchFromFredDirectly(request.seriesId);
+                        if (fredData) {
+                            request.resolve(fredData);
+                        } else {
+                            throw new Error(`HTTP ${response.status}`);
+                        }
+                    }
+                } catch (error) {
+                    console.error(`Failed ${request.seriesId}:`, error);
+                    // Last attempt with FRED directly
+                    try {
+                        const fredData = await fetchFromFredDirectly(request.seriesId);
+                        if (fredData) {
+                            request.resolve(fredData);
+                        } else {
+                            request.reject(error);
+                        }
+                    } catch (fredError) {
+                        request.reject(error);
+                    }
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 200));
+            }
+            
+            isProcessingQueue = false;
+        }
+
+        async function fetchFromFredDirectly(seriesId) {
+            try {
+                const endDate = new Date().toISOString().split('T')[0];
+                const startDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+                
+                const url = `${FRED_API_URL}?series_id=${seriesId}&api_key=${FRED_API_KEY}&file_type=json&observation_start=${startDate}&observation_end=${endDate}&sort_order=desc&limit=100`;
+                
+                const response = await fetch(url);
+                if (!response.ok) return null;
+                
+                const data = await response.json();
+                if (!data.observations || data.observations.length === 0) return null;
+                
+                // Parse FRED response
+                const validObs = data.observations.filter(obs => 
+                    obs.value !== '.' && obs.value !== '' && obs.value !== null
+                );
+                
+                if (validObs.length === 0) return null;
+                
+                const latest = validObs[0]; // Already sorted desc
+                return {
+                    id: seriesId,
+                    name: customNames[seriesId] || allIndicators[seriesId] || seriesId,
+                    latest_value: parseFloat(latest.value),
+                    latest_date: latest.date,
+                    data: validObs.slice(0, 100).map(obs => ({
+                        date: obs.date,
+                        value: parseFloat(obs.value)
+                    }))
+                };
+            } catch (error) {
+                console.error(`FRED API error for ${seriesId}:`, error);
+                return null;
+            }
+        }
+
+        function parseApiResponse(seriesId, rawData) {
+            let result = {
+                id: seriesId,
+                name: customNames[seriesId] || allIndicators[seriesId] || seriesId,
+                latest_value: null,
+                latest_date: null,
+                data: []
+            };
+            
+            if (rawData.value !== undefined && rawData.value !== null && rawData.value !== '' && rawData.value !== '.') {
+                result.latest_value = parseFloat(rawData.value);
+                result.latest_date = rawData.date || rawData.last_updated;
+            } else if (rawData.latest_value !== undefined && rawData.latest_value !== null) {
+                result.latest_value = parseFloat(rawData.latest_value);
+                result.latest_date = rawData.latest_date;
+                result.data = rawData.data || [];
+            } else if (rawData.observations && Array.isArray(rawData.observations)) {
+                const validObs = rawData.observations.filter(obs => 
+                    obs.value !== '.' && obs.value !== '' && obs.value !== null
+                );
+                if (validObs.length > 0) {
+                    const latest = validObs[validObs.length - 1];
+                    result.latest_value = parseFloat(latest.value);
+                    result.latest_date = latest.date;
+                    result.data = validObs.slice(-100).map(obs => ({
+                        date: obs.date,
+                        value: parseFloat(obs.value)
+                    }));
+                }
+            } else if (rawData.data && Array.isArray(rawData.data) && rawData.data.length > 0) {
+                const validData = rawData.data.filter(d => 
+                    d.value !== null && d.value !== undefined && d.value !== '' && d.value !== '.'
+                );
+                if (validData.length > 0) {
+                    const sortedData = validData.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    result.latest_value = parseFloat(sortedData[0].value);
+                    result.latest_date = sortedData[0].date;
+                    result.data = sortedData.slice(0, 100);
+                }
+            }
+            
+            return result;
+        }
+
+        // Auto-update functionality
+        function initAutoUpdate() {
+            updateNextUpdateTime();
+            
+            if (autoUpdateEnabled) {
+                autoUpdateInterval = setInterval(checkAutoUpdate, 60000);
+            }
+            
+            loadCachedData();
+        }
+
+        function toggleAutoUpdate() {
+            autoUpdateEnabled = !autoUpdateEnabled;
+            localStorage.setItem('fed_auto_update', JSON.stringify(autoUpdateEnabled));
+            
+            const btn = document.getElementById('autoUpdateBtn');
+            btn.textContent = autoUpdateEnabled ? '🔄 Auto-Update: ON' : '🔄 Auto-Update: OFF';
+            btn.className = autoUpdateEnabled ? 'btn success' : 'btn warning';
+            
+            if (autoUpdateEnabled) {
+                autoUpdateInterval = setInterval(checkAutoUpdate, 60000);
+                showNotification('Auto-update enabled', 'success');
+            } else {
+                clearInterval(autoUpdateInterval);
+                showNotification('Auto-update disabled', 'warning');
+            }
+        }
+
+        function updateNextUpdateTime() {
+            const now = new Date();
+            const updateDays = [1, 3, 5];
+            const updateHour = 9;
+            
+            let nextUpdate = new Date(now);
+            nextUpdate.setHours(updateHour, 0, 0, 0);
+            
+            while (!updateDays.includes(nextUpdate.getDay()) || nextUpdate <= now) {
+                nextUpdate.setDate(nextUpdate.getDate() + 1);
+                nextUpdate.setHours(updateHour, 0, 0, 0);
+            }
+            
+            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const timeString = nextUpdate.toLocaleTimeString('en-US', { 
+                hour: 'numeric', 
+                minute: '2-digit',
+                hour12: true 
+            });
+            
+            document.getElementById('next-update').textContent = 
+                `Next: ${dayNames[nextUpdate.getDay()]} ${timeString}`;
+        }
+
+        function checkAutoUpdate() {
+            if (!autoUpdateEnabled) return;
+            
+            const now = new Date();
+            const updateDays = [1, 3, 5];
+            const updateHour = 9;
+            
+            if (updateDays.includes(now.getDay()) && 
+                now.getHours() === updateHour && 
+                now.getMinutes() < 5) {
+                
+                const lastAutoUpdate = localStorage.getItem('last_auto_update');
+                const today = now.toDateString();
+                
+                if (lastAutoUpdate !== today) {
+                    performAutoUpdate();
+                    localStorage.setItem('last_auto_update', today);
+                }
+            }
+        }
+
+        async function performAutoUpdate() {
+            showNotification('Auto-updating indicators...', 'info');
+            await loadAllData();
+            saveCachedData();
+            updateNextUpdateTime();
+        }
+
+        function saveCachedData() {
+            const cacheData = {
+                indicators: Array.from(dataStore.values()),
+                timestamp: new Date().toISOString(),
+                notes: userNotes,
+                customNames: customNames
+            };
+            localStorage.setItem('fed_cache_data', JSON.stringify(cacheData));
+        }
+
+        function loadCachedData() {
+            const cached = localStorage.getItem('fed_cache_data');
+            if (!cached) return;
+            
+            try {
+                const cacheData = JSON.parse(cached);
+                const cacheAge = Date.now() - new Date(cacheData.timestamp).getTime();
+                const maxAge = 4 * 60 * 60 * 1000;
+                
+                if (cacheAge < maxAge && cacheData.indicators) {
+                    cacheData.indicators.forEach(indicator => {
+                        if (indicator.latest_value !== null) {
+                            dataStore.set(indicator.id, indicator);
+                        }
+                    });
+                    
+                    if (cacheData.notes) {
+                        Object.entries(cacheData.notes).forEach(([id, note]) => {
+                            notesStore.set(id, note);
+                        });
+                    }
+                    
+                    displayCurrentView();
+                    updateLoadedCount();
+                    showNotification('Loaded cached data', 'success');
+                }
+            } catch (e) {
+                console.error('Failed to load cached data:', e);
+            }
+        }
+
+        // Initialize
+        async function init() {
+            document.getElementById('api-status').textContent = 'Ready';
+            updateTimestamp();
+            setInterval(updateRateLimit, 1000);
+            
+            dataStore.clear();
+            notesStore.clear();
+            
+            try {
+                const response = await fetch(`${API_URL}/?series=all`);
+                const data = await response.json();
+                allIndicators = data.series || {};
+            } catch (e) {
+                console.error('Failed to load indicator names');
+            }
+            
+            Object.entries(userNotes).forEach(([id, note]) => {
+                notesStore.set(id, note);
+            });
+            
+            ALL_INDICATORS.forEach((id, index) => {
+                dataStore.set(id, {
+                    id: id,
+                    name: customNames[id] || allIndicators[id] || id,
+                    latest_value: null,
+                    latest_date: null,
+                    data: []
+                });
+            });
+            
+            initAutoUpdate();
+            
+            const autoBtn = document.getElementById('autoUpdateBtn');
+            autoBtn.textContent = autoUpdateEnabled ? '🔄 Auto-Update: ON' : '🔄 Auto-Update: OFF';
+            autoBtn.className = autoUpdateEnabled ? 'btn success' : 'btn warning';
+            
+            displayCurrentView();
+            updateLoadedCount();
+            
+            console.log(`Dashboard initialized with ${ALL_INDICATORS.length} indicators`);
+        }
+
+        // Load all data
+        async function loadAllData() {
+            const missing = ALL_INDICATORS.filter(id => {
+                const data = dataStore.get(id);
+                return !data || data.latest_value === null;
+            });
+            
+            await loadBatch(missing);
+        }
+
+        // Load missing only
+        async function loadMissing() {
+            const missing = ALL_INDICATORS.filter(id => {
+                const data = dataStore.get(id);
+                return !data || data.latest_value === null;
+            });
+            
+            console.log(`Missing ${missing.length} indicators:`, missing);
+            
+            if (missing.length === 0) {
+                showNotification('All indicators loaded!', 'success');
+                return;
+            }
+            
+            await loadBatch(missing);
+        }
+
+        // Load batch
+        async function loadBatch(seriesIds) {
+            if (seriesIds.length === 0) return;
+            
+            showNotification(`Loading ${seriesIds.length} indicators...`, 'info');
+            
+            document.getElementById('loadAllBtn').disabled = true;
+            document.getElementById('loadMissingBtn').disabled = true;
+            
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            progressContainer.style.display = 'block';
+            
+            let loaded = 0;
+            let failed = 0;
+            
+            for (const seriesId of seriesIds) {
+                try {
+                    const data = await makeRateLimitedRequest(seriesId);
+                    dataStore.set(seriesId, data);
+                    loaded++;
+                    
+                    const progress = Math.round((loaded / seriesIds.length) * 100);
+                    progressBar.style.width = `${progress}%`;
+                    progressBar.textContent = `${progress}% (${loaded}/${seriesIds.length})`;
+                    
+                    if (loaded % 5 === 0 || loaded === seriesIds.length) {
+                        displayCurrentView();
+                        updateLoadedCount();
+                    }
+                } catch (error) {
+                    failed++;
+                    console.error(`Failed to load ${seriesId}`);
+                }
+            }
+            
+            progressContainer.style.display = 'none';
+            document.getElementById('loadAllBtn').disabled = false;
+            document.getElementById('loadMissingBtn').disabled = false;
+            
+            displayCurrentView();
+            updateLoadedCount();
+            saveCachedData();
+            
+            const message = failed > 0 ? 
+                `Loaded ${loaded} indicators, ${failed} failed` : 
+                `Successfully loaded ${loaded} indicators`;
+            showNotification(message, failed > 0 ? 'warning' : 'success');
+        }
+
+        // Display functions
+        function displayCurrentView() {
+            const grid = document.getElementById('series-grid');
+            
+            let seriesToShow = [];
+            if (currentCategory === 'favorites') {
+                seriesToShow = favorites;
+            } else if (currentCategory === 'all') {
+                seriesToShow = ALL_INDICATORS;
+            } else {
+                seriesToShow = CATEGORIES[currentCategory] || [];
+            }
+            
+            let displayData = seriesToShow.map(id => dataStore.get(id) || {
+                id: id,
+                name: customNames[id] || allIndicators[id] || id,
+                latest_value: null,
+                latest_date: null,
+                data: []
+            });
+            
+            displayData = sortData(displayData);
+            
+            let html = '';
+            for (let i = 0; i < displayData.length; i++) {
+                const data = displayData[i];
+                const cardHtml = createSeriesCard(data);
+                const styledCardHtml = cardHtml.replace('series-card', `series-card" style="--delay: ${i * 0.05}s`);
+                html += styledCardHtml;
+            }
+            
+            grid.innerHTML = html || '<div class="loading"><div class="spinner"></div>No data to display</div>';
+        }
+
+        function createSeriesCard(data) {
+            const value = data.latest_value !== null ? formatValue(data.latest_value, data.id) : '--';
+            const date = data.latest_date || '--';
+            const name = customNames[data.id] || data.name || data.id;
+            const changes = calculateChanges(data);
+            const isFavorite = favorites.includes(data.id);
+            const hasNote = notesStore.has(data.id);
+            
+            return `
+                <div class="series-card">
+                    <div class="series-header">
+                        <div class="series-id">${data.id}</div>
+                        <div class="series-actions">
+                            <span class="note-btn ${hasNote ? 'has-note' : ''}" onclick="openNotesModal('${data.id}')">📝</span>
+                            <span class="edit-btn" onclick="editName('${data.id}')">✏️</span>
+                            <span class="favorite-star ${isFavorite ? 'active' : ''}" 
+                                  onclick="toggleFavorite('${data.id}')">★</span>
+                        </div>
+                    </div>
+                    <div class="series-name" id="name-${data.id}">${name}</div>
+                    <input class="series-name-input" id="input-${data.id}" 
+                           value="${name}" 
+                           onblur="saveName('${data.id}')"
+                           onkeypress="if(event.key==='Enter') saveName('${data.id}')">
+                    <div class="series-value">${value}</div>
+                    <div class="series-date">Last: ${formatDate(date)}</div>
+                    <div class="series-changes">
+                        <div class="change-item">
+                            <span>Week:</span>
+                            <span class="${changes.week >= 0 ? 'positive' : 'negative'}">
+                                ${changes.week >= 0 ? '+' : ''}${changes.week.toFixed(2)}%
+                            </span>
+                        </div>
+                        <div class="change-item">
+                            <span>Month:</span>
+                            <span class="${changes.month >= 0 ? 'positive' : 'negative'}">
+                                ${changes.month >= 0 ? '+' : ''}${changes.month.toFixed(2)}%
+                            </span>
+                        </div>
+                        <div class="change-item">
+                            <span>Quarter:</span>
+                            <span class="${changes.quarter >= 0 ? 'positive' : 'negative'}">
+                                ${changes.quarter >= 0 ? '+' : ''}${changes.quarter.toFixed(2)}%
+                            </span>
+                        </div>
+                        <div class="change-item">
+                            <span>Year:</span>
+                            <span class="${changes.year >= 0 ? 'positive' : 'negative'}">
+                                ${changes.year >= 0 ? '+' : ''}${changes.year.toFixed(2)}%
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function calculateChanges(data) {
+            const changes = { week: 0, month: 0, quarter: 0, year: 0 };
+            
+            if (!data.data || data.data.length < 2) return changes;
+            
+            const sortedData = data.data.sort((a, b) => new Date(b.date) - new Date(a.date));
+            const latest = sortedData[0];
+            const latestDate = new Date(latest.date);
+            const latestValue = parseFloat(latest.value);
+            
+            const periods = { week: 7, month: 30, quarter: 90, year: 365 };
+            
+            for (const [period, days] of Object.entries(periods)) {
+                const targetDate = new Date(latestDate);
+                targetDate.setDate(targetDate.getDate() - days);
+                
+                let closestData = null;
+                let minDiff = Infinity;
+                
+                for (const point of sortedData) {
+                    const diff = Math.abs(new Date(point.date) - targetDate);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        closestData = point;
+                    }
+                }
+                
+                if (closestData && closestData.value) {
+                    const oldValue = parseFloat(closestData.value);
+                    if (oldValue !== 0) {
+                        changes[period] = ((latestValue - oldValue) / oldValue) * 100;
+                    }
+                }
+            }
+            
+            return changes;
+        }
+
+        function sortData(data) {
+            return data.sort((a, b) => {
+                let aVal, bVal;
+                
+                switch(sortColumn) {
+                    case 'name':
+                        aVal = a.name || a.id;
+                        bVal = b.name || b.id;
+                        break;
+                    case 'value':
+                        aVal = a.latest_value || 0;
+                        bVal = b.latest_value || 0;
+                        break;
+                    case 'week':
+                    case 'month':
+                    case 'quarter':
+                    case 'year':
+                        const aChanges = calculateChanges(a);
+                        const bChanges = calculateChanges(b);
+                        aVal = aChanges[sortColumn];
+                        bVal = bChanges[sortColumn];
+                        break;
+                    default:
+                        aVal = a.id;
+                        bVal = b.id;
+                }
+                
+                if (sortOrder === 'asc') {
+                    return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+                } else {
+                    return aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
+                }
+            });
+        }
+
+        // User actions
+        function toggleFavorite(seriesId) {
+            const index = favorites.indexOf(seriesId);
+            if (index > -1) {
+                favorites.splice(index, 1);
+            } else {
+                favorites.push(seriesId);
+            }
+            localStorage.setItem('fed_favorites', JSON.stringify(favorites));
+            displayCurrentView();
+        }
+
+        function editName(seriesId) {
+            document.getElementById(`name-${seriesId}`).style.display = 'none';
+            document.getElementById(`input-${seriesId}`).style.display = 'block';
+            document.getElementById(`input-${seriesId}`).focus();
+        }
+
+        function saveName(seriesId) {
+            const input = document.getElementById(`input-${seriesId}`);
+            const nameDiv = document.getElementById(`name-${seriesId}`);
+            
+            if (input && nameDiv) {
+                const newName = input.value.trim();
+                if (newName) {
+                    customNames[seriesId] = newName;
+                    localStorage.setItem('fed_custom_names', JSON.stringify(customNames));
+                    nameDiv.textContent = newName;
+                    
+                    const data = dataStore.get(seriesId);
+                    if (data) {
+                        data.name = newName;
+                    }
+                }
+                
+                input.style.display = 'none';
+                nameDiv.style.display = 'block';
+            }
+        }
+
+        function sortBy(column) {
+            sortColumn = column;
+            document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            displayCurrentView();
+        }
+
+        function toggleSortOrder() {
+            sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+            document.getElementById('sort-order').textContent = sortOrder === 'asc' ? 'Asc' : 'Desc';
+            displayCurrentView();
+        }
+
+        function showCategory(category) {
+            currentCategory = category;
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            displayCurrentView();
+        }
+
+        function searchSeries() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const cards = document.querySelectorAll('.series-card');
+            
+            cards.forEach(card => {
+                const id = card.querySelector('.series-id').textContent.toLowerCase();
+                const name = card.querySelector('.series-name').textContent.toLowerCase();
+                
+                if (id.includes(searchTerm) || name.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Notes functionality
+        let currentNoteId = null;
+
+        function openNotesModal(seriesId) {
+            currentNoteId = seriesId;
+            const data = dataStore.get(seriesId) || { id: seriesId, name: seriesId };
+            const name = customNames[seriesId] || data.name || seriesId;
+            
+            document.getElementById('notesTitle').textContent = `Notes for ${name} (${seriesId})`;
+            document.getElementById('notesTextarea').value = userNotes[seriesId] || '';
+            document.getElementById('notesModal').style.display = 'flex';
+        }
+
+        function closeNotesModal() {
+            document.getElementById('notesModal').style.display = 'none';
+            currentNoteId = null;
+        }
+
+        function saveNote() {
+            if (!currentNoteId) return;
+            
+            const noteText = document.getElementById('notesTextarea').value.trim();
+            if (noteText) {
+                userNotes[currentNoteId] = noteText;
+                notesStore.set(currentNoteId, noteText);
+            } else {
+                delete userNotes[currentNoteId];
+                notesStore.delete(currentNoteId);
+            }
+            
+            localStorage.setItem('fed_notes', JSON.stringify(userNotes));
+            closeNotesModal();
+            displayCurrentView();
+            saveCachedData();
+            showNotification('Note saved successfully!', 'success');
+        }
+
+        function deleteNote() {
+            if (!currentNoteId) return;
+            
+            delete userNotes[currentNoteId];
+            notesStore.delete(currentNoteId);
+            localStorage.setItem('fed_notes', JSON.stringify(userNotes));
+            
+            closeNotesModal();
+            displayCurrentView();
+            showNotification('Note deleted!', 'warning');
+        }
+
+        // Utilities
+        function formatValue(value, code) {
+            if (value === null || value === undefined) return '--';
+            const num = parseFloat(value);
+            
+            if (code.includes('RATE') || code.includes('DGS') || code.includes('DFF')) {
+                return num.toFixed(3) + '%';
+            }
+            
+            if (code.includes('VIX')) return num.toFixed(2);
+            if (code.includes('DEX') || code.includes('DTW')) return num.toFixed(4);
+            
+            if (Math.abs(num) >= 1e12) return (num / 1e12).toFixed(2) + 'T';
+            if (Math.abs(num) >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+            if (Math.abs(num) >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+            
+            return num.toFixed(2);
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr || dateStr === '--') return '--';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric',
+                year: 'numeric'
+            });
+        }
+
+        function updateTimestamp() {
+            const now = new Date();
+            document.getElementById('last-update').textContent = 
+                now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function updateLoadedCount() {
+            let loaded = 0;
+            let totalWeekChange = 0;
+            let validChanges = 0;
+            let discontinuedCount = 0;
+            let activeIndicators = 0;
+            
+            dataStore.forEach(data => {
+                if (data.latest_value !== null) {
+                    loaded++;
+                    
+                    // Check if the indicator is still active (updated within last 45 days)
+                    if (data.latest_date) {
+                        const daysSinceUpdate = Math.floor((new Date() - new Date(data.latest_date)) / (1000 * 60 * 60 * 24));
+                        if (daysSinceUpdate > 45) {
+                            discontinuedCount++;
+                        } else {
+                            activeIndicators++;
+                        }
+                    }
+                    
+                    const changes = calculateChanges(data);
+                    if (changes.week !== 0) {
+                        totalWeekChange += changes.week;
+                        validChanges++;
+                    }
+                }
+            });
+            
+            const missing = ALL_INDICATORS.length - loaded;
+            const avgChange = validChanges > 0 ? (totalWeekChange / validChanges) : 0;
+            
+            // Update all display elements
+            document.getElementById('loaded-count').textContent = `${loaded}/${ALL_INDICATORS.length} Loaded`;
+            document.getElementById('total-loaded').textContent = loaded;
+            document.getElementById('missing-count').textContent = missing;
+            document.getElementById('avg-change').textContent = `${avgChange >= 0 ? '+' : ''}${avgChange.toFixed(2)}%`;
+            document.getElementById('totalIndicatorCount').textContent = ALL_INDICATORS.length;
+            document.getElementById('openbb-count').textContent = openbbIndicators.size;
+            
+            // Log discontinued indicators
+            if (discontinuedCount > 0) {
+                console.warn(`⚠️ Found ${discontinuedCount} indicators not updated in last 45 days (possibly discontinued)`);
+            }
+            
+            let positiveCount = 0;
+            let negativeCount = 0;
+            
+            dataStore.forEach(data => {
+                if (data.data && data.data.length > 0) {
+                    const changes = calculateChanges(data);
+                    if (changes.week > 0) positiveCount++;
+                    else if (changes.week < 0) negativeCount++;
+                }
+            });
+            
+            document.getElementById('positive-count').textContent = positiveCount;
+            document.getElementById('negative-count').textContent = negativeCount;
+            
+            // Update subtitle with active indicator count
+            if (activeIndicators > 0) {
+                document.getElementById('totalIndicatorCount').textContent = `${activeIndicators} Active`;
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('update-notification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+            
+            if (type === 'error') {
+                notification.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+            } else if (type === 'success') {
+                notification.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+            } else if (type === 'warning') {
+                notification.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
+            }
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 4000);
+        }
+
+        function exportData() {
+            const exportData = {
+                timestamp: new Date().toISOString(),
+                indicators: Array.from(dataStore.values()),
+                favorites: favorites,
+                customNames: customNames,
+                notes: userNotes
+            };
+            
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `fed-liquidity-enhanced-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showNotification('Data exported successfully!', 'success');
+        }
+
+        // Close modal when clicking outside
+        document.addEventListener('click', function(event) {
+            const modal = document.getElementById('notesModal');
+            if (event.target === modal) {
+                closeNotesModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeNotesModal();
+            }
+        });
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
