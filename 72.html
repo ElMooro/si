@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fed Balance Sheet Dashboard - Real-Time Data</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a2e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 0 2px 10px rgba(0, 255, 255, 0.3);
+        }
+
+        .status-bar {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.active {
+            background: #00ff00;
+        }
+
+        .status-indicator.loading {
+            background: #ffaa00;
+        }
+
+        .status-indicator.error {
+            background: #ff0044;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn.secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .btn.success {
+            background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+        }
+
+        select {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        select option {
+            background: #1a1a2e;
+        }
+
+        .table-container {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        th {
+            background: rgba(102, 126, 234, 0.2);
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        th:hover {
+            background: rgba(102, 126, 234, 0.3);
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .editable {
+            background: transparent;
+            border: 1px solid transparent;
+            color: inherit;
+            padding: 4px;
+            border-radius: 3px;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .editable:hover {
+            border-color: rgba(102, 126, 234, 0.5);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .editable:focus {
+            outline: none;
+            border-color: #667eea;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .note-input {
+            width: 100%;
+            min-width: 200px;
+        }
+
+        .value-cell {
+            font-family: 'Courier New', monospace;
+            font-weight: 500;
+        }
+
+        .change-positive {
+            color: #00ff88;
+        }
+
+        .change-negative {
+            color: #ff4444;
+        }
+
+        .change-neutral {
+            color: #888;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #667eea;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: rgba(255, 0, 0, 0.1);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        .sort-arrow {
+            display: inline-block;
+            margin-left: 5px;
+            opacity: 0.5;
+        }
+
+        .sort-arrow.active {
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .table-container {
+                overflow-x: auto;
+            }
+            
+            table {
+                min-width: 800px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Fed Balance Sheet Dashboard</h1>
+        
+        <div class="status-bar">
+            <div class="status-item">
+                <span class="status-indicator" id="statusIndicator"></span>
+                <span id="statusText">Initializing...</span>
+            </div>
+            <div class="status-item">
+                <span>Last Update: </span>
+                <span id="lastUpdate">Never</span>
+            </div>
+            <div class="status-item">
+                <span>Next Update: </span>
+                <span id="nextUpdate">Calculating...</span>
+            </div>
+            <div class="status-item">
+                <span>API Key: </span>
+                <span id="apiKeyStatus">Not Set</span>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn" onclick="manualRefresh()">🔄 Refresh All Data</button>
+            <button class="btn secondary" onclick="exportData()">📥 Export to CSV</button>
+            <button class="btn success" onclick="saveNotes()">💾 Save Notes</button>
+            
+            <select id="sortBy" onchange="sortTable()">
+                <option value="">Sort By...</option>
+                <option value="name">Name</option>
+                <option value="value">Current Value</option>
+                <option value="week">Week Change %</option>
+                <option value="month">Month Change %</option>
+                <option value="quarter">Quarter Change %</option>
+                <option value="year">Year Change %</option>
+            </select>
+            
+            <select id="sortOrder" onchange="sortTable()">
+                <option value="desc">Descending ↓</option>
+                <option value="asc">Ascending ↑</option>
+            </select>
+        </div>
+
+        <div class="table-container">
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th onclick="setSortAndSort('name')">Series ID <span class="sort-arrow" data-sort="name">↕</span></th>
+                        <th onclick="setSortAndSort('custom')">Custom Name <span class="sort-arrow" data-sort="custom">↕</span></th>
+                        <th onclick="setSortAndSort('value')">Current Value <span class="sort-arrow" data-sort="value">↕</span></th>
+                        <th onclick="setSortAndSort('week')">Week Δ% <span class="sort-arrow" data-sort="week">↕</span></th>
+                        <th onclick="setSortAndSort('month')">Month Δ% <span class="sort-arrow" data-sort="month">↕</span></th>
+                        <th onclick="setSortAndSort('quarter')">Quarter Δ% <span class="sort-arrow" data-sort="quarter">↕</span></th>
+                        <th onclick="setSortAndSort('year')">Year Δ% <span class="sort-arrow" data-sort="year">↕</span></th>
+                        <th>Notes</th>
+                        <th>Last Updated</th>
+                    </tr>
+                </thead>
+                <tbody id="dataBody">
+                    <!-- Data will be populated here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const FRED_API_KEY = '2f057499936072679d8843d7fce99989';
+        const API_ENDPOINT = 'https://occdgwanqvbjd2qnnuyafvkvei0ptinb.lambda-url.us-east-1.on.aws/fred_api';
+        
+        // Series list from the document
+        const SERIES_LIST = [
+            'TREAST', 'SWPT', 'TREAS10Y', 'TREAS1T5', 'TREAS1590', 'TREAS5T10',
+            'MBS10Y', 'TREAS911Y', 'TREAS15', 'RESPPALGUONNWW', 'TERMT',
+            'RESPPALGUOXCH1NWW', 'SWP1690', 'FEDD5T10', 'H41RESPPLLDENWW',
+            'OTHL1690', 'SWP15', 'OTHL15', 'OTHL1T5', 'RESPPALGUOXAWXCH52NWW',
+            'REP1690', 'RESPPALGUMD16T90XCH1NWW', 'OTHL91T1Y', 'RESPPALGUMXCH1NWW',
+            'RESH4FXAWXCH52NWW'
+        ];
+
+        // State management
+        let seriesData = {};
+        let customNames = {};
+        let notes = {};
+        let sortConfig = { by: '', order: 'desc' };
+
+        // Load saved data from localStorage
+        function loadSavedData() {
+            const saved = localStorage.getItem('fedDashboardData');
+            if (saved) {
+                const data = JSON.parse(saved);
+                customNames = data.customNames || {};
+                notes = data.notes || {};
+            }
+        }
+
+        // Save data to localStorage
+        function saveToLocalStorage() {
+            localStorage.setItem('fedDashboardData', JSON.stringify({
+                customNames,
+                notes,
+                lastUpdate: new Date().toISOString(),
+                seriesData
+            }));
+        }
+
+        // Initialize dashboard
+        async function init() {
+            loadSavedData();
+            updateStatus('loading', 'Initializing dashboard...');
+            document.getElementById('apiKeyStatus').textContent = FRED_API_KEY ? '✅ Set' : '❌ Not Set';
+            
+            // Set up auto-refresh schedule (Monday, Wednesday, Friday at 9 AM)
+            setupAutoRefresh();
+            
+            // Initial data load
+            await fetchAllData();
+        }
+
+        // Fetch data for a single series
+        async function fetchSeriesData(seriesId) {
+            try {
+                const response = await fetch(`${API_ENDPOINT}?series_id=${seriesId}`);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                
+                const data = await response.json();
+                
+                if (data.observations && data.observations.length > 0) {
+                    // Sort observations by date
+                    data.observations.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    
+                    // Calculate percentage changes
+                    const current = parseFloat(data.observations[0].value);
+                    const weekAgo = findValueByDaysAgo(data.observations, 7);
+                    const monthAgo = findValueByDaysAgo(data.observations, 30);
+                    const quarterAgo = findValueByDaysAgo(data.observations, 90);
+                    const yearAgo = findValueByDaysAgo(data.observations, 365);
+                    
+                    return {
+                        seriesId,
+                        current,
+                        weekChange: calculatePercentChange(current, weekAgo),
+                        monthChange: calculatePercentChange(current, monthAgo),
+                        quarterChange: calculatePercentChange(current, quarterAgo),
+                        yearChange: calculatePercentChange(current, yearAgo),
+                        lastUpdated: data.observations[0].date,
+                        rawData: data.observations
+                    };
+                }
+                return null;
+            } catch (error) {
+                console.error(`Error fetching ${seriesId}:`, error);
+                return {
+                    seriesId,
+                    current: null,
+                    weekChange: null,
+                    monthChange: null,
+                    quarterChange: null,
+                    yearChange: null,
+                    lastUpdated: null,
+                    error: error.message
+                };
+            }
+        }
+
+        // Find value by days ago
+        function findValueByDaysAgo(observations, daysAgo) {
+            const targetDate = new Date();
+            targetDate.setDate(targetDate.getDate() - daysAgo);
+            
+            // Find closest observation to target date
+            let closest = null;
+            let minDiff = Infinity;
+            
+            for (const obs of observations) {
+                if (obs.value === '.' || obs.value === null) continue;
+                
+                const obsDate = new Date(obs.date);
+                const diff = Math.abs(obsDate - targetDate);
+                
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    closest = parseFloat(obs.value);
+                }
+            }
+            
+            return closest;
+        }
+
+        // Calculate percentage change
+        function calculatePercentChange(current, previous) {
+            if (!current || !previous) return null;
+            return ((current - previous) / previous) * 100;
+        }
+
+        // Fetch all data
+        async function fetchAllData() {
+            updateStatus('loading', 'Fetching data from FRED API...');
+            
+            // Fetch in batches to avoid overwhelming the API
+            const batchSize = 5;
+            const batches = [];
+            
+            for (let i = 0; i < SERIES_LIST.length; i += batchSize) {
+                batches.push(SERIES_LIST.slice(i, i + batchSize));
+            }
+            
+            let completed = 0;
+            for (const batch of batches) {
+                const promises = batch.map(series => fetchSeriesData(series));
+                const results = await Promise.all(promises);
+                
+                results.forEach(result => {
+                    if (result) {
+                        seriesData[result.seriesId] = result;
+                    }
+                });
+                
+                completed += batch.length;
+                updateStatus('loading', `Loading: ${completed}/${SERIES_LIST.length} series...`);
+            }
+            
+            updateStatus('active', 'Data loaded successfully');
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleString();
+            saveToLocalStorage();
+            renderTable();
+            calculateNextUpdate();
+        }
+
+        // Render table
+        function renderTable() {
+            const tbody = document.getElementById('dataBody');
+            tbody.innerHTML = '';
+            
+            // Get sorted data
+            let sortedData = Object.values(seriesData);
+            if (sortConfig.by) {
+                sortedData = sortData(sortedData, sortConfig.by, sortConfig.order);
+            }
+            
+            sortedData.forEach(data => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${data.seriesId}</td>
+                    <td>
+                        <input type="text" 
+                               class="editable" 
+                               value="${customNames[data.seriesId] || ''}" 
+                               placeholder="Enter custom name..."
+                               onchange="updateCustomName('${data.seriesId}', this.value)">
+                    </td>
+                    <td class="value-cell">${formatValue(data.current)}</td>
+                    <td class="${getChangeClass(data.weekChange)}">${formatPercent(data.weekChange)}</td>
+                    <td class="${getChangeClass(data.monthChange)}">${formatPercent(data.monthChange)}</td>
+                    <td class="${getChangeClass(data.quarterChange)}">${formatPercent(data.quarterChange)}</td>
+                    <td class="${getChangeClass(data.yearChange)}">${formatPercent(data.yearChange)}</td>
+                    <td>
+                        <input type="text" 
+                               class="editable note-input" 
+                               value="${notes[data.seriesId] || ''}" 
+                               placeholder="Add notes..."
+                               onchange="updateNote('${data.seriesId}', this.value)">
+                    </td>
+                    <td>${data.lastUpdated || 'N/A'}</td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        // Sort data
+        function sortData(data, by, order) {
+            return [...data].sort((a, b) => {
+                let aVal, bVal;
+                
+                switch(by) {
+                    case 'name':
+                        aVal = a.seriesId;
+                        bVal = b.seriesId;
+                        break;
+                    case 'custom':
+                        aVal = customNames[a.seriesId] || '';
+                        bVal = customNames[b.seriesId] || '';
+                        break;
+                    case 'value':
+                        aVal = a.current || 0;
+                        bVal = b.current || 0;
+                        break;
+                    case 'week':
+                        aVal = a.weekChange || 0;
+                        bVal = b.weekChange || 0;
+                        break;
+                    case 'month':
+                        aVal = a.monthChange || 0;
+                        bVal = b.monthChange || 0;
+                        break;
+                    case 'quarter':
+                        aVal = a.quarterChange || 0;
+                        bVal = b.quarterChange || 0;
+                        break;
+                    case 'year':
+                        aVal = a.yearChange || 0;
+                        bVal = b.yearChange || 0;
+                        break;
+                    default:
+                        return 0;
+                }
+                
+                if (typeof aVal === 'string') {
+                    return order === 'asc' ? 
+                        aVal.localeCompare(bVal) : 
+                        bVal.localeCompare(aVal);
+                } else {
+                    return order === 'asc' ? 
+                        aVal - bVal : 
+                        bVal - aVal;
+                }
+            });
+        }
+
+        // Set sort and sort table
+        function setSortAndSort(column) {
+            if (sortConfig.by === column) {
+                sortConfig.order = sortConfig.order === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortConfig.by = column;
+                sortConfig.order = 'desc';
+            }
+            
+            // Update UI
+            document.getElementById('sortBy').value = column;
+            document.getElementById('sortOrder').value = sortConfig.order;
+            
+            // Update arrows
+            document.querySelectorAll('.sort-arrow').forEach(arrow => {
+                arrow.classList.remove('active');
+                arrow.textContent = '↕';
+            });
+            
+            const activeArrow = document.querySelector(`.sort-arrow[data-sort="${column}"]`);
+            if (activeArrow) {
+                activeArrow.classList.add('active');
+                activeArrow.textContent = sortConfig.order === 'asc' ? '↑' : '↓';
+            }
+            
+            renderTable();
+        }
+
+        // Sort table (from dropdown)
+        function sortTable() {
+            const sortBy = document.getElementById('sortBy').value;
+            const sortOrder = document.getElementById('sortOrder').value;
+            
+            if (sortBy) {
+                sortConfig.by = sortBy;
+                sortConfig.order = sortOrder;
+                renderTable();
+            }
+        }
+
+        // Format value
+        function formatValue(value) {
+            if (value === null || value === undefined) return 'N/A';
+            return value.toLocaleString('en-US', { 
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2 
+            });
+        }
+
+        // Format percent
+        function formatPercent(value) {
+            if (value === null || value === undefined) return 'N/A';
+            const formatted = value.toFixed(2);
+            return value >= 0 ? `+${formatted}%` : `${formatted}%`;
+        }
+
+        // Get change class
+        function getChangeClass(value) {
+            if (value === null || value === undefined) return 'change-neutral';
+            if (value > 0) return 'change-positive';
+            if (value < 0) return 'change-negative';
+            return 'change-neutral';
+        }
+
+        // Update custom name
+        function updateCustomName(seriesId, value) {
+            customNames[seriesId] = value;
+            saveToLocalStorage();
+        }
+
+        // Update note
+        function updateNote(seriesId, value) {
+            notes[seriesId] = value;
+            saveToLocalStorage();
+        }
+
+        // Save notes
+        function saveNotes() {
+            saveToLocalStorage();
+            updateStatus('active', 'Notes saved successfully!');
+            setTimeout(() => {
+                updateStatus('active', 'Ready');
+            }, 2000);
+        }
+
+        // Manual refresh
+        async function manualRefresh() {
+            await fetchAllData();
+        }
+
+        // Export data to CSV
+        function exportData() {
+            let csv = 'Series ID,Custom Name,Current Value,Week Change %,Month Change %,Quarter Change %,Year Change %,Notes,Last Updated\n';
+            
+            Object.values(seriesData).forEach(data => {
+                csv += `"${data.seriesId}","${customNames[data.seriesId] || ''}",${data.current || ''},${data.weekChange || ''},${data.monthChange || ''},${data.quarterChange || ''},${data.yearChange || ''},"${notes[data.seriesId] || ''}","${data.lastUpdated || ''}"\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `fed_balance_sheet_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Update status
+        function updateStatus(type, message) {
+            const indicator = document.getElementById('statusIndicator');
+            const text = document.getElementById('statusText');
+            
+            indicator.className = `status-indicator ${type}`;
+            text.textContent = message;
+        }
+
+        // Setup auto-refresh (Monday, Wednesday, Friday at 9 AM)
+        function setupAutoRefresh() {
+            const checkAndRefresh = () => {
+                const now = new Date();
+                const day = now.getDay();
+                const hour = now.getHours();
+                
+                // Check if it's Mon(1), Wed(3), or Fri(5) at 9 AM
+                if ([1, 3, 5].includes(day) && hour === 9) {
+                    // Check if we haven't refreshed in the last hour
+                    const lastRefresh = localStorage.getItem('lastAutoRefresh');
+                    const hourAgo = new Date(now - 60 * 60 * 1000);
+                    
+                    if (!lastRefresh || new Date(lastRefresh) < hourAgo) {
+                        fetchAllData();
+                        localStorage.setItem('lastAutoRefresh', now.toISOString());
+                    }
+                }
+            };
+            
+            // Check every 30 minutes
+            setInterval(checkAndRefresh, 30 * 60 * 1000);
+            
+            // Also check immediately
+            checkAndRefresh();
+        }
+
+        // Calculate next update time
+        function calculateNextUpdate() {
+            const now = new Date();
+            const day = now.getDay();
+            const nextDays = [1, 3, 5]; // Monday, Wednesday, Friday
+            
+            let daysUntilNext = 0;
+            for (let i = 0; i < 7; i++) {
+                const checkDay = (day + i) % 7;
+                if (nextDays.includes(checkDay)) {
+                    if (i === 0 && now.getHours() < 9) {
+                        daysUntilNext = 0;
+                    } else {
+                        daysUntilNext = i || 1;
+                    }
+                    break;
+                }
+            }
+            
+            const nextUpdate = new Date(now);
+            nextUpdate.setDate(nextUpdate.getDate() + daysUntilNext);
+            nextUpdate.setHours(9, 0, 0, 0);
+            
+            document.getElementById('nextUpdate').textContent = nextUpdate.toLocaleString();
+        }
+
+        // Initialize on load
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
