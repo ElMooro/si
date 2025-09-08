@@ -1,1 +1,2158 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unified Financial Intelligence Platform - Enhanced v3.0</title>
+    
+    <!-- Required Libraries -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            /* Dark Theme (Default) */
+            --bg-primary: linear-gradient(135deg, #0a0e27 0%, #151932 100%);
+            --bg-secondary: rgba(20, 24, 44, 0.95);
+            --bg-card: rgba(255, 255, 255, 0.05);
+            --bg-hover: rgba(255, 255, 255, 0.08);
+            --border-primary: rgba(0, 255, 136, 0.2);
+            --border-secondary: rgba(255, 255, 255, 0.1);
+            --text-primary: #e0e0e0;
+            --text-secondary: #888;
+            --text-accent: #00ff88;
+            --positive: #00ff88;
+            --negative: #ff4444;
+            --neutral: #888;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+        
+        /* Light Theme */
+        body.light-theme {
+            --bg-primary: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+            --bg-secondary: rgba(255, 255, 255, 0.95);
+            --bg-card: rgba(255, 255, 255, 0.9);
+            --bg-hover: rgba(0, 0, 0, 0.05);
+            --border-primary: rgba(0, 150, 100, 0.3);
+            --border-secondary: rgba(0, 0, 0, 0.1);
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --text-accent: #00aa66;
+            --positive: #00aa66;
+            --negative: #cc3333;
+            --neutral: #666666;
+        }
+        
+        /* Header Styles */
+        .header {
+            background: var(--bg-secondary);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-secondary);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .theme-toggle:hover {
+            background: var(--bg-hover);
+        }
+        
+        .header-stats {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background: var(--bg-card);
+            border-radius: 8px;
+            border: 1px solid var(--border-secondary);
+            min-width: 100px;
+        }
+        
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--text-accent);
+        }
+        
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+        
+        /* Alert Flashing */
+        @keyframes flash-red {
+            0%, 100% { 
+                background: var(--bg-card);
+                border-color: var(--border-secondary);
+            }
+            50% { 
+                background: rgba(255, 68, 68, 0.2);
+                border-color: #ff4444;
+                box-shadow: 0 0 20px rgba(255, 68, 68, 0.5);
+            }
+        }
+        
+        @keyframes flash-green {
+            0%, 100% { 
+                background: var(--bg-card);
+                border-color: var(--border-secondary);
+            }
+            50% { 
+                background: rgba(0, 255, 136, 0.2);
+                border-color: #00ff88;
+                box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+            }
+        }
+        
+        .alert-red {
+            animation: flash-red 2s ease-in-out infinite;
+        }
+        
+        .alert-green {
+            animation: flash-green 2s ease-in-out infinite;
+        }
+        
+        /* Sort Controls */
+        .sort-controls {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: var(--bg-card);
+            border-radius: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .sort-select {
+            padding: 0.5rem 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-secondary);
+            border-radius: 6px;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+        
+        .sort-direction {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .sort-btn {
+            padding: 0.5rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-secondary);
+            border-radius: 6px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .sort-btn.active {
+            background: var(--text-accent);
+            color: #000;
+        }
+        
+        /* Rate Limit Indicator */
+        .rate-limit-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 204, 255, 0.1);
+            border: 1px solid rgba(0, 204, 255, 0.3);
+            border-radius: 8px;
+            font-size: 0.875rem;
+        }
+        
+        .rate-limit-bar {
+            width: 100px;
+            height: 6px;
+            background: var(--border-secondary);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .rate-limit-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00ccff);
+            transition: width 0.3s ease;
+        }
+        
+        /* Auto Update Status */
+        .auto-update-status {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .update-schedule {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .update-day {
+            padding: 0.25rem 0.5rem;
+            background: var(--bg-card);
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+        
+        .update-day.active {
+            background: var(--text-accent);
+            color: #000;
+            font-weight: bold;
+        }
+        
+        /* Container */
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Navigation Tabs */
+        .main-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 0.5rem;
+            overflow-x: auto;
+        }
+        
+        .main-tab {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        
+        .main-tab:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        
+        .main-tab.active {
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            color: #000;
+            font-weight: bold;
+        }
+        
+        /* Sub Category Tabs */
+        .category-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .category-tab {
+            padding: 0.5rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-secondary);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+        }
+        
+        .category-tab:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        
+        .category-tab.active {
+            background: var(--text-accent);
+            color: #000;
+            font-weight: bold;
+        }
+        
+        /* Progress Container */
+        .progress-container {
+            width: 100%;
+            height: 35px;
+            background: var(--bg-card);
+            border-radius: 20px;
+            overflow: hidden;
+            margin: 1.5rem 0;
+            display: none;
+            border: 1px solid var(--border-secondary);
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00ccff);
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        /* Data Grid */
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .data-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-secondary);
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .data-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.2);
+            border-color: var(--text-accent);
+        }
+        
+        .data-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .data-title {
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #00ccff;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .data-source {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            background: rgba(0, 255, 136, 0.2);
+            border-radius: 4px;
+            color: var(--text-accent);
+        }
+        
+        .custom-name {
+            font-size: 1rem;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            cursor: text;
+            padding: 0.25rem;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        
+        .custom-name:hover {
+            background: var(--bg-hover);
+        }
+        
+        .custom-name-input {
+            width: 100%;
+            background: var(--bg-hover);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 4px;
+            color: var(--text-primary);
+            padding: 0.25rem;
+            font-size: 1rem;
+            font-weight: 600;
+            display: none;
+        }
+        
+        .data-value {
+            font-size: 1.75rem;
+            font-weight: bold;
+            margin: 0.75rem 0;
+        }
+        
+        .changes-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            margin: 0.75rem 0;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+        }
+        
+        .change-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+        }
+        
+        .change-label {
+            color: var(--text-secondary);
+        }
+        
+        .positive { color: var(--positive); }
+        .negative { color: var(--negative); }
+        .neutral { color: var(--neutral); }
+        
+        /* Action Buttons */
+        .action-buttons {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .action-btn {
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: transform 0.3s;
+        }
+        
+        .action-btn:hover {
+            transform: scale(1.2);
+        }
+        
+        .favorite-star {
+            color: #444;
+        }
+        
+        .favorite-star.active {
+            color: #ffd700;
+        }
+        
+        .note-btn {
+            color: var(--text-secondary);
+        }
+        
+        .note-btn.has-note {
+            color: #00ccff;
+        }
+        
+        .edit-btn {
+            color: var(--text-secondary);
+        }
+        
+        /* Notes Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 600px;
+            border: 1px solid var(--border-primary);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-secondary);
+        }
+        
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--text-accent);
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .close-modal:hover {
+            transform: rotate(90deg);
+        }
+        
+        .notes-textarea {
+            width: 100%;
+            min-height: 200px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-secondary);
+            border-radius: 8px;
+            color: var(--text-primary);
+            padding: 1rem;
+            font-size: 1rem;
+            resize: vertical;
+        }
+        
+        .notes-textarea:focus {
+            outline: none;
+            border-color: var(--text-accent);
+            background: var(--bg-hover);
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
+        }
+        
+        .modal-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .modal-btn.save {
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            color: #000;
+        }
+        
+        .modal-btn.delete {
+            background: rgba(255, 68, 68, 0.2);
+            color: var(--negative);
+            border: 1px solid rgba(255, 68, 68, 0.3);
+        }
+        
+        .modal-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        /* Control Buttons */
+        .control-container {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .control-btn {
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 8px;
+            color: var(--text-accent);
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+        }
+        
+        .control-btn:hover {
+            background: rgba(0, 255, 136, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .control-btn.danger {
+            background: rgba(255, 68, 68, 0.1);
+            border-color: rgba(255, 68, 68, 0.3);
+            color: var(--negative);
+        }
+        
+        /* Status Messages */
+        .status-message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            display: none;
+        }
+        
+        .status-message.success {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            color: var(--positive);
+            display: block;
+        }
+        
+        .status-message.error {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid rgba(255, 68, 68, 0.3);
+            color: var(--negative);
+            display: block;
+        }
+        
+        .status-message.info {
+            background: rgba(0, 204, 255, 0.1);
+            border: 1px solid rgba(0, 204, 255, 0.3);
+            color: #00ccff;
+            display: block;
+        }
+        
+        /* Loading Spinner */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(0, 255, 136, 0.2);
+            border-top-color: var(--text-accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Search Box */
+        .search-container {
+            margin-bottom: 1.5rem;
+        }
+        
+        .search-input {
+            width: 100%;
+            max-width: 400px;
+            padding: 0.75rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-secondary);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--text-accent);
+            background: var(--bg-hover);
+        }
+        
+        /* Queue Status */
+        .queue-status {
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            display: none;
+        }
+        
+        .queue-status.active {
+            display: block;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+            }
+            
+            .data-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            📊 Unified Financial Platform
+            <span style="font-size: 0.875rem; color: var(--text-secondary);">v3.0</span>
+        </div>
+        
+        <div class="theme-toggle" onclick="toggleTheme()">
+            <span id="themeIcon">🌙</span>
+            <span id="themeText">Dark</span>
+        </div>
+        
+        <div class="rate-limit-indicator">
+            <span>Rate Limit:</span>
+            <div class="rate-limit-bar">
+                <div class="rate-limit-fill" id="rateLimitBar" style="width: 100%;"></div>
+            </div>
+            <span id="rateLimitText">120/120</span>
+        </div>
+        
+        <div class="header-stats">
+            <div class="stat-item">
+                <div class="stat-value" id="totalIndicators">500+</div>
+                <div class="stat-label">Total Series</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="loadedIndicators">0</div>
+                <div class="stat-label">Loaded</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="cachedIndicators">0</div>
+                <div class="stat-label">Cached</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="lastUpdate">--:--</div>
+                <div class="stat-label">Last Update</div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Auto Update Status -->
+    <div class="auto-update-status">
+        <div>
+            <strong>📅 Auto-Update Schedule:</strong> Data refreshes Monday, Wednesday, Friday at 3 AM EST
+            <div class="update-schedule" style="margin-top: 0.5rem;">
+                <span class="update-day" id="monday">Monday</span>
+                <span class="update-day" id="wednesday">Wednesday</span>
+                <span class="update-day" id="friday">Friday</span>
+                <span style="margin-left: 1rem; font-size: 0.875rem;">Next update: <span id="nextUpdate">--</span></span>
+            </div>
+        </div>
+        <button class="control-btn" onclick="toggleAutoUpdate()" id="autoUpdateBtn">🔄 Auto-Update: ON</button>
+    </div>
+    
+    <div class="container">
+        <!-- Status Messages -->
+        <div class="status-message" id="statusMessage"></div>
+        
+        <!-- Queue Status -->
+        <div class="queue-status" id="queueStatus">
+            <strong>Loading Queue:</strong> <span id="queueInfo">0 items waiting</span> | 
+            <strong>Processing:</strong> <span id="processingInfo">Idle</span> | 
+            <strong>Batch:</strong> <span id="batchInfo">0/0</span>
+        </div>
+        
+        <!-- Progress Bar -->
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar" id="progressBar">0%</div>
+        </div>
+        
+        <!-- Main Navigation Tabs -->
+        <div class="main-tabs">
+            <button class="main-tab active" onclick="switchMainTab('fed')">🏛️ Fed Liquidity</button>
+            <button class="main-tab" onclick="switchMainTab('ice')">📈 ICE BofA</button>
+            <button class="main-tab" onclick="switchMainTab('business')">📊 Business Surveys</button>
+            <button class="main-tab" onclick="switchMainTab('production')">🏭 Production</button>
+            <button class="main-tab" onclick="switchMainTab('securities')">📜 Securities</button>
+            <button class="main-tab" onclick="switchMainTab('trucks')">🚛 Heavy Trucks</button>
+            <button class="main-tab" onclick="switchMainTab('repo')">💱 Repo Markets</button>
+            <button class="main-tab" onclick="switchMainTab('funding')">💰 Funding Rates</button>
+            <button class="main-tab" onclick="switchMainTab('missing')">❗ Missing Only</button>
+            <button class="main-tab" onclick="switchMainTab('favorites')">⭐ Favorites</button>
+        </div>
+        
+        <!-- Category Tabs (Dynamic) -->
+        <div class="category-tabs" id="categoryTabs"></div>
+        
+        <!-- Sort Controls -->
+        <div class="sort-controls">
+            <label>Sort by:</label>
+            <select class="sort-select" id="sortBy" onchange="updateSort()">
+                <option value="id">Series ID</option>
+                <option value="name">Name</option>
+                <option value="value">Current Value</option>
+                <option value="week">Week %</option>
+                <option value="month">Month %</option>
+                <option value="quarter">Quarter %</option>
+                <option value="year">Year %</option>
+            </select>
+            <div class="sort-direction">
+                <button class="sort-btn active" id="sortAsc" onclick="setSortDirection('asc')">↑ Ascending</button>
+                <button class="sort-btn" id="sortDesc" onclick="setSortDirection('desc')">↓ Descending</button>
+            </div>
+        </div>
+        
+        <!-- Search -->
+        <div class="search-container">
+            <input type="text" class="search-input" id="searchInput" 
+                   placeholder="Search indicators..." 
+                   oninput="searchIndicators()">
+        </div>
+        
+        <!-- Control Buttons -->
+        <div class="control-container">
+            <button class="control-btn" onclick="loadCurrentTabData()" id="loadTabBtn">📥 Load Tab Data</button>
+            <button class="control-btn" onclick="loadAllData()" id="loadAllBtn">📥 Load All (Batched)</button>
+            <button class="control-btn" onclick="loadMissingOnly()" id="loadMissingBtn">🔍 Load Missing Only</button>
+            <button class="control-btn" onclick="refreshCurrentTab()" id="refreshBtn">🔃 Refresh Tab</button>
+            <button class="control-btn danger" onclick="clearAllCache()">🗑️ Clear Cache</button>
+            <button class="control-btn" onclick="exportData()">💾 Export CSV</button>
+        </div>
+        
+        <!-- Data Grid -->
+        <div class="data-grid" id="dataGrid">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Ready to load data</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notes Modal -->
+    <div class="modal" id="notesModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle">Notes</div>
+                <button class="close-modal" onclick="closeNotesModal()">✕</button>
+            </div>
+            <textarea class="notes-textarea" id="notesTextarea" placeholder="Add your notes here..."></textarea>
+            <div class="modal-buttons">
+                <button class="modal-btn delete" onclick="deleteNote()">Delete Note</button>
+                <button class="modal-btn save" onclick="saveNote()">Save Note</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // ============================================
+        // Configuration with ALL NEW SERIES
+        // ============================================
+        const CONFIG = {
+            FED_API: 'https://occdgwanqvbjd2qnnuyafvkvei0ptinb.lambda-url.us-east-1.on.aws',
+            ICE_API: 'https://lnd6erie7y4rw2u6r4dpv4enty0mhtua.lambda-url.us-east-1.on.aws',
+            RATE_LIMIT: 120,
+            RATE_WINDOW: 60000,
+            BATCH_SIZE: 120,
+            CACHE_DURATION: 24 * 60 * 60 * 1000,
+            AUTO_UPDATE_DAYS: [1, 3, 5],
+            AUTO_UPDATE_HOUR: 3
+        };
+        
+        // Additional Series to Add
+        const ADDITIONAL_SERIES = {
+            business_surveys: [
+                'BSOBLV02FRM460S', 'BSOBLV02EZM460S', 'BSOBLV02USM460S', 
+                'BSOBLV02ITM460S', 'BSOBLV02BEM460S', 'BSOBLV02DEM460S'
+            ],
+            production: [
+                'INDPRO', 'IPGMFN', 'IPDMAN', 'IPNMAN',
+                'EA19PRINTO01IXOBSAM', 'EA19PRMNTO01IXNBSAM', 'PRMNTO01EZQ661S'
+            ],
+            securities: [
+                'WSHOSHO', 'WSHOTSL', 'WSHOBL', 'WSHONBNA', 'WSHOMCB', 'FEDDT',
+                'SBCACBW027SBOG', 'SBCLCBM027NBOG', 'SBCSCBM027NBOG', 'TASACBW027SBOG',
+                'USGSEC', 'USGSECNSA', 'TMBACBW027SBOG', 'TMBACBW027NBOG',
+                'TMBACBM027SBOG', 'TMBACBM027NBOG', 'H8B1003NCBCMG', 'H8B1003NCBCAG',
+                'H8B1301NCBCMG'
+            ],
+            trucks: [
+                'HTRUCKSSA', 'HTRUCKSSAAR', 'HTRUCKSNSA'
+            ],
+            repo: [
+                'RPONTSYD', 'RRPONTSYD', 'RRPONTSYAWARD'
+            ],
+            funding_rates: [
+                'FEDFUNDS', 'OBFRVOL', 'AMERIBOR', 'SOFR'
+            ]
+        };
+        
+        // ============================================
+        // Global State
+        // ============================================
+        let state = {
+            currentMainTab: 'fed',
+            currentCategory: 'all',
+            allData: new Map(),
+            fedMetadata: {},
+            iceMetadata: {},
+            additionalMetadata: {},
+            favorites: JSON.parse(localStorage.getItem('unifiedFavorites') || '[]'),
+            customNames: JSON.parse(localStorage.getItem('unifiedCustomNames') || '{}'),
+            notes: JSON.parse(localStorage.getItem('unifiedNotes') || '{}'),
+            autoUpdateEnabled: JSON.parse(localStorage.getItem('autoUpdateEnabled') || 'true'),
+            theme: localStorage.getItem('theme') || 'dark',
+            sortBy: 'id',
+            sortDirection: 'asc',
+            searchTerm: '',
+            requestQueue: [],
+            requestsInWindow: [],
+            isProcessingQueue: false,
+            availableRequests: CONFIG.RATE_LIMIT,
+            currentNoteId: null
+        };
+        
+        // ============================================
+        // Theme Management
+        // ============================================
+        function initTheme() {
+            if (state.theme === 'light') {
+                document.body.classList.add('light-theme');
+                document.getElementById('themeIcon').textContent = '☀️';
+                document.getElementById('themeText').textContent = 'Light';
+            }
+        }
+        
+        function toggleTheme() {
+            document.body.classList.toggle('light-theme');
+            state.theme = document.body.classList.contains('light-theme') ? 'light' : 'dark';
+            localStorage.setItem('theme', state.theme);
+            
+            if (state.theme === 'light') {
+                document.getElementById('themeIcon').textContent = '☀️';
+                document.getElementById('themeText').textContent = 'Light';
+            } else {
+                document.getElementById('themeIcon').textContent = '🌙';
+                document.getElementById('themeText').textContent = 'Dark';
+            }
+        }
+        
+        // ============================================
+        // Sort Functions
+        // ============================================
+        function updateSort() {
+            state.sortBy = document.getElementById('sortBy').value;
+            displayData();
+        }
+        
+        function setSortDirection(direction) {
+            state.sortDirection = direction;
+            document.getElementById('sortAsc').classList.toggle('active', direction === 'asc');
+            document.getElementById('sortDesc').classList.toggle('active', direction === 'desc');
+            displayData();
+        }
+        
+        function sortData(data) {
+            return data.sort((a, b) => {
+                let aVal, bVal;
+                
+                switch(state.sortBy) {
+                    case 'id':
+                        aVal = a.id;
+                        bVal = b.id;
+                        break;
+                    case 'name':
+                        aVal = state.customNames[a.id] || a.name || a.id;
+                        bVal = state.customNames[b.id] || b.name || b.id;
+                        break;
+                    case 'value':
+                        aVal = a.value || 0;
+                        bVal = b.value || 0;
+                        break;
+                    case 'week':
+                        aVal = a.changes?.week || 0;
+                        bVal = b.changes?.week || 0;
+                        break;
+                    case 'month':
+                        aVal = a.changes?.month || 0;
+                        bVal = b.changes?.month || 0;
+                        break;
+                    case 'quarter':
+                        aVal = a.changes?.quarter || 0;
+                        bVal = b.changes?.quarter || 0;
+                        break;
+                    case 'year':
+                        aVal = a.changes?.year || 0;
+                        bVal = b.changes?.year || 0;
+                        break;
+                    default:
+                        aVal = a.id;
+                        bVal = b.id;
+                }
+                
+                if (state.sortDirection === 'asc') {
+                    return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+                } else {
+                    return aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
+                }
+            });
+        }
+        
+        // ============================================
+        // Cache Management
+        // ============================================
+        function getCacheKey(source, seriesId) {
+            return `unified_${source}_${seriesId}`;
+        }
+        
+        function getCachedData(source, seriesId) {
+            const key = getCacheKey(source, seriesId);
+            const cached = localStorage.getItem(key);
+            
+            if (!cached) return null;
+            
+            try {
+                const data = JSON.parse(cached);
+                const now = Date.now();
+                
+                if (data.timestamp && (now - data.timestamp) < CONFIG.CACHE_DURATION) {
+                    return data;
+                }
+                
+                localStorage.removeItem(key);
+                return null;
+            } catch (e) {
+                localStorage.removeItem(key);
+                return null;
+            }
+        }
+        
+        function setCachedData(source, seriesId, data) {
+            const key = getCacheKey(source, seriesId);
+            const cacheData = {
+                ...data,
+                timestamp: Date.now(),
+                cached: true,
+                source: source
+            };
+            
+            try {
+                localStorage.setItem(key, JSON.stringify(cacheData));
+                updateCacheCount();
+            } catch (e) {
+                console.error('Cache storage error:', e);
+                clearOldestCache();
+            }
+        }
+        
+        function clearOldestCache() {
+            const keys = Object.keys(localStorage);
+            let oldestKey = null;
+            let oldestTime = Date.now();
+            
+            keys.forEach(key => {
+                if (key.startsWith('unified_')) {
+                    try {
+                        const data = JSON.parse(localStorage.getItem(key));
+                        if (data.timestamp < oldestTime) {
+                            oldestTime = data.timestamp;
+                            oldestKey = key;
+                        }
+                    } catch (e) {}
+                }
+            });
+            
+            if (oldestKey) {
+                localStorage.removeItem(oldestKey);
+            }
+        }
+        
+        function clearAllCache() {
+            if (!confirm('Clear all cached data? This will require reloading from APIs.')) {
+                return;
+            }
+            
+            const keys = Object.keys(localStorage);
+            keys.forEach(key => {
+                if (key.startsWith('unified_')) {
+                    localStorage.removeItem(key);
+                }
+            });
+            
+            state.allData.clear();
+            updateCacheCount();
+            showStatus('Cache cleared', 'success');
+            displayData();
+        }
+        
+        function updateCacheCount() {
+            const keys = Object.keys(localStorage);
+            const cacheCount = keys.filter(key => key.startsWith('unified_')).length;
+            document.getElementById('cachedIndicators').textContent = cacheCount;
+        }
+        
+        // ============================================
+        // Rate Limiting
+        // ============================================
+        function updateRateLimit() {
+            const now = Date.now();
+            state.requestsInWindow = state.requestsInWindow.filter(time => now - time < CONFIG.RATE_WINDOW);
+            state.availableRequests = CONFIG.RATE_LIMIT - state.requestsInWindow.length;
+            
+            const percentage = (state.availableRequests / CONFIG.RATE_LIMIT) * 100;
+            document.getElementById('rateLimitBar').style.width = `${percentage}%`;
+            document.getElementById('rateLimitText').textContent = `${state.availableRequests}/${CONFIG.RATE_LIMIT}`;
+        }
+        
+        async function makeRateLimitedRequest(source, seriesId) {
+            return new Promise((resolve, reject) => {
+                state.requestQueue.push({ source, seriesId, resolve, reject });
+                
+                if (!state.isProcessingQueue) {
+                    processQueue();
+                }
+            });
+        }
+        
+        async function processQueue() {
+            if (state.isProcessingQueue) return;
+            state.isProcessingQueue = true;
+            
+            document.getElementById('queueStatus').classList.add('active');
+            
+            while (state.requestQueue.length > 0) {
+                updateRateLimit();
+                
+                if (state.availableRequests <= 0) {
+                    document.getElementById('processingInfo').textContent = 'Rate limit wait...';
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    continue;
+                }
+                
+                const request = state.requestQueue.shift();
+                document.getElementById('queueInfo').textContent = `${state.requestQueue.length} waiting`;
+                document.getElementById('processingInfo').textContent = `Loading ${request.seriesId}`;
+                
+                try {
+                    // Check cache first
+                    const cachedData = getCachedData(request.source, request.seriesId);
+                    if (cachedData) {
+                        request.resolve(cachedData);
+                        continue;
+                    }
+                    
+                    // Make API request - all new series go through Fed API
+                    const url = `${CONFIG.FED_API}/?series=${request.seriesId}`;
+                    
+                    const response = await fetch(url);
+                    state.requestsInWindow.push(Date.now());
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        setCachedData(request.source, request.seriesId, data);
+                        request.resolve(data);
+                    } else {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                } catch (error) {
+                    request.reject(error);
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            state.isProcessingQueue = false;
+            document.getElementById('processingInfo').textContent = 'Idle';
+            document.getElementById('queueStatus').classList.remove('active');
+        }
+        
+        // ============================================
+        // Data Processing
+        // ============================================
+        function processData(rawData, source, seriesId) {
+            // Parse Fed API response
+            let value = null;
+            let date = null;
+            let dataPoints = [];
+            let name = state.fedMetadata[seriesId] || state.additionalMetadata[seriesId] || seriesId;
+            
+            // Handle Fed API response structure
+            if (rawData.series_id === seriesId && rawData.data) {
+                dataPoints = rawData.data.filter(d => 
+                    d.value !== null && 
+                    d.value !== undefined && 
+                    d.value !== '.' && 
+                    d.value !== ''
+                );
+                
+                if (dataPoints.length > 0) {
+                    const latest = dataPoints[dataPoints.length - 1];
+                    value = parseFloat(latest.value);
+                    date = latest.date;
+                }
+                
+                if (rawData.metadata && rawData.metadata.title) {
+                    name = rawData.metadata.title;
+                } else if (rawData.name) {
+                    name = rawData.name;
+                }
+            } else if (rawData.value !== undefined && rawData.value !== null) {
+                value = parseFloat(rawData.value);
+                date = rawData.date || rawData.last_updated;
+            }
+            
+            // Calculate percentage changes
+            const changes = {
+                week: null,
+                month: null,
+                quarter: null,
+                year: null
+            };
+            
+            if (dataPoints.length > 1 && value !== null) {
+                // Week change
+                if (dataPoints.length > 1) {
+                    const weekIndex = Math.max(0, dataPoints.length - 2);
+                    const weekAgo = dataPoints[weekIndex];
+                    if (weekAgo && weekAgo.value) {
+                        changes.week = ((value - parseFloat(weekAgo.value)) / parseFloat(weekAgo.value)) * 100;
+                    }
+                }
+                
+                // Month change
+                if (dataPoints.length > 4) {
+                    const monthIndex = Math.max(0, dataPoints.length - 5);
+                    const monthAgo = dataPoints[monthIndex];
+                    if (monthAgo && monthAgo.value) {
+                        changes.month = ((value - parseFloat(monthAgo.value)) / parseFloat(monthAgo.value)) * 100;
+                    }
+                }
+                
+                // Quarter change
+                if (dataPoints.length > 13) {
+                    const quarterIndex = Math.max(0, dataPoints.length - 14);
+                    const quarterAgo = dataPoints[quarterIndex];
+                    if (quarterAgo && quarterAgo.value) {
+                        changes.quarter = ((value - parseFloat(quarterAgo.value)) / parseFloat(quarterAgo.value)) * 100;
+                    }
+                }
+                
+                // Year change
+                if (dataPoints.length > 52) {
+                    const yearIndex = Math.max(0, dataPoints.length - 53);
+                    const yearAgo = dataPoints[yearIndex];
+                    if (yearAgo && yearAgo.value) {
+                        changes.year = ((value - parseFloat(yearAgo.value)) / parseFloat(yearAgo.value)) * 100;
+                    }
+                }
+            }
+            
+            return {
+                id: seriesId,
+                name: state.customNames[seriesId] || name,
+                value: value,
+                date: date,
+                changes: changes,
+                source: source,
+                cached: rawData.cached || false,
+                dataPoints: dataPoints
+            };
+        }
+        
+        // ============================================
+        // Initialize and Load Metadata
+        // ============================================
+        async function initialize() {
+            console.log('🚀 Initializing Enhanced Dashboard v3.0...');
+            
+            initTheme();
+            updateRateLimit();
+            updateCacheCount();
+            updateAutoUpdateDisplay();
+            updateLastUpdateTime();
+            
+            // Initialize additional metadata
+            Object.entries(ADDITIONAL_SERIES).forEach(([category, series]) => {
+                series.forEach(id => {
+                    state.additionalMetadata[id] = id;
+                });
+            });
+            
+            // Load metadata
+            await loadMetadata();
+            
+            // Set up auto-update
+            scheduleNextAutoUpdate();
+            setInterval(updateAutoUpdateDisplay, 60000);
+            setInterval(updateRateLimit, 1000);
+            setInterval(checkFavoriteAlerts, 5000); // Check alerts every 5 seconds
+            
+            // Load cached data
+            loadCachedData();
+            
+            // Update UI
+            updateCategoryTabs();
+            displayData();
+        }
+        
+        async function loadMetadata() {
+            try {
+                // Load Fed metadata
+                const fedResponse = await fetch(`${CONFIG.FED_API}/?series=all`);
+                if (fedResponse.ok) {
+                    const fedData = await fedResponse.json();
+                    state.fedMetadata = fedData.series || {};
+                }
+                
+                // Load ICE metadata
+                const iceResponse = await fetch(`${CONFIG.ICE_API}/ice_bofa?series=all`);
+                if (iceResponse.ok) {
+                    const iceData = await iceResponse.json();
+                    state.iceMetadata = iceData.series || {};
+                }
+                
+                const totalCount = Object.keys(state.fedMetadata).length + 
+                                 Object.keys(state.iceMetadata).length + 
+                                 Object.keys(state.additionalMetadata).length;
+                                 
+                document.getElementById('totalIndicators').textContent = totalCount;
+                
+            } catch (error) {
+                console.error('Error loading metadata:', error);
+            }
+        }
+        
+        function loadCachedData() {
+            const keys = Object.keys(localStorage);
+            let loadedCount = 0;
+            
+            keys.forEach(key => {
+                if (key.startsWith('unified_')) {
+                    try {
+                        const data = JSON.parse(localStorage.getItem(key));
+                        if (data && data.timestamp) {
+                            const age = Date.now() - data.timestamp;
+                            if (age < CONFIG.CACHE_DURATION) {
+                                const [, source, ...idParts] = key.split('_');
+                                const seriesId = idParts.join('_');
+                                state.allData.set(`${source}_${seriesId}`, data);
+                                loadedCount++;
+                            }
+                        }
+                    } catch (e) {}
+                }
+            });
+            
+            document.getElementById('loadedIndicators').textContent = loadedCount;
+            
+            if (loadedCount > 0) {
+                showStatus(`Loaded ${loadedCount} indicators from cache`, 'success');
+            }
+        }
+        
+        // ============================================
+        // UI Functions
+        // ============================================
+        function switchMainTab(tab) {
+            state.currentMainTab = tab;
+            state.currentCategory = 'all';
+            
+            document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            updateCategoryTabs();
+            displayData();
+        }
+        
+        function updateCategoryTabs() {
+            const container = document.getElementById('categoryTabs');
+            container.innerHTML = '';
+            
+            // No category tabs for specialized views
+            if (['business', 'production', 'securities', 'trucks', 'repo', 'funding', 'missing', 'favorites'].includes(state.currentMainTab)) {
+                return;
+            }
+            
+            // Add category tabs for Fed and ICE
+            if (state.currentMainTab === 'fed') {
+                const categories = ['all', 'federal_reserve', 'money_supply', 'treasury', 'corporate', 'volatility', 'currencies', 'commodities', 'stress', 'liquidity', 'economic'];
+                categories.forEach(cat => {
+                    const tab = document.createElement('button');
+                    tab.className = 'category-tab';
+                    tab.textContent = cat.replace('_', ' ').toUpperCase();
+                    tab.onclick = () => selectCategory(cat);
+                    if (cat === state.currentCategory) {
+                        tab.classList.add('active');
+                    }
+                    container.appendChild(tab);
+                });
+            }
+        }
+        
+        function selectCategory(category) {
+            state.currentCategory = category;
+            document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            displayData();
+        }
+        
+        function getFilteredSeries() {
+            let series = [];
+            
+            switch(state.currentMainTab) {
+                case 'business':
+                    series = ADDITIONAL_SERIES.business_surveys.map(id => ({
+                        id: id,
+                        name: state.additionalMetadata[id] || id,
+                        source: 'fed'
+                    }));
+                    break;
+                    
+                case 'production':
+                    series = ADDITIONAL_SERIES.production.map(id => ({
+                        id: id,
+                        name: state.additionalMetadata[id] || id,
+                        source: 'fed'
+                    }));
+                    break;
+                    
+                case 'securities':
+                    series = ADDITIONAL_SERIES.securities.map(id => ({
+                        id: id,
+                        name: state.additionalMetadata[id] || id,
+                        source: 'fed'
+                    }));
+                    break;
+                    
+                case 'trucks':
+                    series = ADDITIONAL_SERIES.trucks.map(id => ({
+                        id: id,
+                        name: state.additionalMetadata[id] || id,
+                        source: 'fed'
+                    }));
+                    break;
+                    
+                case 'repo':
+                    series = ADDITIONAL_SERIES.repo.map(id => ({
+                        id: id,
+                        name: state.additionalMetadata[id] || id,
+                        source: 'fed'
+                    }));
+                    break;
+                    
+                case 'funding':
+                    series = ADDITIONAL_SERIES.funding_rates.map(id => ({
+                        id: id,
+                        name: state.additionalMetadata[id] || id,
+                        source: 'fed'
+                    }));
+                    break;
+                    
+                case 'missing':
+                    // Get all series IDs
+                    const allSeriesIds = [
+                        ...Object.keys(state.fedMetadata),
+                        ...Object.keys(state.iceMetadata),
+                        ...Object.keys(state.additionalMetadata)
+                    ];
+                    
+                    // Filter to only missing ones
+                    series = allSeriesIds
+                        .filter(id => !state.allData.has(`fed_${id}`) && !state.allData.has(`ice_${id}`))
+                        .map(id => ({
+                            id: id,
+                            name: state.fedMetadata[id] || state.iceMetadata[id] || state.additionalMetadata[id] || id,
+                            source: state.iceMetadata[id] ? 'ice' : 'fed'
+                        }));
+                    break;
+                    
+                case 'favorites':
+                    series = state.favorites.map(id => {
+                        const source = state.iceMetadata[id] ? 'ice' : 'fed';
+                        return {
+                            id: id,
+                            name: state.fedMetadata[id] || state.iceMetadata[id] || state.additionalMetadata[id] || id,
+                            source: source
+                        };
+                    });
+                    break;
+                    
+                case 'fed':
+                    series = Object.entries(state.fedMetadata).map(([id, name]) => ({
+                        id: id,
+                        name: name,
+                        source: 'fed'
+                    }));
+                    break;
+                    
+                case 'ice':
+                    series = Object.entries(state.iceMetadata).map(([id, name]) => ({
+                        id: id,
+                        name: name,
+                        source: 'ice'
+                    }));
+                    break;
+            }
+            
+            // Apply search filter
+            if (state.searchTerm) {
+                const term = state.searchTerm.toLowerCase();
+                series = series.filter(s => 
+                    s.id.toLowerCase().includes(term) || 
+                    s.name.toLowerCase().includes(term)
+                );
+            }
+            
+            return series;
+        }
+        
+        function displayData() {
+            const grid = document.getElementById('dataGrid');
+            const series = getFilteredSeries();
+            
+            if (series.length === 0) {
+                grid.innerHTML = '<div class="loading">No data to display</div>';
+                return;
+            }
+            
+            // Get data for series
+            const dataToDisplay = series.map(s => {
+                const key = `${s.source}_${s.id}`;
+                const data = state.allData.get(key);
+                
+                if (data) {
+                    return data;
+                } else {
+                    return {
+                        id: s.id,
+                        name: s.name,
+                        source: s.source,
+                        value: null,
+                        date: null,
+                        changes: {}
+                    };
+                }
+            });
+            
+            // Sort data
+            const sortedData = sortData(dataToDisplay);
+            
+            // Create cards
+            const cards = sortedData.map(data => {
+                if (data.value === null) {
+                    return createEmptyCard(data);
+                }
+                return createDataCard(data);
+            }).join('');
+            
+            grid.innerHTML = cards;
+        }
+        
+        function createEmptyCard(series) {
+            const isFavorite = state.favorites.includes(series.id);
+            const hasNote = state.notes[series.id] ? true : false;
+            const customName = state.customNames[series.id] || series.name || series.id;
+            
+            return `
+                <div class="data-card">
+                    <div class="action-buttons">
+                        <span class="action-btn note-btn ${hasNote ? 'has-note' : ''}" 
+                              onclick="openNotesModal('${series.id}')">📝</span>
+                        <span class="action-btn edit-btn" 
+                              onclick="editName('${series.id}')">✏️</span>
+                        <span class="action-btn favorite-star ${isFavorite ? 'active' : ''}" 
+                              onclick="toggleFavorite('${series.id}')">★</span>
+                    </div>
+                    <div class="data-card-header">
+                        <div class="data-title">${series.id}</div>
+                        <div class="data-source">${series.source.toUpperCase()}</div>
+                    </div>
+                    <div class="custom-name" id="name-${series.id}" onclick="editName('${series.id}')">${customName}</div>
+                    <input class="custom-name-input" id="input-${series.id}" 
+                           value="${customName}" 
+                           onblur="saveName('${series.id}')"
+                           onkeypress="if(event.key==='Enter') saveName('${series.id}')">
+                    <div class="data-value neutral">--</div>
+                    <div class="changes-grid">
+                        <div class="change-item">
+                            <span class="change-label">Week:</span>
+                            <span class="neutral">--</span>
+                        </div>
+                        <div class="change-item">
+                            <span class="change-label">Month:</span>
+                            <span class="neutral">--</span>
+                        </div>
+                        <div class="change-item">
+                            <span class="change-label">Quarter:</span>
+                            <span class="neutral">--</span>
+                        </div>
+                        <div class="change-item">
+                            <span class="change-label">Year:</span>
+                            <span class="neutral">--</span>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                        Not loaded
+                    </div>
+                </div>
+            `;
+        }
+        
+        function createDataCard(data) {
+            const isFavorite = state.favorites.includes(data.id);
+            const hasNote = state.notes[data.id] ? true : false;
+            const value = formatValue(data.value, data.id);
+            const customName = state.customNames[data.id] || data.name || data.id;
+            
+            // Check for alert conditions if favorite
+            let alertClass = '';
+            if (isFavorite) {
+                const changes = [data.changes.week, data.changes.month, data.changes.quarter, data.changes.year];
+                if (changes.some(c => c && c <= -10)) {
+                    alertClass = 'alert-red';
+                } else if (changes.some(c => c && c >= 10)) {
+                    alertClass = 'alert-green';
+                }
+            }
+            
+            // Format percentage changes
+            const formatChange = (val) => {
+                if (val === null || val === undefined) return '--';
+                const sign = val >= 0 ? '+' : '';
+                return `${sign}${val.toFixed(2)}%`;
+            };
+            
+            return `
+                <div class="data-card ${alertClass}">
+                    <div class="action-buttons">
+                        <span class="action-btn note-btn ${hasNote ? 'has-note' : ''}" 
+                              onclick="openNotesModal('${data.id}')">📝</span>
+                        <span class="action-btn edit-btn" 
+                              onclick="editName('${data.id}')">✏️</span>
+                        <span class="action-btn favorite-star ${isFavorite ? 'active' : ''}" 
+                              onclick="toggleFavorite('${data.id}')">★</span>
+                    </div>
+                    <div class="data-card-header">
+                        <div class="data-title">${data.id}</div>
+                        <div class="data-source">${data.source.toUpperCase()}${data.cached ? ' 📦' : ''}</div>
+                    </div>
+                    <div class="custom-name" id="name-${data.id}" onclick="editName('${data.id}')">${customName}</div>
+                    <input class="custom-name-input" id="input-${data.id}" 
+                           value="${customName}" 
+                           onblur="saveName('${data.id}')"
+                           onkeypress="if(event.key==='Enter') saveName('${data.id}')">
+                    <div class="data-value ${data.changes.week >= 0 ? 'positive' : data.changes.week < 0 ? 'negative' : 'neutral'}">${value}</div>
+                    <div class="changes-grid">
+                        <div class="change-item">
+                            <span class="change-label">Week:</span>
+                            <span class="${data.changes.week >= 0 ? 'positive' : data.changes.week < 0 ? 'negative' : 'neutral'}">
+                                ${formatChange(data.changes.week)}
+                            </span>
+                        </div>
+                        <div class="change-item">
+                            <span class="change-label">Month:</span>
+                            <span class="${data.changes.month >= 0 ? 'positive' : data.changes.month < 0 ? 'negative' : 'neutral'}">
+                                ${formatChange(data.changes.month)}
+                            </span>
+                        </div>
+                        <div class="change-item">
+                            <span class="change-label">Quarter:</span>
+                            <span class="${data.changes.quarter >= 0 ? 'positive' : data.changes.quarter < 0 ? 'negative' : 'neutral'}">
+                                ${formatChange(data.changes.quarter)}
+                            </span>
+                        </div>
+                        <div class="change-item">
+                            <span class="change-label">Year:</span>
+                            <span class="${data.changes.year >= 0 ? 'positive' : data.changes.year < 0 ? 'negative' : 'neutral'}">
+                                ${formatChange(data.changes.year)}
+                            </span>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                        ${data.date || '--'}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function formatValue(value, seriesId) {
+            if (value === null || value === undefined) return '--';
+            
+            const num = parseFloat(value);
+            
+            if (seriesId.includes('RATE') || seriesId.includes('DGS') || 
+                seriesId.includes('EY') || seriesId.includes('YIELD')) {
+                return `${num.toFixed(2)}%`;
+            }
+            
+            if (seriesId.includes('OAS') || seriesId.includes('SPREAD')) {
+                return `${num.toFixed(2)} bps`;
+            }
+            
+            if (Math.abs(num) >= 1e12) return (num / 1e12).toFixed(2) + 'T';
+            if (Math.abs(num) >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+            if (Math.abs(num) >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+            
+            return num.toFixed(2);
+        }
+        
+        // ============================================
+        // Alert System for Favorites
+        // ============================================
+        function checkFavoriteAlerts() {
+            state.favorites.forEach(seriesId => {
+                const fedData = state.allData.get(`fed_${seriesId}`);
+                const iceData = state.allData.get(`ice_${seriesId}`);
+                const data = fedData || iceData;
+                
+                if (data && data.changes) {
+                    const card = document.querySelector(`[data-series-id="${seriesId}"]`);
+                    if (card) {
+                        card.classList.remove('alert-red', 'alert-green');
+                        
+                        const changes = [data.changes.week, data.changes.month, data.changes.quarter, data.changes.year];
+                        if (changes.some(c => c && c <= -10)) {
+                            card.classList.add('alert-red');
+                        } else if (changes.some(c => c && c >= 10)) {
+                            card.classList.add('alert-green');
+                        }
+                    }
+                }
+            });
+        }
+        
+        // ============================================
+        // Data Loading Functions
+        // ============================================
+        async function loadCurrentTabData() {
+            const series = getFilteredSeries();
+            if (series.length === 0) {
+                showStatus('No series to load for this tab', 'info');
+                return;
+            }
+            await loadBatch(series.map(s => ({ id: s.id, source: s.source })));
+        }
+        
+        async function loadAllData() {
+            if (!confirm('This will load all indicators in batches. Continue?')) {
+                return;
+            }
+            
+            const allSeries = [
+                ...Object.keys(state.fedMetadata).map(id => ({ id, source: 'fed' })),
+                ...Object.keys(state.iceMetadata).map(id => ({ id, source: 'ice' })),
+                ...Object.keys(state.additionalMetadata).map(id => ({ id, source: 'fed' }))
+            ];
+            
+            const batches = [];
+            for (let i = 0; i < allSeries.length; i += CONFIG.BATCH_SIZE) {
+                batches.push(allSeries.slice(i, i + CONFIG.BATCH_SIZE));
+            }
+            
+            showStatus(`Loading ${allSeries.length} indicators in ${batches.length} batches...`, 'info');
+            
+            for (let i = 0; i < batches.length; i++) {
+                document.getElementById('batchInfo').textContent = `${i + 1}/${batches.length}`;
+                await loadBatch(batches[i]);
+            }
+        }
+        
+        async function loadMissingOnly() {
+            const allSeriesIds = [
+                ...Object.keys(state.fedMetadata),
+                ...Object.keys(state.iceMetadata),
+                ...Object.keys(state.additionalMetadata)
+            ];
+            
+            const missing = allSeriesIds.filter(id => 
+                !state.allData.has(`fed_${id}`) && !state.allData.has(`ice_${id}`)
+            );
+            
+            if (missing.length === 0) {
+                showStatus('No missing indicators', 'info');
+                return;
+            }
+            
+            const missingWithSource = missing.map(id => ({
+                id: id,
+                source: state.iceMetadata[id] ? 'ice' : 'fed'
+            }));
+            
+            showStatus(`Loading ${missing.length} missing indicators...`, 'info');
+            await loadBatch(missingWithSource);
+        }
+        
+        async function loadBatch(seriesData) {
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            progressContainer.style.display = 'block';
+            
+            let loaded = 0;
+            let failed = 0;
+            
+            for (const { id: seriesId, source } of seriesData) {
+                try {
+                    const key = `${source}_${seriesId}`;
+                    
+                    // Skip if already loaded and fresh
+                    const existing = state.allData.get(key);
+                    if (existing && !existing.cached) {
+                        loaded++;
+                        continue;
+                    }
+                    
+                    let data;
+                    if (source === 'ice') {
+                        // ICE data needs special handling
+                        const url = `${CONFIG.ICE_API}/ice_bofa?series=${seriesId}`;
+                        const response = await fetch(url);
+                        if (response.ok) {
+                            const rawData = await response.json();
+                            data = {
+                                id: seriesId,
+                                name: state.customNames[seriesId] || rawData.name || state.iceMetadata[seriesId] || seriesId,
+                                value: rawData.latest?.value,
+                                date: rawData.latest?.date,
+                                changes: {
+                                    week: rawData.percentage_changes?.['WoW%'],
+                                    month: rawData.percentage_changes?.['MoM%'],
+                                    quarter: rawData.percentage_changes?.['QoQ%'],
+                                    year: rawData.percentage_changes?.['YoY%']
+                                },
+                                source: 'ice',
+                                cached: false
+                            };
+                        }
+                    } else {
+                        // Fed data
+                        const rawData = await makeRateLimitedRequest(source, seriesId);
+                        data = processData(rawData, source, seriesId);
+                    }
+                    
+                    if (data) {
+                        state.allData.set(key, data);
+                        loaded++;
+                    }
+                    
+                    // Update progress
+                    const progress = Math.round((loaded / seriesData.length) * 100);
+                    progressBar.style.width = `${progress}%`;
+                    progressBar.textContent = `${progress}%`;
+                    
+                    // Update display periodically
+                    if (loaded % 10 === 0) {
+                        displayData();
+                        document.getElementById('loadedIndicators').textContent = state.allData.size;
+                    }
+                    
+                } catch (error) {
+                    console.error(`Failed ${seriesId}:`, error);
+                    failed++;
+                }
+            }
+            
+            progressContainer.style.display = 'none';
+            displayData();
+            updateLastUpdateTime();
+            
+            const message = failed > 0 ? 
+                `Loaded ${loaded} indicators, ${failed} failed` : 
+                `Successfully loaded ${loaded} indicators`;
+            showStatus(message, failed > 0 ? 'info' : 'success');
+        }
+        
+        async function refreshCurrentTab() {
+            const series = getFilteredSeries();
+            
+            // Clear cache for current tab
+            series.forEach(s => {
+                const key = getCacheKey(s.source, s.id);
+                localStorage.removeItem(key);
+                state.allData.delete(`${s.source}_${s.id}`);
+            });
+            
+            await loadBatch(series.map(s => ({ id: s.id, source: s.source })));
+        }
+        
+        // ============================================
+        // Name Editing and Notes
+        // ============================================
+        function editName(seriesId) {
+            document.getElementById(`name-${seriesId}`).style.display = 'none';
+            document.getElementById(`input-${seriesId}`).style.display = 'block';
+            document.getElementById(`input-${seriesId}`).focus();
+        }
+        
+        function saveName(seriesId) {
+            const input = document.getElementById(`input-${seriesId}`);
+            const nameDiv = document.getElementById(`name-${seriesId}`);
+            
+            if (input && nameDiv) {
+                const newName = input.value.trim();
+                if (newName) {
+                    state.customNames[seriesId] = newName;
+                    localStorage.setItem('unifiedCustomNames', JSON.stringify(state.customNames));
+                    nameDiv.textContent = newName;
+                    
+                    // Update the data if it exists
+                    ['fed', 'ice'].forEach(source => {
+                        const key = `${source}_${seriesId}`;
+                        if (state.allData.has(key)) {
+                            const data = state.allData.get(key);
+                            data.name = newName;
+                        }
+                    });
+                }
+                
+                input.style.display = 'none';
+                nameDiv.style.display = 'block';
+            }
+        }
+        
+        function openNotesModal(seriesId) {
+            state.currentNoteId = seriesId;
+            const customName = state.customNames[seriesId] || 
+                               state.fedMetadata[seriesId] || 
+                               state.iceMetadata[seriesId] || 
+                               state.additionalMetadata[seriesId] ||
+                               seriesId;
+            
+            document.getElementById('modalTitle').textContent = `Notes for ${customName} (${seriesId})`;
+            document.getElementById('notesTextarea').value = state.notes[seriesId] || '';
+            document.getElementById('notesModal').classList.add('active');
+        }
+        
+        function closeNotesModal() {
+            document.getElementById('notesModal').classList.remove('active');
+            state.currentNoteId = null;
+        }
+        
+        function saveNote() {
+            if (!state.currentNoteId) return;
+            
+            const noteText = document.getElementById('notesTextarea').value.trim();
+            if (noteText) {
+                state.notes[state.currentNoteId] = noteText;
+            } else {
+                delete state.notes[state.currentNoteId];
+            }
+            
+            localStorage.setItem('unifiedNotes', JSON.stringify(state.notes));
+            closeNotesModal();
+            displayData();
+            showStatus('Note saved successfully', 'success');
+        }
+        
+        function deleteNote() {
+            if (!state.currentNoteId) return;
+            
+            delete state.notes[state.currentNoteId];
+            localStorage.setItem('unifiedNotes', JSON.stringify(state.notes));
+            
+            closeNotesModal();
+            displayData();
+            showStatus('Note deleted', 'info');
+        }
+        
+        function toggleFavorite(seriesId) {
+            const index = state.favorites.indexOf(seriesId);
+            if (index > -1) {
+                state.favorites.splice(index, 1);
+            } else {
+                state.favorites.push(seriesId);
+            }
+            
+            localStorage.setItem('unifiedFavorites', JSON.stringify(state.favorites));
+            displayData();
+        }
+        
+        function searchIndicators() {
+            state.searchTerm = document.getElementById('searchInput').value;
+            displayData();
+        }
+        
+        // ============================================
+        // Auto Update Functions
+        // ============================================
+        function calculateNextUpdate() {
+            const now = new Date();
+            const currentDay = now.getDay();
+            const currentHour = now.getHours();
+            
+            let daysUntilNext = CONFIG.AUTO_UPDATE_DAYS
+                .map(day => {
+                    let diff = day - currentDay;
+                    if (diff < 0 || (diff === 0 && currentHour >= CONFIG.AUTO_UPDATE_HOUR)) {
+                        diff += 7;
+                    }
+                    return diff;
+                })
+                .sort((a, b) => a - b)[0];
+            
+            const nextUpdate = new Date(now);
+            nextUpdate.setDate(now.getDate() + daysUntilNext);
+            nextUpdate.setHours(CONFIG.AUTO_UPDATE_HOUR, 0, 0, 0);
+            
+            return nextUpdate;
+        }
+        
+        function updateAutoUpdateDisplay() {
+            const now = new Date();
+            const currentDay = now.getDay();
+            
+            document.getElementById('monday').classList.toggle('active', currentDay === 1);
+            document.getElementById('wednesday').classList.toggle('active', currentDay === 3);
+            document.getElementById('friday').classList.toggle('active', currentDay === 5);
+            
+            const nextUpdate = calculateNextUpdate();
+            const timeUntil = nextUpdate - now;
+            const hoursUntil = Math.floor(timeUntil / (1000 * 60 * 60));
+            const daysUntil = Math.floor(hoursUntil / 24);
+            
+            let timeStr = '';
+            if (daysUntil > 0) {
+                timeStr = `${daysUntil}d ${hoursUntil % 24}h`;
+            } else {
+                timeStr = `${hoursUntil}h ${Math.floor((timeUntil % (1000 * 60 * 60)) / (1000 * 60))}m`;
+            }
+            
+            document.getElementById('nextUpdate').textContent = 
+                `${nextUpdate.toLocaleDateString()} ${nextUpdate.toLocaleTimeString()} (in ${timeStr})`;
+        }
+        
+        function toggleAutoUpdate() {
+            state.autoUpdateEnabled = !state.autoUpdateEnabled;
+            localStorage.setItem('autoUpdateEnabled', JSON.stringify(state.autoUpdateEnabled));
+            
+            const btn = document.getElementById('autoUpdateBtn');
+            btn.textContent = state.autoUpdateEnabled ? '🔄 Auto-Update: ON' : '🔄 Auto-Update: OFF';
+            
+            if (state.autoUpdateEnabled) {
+                showStatus('Auto-update enabled', 'success');
+                scheduleNextAutoUpdate();
+            } else {
+                showStatus('Auto-update disabled', 'info');
+            }
+        }
+        
+        function scheduleNextAutoUpdate() {
+            if (!state.autoUpdateEnabled) return;
+            
+            const now = new Date();
+            const nextUpdate = calculateNextUpdate();
+            const timeUntil = nextUpdate - now;
+            
+            setTimeout(() => {
+                performAutoUpdate();
+                scheduleNextAutoUpdate();
+            }, timeUntil);
+        }
+        
+        async function performAutoUpdate() {
+            if (!state.autoUpdateEnabled) return;
+            
+            showStatus('Starting auto-update...', 'info');
+            await loadMissingOnly();
+            showStatus('Auto-update complete', 'success');
+            localStorage.setItem('lastAutoUpdate', new Date().toISOString());
+        }
+        
+        // ============================================
+        // Utility Functions
+        // ============================================
+        function exportData() {
+            const data = Array.from(state.allData.values());
+            
+            if (data.length === 0) {
+                showStatus('No data to export', 'error');
+                return;
+            }
+            
+            let csv = 'Series ID,Custom Name,Value,Week %,Month %,Quarter %,Year %,Date,Source,Notes\n';
+            
+            data.forEach(d => {
+                const customName = state.customNames[d.id] || d.name || '';
+                const notes = state.notes[d.id] || '';
+                csv += `"${d.id}","${customName}","${d.value || ''}","${d.changes.week || ''}","${d.changes.month || ''}","${d.changes.quarter || ''}","${d.changes.year || ''}","${d.date || ''}","${d.source}","${notes}"\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `unified_data_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            
+            showStatus('Data exported to CSV', 'success');
+        }
+        
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.className = `status-message ${type}`;
+            statusDiv.textContent = message;
+            
+            setTimeout(() => {
+                statusDiv.className = 'status-message';
+                statusDiv.textContent = '';
+            }, 5000);
+        }
+        
+        function updateLastUpdateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('lastUpdate').textContent = timeStr;
+        }
+        
+        // Modal event listeners
+        document.addEventListener('click', function(event) {
+            const modal = document.getElementById('notesModal');
+            if (event.target === modal) {
+                closeNotesModal();
+            }
+        });
+        
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeNotesModal();
+            }
+        });
+        
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', initialize);
+    </script>
+</body>
+</html>
