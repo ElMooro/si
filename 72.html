@@ -573,24 +573,22 @@
         async function fetchSeriesData(seriesId) {
             debugLog(`Starting fetch for ${seriesId}...`, 'info');
             
-            // Try 1: Direct FRED API (most reliable)
-            let result = await fetchFromFredDirect(seriesId);
+            // Try 1: Lambda FRED API (since FRED Direct has CORS issues)
+            let result = await fetchFromLambdaFred(seriesId);
             
-            // Try 2: Lambda FRED API
-            if (!result) {
-                result = await fetchFromLambdaFred(seriesId);
-            }
-            
-            // Try 3: ICE BofA API
+            // Try 2: ICE BofA API
             if (!result) {
                 result = await fetchFromIceBofA(seriesId);
             }
             
+            // Try 3: Skip FRED Direct as it has CORS issues in browser
+            // Could be enabled if running from a server or proxy
+            
             // Process the data if we got any
-            if (result && result.observations) {
+            if (result && result.observations && result.observations.length > 0) {
                 const observations = result.observations;
                 
-                // Sort by date
+                // Sort by date (newest first)
                 observations.sort((a, b) => new Date(b.date) - new Date(a.date));
                 
                 // Calculate percentage changes
@@ -599,6 +597,8 @@
                 const monthAgo = findValueByDaysAgo(observations, 30);
                 const quarterAgo = findValueByDaysAgo(observations, 90);
                 const yearAgo = findValueByDaysAgo(observations, 365);
+                
+                debugLog(`✓ ${seriesId}: Current value: ${current}, Source: ${result.source}`, 'success');
                 
                 return {
                     seriesId,
