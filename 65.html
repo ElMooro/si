@@ -1720,6 +1720,39 @@
                 </div>
             `;
         }
+                    <div class="data-value ${valueColorClass}">${value}</div>
+                    <div class="changes-grid">
+                        <div class="change-item">
+                            <span class="change-label">Week:</span>
+                            <span class="${changes.week !== null ? (changes.week >= 0 ? 'positive' : 'negative') : 'neutral'}">
+                                ${formatChange(changes.week)}
+                            </span>
+                        </div>
+                        <div class="change-item">
+                            <span class="change-label">Month:</span>
+                            <span class="${changes.month !== null ? (changes.month >= 0 ? 'positive' : 'negative') : 'neutral'}">
+                                ${formatChange(changes.month)}
+                            </span>
+                        </div>
+                        <div class="change-item">
+                            <span class="change-label">Quarter:</span>
+                            <span class="${changes.quarter !== null ? (changes.quarter >= 0 ? 'positive' : 'negative') : 'neutral'}">
+                                ${formatChange(changes.quarter)}
+                            </span>
+                        </div>
+                        <div class="change-item">
+                            <span class="change-label">Year:</span>
+                            <span class="${changes.year !== null ? (changes.year >= 0 ? 'positive' : 'negative') : 'neutral'}">
+                                ${formatChange(changes.year)}
+                            </span>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                        ${data.date || '--'}
+                    </div>
+                </div>
+            `;
+        }
                     <div class="data-value ${data.changes.week >= 0 ? 'positive' : data.changes.week < 0 ? 'negative' : 'neutral'}">${value}</div>
                     <div class="changes-grid">
                         <div class="change-item">
