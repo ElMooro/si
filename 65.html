@@ -1638,13 +1638,21 @@
             const value = formatValue(data.value, data.id);
             const customName = state.customNames[data.id] || data.name || data.id;
             
+            // Ensure changes object has all properties
+            const changes = {
+                week: data.changes?.week ?? null,
+                month: data.changes?.month ?? null,
+                quarter: data.changes?.quarter ?? null,
+                year: data.changes?.year ?? null
+            };
+            
             // Check for alert conditions if favorite
             let alertClass = '';
             if (isFavorite) {
-                const changes = [data.changes.week, data.changes.month, data.changes.quarter, data.changes.year];
-                if (changes.some(c => c && c <= -10)) {
+                const changeValues = [changes.week, changes.month, changes.quarter, changes.year];
+                if (changeValues.some(c => c !== null && c <= -10)) {
                     alertClass = 'alert-red';
-                } else if (changes.some(c => c && c >= 10)) {
+                } else if (changeValues.some(c => c !== null && c >= 10)) {
                     alertClass = 'alert-green';
                 }
             }
@@ -1656,8 +1664,12 @@
                 return `${sign}${val.toFixed(2)}%`;
             };
             
+            // Determine color class for value based on week change
+            const valueColorClass = changes.week !== null ? 
+                (changes.week >= 0 ? 'positive' : 'negative') : 'neutral';
+            
             return `
-                <div class="data-card ${alertClass}">
+                <div class="data-card ${alertClass}" data-series-id="${data.id}">
                     <div class="action-buttons">
                         <span class="action-btn note-btn ${hasNote ? 'has-note' : ''}" 
                               onclick="openNotesModal('${data.id}')">📝</span>
@@ -1675,6 +1687,39 @@
                            value="${customName}" 
                            onblur="saveName('${data.id}')"
                            onkeypress="if(event.key==='Enter') saveName('${data.id}')">
+                    <div class="data-value ${valueColorClass}">${value}</div>
+                    <div class="changes-grid">
+                        <div class="change-item">
+                            <span class="change-label">Week:</span>
+                            <span class="${changes.week !== null ? (changes.week >= 0 ? 'positive' : 'negative') : 'neutral'}">
+                                ${formatChange(changes.week)}
+                            </span>
+                        </div>
+                        <div class="change-item">
+                            <span class="change-label">Month:</span>
+                            <span class="${changes.month !== null ? (changes.month >= 0 ? 'positive' : 'negative') : 'neutral'}">
+                                ${formatChange(changes.month)}
+                            </span>
+                        </div>
+                        <div class="change-item">
+                            <span class="change-label">Quarter:</span>
+                            <span class="${changes.quarter !== null ? (changes.quarter >= 0 ? 'positive' : 'negative') : 'neutral'}">
+                                ${formatChange(changes.quarter)}
+                            </span>
+                        </div>
+                        <div class="change-item">
+                            <span class="change-label">Year:</span>
+                            <span class="${changes.year !== null ? (changes.year >= 0 ? 'positive' : 'negative') : 'neutral'}">
+                                ${formatChange(changes.year)}
+                            </span>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                        ${data.date || '--'}
+                    </div>
+                </div>
+            `;
+        }
                     <div class="data-value ${data.changes.week >= 0 ? 'positive' : data.changes.week < 0 ? 'negative' : 'neutral'}">${value}</div>
                     <div class="changes-grid">
                         <div class="change-item">
