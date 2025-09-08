@@ -1260,26 +1260,21 @@
                         continue;
                     }
                     
-                    // Make API request
-                    let url;
-                    if (request.source === 'fed') {
-                        url = `${CONFIG.FED_API}/?series=${request.seriesId}`;
-                    } else {
-                        url = `${CONFIG.ICE_API}/ice_bofa?series=${request.seriesId}`;
-                    }
-                    
-                    console.log(`Fetching from API: ${url}`);
-                    const response = await fetch(url);
+                    // Use the enhanced request with fallback
+                    const data = await makeRequestWithFallback(request.source, request.seriesId);
                     state.requestsInWindow.push(Date.now());
                     
-                    if (response.ok) {
-                        const data = await response.json();
-                        console.log(`Raw API response for ${request.seriesId}:`, data);
-                        setCachedData(request.source, request.seriesId, data);
-                        request.resolve(data);
-                    } else {
-                        throw new Error(`HTTP ${response.status}`);
+                    console.log(`Raw API response for ${request.seriesId}:`, data);
+                    
+                    // Update source if it came from a fallback
+                    if (data.source && data.source !== request.source) {
+                        console.log(`Note: ${request.seriesId} was found in ${data.source} instead of ${request.source}`);
+                        request.source = data.source;
                     }
+                    
+                    setCachedData(request.source, request.seriesId, data);
+                    request.resolve(data);
+                    
                 } catch (error) {
                     console.error(`Error fetching ${request.seriesId}:`, error);
                     request.reject(error);
