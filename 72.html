@@ -247,8 +247,40 @@
             color: #4a9eff;
         }
 
+        .api-direct {
+            color: #00ff88;
+        }
+
         .api-ice {
             color: #ff9f4a;
+        }
+
+        .debug-panel {
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .debug-log {
+            margin: 2px 0;
+        }
+
+        .debug-success {
+            color: #00ff88;
+        }
+
+        .debug-error {
+            color: #ff4444;
+        }
+
+        .debug-info {
+            color: #4a9eff;
         }
 
         @media (max-width: 768px) {
@@ -281,7 +313,7 @@
             </div>
             <div class="status-item">
                 <span>Data Sources: </span>
-                <span id="apiStatus">FRED + ICE BofA APIs</span>
+                <span id="apiStatus">FRED Direct + Lambda APIs</span>
             </div>
         </div>
 
@@ -289,6 +321,7 @@
             <button class="btn" onclick="manualRefresh()">🔄 Refresh All Data</button>
             <button class="btn secondary" onclick="exportData()">📥 Export to CSV</button>
             <button class="btn success" onclick="saveNotes()">💾 Save Notes</button>
+            <button class="btn" onclick="toggleDebug()">🔧 Toggle Debug</button>
             
             <select id="sortBy" onchange="sortTable()">
                 <option value="">Sort By...</option>
@@ -331,12 +364,18 @@
                 </tbody>
             </table>
         </div>
+
+        <div id="debugPanel" class="debug-panel" style="display: none;">
+            <strong>Debug Log:</strong>
+            <div id="debugLog"></div>
+        </div>
     </div>
 
     <script>
         // Configuration
         const FRED_API_KEY = '2f057499936072679d8843d7fce99989';
-        const FRED_API_ENDPOINT = 'https://occdgwanqvbjd2qnnuyafvkvei0ptinb.lambda-url.us-east-1.on.aws/fred_api';
+        const FRED_DIRECT_URL = 'https://api.stlouisfed.org/fred/series/observations';
+        const FRED_LAMBDA_ENDPOINT = 'https://occdgwanqvbjd2qnnuyafvkvei0ptinb.lambda-url.us-east-1.on.aws/fred_api';
         const ICE_BOFA_ENDPOINT = 'https://lnd6erie7y4rw2u6r4dpv4enty0mhtua.lambda-url.us-east-1.on.aws/ice_bofa';
         
         // Series list from the document
@@ -354,6 +393,30 @@
         let customNames = {};
         let notes = {};
         let sortConfig = { by: '', order: 'desc' };
+        let debugMode = false;
+
+        // Debug logging
+        function debugLog(message, type = 'info') {
+            console.log(message);
+            if (debugMode) {
+                const debugDiv = document.getElementById('debugLog');
+                const logEntry = document.createElement('div');
+                logEntry.className = `debug-log debug-${type}`;
+                logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+                debugDiv.insertBefore(logEntry, debugDiv.firstChild);
+                
+                // Keep only last 50 entries
+                while (debugDiv.children.length > 50) {
+                    debugDiv.removeChild(debugDiv.lastChild);
+                }
+            }
+        }
+
+        // Toggle debug panel
+        function toggleDebug() {
+            debugMode = !debugMode;
+            document.getElementById('debugPanel').style.display = debugMode ? 'block' : 'none';
+        }
 
         // Load saved data from localStorage
         function loadSavedData() {
@@ -377,7 +440,7 @@
 
         // Initialize dashboard
         async function init() {
-            console.log('Initializing dashboard...');
+            debugLog('Initializing dashboard...', 'info');
             loadSavedData();
             updateStatus('loading', 'Initializing dashboard...');
             
@@ -388,109 +451,170 @@
             await fetchAllData();
         }
 
-        // Fetch data with fallback between APIs
-        async function fetchSeriesData(seriesId) {
-            console.log(`Fetching data for ${seriesId}...`);
-            
-            // Try FRED API first
+        // Fetch directly from FRED API
+        async function fetchFromFredDirect(seriesId) {
             try {
-                const fredUrl = `${FRED_API_ENDPOINT}?series_id=${seriesId}`;
-                console.log(`Trying FRED API: ${fredUrl}`);
+                // Calculate date range (last 400 days to ensure we get enough data)
+                const endDate = new Date();
+                const startDate = new Date();
+                startDate.setDate(startDate.getDate() - 400);
                 
-                const fredResponse = await fetch(fredUrl);
-                const fredData = await fredResponse.json();
+                const params = new URLSearchParams({
+                    series_id: seriesId,
+                    api_key: FRED_API_KEY,
+                    file_type: 'json',
+                    observation_start: startDate.toISOString().split('T')[0],
+                    observation_end: endDate.toISOString().split('T')[0],
+                    sort_order: 'desc'
+                });
                 
-                console.log(`FRED response for ${seriesId}:`, fredData);
+                const url = `${FRED_DIRECT_URL}?${params}`;
+                debugLog(`Fetching ${seriesId} from FRED Direct API`, 'info');
                 
-                if (fredData.observations && fredData.observations.length > 0) {
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.observations && data.observations.length > 0) {
                     // Filter out invalid values
-                    const validObservations = fredData.observations.filter(obs => 
+                    const validObservations = data.observations.filter(obs => 
                         obs.value && obs.value !== '.' && obs.value !== ''
                     );
                     
                     if (validObservations.length > 0) {
-                        // Sort observations by date
-                        validObservations.sort((a, b) => new Date(b.date) - new Date(a.date));
-                        
-                        // Calculate percentage changes
-                        const current = parseFloat(validObservations[0].value);
-                        const weekAgo = findValueByDaysAgo(validObservations, 7);
-                        const monthAgo = findValueByDaysAgo(validObservations, 30);
-                        const quarterAgo = findValueByDaysAgo(validObservations, 90);
-                        const yearAgo = findValueByDaysAgo(validObservations, 365);
-                        
+                        debugLog(`✓ ${seriesId}: Got ${validObservations.length} observations from FRED Direct`, 'success');
                         return {
-                            seriesId,
-                            current,
-                            weekChange: calculatePercentChange(current, weekAgo),
-                            monthChange: calculatePercentChange(current, monthAgo),
-                            quarterChange: calculatePercentChange(current, quarterAgo),
-                            yearChange: calculatePercentChange(current, yearAgo),
-                            lastUpdated: validObservations[0].date,
-                            source: 'FRED',
-                            rawData: validObservations
+                            observations: validObservations,
+                            source: 'FRED Direct'
                         };
                     }
                 }
+                
+                debugLog(`✗ ${seriesId}: No valid data from FRED Direct`, 'error');
+                return null;
             } catch (error) {
-                console.error(`FRED API error for ${seriesId}:`, error);
+                debugLog(`✗ ${seriesId}: FRED Direct error: ${error.message}`, 'error');
+                return null;
             }
-            
-            // Try ICE BofA API as fallback
+        }
+
+        // Fetch from Lambda FRED API
+        async function fetchFromLambdaFred(seriesId) {
             try {
-                const iceUrl = `${ICE_BOFA_ENDPOINT}?series=${seriesId}`;
-                console.log(`Trying ICE BofA API: ${iceUrl}`);
+                const url = `${FRED_LAMBDA_ENDPOINT}?series_id=${seriesId}`;
+                debugLog(`Fetching ${seriesId} from Lambda FRED API`, 'info');
                 
-                const iceResponse = await fetch(iceUrl);
-                const iceData = await iceResponse.json();
+                const response = await fetch(url);
+                const data = await response.json();
                 
-                console.log(`ICE BofA response for ${seriesId}:`, iceData);
+                if (data.observations && data.observations.length > 0) {
+                    const validObservations = data.observations.filter(obs => 
+                        obs.value && obs.value !== '.' && obs.value !== ''
+                    );
+                    
+                    if (validObservations.length > 0) {
+                        debugLog(`✓ ${seriesId}: Got ${validObservations.length} observations from Lambda FRED`, 'success');
+                        return {
+                            observations: validObservations,
+                            source: 'Lambda FRED'
+                        };
+                    }
+                }
                 
-                // Check if data exists in various possible formats
+                debugLog(`✗ ${seriesId}: No valid data from Lambda FRED`, 'error');
+                return null;
+            } catch (error) {
+                debugLog(`✗ ${seriesId}: Lambda FRED error: ${error.message}`, 'error');
+                return null;
+            }
+        }
+
+        // Fetch from ICE BofA API
+        async function fetchFromIceBofA(seriesId) {
+            try {
+                const url = `${ICE_BOFA_ENDPOINT}?series=${seriesId}`;
+                debugLog(`Fetching ${seriesId} from ICE BofA API`, 'info');
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                // Check various possible data formats
                 let observations = null;
-                
-                if (iceData.data && Array.isArray(iceData.data)) {
-                    observations = iceData.data;
-                } else if (iceData.observations && Array.isArray(iceData.observations)) {
-                    observations = iceData.observations;
-                } else if (Array.isArray(iceData)) {
-                    observations = iceData;
+                if (data.data && Array.isArray(data.data)) {
+                    observations = data.data;
+                } else if (data.observations && Array.isArray(data.observations)) {
+                    observations = data.observations;
+                } else if (Array.isArray(data)) {
+                    observations = data;
                 }
                 
                 if (observations && observations.length > 0) {
-                    // Filter and sort
                     const validObservations = observations.filter(obs => 
                         obs.value && obs.value !== '.' && obs.value !== ''
                     );
                     
                     if (validObservations.length > 0) {
-                        validObservations.sort((a, b) => new Date(b.date) - new Date(a.date));
-                        
-                        const current = parseFloat(validObservations[0].value);
-                        const weekAgo = findValueByDaysAgo(validObservations, 7);
-                        const monthAgo = findValueByDaysAgo(validObservations, 30);
-                        const quarterAgo = findValueByDaysAgo(validObservations, 90);
-                        const yearAgo = findValueByDaysAgo(validObservations, 365);
-                        
+                        debugLog(`✓ ${seriesId}: Got ${validObservations.length} observations from ICE BofA`, 'success');
                         return {
-                            seriesId,
-                            current,
-                            weekChange: calculatePercentChange(current, weekAgo),
-                            monthChange: calculatePercentChange(current, monthAgo),
-                            quarterChange: calculatePercentChange(current, quarterAgo),
-                            yearChange: calculatePercentChange(current, yearAgo),
-                            lastUpdated: validObservations[0].date,
-                            source: 'ICE BofA',
-                            rawData: validObservations
+                            observations: validObservations,
+                            source: 'ICE BofA'
                         };
                     }
                 }
+                
+                debugLog(`✗ ${seriesId}: No valid data from ICE BofA`, 'error');
+                return null;
             } catch (error) {
-                console.error(`ICE BofA API error for ${seriesId}:`, error);
+                debugLog(`✗ ${seriesId}: ICE BofA error: ${error.message}`, 'error');
+                return null;
+            }
+        }
+
+        // Fetch data with multi-level fallback
+        async function fetchSeriesData(seriesId) {
+            debugLog(`Starting fetch for ${seriesId}...`, 'info');
+            
+            // Try 1: Direct FRED API (most reliable)
+            let result = await fetchFromFredDirect(seriesId);
+            
+            // Try 2: Lambda FRED API
+            if (!result) {
+                result = await fetchFromLambdaFred(seriesId);
             }
             
-            // If both APIs fail, return error state
-            console.warn(`No data found for ${seriesId} from either API`);
+            // Try 3: ICE BofA API
+            if (!result) {
+                result = await fetchFromIceBofA(seriesId);
+            }
+            
+            // Process the data if we got any
+            if (result && result.observations) {
+                const observations = result.observations;
+                
+                // Sort by date
+                observations.sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                // Calculate percentage changes
+                const current = parseFloat(observations[0].value);
+                const weekAgo = findValueByDaysAgo(observations, 7);
+                const monthAgo = findValueByDaysAgo(observations, 30);
+                const quarterAgo = findValueByDaysAgo(observations, 90);
+                const yearAgo = findValueByDaysAgo(observations, 365);
+                
+                return {
+                    seriesId,
+                    current,
+                    weekChange: calculatePercentChange(current, weekAgo),
+                    monthChange: calculatePercentChange(current, monthAgo),
+                    quarterChange: calculatePercentChange(current, quarterAgo),
+                    yearChange: calculatePercentChange(current, yearAgo),
+                    lastUpdated: observations[0].date,
+                    source: result.source,
+                    rawData: observations
+                };
+            }
+            
+            // No data from any source
+            debugLog(`✗ ${seriesId}: Failed to get data from all sources`, 'error');
             return {
                 seriesId,
                 current: null,
@@ -536,10 +660,14 @@
 
         // Fetch all data
         async function fetchAllData() {
-            updateStatus('loading', 'Fetching data from APIs...');
+            updateStatus('loading', 'Starting data fetch from multiple sources...');
+            debugLog('=== Starting full data refresh ===', 'info');
             
-            // Fetch in batches to avoid overwhelming the API
-            const batchSize = 5;
+            // Clear previous data
+            seriesData = {};
+            
+            // Fetch in batches to avoid overwhelming the APIs
+            const batchSize = 3; // Smaller batch size for better reliability
             const batches = [];
             
             for (let i = 0; i < SERIES_LIST.length; i += batchSize) {
@@ -566,13 +694,19 @@
                 });
                 
                 completed += batch.length;
-                updateStatus('loading', `Loading: ${completed}/${SERIES_LIST.length} series (${successCount} success, ${errorCount} errors)...`);
+                updateStatus('loading', `Loading: ${completed}/${SERIES_LIST.length} (${successCount} success, ${errorCount} failed)...`);
+                
+                // Small delay between batches to avoid rate limiting
+                await new Promise(resolve => setTimeout(resolve, 500));
             }
             
+            debugLog(`=== Fetch complete: ${successCount} success, ${errorCount} failed ===`, 
+                     successCount > 0 ? 'success' : 'error');
+            
             if (successCount > 0) {
-                updateStatus('active', `Data loaded: ${successCount} series successful, ${errorCount} failed`);
+                updateStatus('active', `Loaded: ${successCount} series successful, ${errorCount} failed`);
             } else {
-                updateStatus('error', 'Failed to load data from APIs');
+                updateStatus('error', 'Failed to load data. Check debug log for details.');
             }
             
             document.getElementById('lastUpdate').textContent = new Date().toLocaleString();
@@ -593,14 +727,15 @@
             }
             
             if (sortedData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 20px;">No data available</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 20px;">No data available. Check debug log for details.</td></tr>';
                 return;
             }
             
             sortedData.forEach(data => {
                 const row = document.createElement('tr');
                 
-                const sourceClass = data.source === 'FRED' ? 'api-fred' : 
+                const sourceClass = data.source === 'FRED Direct' ? 'api-direct' :
+                                   data.source === 'Lambda FRED' ? 'api-fred' : 
                                    data.source === 'ICE BofA' ? 'api-ice' : '';
                 
                 row.innerHTML = `
@@ -725,10 +860,24 @@
         // Format value
         function formatValue(value) {
             if (value === null || value === undefined) return 'N/A';
-            return value.toLocaleString('en-US', { 
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2 
-            });
+            
+            // Format based on magnitude
+            if (Math.abs(value) >= 1000000) {
+                return (value / 1000000).toLocaleString('en-US', { 
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2 
+                }) + 'M';
+            } else if (Math.abs(value) >= 1000) {
+                return (value / 1000).toLocaleString('en-US', { 
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2 
+                }) + 'K';
+            } else {
+                return value.toLocaleString('en-US', { 
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2 
+                });
+            }
         }
 
         // Format percent
@@ -769,7 +918,7 @@
 
         // Manual refresh
         async function manualRefresh() {
-            console.log('Manual refresh triggered');
+            debugLog('Manual refresh triggered', 'info');
             await fetchAllData();
         }
 
@@ -778,7 +927,13 @@
             let csv = 'Series ID,Custom Name,Current Value,Week Change %,Month Change %,Quarter Change %,Year Change %,Notes,Source,Last Updated\n';
             
             Object.values(seriesData).forEach(data => {
-                csv += `"${data.seriesId}","${customNames[data.seriesId] || ''}",${data.current || ''},${data.weekChange || ''},${data.monthChange || ''},${data.quarterChange || ''},${data.yearChange || ''},"${notes[data.seriesId] || ''}","${data.source || ''}","${data.lastUpdated || ''}"\n`;
+                const currentValue = data.current !== null ? data.current : '';
+                const weekChange = data.weekChange !== null ? data.weekChange : '';
+                const monthChange = data.monthChange !== null ? data.monthChange : '';
+                const quarterChange = data.quarterChange !== null ? data.quarterChange : '';
+                const yearChange = data.yearChange !== null ? data.yearChange : '';
+                
+                csv += `"${data.seriesId}","${customNames[data.seriesId] || ''}",${currentValue},${weekChange},${monthChange},${quarterChange},${yearChange},"${notes[data.seriesId] || ''}","${data.source || ''}","${data.lastUpdated || ''}"\n`;
             });
             
             const blob = new Blob([csv], { type: 'text/csv' });
@@ -813,7 +968,7 @@
                     const hourAgo = new Date(now - 60 * 60 * 1000);
                     
                     if (!lastRefresh || new Date(lastRefresh) < hourAgo) {
-                        console.log('Auto-refresh triggered');
+                        debugLog('Auto-refresh triggered', 'info');
                         fetchAllData();
                         localStorage.setItem('lastAutoRefresh', now.toISOString());
                     }
