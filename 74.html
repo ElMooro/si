@@ -1,0 +1,2311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unified Financial Intelligence Platform v3.0 - Enhanced Dashboard</title>
+    
+    <!-- Required Libraries -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            /* Dark Theme (Default) */
+            --bg-primary: linear-gradient(135deg, #0a0e27 0%, #151932 100%);
+            --bg-secondary: rgba(20, 24, 44, 0.95);
+            --bg-card: rgba(255, 255, 255, 0.05);
+            --bg-hover: rgba(255, 255, 255, 0.08);
+            --text-primary: #e0e0e0;
+            --text-secondary: #888;
+            --accent-primary: #00ff88;
+            --accent-secondary: #00ccff;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --success: #00ff88;
+            --danger: #ff4444;
+            --warning: #ffd700;
+        }
+        
+        body.light-theme {
+            --bg-primary: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --bg-secondary: rgba(255, 255, 255, 0.95);
+            --bg-card: rgba(255, 255, 255, 0.9);
+            --bg-hover: rgba(0, 0, 0, 0.05);
+            --text-primary: #2c3e50;
+            --text-secondary: #7f8c8d;
+            --accent-primary: #27ae60;
+            --accent-secondary: #3498db;
+            --border-color: rgba(0, 0, 0, 0.1);
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+        
+        /* Theme Toggle */
+        .theme-toggle {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 3000;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.5rem;
+            transition: all 0.3s;
+        }
+        
+        .theme-toggle:hover {
+            transform: rotate(180deg);
+            background: var(--bg-hover);
+        }
+        
+        /* Alert Flash Animation */
+        @keyframes flashRed {
+            0%, 100% { background: var(--bg-card); border-color: var(--border-color); }
+            50% { background: rgba(255, 68, 68, 0.2); border-color: #ff4444; box-shadow: 0 0 20px rgba(255, 68, 68, 0.5); }
+        }
+        
+        @keyframes flashGreen {
+            0%, 100% { background: var(--bg-card); border-color: var(--border-color); }
+            50% { background: rgba(0, 255, 136, 0.2); border-color: #00ff88; box-shadow: 0 0 20px rgba(0, 255, 136, 0.5); }
+        }
+        
+        .data-card.alert-red {
+            animation: flashRed 2s ease-in-out infinite;
+        }
+        
+        .data-card.alert-green {
+            animation: flashGreen 2s ease-in-out infinite;
+        }
+        
+        /* Header Styles */
+        .header {
+            background: var(--bg-secondary);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--accent-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .header-stats {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background: var(--bg-card);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            min-width: 100px;
+        }
+        
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--accent-primary);
+        }
+        
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+        
+        /* Rate Limit Indicator */
+        .rate-limit-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 204, 255, 0.1);
+            border: 1px solid rgba(0, 204, 255, 0.3);
+            border-radius: 8px;
+            font-size: 0.875rem;
+        }
+        
+        .rate-limit-bar {
+            width: 100px;
+            height: 6px;
+            background: var(--bg-card);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .rate-limit-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            transition: width 0.3s ease;
+        }
+        
+        /* Sort Controls */
+        .sort-controls {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .sort-select {
+            padding: 0.5rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+        
+        .sort-direction {
+            padding: 0.5rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .sort-direction:hover {
+            background: var(--bg-hover);
+        }
+        
+        /* Auto Update Status */
+        .auto-update-status {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .update-schedule {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .update-day {
+            padding: 0.25rem 0.5rem;
+            background: var(--bg-card);
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+        
+        .update-day.active {
+            background: var(--accent-primary);
+            color: #000;
+            font-weight: bold;
+        }
+        
+        /* Container */
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Navigation Tabs */
+        .main-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 0.5rem;
+            overflow-x: auto;
+        }
+        
+        .main-tab {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        
+        .main-tab:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        
+        .main-tab.active {
+            background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary));
+            color: #000;
+            font-weight: bold;
+        }
+        
+        /* Sub Category Tabs */
+        .category-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .category-tab {
+            padding: 0.5rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+        }
+        
+        .category-tab:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        
+        .category-tab.active {
+            background: var(--accent-primary);
+            color: #000;
+            font-weight: bold;
+        }
+        
+        /* Progress Container */
+        .progress-container {
+            width: 100%;
+            height: 35px;
+            background: var(--bg-card);
+            border-radius: 20px;
+            overflow: hidden;
+            margin: 1.5rem 0;
+            display: none;
+            border: 1px solid var(--border-color);
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        /* Data Grid */
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .data-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .data-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.2);
+            border-color: var(--accent-primary);
+        }
+        
+        .data-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .data-title {
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: var(--accent-secondary);
+            font-family: 'Courier New', monospace;
+        }
+        
+        .data-source {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            background: rgba(0, 255, 136, 0.2);
+            border-radius: 4px;
+            color: var(--accent-primary);
+        }
+        
+        .custom-name {
+            font-size: 1rem;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            cursor: text;
+            padding: 0.25rem;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        
+        .custom-name:hover {
+            background: var(--bg-hover);
+        }
+        
+        .custom-name-input {
+            width: 100%;
+            background: var(--bg-hover);
+            border: 1px solid var(--accent-primary);
+            border-radius: 4px;
+            color: var(--text-primary);
+            padding: 0.25rem;
+            font-size: 1rem;
+            font-weight: 600;
+            display: none;
+        }
+        
+        .data-value {
+            font-size: 1.75rem;
+            font-weight: bold;
+            margin: 0.75rem 0;
+        }
+        
+        .changes-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            margin: 0.75rem 0;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+        }
+        
+        body.light-theme .changes-grid {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        
+        .change-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+        }
+        
+        .change-label {
+            color: var(--text-secondary);
+        }
+        
+        .positive { color: var(--success); }
+        .negative { color: var(--danger); }
+        .neutral { color: var(--text-secondary); }
+        
+        /* Action Buttons */
+        .action-buttons {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .action-btn {
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: transform 0.3s;
+        }
+        
+        .action-btn:hover {
+            transform: scale(1.2);
+        }
+        
+        .favorite-star {
+            color: #444;
+        }
+        
+        .favorite-star.active {
+            color: var(--warning);
+        }
+        
+        .note-btn {
+            color: var(--text-secondary);
+        }
+        
+        .note-btn.has-note {
+            color: var(--accent-secondary);
+        }
+        
+        .edit-btn {
+            color: var(--text-secondary);
+        }
+        
+        /* Notes Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 600px;
+            border: 1px solid var(--accent-primary);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--accent-primary);
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .close-modal:hover {
+            transform: rotate(90deg);
+        }
+        
+        .notes-textarea {
+            width: 100%;
+            min-height: 200px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            padding: 1rem;
+            font-size: 1rem;
+            resize: vertical;
+        }
+        
+        .notes-textarea:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            background: var(--bg-hover);
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
+        }
+        
+        .modal-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .modal-btn.save {
+            background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary));
+            color: #000;
+        }
+        
+        .modal-btn.delete {
+            background: rgba(255, 68, 68, 0.2);
+            color: var(--danger);
+            border: 1px solid rgba(255, 68, 68, 0.3);
+        }
+        
+        .modal-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        /* Control Buttons */
+        .control-container {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .control-btn {
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 8px;
+            color: var(--accent-primary);
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+        }
+        
+        body.light-theme .control-btn {
+            background: rgba(39, 174, 96, 0.1);
+            border: 1px solid rgba(39, 174, 96, 0.3);
+        }
+        
+        .control-btn:hover {
+            background: rgba(0, 255, 136, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .control-btn.danger {
+            background: rgba(255, 68, 68, 0.1);
+            border-color: rgba(255, 68, 68, 0.3);
+            color: var(--danger);
+        }
+        
+        /* Status Messages */
+        .status-message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            display: none;
+        }
+        
+        .status-message.success {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            color: var(--success);
+            display: block;
+        }
+        
+        .status-message.error {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid rgba(255, 68, 68, 0.3);
+            color: var(--danger);
+            display: block;
+        }
+        
+        .status-message.info {
+            background: rgba(0, 204, 255, 0.1);
+            border: 1px solid rgba(0, 204, 255, 0.3);
+            color: var(--accent-secondary);
+            display: block;
+        }
+        
+        /* Loading Spinner */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(0, 255, 136, 0.2);
+            border-top-color: var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Search Box */
+        .search-container {
+            margin-bottom: 1.5rem;
+        }
+        
+        .search-input {
+            width: 100%;
+            max-width: 400px;
+            padding: 0.75rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            background: var(--bg-hover);
+        }
+        
+        /* Queue Status */
+        .queue-status {
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            display: none;
+        }
+        
+        .queue-status.active {
+            display: block;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+            }
+            
+            .data-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+        <span id="themeIcon">🌙</span>
+    </button>
+    
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            📊 Unified Financial Platform
+            <span style="font-size: 0.875rem; color: var(--text-secondary);">v3.0</span>
+        </div>
+        
+        <div class="rate-limit-indicator">
+            <span>Rate Limit:</span>
+            <div class="rate-limit-bar">
+                <div class="rate-limit-fill" id="rateLimitBar" style="width: 100%;"></div>
+            </div>
+            <span id="rateLimitText">120/120</span>
+        </div>
+        
+        <div class="header-stats">
+            <div class="stat-item">
+                <div class="stat-value" id="totalIndicators">500+</div>
+                <div class="stat-label">Total Series</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="loadedIndicators">0</div>
+                <div class="stat-label">Loaded</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="cachedIndicators">0</div>
+                <div class="stat-label">Cached</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="lastUpdate">--:--</div>
+                <div class="stat-label">Last Update</div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Auto Update Status -->
+    <div class="auto-update-status">
+        <div>
+            <strong>📅 Auto-Update Schedule:</strong> Data refreshes Monday, Wednesday, Friday at 3 AM EST
+            <div class="update-schedule" style="margin-top: 0.5rem;">
+                <span class="update-day" id="monday">Monday</span>
+                <span class="update-day" id="wednesday">Wednesday</span>
+                <span class="update-day" id="friday">Friday</span>
+                <span style="margin-left: 1rem; font-size: 0.875rem;">Next update: <span id="nextUpdate">--</span></span>
+            </div>
+        </div>
+        <button class="control-btn" onclick="toggleAutoUpdate()" id="autoUpdateBtn">🔄 Auto-Update: ON</button>
+    </div>
+    
+    <div class="container">
+        <!-- Status Messages -->
+        <div class="status-message" id="statusMessage"></div>
+        
+        <!-- Queue Status -->
+        <div class="queue-status" id="queueStatus">
+            <strong>Loading Queue:</strong> <span id="queueInfo">0 items waiting</span> | 
+            <strong>Processing:</strong> <span id="processingInfo">Idle</span> | 
+            <strong>Batch:</strong> <span id="batchInfo">0/0</span>
+        </div>
+        
+        <!-- Progress Bar -->
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar" id="progressBar">0%</div>
+        </div>
+        
+        <!-- Main Navigation Tabs -->
+        <div class="main-tabs">
+            <button class="main-tab active" onclick="switchMainTab('fed')">🏛️ Fed Liquidity</button>
+            <button class="main-tab" onclick="switchMainTab('ice')">📈 ICE BofA</button>
+            <button class="main-tab" onclick="switchMainTab('favorites')">⭐ Favorites</button>
+            <button class="main-tab" onclick="switchMainTab('dashboard')">📊 Dashboard</button>
+            <button class="main-tab" onclick="switchMainTab('missing')">❓ Missing Only</button>
+        </div>
+        
+        <!-- Category Tabs (Dynamic) -->
+        <div class="category-tabs" id="categoryTabs"></div>
+        
+        <!-- Sort Controls -->
+        <div class="sort-controls">
+            <label style="margin-right: 0.5rem;">Sort by:</label>
+            <select class="sort-select" id="sortSelect" onchange="sortData()">
+                <option value="name">Name</option>
+                <option value="value">Value</option>
+                <option value="week">Week %</option>
+                <option value="month">Month %</option>
+                <option value="quarter">Quarter %</option>
+                <option value="year">Year %</option>
+            </select>
+            <button class="sort-direction" onclick="toggleSortDirection()">
+                <span id="sortDirectionIcon">↓</span> <span id="sortDirectionText">Descending</span>
+            </button>
+        </div>
+        
+        <!-- Search -->
+        <div class="search-container">
+            <input type="text" class="search-input" id="searchInput" 
+                   placeholder="Search indicators..." 
+                   oninput="searchIndicators()">
+        </div>
+        
+        <!-- Control Buttons -->
+        <div class="control-container">
+            <button class="control-btn" onclick="loadCurrentTabData()" id="loadTabBtn">📥 Load Tab Data</button>
+            <button class="control-btn" onclick="loadAllData()" id="loadAllBtn">📥 Load All (Batched)</button>
+            <button class="control-btn" onclick="refreshCurrentTab()" id="refreshBtn">🔃 Refresh Tab</button>
+            <button class="control-btn danger" onclick="clearAllCache()">🗑️ Clear Cache</button>
+            <button class="control-btn" onclick="exportData()">💾 Export CSV</button>
+        </div>
+        
+        <!-- Data Grid -->
+        <div class="data-grid" id="dataGrid">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Ready to load data</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notes Modal -->
+    <div class="modal" id="notesModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle">Notes</div>
+                <button class="close-modal" onclick="closeNotesModal()">✕</button>
+            </div>
+            <textarea class="notes-textarea" id="notesTextarea" placeholder="Add your notes here..."></textarea>
+            <div class="modal-buttons">
+                <button class="modal-btn delete" onclick="deleteNote()">Delete Note</button>
+                <button class="modal-btn save" onclick="saveNote()">Save Note</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // ============================================
+        // Configuration with NEW INDICES
+        // ============================================
+        const CONFIG = {
+            FED_API: 'https://occdgwanqvbjd2qnnuyafvkvei0ptinb.lambda-url.us-east-1.on.aws',
+            ICE_API: 'https://lnd6erie7y4rw2u6r4dpv4enty0mhtua.lambda-url.us-east-1.on.aws',
+            RATE_LIMIT: 120,
+            RATE_WINDOW: 60000,
+            BATCH_SIZE: 120,
+            CACHE_DURATION: 24 * 60 * 60 * 1000,
+            AUTO_UPDATE_DAYS: [1, 3, 5], // Monday, Wednesday, Friday
+            AUTO_UPDATE_HOUR: 3,
+            ALERT_THRESHOLD: 10 // 10% change threshold for alerts
+        };
+        
+        // ============================================
+        // COMPLETE LIST OF 72 NEW INDICES
+        // ============================================
+        const NEW_FED_INDICES = {
+            // Business Tendency Surveys - Order Books
+            'BSOBLV02FRM460S': 'Business Survey: Order Books - France',
+            'BSOBLV02EZM460S': 'Business Survey: Order Books - Euro Area',
+            'BSOBLV02USM460S': 'Business Survey: Order Books - United States',
+            'BSOBLV02ITM460S': 'Business Survey: Order Books - Italy',
+            'BSOBLV02BEM460S': 'Business Survey: Order Books - Belgium',
+            'BSOBLV02DEM460S': 'Business Survey: Order Books - Germany',
+            
+            // Industrial Production & Manufacturing
+            'INDPRO': 'Industrial Production: Total Index',
+            'IPGMFN': 'Industrial Production: Manufacturing (NAICS)',
+            'IPDMAN': 'Industrial Production: Durable Manufacturing',
+            'IPNMAN': 'Industrial Production: Nondurable Manufacturing',
+            'EA19PRINTO01IXOBSAM': 'Euro Area Production: Industry Total',
+            'EA19PRMNTO01IXNBSAM': 'Euro Area Production: Manufacturing',
+            'PRMNTO01EZQ661S': 'Euro Area Production: Manufacturing Quarterly',
+            
+            // Securities - Fed Balance Sheet
+            'WSHOSHO': 'Securities Held Outright: Wednesday Level',
+            'WSHOTSL': 'U.S. Treasury Securities: Wednesday Level',
+            'WSHOBL': 'U.S. Treasury Bills: Wednesday Level',
+            'WSHONBNA': 'U.S. Treasury Notes & Bonds: Week Average',
+            'WSHOMCB': 'Mortgage-Backed Securities: Wednesday Level',
+            'FEDDT': 'Federal Agency Debt Securities: Wednesday',
+            
+            // Securities - Commercial Banks
+            'SBCACBW027SBOG': 'Securities in Bank Credit: All Banks Weekly',
+            'SBCLCBM027NBOG': 'Securities in Bank Credit: Large Banks Monthly',
+            'SBCSCBM027NBOG': 'Securities in Bank Credit: Small Banks Monthly',
+            'TASACBW027SBOG': 'Treasury & Agency Securities: All Banks Weekly',
+            'USGSEC': 'Treasury & Agency Securities: Monthly SA',
+            'USGSECNSA': 'Treasury & Agency Securities: Monthly NSA',
+            'TMBACBW027SBOG': 'Treasury & Agency MBS: Weekly SA',
+            'TMBACBW027NBOG': 'Treasury & Agency MBS: Weekly NSA',
+            'TMBACBM027SBOG': 'Treasury & Agency MBS: Monthly SA',
+            'TMBACBM027NBOG': 'Treasury & Agency MBS: Monthly NSA',
+            'H8B1003NCBCMG': 'Treasury & Agency Securities: Monthly % Change',
+            'H8B1003NCBCAG': 'Treasury & Agency Securities: Annual % Change',
+            'H8B1301NCBCMG': 'Treasury & Agency MBS: Monthly % Change',
+            
+            // Heavy Truck Sales
+            'HTRUCKSSA': 'Heavy Weight Trucks Sales: SAAR',
+            'HTRUCKSSAAR': 'Heavy Weight Trucks Sales: Annual Rate',
+            'HTRUCKSNSA': 'Heavy Weight Trucks Sales: NSA',
+            
+            // Repo Operations
+            'RPONTSYD': 'Overnight Repo: Treasury Securities Purchased',
+            'RRPONTSYD': 'Overnight Reverse Repo: Treasury Securities Sold',
+            'RRPONTSYAWARD': 'Overnight Reverse Repo Award Rate',
+            
+            // Critical Funding Rates
+            'FEDFUNDS': 'Effective Federal Funds Rate',
+            'OBFR1': 'Overnight Bank Funding Rate: 1st Percentile',
+            'OBFR25': 'Overnight Bank Funding Rate: 25th Percentile',
+            'OBFR75': 'Overnight Bank Funding Rate: 75th Percentile',
+            'OBFR99': 'Overnight Bank Funding Rate: 99th Percentile',
+            'OBFRVOL': 'Overnight Bank Funding Volume',
+            'AMERIBOR': 'AMERIBOR Overnight Unsecured Rate',
+            'SOFR': 'Secured Overnight Financing Rate',
+            
+            // Additional indicators from the 72 list
+            'EFFR': 'Effective Federal Funds Rate',
+            'SOFRRATE': 'Secured Overnight Financing Rate',
+            'SOFR30DAYAVG': 'SOFR 30-Day Average',
+            'SOFR90DAYAVG': 'SOFR 90-Day Average',
+            'SOFR180DAYAVG': 'SOFR 180-Day Average',
+            'SOFR1': 'SOFR 1st Percentile',
+            'SOFR25': 'SOFR 25th Percentile',
+            'SOFR75': 'SOFR 75th Percentile',
+            'SOFR99': 'SOFR 99th Percentile',
+            'SOFRVOL': 'SOFR Volume',
+            'IORB': 'Interest on Reserve Balances',
+            'IOER': 'Interest on Excess Reserves',
+            'DFEDTARU': 'Federal Funds Target Range - Upper Limit',
+            'DFEDTARL': 'Federal Funds Target Range - Lower Limit',
+            'DFF': 'Effective Federal Funds Rate (Daily)',
+            'RIFSPFF_N_B': 'Federal Funds Rate',
+            'WLRRAL': 'Reverse Repo Agreements: Fed Liabilities',
+            'RRPONTTLD': 'Overnight RRP: Total Submitted',
+            'RRPONTSYD': 'Overnight RRP: Treasury Securities',
+            'RRPQGVTD': 'RRP Agreements: Government',
+            'TFDNS': 'Time Deposits: Foreign & International',
+            'WDTGAL': 'Deposits with F.R. Banks: Treasury General Account',
+            'WOSACL': 'Other Deposits Held by Depository Institutions',
+            'H41RESPPALDQ': 'Reserve Bank Credit: All Other',
+            'RESPPLLOPNWW': 'Primary, Secondary & Seasonal Credit',
+            'TERMAUCTIONM': 'Term Auction Credit',
+            'H41RESPPALLDQ': 'Paycheck Protection Program Liquidity Facility'
+        };
+        
+        // ============================================
+        // Global State
+        // ============================================
+        let state = {
+            currentMainTab: 'fed',
+            currentCategory: 'all',
+            allData: new Map(),
+            fedMetadata: {},
+            iceMetadata: {},
+            favorites: JSON.parse(localStorage.getItem('unifiedFavorites') || '[]'),
+            customNames: JSON.parse(localStorage.getItem('unifiedCustomNames') || '{}'),
+            notes: JSON.parse(localStorage.getItem('unifiedNotes') || '{}'),
+            autoUpdateEnabled: JSON.parse(localStorage.getItem('autoUpdateEnabled') || 'true'),
+            searchTerm: '',
+            requestQueue: [],
+            requestsInWindow: [],
+            isProcessingQueue: false,
+            availableRequests: CONFIG.RATE_LIMIT,
+            currentNoteId: null,
+            sortBy: 'name',
+            sortDirection: 'desc',
+            theme: localStorage.getItem('theme') || 'dark'
+        };
+        
+        // Fed Categories with NEW indices properly categorized
+        const FED_CATEGORIES = {
+            'all': 'All Indicators',
+            'federal_reserve': 'Federal Reserve',
+            'money_supply': 'Money Supply',
+            'treasury': 'Treasury Rates',
+            'corporate': 'Corporate Bonds',
+            'volatility': 'Volatility',
+            'currencies': 'Currencies',
+            'commodities': 'Commodities',
+            'stress': 'Stress Indicators',
+            'liquidity': 'Liquidity',
+            'economic': 'Economic',
+            'business_surveys': 'Business Surveys',
+            'industrial': 'Industrial Production',
+            'securities': 'Securities Holdings',
+            'funding': 'Funding Markets',
+            'repo': 'Repo Operations',
+            'truck_sales': 'Truck Sales'
+        };
+        
+        // ICE Categories
+        const ICE_CATEGORIES = {
+            'all': 'All Series',
+            'yields': 'Yields',
+            'spreads': 'Spreads/OAS',
+            'returns': 'Total Returns',
+            'emerging': 'Emerging Markets',
+            'euro': 'Euro',
+            'investment_grade': 'Investment Grade',
+            'high_yield': 'High Yield'
+        };
+        
+        // ============================================
+        // Theme Management
+        // ============================================
+        function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.getElementById('themeIcon');
+            
+            if (body.classList.contains('light-theme')) {
+                body.classList.remove('light-theme');
+                themeIcon.textContent = '🌙';
+                state.theme = 'dark';
+            } else {
+                body.classList.add('light-theme');
+                themeIcon.textContent = '☀️';
+                state.theme = 'light';
+            }
+            
+            localStorage.setItem('theme', state.theme);
+        }
+        
+        // ============================================
+        // Alert System for Favorites
+        // ============================================
+        function checkAlerts() {
+            state.favorites.forEach(seriesId => {
+                const fedKey = `fed_${seriesId}`;
+                const iceKey = `ice_${seriesId}`;
+                let data = state.allData.get(fedKey) || state.allData.get(iceKey);
+                
+                if (data && data.changes) {
+                    const card = document.querySelector(`[data-series-id="${seriesId}"]`);
+                    if (!card) return;
+                    
+                    // Remove existing alert classes
+                    card.classList.remove('alert-red', 'alert-green');
+                    
+                    // Check for significant changes
+                    const changes = [data.changes.week, data.changes.month, data.changes.quarter, data.changes.year];
+                    const hasSignificantDecrease = changes.some(c => c !== null && c < -CONFIG.ALERT_THRESHOLD);
+                    const hasSignificantIncrease = changes.some(c => c !== null && c > CONFIG.ALERT_THRESHOLD);
+                    
+                    if (hasSignificantDecrease) {
+                        card.classList.add('alert-red');
+                    } else if (hasSignificantIncrease) {
+                        card.classList.add('alert-green');
+                    }
+                }
+            });
+        }
+        
+        // ============================================
+        // Sorting Functions
+        // ============================================
+        function sortData() {
+            state.sortBy = document.getElementById('sortSelect').value;
+            displayData();
+        }
+        
+        function toggleSortDirection() {
+            state.sortDirection = state.sortDirection === 'asc' ? 'desc' : 'asc';
+            const icon = document.getElementById('sortDirectionIcon');
+            const text = document.getElementById('sortDirectionText');
+            
+            if (state.sortDirection === 'asc') {
+                icon.textContent = '↑';
+                text.textContent = 'Ascending';
+            } else {
+                icon.textContent = '↓';
+                text.textContent = 'Descending';
+            }
+            
+            displayData();
+        }
+        
+        function sortSeries(series) {
+            return series.sort((a, b) => {
+                let aVal, bVal;
+                
+                // Get data for comparison
+                const aData = state.allData.get(`${a.source}_${a.id}`);
+                const bData = state.allData.get(`${b.source}_${b.id}`);
+                
+                switch (state.sortBy) {
+                    case 'name':
+                        aVal = (state.customNames[a.id] || a.name || a.id).toLowerCase();
+                        bVal = (state.customNames[b.id] || b.name || b.id).toLowerCase();
+                        break;
+                    case 'value':
+                        aVal = aData?.value || 0;
+                        bVal = bData?.value || 0;
+                        break;
+                    case 'week':
+                        aVal = aData?.changes?.week || 0;
+                        bVal = bData?.changes?.week || 0;
+                        break;
+                    case 'month':
+                        aVal = aData?.changes?.month || 0;
+                        bVal = bData?.changes?.month || 0;
+                        break;
+                    case 'quarter':
+                        aVal = aData?.changes?.quarter || 0;
+                        bVal = bData?.changes?.quarter || 0;
+                        break;
+                    case 'year':
+                        aVal = aData?.changes?.year || 0;
+                        bVal = bData?.changes?.year || 0;
+                        break;
+                }
+                
+                if (state.sortDirection === 'asc') {
+                    return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
+                } else {
+                    return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
+                }
+            });
+        }
+        
+        // ============================================
+        // Cache Management
+        // ============================================
+        function getCacheKey(source, seriesId) {
+            return `unified_${source}_${seriesId}`;
+        }
+        
+        function getCachedData(source, seriesId) {
+            const key = getCacheKey(source, seriesId);
+            const cached = localStorage.getItem(key);
+            
+            if (!cached) return null;
+            
+            try {
+                const data = JSON.parse(cached);
+                const now = Date.now();
+                
+                if (data.timestamp && (now - data.timestamp) < CONFIG.CACHE_DURATION) {
+                    return data;
+                }
+                
+                localStorage.removeItem(key);
+                return null;
+            } catch (e) {
+                localStorage.removeItem(key);
+                return null;
+            }
+        }
+        
+        function setCachedData(source, seriesId, data) {
+            const key = getCacheKey(source, seriesId);
+            const cacheData = {
+                ...data,
+                timestamp: Date.now(),
+                cached: true,
+                source: source
+            };
+            
+            try {
+                localStorage.setItem(key, JSON.stringify(cacheData));
+                updateCacheCount();
+            } catch (e) {
+                console.error('Cache storage error:', e);
+                clearOldestCache();
+            }
+        }
+        
+        function clearOldestCache() {
+            const keys = Object.keys(localStorage);
+            let oldestKey = null;
+            let oldestTime = Date.now();
+            
+            keys.forEach(key => {
+                if (key.startsWith('unified_')) {
+                    try {
+                        const data = JSON.parse(localStorage.getItem(key));
+                        if (data.timestamp < oldestTime) {
+                            oldestTime = data.timestamp;
+                            oldestKey = key;
+                        }
+                    } catch (e) {}
+                }
+            });
+            
+            if (oldestKey) {
+                localStorage.removeItem(oldestKey);
+            }
+        }
+        
+        function clearAllCache() {
+            if (!confirm('Clear all cached data? This will require reloading from APIs.')) {
+                return;
+            }
+            
+            const keys = Object.keys(localStorage);
+            keys.forEach(key => {
+                if (key.startsWith('unified_')) {
+                    localStorage.removeItem(key);
+                }
+            });
+            
+            state.allData.clear();
+            updateCacheCount();
+            showStatus('Cache cleared', 'success');
+            displayData();
+        }
+        
+        function updateCacheCount() {
+            const keys = Object.keys(localStorage);
+            const cacheCount = keys.filter(key => key.startsWith('unified_')).length;
+            document.getElementById('cachedIndicators').textContent = cacheCount;
+        }
+        
+        // ============================================
+        // Rate Limiting and Request Management
+        // ============================================
+        function updateRateLimit() {
+            const now = Date.now();
+            state.requestsInWindow = state.requestsInWindow.filter(time => now - time < CONFIG.RATE_WINDOW);
+            state.availableRequests = CONFIG.RATE_LIMIT - state.requestsInWindow.length;
+            
+            const percentage = (state.availableRequests / CONFIG.RATE_LIMIT) * 100;
+            document.getElementById('rateLimitBar').style.width = `${percentage}%`;
+            document.getElementById('rateLimitText').textContent = `${state.availableRequests}/${CONFIG.RATE_LIMIT}`;
+        }
+        
+        // Enhanced request with fallback logic
+        async function makeRequestWithFallback(primarySource, seriesId) {
+            console.log(`Attempting to fetch ${seriesId} from ${primarySource}`);
+            
+            try {
+                let url;
+                if (primarySource === 'fed') {
+                    url = `${CONFIG.FED_API}/?series=${seriesId}`;
+                } else {
+                    url = `${CONFIG.ICE_API}/ice_bofa?series=${seriesId}`;
+                }
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                // Check if we got an error response
+                if (data.error && data.error.includes('Unknown series')) {
+                    console.log(`Series ${seriesId} not found in ${primarySource}, trying fallback...`);
+                    
+                    // Try the other API
+                    const fallbackSource = primarySource === 'fed' ? 'ice' : 'fed';
+                    const fallbackUrl = fallbackSource === 'fed' 
+                        ? `${CONFIG.FED_API}/?series=${seriesId}`
+                        : `${CONFIG.ICE_API}/ice_bofa?series=${seriesId}`;
+                    
+                    const fallbackResponse = await fetch(fallbackUrl);
+                    const fallbackData = await fallbackResponse.json();
+                    
+                    if (fallbackData.error && fallbackData.error.includes('Unknown series')) {
+                        throw new Error(`Series ${seriesId} not found in any source`);
+                    } else {
+                        console.log(`Found ${seriesId} in fallback source: ${fallbackSource}`);
+                        fallbackData.source = fallbackSource;
+                        return fallbackData;
+                    }
+                } else {
+                    // Success on primary source
+                    data.source = primarySource;
+                    return data;
+                }
+            } catch (error) {
+                console.error(`Error fetching ${seriesId}:`, error);
+                throw error;
+            }
+        }
+        
+        async function makeRateLimitedRequest(source, seriesId) {
+            return new Promise((resolve, reject) => {
+                state.requestQueue.push({ source, seriesId, resolve, reject });
+                
+                if (!state.isProcessingQueue) {
+                    processQueue();
+                }
+            });
+        }
+        
+        async function processQueue() {
+            if (state.isProcessingQueue) return;
+            state.isProcessingQueue = true;
+            
+            document.getElementById('queueStatus').classList.add('active');
+            
+            while (state.requestQueue.length > 0) {
+                updateRateLimit();
+                
+                if (state.availableRequests <= 0) {
+                    document.getElementById('processingInfo').textContent = 'Rate limit wait...';
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    continue;
+                }
+                
+                const request = state.requestQueue.shift();
+                document.getElementById('queueInfo').textContent = `${state.requestQueue.length} waiting`;
+                document.getElementById('processingInfo').textContent = `Loading ${request.seriesId}`;
+                
+                try {
+                    // Check cache first
+                    const cachedData = getCachedData(request.source, request.seriesId);
+                    if (cachedData) {
+                        console.log(`Using cached data for ${request.seriesId}`);
+                        request.resolve(cachedData);
+                        continue;
+                    }
+                    
+                    // Use the enhanced request with fallback
+                    const data = await makeRequestWithFallback(request.source, request.seriesId);
+                    state.requestsInWindow.push(Date.now());
+                    
+                    console.log(`Raw API response for ${request.seriesId}:`, data);
+                    
+                    // Update source if it came from a fallback
+                    if (data.source && data.source !== request.source) {
+                        console.log(`Note: ${request.seriesId} was found in ${data.source} instead of ${request.source}`);
+                        request.source = data.source;
+                    }
+                    
+                    setCachedData(request.source, request.seriesId, data);
+                    request.resolve(data);
+                    
+                } catch (error) {
+                    console.error(`Error fetching ${request.seriesId}:`, error);
+                    request.reject(error);
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            state.isProcessingQueue = false;
+            document.getElementById('processingInfo').textContent = 'Idle';
+            document.getElementById('queueStatus').classList.remove('active');
+        }
+        
+        // ============================================
+        // Data Processing
+        // ============================================
+        function processData(rawData, source, seriesId) {
+            if (source === 'fed') {
+                let value = null;
+                let date = null;
+                let dataPoints = [];
+                let name = state.fedMetadata[seriesId] || NEW_FED_INDICES[seriesId] || seriesId;
+                
+                // Parse Fed API response
+                if (rawData.series_id === seriesId) {
+                    if (rawData.data && Array.isArray(rawData.data) && rawData.data.length > 0) {
+                        const sortedData = rawData.data
+                            .filter(d => d.value !== null && d.value !== undefined && d.value !== '.' && d.value !== '')
+                            .sort((a, b) => new Date(a.date) - new Date(b.date));
+                        
+                        if (sortedData.length > 0) {
+                            const latest = sortedData[sortedData.length - 1];
+                            value = parseFloat(latest.value);
+                            date = latest.date;
+                            dataPoints = sortedData.map(d => ({
+                                date: d.date,
+                                value: parseFloat(d.value)
+                            }));
+                        }
+                    }
+                    
+                    if (rawData.metadata) {
+                        name = rawData.metadata.title || rawData.metadata.name || name;
+                    }
+                    if (rawData.name) {
+                        name = rawData.name;
+                    }
+                } else if (rawData.value !== undefined && rawData.value !== null && rawData.value !== '.' && rawData.value !== '') {
+                    value = parseFloat(rawData.value);
+                    date = rawData.date || rawData.last_updated || new Date().toISOString().split('T')[0];
+                    
+                    if (rawData.data && Array.isArray(rawData.data)) {
+                        dataPoints = rawData.data
+                            .filter(d => d.value !== null && d.value !== undefined && d.value !== '.' && d.value !== '')
+                            .map(d => ({
+                                date: d.date,
+                                value: parseFloat(d.value)
+                            }));
+                    }
+                }
+                
+                // Calculate percentage changes
+                const changes = {
+                    week: null,
+                    month: null,
+                    quarter: null,
+                    year: null
+                };
+                
+                if (dataPoints.length > 0 && value !== null) {
+                    const now = new Date(date || new Date());
+                    
+                    const periods = {
+                        week: 7,
+                        month: 30,
+                        quarter: 90,
+                        year: 365
+                    };
+                    
+                    for (const [period, days] of Object.entries(periods)) {
+                        const targetDate = new Date(now);
+                        targetDate.setDate(targetDate.getDate() - days);
+                        
+                        const pastData = dataPoints.find(d => {
+                            const diff = Math.abs(new Date(d.date) - targetDate);
+                            return diff < (days < 30 ? 5 : days < 100 ? 7 : 15) * 24 * 60 * 60 * 1000;
+                        });
+                        
+                        if (pastData && pastData.value) {
+                            changes[period] = ((value - pastData.value) / pastData.value) * 100;
+                        }
+                    }
+                }
+                
+                return {
+                    id: seriesId,
+                    name: state.customNames[seriesId] || name,
+                    value: value,
+                    date: date,
+                    changes: changes,
+                    source: 'fed',
+                    cached: rawData.cached || false,
+                    dataPoints: dataPoints
+                };
+                
+            } else {
+                // Process ICE data
+                return {
+                    id: seriesId,
+                    name: state.customNames[seriesId] || rawData.name || state.iceMetadata[seriesId] || seriesId,
+                    value: rawData.latest?.value,
+                    date: rawData.latest?.date,
+                    changes: {
+                        week: rawData.percentage_changes?.['WoW%'],
+                        month: rawData.percentage_changes?.['MoM%'],
+                        quarter: rawData.percentage_changes?.['QoQ%'],
+                        year: rawData.percentage_changes?.['YoY%']
+                    },
+                    source: 'ice',
+                    cached: rawData.cached || false
+                };
+            }
+        }
+        
+        // ============================================
+        // Auto Update
+        // ============================================
+        function calculateNextUpdate() {
+            const now = new Date();
+            const currentDay = now.getDay();
+            const currentHour = now.getHours();
+            
+            let daysUntilNext = CONFIG.AUTO_UPDATE_DAYS
+                .map(day => {
+                    let diff = day - currentDay;
+                    if (diff < 0 || (diff === 0 && currentHour >= CONFIG.AUTO_UPDATE_HOUR)) {
+                        diff += 7;
+                    }
+                    return diff;
+                })
+                .sort((a, b) => a - b)[0];
+            
+            const nextUpdate = new Date(now);
+            nextUpdate.setDate(now.getDate() + daysUntilNext);
+            nextUpdate.setHours(CONFIG.AUTO_UPDATE_HOUR, 0, 0, 0);
+            
+            return nextUpdate;
+        }
+        
+        function updateAutoUpdateDisplay() {
+            const now = new Date();
+            const currentDay = now.getDay();
+            
+            document.getElementById('monday').classList.toggle('active', currentDay === 1);
+            document.getElementById('wednesday').classList.toggle('active', currentDay === 3);
+            document.getElementById('friday').classList.toggle('active', currentDay === 5);
+            
+            const nextUpdate = calculateNextUpdate();
+            const timeUntil = nextUpdate - now;
+            const hoursUntil = Math.floor(timeUntil / (1000 * 60 * 60));
+            const daysUntil = Math.floor(hoursUntil / 24);
+            
+            let timeStr = '';
+            if (daysUntil > 0) {
+                timeStr = `${daysUntil}d ${hoursUntil % 24}h`;
+            } else {
+                timeStr = `${hoursUntil}h ${Math.floor((timeUntil % (1000 * 60 * 60)) / (1000 * 60))}m`;
+            }
+            
+            document.getElementById('nextUpdate').textContent = 
+                `${nextUpdate.toLocaleDateString()} ${nextUpdate.toLocaleTimeString()} (in ${timeStr})`;
+        }
+        
+        function toggleAutoUpdate() {
+            state.autoUpdateEnabled = !state.autoUpdateEnabled;
+            localStorage.setItem('autoUpdateEnabled', JSON.stringify(state.autoUpdateEnabled));
+            
+            const btn = document.getElementById('autoUpdateBtn');
+            btn.textContent = state.autoUpdateEnabled ? '🔄 Auto-Update: ON' : '🔄 Auto-Update: OFF';
+            
+            if (state.autoUpdateEnabled) {
+                showStatus('Auto-update enabled', 'success');
+                scheduleNextAutoUpdate();
+            } else {
+                showStatus('Auto-update disabled', 'info');
+            }
+        }
+        
+        function scheduleNextAutoUpdate() {
+            if (!state.autoUpdateEnabled) return;
+            
+            const now = new Date();
+            const nextUpdate = calculateNextUpdate();
+            const timeUntil = nextUpdate - now;
+            
+            setTimeout(() => {
+                performAutoUpdate();
+                scheduleNextAutoUpdate();
+            }, timeUntil);
+        }
+        
+        async function performAutoUpdate() {
+            if (!state.autoUpdateEnabled) return;
+            
+            showStatus('Starting auto-update...', 'info');
+            
+            const allSeries = getAllSeriesForCurrentTab();
+            const batches = [];
+            
+            for (let i = 0; i < allSeries.length; i += CONFIG.BATCH_SIZE) {
+                batches.push(allSeries.slice(i, i + CONFIG.BATCH_SIZE));
+            }
+            
+            for (let i = 0; i < batches.length; i++) {
+                await loadBatch(batches[i], state.currentMainTab);
+                
+                if (i < batches.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 60000));
+                }
+            }
+            
+            showStatus('Auto-update complete', 'success');
+            localStorage.setItem('lastAutoUpdate', new Date().toISOString());
+        }
+        
+        // ============================================
+        // Data Loading
+        // ============================================
+        async function initialize() {
+            console.log('🚀 Initializing Unified Dashboard v3.0...');
+            
+            // Apply saved theme
+            if (state.theme === 'light') {
+                document.body.classList.add('light-theme');
+                document.getElementById('themeIcon').textContent = '☀️';
+            }
+            
+            // ENSURE new indices are in fedMetadata from the start
+            state.fedMetadata = { ...NEW_FED_INDICES };
+            console.log('Initial Fed indicators with new indices:', Object.keys(state.fedMetadata).length);
+            
+            updateRateLimit();
+            updateCacheCount();
+            updateAutoUpdateDisplay();
+            updateLastUpdateTime();
+            
+            // Load metadata (this will merge with existing)
+            await loadMetadata();
+            
+            // Log final counts for debugging
+            console.log('Final Fed indicators after metadata load:', Object.keys(state.fedMetadata).length);
+            console.log('Sample of new indices in metadata:', 
+                ['BSOBLV02USM460S', 'RRPONTSYD', 'FEDFUNDS', 'SOFR'].map(id => 
+                    `${id}: ${state.fedMetadata[id] ? 'Present' : 'Missing'}`
+                )
+            );
+            
+            // Set up auto-update
+            scheduleNextAutoUpdate();
+            setInterval(updateAutoUpdateDisplay, 60000);
+            setInterval(updateRateLimit, 1000);
+            setInterval(checkAlerts, 5000); // Check alerts every 5 seconds
+            
+            // Load cached data
+            loadCachedData();
+            
+            // Update UI
+            updateCategoryTabs();
+            displayData();
+        }
+        
+        async function loadMetadata() {
+            try {
+                // Load Fed metadata
+                const fedResponse = await fetch(`${CONFIG.FED_API}/?series=all`);
+                if (fedResponse.ok) {
+                    const fedData = await fedResponse.json();
+                    state.fedMetadata = { ...state.fedMetadata, ...(fedData.series || {}) };
+                }
+                
+                // Load ICE metadata
+                const iceResponse = await fetch(`${CONFIG.ICE_API}/ice_bofa?series=all`);
+                if (iceResponse.ok) {
+                    const iceData = await iceResponse.json();
+                    state.iceMetadata = iceData.series || {};
+                }
+                
+                const totalCount = Object.keys(state.fedMetadata).length + Object.keys(state.iceMetadata).length;
+                document.getElementById('totalIndicators').textContent = totalCount;
+                
+            } catch (error) {
+                console.error('Error loading metadata:', error);
+            }
+        }
+        
+        function loadCachedData() {
+            const keys = Object.keys(localStorage);
+            let loadedCount = 0;
+            
+            keys.forEach(key => {
+                if (key.startsWith('unified_')) {
+                    try {
+                        const data = JSON.parse(localStorage.getItem(key));
+                        if (data && data.timestamp) {
+                            const age = Date.now() - data.timestamp;
+                            if (age < CONFIG.CACHE_DURATION) {
+                                const [, source, ...idParts] = key.split('_');
+                                const seriesId = idParts.join('_');
+                                state.allData.set(`${source}_${seriesId}`, data);
+                                loadedCount++;
+                            }
+                        }
+                    } catch (e) {}
+                }
+            });
+            
+            document.getElementById('loadedIndicators').textContent = loadedCount;
+            
+            if (loadedCount > 0) {
+                showStatus(`Loaded ${loadedCount} indicators from cache`, 'success');
+            }
+        }
+        
+        async function loadCurrentTabData() {
+            const series = getFilteredSeries();
+            await loadBatch(series.map(s => s.id), state.currentMainTab);
+        }
+        
+        async function loadAllData() {
+            if (!confirm('This will load all indicators in batches. Continue?')) {
+                return;
+            }
+            
+            const allSeries = getAllSeriesForCurrentTab();
+            const batches = [];
+            
+            for (let i = 0; i < allSeries.length; i += CONFIG.BATCH_SIZE) {
+                batches.push(allSeries.slice(i, i + CONFIG.BATCH_SIZE));
+            }
+            
+            showStatus(`Loading ${allSeries.length} indicators in ${batches.length} batches...`, 'info');
+            
+            for (let i = 0; i < batches.length; i++) {
+                document.getElementById('batchInfo').textContent = `${i + 1}/${batches.length}`;
+                await loadBatch(batches[i], state.currentMainTab);
+            }
+        }
+        
+        async function loadBatch(seriesIds, source) {
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            progressContainer.style.display = 'block';
+            
+            let loaded = 0;
+            let failed = 0;
+            
+            for (const seriesId of seriesIds) {
+                try {
+                    const key = `${source}_${seriesId}`;
+                    
+                    // Skip if already loaded and fresh
+                    const existing = state.allData.get(key);
+                    if (existing && !existing.cached) {
+                        loaded++;
+                        continue;
+                    }
+                    
+                    const data = await makeRateLimitedRequest(source, seriesId);
+                    
+                    // Process and store data
+                    const processedData = processData(data, source, seriesId);
+                    state.allData.set(key, processedData);
+                    
+                    loaded++;
+                    
+                    // Update progress
+                    const progress = Math.round((loaded / seriesIds.length) * 100);
+                    progressBar.style.width = `${progress}%`;
+                    progressBar.textContent = `${progress}%`;
+                    
+                    // Update display periodically
+                    if (loaded % 10 === 0) {
+                        displayData();
+                        document.getElementById('loadedIndicators').textContent = state.allData.size;
+                    }
+                    
+                } catch (error) {
+                    console.error(`Failed ${seriesId}:`, error);
+                    failed++;
+                }
+            }
+            
+            progressContainer.style.display = 'none';
+            displayData();
+            updateLastUpdateTime();
+            checkAlerts(); // Check for alerts after loading
+            
+            const message = failed > 0 ? 
+                `Loaded ${loaded} indicators, ${failed} failed` : 
+                `Successfully loaded ${loaded} indicators`;
+            showStatus(message, failed > 0 ? 'info' : 'success');
+        }
+        
+        async function refreshCurrentTab() {
+            const series = getFilteredSeries();
+            
+            // Clear cache for current tab
+            series.forEach(s => {
+                const key = getCacheKey(state.currentMainTab, s.id);
+                localStorage.removeItem(key);
+                state.allData.delete(`${state.currentMainTab}_${s.id}`);
+            });
+            
+            await loadBatch(series.map(s => s.id), state.currentMainTab);
+        }
+        
+        // ============================================
+        // UI Functions
+        // ============================================
+        function switchMainTab(tab) {
+            state.currentMainTab = tab;
+            state.currentCategory = 'all';
+            
+            document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            updateCategoryTabs();
+            displayData();
+        }
+        
+        function updateCategoryTabs() {
+            const container = document.getElementById('categoryTabs');
+            container.innerHTML = '';
+            
+            let categories = {};
+            
+            if (state.currentMainTab === 'fed') {
+                categories = FED_CATEGORIES;
+            } else if (state.currentMainTab === 'ice') {
+                categories = ICE_CATEGORIES;
+            } else if (state.currentMainTab === 'favorites') {
+                container.innerHTML = '<div style="color: var(--text-secondary);">Showing favorite indicators</div>';
+                return;
+            } else if (state.currentMainTab === 'dashboard') {
+                container.innerHTML = '<div style="color: var(--text-secondary);">Key market indicators</div>';
+                return;
+            } else if (state.currentMainTab === 'missing') {
+                container.innerHTML = '<div style="color: var(--text-secondary);">Indicators not yet loaded</div>';
+                return;
+            }
+            
+            Object.entries(categories).forEach(([key, label]) => {
+                const tab = document.createElement('button');
+                tab.className = 'category-tab';
+                tab.textContent = label;
+                tab.onclick = () => selectCategory(key);
+                if (key === state.currentCategory) {
+                    tab.classList.add('active');
+                }
+                container.appendChild(tab);
+            });
+        }
+        
+        function selectCategory(category) {
+            state.currentCategory = category;
+            
+            document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            displayData();
+        }
+        
+        function getAllSeriesForCurrentTab() {
+            if (state.currentMainTab === 'fed') {
+                return Object.keys(state.fedMetadata);
+            } else if (state.currentMainTab === 'ice') {
+                return Object.keys(state.iceMetadata);
+            } else if (state.currentMainTab === 'favorites') {
+                return state.favorites;
+            } else if (state.currentMainTab === 'missing') {
+                // Return only series that haven't been loaded
+                const allSeries = [...Object.keys(state.fedMetadata), ...Object.keys(state.iceMetadata)];
+                return allSeries.filter(id => {
+                    const fedKey = `fed_${id}`;
+                    const iceKey = `ice_${id}`;
+                    return !state.allData.has(fedKey) && !state.allData.has(iceKey);
+                });
+            } else {
+                // Dashboard - key indicators including new ones
+                return [
+                    'WALCL', 'RRPONTSYD', 'M2SL', 'DFF', 'DGS10', 'VIXCLS',
+                    'SP500', 'DTWEXBGS', 'BAMLC0A0CMEY', 'BAMLH0A0HYM2EY',
+                    'FEDFUNDS', 'SOFR', 'INDPRO', 'WSHOSHO', 'OBFRVOL', 'HTRUCKSSA'
+                ];
+            }
+        }
+        
+        function getFilteredSeries() {
+            let series = [];
+            
+            if (state.currentMainTab === 'fed') {
+                series = Object.entries(state.fedMetadata).map(([id, name]) => ({
+                    id: id,
+                    name: name,
+                    source: 'fed'
+                }));
+                
+                // Filter by category if not 'all'
+                if (state.currentCategory !== 'all') {
+                    series = series.filter(s => {
+                        // Category mapping logic with 72 new indicators properly categorized
+                        if (state.currentCategory === 'business_surveys') {
+                            return s.id.startsWith('BSOBLV');
+                        } else if (state.currentCategory === 'industrial') {
+                            return s.id.includes('INDPRO') || s.id.includes('IP') || 
+                                   s.id.includes('EA19PR') || s.id.includes('PRMNTO');
+                        } else if (state.currentCategory === 'securities') {
+                            return s.id.includes('WSH') || s.id.includes('SBC') || 
+                                   s.id.includes('TAS') || s.id.includes('USG') || 
+                                   s.id.includes('TMB') || s.id.includes('H8B') || 
+                                   s.id.includes('FEDDT');
+                        } else if (state.currentCategory === 'funding') {
+                            return s.id.includes('FEDFUNDS') || s.id.includes('OBFR') || 
+                                   s.id.includes('SOFR') || s.id.includes('AMERIBOR') || 
+                                   s.id.includes('EFFR') || s.id.includes('IOR') || 
+                                   s.id.includes('DFEDTAR') || s.id.includes('DFF') || 
+                                   s.id.includes('RIFSPFF');
+                        } else if (state.currentCategory === 'repo') {
+                            return s.id.includes('RPON') || s.id.includes('RPON') || 
+                                   s.id.includes('RRP') || s.id.includes('WLRRAL');
+                        } else if (state.currentCategory === 'truck_sales') {
+                            return s.id.includes('HTRUCK');
+                        } else if (state.currentCategory === 'federal_reserve') {
+                            return s.id.includes('WALCL') || s.id.includes('TFDNS') || 
+                                   s.id.includes('WDTGAL') || s.id.includes('WOSACL') || 
+                                   s.id.includes('H41RES') || s.id.includes('RESPP') || 
+                                   s.id.includes('TERMAUCTION');
+                        }
+                        // Add more category filters as needed
+                        return true;
+                    });
+                }
+            } else if (state.currentMainTab === 'ice') {
+                series = Object.entries(state.iceMetadata).map(([id, name]) => ({
+                    id: id,
+                    name: name,
+                    source: 'ice'
+                }));
+            } else if (state.currentMainTab === 'favorites') {
+                series = state.favorites.map(id => {
+                    const source = state.fedMetadata[id] ? 'fed' : 'ice';
+                    return {
+                        id: id,
+                        name: state.fedMetadata[id] || state.iceMetadata[id] || id,
+                        source: source
+                    };
+                });
+            } else if (state.currentMainTab === 'missing') {
+                // Show only missing indicators
+                const allFed = Object.entries(state.fedMetadata).map(([id, name]) => ({
+                    id: id,
+                    name: name,
+                    source: 'fed'
+                }));
+                const allIce = Object.entries(state.iceMetadata).map(([id, name]) => ({
+                    id: id,
+                    name: name,
+                    source: 'ice'
+                }));
+                
+                series = [...allFed, ...allIce].filter(s => {
+                    const key = `${s.source}_${s.id}`;
+                    return !state.allData.has(key);
+                });
+            } else if (state.currentMainTab === 'dashboard') {
+                const dashboardIds = [
+                    'WALCL', 'RRPONTSYD', 'M2SL', 'DFF', 'DGS10', 'VIXCLS',
+                    'SP500', 'DTWEXBGS', 'BAMLC0A0CMEY', 'BAMLH0A0HYM2EY',
+                    'FEDFUNDS', 'SOFR', 'INDPRO', 'WSHOSHO', 'OBFRVOL', 'HTRUCKSSA'
+                ];
+                
+                series = dashboardIds.map(id => {
+                    const source = state.fedMetadata[id] ? 'fed' : 'ice';
+                    return {
+                        id: id,
+                        name: state.fedMetadata[id] || state.iceMetadata[id] || id,
+                        source: source
+                    };
+                });
+            }
+            
+            // Apply search filter
+            if (state.searchTerm) {
+                const term = state.searchTerm.toLowerCase();
+                series = series.filter(s => 
+                    s.id.toLowerCase().includes(term) || 
+                    s.name.toLowerCase().includes(term) ||
+                    (state.customNames[s.id] && state.customNames[s.id].toLowerCase().includes(term))
+                );
+            }
+            
+            // Apply sorting
+            series = sortSeries(series);
+            
+            return series;
+        }
+        
+        function displayData() {
+            const grid = document.getElementById('dataGrid');
+            const series = getFilteredSeries();
+            
+            if (series.length === 0) {
+                grid.innerHTML = '<div class="loading">No data to display</div>';
+                return;
+            }
+            
+            const cards = series.map(s => {
+                const key = `${s.source}_${s.id}`;
+                const data = state.allData.get(key);
+                
+                if (!data) {
+                    return createEmptyCard(s);
+                }
+                
+                return createDataCard(data);
+            }).join('');
+            
+            grid.innerHTML = cards;
+            checkAlerts(); // Check alerts after displaying
+        }
+        
+        function createEmptyCard(series) {
+            const isFavorite = state.favorites.includes(series.id);
+            const hasNote = state.notes[series.id] ? true : false;
+            const customName = state.customNames[series.id] || series.name || series.id;
+            
+            return `
+                <div class="data-card" data-series-id="${series.id}">
+                    <div class="action-buttons">
+                        <span class="action-btn note-btn ${hasNote ? 'has-note' : ''}" 
+                              onclick="openNotesModal('${series.id}')">📝</span>
+                        <span class="action-btn edit-btn" 
+                              onclick="editName('${series.id}')">✏️</span>
+                        <span class="action-btn favorite-star ${isFavorite ? 'active' : ''}" 
+                              onclick="toggleFavorite('${series.id}')">★</span>
+                    </div>
+                    <div class="data-card-header">
+                        <div class="data-title">${series.id}</div>
+                        <div class="data-source">${series.source.toUpperCase()}</div>
+                    </div>
+                    <div class="custom-name" id="name-${series.id}" onclick="editName('${series.id}')">${customName}</div>
+                    <input class="custom-name-input" id="input-${series.id}" 
+                           value="${customName}" 
+                           onblur="saveName('${series.id}')"
+                           onkeypress="if(event.key==='Enter') saveName('${series.id}')">
+                    <div class="data-value neutral">--</div>
+                    <div class="changes-grid">
+                        <div class="change-item">
+                            <span class="change-label">Week:</span>
+                            <span class="neutral">--</span>
+                        </div>
+                        <div class="change-item">
+                            <span class="change-label">Month:</span>
+                            <span class="neutral">--</span>
+                        </div>
+                        <div class="change-item">
+                            <span class="change-label">Quarter:</span>
+                            <span class="neutral">--</span>
+                        </div>
+                        <div class="change-item">
+                            <span class="change-label">Year:</span>
+                            <span class="neutral">--</span>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                        Not loaded
+                    </div>
+                </div>
+            `;
+        }
+        
+        function createDataCard(data) {
+            const isFavorite = state.favorites.includes(data.id);
+            const hasNote = state.notes[data.id] ? true : false;
+            const value = formatValue(data.value, data.id);
+            const customName = state.customNames[data.id] || data.name || data.id;
+            
+            // Format percentage changes with safety checks
+            const formatChange = (val) => {
+                if (val === null || val === undefined) return '--';
+                const sign = val >= 0 ? '+' : '';
+                return `${sign}${val.toFixed(2)}%`;
+            };
+            
+            // Safely access changes with defaults
+            const changes = data.changes || { week: null, month: null, quarter: null, year: null };
+            
+            // Determine if card should flash (for favorites)
+            let alertClass = '';
+            if (isFavorite && data.changes) {
+                const changeValues = [changes.week, changes.month, changes.quarter, changes.year];
+                const hasSignificantDecrease = changeValues.some(c => c !== null && c < -CONFIG.ALERT_THRESHOLD);
+                const hasSignificantIncrease = changeValues.some(c => c !== null && c > CONFIG.ALERT_THRESHOLD);
+                
+                if (hasSignificantDecrease) {
+                    alertClass = 'alert-red';
+                } else if (hasSignificantIncrease) {
+                    alertClass = 'alert-green';
+                }
+            }
+            
+            // Determine value color based on week change
+            let valueColorClass = 'neutral';
+            if (changes.week !== null && changes.week !== undefined) {
+                valueColorClass = changes.week >= 0 ? 'positive' : 'negative';
+            }
+            
+            return `
+                <div class="data-card ${alertClass}" data-series-id="${data.id}">
+                    <div class="action-buttons">
+                        <span class="action-btn note-btn ${hasNote ? 'has-note' : ''}" 
+                              onclick="openNotesModal('${data.id}')">📝</span>
+                        <span class="action-btn edit-btn" 
+                              onclick="editName('${data.id}')">✏️</span>
+                        <span class="action-btn favorite-star ${isFavorite ? 'active' : ''}" 
+                              onclick="toggleFavorite('${data.id}')">★</span>
+                    </div>
+                    <div class="data-card-header">
+                        <div class="data-title">${data.id}</div>
+                        <div class="data-source">${data.source.toUpperCase()}${data.cached ? ' 📦' : ''}</div>
+                    </div>
+                    <div class="custom-name" id="name-${data.id}" onclick="editName('${data.id}')">${customName}</div>
+                    <input class="custom-name-input" id="input-${data.id}" 
+                           value="${customName}" 
+                           onblur="saveName('${data.id}')"
+                           onkeypress="if(event.key==='Enter') saveName('${data.id}')">
+                    <div class="data-value ${valueColorClass}">${value}</div>
+                    <div class="changes-grid">
+                        <div class="change-item">
+                            <span class="change-label">Week:</span>
+                            <span class="${changes.week >= 0 ? 'positive' : changes.week < 0 ? 'negative' : 'neutral'}">
+                                ${formatChange(changes.week)}
+                            </span>
+                        </div>
+                        <div class="change-item">
+                            <span class="change-label">Month:</span>
+                            <span class="${changes.month >= 0 ? 'positive' : changes.month < 0 ? 'negative' : 'neutral'}">
+                                ${formatChange(changes.month)}
+                            </span>
+                        </div>
+                        <div class="change-item">
+                            <span class="change-label">Quarter:</span>
+                            <span class="${changes.quarter >= 0 ? 'positive' : changes.quarter < 0 ? 'negative' : 'neutral'}">
+                                ${formatChange(changes.quarter)}
+                            </span>
+                        </div>
+                        <div class="change-item">
+                            <span class="change-label">Year:</span>
+                            <span class="${changes.year >= 0 ? 'positive' : changes.year < 0 ? 'negative' : 'neutral'}">
+                                ${formatChange(changes.year)}
+                            </span>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                        ${data.date || '--'}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function formatValue(value, seriesId) {
+            if (value === null || value === undefined) return '--';
+            
+            const num = parseFloat(value);
+            
+            if (seriesId.includes('RATE') || seriesId.includes('DGS') || 
+                seriesId.includes('EY') || seriesId.includes('YIELD') ||
+                seriesId.includes('FEDFUNDS') || seriesId.includes('SOFR') ||
+                seriesId.includes('OBFR') || seriesId.includes('AMERIBOR') ||
+                seriesId.includes('EFFR') || seriesId.includes('IOR') ||
+                seriesId.includes('DFF') || seriesId.includes('DFEDTAR')) {
+                return `${num.toFixed(2)}%`;
+            }
+            
+            if (seriesId.includes('OAS') || seriesId.includes('SPREAD')) {
+                return `${num.toFixed(2)} bps`;
+            }
+            
+            if (Math.abs(num) >= 1e12) return (num / 1e12).toFixed(2) + 'T';
+            if (Math.abs(num) >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+            if (Math.abs(num) >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+            
+            return num.toFixed(2);
+        }
+        
+        // ============================================
+        // Name Editing and Notes
+        // ============================================
+        function editName(seriesId) {
+            document.getElementById(`name-${seriesId}`).style.display = 'none';
+            document.getElementById(`input-${seriesId}`).style.display = 'block';
+            document.getElementById(`input-${seriesId}`).focus();
+        }
+        
+        function saveName(seriesId) {
+            const input = document.getElementById(`input-${seriesId}`);
+            const nameDiv = document.getElementById(`name-${seriesId}`);
+            
+            if (input && nameDiv) {
+                const newName = input.value.trim();
+                if (newName) {
+                    state.customNames[seriesId] = newName;
+                    localStorage.setItem('unifiedCustomNames', JSON.stringify(state.customNames));
+                    nameDiv.textContent = newName;
+                    
+                    // Update the data if it exists
+                    const fedKey = `fed_${seriesId}`;
+                    const iceKey = `ice_${seriesId}`;
+                    
+                    if (state.allData.has(fedKey)) {
+                        const data = state.allData.get(fedKey);
+                        data.name = newName;
+                    }
+                    if (state.allData.has(iceKey)) {
+                        const data = state.allData.get(iceKey);
+                        data.name = newName;
+                    }
+                }
+                
+                input.style.display = 'none';
+                nameDiv.style.display = 'block';
+            }
+        }
+        
+        function openNotesModal(seriesId) {
+            state.currentNoteId = seriesId;
+            const customName = state.customNames[seriesId] || 
+                               state.fedMetadata[seriesId] || 
+                               state.iceMetadata[seriesId] || 
+                               seriesId;
+            
+            document.getElementById('modalTitle').textContent = `Notes for ${customName} (${seriesId})`;
+            document.getElementById('notesTextarea').value = state.notes[seriesId] || '';
+            document.getElementById('notesModal').classList.add('active');
+        }
+        
+        function closeNotesModal() {
+            document.getElementById('notesModal').classList.remove('active');
+            state.currentNoteId = null;
+        }
+        
+        function saveNote() {
+            if (!state.currentNoteId) return;
+            
+            const noteText = document.getElementById('notesTextarea').value.trim();
+            if (noteText) {
+                state.notes[state.currentNoteId] = noteText;
+            } else {
+                delete state.notes[state.currentNoteId];
+            }
+            
+            localStorage.setItem('unifiedNotes', JSON.stringify(state.notes));
+            closeNotesModal();
+            displayData();
+            showStatus('Note saved successfully', 'success');
+        }
+        
+        function deleteNote() {
+            if (!state.currentNoteId) return;
+            
+            delete state.notes[state.currentNoteId];
+            localStorage.setItem('unifiedNotes', JSON.stringify(state.notes));
+            
+            closeNotesModal();
+            displayData();
+            showStatus('Note deleted', 'info');
+        }
+        
+        function toggleFavorite(seriesId) {
+            const index = state.favorites.indexOf(seriesId);
+            if (index > -1) {
+                state.favorites.splice(index, 1);
+            } else {
+                state.favorites.push(seriesId);
+            }
+            
+            localStorage.setItem('unifiedFavorites', JSON.stringify(state.favorites));
+            displayData();
+        }
+        
+        function searchIndicators() {
+            state.searchTerm = document.getElementById('searchInput').value;
+            displayData();
+        }
+        
+        function exportData() {
+            const data = Array.from(state.allData.values());
+            
+            if (data.length === 0) {
+                showStatus('No data to export', 'error');
+                return;
+            }
+            
+            let csv = 'Series ID,Custom Name,Value,Week %,Month %,Quarter %,Year %,Date,Source,Notes\n';
+            
+            data.forEach(d => {
+                const customName = state.customNames[d.id] || d.name || '';
+                const notes = state.notes[d.id] || '';
+                csv += `"${d.id}","${customName}","${d.value || ''}","${d.changes.week || ''}","${d.changes.month || ''}","${d.changes.quarter || ''}","${d.changes.year || ''}","${d.date || ''}","${d.source}","${notes}"\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `unified_data_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            
+            showStatus('Data exported to CSV', 'success');
+        }
+        
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.className = `status-message ${type}`;
+            statusDiv.textContent = message;
+            
+            setTimeout(() => {
+                statusDiv.className = 'status-message';
+                statusDiv.textContent = '';
+            }, 5000);
+        }
+        
+        function updateLastUpdateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('lastUpdate').textContent = timeStr;
+        }
+        
+        // Modal event listeners
+        document.addEventListener('click', function(event) {
+            const modal = document.getElementById('notesModal');
+            if (event.target === modal) {
+                closeNotesModal();
+            }
+        });
+        
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeNotesModal();
+            }
+        });
+        
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', initialize);
+    </script>
+</body>
+</html>
