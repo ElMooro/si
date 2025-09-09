@@ -1000,9 +1000,12 @@
         // Fed Categories with NEW indices properly categorized
         const FED_CATEGORIES = {
             'all': 'All Indicators',
+            'treasuries': 'Treasuries',
+            'treasury_yields': 'Treasury Yields',
+            'manufacturing': 'Manufacturing',
+            'hqm': 'HQM Corporate',
             'federal_reserve': 'Federal Reserve',
             'money_supply': 'Money Supply',
-            'treasury': 'Treasury Rates',
             'corporate': 'Corporate Bonds',
             'volatility': 'Volatility',
             'currencies': 'Currencies',
@@ -1682,7 +1685,8 @@
         
         async function loadCurrentTabData() {
             const series = getFilteredSeries();
-            await loadBatch(series.map(s => s.id), state.currentMainTab);
+            const source = state.currentMainTab === 'market' ? 'fed' : state.currentMainTab; // Market indicators use Fed API
+            await loadBatch(series.map(s => s.id), source);
         }
         
         async function loadAllData() {
@@ -1868,21 +1872,43 @@
                 if (state.currentCategory !== 'all') {
                     series = series.filter(s => {
                         // Category mapping logic with 72 new indicators properly categorized
-                        if (state.currentCategory === 'business_surveys') {
+                        if (state.currentCategory === 'treasuries') {
+                            return s.id.includes('WSHO') || s.id.includes('TASACBW') || 
+                                   s.id.includes('USGSEC') || s.id.includes('TMBACB') ||
+                                   s.id === 'FEDDT';
+                        } else if (state.currentCategory === 'treasury_yields') {
+                            return s.id.includes('DGS') || s.id.includes('DTB') || 
+                                   s.id.includes('DTP') || s.id.includes('DFII') ||
+                                   s.id.includes('TB3') || s.id.includes('TB6') ||
+                                   s.id.includes('GS1') || s.id.includes('GS2') ||
+                                   s.id.includes('GS3') || s.id.includes('GS5') ||
+                                   s.id.includes('GS7') || s.id.includes('GS10') ||
+                                   s.id.includes('GS20') || s.id.includes('GS30');
+                        } else if (state.currentCategory === 'manufacturing') {
+                            return s.id.includes('IPGMFN') || s.id.includes('IPDMAN') || 
+                                   s.id.includes('IPNMAN') || s.id.includes('EA19PRMNTO') ||
+                                   s.id.includes('PRMNTO') || s.id.includes('MANMFG') ||
+                                   s.id.includes('MANEMP') || s.id.includes('DMANEMP') ||
+                                   s.id.includes('NDMANEMP') || s.id.includes('MANHHRS');
+                        } else if (state.currentCategory === 'hqm') {
+                            return s.id.includes('HQM') || s.id.includes('HQMCB');
+                        } else if (state.currentCategory === 'business_surveys') {
                             return s.id.startsWith('BSOBLV');
                         } else if (state.currentCategory === 'industrial') {
                             return s.id.includes('INDPRO') || s.id.includes('IP') || 
-                                   s.id.includes('EA19PR') || s.id.includes('PRMNTO');
+                                   s.id.includes('EA19PR') || s.id.includes('PRINTO');
                         } else if (state.currentCategory === 'securities') {
-                            return s.id.includes('WSH') || s.id.includes('SBC') || 
+                            return s.id.includes('WSHO') || s.id.includes('SBC') || 
                                    s.id.includes('TAS') || s.id.includes('USG') || 
                                    s.id.includes('TMB') || s.id.includes('H8B') || 
-                                   s.id.includes('FEDDT');
+                                   s.id === 'FEDDT' || s.id.includes('WSHOTSL') ||
+                                   s.id.includes('WSHOBL') || s.id.includes('WSHONB') ||
+                                   s.id.includes('WSHOMCB');
                         } else if (state.currentCategory === 'funding') {
                             return s.id.includes('FEDFUNDS') || s.id.includes('OBFR') || 
                                    s.id.includes('SOFR') || s.id.includes('AMERIBOR') || 
                                    s.id.includes('EFFR') || s.id.includes('IOR') || 
-                                   s.id.includes('DFEDTAR') || s.id.includes('DFF') || 
+                                   s.id.includes('DFEDTAR') || s.id === 'DFF' || 
                                    s.id.includes('RIFSPFF');
                         } else if (state.currentCategory === 'repo') {
                             return s.id.includes('RPON') || s.id.includes('RPON') || 
@@ -1893,9 +1919,40 @@
                             return s.id.includes('WALCL') || s.id.includes('TFDNS') || 
                                    s.id.includes('WDTGAL') || s.id.includes('WOSACL') || 
                                    s.id.includes('H41RES') || s.id.includes('RESPP') || 
-                                   s.id.includes('TERMAUCTION');
+                                   s.id.includes('TERMAUCTION') || s.id.includes('RESPPL');
+                        } else if (state.currentCategory === 'money_supply') {
+                            return s.id.includes('M1') || s.id.includes('M2') || 
+                                   s.id.includes('M3') || s.id.includes('MZM') ||
+                                   s.id.includes('AMBSL') || s.id.includes('BOGMBASE');
+                        } else if (state.currentCategory === 'corporate') {
+                            return s.id.includes('BAML') || s.id.includes('AAA') || 
+                                   s.id.includes('BBB') || s.id.includes('CCC') ||
+                                   s.id.includes('DAAA') || s.id.includes('DBAA');
+                        } else if (state.currentCategory === 'volatility') {
+                            return s.id.includes('VIX') || s.id.includes('VXO') || 
+                                   s.id.includes('VXEEM') || s.id.includes('OVX') ||
+                                   s.id.includes('GVZ') || s.id.includes('EVZ');
+                        } else if (state.currentCategory === 'currencies') {
+                            return s.id.includes('DEXUS') || s.id.includes('DEXEU') || 
+                                   s.id.includes('DEXJP') || s.id.includes('DEXCH') ||
+                                   s.id.includes('DEXCA') || s.id.includes('DTWEX') ||
+                                   s.id.includes('DEXBZ') || s.id.includes('DEXMX');
+                        } else if (state.currentCategory === 'commodities') {
+                            return s.id.includes('DCOILWTICO') || s.id.includes('DCOILBRENTEU') || 
+                                   s.id.includes('GOLDAMGBD') || s.id.includes('DHHNGSP') ||
+                                   s.id.includes('DPROPANEMBTX') || s.id.includes('WTISPLC');
+                        } else if (state.currentCategory === 'stress') {
+                            return s.id.includes('STLFSI') || s.id.includes('NFCI') || 
+                                   s.id.includes('ANFCI') || s.id.includes('GVZCLS');
+                        } else if (state.currentCategory === 'liquidity') {
+                            return s.id.includes('RRPONTSYD') || s.id.includes('WALCL') || 
+                                   s.id.includes('WLRRAL') || s.id.includes('WDTGAL');
+                        } else if (state.currentCategory === 'economic') {
+                            return s.id.includes('GDP') || s.id.includes('UNRATE') || 
+                                   s.id.includes('PAYEMS') || s.id.includes('CPI') ||
+                                   s.id.includes('PCE') || s.id.includes('HOUST');
                         }
-                        // Add more category filters as needed
+                        // Default to showing all if category not matched
                         return true;
                     });
                 }
@@ -1905,6 +1962,31 @@
                     name: name,
                     source: 'ice'
                 }));
+                
+                // Apply ICE category filters
+                if (state.currentCategory !== 'all') {
+                    series = series.filter(s => {
+                        if (state.currentCategory === 'yields') {
+                            return s.id.includes('YLD') || s.id.includes('YIELD');
+                        } else if (state.currentCategory === 'spreads') {
+                            return s.id.includes('OAS') || s.id.includes('SPREAD');
+                        } else if (state.currentCategory === 'returns') {
+                            return s.id.includes('TRI') || s.id.includes('RETURN');
+                        } else if (state.currentCategory === 'emerging') {
+                            return s.id.includes('EM') || s.id.includes('EMRG');
+                        } else if (state.currentCategory === 'euro') {
+                            return s.id.includes('EUR') || s.id.includes('EURO');
+                        } else if (state.currentCategory === 'investment_grade') {
+                            return s.id.includes('IG') || s.id.includes('AAA') || 
+                                   s.id.includes('AA') || s.id.includes('A') || 
+                                   s.id.includes('BBB');
+                        } else if (state.currentCategory === 'high_yield') {
+                            return s.id.includes('HY') || s.id.includes('BB') || 
+                                   s.id.includes('B') || s.id.includes('CCC');
+                        }
+                        return true;
+                    });
+                }
             } else if (state.currentMainTab === 'favorites') {
                 series = state.favorites.map(id => {
                     const source = state.fedMetadata[id] ? 'fed' : 'ice';
@@ -1935,7 +2017,8 @@
                 const dashboardIds = [
                     'WALCL', 'RRPONTSYD', 'M2SL', 'DFF', 'DGS10', 'VIXCLS',
                     'SP500', 'DTWEXBGS', 'BAMLC0A0CMEY', 'BAMLH0A0HYM2EY',
-                    'FEDFUNDS', 'SOFR', 'INDPRO', 'WSHOSHO', 'OBFRVOL', 'HTRUCKSSA'
+                    'FEDFUNDS', 'SOFR', 'INDPRO', 'WSHOSHO', 'OBFRVOL', 'HTRUCKSSA',
+                    'WSHOTSL', 'WSHOMCB', 'USGSEC', 'SBCACBW027SBOG'
                 ];
                 
                 series = dashboardIds.map(id => {
