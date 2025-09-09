@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Economy Dashboard - 72 Indicators</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-card: #ffffff;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --border: #dee2e6;
+            --accent: #0066cc;
+            --positive: #28a745;
+            --negative: #dc3545;
+            --neutral: #6c757d;
+            --shadow: rgba(0,0,0,0.1);
+            --hover: #f1f3f5;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --bg-card: #242424;
+            --text-primary: #e4e4e4;
+            --text-secondary: #a0a0a0;
+            --border: #404040;
+            --accent: #4a9eff;
+            --positive: #52c41a;
+            --negative: #ff4d4f;
+            --neutral: #8c8c8c;
+            --shadow: rgba(0,0,0,0.3);
+            --hover: #333333;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .header {
+            background: var(--bg-secondary);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .theme-toggle {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            color: var(--text-primary);
+            transition: all 0.2s;
+        }
+
+        .theme-toggle:hover {
+            background: var(--hover);
+        }
+
+        .last-update {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 0.5rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+        }
+
+        .tab:hover {
+            background: var(--hover);
+        }
+
+        .tab.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .sort-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-left: auto;
+        }
+
+        .sort-btn {
+            padding: 0.5rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            transition: all 0.2s;
+        }
+
+        .sort-btn:hover {
+            background: var(--hover);
+        }
+
+        .sort-btn.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .indicators-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1rem;
+        }
+
+        .indicator-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            box-shadow: 0 1px 3px var(--shadow);
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .indicator-card:hover {
+            box-shadow: 0 4px 12px var(--shadow);
+            transform: translateY(-2px);
+        }
+
+        .indicator-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+
+        .indicator-title {
+            flex: 1;
+        }
+
+        .indicator-code {
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--accent);
+        }
+
+        .indicator-name {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .favorite-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.25rem;
+            transition: all 0.2s;
+            color: var(--text-secondary);
+        }
+
+        .favorite-btn.active {
+            color: #ffc107;
+        }
+
+        .indicator-value {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .indicator-date {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+        }
+
+        .changes-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .change-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.25rem 0.5rem;
+            background: var(--bg-secondary);
+            border-radius: 0.25rem;
+        }
+
+        .change-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .change-value {
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .change-value.positive {
+            color: var(--positive);
+        }
+
+        .change-value.negative {
+            color: var(--negative);
+        }
+
+        .change-value.neutral {
+            color: var(--neutral);
+        }
+
+        .notes-section {
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .notes-textarea {
+            width: 100%;
+            min-height: 60px;
+            padding: 0.5rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 0.25rem;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .notes-textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-secondary);
+        }
+
+        .loading-spinner {
+            border: 3px solid var(--border);
+            border-top: 3px solid var(--accent);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: var(--negative);
+            color: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .stats {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: 0.5rem;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .indicators-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .sort-controls {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div>
+                <h1>Economy Dashboard</h1>
+                <div class="last-update" id="lastUpdate">Loading...</div>
+            </div>
+            <div class="header-controls">
+                <button class="theme-toggle" onclick="toggleTheme()">
+                    <span id="themeIcon">🌙</span> <span id="themeText">Dark Mode</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="stats" id="stats">
+            <div class="stat-item">
+                <span class="stat-label">Total Indicators</span>
+                <span class="stat-value" id="totalIndicators">72</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Last Updated</span>
+                <span class="stat-value" id="updateTime">--</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Favorites</span>
+                <span class="stat-value" id="favoriteCount">0</span>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="tabs" id="categoryTabs">
+                <div class="tab active" data-category="all">All (72)</div>
+                <div class="tab" data-category="favorites">⭐ Favorites</div>
+                <div class="tab" data-category="oil">Oil & Energy</div>
+                <div class="tab" data-category="volatility">Volatility</div>
+                <div class="tab" data-category="employment">Employment</div>
+                <div class="tab" data-category="exchange">Exchange Rates</div>
+                <div class="tab" data-category="treasury">Treasury</div>
+                <div class="tab" data-category="industrial">Industrial</div>
+                <div class="tab" data-category="oecd">OECD</div>
+            </div>
+            <div class="sort-controls">
+                <select class="sort-btn" id="sortBy">
+                    <option value="name">Sort by Name</option>
+                    <option value="value">Sort by Value</option>
+                    <option value="week">Sort by Week %</option>
+                    <option value="month">Sort by Month %</option>
+                    <option value="quarter">Sort by Quarter %</option>
+                    <option value="year">Sort by Year %</option>
+                </select>
+                <button class="sort-btn" id="sortOrder" onclick="toggleSortOrder()">↓</button>
+            </div>
+        </div>
+
+        <div id="content">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+                <p>Loading 72 indicators from EconomyAPI...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Configuration
+        const API_URL = 'https://v3eyrgp4ih.execute-api.us-east-1.amazonaws.com';
+        
+        // Categories mapping
+        const CATEGORIES = {
+            oil: ['DCOILWTICO'],
+            volatility: ['VXVCLS', 'VIXCLS'],
+            employment: ['UNRATE', 'LNS14000006', 'LNU04000006', 'LNS14000031', 'LNU04000031', 
+                        'LNS14000009', 'LNU04000009', 'LNU04000034', 'UNEMPLOY', 'LNS14000024',
+                        'U5RATE', 'U6RATE', 'UEMPMEAN', 'LRHUTTTTUSM156S', 'LRUN64TTUSQ156S', 'LRUN24TTUSM156S'],
+            exchange: ['DEXSFUS', 'DEXMXUS', 'DEXKOUS', 'DEXJPUS', 'DEXINUS', 'DEXUSUK',
+                      'DEXUSEU', 'DEXCHUS', 'DEXSZUS', 'DEXCAUS', 'DEXBZUS', 'DEXUSAL'],
+            treasury: ['TREAST', 'SWPT', 'TREAS10Y', 'TREAS1T5', 'TREAS1590', 'TREAS5T10',
+                      'MBS10Y', 'TREAS911Y', 'TREAS15', 'RESPPALGUONNWW', 'TERMT', 'RESPPALGUOXCH1NWW',
+                      'SWP1690', 'FEDD5T10', 'H41RESPPLLDENWW', 'OTHL1690', 'SWP15', 'OTHL15',
+                      'OTHL1T5', 'RESPPALGUOXAWXCH52NWW', 'REP1690', 'RESPPALGUMD16T90XCH1NWW',
+                      'OTHL91T1Y', 'RESPPALGUMXCH1NWW', 'RESH4FXAWXCH52NWW'],
+            industrial: ['INDPRO', 'IPMAN', 'IPDMAN', 'IPG339S', 'MANEMP', 'TCU', 'IPB50001N', 'CAPB50001SQ'],
+            oecd: ['USALOLITOAASTSAM', 'G7LOLITOAASTSAM', 'CHNLOLITOAASTSAM', 'GBRLOLITOAASTSAM',
+                   'LRHUTTTTGBM156S', 'LRUNTTTTCAQ156S', 'LRHUTTTTGRM156S', 'LRUN64TTGRA156N']
+        };
+
+        // State management
+        let allData = {};
+        let favorites = JSON.parse(localStorage.getItem('economyFavorites') || '[]');
+        let notes = JSON.parse(localStorage.getItem('economyNotes') || '{}');
+        let currentCategory = 'all';
+        let sortBy = 'name';
+        let sortOrder = 'asc';
+
+        // Initialize theme
+        function initTheme() {
+            const savedTheme = localStorage.getItem('economyTheme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeButton(savedTheme);
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('economyTheme', next);
+            updateThemeButton(next);
+        }
+
+        function updateThemeButton(theme) {
+            document.getElementById('themeIcon').textContent = theme === 'dark' ? '☀️' : '🌙';
+            document.getElementById('themeText').textContent = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
+        }
+
+        // Fetch all data
+        async function fetchAllIndicators() {
+            try {
+                // Fetch list of indicators first
+                const indicatorsResponse = await fetch(`${API_URL}/indicators`);
+                const indicatorsData = await indicatorsResponse.json();
+                
+                // Fetch data for each indicator
+                const promises = Object.keys(indicatorsData.indicators).map(async (series) => {
+                    try {
+                        const response = await fetch(`${API_URL}/economy?series=${series}`);
+                        const data = await response.json();
+                        return { series, data };
+                    } catch (error) {
+                        console.error(`Error fetching ${series}:`, error);
+                        return null;
+                    }
+                });
+
+                const results = await Promise.all(promises);
+                
+                // Process results
+                allData = {};
+                results.forEach(result => {
+                    if (result && result.data && result.data.data && result.data.data.length > 0) {
+                        allData[result.series] = result.data;
+                    }
+                });
+
+                // Update UI
+                updateDisplay();
+                updateStats();
+                
+                // Set last update time
+                const now = new Date();
+                document.getElementById('lastUpdate').textContent = `Last updated: ${now.toLocaleString()}`;
+                document.getElementById('updateTime').textContent = now.toLocaleTimeString();
+                
+                // Save to localStorage for offline access
+                localStorage.setItem('economyData', JSON.stringify(allData));
+                localStorage.setItem('economyLastUpdate', now.toISOString());
+                
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                document.getElementById('content').innerHTML = '<div class="error">Error loading data. Please try again later.</div>';
+            }
+        }
+
+        // Update display based on current filters
+        function updateDisplay() {
+            const container = document.getElementById('content');
+            let indicators = Object.keys(allData);
+            
+            // Filter by category
+            if (currentCategory === 'favorites') {
+                indicators = indicators.filter(id => favorites.includes(id));
+            } else if (currentCategory !== 'all') {
+                indicators = indicators.filter(id => CATEGORIES[currentCategory]?.includes(id));
+            }
+            
+            // Sort indicators
+            indicators.sort((a, b) => {
+                let compareA, compareB;
+                
+                if (sortBy === 'name') {
+                    compareA = a;
+                    compareB = b;
+                } else if (sortBy === 'value') {
+                    compareA = allData[a]?.data?.[0]?.value || 0;
+                    compareB = allData[b]?.data?.[0]?.value || 0;
+                } else {
+                    const changeMap = {
+                        'week': 'week_change',
+                        'month': 'month_change',
+                        'quarter': 'quarter_change',
+                        'year': 'year_change'
+                    };
+                    const changeKey = changeMap[sortBy];
+                    compareA = allData[a]?.data?.[0]?.percentage_changes?.[changeKey] || 0;
+                    compareB = allData[b]?.data?.[0]?.percentage_changes?.[changeKey] || 0;
+                }
+                
+                if (typeof compareA === 'string') {
+                    return sortOrder === 'asc' ? compareA.localeCompare(compareB) : compareB.localeCompare(compareA);
+                } else {
+                    return sortOrder === 'asc' ? compareA - compareB : compareB - compareA;
+                }
+            });
+            
+            // Generate HTML
+            if (indicators.length === 0) {
+                container.innerHTML = '<div class="loading">No indicators found for this category.</div>';
+                return;
+            }
+            
+            const html = indicators.map(series => {
+                const data = allData[series];
+                const latest = data?.data?.[0];
+                if (!latest) return '';
+                
+                const isFavorite = favorites.includes(series);
+                const note = notes[series] || '';
+                
+                return `
+                    <div class="indicator-card">
+                        <div class="indicator-header">
+                            <div class="indicator-title">
+                                <div class="indicator-code">${series}</div>
+                                <div class="indicator-name">${data.description}</div>
+                            </div>
+                            <button class="favorite-btn ${isFavorite ? 'active' : ''}" 
+                                    onclick="toggleFavorite('${series}')">
+                                ${isFavorite ? '⭐' : '☆'}
+                            </button>
+                        </div>
+                        <div class="indicator-value">${formatValue(latest.value, series)}</div>
+                        <div class="indicator-date">As of ${latest.date}</div>
+                        <div class="changes-grid">
+                            ${renderChange('Week', latest.percentage_changes?.week_change)}
+                            ${renderChange('Month', latest.percentage_changes?.month_change)}
+                            ${renderChange('Quarter', latest.percentage_changes?.quarter_change)}
+                            ${renderChange('Year', latest.percentage_changes?.year_change)}
+                        </div>
+                        <div class="notes-section">
+                            <textarea class="notes-textarea" 
+                                      placeholder="Add notes for ${series}..."
+                                      onchange="saveNote('${series}', this.value)">${note}</textarea>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = `<div class="indicators-grid">${html}</div>`;
+        }
+
+        // Render percentage change
+        function renderChange(label, value) {
+            if (value === null || value === undefined) {
+                return `
+                    <div class="change-item">
+                        <span class="change-label">${label}:</span>
+                        <span class="change-value neutral">N/A</span>
+                    </div>
+                `;
+            }
+            
+            const className = value > 0 ? 'positive' : value < 0 ? 'negative' : 'neutral';
+            const prefix = value > 0 ? '+' : '';
+            
+            return `
+                <div class="change-item">
+                    <span class="change-label">${label}:</span>
+                    <span class="change-value ${className}">${prefix}${value.toFixed(2)}%</span>
+                </div>
+            `;
+        }
+
+        // Format value based on indicator type
+        function formatValue(value, series) {
+            if (value === null || value === undefined) return 'N/A';
+            
+            // Exchange rates - show more decimals
+            if (series.startsWith('DEX')) {
+                return value.toFixed(4);
+            }
+            
+            // Percentages
+            if (series.includes('RATE') || series === 'TCU') {
+                return value.toFixed(2) + '%';
+            }
+            
+            // Large numbers
+            if (value > 1000000) {
+                return (value / 1000000).toFixed(2) + 'M';
+            }
+            
+            if (value > 1000) {
+                return (value / 1000).toFixed(2) + 'K';
+            }
+            
+            return value.toFixed(2);
+        }
+
+        // Toggle favorite
+        function toggleFavorite(series) {
+            const index = favorites.indexOf(series);
+            if (index > -1) {
+                favorites.splice(index, 1);
+            } else {
+                favorites.push(series);
+            }
+            localStorage.setItem('economyFavorites', JSON.stringify(favorites));
+            updateDisplay();
+            updateStats();
+        }
+
+        // Save note
+        function saveNote(series, value) {
+            notes[series] = value;
+            localStorage.setItem('economyNotes', JSON.stringify(notes));
+        }
+
+        // Update statistics
+        function updateStats() {
+            document.getElementById('favoriteCount').textContent = favorites.length;
+        }
+
+        // Toggle sort order
+        function toggleSortOrder() {
+            sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+            document.getElementById('sortOrder').textContent = sortOrder === 'asc' ? '↑' : '↓';
+            updateDisplay();
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            
+            // Category tabs
+            document.getElementById('categoryTabs').addEventListener('click', (e) => {
+                if (e.target.classList.contains('tab')) {
+                    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+                    e.target.classList.add('active');
+                    currentCategory = e.target.dataset.category;
+                    updateDisplay();
+                }
+            });
+            
+            // Sort dropdown
+            document.getElementById('sortBy').addEventListener('change', (e) => {
+                sortBy = e.target.value;
+                updateDisplay();
+            });
+            
+            // Load data
+            fetchAllIndicators();
+            
+            // Auto-update weekly (every Monday at 9 AM)
+            setInterval(() => {
+                const now = new Date();
+                if (now.getDay() === 1 && now.getHours() === 9 && now.getMinutes() === 0) {
+                    fetchAllIndicators();
+                }
+            }, 60000); // Check every minute
+            
+            // Also update if data is older than 7 days
+            const lastUpdate = localStorage.getItem('economyLastUpdate');
+            if (lastUpdate) {
+                const daysSince = (Date.now() - new Date(lastUpdate).getTime()) / (1000 * 60 * 60 * 24);
+                if (daysSince > 7) {
+                    fetchAllIndicators();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
