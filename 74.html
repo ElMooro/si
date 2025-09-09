@@ -1615,6 +1615,7 @@
             
             // Log final counts for debugging
             console.log('Final Fed indicators after metadata load:', Object.keys(state.fedMetadata).length);
+            console.log('Market indicators:', Object.keys(state.marketMetadata).length);
             console.log('Total indicators displayed:', document.getElementById('totalIndicators').textContent);
             
             // Set up auto-update
@@ -1627,6 +1628,7 @@
             loadCachedData();
             
             // Update UI
+            updateControlButtons();
             updateCategoryTabs();
             displayData();
         }
