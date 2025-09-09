@@ -1589,25 +1589,30 @@
                 document.getElementById('themeIcon').textContent = '☀️';
             }
             
-            // ENSURE new indices are in fedMetadata from the start
+            // Initialize fedMetadata with NEW indices first
             state.fedMetadata = { ...NEW_FED_INDICES };
-            console.log('Initial Fed indicators with new indices:', Object.keys(state.fedMetadata).length);
+            console.log('Initialized with', Object.keys(NEW_FED_INDICES).length, 'new indices');
+            
+            // Log some sample indices to verify
+            console.log('Sample new indices present:', {
+                'BSOBLV02USM460S': state.fedMetadata['BSOBLV02USM460S'] ? '✓' : '✗',
+                'RRPONTSYD': state.fedMetadata['RRPONTSYD'] ? '✓' : '✗',
+                'FEDFUNDS': state.fedMetadata['FEDFUNDS'] ? '✓' : '✗',
+                'SOFR': state.fedMetadata['SOFR'] ? '✓' : '✗',
+                'HTRUCKSSA': state.fedMetadata['HTRUCKSSA'] ? '✓' : '✗'
+            });
             
             updateRateLimit();
             updateCacheCount();
             updateAutoUpdateDisplay();
             updateLastUpdateTime();
             
-            // Load metadata (this will merge with existing)
+            // Load metadata (this will merge with existing new indices)
             await loadMetadata();
             
             // Log final counts for debugging
             console.log('Final Fed indicators after metadata load:', Object.keys(state.fedMetadata).length);
-            console.log('Sample of new indices in metadata:', 
-                ['BSOBLV02USM460S', 'RRPONTSYD', 'FEDFUNDS', 'SOFR'].map(id => 
-                    `${id}: ${state.fedMetadata[id] ? 'Present' : 'Missing'}`
-                )
-            );
+            console.log('Total indicators displayed:', document.getElementById('totalIndicators').textContent);
             
             // Set up auto-update
             scheduleNextAutoUpdate();
