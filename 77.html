@@ -1092,7 +1092,7 @@
             fetchStockData();
         }
 
-        // Fetch stock data
+        // Fetch stock data - simplified working version
         async function fetchStockData() {
             const input = document.getElementById('stockInput');
             let symbol = input.value.trim().toUpperCase();
@@ -1115,8 +1115,18 @@
             searchBtn.textContent = 'Loading...';
             
             try {
-                const response = await fetch(`${API_BASE_URL}/stock/${symbol}`);
+                const url = `${API_BASE_URL}/stock/${symbol}`;
+                console.log('Fetching:', url);
+                
+                const response = await fetch(url);
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const data = await response.json();
+                console.log('Stock data received:', data);
                 
                 if (data.error) {
                     throw new Error(data.error);
@@ -1140,6 +1150,9 @@
                     stockHistory[symbol].shift();
                 }
                 
+                // Cache the data
+                marketData[symbol] = data;
+                
                 displayStockData(data, symbol);
                 stockDisplay.style.display = 'block';
                 updateChart(symbol);
@@ -1149,7 +1162,7 @@
                 
             } catch (error) {
                 console.error('Error fetching stock data:', error);
-                showError(`Failed to fetch data for ${symbol}. Please check the symbol and try again.`);
+                showError(`Failed to fetch data for ${symbol}. Error: ${error.message}`);
                 stockDisplay.style.display = 'none';
             } finally {
                 searchBtn.disabled = false;
@@ -1183,6 +1196,15 @@
             
             if (currentChart) {
                 currentChart.destroy();
+            }
+            
+            // Ensure we have data before creating chart
+            if (history.length === 0) {
+                ctx.font = '16px Arial';
+                ctx.fillStyle = '#94a3b8';
+                ctx.textAlign = 'center';
+                ctx.fillText('No historical data available yet', ctx.canvas.width / 2, ctx.canvas.height / 2);
+                return;
             }
             
             const chartData = {
@@ -1229,6 +1251,7 @@
                 ]
             };
             
+            // Simplified chart configuration without time scale
             currentChart = new Chart(ctx, {
                 type: 'line',
                 data: chartData,
@@ -1265,27 +1288,89 @@
                                     if (label) {
                                         label += ': ';
                                     }
-                                    label += '$' + context.parsed.y.toFixed(2);
+                                    label += '
+
+        // Show error message
+        function showError(message) {
+            const errorDisplay = document.getElementById('errorDisplay');
+            errorDisplay.innerHTML = `
+                <div class="error-message">
+                    ${message}
+                </div>
+            `;
+            
+            setTimeout(() => {
+                errorDisplay.innerHTML = '';
+            }, 5000);
+        }
+
+        // Auto-refresh functions
+        function startAutoRefresh() {
+            // Refresh indices every 60 seconds
+            setInterval(() => {
+                fetchIndices();
+            }, 60000);
+            
+            // Refresh market movers every 5 minutes
+            setInterval(() => {
+                fetchMarketMovers();
+            }, 300000);
+        }
+
+        // Initialize dashboard
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchIndices();
+            fetchMarketMovers();
+            startAutoRefresh();
+            
+            // Add some initial demo data for popular stocks
+            const demoStocks = ['AAPL', 'MSFT', 'GOOG'];
+            demoStocks.forEach((symbol, index) => {
+                setTimeout(() => {
+                    const demoData = [];
+                    for (let i = 0; i < 10; i++) {
+                        const basePrice = 150 + Math.random() * 100;
+                        demoData.push({
+                            date: new Date(Date.now() - (9 - i) * 24 * 60 * 60 * 1000),
+                            open: basePrice + Math.random() * 10,
+                            high: basePrice + Math.random() * 15,
+                            low: basePrice - Math.random() * 5,
+                            close: basePrice + Math.random() * 10 - 5,
+                            volume: Math.floor(Math.random() * 100000000)
+                        });
+                    }
+                    stockHistory[symbol] = demoData;
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html> + context.parsed.y.toFixed(2);
                                     return label;
+                                },
+                                title: function(tooltipItems) {
+                                    if (tooltipItems[0]) {
+                                        const date = history[tooltipItems[0].dataIndex].date;
+                                        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+                                    }
+                                    return '';
                                 }
                             }
                         }
                     },
                     scales: {
                         x: {
-                            type: 'time',
-                            time: {
-                                unit: 'day',
-                                displayFormats: {
-                                    day: 'MMM dd'
-                                }
-                            },
                             grid: {
                                 color: '#334155',
                                 drawBorder: false
                             },
                             ticks: {
-                                color: '#94a3b8'
+                                color: '#94a3b8',
+                                maxTicksLimit: 6,
+                                callback: function(value, index) {
+                                    const date = history[index].date;
+                                    return date.toLocaleDateString();
+                                }
                             }
                         },
                         y: {
@@ -1297,7 +1382,64 @@
                             ticks: {
                                 color: '#94a3b8',
                                 callback: function(value) {
-                                    return '$' + value.toFixed(2);
+                                    return '
+
+        // Show error message
+        function showError(message) {
+            const errorDisplay = document.getElementById('errorDisplay');
+            errorDisplay.innerHTML = `
+                <div class="error-message">
+                    ${message}
+                </div>
+            `;
+            
+            setTimeout(() => {
+                errorDisplay.innerHTML = '';
+            }, 5000);
+        }
+
+        // Auto-refresh functions
+        function startAutoRefresh() {
+            // Refresh indices every 60 seconds
+            setInterval(() => {
+                fetchIndices();
+            }, 60000);
+            
+            // Refresh market movers every 5 minutes
+            setInterval(() => {
+                fetchMarketMovers();
+            }, 300000);
+        }
+
+        // Initialize dashboard
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchIndices();
+            fetchMarketMovers();
+            startAutoRefresh();
+            
+            // Add some initial demo data for popular stocks
+            const demoStocks = ['AAPL', 'MSFT', 'GOOG'];
+            demoStocks.forEach((symbol, index) => {
+                setTimeout(() => {
+                    const demoData = [];
+                    for (let i = 0; i < 10; i++) {
+                        const basePrice = 150 + Math.random() * 100;
+                        demoData.push({
+                            date: new Date(Date.now() - (9 - i) * 24 * 60 * 60 * 1000),
+                            open: basePrice + Math.random() * 10,
+                            high: basePrice + Math.random() * 15,
+                            low: basePrice - Math.random() * 5,
+                            close: basePrice + Math.random() * 10 - 5,
+                            volume: Math.floor(Math.random() * 100000000)
+                        });
+                    }
+                    stockHistory[symbol] = demoData;
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html> + value.toFixed(2);
                                 }
                             }
                         }
