@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Polygon Market Dashboard Pro</title>
+    <title>Polygon Advanced Trading Dashboard</title>
     
     <!-- Chart.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -24,6 +24,8 @@
             --accent-green: #00d4aa;
             --accent-red: #ff3b69;
             --accent-blue: #5865f2;
+            --accent-yellow: #ffb800;
+            --accent-purple: #9945ff;
             --border: #2a3050;
             --hover: #262b47;
         }
@@ -47,7 +49,7 @@
         }
 
         .header-content {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
             padding: 0 2rem;
             display: flex;
@@ -58,119 +60,228 @@
         .logo {
             font-size: 1.5rem;
             font-weight: bold;
-            color: var(--accent-blue);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        .status-indicator {
+        .header-controls {
             display: flex;
-            align-items: center;
             gap: 1rem;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
+            align-items: center;
         }
 
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            background: var(--accent-green);
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        /* Main Container */
+        /* Container */
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
             padding: 2rem;
         }
 
-        /* Market Overview Grid */
-        .market-overview {
+        /* Tab Navigation */
+        .tab-nav {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            position: relative;
+            transition: color 0.3s;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .tab-btn.active {
+            color: var(--accent-blue);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1rem;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent-blue);
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Watchlist Grid */
+        .watchlist-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 1rem;
             margin-bottom: 2rem;
         }
 
-        .market-card {
+        .watchlist-card {
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: 1.5rem;
-            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            transition: all 0.3s;
+            cursor: pointer;
         }
 
-        .market-card:hover {
+        .watchlist-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            border-color: var(--accent-blue);
         }
 
-        .market-card-header {
+        .watchlist-card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 1rem;
         }
 
-        .market-card-title {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+        .watchlist-symbol {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--text-primary);
         }
 
-        .market-card-value {
-            font-size: 2rem;
+        .watchlist-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .badge-stock {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .badge-crypto {
+            background: var(--accent-purple);
+            color: white;
+        }
+
+        .badge-forex {
+            background: var(--accent-yellow);
+            color: black;
+        }
+
+        .watchlist-price {
+            font-size: 1.8rem;
             font-weight: bold;
             margin-bottom: 0.5rem;
         }
 
-        .market-card-change {
+        .watchlist-change {
             display: flex;
             align-items: center;
             gap: 0.5rem;
             font-size: 0.9rem;
+            margin-bottom: 1rem;
         }
 
-        .positive {
-            color: var(--accent-green);
+        .watchlist-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
         }
 
-        .negative {
-            color: var(--accent-red);
+        .metric-item {
+            font-size: 0.8rem;
         }
 
-        /* Search Section */
-        .search-section {
+        .metric-label {
+            color: var(--text-secondary);
+        }
+
+        .metric-value {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Action Buttons */
+        .card-actions {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            width: 30px;
+            height: 30px;
+            border: none;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .action-btn.favorited {
+            color: var(--accent-yellow);
+        }
+
+        /* Add Asset Section */
+        .add-asset-section {
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 12px;
-            padding: 2rem;
+            padding: 1.5rem;
             margin-bottom: 2rem;
         }
 
-        .search-title {
-            font-size: 1.2rem;
-            margin-bottom: 1rem;
-            color: var(--text-primary);
-        }
-
-        .search-container {
+        .add-asset-form {
             display: flex;
             gap: 1rem;
-            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
         }
 
-        .search-input {
-            flex: 1;
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .input-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .input-field {
             padding: 0.75rem 1rem;
             background: var(--bg-secondary);
             border: 1px solid var(--border);
@@ -179,9 +290,19 @@
             font-size: 1rem;
         }
 
-        .search-input:focus {
+        .input-field:focus {
             outline: none;
             border-color: var(--accent-blue);
+        }
+
+        .select-field {
+            padding: 0.75rem 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            cursor: pointer;
         }
 
         .btn {
@@ -205,191 +326,183 @@
             cursor: not-allowed;
         }
 
-        .quick-stocks {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-
-        .quick-stock-btn {
-            padding: 0.5rem 1rem;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.9rem;
-        }
-
-        .quick-stock-btn:hover {
-            background: var(--hover);
-            color: var(--text-primary);
-            border-color: var(--accent-blue);
-        }
-
-        /* Stock Display */
-        .stock-display {
+        /* Modal */
+        .modal {
             display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: 2rem;
-            margin-bottom: 2rem;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
         }
 
-        .stock-header {
+        .modal-header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
             margin-bottom: 2rem;
             padding-bottom: 1rem;
             border-bottom: 1px solid var(--border);
         }
 
-        .stock-info {
-            flex: 1;
-        }
-
-        .stock-symbol {
-            font-size: 2rem;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-        }
-
-        .stock-price {
-            font-size: 2.5rem;
+        .modal-title {
+            font-size: 1.5rem;
             font-weight: bold;
         }
 
-        .stock-change {
-            font-size: 1.2rem;
-            margin-top: 0.5rem;
+        .close-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        /* Metrics Grid */
-        .metrics-grid {
+        .close-btn:hover {
+            background: var(--accent-red);
+            color: white;
+        }
+
+        /* Chart Modal */
+        .chart-container {
+            width: 100%;
+            height: 500px;
+            position: relative;
+            margin-bottom: 2rem;
+        }
+
+        .chart-info {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1rem;
             margin-bottom: 2rem;
         }
 
-        .metric-card {
+        .info-card {
             background: var(--bg-secondary);
             border: 1px solid var(--border);
             border-radius: 8px;
             padding: 1rem;
-            text-align: center;
         }
 
-        .metric-label {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            margin-bottom: 0.5rem;
-        }
-
-        .metric-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--text-primary);
-        }
-
-        /* Chart Container */
-        .chart-section {
+        /* Notes Section */
+        .notes-section {
             background: var(--bg-secondary);
             border: 1px solid var(--border);
-            border-radius: 12px;
+            border-radius: 8px;
             padding: 1.5rem;
-            height: 400px;
-            position: relative;
-        }
-
-        /* Movers Section */
-        .movers-section {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 1.5rem;
             margin-bottom: 2rem;
         }
 
-        .mover-card {
+        .notes-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .notes-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .notes-textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 1rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            resize: vertical;
+        }
+
+        .notes-list {
+            margin-top: 1rem;
+        }
+
+        .note-item {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .note-date {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .note-text {
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        /* Stats Section */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: 1.5rem;
+            text-align: center;
         }
 
-        .mover-header {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .mover-title {
-            font-size: 1.1rem;
-            font-weight: 500;
-        }
-
-        .stock-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .stock-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .stock-row:hover {
-            background: var(--hover);
-            transform: translateX(4px);
-        }
-
-        .stock-row-left {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .stock-row-symbol {
-            font-weight: 600;
-            font-size: 1rem;
-            color: var(--text-primary);
-        }
-
-        .stock-row-metric {
-            font-size: 0.75rem;
+        .stat-label {
+            font-size: 0.9rem;
             color: var(--text-secondary);
+            margin-bottom: 0.5rem;
         }
 
-        .stock-row-right {
-            text-align: right;
-        }
-
-        .stock-row-price {
-            font-weight: 600;
-            font-size: 0.95rem;
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
             color: var(--text-primary);
         }
 
-        .stock-row-change {
-            font-size: 0.75rem;
-            margin-top: 0.25rem;
+        /* Utilities */
+        .positive {
+            color: var(--accent-green);
         }
 
-        /* Loading State */
+        .negative {
+            color: var(--accent-red);
+        }
+
         .loading {
             display: flex;
             justify-content: center;
@@ -411,36 +524,22 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Error State */
-        .error {
-            background: rgba(255, 59, 105, 0.1);
-            border: 1px solid var(--accent-red);
-            border-radius: 8px;
-            padding: 1rem;
-            color: var(--accent-red);
-            margin: 1rem 0;
-        }
-
         /* Responsive */
         @media (max-width: 768px) {
             .container {
                 padding: 1rem;
             }
 
-            .market-overview {
+            .watchlist-grid {
                 grid-template-columns: 1fr;
             }
 
-            .movers-section {
-                grid-template-columns: 1fr;
-            }
-
-            .search-container {
+            .add-asset-form {
                 flex-direction: column;
             }
 
-            .stock-header {
-                flex-direction: column;
+            .input-group {
+                width: 100%;
             }
         }
     </style>
@@ -449,423 +548,391 @@
     <!-- Header -->
     <header class="header">
         <div class="header-content">
-            <div class="logo">
-                📊 Polygon Market Dashboard
-            </div>
-            <div class="status-indicator">
-                <span class="status-dot"></span>
-                <span>Live Market Data</span>
-                <span id="current-time"></span>
+            <div class="logo">📊 Polygon Trading Dashboard</div>
+            <div class="header-controls">
+                <button class="btn" onclick="refreshAll()">🔄 Refresh All</button>
+                <span id="last-update" style="color: var(--text-secondary); font-size: 0.9rem;">Last update: Never</span>
             </div>
         </div>
     </header>
 
     <!-- Main Container -->
     <div class="container">
-        <!-- Market Overview -->
-        <div class="market-overview" id="market-overview">
-            <div class="loading">
-                <div class="spinner"></div>
-            </div>
+        <!-- Tab Navigation -->
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab('watchlist')">📋 Watchlist</button>
+            <button class="tab-btn" onclick="switchTab('favorites')">⭐ Favorites</button>
+            <button class="tab-btn" onclick="switchTab('high-volume')">📊 High Volume</button>
+            <button class="tab-btn" onclick="switchTab('high-beta')">⚡ High Beta</button>
+            <button class="tab-btn" onclick="switchTab('indices')">📈 Indices</button>
+            <button class="tab-btn" onclick="switchTab('crypto')">₿ Crypto</button>
+            <button class="tab-btn" onclick="switchTab('forex')">💱 Forex</button>
         </div>
 
-        <!-- Stock Search -->
-        <div class="search-section">
-            <h2 class="search-title">Search Stock Data</h2>
-            <div class="search-container">
-                <input 
-                    type="text" 
-                    class="search-input" 
-                    id="stock-input" 
-                    placeholder="Enter stock symbol (e.g., AAPL, MSFT)"
-                    onkeypress="handleEnterKey(event)"
-                >
-                <button class="btn" id="search-btn" onclick="searchStock()">
-                    Search
-                </button>
-            </div>
-            <div class="quick-stocks">
-                <button class="quick-stock-btn" onclick="quickSearch('AAPL')">AAPL</button>
-                <button class="quick-stock-btn" onclick="quickSearch('MSFT')">MSFT</button>
-                <button class="quick-stock-btn" onclick="quickSearch('GOOG')">GOOG</button>
-                <button class="quick-stock-btn" onclick="quickSearch('AMZN')">AMZN</button>
-                <button class="quick-stock-btn" onclick="quickSearch('TSLA')">TSLA</button>
-                <button class="quick-stock-btn" onclick="quickSearch('NVDA')">NVDA</button>
-                <button class="quick-stock-btn" onclick="quickSearch('META')">META</button>
-                <button class="quick-stock-btn" onclick="quickSearch('JPM')">JPM</button>
-                <button class="quick-stock-btn" onclick="quickSearch('V')">V</button>
-                <button class="quick-stock-btn" onclick="quickSearch('WMT')">WMT</button>
-            </div>
-        </div>
-
-        <!-- Stock Display -->
-        <div class="stock-display" id="stock-display">
-            <div class="stock-header">
-                <div class="stock-info">
-                    <div class="stock-symbol" id="stock-symbol">-</div>
-                    <div class="stock-price" id="stock-price">-</div>
-                    <div class="stock-change" id="stock-change">-</div>
+        <!-- Add Asset Section -->
+        <div class="add-asset-section">
+            <div class="add-asset-form">
+                <div class="input-group">
+                    <label class="input-label">Symbol</label>
+                    <input type="text" class="input-field" id="add-symbol" placeholder="e.g., AAPL, BTC, EUR/USD">
                 </div>
+                <div class="input-group">
+                    <label class="input-label">Type</label>
+                    <select class="select-field" id="add-type">
+                        <option value="stock">Stock</option>
+                        <option value="crypto">Crypto</option>
+                        <option value="forex">Forex</option>
+                        <option value="index">Index</option>
+                    </select>
+                </div>
+                <div class="input-group" style="align-self: flex-end;">
+                    <button class="btn" onclick="addAsset()">+ Add to Watchlist</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Contents -->
+        <!-- Watchlist Tab -->
+        <div id="watchlist-tab" class="tab-content active">
+            <h2 style="margin-bottom: 1rem;">All Assets</h2>
+            <div class="watchlist-grid" id="watchlist-grid">
+                <!-- Watchlist items will be populated here -->
+            </div>
+        </div>
+
+        <!-- Favorites Tab -->
+        <div id="favorites-tab" class="tab-content">
+            <h2 style="margin-bottom: 1rem;">Favorite Assets</h2>
+            <div class="watchlist-grid" id="favorites-grid">
+                <!-- Favorite items will be populated here -->
+            </div>
+        </div>
+
+        <!-- High Volume Tab -->
+        <div id="high-volume-tab" class="tab-content">
+            <h2 style="margin-bottom: 1rem;">Highest Volume Stocks</h2>
+            <div class="stats-grid" id="volume-stats">
+                <!-- Volume stats will be populated here -->
+            </div>
+            <div class="watchlist-grid" id="high-volume-grid">
+                <!-- High volume stocks will be populated here -->
+            </div>
+        </div>
+
+        <!-- High Beta Tab -->
+        <div id="high-beta-tab" class="tab-content">
+            <h2 style="margin-bottom: 1rem;">High Beta Stocks</h2>
+            <div class="stats-grid" id="beta-stats">
+                <!-- Beta stats will be populated here -->
+            </div>
+            <div class="watchlist-grid" id="high-beta-grid">
+                <!-- High beta stocks will be populated here -->
+            </div>
+        </div>
+
+        <!-- Indices Tab -->
+        <div id="indices-tab" class="tab-content">
+            <h2 style="margin-bottom: 1rem;">Market Indices</h2>
+            <div class="watchlist-grid" id="indices-grid">
+                <!-- Indices will be populated here -->
+            </div>
+        </div>
+
+        <!-- Crypto Tab -->
+        <div id="crypto-tab" class="tab-content">
+            <h2 style="margin-bottom: 1rem;">Cryptocurrencies</h2>
+            <div class="watchlist-grid" id="crypto-grid">
+                <!-- Crypto assets will be populated here -->
+            </div>
+        </div>
+
+        <!-- Forex Tab -->
+        <div id="forex-tab" class="tab-content">
+            <h2 style="margin-bottom: 1rem;">Forex Pairs</h2>
+            <div class="watchlist-grid" id="forex-grid">
+                <!-- Forex pairs will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart Modal -->
+    <div class="modal" id="chart-modal">
+        <div class="modal-content" style="width: 90%; max-width: 1200px;">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modal-title">Asset Details</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
             </div>
             
-            <div class="metrics-grid">
-                <div class="metric-card">
-                    <div class="metric-label">Open</div>
-                    <div class="metric-value" id="open-price">-</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-label">High</div>
-                    <div class="metric-value" id="high-price">-</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-label">Low</div>
-                    <div class="metric-value" id="low-price">-</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-label">Close</div>
-                    <div class="metric-value" id="close-price">-</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-label">Volume</div>
-                    <div class="metric-value" id="volume">-</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-label">Date</div>
-                    <div class="metric-value" id="data-date">-</div>
-                </div>
+            <div class="chart-info" id="chart-info">
+                <!-- Asset info will be populated here -->
             </div>
-
-            <div class="chart-section">
-                <canvas id="stock-chart"></canvas>
+            
+            <div class="chart-container">
+                <canvas id="full-chart"></canvas>
             </div>
-        </div>
-
-        <!-- Market Movers -->
-        <div class="movers-section">
-            <div class="mover-card">
-                <div class="mover-header">
-                    <span>🔥</span>
-                    <span class="mover-title">Most Active</span>
+            
+            <div class="notes-section">
+                <div class="notes-header">
+                    <h3 class="notes-title">Notes</h3>
+                    <button class="btn" onclick="saveNote()">Save Note</button>
                 </div>
-                <div class="stock-list" id="active-stocks">
-                    <div class="loading">Loading...</div>
-                </div>
-            </div>
-
-            <div class="mover-card">
-                <div class="mover-header">
-                    <span>⚡</span>
-                    <span class="mover-title">High Volatility</span>
-                </div>
-                <div class="stock-list" id="volatile-stocks">
-                    <div class="loading">Loading...</div>
-                </div>
-            </div>
-
-            <div class="mover-card">
-                <div class="mover-header">
-                    <span>💎</span>
-                    <span class="mover-title">Tech Giants</span>
-                </div>
-                <div class="stock-list" id="tech-stocks">
-                    <div class="loading">Loading...</div>
+                <textarea class="notes-textarea" id="note-input" placeholder="Add your notes here..."></textarea>
+                <div class="notes-list" id="notes-list">
+                    <!-- Notes will be populated here -->
                 </div>
             </div>
         </div>
-
-        <!-- Error Display -->
-        <div id="error-display"></div>
     </div>
 
     <script>
         // Configuration
         const API_BASE = 'https://fjf6t3ne4h.execute-api.us-east-1.amazonaws.com/prod';
         let chartInstance = null;
-        let stockData = {};
+        let modalChartInstance = null;
+        let currentAsset = null;
+        
+        // Data storage
+        let watchlist = [];
+        let favorites = [];
+        let assetData = {};
+        let assetNotes = {};
         let priceHistory = {};
-
-        // Stock lists
-        const stockLists = {
-            active: ['AAPL', 'NVDA', 'TSLA', 'MSFT', 'AMD'],
-            volatile: ['TSLA', 'NVDA', 'AMD', 'PLTR', 'MARA'],
-            tech: ['AAPL', 'MSFT', 'GOOG', 'META', 'AMZN']
-        };
+        
+        // Default assets
+        const defaultAssets = [
+            { symbol: 'SPY', type: 'index', name: 'S&P 500' },
+            { symbol: 'QQQ', type: 'index', name: 'NASDAQ 100' },
+            { symbol: 'IWM', type: 'index', name: 'Russell 2000' },
+            { symbol: 'GRNY', type: 'stock', name: 'GraniteShares 2x Long NVDA' },
+            { symbol: 'X:BTCUSD', type: 'crypto', name: 'Bitcoin' },
+            { symbol: 'X:ETHUSD', type: 'crypto', name: 'Ethereum' },
+            { symbol: 'X:MATICUSD', type: 'crypto', name: 'Polygon' },
+            { symbol: 'X:PEPEUSD', type: 'crypto', name: 'Pepe' },
+            { symbol: 'DXY', type: 'forex', name: 'US Dollar Index' },
+            { symbol: 'C:EURUSD', type: 'forex', name: 'EUR/USD' },
+            { symbol: 'C:USDJPY', type: 'forex', name: 'USD/JPY' }
+        ];
+        
+        // High volume and high beta stocks
+        const highVolumeStocks = ['AAPL', 'NVDA', 'TSLA', 'MSFT', 'AMD', 'AMZN', 'META', 'SPY', 'QQQ', 'PLTR'];
+        const highBetaStocks = ['TSLA', 'NVDA', 'AMD', 'PLTR', 'GME', 'AMC', 'COIN', 'RIOT', 'MARA', 'GRNY'];
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Dashboard initialized');
-            updateTime();
-            setInterval(updateTime, 1000);
-            loadMarketOverview();
-            loadMarketMovers();
+            loadFromStorage();
+            initializeWatchlist();
+            loadAllData();
         });
 
-        // Update time
-        function updateTime() {
-            const now = new Date();
-            document.getElementById('current-time').textContent = now.toLocaleTimeString();
-        }
-
-        // Format currency
-        function formatCurrency(value) {
-            if (value == null) return '-';
-            return '$' + parseFloat(value).toFixed(2);
-        }
-
-        // Format number
-        function formatNumber(value) {
-            if (value == null) return '-';
-            if (value >= 1e9) return (value / 1e9).toFixed(2) + 'B';
-            if (value >= 1e6) return (value / 1e6).toFixed(2) + 'M';
-            if (value >= 1e3) return (value / 1e3).toFixed(2) + 'K';
-            return value.toFixed(2);
-        }
-
-        // Calculate change
-        function calculateChange(open, close) {
-            if (!open || !close) return { value: 0, percent: 0 };
-            const change = close - open;
-            const percent = (change / open) * 100;
-            return { value: change, percent: percent };
-        }
-
-        // Load market overview
-        async function loadMarketOverview() {
-            try {
-                console.log('Loading market overview...');
-                const response = await fetch(API_BASE + '/indices');
-                
-                if (!response.ok) {
-                    throw new Error('Failed to fetch indices');
-                }
-                
-                const data = await response.json();
-                console.log('Indices data:', data);
-                displayMarketOverview(data);
-            } catch (error) {
-                console.error('Error loading indices:', error);
-                document.getElementById('market-overview').innerHTML = 
-                    '<div class="error">Failed to load market indices</div>';
+        // Load from localStorage
+        function loadFromStorage() {
+            const savedWatchlist = localStorage.getItem('polygon_watchlist');
+            const savedFavorites = localStorage.getItem('polygon_favorites');
+            const savedNotes = localStorage.getItem('polygon_notes');
+            
+            if (savedWatchlist) {
+                watchlist = JSON.parse(savedWatchlist);
+            } else {
+                watchlist = [...defaultAssets];
+            }
+            
+            if (savedFavorites) {
+                favorites = JSON.parse(savedFavorites);
+            }
+            
+            if (savedNotes) {
+                assetNotes = JSON.parse(savedNotes);
             }
         }
 
-        // Display market overview
-        function displayMarketOverview(data) {
-            const container = document.getElementById('market-overview');
-            const indices = {
-                'SPY': { name: 'S&P 500', icon: '📈' },
-                'QQQ': { name: 'NASDAQ', icon: '💻' },
-                'DIA': { name: 'Dow Jones', icon: '🏛️' },
-                'IWM': { name: 'Russell 2000', icon: '📊' }
-            };
-
-            let html = '';
-            for (const [symbol, values] of Object.entries(data)) {
-                const info = indices[symbol] || { name: symbol, icon: '📊' };
-                const change = calculateChange(values.open, values.close);
-                const isPositive = change.value >= 0;
-
-                html += `
-                    <div class="market-card">
-                        <div class="market-card-header">
-                            <span class="market-card-title">${info.icon} ${info.name}</span>
-                        </div>
-                        <div class="market-card-value">${formatCurrency(values.close)}</div>
-                        <div class="market-card-change ${isPositive ? 'positive' : 'negative'}">
-                            <span>${isPositive ? '▲' : '▼'}</span>
-                            <span>${formatCurrency(Math.abs(change.value))}</span>
-                            <span>(${Math.abs(change.percent).toFixed(2)}%)</span>
-                        </div>
-                    </div>
-                `;
-            }
-            container.innerHTML = html;
+        // Save to localStorage
+        function saveToStorage() {
+            localStorage.setItem('polygon_watchlist', JSON.stringify(watchlist));
+            localStorage.setItem('polygon_favorites', JSON.stringify(favorites));
+            localStorage.setItem('polygon_notes', JSON.stringify(assetNotes));
         }
 
-        // Load market movers
-        async function loadMarketMovers() {
-            console.log('Loading market movers...');
-            loadStockList('active', 'active-stocks');
-            loadStockList('volatile', 'volatile-stocks');
-            loadStockList('tech', 'tech-stocks');
-        }
-
-        // Load stock list
-        async function loadStockList(category, elementId) {
-            const element = document.getElementById(elementId);
-            const stocks = stockLists[category];
-            let html = '';
-
-            for (const symbol of stocks) {
-                try {
-                    // Check cache first
-                    let data = stockData[symbol];
-                    if (!data) {
-                        const response = await fetch(API_BASE + '/stock/' + symbol);
-                        if (response.ok) {
-                            data = await response.json();
-                            stockData[symbol] = data;
-                        }
-                    }
-
-                    if (data && !data.error) {
-                        const change = calculateChange(data.open, data.close);
-                        const isPositive = change.value >= 0;
-
-                        html += `
-                            <div class="stock-row" onclick="quickSearch('${symbol}')">
-                                <div class="stock-row-left">
-                                    <span class="stock-row-symbol">${symbol}</span>
-                                    <span class="stock-row-metric">Vol: ${formatNumber(data.volume)}</span>
-                                </div>
-                                <div class="stock-row-right">
-                                    <div class="stock-row-price">${formatCurrency(data.close)}</div>
-                                    <div class="stock-row-change ${isPositive ? 'positive' : 'negative'}">
-                                        ${isPositive ? '▲' : '▼'} ${Math.abs(change.percent).toFixed(2)}%
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    }
-
-                    // Small delay between requests
-                    await new Promise(resolve => setTimeout(resolve, 2500));
-                } catch (error) {
-                    console.error('Error loading ' + symbol + ':', error);
-                }
-            }
-
-            element.innerHTML = html || '<div class="error">No data available</div>';
-        }
-
-        // Handle enter key
-        function handleEnterKey(event) {
-            if (event.key === 'Enter') {
-                searchStock();
+        // Initialize watchlist
+        function initializeWatchlist() {
+            if (watchlist.length === 0) {
+                watchlist = [...defaultAssets];
+                saveToStorage();
             }
         }
 
-        // Quick search
-        function quickSearch(symbol) {
-            document.getElementById('stock-input').value = symbol;
-            searchStock();
+        // Switch tabs
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            // Load specific tab data
+            if (tabName === 'high-volume') {
+                loadHighVolumeStocks();
+            } else if (tabName === 'high-beta') {
+                loadHighBetaStocks();
+            }
         }
 
-        // Search stock
-        async function searchStock() {
-            const input = document.getElementById('stock-input');
-            let symbol = input.value.trim().toUpperCase();
-
+        // Add asset to watchlist
+        function addAsset() {
+            const symbolInput = document.getElementById('add-symbol');
+            const typeSelect = document.getElementById('add-type');
+            
+            let symbol = symbolInput.value.trim().toUpperCase();
+            const type = typeSelect.value;
+            
             if (!symbol) {
-                showError('Please enter a stock symbol');
+                alert('Please enter a symbol');
                 return;
             }
-
-            // Handle GOOGL
-            if (symbol === 'GOOGL') {
-                symbol = 'GOOG';
-            }
-
-            const btn = document.getElementById('search-btn');
-            const display = document.getElementById('stock-display');
-
-            btn.disabled = true;
-            btn.textContent = 'Loading...';
-
-            try {
-                console.log('Searching for:', symbol);
-                const response = await fetch(API_BASE + '/stock/' + symbol);
-                
-                if (!response.ok) {
-                    throw new Error('Failed to fetch stock data');
-                }
-
-                const data = await response.json();
-                console.log('Stock data:', data);
-
-                if (data.error) {
-                    throw new Error(data.error);
-                }
-
-                // Store data
-                stockData[symbol] = data;
-                
-                // Update price history
-                if (!priceHistory[symbol]) {
-                    priceHistory[symbol] = [];
-                }
-                priceHistory[symbol].push({
-                    date: new Date(data.timestamp),
-                    price: data.close
-                });
-                
-                // Keep last 20 points
-                if (priceHistory[symbol].length > 20) {
-                    priceHistory[symbol].shift();
-                }
-
-                displayStock(data, symbol);
-                display.style.display = 'block';
-                updateChart(symbol);
-
-            } catch (error) {
-                console.error('Error:', error);
-                showError('Failed to load ' + symbol);
-                display.style.display = 'none';
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Search';
-            }
-        }
-
-        // Display stock
-        function displayStock(data, symbol) {
-            const change = calculateChange(data.open, data.close);
-            const isPositive = change.value >= 0;
-
-            document.getElementById('stock-symbol').textContent = symbol;
-            document.getElementById('stock-price').textContent = formatCurrency(data.close);
-            document.getElementById('stock-change').innerHTML = `
-                <span class="${isPositive ? 'positive' : 'negative'}">
-                    ${isPositive ? '▲' : '▼'} 
-                    ${formatCurrency(Math.abs(change.value))} 
-                    (${Math.abs(change.percent).toFixed(2)}%)
-                </span>
-            `;
-
-            document.getElementById('open-price').textContent = formatCurrency(data.open);
-            document.getElementById('high-price').textContent = formatCurrency(data.high);
-            document.getElementById('low-price').textContent = formatCurrency(data.low);
-            document.getElementById('close-price').textContent = formatCurrency(data.close);
-            document.getElementById('volume').textContent = formatNumber(data.volume);
             
-            const date = new Date(data.timestamp);
-            document.getElementById('data-date').textContent = date.toLocaleDateString();
+            // Format symbol based on type
+            if (type === 'crypto' && !symbol.includes(':')) {
+                symbol = 'X:' + symbol + 'USD';
+            } else if (type === 'forex' && !symbol.includes(':')) {
+                symbol = 'C:' + symbol.replace('/', '');
+            }
+            
+            // Check if already in watchlist
+            if (watchlist.find(a => a.symbol === symbol)) {
+                alert('Asset already in watchlist');
+                return;
+            }
+            
+            // Add to watchlist
+            const asset = {
+                symbol: symbol,
+                type: type,
+                name: symbol
+            };
+            
+            watchlist.push(asset);
+            saveToStorage();
+            
+            // Clear inputs
+            symbolInput.value = '';
+            
+            // Reload data
+            loadAssetData(asset);
+            renderWatchlist();
         }
 
-        // Update chart
-        function updateChart(symbol) {
-            const ctx = document.getElementById('stock-chart').getContext('2d');
-            const history = priceHistory[symbol] || [];
-
-            if (chartInstance) {
-                chartInstance.destroy();
+        // Toggle favorite
+        function toggleFavorite(symbol) {
+            const index = favorites.indexOf(symbol);
+            if (index > -1) {
+                favorites.splice(index, 1);
+            } else {
+                favorites.push(symbol);
             }
+            saveToStorage();
+            renderAllGrids();
+        }
 
-            if (history.length === 0) return;
+        // Remove from watchlist
+        function removeFromWatchlist(symbol) {
+            watchlist = watchlist.filter(a => a.symbol !== symbol);
+            favorites = favorites.filter(s => s !== symbol);
+            saveToStorage();
+            renderAllGrids();
+        }
 
-            chartInstance = new Chart(ctx, {
+        // Open chart modal
+        function openChartModal(symbol) {
+            currentAsset = symbol;
+            const modal = document.getElementById('chart-modal');
+            modal.classList.add('active');
+            
+            // Update modal title
+            document.getElementById('modal-title').textContent = symbol + ' - Full Analysis';
+            
+            // Load full chart data
+            loadFullChart(symbol);
+            
+            // Load notes
+            loadNotes(symbol);
+        }
+
+        // Close modal
+        function closeModal() {
+            const modal = document.getElementById('chart-modal');
+            modal.classList.remove('active');
+            if (modalChartInstance) {
+                modalChartInstance.destroy();
+                modalChartInstance = null;
+            }
+        }
+
+        // Load full chart
+        async function loadFullChart(symbol) {
+            const data = assetData[symbol];
+            if (!data) return;
+            
+            // Display asset info
+            const infoHtml = `
+                <div class="info-card">
+                    <div class="metric-label">Open</div>
+                    <div class="metric-value">${formatCurrency(data.open)}</div>
+                </div>
+                <div class="info-card">
+                    <div class="metric-label">High</div>
+                    <div class="metric-value">${formatCurrency(data.high)}</div>
+                </div>
+                <div class="info-card">
+                    <div class="metric-label">Low</div>
+                    <div class="metric-value">${formatCurrency(data.low)}</div>
+                </div>
+                <div class="info-card">
+                    <div class="metric-label">Close</div>
+                    <div class="metric-value">${formatCurrency(data.close)}</div>
+                </div>
+                <div class="info-card">
+                    <div class="metric-label">Volume</div>
+                    <div class="metric-value">${formatNumber(data.volume)}</div>
+                </div>
+                <div class="info-card">
+                    <div class="metric-label">Change</div>
+                    <div class="metric-value ${data.close >= data.open ? 'positive' : 'negative'}">
+                        ${((data.close - data.open) / data.open * 100).toFixed(2)}%
+                    </div>
+                </div>
+            `;
+            document.getElementById('chart-info').innerHTML = infoHtml;
+            
+            // Create full chart
+            const ctx = document.getElementById('full-chart').getContext('2d');
+            
+            if (modalChartInstance) {
+                modalChartInstance.destroy();
+            }
+            
+            // Generate more historical data points for demonstration
+            const history = generateHistoricalData(symbol, 100);
+            
+            modalChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: history.map(h => h.date.toLocaleDateString()),
+                    labels: history.map(h => h.date),
                     datasets: [{
-                        label: symbol + ' Price',
+                        label: 'Price',
                         data: history.map(h => h.price),
                         borderColor: '#5865f2',
                         backgroundColor: 'rgba(88, 101, 242, 0.1)',
                         borderWidth: 2,
-                        tension: 0.4,
-                        fill: true
+                        tension: 0.1,
+                        fill: true,
+                        pointRadius: 0,
+                        pointHoverRadius: 4
                     }]
                 },
                 options: {
@@ -877,29 +944,23 @@
                         },
                         tooltip: {
                             mode: 'index',
-                            intersect: false,
-                            backgroundColor: '#1a1f3a',
-                            titleColor: '#ffffff',
-                            bodyColor: '#8892b0',
-                            borderColor: '#2a3050',
-                            borderWidth: 1
+                            intersect: false
                         }
                     },
                     scales: {
                         x: {
                             grid: {
-                                color: '#2a3050',
-                                drawBorder: false
+                                color: '#2a3050'
                             },
                             ticks: {
-                                color: '#8892b0'
+                                color: '#8892b0',
+                                maxTicksLimit: 10
                             }
                         },
                         y: {
                             position: 'right',
                             grid: {
-                                color: '#2a3050',
-                                drawBorder: false
+                                color: '#2a3050'
                             },
                             ticks: {
                                 color: '#8892b0',
@@ -913,14 +974,375 @@
             });
         }
 
-        // Show error
-        function showError(message) {
-            const errorDiv = document.getElementById('error-display');
-            errorDiv.innerHTML = '<div class="error">' + message + '</div>';
-            setTimeout(() => {
-                errorDiv.innerHTML = '';
-            }, 5000);
+        // Generate historical data
+        function generateHistoricalData(symbol, days) {
+            const data = assetData[symbol];
+            if (!data) return [];
+            
+            const history = [];
+            let basePrice = data.close;
+            
+            for (let i = days; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                
+                // Simulate price movement
+                const change = (Math.random() - 0.5) * basePrice * 0.02;
+                basePrice = Math.max(basePrice * 0.5, basePrice + change);
+                
+                history.push({
+                    date: date.toLocaleDateString(),
+                    price: basePrice
+                });
+            }
+            
+            // Add current price
+            history[history.length - 1].price = data.close;
+            
+            return history;
         }
+
+        // Save note
+        function saveNote() {
+            if (!currentAsset) return;
+            
+            const noteInput = document.getElementById('note-input');
+            const note = noteInput.value.trim();
+            
+            if (!note) return;
+            
+            if (!assetNotes[currentAsset]) {
+                assetNotes[currentAsset] = [];
+            }
+            
+            assetNotes[currentAsset].push({
+                text: note,
+                date: new Date().toISOString()
+            });
+            
+            saveToStorage();
+            noteInput.value = '';
+            loadNotes(currentAsset);
+        }
+
+        // Load notes
+        function loadNotes(symbol) {
+            const notes = assetNotes[symbol] || [];
+            const notesList = document.getElementById('notes-list');
+            
+            if (notes.length === 0) {
+                notesList.innerHTML = '<p style="color: var(--text-secondary);">No notes yet</p>';
+                return;
+            }
+            
+            let html = '';
+            notes.forEach(note => {
+                const date = new Date(note.date);
+                html += `
+                    <div class="note-item">
+                        <div class="note-date">${date.toLocaleDateString()} ${date.toLocaleTimeString()}</div>
+                        <div class="note-text">${note.text}</div>
+                    </div>
+                `;
+            });
+            
+            notesList.innerHTML = html;
+        }
+
+        // Load all data
+        async function loadAllData() {
+            // Load data for all watchlist items
+            for (const asset of watchlist) {
+                await loadAssetData(asset);
+            }
+            
+            renderAllGrids();
+            updateLastUpdate();
+        }
+
+        // Load asset data
+        async function loadAssetData(asset) {
+            try {
+                const endpoint = asset.type === 'index' ? '/indices' : '/stock/' + asset.symbol;
+                const response = await fetch(API_BASE + endpoint);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (asset.type === 'index' && data[asset.symbol]) {
+                        assetData[asset.symbol] = data[asset.symbol];
+                    } else if (!data.error) {
+                        assetData[asset.symbol] = data;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading ' + asset.symbol + ':', error);
+            }
+        }
+
+        // Load high volume stocks
+        async function loadHighVolumeStocks() {
+            const grid = document.getElementById('high-volume-grid');
+            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            
+            const stocks = [];
+            for (const symbol of highVolumeStocks) {
+                const data = assetData[symbol];
+                if (!data) {
+                    await loadAssetData({ symbol: symbol, type: 'stock' });
+                }
+                if (assetData[symbol]) {
+                    stocks.push({ symbol: symbol, data: assetData[symbol] });
+                }
+            }
+            
+            // Sort by volume
+            stocks.sort((a, b) => (b.data.volume || 0) - (a.data.volume || 0));
+            
+            // Display stats
+            const statsHtml = `
+                <div class="stat-card">
+                    <div class="stat-label">Average Volume</div>
+                    <div class="stat-value">${formatNumber(stocks.reduce((sum, s) => sum + (s.data.volume || 0), 0) / stocks.length)}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Highest Volume</div>
+                    <div class="stat-value">${stocks[0] ? stocks[0].symbol : '-'}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Stocks</div>
+                    <div class="stat-value">${stocks.length}</div>
+                </div>
+            `;
+            document.getElementById('volume-stats').innerHTML = statsHtml;
+            
+            // Display stocks
+            let html = '';
+            stocks.forEach(stock => {
+                html += createWatchlistCard(stock.symbol, stock.data, 'stock');
+            });
+            grid.innerHTML = html;
+        }
+
+        // Load high beta stocks
+        async function loadHighBetaStocks() {
+            const grid = document.getElementById('high-beta-grid');
+            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            
+            const stocks = [];
+            for (const symbol of highBetaStocks) {
+                const data = assetData[symbol];
+                if (!data) {
+                    await loadAssetData({ symbol: symbol, type: 'stock' });
+                }
+                if (assetData[symbol]) {
+                    stocks.push({ symbol: symbol, data: assetData[symbol] });
+                }
+            }
+            
+            // Calculate volatility (simplified)
+            stocks.forEach(stock => {
+                const change = Math.abs((stock.data.high - stock.data.low) / stock.data.open * 100);
+                stock.volatility = change;
+            });
+            
+            // Sort by volatility
+            stocks.sort((a, b) => b.volatility - a.volatility);
+            
+            // Display stats
+            const statsHtml = `
+                <div class="stat-card">
+                    <div class="stat-label">Average Volatility</div>
+                    <div class="stat-value">${(stocks.reduce((sum, s) => sum + s.volatility, 0) / stocks.length).toFixed(2)}%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Most Volatile</div>
+                    <div class="stat-value">${stocks[0] ? stocks[0].symbol : '-'}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Stocks</div>
+                    <div class="stat-value">${stocks.length}</div>
+                </div>
+            `;
+            document.getElementById('beta-stats').innerHTML = statsHtml;
+            
+            // Display stocks
+            let html = '';
+            stocks.forEach(stock => {
+                html += createWatchlistCard(stock.symbol, stock.data, 'stock');
+            });
+            grid.innerHTML = html;
+        }
+
+        // Render all grids
+        function renderAllGrids() {
+            renderWatchlist();
+            renderFavorites();
+            renderByType();
+        }
+
+        // Render watchlist
+        function renderWatchlist() {
+            const grid = document.getElementById('watchlist-grid');
+            let html = '';
+            
+            watchlist.forEach(asset => {
+                const data = assetData[asset.symbol];
+                if (data) {
+                    html += createWatchlistCard(asset.symbol, data, asset.type);
+                }
+            });
+            
+            grid.innerHTML = html || '<div class="loading">Loading watchlist...</div>';
+        }
+
+        // Render favorites
+        function renderFavorites() {
+            const grid = document.getElementById('favorites-grid');
+            let html = '';
+            
+            favorites.forEach(symbol => {
+                const asset = watchlist.find(a => a.symbol === symbol);
+                if (asset) {
+                    const data = assetData[symbol];
+                    if (data) {
+                        html += createWatchlistCard(symbol, data, asset.type);
+                    }
+                }
+            });
+            
+            grid.innerHTML = html || '<p style="color: var(--text-secondary);">No favorites yet. Click the star icon on any asset to add it to favorites.</p>';
+        }
+
+        // Render by type
+        function renderByType() {
+            // Indices
+            const indicesGrid = document.getElementById('indices-grid');
+            let indicesHtml = '';
+            watchlist.filter(a => a.type === 'index').forEach(asset => {
+                const data = assetData[asset.symbol];
+                if (data) {
+                    indicesHtml += createWatchlistCard(asset.symbol, data, 'index');
+                }
+            });
+            indicesGrid.innerHTML = indicesHtml || '<p style="color: var(--text-secondary);">No indices in watchlist</p>';
+            
+            // Crypto
+            const cryptoGrid = document.getElementById('crypto-grid');
+            let cryptoHtml = '';
+            watchlist.filter(a => a.type === 'crypto').forEach(asset => {
+                const data = assetData[asset.symbol];
+                if (data) {
+                    cryptoHtml += createWatchlistCard(asset.symbol, data, 'crypto');
+                }
+            });
+            cryptoGrid.innerHTML = cryptoHtml || '<p style="color: var(--text-secondary);">No cryptocurrencies in watchlist</p>';
+            
+            // Forex
+            const forexGrid = document.getElementById('forex-grid');
+            let forexHtml = '';
+            watchlist.filter(a => a.type === 'forex').forEach(asset => {
+                const data = assetData[asset.symbol];
+                if (data) {
+                    forexHtml += createWatchlistCard(asset.symbol, data, 'forex');
+                }
+            });
+            forexGrid.innerHTML = forexHtml || '<p style="color: var(--text-secondary);">No forex pairs in watchlist</p>';
+        }
+
+        // Create watchlist card
+        function createWatchlistCard(symbol, data, type) {
+            const displaySymbol = symbol.replace('X:', '').replace('C:', '');
+            const change = calculateChange(data.open, data.close);
+            const isPositive = change.value >= 0;
+            const isFavorite = favorites.includes(symbol);
+            
+            let badge = '';
+            if (type === 'stock') badge = '<span class="watchlist-badge badge-stock">STOCK</span>';
+            else if (type === 'crypto') badge = '<span class="watchlist-badge badge-crypto">CRYPTO</span>';
+            else if (type === 'forex') badge = '<span class="watchlist-badge badge-forex">FOREX</span>';
+            else if (type === 'index') badge = '<span class="watchlist-badge badge-stock">INDEX</span>';
+            
+            return `
+                <div class="watchlist-card" onclick="openChartModal('${symbol}')">
+                    <div class="card-actions" onclick="event.stopPropagation()">
+                        <button class="action-btn ${isFavorite ? 'favorited' : ''}" onclick="toggleFavorite('${symbol}')" title="Favorite">
+                            ⭐
+                        </button>
+                        <button class="action-btn" onclick="removeFromWatchlist('${symbol}')" title="Remove">
+                            🗑️
+                        </button>
+                    </div>
+                    <div class="watchlist-card-header">
+                        <div class="watchlist-symbol">${displaySymbol}</div>
+                        ${badge}
+                    </div>
+                    <div class="watchlist-price">${formatCurrency(data.close, type === 'crypto' ? 4 : 2)}</div>
+                    <div class="watchlist-change ${isPositive ? 'positive' : 'negative'}">
+                        <span>${isPositive ? '▲' : '▼'}</span>
+                        <span>${formatCurrency(Math.abs(change.value), type === 'crypto' ? 4 : 2)}</span>
+                        <span>(${Math.abs(change.percent).toFixed(2)}%)</span>
+                    </div>
+                    <div class="watchlist-metrics">
+                        <div class="metric-item">
+                            <span class="metric-label">Volume:</span>
+                            <span class="metric-value">${formatNumber(data.volume)}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">High:</span>
+                            <span class="metric-value">${formatCurrency(data.high, type === 'crypto' ? 4 : 2)}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Low:</span>
+                            <span class="metric-value">${formatCurrency(data.low, type === 'crypto' ? 4 : 2)}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Open:</span>
+                            <span class="metric-value">${formatCurrency(data.open, type === 'crypto' ? 4 : 2)}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Calculate change
+        function calculateChange(open, close) {
+            if (!open || !close) return { value: 0, percent: 0 };
+            const change = close - open;
+            const percent = (change / open) * 100;
+            return { value: change, percent: percent };
+        }
+
+        // Format currency
+        function formatCurrency(value, decimals = 2) {
+            if (value == null) return '-';
+            return '$' + parseFloat(value).toFixed(decimals);
+        }
+
+        // Format number
+        function formatNumber(value) {
+            if (value == null) return '-';
+            if (value >= 1e9) return (value / 1e9).toFixed(2) + 'B';
+            if (value >= 1e6) return (value / 1e6).toFixed(2) + 'M';
+            if (value >= 1e3) return (value / 1e3).toFixed(2) + 'K';
+            return parseFloat(value).toFixed(2);
+        }
+
+        // Refresh all data
+        async function refreshAll() {
+            console.log('Refreshing all data...');
+            assetData = {}; // Clear cache
+            await loadAllData();
+        }
+
+        // Update last update time
+        function updateLastUpdate() {
+            const now = new Date();
+            document.getElementById('last-update').textContent = 'Last update: ' + now.toLocaleTimeString();
+        }
+
+        // Auto-refresh every 5 minutes
+        setInterval(refreshAll, 300000);
     </script>
 </body>
 </html>
