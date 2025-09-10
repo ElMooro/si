@@ -147,6 +147,34 @@
             padding: 0 1rem;
         }
 
+        /* Section Headers */
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-color), var(--glow-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .section-badge {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid var(--primary-color);
+            border-radius: 20px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
         /* Market Indices */
         .indices-grid {
             display: grid;
@@ -274,6 +302,105 @@
             font-weight: 600;
         }
 
+        /* Market Movers Section */
+        .market-movers {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .mover-category {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            animation: fadeIn 0.6s ease-out backwards;
+        }
+
+        .mover-category:nth-child(1) { animation-delay: 0.2s; }
+        .mover-category:nth-child(2) { animation-delay: 0.3s; }
+        .mover-category:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .mover-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .mover-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .mover-icon {
+            font-size: 1.2rem;
+        }
+
+        .stock-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .stock-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: var(--dark-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .stock-item:hover {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: var(--primary-color);
+            transform: translateX(5px);
+        }
+
+        .stock-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .stock-ticker {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .stock-metric {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .stock-price-info {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .stock-price-small {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .stock-change-small {
+            font-size: 0.75rem;
+        }
+
         /* Stock Search Section */
         .search-section {
             background: var(--card-bg);
@@ -282,11 +409,6 @@
             padding: 2rem;
             margin-bottom: 2rem;
             animation: fadeIn 0.6s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
         }
 
         .search-container {
@@ -530,6 +652,10 @@
                 grid-template-columns: 1fr;
             }
 
+            .market-movers {
+                grid-template-columns: 1fr;
+            }
+
             .stock-header {
                 flex-direction: column;
                 gap: 1rem;
@@ -588,9 +714,59 @@
     <!-- Main Container -->
     <div class="container">
         <!-- Market Indices Section -->
+        <div class="section-header">
+            <h2 class="section-title">Market Indices</h2>
+            <span class="section-badge">Real-time</span>
+        </div>
         <div class="indices-grid" id="indicesGrid">
             <div class="loading">
                 <div class="spinner"></div>
+            </div>
+        </div>
+
+        <!-- Market Movers Section -->
+        <div class="section-header">
+            <h2 class="section-title">Market Movers</h2>
+            <span class="section-badge">Auto-Updated</span>
+        </div>
+        <div class="market-movers">
+            <!-- High Volume Stocks -->
+            <div class="mover-category">
+                <div class="mover-header">
+                    <span class="mover-icon">🔥</span>
+                    <span class="mover-title">High Volume Stocks</span>
+                </div>
+                <div class="stock-list" id="highVolumeList">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- High Beta Stocks -->
+            <div class="mover-category">
+                <div class="mover-header">
+                    <span class="mover-icon">⚡</span>
+                    <span class="mover-title">High Beta/Volatile</span>
+                </div>
+                <div class="stock-list" id="highBetaList">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tech Leaders -->
+            <div class="mover-category">
+                <div class="mover-header">
+                    <span class="mover-icon">💻</span>
+                    <span class="mover-title">Tech Leaders</span>
+                </div>
+                <div class="stock-list" id="techLeadersList">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -602,7 +778,7 @@
                     type="text" 
                     class="search-input" 
                     id="stockInput" 
-                    placeholder="Enter stock symbol (e.g., AAPL, MSFT, GOOGL)"
+                    placeholder="Enter stock symbol (e.g., AAPL, MSFT, GOOG)"
                     onkeypress="if(event.key === 'Enter') fetchStockData()"
                 >
                 <button class="search-btn" onclick="fetchStockData()" id="searchBtn">
@@ -612,12 +788,14 @@
             <div class="quick-picks">
                 <div class="quick-pick" onclick="quickSearch('AAPL')">AAPL</div>
                 <div class="quick-pick" onclick="quickSearch('MSFT')">MSFT</div>
-                <div class="quick-pick" onclick="quickSearch('GOOGL')">GOOGL</div>
+                <div class="quick-pick" onclick="quickSearch('GOOG')">GOOG</div>
                 <div class="quick-pick" onclick="quickSearch('AMZN')">AMZN</div>
                 <div class="quick-pick" onclick="quickSearch('TSLA')">TSLA</div>
                 <div class="quick-pick" onclick="quickSearch('NVDA')">NVDA</div>
                 <div class="quick-pick" onclick="quickSearch('META')">META</div>
                 <div class="quick-pick" onclick="quickSearch('JPM')">JPM</div>
+                <div class="quick-pick" onclick="quickSearch('NFLX')">NFLX</div>
+                <div class="quick-pick" onclick="quickSearch('AMD')">AMD</div>
             </div>
         </div>
 
@@ -676,6 +854,16 @@
         const API_BASE_URL = 'https://fjf6t3ne4h.execute-api.us-east-1.amazonaws.com/prod';
         let currentChart = null;
         let stockHistory = {};
+        let marketData = {};
+        let requestQueue = [];
+        let isProcessingQueue = false;
+
+        // Define stock categories
+        const stockCategories = {
+            highVolume: ['AAPL', 'NVDA', 'TSLA', 'AMD', 'MSFT', 'AMZN', 'SPY', 'QQQ'],
+            highBeta: ['TSLA', 'NVDA', 'AMD', 'MRVL', 'COIN', 'RIOT', 'MARA', 'PLTR'],
+            techLeaders: ['AAPL', 'MSFT', 'GOOG', 'META', 'AMZN', 'NVDA', 'ORCL', 'CRM']
+        };
 
         // Update current time
         function updateTime() {
@@ -705,6 +893,36 @@
             const change = close - open;
             const percent = (change / open) * 100;
             return { value: change, percent: percent };
+        }
+
+        // Rate-limited fetch function
+        async function rateLimitedFetch(url) {
+            return new Promise((resolve) => {
+                requestQueue.push({ url, resolve });
+                processQueue();
+            });
+        }
+
+        // Process request queue with rate limiting
+        async function processQueue() {
+            if (isProcessingQueue || requestQueue.length === 0) return;
+            
+            isProcessingQueue = true;
+            const request = requestQueue.shift();
+            
+            try {
+                const response = await fetch(request.url);
+                const data = await response.json();
+                request.resolve(data);
+            } catch (error) {
+                request.resolve({ error: error.message });
+            }
+            
+            // Wait 12 seconds between requests (5 requests per minute)
+            setTimeout(() => {
+                isProcessingQueue = false;
+                processQueue();
+            }, 12000);
         }
 
         // Fetch market indices
@@ -782,6 +1000,92 @@
             indicesGrid.innerHTML = html;
         }
 
+        // Fetch market movers
+        async function fetchMarketMovers() {
+            // Fetch high volume stocks
+            fetchCategoryStocks('highVolume', 'highVolumeList');
+            
+            // Fetch high beta stocks
+            setTimeout(() => {
+                fetchCategoryStocks('highBeta', 'highBetaList');
+            }, 2000);
+            
+            // Fetch tech leaders
+            setTimeout(() => {
+                fetchCategoryStocks('techLeaders', 'techLeadersList');
+            }, 4000);
+        }
+
+        // Fetch stocks for a specific category
+        async function fetchCategoryStocks(category, elementId) {
+            const element = document.getElementById(elementId);
+            const stocks = stockCategories[category];
+            let html = '';
+            
+            for (let i = 0; i < Math.min(5, stocks.length); i++) {
+                const symbol = stocks[i];
+                
+                // Check if we have cached data
+                if (marketData[symbol] && Date.now() - marketData[symbol].timestamp < 300000) {
+                    // Use cached data if less than 5 minutes old
+                    html += createStockItem(symbol, marketData[symbol].data);
+                } else {
+                    // Fetch new data
+                    try {
+                        const data = await rateLimitedFetch(`${API_BASE_URL}/stock/${symbol}`);
+                        
+                        if (!data.error) {
+                            // Cache the data
+                            marketData[symbol] = {
+                                data: data,
+                                timestamp: Date.now()
+                            };
+                            html += createStockItem(symbol, data);
+                        }
+                    } catch (error) {
+                        console.error(`Error fetching ${symbol}:`, error);
+                    }
+                }
+                
+                // Update the display after each stock is loaded
+                if (html) {
+                    element.innerHTML = html;
+                }
+            }
+            
+            if (!html) {
+                element.innerHTML = '<div style="color: var(--text-secondary); font-size: 0.9rem;">Loading market data...</div>';
+            }
+        }
+
+        // Create stock item HTML
+        function createStockItem(symbol, data) {
+            const change = calculateChange(data.open, data.close);
+            const isPositive = change.value >= 0;
+            const volume = data.volume || 0;
+            
+            // Add appropriate metric label based on category
+            let metricLabel = 'Volume: ' + formatNumber(volume);
+            if (symbol === 'TSLA' || symbol === 'NVDA' || symbol === 'AMD') {
+                metricLabel = 'High Beta • ' + metricLabel;
+            }
+            
+            return `
+                <div class="stock-item" onclick="quickSearch('${symbol}')">
+                    <div class="stock-info">
+                        <div class="stock-ticker">${symbol}</div>
+                        <div class="stock-metric">${metricLabel}</div>
+                    </div>
+                    <div class="stock-price-info">
+                        <div class="stock-price-small">${formatCurrency(data.close)}</div>
+                        <div class="stock-change-small ${isPositive ? 'change-positive' : 'change-negative'}">
+                            ${isPositive ? '▲' : '▼'} ${Math.abs(change.percent).toFixed(2)}%
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
         // Quick search function
         function quickSearch(symbol) {
             document.getElementById('stockInput').value = symbol;
@@ -791,7 +1095,13 @@
         // Fetch stock data
         async function fetchStockData() {
             const input = document.getElementById('stockInput');
-            const symbol = input.value.trim().toUpperCase();
+            let symbol = input.value.trim().toUpperCase();
+            
+            // Handle GOOGL -> GOOG conversion
+            if (symbol === 'GOOGL') {
+                symbol = 'GOOG';
+                input.value = 'GOOG';
+            }
             
             if (!symbol) {
                 showError('Please enter a stock symbol');
@@ -1010,20 +1320,27 @@
             }, 5000);
         }
 
-        // Auto-refresh indices every 60 seconds
+        // Auto-refresh functions
         function startAutoRefresh() {
+            // Refresh indices every 60 seconds
             setInterval(() => {
                 fetchIndices();
             }, 60000);
+            
+            // Refresh market movers every 5 minutes
+            setInterval(() => {
+                fetchMarketMovers();
+            }, 300000);
         }
 
         // Initialize dashboard
         window.addEventListener('DOMContentLoaded', () => {
             fetchIndices();
+            fetchMarketMovers();
             startAutoRefresh();
             
             // Add some initial demo data for popular stocks
-            const demoStocks = ['AAPL', 'MSFT', 'GOOGL'];
+            const demoStocks = ['AAPL', 'MSFT', 'GOOG'];
             demoStocks.forEach((symbol, index) => {
                 setTimeout(() => {
                     const demoData = [];
