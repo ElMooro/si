@@ -1067,23 +1067,23 @@
             // Add appropriate metric label based on category
             let metricLabel = 'Volume: ' + formatNumber(volume);
             if (symbol === 'TSLA' || symbol === 'NVDA' || symbol === 'AMD') {
-                metricLabel = 'High Beta • ' + metricLabel;
+                metricLabel = 'High Beta - ' + metricLabel;
             }
             
-            return `
-                <div class="stock-item" onclick="quickSearch('${symbol}')">
-                    <div class="stock-info">
-                        <div class="stock-ticker">${symbol}</div>
-                        <div class="stock-metric">${metricLabel}</div>
-                    </div>
-                    <div class="stock-price-info">
-                        <div class="stock-price-small">${formatCurrency(data.close)}</div>
-                        <div class="stock-change-small ${isPositive ? 'change-positive' : 'change-negative'}">
-                            ${isPositive ? '▲' : '▼'} ${Math.abs(change.percent).toFixed(2)}%
-                        </div>
-                    </div>
-                </div>
-            `;
+            const stockItemHTML = '<div class="stock-item" onclick="quickSearch(\'' + symbol + '\')">' +
+                '<div class="stock-info">' +
+                    '<div class="stock-ticker">' + symbol + '</div>' +
+                    '<div class="stock-metric">' + metricLabel + '</div>' +
+                '</div>' +
+                '<div class="stock-price-info">' +
+                    '<div class="stock-price-small">' + formatCurrency(data.close) + '</div>' +
+                    '<div class="stock-change-small ' + (isPositive ? 'change-positive' : 'change-negative') + '">' +
+                        (isPositive ? '▲' : '▼') + ' ' + Math.abs(change.percent).toFixed(2) + '%' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+            
+            return stockItemHTML;
         }
 
         // Quick search function
