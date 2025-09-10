@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polygon Market Dashboard - Advanced Financial Analytics</title>
+    
+    <!-- Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-adapter-date-fns/3.0.0/chartjs-adapter-date-fns.bundle.min.js"></script>
+    
+    <!-- Animate.css for animations -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --dark-bg: #0f172a;
+            --card-bg: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+            --glow-color: #818cf8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 50%),
+                        radial-gradient(circle at 50% 20%, rgba(239, 68, 68, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            animation: backgroundShift 20s ease-in-out infinite;
+        }
+
+        @keyframes backgroundShift {
+            0%, 100% { transform: translate(0, 0); }
+            25% { transform: translate(-10px, 10px); }
+            50% { transform: translate(10px, -10px); }
+            75% { transform: translate(-10px, -10px); }
+        }
+
+        /* Header */
+        .header {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.5rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            animation: slideDown 0.5s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary-color), var(--glow-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo::before {
+            content: '📈';
+            font-size: 1.5rem;
+            -webkit-text-fill-color: initial;
+        }
+
+        .last-update {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .pulse {
+            width: 8px;
+            height: 8px;
+            background: var(--success-color);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        /* Market Indices */
+        .indices-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .index-card {
+            background: linear-gradient(135deg, var(--card-bg), rgba(30, 41, 59, 0.8));
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.5s ease-out backwards;
+        }
+
+        .index-card:nth-child(1) { animation-delay: 0.1s; }
+        .index-card:nth-child(2) { animation-delay: 0.2s; }
+        .index-card:nth-child(3) { animation-delay: 0.3s; }
+        .index-card:nth-child(4) { animation-delay: 0.4s; }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .index-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(99, 102, 241, 0.2);
+            border-color: var(--primary-color);
+        }
+
+        .index-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .index-card:hover::before {
+            left: 100%;
+        }
+
+        .index-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .index-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .index-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary-color), var(--glow-color));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .index-price {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .index-change {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .change-positive {
+            color: var(--success-color);
+        }
+
+        .change-negative {
+            color: var(--danger-color);
+        }
+
+        .index-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        /* Stock Search Section */
+        .search-section {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .search-container {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.75rem 1rem;
+            background: var(--dark-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .search-btn {
+            padding: 0.75rem 2rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--glow-color));
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .search-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .search-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
+        }
+
+        .search-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Quick Picks */
+        .quick-picks {
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .quick-pick {
+            padding: 0.5rem 1rem;
+            background: var(--dark-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quick-pick:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        /* Stock Data Display */
+        .stock-display {
+            display: none;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .stock-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .stock-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .stock-symbol {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-color), var(--glow-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stock-price-main {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .stock-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: var(--dark-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary-color);
+        }
+
+        .metric-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            background: var(--dark-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            height: 400px;
+            position: relative;
+        }
+
+        /* Loading and Error States */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger-color);
+            border-radius: 8px;
+            padding: 1rem;
+            color: var(--danger-color);
+            margin: 1rem 0;
+            animation: shake 0.5s ease-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border-color);
+            margin-top: 4rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .indices-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stock-header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .stock-metrics {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Tooltips */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: var(--card-bg);
+            color: var(--text-primary);
+            text-align: center;
+            border-radius: 6px;
+            padding: 0.5rem;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.85rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">Polygon Market Dashboard</div>
+            <div class="last-update">
+                <span class="pulse"></span>
+                <span>Live Market Data</span>
+                <span id="currentTime"></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Market Indices Section -->
+        <div class="indices-grid" id="indicesGrid">
+            <div class="loading">
+                <div class="spinner"></div>
+            </div>
+        </div>
+
+        <!-- Stock Search Section -->
+        <div class="search-section">
+            <h2 style="margin-bottom: 1.5rem; font-size: 1.5rem;">Search Stock Data</h2>
+            <div class="search-container">
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    id="stockInput" 
+                    placeholder="Enter stock symbol (e.g., AAPL, MSFT, GOOGL)"
+                    onkeypress="if(event.key === 'Enter') fetchStockData()"
+                >
+                <button class="search-btn" onclick="fetchStockData()" id="searchBtn">
+                    Search Stock
+                </button>
+            </div>
+            <div class="quick-picks">
+                <div class="quick-pick" onclick="quickSearch('AAPL')">AAPL</div>
+                <div class="quick-pick" onclick="quickSearch('MSFT')">MSFT</div>
+                <div class="quick-pick" onclick="quickSearch('GOOGL')">GOOGL</div>
+                <div class="quick-pick" onclick="quickSearch('AMZN')">AMZN</div>
+                <div class="quick-pick" onclick="quickSearch('TSLA')">TSLA</div>
+                <div class="quick-pick" onclick="quickSearch('NVDA')">NVDA</div>
+                <div class="quick-pick" onclick="quickSearch('META')">META</div>
+                <div class="quick-pick" onclick="quickSearch('JPM')">JPM</div>
+            </div>
+        </div>
+
+        <!-- Stock Data Display -->
+        <div class="stock-display" id="stockDisplay">
+            <div class="stock-header">
+                <div class="stock-title">
+                    <span class="stock-symbol" id="stockSymbol">-</span>
+                </div>
+                <div class="stock-price-main" id="stockPriceMain">-</div>
+            </div>
+            
+            <div class="stock-metrics">
+                <div class="metric-card">
+                    <div class="metric-label">Open</div>
+                    <div class="metric-value" id="openPrice">-</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">High</div>
+                    <div class="metric-value" id="highPrice">-</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Low</div>
+                    <div class="metric-value" id="lowPrice">-</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Close</div>
+                    <div class="metric-value" id="closePrice">-</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Volume</div>
+                    <div class="metric-value" id="volume">-</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Date</div>
+                    <div class="metric-value" id="dataDate" style="font-size: 1rem;">-</div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="stockChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Error Display -->
+        <div id="errorDisplay"></div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>Powered by Polygon.io API | Data delayed by 15 minutes | © 2025 Market Dashboard</p>
+    </footer>
+
+    <script>
+        // API Configuration
+        const API_BASE_URL = 'https://fjf6t3ne4h.execute-api.us-east-1.amazonaws.com/prod';
+        let currentChart = null;
+        let stockHistory = {};
+
+        // Update current time
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('currentTime').textContent = now.toLocaleTimeString();
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // Format numbers
+        function formatNumber(num) {
+            if (num === null || num === undefined) return '-';
+            if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+            if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+            if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+            return num.toFixed(2);
+        }
+
+        function formatCurrency(num) {
+            if (num === null || num === undefined) return '-';
+            return '$' + parseFloat(num).toFixed(2);
+        }
+
+        // Calculate percentage change
+        function calculateChange(open, close) {
+            if (!open || !close) return { value: 0, percent: 0 };
+            const change = close - open;
+            const percent = (change / open) * 100;
+            return { value: change, percent: percent };
+        }
+
+        // Fetch market indices
+        async function fetchIndices() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/indices`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                displayIndices(data);
+            } catch (error) {
+                console.error('Error fetching indices:', error);
+                document.getElementById('indicesGrid').innerHTML = `
+                    <div class="error-message">
+                        Failed to load market indices. Please refresh the page.
+                    </div>
+                `;
+            }
+        }
+
+        // Display market indices
+        function displayIndices(data) {
+            const indicesGrid = document.getElementById('indicesGrid');
+            const indexInfo = {
+                'SPY': { name: 'S&P 500', icon: '📊' },
+                'QQQ': { name: 'NASDAQ-100', icon: '💻' },
+                'DIA': { name: 'Dow Jones', icon: '🏛️' },
+                'IWM': { name: 'Russell 2000', icon: '📈' }
+            };
+            
+            let html = '';
+            
+            for (const [symbol, values] of Object.entries(data)) {
+                const info = indexInfo[symbol] || { name: symbol, icon: '📈' };
+                const change = calculateChange(values.open, values.close);
+                const isPositive = change.value >= 0;
+                
+                html += `
+                    <div class="index-card">
+                        <div class="index-header">
+                            <div class="index-name">${info.name}</div>
+                            <div class="index-icon">${info.icon}</div>
+                        </div>
+                        <div class="index-price">${formatCurrency(values.close)}</div>
+                        <div class="index-change ${isPositive ? 'change-positive' : 'change-negative'}">
+                            <span>${isPositive ? '▲' : '▼'}</span>
+                            <span>${formatCurrency(Math.abs(change.value))}</span>
+                            <span>(${change.percent.toFixed(2)}%)</span>
+                        </div>
+                        <div class="index-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">High</span>
+                                <span class="stat-value">${formatCurrency(values.high)}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Low</span>
+                                <span class="stat-value">${formatCurrency(values.low)}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Open</span>
+                                <span class="stat-value">${formatCurrency(values.open)}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Volume</span>
+                                <span class="stat-value">${formatNumber(values.volume)}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            indicesGrid.innerHTML = html;
+        }
+
+        // Quick search function
+        function quickSearch(symbol) {
+            document.getElementById('stockInput').value = symbol;
+            fetchStockData();
+        }
+
+        // Fetch stock data
+        async function fetchStockData() {
+            const input = document.getElementById('stockInput');
+            const symbol = input.value.trim().toUpperCase();
+            
+            if (!symbol) {
+                showError('Please enter a stock symbol');
+                return;
+            }
+            
+            const searchBtn = document.getElementById('searchBtn');
+            const stockDisplay = document.getElementById('stockDisplay');
+            
+            searchBtn.disabled = true;
+            searchBtn.textContent = 'Loading...';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/stock/${symbol}`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                // Store in history
+                if (!stockHistory[symbol]) {
+                    stockHistory[symbol] = [];
+                }
+                stockHistory[symbol].push({
+                    date: new Date(data.timestamp),
+                    open: data.open,
+                    high: data.high,
+                    low: data.low,
+                    close: data.close,
+                    volume: data.volume
+                });
+                
+                // Keep only last 20 data points
+                if (stockHistory[symbol].length > 20) {
+                    stockHistory[symbol].shift();
+                }
+                
+                displayStockData(data, symbol);
+                stockDisplay.style.display = 'block';
+                updateChart(symbol);
+                
+                // Clear any previous errors
+                document.getElementById('errorDisplay').innerHTML = '';
+                
+            } catch (error) {
+                console.error('Error fetching stock data:', error);
+                showError(`Failed to fetch data for ${symbol}. Please check the symbol and try again.`);
+                stockDisplay.style.display = 'none';
+            } finally {
+                searchBtn.disabled = false;
+                searchBtn.textContent = 'Search Stock';
+            }
+        }
+
+        // Display stock data
+        function displayStockData(data, symbol) {
+            document.getElementById('stockSymbol').textContent = symbol;
+            document.getElementById('stockPriceMain').textContent = formatCurrency(data.close);
+            document.getElementById('openPrice').textContent = formatCurrency(data.open);
+            document.getElementById('highPrice').textContent = formatCurrency(data.high);
+            document.getElementById('lowPrice').textContent = formatCurrency(data.low);
+            document.getElementById('closePrice').textContent = formatCurrency(data.close);
+            document.getElementById('volume').textContent = formatNumber(data.volume);
+            
+            const date = new Date(data.timestamp);
+            document.getElementById('dataDate').textContent = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+            
+            // Update price color based on change
+            const change = calculateChange(data.open, data.close);
+            const priceElement = document.getElementById('stockPriceMain');
+            priceElement.className = change.value >= 0 ? 'stock-price-main change-positive' : 'stock-price-main change-negative';
+        }
+
+        // Update chart
+        function updateChart(symbol) {
+            const ctx = document.getElementById('stockChart').getContext('2d');
+            const history = stockHistory[symbol] || [];
+            
+            if (currentChart) {
+                currentChart.destroy();
+            }
+            
+            const chartData = {
+                labels: history.map(d => d.date),
+                datasets: [
+                    {
+                        label: 'Close Price',
+                        data: history.map(d => d.close),
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: '#6366f1',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    },
+                    {
+                        label: 'High',
+                        data: history.map(d => d.high),
+                        borderColor: '#10b981',
+                        backgroundColor: 'transparent',
+                        borderWidth: 1,
+                        borderDash: [5, 5],
+                        tension: 0.4,
+                        fill: false,
+                        pointRadius: 0,
+                        pointHoverRadius: 4
+                    },
+                    {
+                        label: 'Low',
+                        data: history.map(d => d.low),
+                        borderColor: '#ef4444',
+                        backgroundColor: 'transparent',
+                        borderWidth: 1,
+                        borderDash: [5, 5],
+                        tension: 0.4,
+                        fill: false,
+                        pointRadius: 0,
+                        pointHoverRadius: 4
+                    }
+                ]
+            };
+            
+            currentChart = new Chart(ctx, {
+                type: 'line',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                color: '#94a3b8',
+                                padding: 15,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(30, 41, 59, 0.9)',
+                            titleColor: '#f1f5f9',
+                            bodyColor: '#94a3b8',
+                            borderColor: '#334155',
+                            borderWidth: 1,
+                            padding: 12,
+                            displayColors: true,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    label += '$' + context.parsed.y.toFixed(2);
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'day',
+                                displayFormats: {
+                                    day: 'MMM dd'
+                                }
+                            },
+                            grid: {
+                                color: '#334155',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        },
+                        y: {
+                            position: 'right',
+                            grid: {
+                                color: '#334155',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#94a3b8',
+                                callback: function(value) {
+                                    return '$' + value.toFixed(2);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Show error message
+        function showError(message) {
+            const errorDisplay = document.getElementById('errorDisplay');
+            errorDisplay.innerHTML = `
+                <div class="error-message">
+                    ${message}
+                </div>
+            `;
+            
+            setTimeout(() => {
+                errorDisplay.innerHTML = '';
+            }, 5000);
+        }
+
+        // Auto-refresh indices every 60 seconds
+        function startAutoRefresh() {
+            setInterval(() => {
+                fetchIndices();
+            }, 60000);
+        }
+
+        // Initialize dashboard
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchIndices();
+            startAutoRefresh();
+            
+            // Add some initial demo data for popular stocks
+            const demoStocks = ['AAPL', 'MSFT', 'GOOGL'];
+            demoStocks.forEach((symbol, index) => {
+                setTimeout(() => {
+                    const demoData = [];
+                    for (let i = 0; i < 10; i++) {
+                        const basePrice = 150 + Math.random() * 100;
+                        demoData.push({
+                            date: new Date(Date.now() - (9 - i) * 24 * 60 * 60 * 1000),
+                            open: basePrice + Math.random() * 10,
+                            high: basePrice + Math.random() * 15,
+                            low: basePrice - Math.random() * 5,
+                            close: basePrice + Math.random() * 10 - 5,
+                            volume: Math.floor(Math.random() * 100000000)
+                        });
+                    }
+                    stockHistory[symbol] = demoData;
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>
