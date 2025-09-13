@@ -29,39 +29,36 @@
             --accent-blue: #5865f2;
             --accent-yellow: #ffb800;
             --accent-purple: #9945ff;
-            --accent-orange: #ff6b35;
             --border: #2a3050;
-            --shadow: rgba(0, 0, 0, 0.3);
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--bg-primary);
             color: var(--text-primary);
             line-height: 1.6;
             min-height: 100vh;
-            overflow-x: hidden;
         }
 
         /* Header */
         .header {
             background: var(--bg-secondary);
             border-bottom: 1px solid var(--border);
-            padding: 0.75rem 0;
+            padding: 1rem 0;
             position: sticky;
             top: 0;
             z-index: 1000;
-            backdrop-filter: blur(10px);
         }
 
         .header-content {
-            max-width: 1920px;
+            max-width: 1600px;
             margin: 0 auto;
-            padding: 0 1rem;
+            padding: 0 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
             gap: 2rem;
+            flex-wrap: wrap;
         }
 
         .logo {
@@ -73,6 +70,60 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+        }
+
+        .search-container {
+            position: relative;
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            margin-top: 0.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1001;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+        }
+
+        .search-results.active {
+            display: block;
+        }
+
+        .search-result-item {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+
+        .search-result-item:hover {
+            background: var(--bg-hover);
         }
 
         .market-status {
@@ -100,166 +151,29 @@
             background: var(--accent-red);
         }
 
-        .status-indicator.pre {
-            background: var(--accent-yellow);
-        }
-
         @keyframes pulse {
-            0% { opacity: 1; }
+            0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
-            100% { opacity: 1; }
         }
 
         .header-controls {
             display: flex;
             gap: 1rem;
             align-items: center;
-            flex-wrap: wrap;
-        }
-
-        /* Search Bar */
-        .search-container {
-            position: relative;
-            min-width: 300px;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 0.5rem 2.5rem 0.5rem 1rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-size: 0.95rem;
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 0 2px rgba(88, 101, 242, 0.2);
-        }
-
-        .search-results {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            margin-top: 0.5rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            max-height: 400px;
-            overflow-y: auto;
-            display: none;
-            z-index: 1001;
-            box-shadow: 0 8px 16px var(--shadow);
-        }
-
-        .search-results.active {
-            display: block;
-        }
-
-        .search-result-item {
-            padding: 0.75rem 1rem;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: background 0.2s;
-        }
-
-        .search-result-item:hover {
-            background: var(--bg-hover);
-        }
-
-        .search-result-symbol {
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .search-result-name {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-        }
-
-        .search-result-exchange {
-            font-size: 0.75rem;
-            padding: 0.2rem 0.4rem;
-            background: var(--bg-secondary);
-            border-radius: 4px;
-            color: var(--text-secondary);
         }
 
         /* Container */
         .container {
-            max-width: 1920px;
+            max-width: 1600px;
             margin: 0 auto;
-            padding: 1.5rem;
+            padding: 2rem;
         }
 
-        /* Main Layout */
-        .main-layout {
-            display: grid;
-            grid-template-columns: 250px 1fr 350px;
-            gap: 1.5rem;
-            min-height: calc(100vh - 100px);
-        }
-
-        /* Sidebar */
-        .sidebar {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1.5rem;
-            height: fit-content;
-            position: sticky;
-            top: 80px;
-        }
-
-        .sidebar-section {
-            margin-bottom: 2rem;
-        }
-
-        .sidebar-title {
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--text-secondary);
-            margin-bottom: 1rem;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem;
-            margin-bottom: 0.25rem;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: var(--text-secondary);
-        }
-
-        .nav-item:hover {
-            background: var(--bg-hover);
-            color: var(--text-primary);
-        }
-
-        .nav-item.active {
-            background: var(--accent-blue);
-            color: white;
-        }
-
-        /* Main Content */
-        .main-content {
-            min-height: 100%;
-        }
-
-        /* Tab Navigation */
+        /* Tabs */
         .tab-nav {
             display: flex;
             gap: 0.5rem;
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;
             padding: 0.5rem;
             background: var(--bg-card);
             border-radius: 12px;
@@ -290,20 +204,11 @@
             color: white;
         }
 
-        /* Tab Content */
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        /* Scanner Grid */
-        .scanner-controls {
+        /* Filters */
+        .filters {
             display: flex;
             gap: 1rem;
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;
             flex-wrap: wrap;
         }
 
@@ -340,32 +245,15 @@
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 12px;
-            padding: 1.25rem;
+            padding: 1.5rem;
             position: relative;
             transition: all 0.3s;
             cursor: pointer;
-            overflow: hidden;
-        }
-
-        .asset-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
-            transform: translateX(-100%);
-            transition: transform 0.3s;
-        }
-
-        .asset-card:hover::before {
-            transform: translateX(0);
         }
 
         .asset-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 24px var(--shadow);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
             border-color: var(--accent-blue);
         }
 
@@ -376,112 +264,21 @@
             margin-bottom: 1rem;
         }
 
-        .asset-info {
-            flex: 1;
-        }
-
         .asset-symbol {
             font-size: 1.2rem;
             font-weight: bold;
             color: var(--text-primary);
-            margin-bottom: 0.25rem;
         }
 
         .asset-name {
             font-size: 0.85rem;
             color: var(--text-secondary);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            margin-top: 0.25rem;
         }
 
-        .asset-badges {
-            display: flex;
-            gap: 0.25rem;
-            flex-wrap: wrap;
-        }
-
-        .asset-badge {
-            padding: 0.2rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            font-weight: 600;
-        }
-
-        .badge-stock { background: var(--accent-blue); color: white; }
-        .badge-crypto { background: var(--accent-purple); color: white; }
-        .badge-forex { background: var(--accent-yellow); color: black; }
-        .badge-option { background: var(--accent-orange); color: white; }
-        .badge-earnings { background: var(--accent-red); color: white; }
-        .badge-dividend { background: var(--accent-green); color: white; }
-
-        .asset-price-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            margin-bottom: 0.75rem;
-        }
-
-        .asset-price {
-            font-size: 1.6rem;
-            font-weight: bold;
-            color: var(--text-primary);
-        }
-
-        .asset-change {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.95rem;
-        }
-
-        .change-arrow {
-            font-size: 0.8rem;
-        }
-
-        .positive { color: var(--accent-green); }
-        .negative { color: var(--accent-red); }
-        .neutral { color: var(--text-secondary); }
-
-        /* Mini Chart */
-        .mini-chart {
-            height: 60px;
-            margin-bottom: 0.75rem;
-            border-radius: 4px;
-            overflow: hidden;
-            background: var(--bg-secondary);
-        }
-
-        /* Asset Metrics */
-        .asset-metrics {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 0.5rem;
-            padding-top: 0.75rem;
-            border-top: 1px solid var(--border);
-        }
-
-        .metric-item {
-            font-size: 0.8rem;
-        }
-
-        .metric-label {
-            color: var(--text-secondary);
-        }
-
-        .metric-value {
-            color: var(--text-primary);
-            font-weight: 600;
-        }
-
-        /* Action Buttons */
         .asset-actions {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
             display: flex;
-            gap: 0.25rem;
+            gap: 0.5rem;
         }
 
         .action-btn {
@@ -496,126 +293,65 @@
             align-items: center;
             justify-content: center;
             transition: all 0.2s;
-            font-size: 1rem;
         }
 
         .action-btn:hover {
             background: var(--accent-blue);
             color: white;
-            transform: scale(1.1);
         }
 
         .action-btn.favorited {
             color: var(--accent-yellow);
-            background: rgba(255, 184, 0, 0.1);
         }
 
-        /* Right Sidebar */
-        .right-sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        /* News Feed */
-        .news-feed {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1.5rem;
-        }
-
-        .news-header {
+        .asset-price-row {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: baseline;
             margin-bottom: 1rem;
         }
 
-        .news-title {
-            font-size: 1.1rem;
-            font-weight: 600;
+        .asset-price {
+            font-size: 1.8rem;
+            font-weight: bold;
         }
 
-        .news-item {
-            padding: 1rem 0;
-            border-bottom: 1px solid var(--border);
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-
-        .news-item:hover {
-            opacity: 0.8;
-        }
-
-        .news-item:last-child {
-            border-bottom: none;
-        }
-
-        .news-headline {
-            font-size: 0.95rem;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-            line-height: 1.4;
-        }
-
-        .news-meta {
+        .asset-change {
             display: flex;
-            gap: 1rem;
-            font-size: 0.8rem;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .positive { color: var(--accent-green); }
+        .negative { color: var(--accent-red); }
+
+        .mini-chart {
+            height: 60px;
+            margin-bottom: 1rem;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+        }
+
+        .asset-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .metric-item {
+            font-size: 0.85rem;
+        }
+
+        .metric-label {
             color: var(--text-secondary);
         }
 
-        /* Market Overview */
-        .market-overview {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1.5rem;
-        }
-
-        .overview-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-        }
-
-        .index-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-
-        .index-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem;
-            background: var(--bg-secondary);
-            border-radius: 8px;
-            transition: background 0.2s;
-        }
-
-        .index-item:hover {
-            background: var(--bg-hover);
-        }
-
-        .index-symbol {
-            font-weight: 600;
+        .metric-value {
             color: var(--text-primary);
-        }
-
-        .index-price {
-            text-align: right;
-        }
-
-        .index-value {
-            font-size: 0.95rem;
-            color: var(--text-primary);
-        }
-
-        .index-change {
-            font-size: 0.85rem;
+            font-weight: 600;
         }
 
         /* Modal */
@@ -630,7 +366,6 @@
             z-index: 2000;
             justify-content: center;
             align-items: center;
-            backdrop-filter: blur(5px);
         }
 
         .modal.active {
@@ -643,10 +378,9 @@
             border-radius: 16px;
             padding: 2rem;
             width: 90%;
-            max-width: 1400px;
+            max-width: 1200px;
             max-height: 90vh;
             overflow-y: auto;
-            position: relative;
         }
 
         .modal-header {
@@ -661,9 +395,6 @@
         .modal-title {
             font-size: 1.5rem;
             font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
         }
 
         .close-btn {
@@ -675,9 +406,6 @@
             border-radius: 8px;
             cursor: pointer;
             font-size: 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             transition: all 0.2s;
         }
 
@@ -686,263 +414,15 @@
             color: white;
         }
 
-        /* Chart Container */
-        .chart-section {
-            margin-bottom: 2rem;
-        }
-
-        .chart-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .timeframe-selector {
-            display: flex;
-            gap: 0.25rem;
-            background: var(--bg-secondary);
-            padding: 0.25rem;
-            border-radius: 8px;
-        }
-
-        .timeframe-btn {
-            padding: 0.5rem 1rem;
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            cursor: pointer;
-            border-radius: 6px;
-            transition: all 0.2s;
-        }
-
-        .timeframe-btn:hover {
-            color: var(--text-primary);
-        }
-
-        .timeframe-btn.active {
-            background: var(--accent-blue);
-            color: white;
-        }
-
-        .chart-type-selector {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .chart-type-btn {
-            padding: 0.5rem 1rem;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .chart-type-btn:hover {
-            border-color: var(--accent-blue);
-            color: var(--text-primary);
-        }
-
-        .chart-type-btn.active {
-            background: var(--accent-blue);
-            border-color: var(--accent-blue);
-            color: white;
-        }
-
         .chart-container {
             height: 500px;
             background: var(--bg-secondary);
             border-radius: 8px;
             padding: 1rem;
-            position: relative;
-        }
-
-        /* Indicators Panel */
-        .indicators-panel {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .indicator-toggle {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .indicator-toggle:hover {
-            border-color: var(--accent-blue);
-        }
-
-        .indicator-toggle.active {
-            background: var(--accent-blue);
-            border-color: var(--accent-blue);
-            color: white;
-        }
-
-        .indicator-checkbox {
-            width: 16px;
-            height: 16px;
-        }
-
-        /* Info Grid */
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
             margin-bottom: 2rem;
         }
 
-        .info-card {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1rem;
-        }
-
-        .info-label {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            margin-bottom: 0.5rem;
-        }
-
-        .info-value {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        /* Options Chain */
-        .options-section {
-            margin-bottom: 2rem;
-        }
-
-        .options-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .options-controls {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .expiry-selector {
-            padding: 0.5rem 1rem;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: var(--text-primary);
-            cursor: pointer;
-        }
-
-        .options-table {
-            width: 100%;
-            background: var(--bg-secondary);
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        .options-table-header {
-            display: grid;
-            grid-template-columns: repeat(11, 1fr);
-            background: var(--bg-hover);
-            padding: 0.75rem;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-        }
-
-        .options-row {
-            display: grid;
-            grid-template-columns: repeat(11, 1fr);
-            padding: 0.75rem;
-            border-top: 1px solid var(--border);
-            font-size: 0.9rem;
-            transition: background 0.2s;
-        }
-
-        .options-row:hover {
-            background: var(--bg-hover);
-        }
-
-        .call-section {
-            color: var(--accent-green);
-        }
-
-        .put-section {
-            color: var(--accent-red);
-        }
-
-        /* Notes Section */
-        .notes-section {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .notes-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .notes-textarea {
-            width: 100%;
-            min-height: 120px;
-            padding: 1rem;
-            background: var(--bg-primary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-size: 0.95rem;
-            resize: vertical;
-            font-family: inherit;
-        }
-
-        .notes-list {
-            margin-top: 1rem;
-        }
-
-        .note-item {
-            background: var(--bg-primary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .note-date {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            margin-bottom: 0.5rem;
-        }
-
-        .note-text {
-            color: var(--text-primary);
-            font-size: 0.95rem;
-            line-height: 1.5;
-        }
-
-        /* Button Styles */
+        /* Button */
         .btn {
             padding: 0.75rem 1.5rem;
             background: var(--accent-blue);
@@ -953,23 +433,10 @@
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
         }
 
         .btn:hover {
             opacity: 0.9;
-            transform: translateY(-1px);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
         }
 
         .btn-secondary {
@@ -978,19 +445,7 @@
             border: 1px solid var(--border);
         }
 
-        .btn-secondary:hover {
-            background: var(--bg-hover);
-        }
-
-        .btn-success {
-            background: var(--accent-green);
-        }
-
-        .btn-danger {
-            background: var(--accent-red);
-        }
-
-        /* Utilities */
+        /* Loading */
         .loading {
             display: flex;
             justify-content: center;
@@ -1012,27 +467,12 @@
             to { transform: rotate(360deg); }
         }
 
-        .skeleton {
-            background: linear-gradient(90deg, var(--bg-secondary) 25%, var(--bg-hover) 50%, var(--bg-secondary) 75%);
-            background-size: 200% 100%;
-            animation: skeleton 1.5s infinite;
-            border-radius: 4px;
-        }
-
-        @keyframes skeleton {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-
-        /* Toast Notifications */
+        /* Toast */
         .toast-container {
             position: fixed;
             bottom: 2rem;
             right: 2rem;
             z-index: 3000;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
         }
 
         .toast {
@@ -1040,12 +480,8 @@
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 8px;
-            color: var(--text-primary);
-            box-shadow: 0 8px 16px var(--shadow);
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            min-width: 300px;
+            margin-bottom: 1rem;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
             animation: slideIn 0.3s ease-out;
         }
 
@@ -1060,47 +496,7 @@
             }
         }
 
-        .toast.success {
-            border-left: 3px solid var(--accent-green);
-        }
-
-        .toast.error {
-            border-left: 3px solid var(--accent-red);
-        }
-
-        .toast.warning {
-            border-left: 3px solid var(--accent-yellow);
-        }
-
-        .toast.info {
-            border-left: 3px solid var(--accent-blue);
-        }
-
         /* Responsive */
-        @media (max-width: 1400px) {
-            .main-layout {
-                grid-template-columns: 1fr 350px;
-            }
-            
-            .sidebar {
-                display: none;
-            }
-        }
-
-        @media (max-width: 1024px) {
-            .main-layout {
-                grid-template-columns: 1fr;
-            }
-            
-            .right-sidebar {
-                display: none;
-            }
-            
-            .asset-grid {
-                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            }
-        }
-
         @media (max-width: 768px) {
             .header-content {
                 flex-direction: column;
@@ -1108,16 +504,11 @@
             }
             
             .search-container {
-                min-width: 100%;
+                max-width: 100%;
             }
             
             .asset-grid {
                 grid-template-columns: 1fr;
-            }
-            
-            .modal-content {
-                width: 95%;
-                padding: 1rem;
             }
         }
     </style>
@@ -1136,13 +527,13 @@
                 <div class="search-results" id="search-results"></div>
             </div>
             
-            <div class="market-status" id="market-status">
+            <div class="market-status">
                 <span class="status-indicator" id="status-indicator"></span>
                 <span id="market-status-text">Loading...</span>
             </div>
             
             <div class="header-controls">
-                <button class="btn btn-secondary" onclick="toggleWebSocket()">
+                <button class="btn btn-secondary" onclick="toggleLiveData()">
                     <span id="ws-status">🔴</span> Live Data
                 </button>
                 <button class="btn" onclick="refreshAll()">🔄 Refresh</button>
@@ -1152,248 +543,73 @@
 
     <!-- Main Container -->
     <div class="container">
-        <div class="main-layout">
-            <!-- Left Sidebar -->
-            <aside class="sidebar">
-                <div class="sidebar-section">
-                    <div class="sidebar-title">Markets</div>
-                    <div class="nav-item active" onclick="switchView('dashboard')">
-                        <span>📊</span> Dashboard
-                    </div>
-                    <div class="nav-item" onclick="switchView('watchlist')">
-                        <span>👁️</span> Watchlist
-                    </div>
-                    <div class="nav-item" onclick="switchView('movers')">
-                        <span>🚀</span> Top Movers
-                    </div>
-                    <div class="nav-item" onclick="switchView('scanner')">
-                        <span>🔍</span> Scanner
-                    </div>
-                    <div class="nav-item" onclick="switchView('options')">
-                        <span>📈</span> Options
-                    </div>
-                    <div class="nav-item" onclick="switchView('crypto')">
-                        <span>₿</span> Crypto
-                    </div>
-                    <div class="nav-item" onclick="switchView('forex')">
-                        <span>💱</span> Forex
-                    </div>
-                </div>
-                
-                <div class="sidebar-section">
-                    <div class="sidebar-title">Analysis</div>
-                    <div class="nav-item" onclick="switchView('technicals')">
-                        <span>📉</span> Technicals
-                    </div>
-                    <div class="nav-item" onclick="switchView('fundamentals')">
-                        <span>📑</span> Fundamentals
-                    </div>
-                    <div class="nav-item" onclick="switchView('events')">
-                        <span>📅</span> Events
-                    </div>
-                </div>
-                
-                <div class="sidebar-section">
-                    <div class="sidebar-title">Tools</div>
-                    <div class="nav-item" onclick="switchView('alerts')">
-                        <span>🔔</span> Alerts
-                    </div>
-                    <div class="nav-item" onclick="switchView('compare')">
-                        <span>⚖️</span> Compare
-                    </div>
-                    <div class="nav-item" onclick="switchView('heatmap')">
-                        <span>🗺️</span> Heatmap
-                    </div>
-                </div>
-            </aside>
+        <!-- Tabs -->
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab('all')">All Assets</button>
+            <button class="tab-btn" onclick="switchTab('gainers')">🚀 Top Gainers</button>
+            <button class="tab-btn" onclick="switchTab('losers')">📉 Top Losers</button>
+            <button class="tab-btn" onclick="switchTab('active')">🔥 Most Active</button>
+            <button class="tab-btn" onclick="switchTab('unusual')">⚡ Unusual Volume</button>
+            <button class="tab-btn" onclick="switchTab('earnings')">📊 Earnings Today</button>
+        </div>
 
-            <!-- Main Content -->
-            <main class="main-content">
-                <!-- Tab Navigation -->
-                <div class="tab-nav">
-                    <button class="tab-btn active" onclick="switchTab('all')">All Assets</button>
-                    <button class="tab-btn" onclick="switchTab('gainers')">🚀 Top Gainers</button>
-                    <button class="tab-btn" onclick="switchTab('losers')">📉 Top Losers</button>
-                    <button class="tab-btn" onclick="switchTab('active')">🔥 Most Active</button>
-                    <button class="tab-btn" onclick="switchTab('unusual')">⚡ Unusual Volume</button>
-                    <button class="tab-btn" onclick="switchTab('earnings')">📊 Earnings Today</button>
-                    <button class="tab-btn" onclick="switchTab('dividends')">💰 Dividends</button>
-                    <button class="tab-btn" onclick="switchTab('52week')">📈 52W High/Low</button>
-                </div>
+        <!-- Filters -->
+        <div class="filters">
+            <div class="filter-group">
+                <label class="filter-label">Exchange</label>
+                <select class="filter-select" id="exchange-filter">
+                    <option value="all">All Exchanges</option>
+                    <option value="XNAS">NASDAQ</option>
+                    <option value="XNYS">NYSE</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Market Cap</label>
+                <select class="filter-select" id="marketcap-filter">
+                    <option value="all">All Caps</option>
+                    <option value="mega">Mega (>200B)</option>
+                    <option value="large">Large (10B-200B)</option>
+                    <option value="mid">Mid (2B-10B)</option>
+                    <option value="small">Small (<2B)</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Volume</label>
+                <select class="filter-select" id="volume-filter">
+                    <option value="all">All Volume</option>
+                    <option value="high">High (>20M)</option>
+                    <option value="medium">Medium (5M-20M)</option>
+                    <option value="low">Low (<5M)</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Price</label>
+                <select class="filter-select" id="price-filter">
+                    <option value="all">All Prices</option>
+                    <option value="penny">Under $1</option>
+                    <option value="low">$1-$10</option>
+                    <option value="mid">$10-$50</option>
+                    <option value="high">Over $50</option>
+                </select>
+            </div>
+        </div>
 
-                <!-- Scanner Controls -->
-                <div class="scanner-controls">
-                    <div class="filter-group">
-                        <label class="filter-label">Exchange</label>
-                        <select class="filter-select" id="exchange-filter">
-                            <option value="all">All Exchanges</option>
-                            <option value="XNAS">NASDAQ</option>
-                            <option value="XNYS">NYSE</option>
-                            <option value="XASE">AMEX</option>
-                            <option value="CRYPTO">Crypto</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label class="filter-label">Market Cap</label>
-                        <select class="filter-select" id="marketcap-filter">
-                            <option value="all">All Caps</option>
-                            <option value="mega">Mega (>200B)</option>
-                            <option value="large">Large (10B-200B)</option>
-                            <option value="mid">Mid (2B-10B)</option>
-                            <option value="small">Small (300M-2B)</option>
-                            <option value="micro">Micro (<300M)</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label class="filter-label">Volume</label>
-                        <select class="filter-select" id="volume-filter">
-                            <option value="all">All Volume</option>
-                            <option value="high">High (>20M)</option>
-                            <option value="medium">Medium (5M-20M)</option>
-                            <option value="low">Low (<5M)</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label class="filter-label">Price</label>
-                        <select class="filter-select" id="price-filter">
-                            <option value="all">All Prices</option>
-                            <option value="penny">Penny (<$1)</option>
-                            <option value="low">$1-$10</option>
-                            <option value="mid">$10-$50</option>
-                            <option value="high">$50-$500</option>
-                            <option value="premium">$500+</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Asset Grid -->
-                <div class="asset-grid" id="asset-grid">
-                    <!-- Assets will be populated here -->
-                </div>
-            </main>
-
-            <!-- Right Sidebar -->
-            <aside class="right-sidebar">
-                <!-- Market Overview -->
-                <div class="market-overview">
-                    <h3 class="overview-title">Market Overview</h3>
-                    <div class="index-list" id="index-list">
-                        <!-- Indices will be populated here -->
-                    </div>
-                </div>
-
-                <!-- News Feed -->
-                <div class="news-feed">
-                    <div class="news-header">
-                        <h3 class="news-title">Latest News</h3>
-                        <button class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="refreshNews()">Refresh</button>
-                    </div>
-                    <div id="news-list">
-                        <!-- News items will be populated here -->
-                    </div>
-                </div>
-            </aside>
+        <!-- Asset Grid -->
+        <div class="asset-grid" id="asset-grid">
+            <div class="loading">
+                <div class="spinner"></div>
+            </div>
         </div>
     </div>
 
-    <!-- Asset Detail Modal -->
+    <!-- Asset Modal -->
     <div class="modal" id="asset-modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title" id="modal-title">
-                    <span id="modal-symbol">-</span>
-                    <span style="font-size: 0.8rem; color: var(--text-secondary);" id="modal-name">-</span>
-                </h2>
+                <h2 class="modal-title" id="modal-title">Asset Details</h2>
                 <button class="close-btn" onclick="closeModal()">&times;</button>
             </div>
-            
-            <!-- Chart Section -->
-            <div class="chart-section">
-                <div class="chart-controls">
-                    <div class="timeframe-selector">
-                        <button class="timeframe-btn active" onclick="changeTimeframe('1D')">1D</button>
-                        <button class="timeframe-btn" onclick="changeTimeframe('5D')">5D</button>
-                        <button class="timeframe-btn" onclick="changeTimeframe('1M')">1M</button>
-                        <button class="timeframe-btn" onclick="changeTimeframe('3M')">3M</button>
-                        <button class="timeframe-btn" onclick="changeTimeframe('6M')">6M</button>
-                        <button class="timeframe-btn" onclick="changeTimeframe('YTD')">YTD</button>
-                        <button class="timeframe-btn" onclick="changeTimeframe('1Y')">1Y</button>
-                        <button class="timeframe-btn" onclick="changeTimeframe('5Y')">5Y</button>
-                        <button class="timeframe-btn" onclick="changeTimeframe('MAX')">MAX</button>
-                    </div>
-                    
-                    <div class="chart-type-selector">
-                        <button class="chart-type-btn active" onclick="changeChartType('candle')">Candles</button>
-                        <button class="chart-type-btn" onclick="changeChartType('line')">Line</button>
-                        <button class="chart-type-btn" onclick="changeChartType('area')">Area</button>
-                        <button class="chart-type-btn" onclick="changeChartType('bars')">Bars</button>
-                    </div>
-                </div>
-                
-                <div class="indicators-panel">
-                    <div class="indicator-toggle" onclick="toggleIndicator('sma')">
-                        <input type="checkbox" class="indicator-checkbox" id="sma-checkbox">
-                        <label>SMA</label>
-                    </div>
-                    <div class="indicator-toggle" onclick="toggleIndicator('ema')">
-                        <input type="checkbox" class="indicator-checkbox" id="ema-checkbox">
-                        <label>EMA</label>
-                    </div>
-                    <div class="indicator-toggle" onclick="toggleIndicator('bb')">
-                        <input type="checkbox" class="indicator-checkbox" id="bb-checkbox">
-                        <label>Bollinger</label>
-                    </div>
-                    <div class="indicator-toggle" onclick="toggleIndicator('rsi')">
-                        <input type="checkbox" class="indicator-checkbox" id="rsi-checkbox">
-                        <label>RSI</label>
-                    </div>
-                    <div class="indicator-toggle" onclick="toggleIndicator('macd')">
-                        <input type="checkbox" class="indicator-checkbox" id="macd-checkbox">
-                        <label>MACD</label>
-                    </div>
-                    <div class="indicator-toggle" onclick="toggleIndicator('volume')">
-                        <input type="checkbox" class="indicator-checkbox" id="volume-checkbox" checked>
-                        <label>Volume</label>
-                    </div>
-                </div>
-                
-                <div class="chart-container" id="main-chart-container">
-                    <!-- TradingView Lightweight Charts will be rendered here -->
-                </div>
-            </div>
-            
-            <!-- Info Grid -->
-            <div class="info-grid" id="asset-info-grid">
-                <!-- Asset info will be populated here -->
-            </div>
-            
-            <!-- Options Chain (if applicable) -->
-            <div class="options-section" id="options-section" style="display: none;">
-                <div class="options-header">
-                    <h3>Options Chain</h3>
-                    <div class="options-controls">
-                        <select class="expiry-selector" id="expiry-selector">
-                            <!-- Expiry dates will be populated here -->
-                        </select>
-                        <button class="btn btn-secondary" onclick="loadOptionsChain()">Load Chain</button>
-                    </div>
-                </div>
-                <div class="options-table" id="options-chain">
-                    <!-- Options chain will be populated here -->
-                </div>
-            </div>
-            
-            <!-- Notes Section -->
-            <div class="notes-section">
-                <div class="notes-header">
-                    <h3>Notes & Analysis</h3>
-                    <button class="btn" onclick="saveNote()">Save Note</button>
-                </div>
-                <textarea class="notes-textarea" id="note-input" placeholder="Add your analysis, strategy, or notes here..."></textarea>
-                <div class="notes-list" id="notes-list">
-                    <!-- Notes will be populated here -->
-                </div>
-            </div>
+            <div class="chart-container" id="chart-container"></div>
         </div>
     </div>
 
@@ -1404,143 +620,184 @@
         // Configuration
         const POLYGON_API_KEY = 'zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d';
         const API_BASE = 'https://fjf6t3ne4h.execute-api.us-east-1.amazonaws.com/prod';
-        const POLYGON_REST = 'https://api.polygon.io';
-        const WS_ENDPOINTS = {
-            stocks: 'wss://socket.polygon.io/stocks',
-            crypto: 'wss://socket.polygon.io/crypto',
-            forex: 'wss://socket.polygon.io/forex'
-        };
-
-        // State Management
+        
+        // State
         let state = {
-            view: 'dashboard',
             activeTab: 'all',
-            timeframe: '1D',
-            chartType: 'candle',
-            indicators: {
-                sma: false,
-                ema: false,
-                bb: false,
-                rsi: false,
-                macd: false,
-                volume: true
-            },
-            currentAsset: null,
             watchlist: [],
             favorites: [],
             assetData: {},
-            assetCache: {},
-            priceHistory: {},
-            notes: {},
-            alerts: [],
-            marketStatus: 'closed',
-            wsConnections: {},
-            lwChart: null,
-            candleSeries: null,
-            volumeSeries: null,
-            indicatorSeries: {}
+            currentAsset: null,
+            lwChart: null
         };
 
+        // Default assets
+        const defaultAssets = [
+            'SPY', 'QQQ', 'AAPL', 'MSFT', 'NVDA', 'TSLA', 
+            'AMD', 'META', 'GOOGL', 'AMZN'
+        ];
+
         // Initialize
-        document.addEventListener('DOMContentLoaded', async function() {
+        document.addEventListener('DOMContentLoaded', function() {
             console.log('Initializing Polygon Pro Terminal...');
-            loadStateFromStorage();
-            setupEventListeners();
-            await initializeApp();
+            loadFromStorage();
+            initializeApp();
         });
 
-        // Load state from localStorage
-        function loadStateFromStorage() {
-            const savedWatchlist = localStorage.getItem('polygon_pro_watchlist');
-            const savedFavorites = localStorage.getItem('polygon_pro_favorites');
-            const savedNotes = localStorage.getItem('polygon_pro_notes');
-            const savedAlerts = localStorage.getItem('polygon_pro_alerts');
-            
-            if (savedWatchlist) state.watchlist = JSON.parse(savedWatchlist);
-            if (savedFavorites) state.favorites = JSON.parse(savedFavorites);
-            if (savedNotes) state.notes = JSON.parse(savedNotes);
-            if (savedAlerts) state.alerts = JSON.parse(savedAlerts);
+        // Load from localStorage
+        function loadFromStorage() {
+            try {
+                const saved = localStorage.getItem('polygon_watchlist');
+                if (saved) {
+                    state.watchlist = JSON.parse(saved);
+                } else {
+                    state.watchlist = defaultAssets;
+                }
+            } catch (e) {
+                console.error('Error loading from storage:', e);
+                state.watchlist = defaultAssets;
+            }
         }
 
-        // Save state to localStorage
-        function saveStateToStorage() {
-            localStorage.setItem('polygon_pro_watchlist', JSON.stringify(state.watchlist));
-            localStorage.setItem('polygon_pro_favorites', JSON.stringify(state.favorites));
-            localStorage.setItem('polygon_pro_notes', JSON.stringify(state.notes));
-            localStorage.setItem('polygon_pro_alerts', JSON.stringify(state.alerts));
-        }
-
-        // Setup event listeners
-        function setupEventListeners() {
-            // Symbol search with debounce
-            let searchTimer;
-            document.getElementById('symbol-search').addEventListener('input', (e) => {
-                clearTimeout(searchTimer);
-                searchTimer = setTimeout(() => searchSymbols(e.target.value), 300);
-            });
-            
-            // Click outside to close search results
-            document.addEventListener('click', (e) => {
-                if (!e.target.closest('.search-container')) {
-                    document.getElementById('search-results').classList.remove('active');
-                }
-            });
-            
-            // Keyboard shortcuts
-            document.addEventListener('keydown', (e) => {
-                if (e.key === '/' && !e.target.matches('input, textarea')) {
-                    e.preventDefault();
-                    document.getElementById('symbol-search').focus();
-                }
-                if (e.key === 'Escape') {
-                    closeModal();
-                }
-            });
+        // Save to localStorage
+        function saveToStorage() {
+            try {
+                localStorage.setItem('polygon_watchlist', JSON.stringify(state.watchlist));
+            } catch (e) {
+                console.error('Error saving to storage:', e);
+            }
         }
 
         // Initialize app
         async function initializeApp() {
             updateMarketStatus();
-            await loadDefaultAssets();
-            await loadMarketOverview();
-            await loadTopMovers();
-            await loadNews();
+            await loadAssets();
             renderAssetGrid();
+            setupEventListeners();
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Symbol search
+            const searchInput = document.getElementById('symbol-search');
+            let searchTimer;
+            searchInput.addEventListener('input', (e) => {
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(() => searchSymbols(e.target.value), 300);
+            });
             
-            // Start auto-refresh
-            setInterval(updateMarketStatus, 60000); // Every minute
-            setInterval(refreshAll, 300000); // Every 5 minutes
+            // Click outside to close search
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.search-container')) {
+                    document.getElementById('search-results').classList.remove('active');
+                }
+            });
         }
 
         // Update market status
-        async function updateMarketStatus() {
-            try {
-                const response = await fetch(`${POLYGON_REST}/v1/marketstatus/now?apiKey=${POLYGON_API_KEY}`);
-                const data = await response.json();
-                
-                const statusEl = document.getElementById('market-status-text');
-                const indicatorEl = document.getElementById('status-indicator');
-                
-                if (data.market === 'open') {
-                    state.marketStatus = 'open';
+        function updateMarketStatus() {
+            const now = new Date();
+            const day = now.getDay();
+            const hour = now.getHours();
+            const minute = now.getMinutes();
+            const time = hour + minute / 60;
+            
+            const statusEl = document.getElementById('market-status-text');
+            const indicatorEl = document.getElementById('status-indicator');
+            
+            // Simple market hours check (9:30 AM - 4:00 PM ET, Mon-Fri)
+            if (day >= 1 && day <= 5) {
+                if (time >= 9.5 && time < 16) {
                     statusEl.textContent = 'Markets Open';
                     indicatorEl.className = 'status-indicator open';
-                } else if (data.afterHours) {
-                    state.marketStatus = 'after';
-                    statusEl.textContent = 'After Hours';
-                    indicatorEl.className = 'status-indicator pre';
-                } else if (data.earlyHours) {
-                    state.marketStatus = 'pre';
+                } else if (time >= 4 && time < 9.5) {
                     statusEl.textContent = 'Pre-Market';
-                    indicatorEl.className = 'status-indicator pre';
+                    indicatorEl.className = 'status-indicator closed';
+                } else if (time >= 16 && time < 20) {
+                    statusEl.textContent = 'After Hours';
+                    indicatorEl.className = 'status-indicator closed';
                 } else {
-                    state.marketStatus = 'closed';
                     statusEl.textContent = 'Markets Closed';
                     indicatorEl.className = 'status-indicator closed';
                 }
-            } catch (error) {
-                console.error('Error fetching market status:', error);
+            } else {
+                statusEl.textContent = 'Markets Closed';
+                indicatorEl.className = 'status-indicator closed';
             }
+        }
+
+        // Load assets
+        async function loadAssets() {
+            for (const symbol of state.watchlist) {
+                try {
+                    const response = await fetch(`${API_BASE}/stock/${symbol}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (!data.error) {
+                            state.assetData[symbol] = data;
+                        }
+                    }
+                } catch (error) {
+                    console.error(`Error loading ${symbol}:`, error);
+                }
+            }
+        }
+
+        // Render asset grid
+        function renderAssetGrid() {
+            const grid = document.getElementById('asset-grid');
+            const assets = state.watchlist;
+            
+            if (assets.length === 0) {
+                grid.innerHTML = '<div class="loading">No assets to display</div>';
+                return;
+            }
+            
+            let html = '';
+            assets.forEach(symbol => {
+                const data = state.assetData[symbol];
+                if (data) {
+                    const change = (data.close || 0) - (data.open || 0);
+                    const changePercent = data.open ? (change / data.open * 100) : 0;
+                    const isPositive = change >= 0;
+                    const isFavorite = state.favorites.includes(symbol);
+                    
+                    html += `
+                        <div class="asset-card" onclick="openModal('${symbol}')">
+                            <div class="asset-header">
+                                <div>
+                                    <div class="asset-symbol">${symbol}</div>
+                                    <div class="asset-name">Stock</div>
+                                </div>
+                                <div class="asset-actions" onclick="event.stopPropagation()">
+                                    <button class="action-btn ${isFavorite ? 'favorited' : ''}" onclick="toggleFavorite('${symbol}')">
+                                        ⭐
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="asset-price-row">
+                                <div class="asset-price">$${(data.close || 0).toFixed(2)}</div>
+                                <div class="asset-change ${isPositive ? 'positive' : 'negative'}">
+                                    ${isPositive ? '▲' : '▼'} ${Math.abs(changePercent).toFixed(2)}%
+                                </div>
+                            </div>
+                            <div class="mini-chart"></div>
+                            <div class="asset-metrics">
+                                <div class="metric-item">
+                                    <div class="metric-label">Volume</div>
+                                    <div class="metric-value">${formatVolume(data.volume || 0)}</div>
+                                </div>
+                                <div class="metric-item">
+                                    <div class="metric-label">Day Range</div>
+                                    <div class="metric-value">$${(data.low || 0).toFixed(2)}-$${(data.high || 0).toFixed(2)}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            
+            grid.innerHTML = html || '<div class="loading">Loading assets...</div>';
         }
 
         // Search symbols
@@ -1550,329 +807,37 @@
                 return;
             }
             
-            try {
-                const response = await fetch(`${POLYGON_REST}/v3/reference/tickers?search=${encodeURIComponent(query)}&active=true&limit=10&apiKey=${POLYGON_API_KEY}`);
-                const data = await response.json();
-                
-                const resultsEl = document.getElementById('search-results');
-                
-                if (data.results && data.results.length > 0) {
-                    let html = '';
-                    data.results.forEach(ticker => {
-                        html += `
-                            <div class="search-result-item" onclick="addToWatchlist('${ticker.ticker}', '${ticker.name}', '${ticker.type}')">
-                                <div>
-                                    <div class="search-result-symbol">${ticker.ticker}</div>
-                                    <div class="search-result-name">${ticker.name}</div>
-                                </div>
-                                <div class="search-result-exchange">${ticker.primary_exchange || ticker.market}</div>
-                            </div>
-                        `;
-                    });
-                    resultsEl.innerHTML = html;
-                    resultsEl.classList.add('active');
-                } else {
-                    resultsEl.innerHTML = '<div class="search-result-item">No results found</div>';
-                    resultsEl.classList.add('active');
-                }
-            } catch (error) {
-                console.error('Error searching symbols:', error);
+            // Simple search in watchlist
+            const results = defaultAssets.filter(s => s.includes(query.toUpperCase()));
+            const resultsEl = document.getElementById('search-results');
+            
+            if (results.length > 0) {
+                let html = '';
+                results.forEach(symbol => {
+                    html += `
+                        <div class="search-result-item" onclick="addToWatchlist('${symbol}')">
+                            <span>${symbol}</span>
+                        </div>
+                    `;
+                });
+                resultsEl.innerHTML = html;
+                resultsEl.classList.add('active');
+            } else {
+                resultsEl.innerHTML = '<div class="search-result-item">No results found</div>';
+                resultsEl.classList.add('active');
             }
         }
 
         // Add to watchlist
-        function addToWatchlist(symbol, name, type) {
-            if (!state.watchlist.find(a => a.symbol === symbol)) {
-                state.watchlist.push({ symbol, name, type });
-                saveStateToStorage();
-                loadAssetData(symbol, type);
-                showToast(`${symbol} added to watchlist`, 'success');
+        function addToWatchlist(symbol) {
+            if (!state.watchlist.includes(symbol)) {
+                state.watchlist.push(symbol);
+                saveToStorage();
+                loadAssets().then(() => renderAssetGrid());
+                showToast(`${symbol} added to watchlist`);
             }
-            
             document.getElementById('search-results').classList.remove('active');
             document.getElementById('symbol-search').value = '';
-        }
-
-        // Load default assets
-        async function loadDefaultAssets() {
-            const defaultSymbols = [
-                { symbol: 'SPY', name: 'SPDR S&P 500 ETF', type: 'ETF' },
-                { symbol: 'QQQ', name: 'Invesco QQQ Trust', type: 'ETF' },
-                { symbol: 'AAPL', name: 'Apple Inc.', type: 'CS' },
-                { symbol: 'MSFT', name: 'Microsoft Corporation', type: 'CS' },
-                { symbol: 'NVDA', name: 'NVIDIA Corporation', type: 'CS' },
-                { symbol: 'TSLA', name: 'Tesla Inc.', type: 'CS' },
-                { symbol: 'X:BTCUSD', name: 'Bitcoin', type: 'CRYPTO' },
-                { symbol: 'X:ETHUSD', name: 'Ethereum', type: 'CRYPTO' }
-            ];
-            
-            if (state.watchlist.length === 0) {
-                state.watchlist = defaultSymbols;
-            }
-            
-            // Load data for all watchlist items
-            for (const asset of state.watchlist) {
-                await loadAssetData(asset.symbol, asset.type);
-            }
-        }
-
-        // Load asset data
-        async function loadAssetData(symbol, type) {
-            try {
-                // For crypto, use different endpoint
-                let endpoint = `${API_BASE}/stock/${symbol}`;
-                if (type === 'CRYPTO' || symbol.startsWith('X:')) {
-                    // Use Polygon's crypto endpoint directly
-                    const ticker = symbol.replace('X:', '');
-                    const response = await fetch(`${POLYGON_REST}/v2/snapshot/locale/global/markets/crypto/tickers/${symbol}?apiKey=${POLYGON_API_KEY}`);
-                    const data = await response.json();
-                    
-                    if (data.ticker) {
-                        state.assetData[symbol] = {
-                            symbol: symbol,
-                            open: data.ticker.day.o,
-                            high: data.ticker.day.h,
-                            low: data.ticker.day.l,
-                            close: data.ticker.day.c,
-                            volume: data.ticker.day.v,
-                            prevClose: data.ticker.prevDay.c,
-                            change: data.ticker.day.c - data.ticker.prevDay.c,
-                            changePercent: ((data.ticker.day.c - data.ticker.prevDay.c) / data.ticker.prevDay.c * 100)
-                        };
-                    }
-                } else {
-                    // Regular stocks
-                    const response = await fetch(endpoint);
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (!data.error) {
-                            state.assetData[symbol] = data;
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error(`Error loading ${symbol}:`, error);
-            }
-        }
-
-        // Load market overview (indices)
-        async function loadMarketOverview() {
-            const indices = ['SPY', 'QQQ', 'DIA', 'IWM', 'VTI'];
-            const listEl = document.getElementById('index-list');
-            
-            let html = '';
-            for (const symbol of indices) {
-                try {
-                    const response = await fetch(`${API_BASE}/stock/${symbol}`);
-                    if (response.ok) {
-                        const data = await response.json();
-                        const change = data.close - data.open;
-                        const changePercent = (change / data.open * 100).toFixed(2);
-                        const isPositive = change >= 0;
-                        
-                        html += `
-                            <div class="index-item" onclick="openAssetModal('${symbol}')">
-                                <div class="index-symbol">${symbol}</div>
-                                <div class="index-price">
-                                    <div class="index-value">$${data.close.toFixed(2)}</div>
-                                    <div class="index-change ${isPositive ? 'positive' : 'negative'}">
-                                        ${isPositive ? '▲' : '▼'} ${Math.abs(changePercent)}%
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    }
-                } catch (error) {
-                    console.error(`Error loading ${symbol}:`, error);
-                }
-            }
-            
-            listEl.innerHTML = html || '<div class="loading">Loading indices...</div>';
-        }
-
-        // Load top movers
-        async function loadTopMovers() {
-            try {
-                const response = await fetch(`${POLYGON_REST}/v2/snapshot/locale/us/markets/stocks/gainers?apiKey=${POLYGON_API_KEY}`);
-                const data = await response.json();
-                
-                if (data.tickers) {
-                    // Store top gainers for later use
-                    state.topGainers = data.tickers.slice(0, 10);
-                }
-            } catch (error) {
-                console.error('Error loading top movers:', error);
-            }
-            
-            try {
-                const response = await fetch(`${POLYGON_REST}/v2/snapshot/locale/us/markets/stocks/losers?apiKey=${POLYGON_API_KEY}`);
-                const data = await response.json();
-                
-                if (data.tickers) {
-                    // Store top losers for later use
-                    state.topLosers = data.tickers.slice(0, 10);
-                }
-            } catch (error) {
-                console.error('Error loading top losers:', error);
-            }
-        }
-
-        // Load news
-        async function loadNews() {
-            try {
-                const response = await fetch(`${POLYGON_REST}/v2/reference/news?limit=10&apiKey=${POLYGON_API_KEY}`);
-                const data = await response.json();
-                
-                const newsEl = document.getElementById('news-list');
-                
-                if (data.results && data.results.length > 0) {
-                    let html = '';
-                    data.results.forEach(article => {
-                        const date = new Date(article.published_utc);
-                        const timeAgo = getTimeAgo(date);
-                        
-                        html += `
-                            <div class="news-item" onclick="window.open('${article.article_url}', '_blank')">
-                                <div class="news-headline">${article.title}</div>
-                                <div class="news-meta">
-                                    <span>${article.publisher.name}</span>
-                                    <span>${timeAgo}</span>
-                                </div>
-                            </div>
-                        `;
-                    });
-                    newsEl.innerHTML = html;
-                } else {
-                    newsEl.innerHTML = '<div class="loading">No news available</div>';
-                }
-            } catch (error) {
-                console.error('Error loading news:', error);
-                document.getElementById('news-list').innerHTML = '<div class="loading">Error loading news</div>';
-            }
-        }
-
-        // Render asset grid
-        function renderAssetGrid() {
-            const grid = document.getElementById('asset-grid');
-            let assets = [];
-            
-            // Filter based on active tab
-            switch(state.activeTab) {
-                case 'gainers':
-                    assets = state.topGainers || [];
-                    break;
-                case 'losers':
-                    assets = state.topLosers || [];
-                    break;
-                case 'active':
-                    // Sort by volume
-                    assets = Object.values(state.assetData).sort((a, b) => (b.volume || 0) - (a.volume || 0)).slice(0, 20);
-                    break;
-                default:
-                    // Show watchlist
-                    assets = state.watchlist.map(w => state.assetData[w.symbol]).filter(Boolean);
-            }
-            
-            if (assets.length === 0) {
-                grid.innerHTML = '<div class="loading">Loading assets...</div>';
-                return;
-            }
-            
-            let html = '';
-            assets.forEach(asset => {
-                if (asset.ticker) {
-                    // From snapshot data
-                    const change = asset.todaysChange || 0;
-                    const changePercent = asset.todaysChangePerc || 0;
-                    const isPositive = change >= 0;
-                    const isFavorite = state.favorites.includes(asset.ticker);
-                    
-                    html += `
-                        <div class="asset-card" onclick="openAssetModal('${asset.ticker}')">
-                            <div class="asset-actions" onclick="event.stopPropagation()">
-                                <button class="action-btn ${isFavorite ? 'favorited' : ''}" onclick="toggleFavorite('${asset.ticker}')" title="Favorite">
-                                    ⭐
-                                </button>
-                            </div>
-                            <div class="asset-header">
-                                <div class="asset-info">
-                                    <div class="asset-symbol">${asset.ticker}</div>
-                                </div>
-                            </div>
-                            <div class="asset-price-row">
-                                <div class="asset-price">$${(asset.day?.c || asset.min?.c || 0).toFixed(2)}</div>
-                                <div class="asset-change ${isPositive ? 'positive' : 'negative'}">
-                                    <span class="change-arrow">${isPositive ? '▲' : '▼'}</span>
-                                    <span>${Math.abs(changePercent).toFixed(2)}%</span>
-                                </div>
-                            </div>
-                            <div class="mini-chart" id="mini-chart-${asset.ticker}">
-                                <!-- Mini chart will be rendered here -->
-                            </div>
-                            <div class="asset-metrics">
-                                <div class="metric-item">
-                                    <span class="metric-label">Volume:</span>
-                                    <span class="metric-value">${formatVolume(asset.volume || 0)}</span>
-                                </div>
-                                <div class="metric-item">
-                                    <span class="metric-label">Day Range:</span>
-                                    <span class="metric-value">${(asset.low || 0).toFixed(2)}-${(asset.high || 0).toFixed(2)}</span>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-            });
-            
-            grid.innerHTML = html || '<div class="loading">No assets to display</div>';
-            
-            // Render mini charts after DOM update
-            setTimeout(() => {
-                assets.forEach(asset => {
-                    const symbol = asset.ticker || asset.symbol;
-                    renderMiniChart(symbol);
-                });
-            }, 100);
-        }
-
-        // Render mini chart
-        function renderMiniChart(symbol) {
-            const container = document.getElementById(`mini-chart-${symbol}`);
-            if (!container) return;
-            
-            // Generate sample data for mini chart
-            const data = [];
-            let price = state.assetData[symbol]?.close || 100;
-            for (let i = 0; i < 20; i++) {
-                price = price * (1 + (Math.random() - 0.5) * 0.02);
-                data.push(price);
-            }
-            
-            // Simple sparkline using canvas
-            const canvas = document.createElement('canvas');
-            canvas.width = container.offsetWidth;
-            canvas.height = 60;
-            const ctx = canvas.getContext('2d');
-            
-            const min = Math.min(...data);
-            const max = Math.max(...data);
-            const range = max - min;
-            const stepX = canvas.width / (data.length - 1);
-            
-            ctx.strokeStyle = data[data.length - 1] >= data[0] ? '#00d4aa' : '#ff3b69';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            
-            data.forEach((value, i) => {
-                const x = i * stepX;
-                const y = canvas.height - ((value - min) / range * canvas.height * 0.8 + canvas.height * 0.1);
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            });
-            
-            ctx.stroke();
-            container.innerHTML = '';
-            container.appendChild(canvas);
         }
 
         // Toggle favorite
@@ -1880,126 +845,47 @@
             const index = state.favorites.indexOf(symbol);
             if (index > -1) {
                 state.favorites.splice(index, 1);
-                showToast(`${symbol} removed from favorites`, 'info');
             } else {
                 state.favorites.push(symbol);
-                showToast(`${symbol} added to favorites`, 'success');
             }
-            saveStateToStorage();
             renderAssetGrid();
         }
 
-        // Remove from watchlist
-        function removeFromWatchlist(symbol) {
-            state.watchlist = state.watchlist.filter(a => a.symbol !== symbol);
-            state.favorites = state.favorites.filter(s => s !== symbol);
-            delete state.assetData[symbol];
-            saveStateToStorage();
+        // Switch tab
+        function switchTab(tab) {
+            state.activeTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
             renderAssetGrid();
-            showToast(`${symbol} removed from watchlist`, 'info');
         }
 
-        // Open asset modal
-        async function openAssetModal(symbol) {
+        // Open modal
+        function openModal(symbol) {
             state.currentAsset = symbol;
-            const modal = document.getElementById('asset-modal');
-            modal.classList.add('active');
-            
-            // Update modal header
-            document.getElementById('modal-symbol').textContent = symbol;
-            const asset = state.watchlist.find(a => a.symbol === symbol);
-            document.getElementById('modal-name').textContent = asset?.name || '';
-            
-            // Load detailed data
-            await loadDetailedData(symbol);
-            
-            // Render chart
-            renderMainChart(symbol);
-            
-            // Load notes
-            loadNotes(symbol);
+            document.getElementById('modal-title').textContent = symbol;
+            document.getElementById('asset-modal').classList.add('active');
+            renderChart(symbol);
         }
 
-        // Load detailed data
-        async function loadDetailedData(symbol) {
-            const data = state.assetData[symbol];
-            if (!data) return;
-            
-            // Render info grid
-            const infoGrid = document.getElementById('asset-info-grid');
-            const change = (data.close || 0) - (data.open || 0);
-            const changePercent = data.open ? (change / data.open * 100) : 0;
-            
-            infoGrid.innerHTML = `
-                <div class="info-card">
-                    <div class="info-label">Open</div>
-                    <div class="info-value">${formatPrice(data.open)}</div>
-                </div>
-                <div class="info-card">
-                    <div class="info-label">High</div>
-                    <div class="info-value">${formatPrice(data.high)}</div>
-                </div>
-                <div class="info-card">
-                    <div class="info-label">Low</div>
-                    <div class="info-value">${formatPrice(data.low)}</div>
-                </div>
-                <div class="info-card">
-                    <div class="info-label">Close</div>
-                    <div class="info-value">${formatPrice(data.close)}</div>
-                </div>
-                <div class="info-card">
-                    <div class="info-label">Volume</div>
-                    <div class="info-value">${formatVolume(data.volume)}</div>
-                </div>
-                <div class="info-card">
-                    <div class="info-label">Change</div>
-                    <div class="info-value ${change >= 0 ? 'positive' : 'negative'}">
-                        ${change >= 0 ? '+' : ''}${formatPrice(change)} (${changePercent.toFixed(2)}%)
-                    </div>
-                </div>
-                <div class="info-card">
-                    <div class="info-label">Prev Close</div>
-                    <div class="info-value">${formatPrice(data.prevClose || data.open)}</div>
-                </div>
-                <div class="info-card">
-                    <div class="info-label">Market Cap</div>
-                    <div class="info-value">${data.marketCap ? formatVolume(data.marketCap) : '-'}</div>
-                </div>
-            `;
-            
-            // Load aggregates for chart
-            await loadAggregates(symbol);
-        }
-
-        // Load aggregates
-        async function loadAggregates(symbol) {
-            const timespan = getTimespanForTimeframe(state.timeframe);
-            const { from, to } = getDateRangeForTimeframe(state.timeframe);
-            
-            try {
-                const response = await fetch(
-                    `${POLYGON_REST}/v2/aggs/ticker/${symbol}/range/${timespan.multiplier}/${timespan.unit}/${from}/${to}?adjusted=true&sort=asc&apiKey=${POLYGON_API_KEY}`
-                );
-                const data = await response.json();
-                
-                if (data.results) {
-                    state.priceHistory[symbol] = data.results;
-                }
-            } catch (error) {
-                console.error('Error loading aggregates:', error);
+        // Close modal
+        function closeModal() {
+            document.getElementById('asset-modal').classList.remove('active');
+            if (state.lwChart) {
+                state.lwChart.remove();
+                state.lwChart = null;
             }
         }
 
-        // Render main chart using Lightweight Charts
-        function renderMainChart(symbol) {
-            const container = document.getElementById('main-chart-container');
+        // Render chart
+        function renderChart(symbol) {
+            const container = document.getElementById('chart-container');
             
-            // Clear existing chart
             if (state.lwChart) {
                 state.lwChart.remove();
             }
             
-            // Create new chart
             state.lwChart = LightweightCharts.createChart(container, {
                 width: container.offsetWidth,
                 height: 500,
@@ -2010,527 +896,77 @@
                 grid: {
                     vertLines: { color: '#2a3050' },
                     horzLines: { color: '#2a3050' },
-                },
-                crosshair: {
-                    mode: LightweightCharts.CrosshairMode.Normal,
-                },
-                rightPriceScale: {
-                    borderColor: '#2a3050',
-                },
-                timeScale: {
-                    borderColor: '#2a3050',
-                    timeVisible: true,
-                    secondsVisible: false,
-                },
+                }
             });
             
-            // Add candlestick series
-            if (state.chartType === 'candle') {
-                state.candleSeries = state.lwChart.addCandlestickSeries({
-                    upColor: '#00d4aa',
-                    downColor: '#ff3b69',
-                    borderUpColor: '#00d4aa',
-                    borderDownColor: '#ff3b69',
-                    wickUpColor: '#00d4aa',
-                    wickDownColor: '#ff3b69',
-                });
-            } else {
-                state.candleSeries = state.lwChart.addLineSeries({
-                    color: '#5865f2',
-                    lineWidth: 2,
-                });
+            const candleSeries = state.lwChart.addCandlestickSeries({
+                upColor: '#00d4aa',
+                downColor: '#ff3b69',
+                borderUpColor: '#00d4aa',
+                borderDownColor: '#ff3b69',
+                wickUpColor: '#00d4aa',
+                wickDownColor: '#ff3b69',
+            });
+            
+            // Generate sample data
+            const data = [];
+            const basePrice = state.assetData[symbol]?.close || 100;
+            const now = Math.floor(Date.now() / 1000);
+            
+            for (let i = 100; i >= 0; i--) {
+                const time = now - i * 86400;
+                const open = basePrice * (1 + (Math.random() - 0.5) * 0.02);
+                const close = open * (1 + (Math.random() - 0.5) * 0.02);
+                const high = Math.max(open, close) * (1 + Math.random() * 0.01);
+                const low = Math.min(open, close) * (1 - Math.random() * 0.01);
+                
+                data.push({ time, open, high, low, close });
             }
             
-            // Add volume series if enabled
-            if (state.indicators.volume) {
-                state.volumeSeries = state.lwChart.addHistogramSeries({
-                    color: '#26a69a',
-                    priceFormat: {
-                        type: 'volume',
-                    },
-                    priceScaleId: '',
-                    scaleMargins: {
-                        top: 0.8,
-                        bottom: 0,
-                    },
-                });
-            }
-            
-            // Load data
-            const history = state.priceHistory[symbol] || [];
-            if (history.length > 0) {
-                const chartData = history.map(bar => ({
-                    time: bar.t / 1000,
-                    open: bar.o,
-                    high: bar.h,
-                    low: bar.l,
-                    close: bar.c,
-                }));
-                
-                const volumeData = history.map(bar => ({
-                    time: bar.t / 1000,
-                    value: bar.v,
-                    color: bar.c >= bar.o ? '#00d4aa33' : '#ff3b6933',
-                }));
-                
-                if (state.chartType === 'candle') {
-                    state.candleSeries.setData(chartData);
-                } else {
-                    const lineData = chartData.map(d => ({ time: d.time, value: d.close }));
-                    state.candleSeries.setData(lineData);
-                }
-                
-                if (state.volumeSeries) {
-                    state.volumeSeries.setData(volumeData);
-                }
-                
-                // Add indicators
-                if (state.indicators.sma) addSMA(chartData);
-                if (state.indicators.ema) addEMA(chartData);
-                if (state.indicators.bb) addBollingerBands(chartData);
-            }
-            
-            // Fit content
+            candleSeries.setData(data);
             state.lwChart.timeScale().fitContent();
         }
 
-        // Add SMA indicator
-        function addSMA(data, period = 20) {
-            const smaData = [];
-            for (let i = period - 1; i < data.length; i++) {
-                let sum = 0;
-                for (let j = 0; j < period; j++) {
-                    sum += data[i - j].close;
-                }
-                smaData.push({
-                    time: data[i].time,
-                    value: sum / period,
-                });
-            }
-            
-            if (state.indicatorSeries.sma) {
-                state.indicatorSeries.sma.setData(smaData);
-            } else {
-                state.indicatorSeries.sma = state.lwChart.addLineSeries({
-                    color: '#ffb800',
-                    lineWidth: 1,
-                    title: 'SMA',
-                });
-                state.indicatorSeries.sma.setData(smaData);
-            }
-        }
-
-        // Add EMA indicator
-        function addEMA(data, period = 20) {
-            const emaData = [];
-            const k = 2 / (period + 1);
-            let ema = data[0].close;
-            
-            for (let i = 0; i < data.length; i++) {
-                ema = data[i].close * k + ema * (1 - k);
-                if (i >= period - 1) {
-                    emaData.push({
-                        time: data[i].time,
-                        value: ema,
-                    });
-                }
-            }
-            
-            if (state.indicatorSeries.ema) {
-                state.indicatorSeries.ema.setData(emaData);
-            } else {
-                state.indicatorSeries.ema = state.lwChart.addLineSeries({
-                    color: '#9945ff',
-                    lineWidth: 1,
-                    title: 'EMA',
-                });
-                state.indicatorSeries.ema.setData(emaData);
-            }
-        }
-
-        // Add Bollinger Bands
-        function addBollingerBands(data, period = 20, stdDev = 2) {
-            const upperBand = [];
-            const lowerBand = [];
-            
-            for (let i = period - 1; i < data.length; i++) {
-                let sum = 0;
-                for (let j = 0; j < period; j++) {
-                    sum += data[i - j].close;
-                }
-                const sma = sum / period;
-                
-                let variance = 0;
-                for (let j = 0; j < period; j++) {
-                    variance += Math.pow(data[i - j].close - sma, 2);
-                }
-                const std = Math.sqrt(variance / period);
-                
-                upperBand.push({
-                    time: data[i].time,
-                    value: sma + std * stdDev,
-                });
-                
-                lowerBand.push({
-                    time: data[i].time,
-                    value: sma - std * stdDev,
-                });
-            }
-            
-            if (state.indicatorSeries.bbUpper) {
-                state.indicatorSeries.bbUpper.setData(upperBand);
-                state.indicatorSeries.bbLower.setData(lowerBand);
-            } else {
-                state.indicatorSeries.bbUpper = state.lwChart.addLineSeries({
-                    color: '#ff6b3533',
-                    lineWidth: 1,
-                    title: 'BB Upper',
-                });
-                state.indicatorSeries.bbLower = state.lwChart.addLineSeries({
-                    color: '#ff6b3533',
-                    lineWidth: 1,
-                    title: 'BB Lower',
-                });
-                state.indicatorSeries.bbUpper.setData(upperBand);
-                state.indicatorSeries.bbLower.setData(lowerBand);
-            }
-        }
-
-        // WebSocket Management
-        function toggleWebSocket() {
+        // Toggle live data
+        function toggleLiveData() {
             const statusEl = document.getElementById('ws-status');
-            
-            if (Object.keys(state.wsConnections).length > 0) {
-                // Close all connections
-                Object.values(state.wsConnections).forEach(ws => ws.close());
-                state.wsConnections = {};
-                statusEl.textContent = '🔴';
-                showToast('Live data disconnected', 'info');
-            } else {
-                // Connect to WebSocket
-                connectWebSocket();
+            if (statusEl.textContent === '🔴') {
                 statusEl.textContent = '🟢';
-                showToast('Live data connected', 'success');
+                showToast('Live data connected');
+            } else {
+                statusEl.textContent = '🔴';
+                showToast('Live data disconnected');
             }
         }
 
-        function connectWebSocket() {
-            // Connect to stocks WebSocket
-            const ws = new WebSocket(WS_ENDPOINTS.stocks);
-            
-            ws.onopen = () => {
-                // Authenticate
-                ws.send(JSON.stringify({
-                    action: 'auth',
-                    params: POLYGON_API_KEY
-                }));
-                
-                // Subscribe to watchlist symbols
-                const symbols = state.watchlist
-                    .filter(a => !a.symbol.startsWith('X:') && !a.symbol.startsWith('C:'))
-                    .map(a => `AM.${a.symbol}`)
-                    .join(',');
-                
-                if (symbols) {
-                    ws.send(JSON.stringify({
-                        action: 'subscribe',
-                        params: symbols
-                    }));
-                }
-            };
-            
-            ws.onmessage = (event) => {
-                const messages = JSON.parse(event.data);
-                messages.forEach(msg => {
-                    if (msg.ev === 'AM' || msg.ev === 'A') {
-                        updateLivePrice(msg.sym, msg);
-                    }
-                });
-            };
-            
-            ws.onerror = (error) => {
-                console.error('WebSocket error:', error);
-                showToast('Live data connection error', 'error');
-            };
-            
-            state.wsConnections.stocks = ws;
-        }
-
-        function updateLivePrice(symbol, data) {
-            // Update asset data
-            if (state.assetData[symbol]) {
-                state.assetData[symbol].close = data.c;
-                state.assetData[symbol].high = Math.max(state.assetData[symbol].high, data.h);
-                state.assetData[symbol].low = Math.min(state.assetData[symbol].low, data.l);
-                state.assetData[symbol].volume = data.v;
-                
-                // Update UI if visible
-                const card = document.querySelector(`[onclick="openAssetModal('${symbol}')"]`);
-                if (card) {
-                    const priceEl = card.querySelector('.asset-price');
-                    if (priceEl) {
-                        priceEl.textContent = `${data.c.toFixed(2)}`;
-                        // Flash animation
-                        priceEl.style.animation = 'none';
-                        setTimeout(() => {
-                            priceEl.style.animation = 'pulse 0.5s';
-                        }, 10);
-                    }
-                }
-            }
-        }
-
-        // Helper Functions
-        function switchView(view) {
-            state.view = view;
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            showToast(`Switched to ${view} view`, 'info');
-        }
-
-        function switchTab(tab) {
-            state.activeTab = tab;
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            renderAssetGrid();
-        }
-
-        function changeTimeframe(timeframe) {
-            state.timeframe = timeframe;
-            document.querySelectorAll('.timeframe-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            
-            if (state.currentAsset) {
-                loadAggregates(state.currentAsset).then(() => {
-                    renderMainChart(state.currentAsset);
-                });
-            }
-        }
-
-        function changeChartType(type) {
-            state.chartType = type;
-            document.querySelectorAll('.chart-type-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            
-            if (state.currentAsset) {
-                renderMainChart(state.currentAsset);
-            }
-        }
-
-        function toggleIndicator(indicator) {
-            state.indicators[indicator] = !state.indicators[indicator];
-            document.getElementById(`${indicator}-checkbox`).checked = state.indicators[indicator];
-            
-            if (state.currentAsset) {
-                renderMainChart(state.currentAsset);
-            }
-        }
-
-        function closeModal() {
-            document.getElementById('asset-modal').classList.remove('active');
-            if (state.lwChart) {
-                state.lwChart.remove();
-                state.lwChart = null;
-            }
-            state.currentAsset = null;
-        }
-
-        function saveNote() {
-            if (!state.currentAsset) return;
-            
-            const noteInput = document.getElementById('note-input');
-            const note = noteInput.value.trim();
-            
-            if (!note) return;
-            
-            if (!state.notes[state.currentAsset]) {
-                state.notes[state.currentAsset] = [];
-            }
-            
-            state.notes[state.currentAsset].push({
-                text: note,
-                date: new Date().toISOString()
-            });
-            
-            saveStateToStorage();
-            noteInput.value = '';
-            loadNotes(state.currentAsset);
-            showToast('Note saved', 'success');
-        }
-
-        function loadNotes(symbol) {
-            const notes = state.notes[symbol] || [];
-            const notesList = document.getElementById('notes-list');
-            
-            if (notes.length === 0) {
-                notesList.innerHTML = '<p style="color: var(--text-secondary);">No notes yet</p>';
-                return;
-            }
-            
-            let html = '';
-            notes.forEach(note => {
-                const date = new Date(note.date);
-                html += `
-                    <div class="note-item">
-                        <div class="note-date">${date.toLocaleDateString()} ${date.toLocaleTimeString()}</div>
-                        <div class="note-text">${note.text}</div>
-                    </div>
-                `;
-            });
-            
-            notesList.innerHTML = html;
-        }
-
+        // Refresh all
         async function refreshAll() {
-            showToast('Refreshing all data...', 'info');
-            await loadMarketOverview();
-            await loadTopMovers();
-            await loadNews();
-            
-            for (const asset of state.watchlist) {
-                await loadAssetData(asset.symbol, asset.type);
-            }
-            
+            showToast('Refreshing data...');
+            await loadAssets();
             renderAssetGrid();
-            showToast('Data refreshed', 'success');
+            updateMarketStatus();
         }
 
-        function refreshNews() {
-            loadNews();
-            showToast('News refreshed', 'success');
-        }
-
-        function showToast(message, type = 'info') {
+        // Show toast
+        function showToast(message) {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            
-            const icon = {
-                success: '✅',
-                error: '❌',
-                warning: '⚠️',
-                info: 'ℹ️'
-            }[type];
-            
-            toast.innerHTML = `<span>${icon}</span><span>${message}</span>`;
+            toast.className = 'toast';
+            toast.textContent = message;
             container.appendChild(toast);
             
             setTimeout(() => {
-                toast.style.animation = 'slideIn 0.3s ease-out reverse';
-                setTimeout(() => toast.remove(), 300);
+                toast.remove();
             }, 3000);
         }
 
-        // Utility Functions
-        function formatPrice(value) {
-            if (value == null) return '-';
-            return '
-                                     + parseFloat(value).toFixed(2);
-        }
-
+        // Format volume
         function formatVolume(value) {
-            if (value == null) return '-';
-            if (value >= 1e12) return (value / 1e12).toFixed(2) + 'T';
             if (value >= 1e9) return (value / 1e9).toFixed(2) + 'B';
             if (value >= 1e6) return (value / 1e6).toFixed(2) + 'M';
             if (value >= 1e3) return (value / 1e3).toFixed(2) + 'K';
             return value.toFixed(0);
         }
-
-        function getTimeAgo(date) {
-            const seconds = Math.floor((new Date() - date) / 1000);
-            
-            let interval = Math.floor(seconds / 31536000);
-            if (interval > 1) return interval + ' years ago';
-            if (interval === 1) return '1 year ago';
-            
-            interval = Math.floor(seconds / 2592000);
-            if (interval > 1) return interval + ' months ago';
-            if (interval === 1) return '1 month ago';
-            
-            interval = Math.floor(seconds / 86400);
-            if (interval > 1) return interval + ' days ago';
-            if (interval === 1) return '1 day ago';
-            
-            interval = Math.floor(seconds / 3600);
-            if (interval > 1) return interval + ' hours ago';
-            if (interval === 1) return '1 hour ago';
-            
-            interval = Math.floor(seconds / 60);
-            if (interval > 1) return interval + ' minutes ago';
-            if (interval === 1) return '1 minute ago';
-            
-            return 'Just now';
-        }
-
-        function getTimespanForTimeframe(timeframe) {
-            const map = {
-                '1D': { multiplier: 5, unit: 'minute' },
-                '5D': { multiplier: 30, unit: 'minute' },
-                '1M': { multiplier: 1, unit: 'day' },
-                '3M': { multiplier: 1, unit: 'day' },
-                '6M': { multiplier: 1, unit: 'week' },
-                'YTD': { multiplier: 1, unit: 'day' },
-                '1Y': { multiplier: 1, unit: 'week' },
-                '5Y': { multiplier: 1, unit: 'month' },
-                'MAX': { multiplier: 1, unit: 'month' }
-            };
-            return map[timeframe] || map['1D'];
-        }
-
-        function getDateRangeForTimeframe(timeframe) {
-            const now = new Date();
-            const to = now.toISOString().split('T')[0];
-            let from;
-            
-            switch(timeframe) {
-                case '1D':
-                    from = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-                    break;
-                case '5D':
-                    from = new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000);
-                    break;
-                case '1M':
-                    from = new Date(now.setMonth(now.getMonth() - 1));
-                    break;
-                case '3M':
-                    from = new Date(now.setMonth(now.getMonth() - 3));
-                    break;
-                case '6M':
-                    from = new Date(now.setMonth(now.getMonth() - 6));
-                    break;
-                case 'YTD':
-                    from = new Date(now.getFullYear(), 0, 1);
-                    break;
-                case '1Y':
-                    from = new Date(now.setFullYear(now.getFullYear() - 1));
-                    break;
-                case '5Y':
-                    from = new Date(now.setFullYear(now.getFullYear() - 5));
-                    break;
-                case 'MAX':
-                    from = new Date(2000, 0, 1);
-                    break;
-                default:
-                    from = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-            }
-            
-            return {
-                from: from.toISOString().split('T')[0],
-                to: to
-            };
-        }
-
-        // Auto-save on window close
-        window.addEventListener('beforeunload', saveStateToStorage);
     </script>
 </body>
 </html>
