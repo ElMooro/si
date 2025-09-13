@@ -84,6 +84,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
 
         .logo {
@@ -100,6 +102,7 @@
             display: flex;
             gap: 1rem;
             align-items: center;
+            flex-wrap: wrap;
         }
 
         .search-container {
@@ -1010,6 +1013,7 @@
                 width: 95%;
                 height: 95vh;
                 margin: 0;
+                padding: 1rem;
             }
         }
 
@@ -1247,6 +1251,7 @@
         const POLYGON_WS_STOCKS = 'wss://socket.polygon.io/stocks';
         const POLYGON_WS_CRYPTO = 'wss://socket.polygon.io/crypto';
         const POLYGON_WS_FOREX = 'wss://socket.polygon.io/forex';
+        const POLYGON_API_KEY = 'zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d';
         
         // Global variables
         let chart = null;
@@ -1430,10 +1435,10 @@
                     console.log(`${type} WebSocket connected`);
                     updateWebSocketStatus('connected');
                     
-                    // Authenticate (note: in production, handle API key securely)
+                    // Authenticate
                     ws.send(JSON.stringify({
                         action: 'auth',
-                        params: 'zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d' // Your API key
+                        params: POLYGON_API_KEY
                     }));
                     
                     // Subscribe to watchlist symbols
@@ -2549,7 +2554,8 @@
         // Format currency
         function formatCurrency(value, decimals = 2) {
             if (value == null || isNaN(value)) return '-';
-            return ' + parseFloat(value).toFixed(decimals);
+            return '
+                     + parseFloat(value).toFixed(decimals);
         }
 
         // Format number with K/M/B suffixes
