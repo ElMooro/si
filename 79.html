@@ -794,14 +794,42 @@
                 fetchData('/liquidity/ofr')
             ]);
             
-            let html = '';
+            let html = '<div class="data-grid">';
             
-            if (repo) html += createDataCards('Repo Market', repo);
-            if (swaps) html += createDataCards('Swap Markets', swaps);
-            if (securities) html += createDataCards('Securities', securities);
-            if (ofr) html += createDataCards('OFR Indicators', ofr);
+            if (repo) {
+                Object.entries(repo).forEach(([key, value]) => {
+                    if (key !== 'timestamp' && key !== 'status') {
+                        html += createDataCard('Repo Market', key, value);
+                    }
+                });
+            }
             
-            document.getElementById('market-structure-grid').innerHTML = html || '<div class="error-message">Unable to load market structure data</div>';
+            if (swaps) {
+                Object.entries(swaps).forEach(([key, value]) => {
+                    if (key !== 'timestamp' && key !== 'status') {
+                        html += createDataCard('Swap Markets', key, value);
+                    }
+                });
+            }
+            
+            if (securities) {
+                Object.entries(securities).forEach(([key, value]) => {
+                    if (key !== 'timestamp' && key !== 'status') {
+                        html += createDataCard('Securities', key, value);
+                    }
+                });
+            }
+            
+            if (ofr) {
+                Object.entries(ofr).forEach(([key, value]) => {
+                    if (key !== 'timestamp' && key !== 'status') {
+                        html += createDataCard('OFR', key, value);
+                    }
+                });
+            }
+            
+            html += '</div>';
+            document.getElementById('market-structure-grid').innerHTML = html || '<div class="data-card"><h3>Loading market structure data...</h3></div>';
         }
 
         // Load risk indicators
@@ -815,16 +843,58 @@
                 fetchData('/liquidity/small-caps')
             ]);
             
-            let html = '';
+            let html = '<div class="data-grid">';
             
-            if (systemic) html += createDataCards('Systemic Risk', systemic);
-            if (fails) html += createDataCards('Settlement Fails', fails);
-            if (carry) html += createDataCards('Carry Trade', carry);
-            if (manufacturing) html += createDataCards('Manufacturing', manufacturing);
-            if (em) html += createDataCards('Emerging Markets', em);
-            if (smallcaps) html += createDataCards('Small Caps', smallcaps);
+            if (systemic) {
+                Object.entries(systemic).forEach(([key, value]) => {
+                    if (key !== 'timestamp' && key !== 'status') {
+                        html += createDataCard('Systemic Risk', key, value);
+                    }
+                });
+            }
             
-            document.getElementById('risk-indicators-grid').innerHTML = html || '<div class="error-message">Unable to load risk indicators</div>';
+            if (fails) {
+                Object.entries(fails).forEach(([key, value]) => {
+                    if (key !== 'timestamp' && key !== 'status') {
+                        html += createDataCard('Settlement Fails', key, value);
+                    }
+                });
+            }
+            
+            if (carry) {
+                Object.entries(carry).forEach(([key, value]) => {
+                    if (key !== 'timestamp' && key !== 'status') {
+                        html += createDataCard('Carry Trade', key, value);
+                    }
+                });
+            }
+            
+            if (manufacturing) {
+                Object.entries(manufacturing).forEach(([key, value]) => {
+                    if (key !== 'timestamp' && key !== 'status') {
+                        html += createDataCard('Manufacturing', key, value);
+                    }
+                });
+            }
+            
+            if (em) {
+                Object.entries(em).forEach(([key, value]) => {
+                    if (key !== 'timestamp' && key !== 'status') {
+                        html += createDataCard('Emerging Markets', key, value);
+                    }
+                });
+            }
+            
+            if (smallcaps) {
+                Object.entries(smallcaps).forEach(([key, value]) => {
+                    if (key !== 'timestamp' && key !== 'status') {
+                        html += createDataCard('Small Caps', key, value);
+                    }
+                });
+            }
+            
+            html += '</div>';
+            document.getElementById('risk-indicators-grid').innerHTML = html || '<div class="data-card"><h3>Loading risk indicators...</h3></div>';
         }
 
         // Load news
