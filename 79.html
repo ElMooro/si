@@ -947,7 +947,9 @@
         }
 
         // Initialize on page load
-        window.addEventListener('DOMContentLoaded', initDashboard);
+        window.addEventListener('DOMContentLoaded', () => {
+            initDashboard();
+        });
     </script>
 </body>
 </html>
