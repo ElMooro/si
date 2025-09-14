@@ -914,19 +914,37 @@
 
         // Switch tabs
         function switchTab(event, tabName) {
+            // Handle both event object and direct string calls
+            if (typeof event === 'string') {
+                tabName = event;
+                event = null;
+            }
+            
             // Update tab buttons
             document.querySelectorAll('.tab').forEach(tab => {
                 tab.classList.remove('active');
             });
+            
+            // Find and activate the clicked tab
             if (event && event.target) {
                 event.target.classList.add('active');
+            } else {
+                // Find tab by name if no event
+                document.querySelectorAll('.tab').forEach(tab => {
+                    if (tab.textContent.toLowerCase().includes(tabName.replace('-', ' ').substring(0, 4))) {
+                        tab.classList.add('active');
+                    }
+                });
             }
             
             // Update tab content
             document.querySelectorAll('.tab-content').forEach(content => {
                 content.classList.remove('active');
             });
-            document.getElementById(tabName).classList.add('active');
+            const tabContent = document.getElementById(tabName);
+            if (tabContent) {
+                tabContent.classList.add('active');
+            }
             
             currentTab = tabName;
             loadTabData(tabName);
