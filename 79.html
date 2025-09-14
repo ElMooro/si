@@ -671,46 +671,118 @@
                 fetchData('/liquidity/treasury')
             ]);
             
-            let html = '';
+            let html = '<div class="data-grid">';
             
-            if (ecb) {
-                html += createDataCards('ECB Data', ecb);
+            // ECB Data
+            if (ecb && ecb !== null && typeof ecb === 'object') {
+                Object.entries(ecb).forEach(([key, value]) => {
+                    if (key !== 'timestamp' && key !== 'status' && key !== 'message') {
+                        html += `
+                            <div class="data-card">
+                                <h3>ECB ${formatComponentName(key)}</h3>
+                                <div class="data-value">${formatValue(value)}</div>
+                                ${getChangeIndicator(key, value)}
+                            </div>
+                        `;
+                    }
+                });
             }
             
-            if (nyfed) {
-                html += createDataCards('NY Fed Data', nyfed);
+            // NY Fed Data  
+            if (nyfed && nyfed !== null && typeof nyfed === 'object') {
+                Object.entries(nyfed).forEach(([key, value]) => {
+                    if (key !== 'timestamp' && key !== 'status' && key !== 'message') {
+                        html += `
+                            <div class="data-card">
+                                <h3>NY Fed ${formatComponentName(key)}</h3>
+                                <div class="data-value">${formatValue(value)}</div>
+                                ${getChangeIndicator(key, value)}
+                            </div>
+                        `;
+                    }
+                });
             }
             
-            if (treasury) {
-                html += createDataCards('Treasury Data', treasury);
+            // Treasury Data
+            if (treasury && treasury !== null && typeof treasury === 'object') {
+                Object.entries(treasury).forEach(([key, value]) => {
+                    if (key !== 'timestamp' && key !== 'status' && key !== 'message') {
+                        html += `
+                            <div class="data-card">
+                                <h3>Treasury ${formatComponentName(key)}</h3>
+                                <div class="data-value">${formatValue(value)}</div>
+                                ${getChangeIndicator(key, value)}
+                            </div>
+                        `;
+                    }
+                });
             }
             
-            document.getElementById('central-banks-grid').innerHTML = html || '<div class="error-message">Unable to load central bank data</div>';
+            html += '</div>';
+            
+            document.getElementById('central-banks-grid').innerHTML = html || '<div class="error-message">Loading central bank data...</div>';
         }
 
-        // Load credit markets data
+        // Load other tab data with proper error handling
         async function loadCreditMarkets() {
-            const [icebofa, spreads, duration] = await Promise.all([
-                fetchData('/liquidity/icebofa'),
-                fetchData('/liquidity/credit-spreads'),
-                fetchData('/liquidity/duration-risk')
-            ]);
+            const comprehensive = await fetchData('/liquidity/comprehensive');
             
-            let html = '';
-            
-            if (icebofa) {
-                html += createDataCards('ICE BofA Indices', icebofa);
+            if (comprehensive) {
+                let html = '<div class="data-grid">';
+                
+                // Extract credit market data from comprehensive response
+                if (comprehensive.credit_markets) {
+                    Object.entries(comprehensive.credit_markets).forEach(([key, value]) => {
+                        html += createDataCard('Credit', key, value);
+                    });
+                }
+                
+                // Look for ICE BofA data
+                if (comprehensive.ice_bofa) {
+                    Object.entries(comprehensive.ice_bofa).forEach(([key, value]) => {
+                        html += createDataCard('ICE BofA', key, value);
+                    });
+                }
+                
+                // Look for spreads in main data
+                Object.entries(comprehensive).forEach(([key, value]) => {
+                    if (key.includes('spread') || key.includes('credit') || key.includes('yield')) {
+                        if (typeof value === 'number' || typeof value === 'string') {
+                            html += createDataCard('Market', key, value);
+                        }
+                    }
+                });
+                
+                html += '</div>';
+                document.getElementById('credit-markets-grid').innerHTML = html || 
+                    '<div class="data-card"><h3>No credit market data available</h3></div>';
+            } else {
+                // Try individual endpoints as fallback
+                const [icebofa, spreads, duration] = await Promise.allSettled([
+                    fetchData('/liquidity/icebofa'),
+                    fetchData('/liquidity/credit-spreads'),
+                    fetchData('/liquidity/duration-risk')
+                ]);
+                
+                let html = '<div class="data-grid">';
+                let hasData = false;
+                
+                [icebofa, spreads, duration].forEach((result, index) => {
+                    if (result.status === 'fulfilled' && result.value) {
+                        hasData = true;
+                        const source = ['ICE BofA', 'Spreads', 'Duration'][index];
+                        Object.entries(result.value).forEach(([key, value]) => {
+                            if (key !== 'timestamp' && key !== 'status') {
+                                html += createDataCard(source, key, value);
+                            }
+                        });
+                    }
+                });
+                
+                html += '</div>';
+                document.getElementById('credit-markets-grid').innerHTML = hasData ? html : 
+                    '<div class="data-card"><h3>Credit market endpoints not available</h3></div>';
             }
-            
-            if (spreads) {
-                html += createDataCards('Credit Spreads', spreads);
-            }
-            
-            if (duration) {
-                html += createDataCards('Duration Risk', duration);
-            }
-            
-            document.getElementById('credit-markets-grid').innerHTML = html || '<div class="error-message">Unable to load credit market data</div>';
         }
 
         // Load market structure data
