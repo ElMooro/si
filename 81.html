@@ -439,7 +439,7 @@
 
         <div class="loading" id="loading">
             <span class="spinner"></span>
-            Loading real-time data from FRED API...
+            Loading real-time data from your APIs...
         </div>
 
         <div class="error-message" id="error-message"></div>
@@ -551,9 +551,10 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script>
-        // Configuration
-        const FRED_API_KEY = '8e42b7b0d4754c0e5e88bb45b7164d77';
-        const FRED_BASE_URL = 'https://api.stlouisfed.org/fred/series/observations';
+        // Configuration - Your API Endpoints
+        const FED_LIQUIDITY_API = 'https://nmkverrwjnxsmgnogzckkoyuce0bqxyk.lambda-url.us-east-1.on.aws';
+        const FRED_ICE_API = 'https://klehdyiwrl.execute-api.us-east-1.amazonaws.com/prod';
+        const TREASURY_API = 'https://i1hgpjotq7.execute-api.us-east-1.amazonaws.com/prod';
         
         // Key metrics to monitor
         const KEY_METRICS = {
@@ -618,61 +619,60 @@
             fetchAllData();
         });
 
-        // Fetch data from FRED API using CORS proxy
+        // Fetch data from your APIs
         async function fetchFredData(seriesId) {
             try {
-                const endDate = new Date().toISOString().split('T')[0];
-                const startDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+                // First try Fed Liquidity API
+                let url = `${FED_LIQUIDITY_API}/fed_liquidity?series=${seriesId}`;
                 
-                // Using multiple CORS proxy options for reliability
-                const corsProxies = [
-                    'https://cors-anywhere.herokuapp.com/',
-                    'https://api.allorigins.win/raw?url=',
-                    'https://corsproxy.io/?'
-                ];
-                
-                // Try the allorigins proxy first (most reliable)
-                const baseUrl = `${FRED_BASE_URL}?series_id=${seriesId}&api_key=${FRED_API_KEY}&file_type=json&observation_start=${startDate}&observation_end=${endDate}&sort_order=desc&limit=100`;
-                
-                let data = null;
-                let lastError = null;
-                
-                // Try direct request first (in case CORS is enabled)
-                try {
-                    const directResponse = await fetch(baseUrl);
-                    if (directResponse.ok) {
-                        data = await directResponse.json();
-                        return data.observations;
-                    }
-                } catch (e) {
-                    console.log(`Direct request failed for ${seriesId}, trying proxy...`);
+                // For ICE BofA series, use the ICE API
+                if (seriesId.startsWith('BAML')) {
+                    url = `${FRED_ICE_API}/ice_bofa?series=${seriesId}`;
                 }
                 
-                // Try with proxy
-                const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(baseUrl)}`;
+                // For stress indicators
+                if (seriesId === 'STRESS') {
+                    url = `${TREASURY_API}/stress/score`;
+                }
                 
-                try {
-                    const response = await fetch(proxyUrl);
-                    if (!response.ok) throw new Error(`Failed to fetch ${seriesId}`);
-                    
-                    data = await response.json();
+                console.log(`Fetching from: ${url}`);
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Transform the data to match expected format
+                if (data.data && Array.isArray(data.data)) {
+                    // Your API returns data in a different format
+                    return data.data.map(item => ({
+                        date: item.date,
+                        value: item.value.toString()
+                    }));
+                } else if (data.observations) {
                     return data.observations;
-                } catch (error) {
-                    // Try alternative approach using cors-anywhere backup
-                    try {
-                        const backupUrl = `https://corsproxy.io/?${encodeURIComponent(baseUrl)}`;
-                        const backupResponse = await fetch(backupUrl);
-                        if (backupResponse.ok) {
-                            data = await backupResponse.json();
-                            return data.observations;
-                        }
-                    } catch (backupError) {
-                        lastError = backupError;
+                } else if (data[seriesId]) {
+                    // Handle series-specific response
+                    const seriesData = data[seriesId];
+                    if (seriesData.data) {
+                        return seriesData.data.map(item => ({
+                            date: item.date,
+                            value: item.value.toString()
+                        }));
                     }
                 }
                 
-                // If all attempts fail, return mock data for demonstration
-                console.warn(`Using fallback data for ${seriesId} due to CORS issues`);
+                // Fallback to generating sample data if API format is unexpected
+                console.warn(`Unexpected data format for ${seriesId}, using fallback`);
                 return generateFallbackData(seriesId);
                 
             } catch (error) {
@@ -696,7 +696,25 @@
                 // Generate realistic values based on series type
                 let value = 0;
                 if (seriesId === 'VIXCLS') {
-                    value = 15 + Math.random
+                    value = 15 + Math.random() * 10;
+                } else if (seriesId.includes('DGS')) {
+                    value = 2 + Math.random() * 3;
+                } else if (seriesId === 'UNRATE') {
+                    value = 3.5 + Math.random() * 1;
+                } else if (seriesId.includes('BAML')) {
+                    value = 3 + Math.random() * 2;
+                } else {
+                    value = 50 + Math.random() * 50;
+                }
+                
+                values.push({
+                    date: dates[i],
+                    value: value.toFixed(2)
+                });
+            }
+            
+            return values;
+        }
 
         // Fetch all data using batch requests to your APIs
         async function fetchAllData() {
