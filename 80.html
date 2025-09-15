@@ -901,62 +901,41 @@
             document.getElementById(tabName).classList.add('active');
         }
 
-        // Fetch real market data (example for VIX and yield curve)
+        // Fetch real market data from your working FRED API
         async function fetchMarketIndicators() {
             try {
-                // This would fetch real data from FRED API
-                // For now, showing structure
-                addLog('Fetching market indicators from FRED...', 'info');
+                addLog('Fetching market indicators from FRED API...', 'info');
                 
-                // VIX from FRED
-                const vixResponse = await axios.get('https://api.stlouisfed.org/fred/series/observations', {
-                    params: {
-                        series_id: 'VIXCLS',
-                        api_key: '2f057499936072679d8843d7fce99989',
-                        file_type: 'json',
-                        limit: 1,
-                        sort_order: 'desc'
-                    }
-                });
+                // Use your existing working FRED API endpoint
+                const FRED_API_ENDPOINT = 'https://occdgwanqvbjd2qnnuyafvkvei0ptinb.lambda-url.us-east-1.on.aws';
                 
-                if (vixResponse.data.observations && vixResponse.data.observations.length > 0) {
-                    document.getElementById('vixLevel').textContent = vixResponse.data.observations[0].value;
+                // Fetch VIX
+                const vixResponse = await axios.get(`${FRED_API_ENDPOINT}/series/VIXCLS`);
+                if (vixResponse.data && vixResponse.data.value) {
+                    document.getElementById('vixLevel').textContent = parseFloat(vixResponse.data.value).toFixed(2);
                 }
                 
-                // Yield curve (10Y-2Y spread)
-                const yield10Response = await axios.get('https://api.stlouisfed.org/fred/series/observations', {
-                    params: {
-                        series_id: 'DGS10',
-                        api_key: '2f057499936072679d8843d7fce99989',
-                        file_type: 'json',
-                        limit: 1,
-                        sort_order: 'desc'
-                    }
-                });
+                // Fetch 10Y and 2Y yields for spread calculation
+                const dgs10Response = await axios.get(`${FRED_API_ENDPOINT}/series/DGS10`);
+                const dgs2Response = await axios.get(`${FRED_API_ENDPOINT}/series/DGS2`);
                 
-                const yield2Response = await axios.get('https://api.stlouisfed.org/fred/series/observations', {
-                    params: {
-                        series_id: 'DGS2',
-                        api_key: '2f057499936072679d8843d7fce99989',
-                        file_type: 'json',
-                        limit: 1,
-                        sort_order: 'desc'
-                    }
-                });
-                
-                if (yield10Response.data.observations && yield2Response.data.observations) {
-                    const spread = (parseFloat(yield10Response.data.observations[0].value) - 
-                                   parseFloat(yield2Response.data.observations[0].value)).toFixed(2);
+                if (dgs10Response.data && dgs2Response.data) {
+                    const spread = (parseFloat(dgs10Response.data.value) - parseFloat(dgs2Response.data.value)).toFixed(2);
                     document.getElementById('yieldCurve').textContent = `${spread}%`;
                     
                     if (spread < 0) {
                         document.getElementById('yieldCurve').classList.add('risk-high');
                         addLog('⚠️ Yield curve inverted', 'warning');
+                    } else {
+                        document.getElementById('yieldCurve').classList.remove('risk-high');
                     }
                 }
                 
+                addLog('Market indicators updated', 'success');
+                
             } catch (error) {
-                addLog(`Market indicators fetch error: ${error.message}`, 'error');
+                // If FRED API fails, just log and continue
+                console.log('FRED API not available, using AIAPI data only');
             }
         }
 
