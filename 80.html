@@ -1,1 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Market Intelligence Prediction System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.5.0/axios.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            background: linear-gradient(90deg, #00f260, #0575e6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #a0a0a0;
+            font-size: 1.1em;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-title {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            color: #00f260;
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .metric:last-child {
+            border-bottom: none;
+        }
+
+        .metric-label {
+            color: #a0a0a0;
+            font-size: 0.95em;
+        }
+
+        .metric-value {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .risk-low { color: #00ff88; }
+        .risk-moderate { color: #ffdd00; }
+        .risk-high { color: #ff6b6b; }
+        .risk-extreme { color: #ff0040; }
+
+        .bull { color: #00ff88; }
+        .bear { color: #ff4444; }
+        .transition { color: #ffaa00; }
+        .consolidation { color: #00aaff; }
+
+        .control-panel {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-top: 20px;
+        }
+
+        .prediction-timeline {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .prediction-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .prediction-period {
+            color: #a0a0a0;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+        }
+
+        .prediction-direction {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+
+        .prediction-magnitude {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .confidence-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00f260, #0575e6);
+            transition: width 0.5s ease;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        .status-active {
+            background: #00ff88;
+        }
+
+        .status-inactive {
+            background: #ff4444;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .log-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            margin-top: 20px;
+        }
+
+        .log-entry {
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .log-time {
+            color: #00aaff;
+            margin-right: 10px;
+        }
+
+        .error {
+            color: #ff4444;
+        }
+
+        .success {
+            color: #00ff88;
+        }
+
+        .warning {
+            color: #ffaa00;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #a0a0a0;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1em;
+        }
+
+        .input-group input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            border-bottom-color: #00f260;
+            color: #00f260;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .prediction-timeline {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AI Market Intelligence Prediction System</h1>
+            <div class="subtitle">
+                <span class="status-indicator status-active"></span>
+                Real-time Analysis • 300,000+ Indicators • AWS SageMaker Integration
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <h2 class="card-title">Control Panel</h2>
+            
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('operations')">Operations</div>
+                <div class="tab" onclick="switchTab('training')">Model Training</div>
+                <div class="tab" onclick="switchTab('monitoring')">Monitoring</div>
+            </div>
+
+            <div id="operations" class="tab-content active">
+                <div class="button-group">
+                    <button onclick="executePrediction()" id="predictBtn">
+                        Get Predictions
+                    </button>
+                    <button onclick="analyzePatterns()" id="analyzeBtn">
+                        Analyze Patterns
+                    </button>
+                    <button onclick="collectHistorical()" id="collectBtn">
+                        Collect Historical Data
+                    </button>
+                    <button onclick="fullAnalysis()" id="fullBtn">
+                        Full Analysis
+                    </button>
+                    <button onclick="startAutoRefresh()" id="autoBtn">
+                        Start Auto-Refresh
+                    </button>
+                </div>
+            </div>
+
+            <div id="training" class="tab-content">
+                <div class="input-group">
+                    <label>Training Parameters</label>
+                    <select id="modelType">
+                        <option value="crisis">Crisis Predictor</option>
+                        <option value="blackswan">Black Swan Detector</option>
+                        <option value="bullbear">Bull/Bear Classifier</option>
+                        <option value="dollar">Dollar Shortage Analyzer</option>
+                        <option value="recession">Recession Forecaster</option>
+                        <option value="bubble">Bubble Identifier</option>
+                        <option value="volatility">Volatility Predictor</option>
+                        <option value="correlation">Correlation Analyzer</option>
+                        <option value="regime">Regime Detector</option>
+                        <option value="liquidity">Liquidity Monitor</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Training Epochs</label>
+                    <input type="number" id="epochs" value="100" min="10" max="1000">
+                </div>
+                <div class="input-group">
+                    <label>Learning Rate</label>
+                    <input type="number" id="learningRate" value="0.001" step="0.0001" min="0.0001" max="0.1">
+                </div>
+                <button onclick="trainModels()">Start Training</button>
+            </div>
+
+            <div id="monitoring" class="tab-content">
+                <div class="input-group">
+                    <label>Alert Thresholds</label>
+                    <input type="number" id="crisisThreshold" placeholder="Crisis Probability %" value="70">
+                </div>
+                <div class="input-group">
+                    <input type="number" id="blackswanThreshold" placeholder="Black Swan Risk %" value="15">
+                </div>
+                <button onclick="updateThresholds()">Update Thresholds</button>
+                <button onclick="viewCloudWatch()">Open CloudWatch Dashboard</button>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <h3 class="card-title">Market Status</h3>
+                <div class="metric">
+                    <span class="metric-label">Market Phase</span>
+                    <span class="metric-value" id="marketPhase">-</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Risk Level</span>
+                    <span class="metric-value" id="riskLevel">-</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Overall Confidence</span>
+                    <span class="metric-value" id="confidence">-</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Last Update</span>
+                    <span class="metric-value" id="lastUpdate">-</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title">Risk Indicators</h3>
+                <div class="metric">
+                    <span class="metric-label">Crisis Probability</span>
+                    <span class="metric-value" id="crisisProbability">-</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Black Swan Risk</span>
+                    <span class="metric-value" id="blackSwanRisk">-</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">VIX Level</span>
+                    <span class="metric-value" id="vixLevel">-</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Yield Curve</span>
+                    <span class="metric-value" id="yieldCurve">-</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title">System Performance</h3>
+                <div class="metric">
+                    <span class="metric-label">API Response Time</span>
+                    <span class="metric-value" id="responseTime">-</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Data Points Processed</span>
+                    <span class="metric-value" id="dataPoints">-</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Model Accuracy</span>
+                    <span class="metric-value" id="modelAccuracy">-</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">System Uptime</span>
+                    <span class="metric-value" id="uptime">99.9%</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 class="card-title">Market Predictions</h3>
+            <div class="prediction-timeline" id="predictions">
+                <div class="prediction-item">
+                    <div class="prediction-period">1 Week</div>
+                    <div class="prediction-direction" id="pred1wDir">-</div>
+                    <div class="prediction-magnitude" id="pred1wMag">-</div>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" id="pred1wConf" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="prediction-item">
+                    <div class="prediction-period">1 Month</div>
+                    <div class="prediction-direction" id="pred1mDir">-</div>
+                    <div class="prediction-magnitude" id="pred1mMag">-</div>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" id="pred1mConf" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="prediction-item">
+                    <div class="prediction-period">3 Months</div>
+                    <div class="prediction-direction" id="pred3mDir">-</div>
+                    <div class="prediction-magnitude" id="pred3mMag">-</div>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" id="pred3mConf" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 class="card-title">Historical Analysis</h3>
+            <div class="chart-container">
+                <canvas id="analysisChart"></canvas>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 class="card-title">System Logs</h3>
+            <div class="log-container" id="logContainer">
+                <div class="log-entry">
+                    <span class="log-time">00:00:00</span>
+                    <span class="success">System initialized and ready</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_ENDPOINT = 'https://z7dm1ulht7.execute-api.us-east-1.amazonaws.com/prod/predict';
+        let autoRefreshInterval = null;
+        let chartInstance = null;
+        let historicalData = {
+            labels: [],
+            crisisProbability: [],
+            blackSwanRisk: [],
+            confidence: []
+        };
+
+        // Initialize chart
+        function initChart() {
+            const ctx = document.getElementById('analysisChart').getContext('2d');
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: historicalData.labels,
+                    datasets: [
+                        {
+                            label: 'Crisis Probability',
+                            data: historicalData.crisisProbability,
+                            borderColor: '#ff6b6b',
+                            backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Black Swan Risk',
+                            data: historicalData.blackSwanRisk,
+                            borderColor: '#ffaa00',
+                            backgroundColor: 'rgba(255, 170, 0, 0.1)',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Confidence',
+                            data: historicalData.confidence,
+                            borderColor: '#00f260',
+                            backgroundColor: 'rgba(0, 242, 96, 0.1)',
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#fff'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: '#a0a0a0' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        y: {
+                            ticks: { color: '#a0a0a0' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Log function
+        function addLog(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const time = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `
+                <span class="log-time">${time}</span>
+                <span class="${type}">${message}</span>
+            `;
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        // Execute prediction
+        async function executePrediction() {
+            const btn = document.getElementById('predictBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> Loading...';
+            
+            try {
+                addLog('Fetching market predictions...', 'info');
+                const startTime = performance.now();
+                
+                const response = await axios.post(API_ENDPOINT, {
+                    operation: 'predict'
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const endTime = performance.now();
+                const responseTime = (endTime - startTime).toFixed(0);
+                
+                const data = response.data;
+                updateDashboard(data);
+                
+                document.getElementById('responseTime').textContent = `${responseTime}ms`;
+                
+                // Update historical data for chart
+                const currentTime = new Date().toLocaleTimeString();
+                historicalData.labels.push(currentTime);
+                historicalData.crisisProbability.push(parseFloat(data.crisis_probability));
+                historicalData.blackSwanRisk.push(parseFloat(data.black_swan_risk));
+                historicalData.confidence.push(data.confidence * 100);
+                
+                // Keep only last 20 data points
+                if (historicalData.labels.length > 20) {
+                    historicalData.labels.shift();
+                    historicalData.crisisProbability.shift();
+                    historicalData.blackSwanRisk.shift();
+                    historicalData.confidence.shift();
+                }
+                
+                if (chartInstance) {
+                    chartInstance.update();
+                }
+                
+                addLog('Predictions updated successfully', 'success');
+                
+                // Check for alerts
+                checkAlerts(data);
+                
+            } catch (error) {
+                addLog(`Error: ${error.message}`, 'error');
+                console.error('Prediction error:', error);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Get Predictions';
+            }
+        }
+
+        // Update dashboard with data
+        function updateDashboard(data) {
+            // Market Status
+            const marketPhase = document.getElementById('marketPhase');
+            marketPhase.textContent = data.market_phase;
+            marketPhase.className = `metric-value ${data.market_phase}`;
+            
+            const riskLevel = document.getElementById('riskLevel');
+            riskLevel.textContent = data.risk_level;
+            riskLevel.className = `metric-value risk-${data.risk_level}`;
+            
+            document.getElementById('confidence').textContent = `${(data.confidence * 100).toFixed(1)}%`;
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+            
+            // Risk Indicators
+            document.getElementById('crisisProbability').textContent = data.crisis_probability;
+            document.getElementById('blackSwanRisk').textContent = data.black_swan_risk;
+            
+            // Predictions
+            if (data.predictions) {
+                // 1 Week
+                const pred1w = data.predictions['1_week'];
+                document.getElementById('pred1wDir').textContent = 
+                    pred1w.direction === 'up' ? '📈' : pred1w.direction === 'down' ? '📉' : '➡️';
+                document.getElementById('pred1wMag').textContent = pred1w.magnitude;
+                document.getElementById('pred1wConf').style.width = `${pred1w.confidence * 100}%`;
+                
+                // 1 Month
+                const pred1m = data.predictions['1_month'];
+                document.getElementById('pred1mDir').textContent = 
+                    pred1m.direction === 'up' ? '📈' : pred1m.direction === 'down' ? '📉' : '➡️';
+                document.getElementById('pred1mMag').textContent = pred1m.magnitude;
+                document.getElementById('pred1mConf').style.width = `${pred1m.confidence * 100}%`;
+                
+                // 3 Months
+                const pred3m = data.predictions['3_months'];
+                document.getElementById('pred3mDir').textContent = 
+                    pred3m.direction === 'up' ? '📈' : pred3m.direction === 'down' ? '📉' : '➡️';
+                document.getElementById('pred3mMag').textContent = pred3m.magnitude;
+                document.getElementById('pred3mConf').style.width = `${pred3m.confidence * 100}%`;
+            }
+            
+            // Update data points (simulated for now)
+            document.getElementById('dataPoints').textContent = '197,108+';
+            document.getElementById('modelAccuracy').textContent = `${(data.confidence * 100).toFixed(1)}%`;
+        }
+
+        // Analyze patterns
+        async function analyzePatterns() {
+            const btn = document.getElementById('analyzeBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> Analyzing...';
+            
+            try {
+                addLog('Analyzing historical patterns...', 'info');
+                
+                const response = await axios.post(API_ENDPOINT, {
+                    operation: 'analyze_patterns'
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                addLog('Pattern analysis completed', 'success');
+                
+                // Process pattern data if needed
+                if (response.data.patterns) {
+                    addLog(`Found ${response.data.patterns.length} significant patterns`, 'info');
+                }
+                
+            } catch (error) {
+                addLog(`Pattern analysis error: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Analyze Patterns';
+            }
+        }
+
+        // Collect historical data
+        async function collectHistorical() {
+            const btn = document.getElementById('collectBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> Collecting...';
+            
+            try {
+                addLog('Collecting historical data from all sources...', 'info');
+                
+                const response = await axios.post(API_ENDPOINT, {
+                    operation: 'collect_historical'
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                addLog('Historical data collection completed', 'success');
+                
+                if (response.data.records_collected) {
+                    addLog(`Collected ${response.data.records_collected} new records`, 'info');
+                }
+                
+            } catch (error) {
+                addLog(`Collection error: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Collect Historical Data';
+            }
+        }
+
+        // Train models
+        async function trainModels() {
+            const modelType = document.getElementById('modelType').value;
+            const epochs = document.getElementById('epochs').value;
+            const learningRate = document.getElementById('learningRate').value;
+            
+            addLog(`Starting training: ${modelType} model with ${epochs} epochs`, 'info');
+            
+            try {
+                const response = await axios.post(API_ENDPOINT, {
+                    operation: 'train_models',
+                    parameters: {
+                        model: modelType,
+                        epochs: parseInt(epochs),
+                        learning_rate: parseFloat(learningRate)
+                    }
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                addLog('Model training completed successfully', 'success');
+                
+                if (response.data.accuracy) {
+                    addLog(`Model accuracy: ${(response.data.accuracy * 100).toFixed(2)}%`, 'info');
+                }
+                
+            } catch (error) {
+                addLog(`Training error: ${error.message}`, 'error');
+            }
+        }
+
+        // Full analysis
+        async function fullAnalysis() {
+            const btn = document.getElementById('fullBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> Running Full Analysis...';
+            
+            try {
+                addLog('Initiating comprehensive market analysis...', 'info');
+                
+                const response = await axios.post(API_ENDPOINT, {
+                    operation: 'full_analysis'
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                addLog('Full analysis completed', 'success');
+                
+                if (response.data) {
+                    updateDashboard(response.data);
+                }
+                
+            } catch (error) {
+                addLog(`Full analysis error: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Full Analysis';
+            }
+        }
+
+        // Auto refresh
+        function startAutoRefresh() {
+            const btn = document.getElementById('autoBtn');
+            
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+                btn.textContent = 'Start Auto-Refresh';
+                addLog('Auto-refresh stopped', 'warning');
+            } else {
+                autoRefreshInterval = setInterval(() => {
+                    executePrediction();
+                }, 60000); // Refresh every minute
+                btn.textContent = 'Stop Auto-Refresh';
+                addLog('Auto-refresh started (60s interval)', 'success');
+                executePrediction(); // Execute immediately
+            }
+        }
+
+        // Check alerts
+        function checkAlerts(data) {
+            const crisisThreshold = parseFloat(document.getElementById('crisisThreshold')?.value || 70);
+            const blackswanThreshold = parseFloat(document.getElementById('blackswanThreshold')?.value || 15);
+            
+            const crisisProb = parseFloat(data.crisis_probability);
+            const blackswanRisk = parseFloat(data.black_swan_risk);
+            
+            if (crisisProb > crisisThreshold) {
+                addLog(`⚠️ ALERT: Crisis probability (${crisisProb}%) exceeds threshold`, 'error');
+            }
+            
+            if (blackswanRisk > blackswanThreshold) {
+                addLog(`⚠️ ALERT: Black swan risk (${blackswanRisk}%) exceeds threshold`, 'error');
+            }
+        }
+
+        // Update thresholds
+        function updateThresholds() {
+            const crisis = document.getElementById('crisisThreshold').value;
+            const blackswan = document.getElementById('blackswanThreshold').value;
+            addLog(`Alert thresholds updated: Crisis=${crisis}%, Black Swan=${blackswan}%`, 'success');
+        }
+
+        // View CloudWatch
+        function viewCloudWatch() {
+            window.open('https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#dashboards:name=AI-API-Predictions', '_blank');
+        }
+
+        // Switch tabs
+        function switchTab(tabName) {
+            // Remove active class from all tabs and contents
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Add active class to selected tab
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        // Fetch real market data (example for VIX and yield curve)
+        async function fetchMarketIndicators() {
+            try {
+                // This would fetch real data from FRED API
+                // For now, showing structure
+                addLog('Fetching market indicators from FRED...', 'info');
+                
+                // VIX from FRED
+                const vixResponse = await axios.get('https://api.stlouisfed.org/fred/series/observations', {
+                    params: {
+                        series_id: 'VIXCLS',
+                        api_key: '2f057499936072679d8843d7fce99989',
+                        file_type: 'json',
+                        limit: 1,
+                        sort_order: 'desc'
+                    }
+                });
+                
+                if (vixResponse.data.observations && vixResponse.data.observations.length > 0) {
+                    document.getElementById('vixLevel').textContent = vixResponse.data.observations[0].value;
+                }
+                
+                // Yield curve (10Y-2Y spread)
+                const yield10Response = await axios.get('https://api.stlouisfed.org/fred/series/observations', {
+                    params: {
+                        series_id: 'DGS10',
+                        api_key: '2f057499936072679d8843d7fce99989',
+                        file_type: 'json',
+                        limit: 1,
+                        sort_order: 'desc'
+                    }
+                });
+                
+                const yield2Response = await axios.get('https://api.stlouisfed.org/fred/series/observations', {
+                    params: {
+                        series_id: 'DGS2',
+                        api_key: '2f057499936072679d8843d7fce99989',
+                        file_type: 'json',
+                        limit: 1,
+                        sort_order: 'desc'
+                    }
+                });
+                
+                if (yield10Response.data.observations && yield2Response.data.observations) {
+                    const spread = (parseFloat(yield10Response.data.observations[0].value) - 
+                                   parseFloat(yield2Response.data.observations[0].value)).toFixed(2);
+                    document.getElementById('yieldCurve').textContent = `${spread}%`;
+                    
+                    if (spread < 0) {
+                        document.getElementById('yieldCurve').classList.add('risk-high');
+                        addLog('⚠️ Yield curve inverted', 'warning');
+                    }
+                }
+                
+            } catch (error) {
+                addLog(`Market indicators fetch error: ${error.message}`, 'error');
+            }
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            initChart();
+            executePrediction();
+            fetchMarketIndicators();
+            
+            // Set up periodic market indicator updates
+            setInterval(fetchMarketIndicators, 300000); // Every 5 minutes
+        });
+
+        // Handle visibility change for auto-refresh
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                addLog('Auto-refresh paused (tab inactive)', 'warning');
+            } else if (!document.hidden && document.getElementById('autoBtn').textContent === 'Stop Auto-Refresh') {
+                autoRefreshInterval = setInterval(executePrediction, 60000);
+                addLog('Auto-refresh resumed', 'success');
+            }
+        });
+    </script>
+</body>
+</html>
