@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Liquidity Agent - Real-Time Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            background: linear-gradient(90deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .status-bar {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+
+        .status-light {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-light.active {
+            background: #00ff88;
+            box-shadow: 0 0 10px #00ff88;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff4757 100%);
+        }
+
+        button.success {
+            background: linear-gradient(135deg, #00ff88 0%, #00cc66 100%);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            color: #888;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            position: relative;
+            white-space: nowrap;
+        }
+
+        .tab.active {
+            color: #00ff88;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #00ff88, #00ccff);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border-color: rgba(0, 255, 136, 0.3);
+        }
+
+        .metric-label {
+            font-size: 0.85em;
+            color: #888;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #fff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .metric-change {
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .metric-change.positive {
+            color: #00ff88;
+        }
+
+        .metric-change.negative {
+            color: #ff4757;
+        }
+
+        .khalid-index {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+        }
+
+        .khalid-index h2 {
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .index-gauge {
+            position: relative;
+            height: 40px;
+            background: linear-gradient(90deg, 
+                #00ff88 0%, 
+                #ffff00 35%, 
+                #ffa500 65%, 
+                #ff4757 100%);
+            border-radius: 20px;
+            margin: 20px 0;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .index-pointer {
+            position: absolute;
+            top: -10px;
+            width: 4px;
+            height: 60px;
+            background: white;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+            transition: left 1s ease;
+        }
+
+        .index-value {
+            font-size: 3em;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .index-recommendation {
+            text-align: center;
+            font-size: 1.2em;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .report-section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .report-section h3 {
+            margin-bottom: 20px;
+            color: #00ff88;
+            font-size: 1.3em;
+        }
+
+        .report-content {
+            line-height: 1.8;
+            color: #ccc;
+        }
+
+        .alert-box {
+            background: rgba(255, 75, 87, 0.1);
+            border: 1px solid rgba(255, 75, 87, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            animation: alertPulse 2s infinite;
+        }
+
+        @keyframes alertPulse {
+            0%, 100% { border-color: rgba(255, 75, 87, 0.3); }
+            50% { border-color: rgba(255, 75, 87, 0.6); }
+        }
+
+        .alert-box.warning {
+            background: rgba(255, 165, 0, 0.1);
+            border-color: rgba(255, 165, 0, 0.3);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            font-size: 1.2em;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #00ff88;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            height: 400px;
+        }
+
+        .error-message {
+            background: rgba(255, 75, 87, 0.1);
+            border: 1px solid rgba(255, 75, 87, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .predictions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .prediction-card {
+            background: rgba(0, 255, 136, 0.05);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .prediction-probability {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .auto-update-timer {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.5em;
+            }
+            
+            .tabs {
+                overflow-x: scroll;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚀 Global Liquidity Agent Dashboard</h1>
+        <div class="status-bar">
+            <div class="status-indicator">
+                <span class="status-light active"></span>
+                <span>Live Data</span>
+            </div>
+            <div class="status-indicator">
+                <span id="last-update">Last Update: --:--:--</span>
+            </div>
+            <div class="status-indicator">
+                <span id="market-regime">Market Regime: Loading...</span>
+            </div>
+            <div class="status-indicator">
+                <span id="alert-count">Alerts: 0</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="controls">
+            <button onclick="fetchAllData()" class="success">🔄 Refresh All Data</button>
+            <button onclick="generateReport()">📊 Generate Report</button>
+            <button onclick="downloadReport()">📥 Download Report</button>
+            <button onclick="toggleAutoUpdate()" id="auto-update-btn">🔁 Auto-Update: OFF</button>
+            <button onclick="sendAlert()" class="danger">🚨 Send Alert</button>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('overview')">Overview</button>
+            <button class="tab" onclick="switchTab('volatility')">Volatility</button>
+            <button class="tab" onclick="switchTab('treasury')">Treasury</button>
+            <button class="tab" onclick="switchTab('credit')">Credit</button>
+            <button class="tab" onclick="switchTab('funding')">Funding</button>
+            <button class="tab" onclick="switchTab('indicators')">Indicators</button>
+            <button class="tab" onclick="switchTab('predictions')">ML Predictions</button>
+            <button class="tab" onclick="switchTab('report')">Analysis Report</button>
+        </div>
+
+        <div class="loading" id="loading">
+            <span class="spinner"></span>
+            Loading real-time data from FRED API...
+        </div>
+
+        <div class="error-message" id="error-message"></div>
+
+        <!-- Overview Tab -->
+        <div class="tab-content active" id="overview-content">
+            <div class="khalid-index">
+                <h2>Khalid Index (Custom Composite)</h2>
+                <div class="index-gauge">
+                    <div class="index-pointer" id="khalid-pointer" style="left: 50%"></div>
+                </div>
+                <div class="index-value" id="khalid-value">--</div>
+                <div class="index-recommendation" id="khalid-recommendation">
+                    Calculating market sentiment...
+                </div>
+            </div>
+
+            <div class="metrics-grid" id="key-metrics">
+                <!-- Key metrics will be populated here -->
+            </div>
+
+            <div id="alerts-container"></div>
+        </div>
+
+        <!-- Volatility Tab -->
+        <div class="tab-content" id="volatility-content">
+            <div class="metrics-grid" id="volatility-metrics">
+                <!-- Volatility metrics will be populated here -->
+            </div>
+            <div class="chart-container">
+                <canvas id="volatility-chart"></canvas>
+            </div>
+        </div>
+
+        <!-- Treasury Tab -->
+        <div class="tab-content" id="treasury-content">
+            <div class="metrics-grid" id="treasury-metrics">
+                <!-- Treasury yields will be populated here -->
+            </div>
+            <div class="chart-container">
+                <canvas id="yield-curve-chart"></canvas>
+            </div>
+        </div>
+
+        <!-- Credit Tab -->
+        <div class="tab-content" id="credit-content">
+            <div class="metrics-grid" id="credit-metrics">
+                <!-- Credit spreads will be populated here -->
+            </div>
+        </div>
+
+        <!-- Funding Tab -->
+        <div class="tab-content" id="funding-content">
+            <div class="metrics-grid" id="funding-metrics">
+                <!-- Funding rates will be populated here -->
+            </div>
+        </div>
+
+        <!-- Indicators Tab -->
+        <div class="tab-content" id="indicators-content">
+            <div class="metrics-grid" id="economic-indicators">
+                <!-- Economic indicators will be populated here -->
+            </div>
+        </div>
+
+        <!-- ML Predictions Tab -->
+        <div class="tab-content" id="predictions-content">
+            <h2 style="margin-bottom: 20px;">Machine Learning Predictions</h2>
+            <div class="predictions-grid" id="ml-predictions">
+                <!-- ML predictions will be populated here -->
+            </div>
+        </div>
+
+        <!-- Report Tab -->
+        <div class="tab-content" id="report-content">
+            <div class="report-section">
+                <h3>Executive Summary</h3>
+                <div class="report-content" id="executive-summary">
+                    Generating comprehensive analysis...
+                </div>
+            </div>
+            
+            <div class="report-section">
+                <h3>Market Analysis</h3>
+                <div class="report-content" id="market-analysis">
+                    Loading market data...
+                </div>
+            </div>
+
+            <div class="report-section">
+                <h3>Risk Assessment</h3>
+                <div class="report-content" id="risk-assessment">
+                    Calculating risk metrics...
+                </div>
+            </div>
+
+            <div class="report-section">
+                <h3>Portfolio Recommendations</h3>
+                <div class="report-content" id="portfolio-recommendations">
+                    Generating recommendations...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="auto-update-timer" id="update-timer" style="display: none;">
+        Next update in: <span id="countdown">60</span> seconds
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script>
+        // Configuration
+        const FRED_API_KEY = '8e42b7b0d4754c0e5e88bb45b7164d77';
+        const FRED_BASE_URL = 'https://api.stlouisfed.org/fred/series/observations';
+        
+        // Key metrics to monitor
+        const KEY_METRICS = {
+            'VIXCLS': 'VIX Index',
+            'DGS10': '10-Year Treasury',
+            'DGS2': '2-Year Treasury',
+            'BAMLH0A0HYM2': 'High Yield Spread',
+            'TEDRATE': 'TED Spread',
+            'UNRATE': 'Unemployment Rate',
+            'CPIAUCSL': 'CPI Inflation',
+            'GDP': 'GDP Growth',
+            'SOFR': 'SOFR Rate',
+            'SP500': 'S&P 500'
+        };
+
+        const VOLATILITY_METRICS = {
+            'VIXCLS': 'VIX Index',
+            'VVIXCLS': 'VIX of VIX',
+            'VXNCLS': 'NASDAQ Volatility',
+            'RVXCLS': 'Russell 2000 Vol',
+            'OVXCLS': 'Oil Volatility',
+            'GVZCLS': 'Gold Volatility',
+            'EVZCLS': 'Euro Volatility'
+        };
+
+        const TREASURY_YIELDS = {
+            'DGS1MO': '1-Month',
+            'DGS3MO': '3-Month',
+            'DGS6MO': '6-Month',
+            'DGS1': '1-Year',
+            'DGS2': '2-Year',
+            'DGS5': '5-Year',
+            'DGS10': '10-Year',
+            'DGS30': '30-Year'
+        };
+
+        const CREDIT_SPREADS = {
+            'BAMLC0A0CM': 'IG Corporate',
+            'BAMLC0A1CAAA': 'AAA Corporate',
+            'BAMLC0A4CBBB': 'BBB Corporate',
+            'BAMLH0A0HYM2': 'High Yield',
+            'BAMLH0A1HYBB': 'BB Corporate',
+            'BAMLH0A3HYC': 'CCC Corporate'
+        };
+
+        const FUNDING_RATES = {
+            'SOFR': 'SOFR',
+            'EFFR': 'Fed Funds Rate',
+            'OBFR': 'Bank Funding Rate',
+            'IORB': 'Interest on Reserves',
+            'TEDRATE': 'TED Spread'
+        };
+
+        // Global variables
+        let autoUpdateInterval = null;
+        let countdownInterval = null;
+        let cachedData = {};
+        let alertsActive = [];
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchAllData();
+        });
+
+        // Fetch data from FRED API
+        async function fetchFredData(seriesId) {
+            try {
+                const endDate = new Date().toISOString().split('T')[0];
+                const startDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+                
+                const url = `${FRED_BASE_URL}?series_id=${seriesId}&api_key=${FRED_API_KEY}&file_type=json&observation_start=${startDate}&observation_end=${endDate}&sort_order=desc&limit=100`;
+                
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`Failed to fetch ${seriesId}`);
+                
+                const data = await response.json();
+                return data.observations;
+            } catch (error) {
+                console.error(`Error fetching ${seriesId}:`, error);
+                return null;
+            }
+        }
+
+        // Fetch all data
+        async function fetchAllData() {
+            showLoading(true);
+            document.getElementById('error-message').style.display = 'none';
+            
+            try {
+                // Fetch key metrics
+                await fetchMetricsGroup(KEY_METRICS, 'key-metrics');
+                
+                // Fetch volatility metrics
+                await fetchMetricsGroup(VOLATILITY_METRICS, 'volatility-metrics');
+                
+                // Fetch treasury yields
+                await fetchMetricsGroup(TREASURY_YIELDS, 'treasury-metrics');
+                
+                // Fetch credit spreads
+                await fetchMetricsGroup(CREDIT_SPREADS, 'credit-metrics');
+                
+                // Fetch funding rates
+                await fetchMetricsGroup(FUNDING_RATES, 'funding-metrics');
+                
+                // Calculate derived metrics
+                calculateDerivedMetrics();
+                
+                // Update Khalid Index
+                updateKhalidIndex();
+                
+                // Check for alerts
+                checkAlerts();
+                
+                // Generate ML predictions
+                generateMLPredictions();
+                
+                // Update charts
+                updateCharts();
+                
+                // Update last update time
+                updateLastUpdateTime();
+                
+                showLoading(false);
+            } catch (error) {
+                showError('Failed to fetch data. Please check your connection and try again.');
+                showLoading(false);
+            }
+        }
+
+        // Fetch metrics group
+        async function fetchMetricsGroup(metricsDict, containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            for (const [seriesId, label] of Object.entries(metricsDict)) {
+                const data = await fetchFredData(seriesId);
+                if (data && data.length > 0) {
+                    cachedData[seriesId] = data;
+                    const latest = data[0];
+                    const previous = data[1] || data[0];
+                    
+                    const value = parseFloat(latest.value);
+                    const prevValue = parseFloat(previous.value);
+                    const change = ((value - prevValue) / prevValue * 100).toFixed(2);
+                    
+                    const card = createMetricCard(label, value, change, seriesId);
+                    container.appendChild(card);
+                }
+            }
+        }
+
+        // Create metric card
+        function createMetricCard(label, value, change, seriesId) {
+            const card = document.createElement('div');
+            card.className = 'metric-card';
+            
+            const formattedValue = formatValue(value, seriesId);
+            const changeClass = change >= 0 ? 'positive' : 'negative';
+            const changeSymbol = change >= 0 ? '▲' : '▼';
+            
+            card.innerHTML = `
+                <div class="metric-label">${label}</div>
+                <div class="metric-value">${formattedValue}</div>
+                <div class="metric-change ${changeClass}">
+                    <span>${changeSymbol}</span>
+                    <span>${Math.abs(change)}%</span>
+                </div>
+            `;
+            
+            return card;
+        }
+
+        // Format value based on metric type
+        function formatValue(value, seriesId) {
+            if (seriesId.includes('RATE') || seriesId.includes('DGS')) {
+                return value.toFixed(2) + '%';
+            } else if (seriesId === 'SP500') {
+                return value.toFixed(0);
+            } else if (seriesId === 'GDP') {
+                return '$' + (value / 1000).toFixed(1) + 'T';
+            } else {
+                return value.toFixed(2);
+            }
+        }
+
+        // Calculate derived metrics
+        function calculateDerivedMetrics() {
+            // Calculate 2s10s spread
+            if (cachedData['DGS2'] && cachedData['DGS10']) {
+                const twoYear = parseFloat(cachedData['DGS2'][0].value);
+                const tenYear = parseFloat(cachedData['DGS10'][0].value);
+                const spread = (tenYear - twoYear) * 100;
+                
+                const container = document.getElementById('key-metrics');
+                const card = createMetricCard('2s10s Spread', spread, 0, '2s10s');
+                container.appendChild(card);
+                
+                // Update market regime based on spread
+                updateMarketRegime(spread);
+            }
+        }
+
+        // Update Khalid Index
+        function updateKhalidIndex() {
+            let indexValue = 50; // Default neutral
+            
+            // Calculate based on available data
+            if (cachedData['VIXCLS']) {
+                const vix = parseFloat(cachedData['VIXCLS'][0].value);
+                const vixScore = Math.min(100, (vix / 80) * 100);
+                indexValue = vixScore;
+            }
+            
+            // Update UI
+            const pointer = document.getElementById('khalid-pointer');
+            const valueEl = document.getElementById('khalid-value');
+            const recEl = document.getElementById('khalid-recommendation');
+            
+            pointer.style.left = indexValue + '%';
+            valueEl.textContent = indexValue.toFixed(1);
+            
+            // Set recommendation based on index
+            let recommendation = '';
+            let action = '';
+            
+            if (indexValue < 20) {
+                recommendation = 'EXTREME FEAR - Strong Buy Signal';
+                action = 'Consider aggressive positioning';
+                valueEl.style.color = '#00ff88';
+            } else if (indexValue < 35) {
+                recommendation = 'FEAR - Buy Signal';
+                action = 'Add to positions gradually';
+                valueEl.style.color = '#66ff66';
+            } else if (indexValue < 65) {
+                recommendation = 'NEUTRAL - Hold';
+                action = 'Maintain current positions';
+                valueEl.style.color = '#ffff00';
+            } else if (indexValue < 80) {
+                recommendation = 'GREED - Take Profits';
+                action = 'Consider reducing exposure';
+                valueEl.style.color = '#ffa500';
+            } else {
+                recommendation = 'EXTREME GREED - Sell Signal';
+                action = 'Strong sell, raise cash';
+                valueEl.style.color = '#ff4757';
+            }
+            
+            recEl.innerHTML = `<strong>${recommendation}</strong><br>${action}`;
+        }
+
+        // Update market regime
+        function updateMarketRegime(spread) {
+            const regimeEl = document.getElementById('market-regime');
+            let regime = 'UNKNOWN';
+            
+            if (cachedData['VIXCLS'] && cachedData['BAMLH0A0HYM2']) {
+                const vix = parseFloat(cachedData['VIXCLS'][0].value);
+                const hySpread = parseFloat(cachedData['BAMLH0A0HYM2'][0].value) * 100;
+                
+                if (vix < 20 && hySpread < 400 && spread > 50) {
+                    regime = 'BULL MARKET';
+                    regimeEl.style.color = '#00ff88';
+                } else if (vix > 30 && hySpread > 800) {
+                    regime = 'CRISIS';
+                    regimeEl.style.color = '#ff4757';
+                } else if (vix > 20 && vix <= 30) {
+                    regime = 'BEAR MARKET';
+                    regimeEl.style.color = '#ffa500';
+                } else {
+                    regime = 'TRANSITIONAL';
+                    regimeEl.style.color = '#ffff00';
+                }
+            }
+            
+            regimeEl.textContent = `Market Regime: ${regime}`;
+        }
+
+        // Check alerts
+        function checkAlerts() {
+            alertsActive = [];
+            const container = document.getElementById('alerts-container');
+            container.innerHTML = '';
+            
+            // Check VIX
+            if (cachedData['VIXCLS']) {
+                const vix = parseFloat(cachedData['VIXCLS'][0].value);
+                if (vix > 30) {
+                    addAlert('CRITICAL', `VIX above 30 (${vix.toFixed(2)}) - Market panic detected!`);
+                } else if (vix > 25) {
+                    addAlert('WARNING', `VIX above 25 (${vix.toFixed(2)}) - Volatility rising`);
+                }
+            }
+            
+            // Check TED Spread
+            if (cachedData['TEDRATE']) {
+                const ted = parseFloat(cachedData['TEDRATE'][0].value);
+                if (ted > 1.0) {
+                    addAlert('CRITICAL', `TED Spread above 1.0% (${ted.toFixed(2)}%) - Banking stress!`);
+                } else if (ted > 0.5) {
+                    addAlert('WARNING', `TED Spread above 0.5% (${ted.toFixed(2)}%) - Funding stress`);
+                }
+            }
+            
+            // Update alert count
+            document.getElementById('alert-count').textContent = `Alerts: ${alertsActive.length}`;
+        }
+
+        // Add alert
+        function addAlert(type, message) {
+            alertsActive.push({type, message});
+            
+            const container = document.getElementById('alerts-container');
+            const alertBox = document.createElement('div');
+            alertBox.className = type === 'CRITICAL' ? 'alert-box' : 'alert-box warning';
+            alertBox.innerHTML = `<strong>${type}:</strong> ${message}`;
+            container.appendChild(alertBox);
+        }
+
+        // Generate ML predictions
+        function generateMLPredictions() {
+            const container = document.getElementById('ml-predictions');
+            container.innerHTML = '';
+            
+            // Simple predictions based on current metrics
+            const predictions = [
+                {
+                    label: 'Recession Probability (12M)',
+                    value: calculateRecessionProbability(),
+                    threshold: 30
+                },
+                {
+                    label: 'Market Crash Risk (3M)',
+                    value: calculateCrashRisk(),
+                    threshold: 25
+                },
+                {
+                    label: 'Volatility Spike (30D)',
+                    value: calculateVolatilityRisk(),
+                    threshold: 40
+                },
+                {
+                    label: 'Credit Crisis Risk',
+                    value: calculateCreditRisk(),
+                    threshold: 35
+                }
+            ];
+            
+            predictions.forEach(pred => {
+                const card = document.createElement('div');
+                card.className = 'prediction-card';
+                
+                const color = pred.value > pred.threshold ? '#ff4757' : '#00ff88';
+                
+                card.innerHTML = `
+                    <div class="metric-label">${pred.label}</div>
+                    <div class="prediction-probability" style="color: ${color}">${pred.value}%</div>
+                    <div style="color: #888; font-size: 0.9em">
+                        Threshold: ${pred.threshold}%
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+
+        // Calculate recession probability
+        function calculateRecessionProbability() {
+            let probability = 20; // Base probability
+            
+            // Increase based on yield curve inversion
+            if (cachedData['DGS2'] && cachedData['DGS10']) {
+                const spread = parseFloat(cachedData['DGS10'][0].value) - parseFloat(cachedData['DGS2'][0].value);
+                if (spread < 0) probability += Math.abs(spread) * 20;
+            }
+            
+            // Increase based on unemployment trend
+            if (cachedData['UNRATE']) {
+                const unemployment = parseFloat(cachedData['UNRATE'][0].value);
+                if (unemployment > 5) probability += (unemployment - 5) * 10;
+            }
+            
+            return Math.min(95, probability).toFixed(1);
+        }
+
+        // Calculate crash risk
+        function calculateCrashRisk() {
+            let risk = 15; // Base risk
+            
+            if (cachedData['VIXCLS']) {
+                const vix = parseFloat(cachedData['VIXCLS'][0].value);
+                if (vix > 20) risk += (vix - 20) * 2;
+            }
+            
+            if (cachedData['BAMLH0A0HYM2']) {
+                const hySpread = parseFloat(cachedData['BAMLH0A0HYM2'][0].value) * 100;
+                if (hySpread > 500) risk += (hySpread - 500) / 50;
+            }
+            
+            return Math.min(90, risk).toFixed(1);
+        }
+
+        // Calculate volatility risk
+        function calculateVolatilityRisk() {
+            let risk = 25;
+            
+            if (cachedData['VIXCLS']) {
+                const vix = parseFloat(cachedData['VIXCLS'][0].value);
+                const vixData = cachedData['VIXCLS'].slice(0, 30);
+                const avgVix = vixData.reduce((sum, d) => sum + parseFloat(d.value), 0) / vixData.length;
+                
+                if (vix < avgVix * 0.8) risk += 20; // Complacency
+                if (vix > avgVix * 1.2) risk += 15; // Rising vol
+            }
+            
+            return Math.min(85, risk).toFixed(1);
+        }
+
+        // Calculate credit risk
+        function calculateCreditRisk() {
+            let risk = 20;
+            
+            if (cachedData['BAMLH0A0HYM2']) {
+                const hySpread = parseFloat(cachedData['BAMLH0A0HYM2'][0].value) * 100;
+                if (hySpread > 600) risk += (hySpread - 600) / 20;
+            }
+            
+            if (cachedData['TEDRATE']) {
+                const ted = parseFloat(cachedData['TEDRATE'][0].value);
+                if (ted > 0.5) risk += ted * 20;
+            }
+            
+            return Math.min(90, risk).toFixed(1);
+        }
+
+        // Generate report
+        function generateReport() {
+            const executiveSummary = document.getElementById('executive-summary');
+            const marketAnalysis = document.getElementById('market-analysis');
+            const riskAssessment = document.getElementById('risk-assessment');
+            const recommendations = document.getElementById('portfolio-recommendations');
+            
+            // Executive Summary
+            const regime = document.getElementById('market-regime').textContent.split(': ')[1];
+            const khalidValue = document.getElementById('khalid-value').textContent;
+            
+            executiveSummary.innerHTML = `
+                <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+                <p><strong>Market Regime:</strong> ${regime}</p>
+                <p><strong>Khalid Index:</strong> ${khalidValue}</p>
+                <p><strong>Active Alerts:</strong> ${alertsActive.length}</p>
+                <br>
+                <p>The market is currently in a ${regime.toLowerCase()} phase with the Khalid Index at ${khalidValue}, 
+                indicating ${khalidValue < 35 ? 'fear' : khalidValue > 65 ? 'greed' : 'neutral sentiment'} in the market.</p>
+            `;
+            
+            // Market Analysis
+            let vixAnalysis = '';
+            if (cachedData['VIXCLS']) {
+                const vix = parseFloat(cachedData['VIXCLS'][0].value);
+                vixAnalysis = `VIX is at ${vix.toFixed(2)}, ${vix < 20 ? 'indicating low volatility' : vix > 30 ? 'signaling high market stress' : 'showing moderate volatility'}.`;
+            }
+            
+            let yieldAnalysis = '';
+            if (cachedData['DGS2'] && cachedData['DGS10']) {
+                const spread = (parseFloat(cachedData['DGS10'][0].value) - parseFloat(cachedData['DGS2'][0].value)) * 100;
+                yieldAnalysis = `The 2s10s spread is ${spread.toFixed(0)} basis points, ${spread < 0 ? 'inverted (recession signal)' : spread < 50 ? 'flat (late cycle)' : 'normal (healthy)'}.`;
+            }
+            
+            marketAnalysis.innerHTML = `
+                <p>${vixAnalysis}</p>
+                <p>${yieldAnalysis}</p>
+                <br>
+                <p><strong>Key Observations:</strong></p>
+                <ul>
+                    <li>Federal Reserve policy stance: ${cachedData['DFF'] ? 'Fed Funds at ' + parseFloat(cachedData['DFF'][0].value).toFixed(2) + '%' : 'Data pending'}</li>
+                    <li>Credit conditions: ${cachedData['BAMLH0A0HYM2'] ? 'High yield spreads at ' + (parseFloat(cachedData['BAMLH0A0HYM2'][0].value) * 100).toFixed(0) + 'bp' : 'Data pending'}</li>
+                    <li>Unemployment: ${cachedData['UNRATE'] ? parseFloat(cachedData['UNRATE'][0].value).toFixed(1) + '%' : 'Data pending'}</li>
+                </ul>
+            `;
+            
+            // Risk Assessment
+            const recessionProb = calculateRecessionProbability();
+            const crashRisk = calculateCrashRisk();
+            
+            riskAssessment.innerHTML = `
+                <p><strong>Recession Probability (12M):</strong> ${recessionProb}%</p>
+                <p><strong>Market Crash Risk (3M):</strong> ${crashRisk}%</p>
+                <br>
+                <p><strong>Risk Factors:</strong></p>
+                <ul>
+                    ${alertsActive.map(alert => `<li>${alert.message}</li>`).join('')}
+                </ul>
+            `;
+            
+            // Portfolio Recommendations
+            let allocation = {};
+            if (regime === 'BULL MARKET') {
+                allocation = {stocks: 70, bonds: 20, cash: 10};
+            } else if (regime === 'BEAR MARKET') {
+                allocation = {stocks: 30, bonds: 40, cash: 30};
+            } else if (regime === 'CRISIS') {
+                allocation = {stocks: 0, bonds: 20, cash: 80};
+            } else {
+                allocation = {stocks: 50, bonds: 30, cash: 20};
+            }
+            
+            recommendations.innerHTML = `
+                <p><strong>Recommended Allocation:</strong></p>
+                <ul>
+                    <li>Stocks: ${allocation.stocks}%</li>
+                    <li>Bonds: ${allocation.bonds}%</li>
+                    <li>Cash: ${allocation.cash}%</li>
+                </ul>
+                <br>
+                <p><strong>Action Items:</strong></p>
+                <ul>
+                    <li>${khalidValue < 35 ? 'Consider increasing equity exposure' : khalidValue > 65 ? 'Consider taking profits' : 'Maintain current positions'}</li>
+                    <li>${regime === 'CRISIS' ? 'Focus on capital preservation' : 'Monitor for opportunities'}</li>
+                    <li>Review stop-loss levels on all positions</li>
+                </ul>
+            `;
+            
+            // Switch to report tab
+            switchTab('report');
+        }
+
+        // Update charts
+        function updateCharts() {
+            // Update volatility chart if data available
+            if (cachedData['VIXCLS']) {
+                updateVolatilityChart();
+            }
+            
+            // Update yield curve if data available
+            if (cachedData['DGS2'] && cachedData['DGS10']) {
+                updateYieldCurveChart();
+            }
+        }
+
+        // Update volatility chart
+        function updateVolatilityChart() {
+            const canvas = document.getElementById('volatility-chart');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            const data = cachedData['VIXCLS'].slice(0, 30).reverse();
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(d => d.date),
+                    datasets: [{
+                        label: 'VIX Index',
+                        data: data.map(d => parseFloat(d.value)),
+                        borderColor: '#00ff88',
+                        backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#e0e0e0'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: '#888'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                color: '#888'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update yield curve chart
+        function updateYieldCurveChart() {
+            const canvas = document.getElementById('yield-curve-chart');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            
+            const maturities = ['1M', '3M', '6M', '1Y', '2Y', '5Y', '10Y', '30Y'];
+            const yields = [];
+            
+            for (const maturity of ['DGS1MO', 'DGS3MO', 'DGS6MO', 'DGS1', 'DGS2', 'DGS5', 'DGS10', 'DGS30']) {
+                if (cachedData[maturity] && cachedData[maturity][0]) {
+                    yields.push(parseFloat(cachedData[maturity][0].value));
+                } else {
+                    yields.push(null);
+                }
+            }
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: maturities,
+                    datasets: [{
+                        label: 'Yield Curve',
+                        data: yields,
+                        borderColor: '#00ccff',
+                        backgroundColor: 'rgba(0, 204, 255, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#e0e0e0'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: '#888'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                color: '#888',
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Switch tabs
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tabName + '-content').classList.add('active');
+        }
+
+        // Toggle auto update
+        function toggleAutoUpdate() {
+            const btn = document.getElementById('auto-update-btn');
+            const timer = document.getElementById('update-timer');
+            
+            if (autoUpdateInterval) {
+                clearInterval(autoUpdateInterval);
+                clearInterval(countdownInterval);
+                autoUpdateInterval = null;
+                countdownInterval = null;
+                btn.textContent = '🔁 Auto-Update: OFF';
+                timer.style.display = 'none';
+            } else {
+                autoUpdateInterval = setInterval(fetchAllData, 60000); // Update every minute
+                btn.textContent = '🔁 Auto-Update: ON';
+                timer.style.display = 'block';
+                startCountdown();
+            }
+        }
+
+        // Start countdown
+        function startCountdown() {
+            let seconds = 60;
+            const countdownEl = document.getElementById('countdown');
+            
+            countdownInterval = setInterval(() => {
+                seconds--;
+                countdownEl.textContent = seconds;
+                
+                if (seconds <= 0) {
+                    seconds = 60;
+                }
+            }, 1000);
+        }
+
+        // Download report
+        function downloadReport() {
+            const report = document.getElementById('report-content').innerText;
+            const blob = new Blob([report], {type: 'text/plain'});
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `liquidity-report-${new Date().toISOString().split('T')[0]}.txt`;
+            a.click();
+        }
+
+        // Send alert
+        function sendAlert() {
+            if (alertsActive.length > 0) {
+                alert('Alert sent to khalidbernoussi@yahoo.com\n\nActive Alerts:\n' + 
+                      alertsActive.map(a => `${a.type}: ${a.message}`).join('\n'));
+            } else {
+                alert('No active alerts to send.');
+            }
+        }
+
+        // Show loading
+        function showLoading(show) {
+            const loading = document.getElementById('loading');
+            loading.className = show ? 'loading active' : 'loading';
+        }
+
+        // Show error
+        function showError(message) {
+            const errorEl = document.getElementById('error-message');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+        }
+
+        // Update last update time
+        function updateLastUpdateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString();
+            document.getElementById('last-update').textContent = `Last Update: ${timeStr}`;
+        }
+    </script>
+</body>
+</html>
