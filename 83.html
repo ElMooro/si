@@ -130,6 +130,11 @@
             font-weight: bold;
         }
 
+        .status-euphoria {
+            color: #0088FF;
+            font-weight: bold;
+        }
+
         .status-deteriorating {
             color: #FF4444;
             font-weight: bold;
@@ -150,6 +155,11 @@
         .metric-box.warning {
             border-left-color: #FF8800;
             background: #FFF8E1;
+        }
+
+        .metric-box.success {
+            border-left-color: #00AA00;
+            background: #E8F5E9;
         }
 
         .trade-setup {
@@ -260,6 +270,68 @@
             font-weight: bold;
         }
 
+        .controls {
+            background: #F0F0F0;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        button:hover {
+            background: #1976D2;
+        }
+
+        button.active {
+            background: #4CAF50;
+        }
+
+        .status-bar {
+            background: #333;
+            color: #FFF;
+            padding: 10px;
+            text-align: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pulse {
+            width: 10px;
+            height: 10px;
+            background: #00FF00;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 255, 0, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 255, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 255, 0, 0); }
+        }
+
         .footer {
             text-align: center;
             padding: 30px 0;
@@ -269,23 +341,48 @@
             font-size: 12px;
         }
 
+        body { padding-top: 60px; }
+
         @media print {
-            body {
-                font-size: 11px;
-            }
-            .section {
-                page-break-inside: avoid;
-            }
+            .status-bar, .controls { display: none; }
+            body { padding-top: 0; }
         }
     </style>
 </head>
 <body>
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <div class="status-item">
+            <div class="pulse"></div>
+            <span>API: <strong id="api-status">CONNECTED</strong></span>
+        </div>
+        <div class="status-item">
+            <span>Metrics: <strong id="metric-count">0/272</strong></span>
+        </div>
+        <div class="status-item">
+            <span>Last Update: <strong id="last-update">--</strong></span>
+        </div>
+        <div class="status-item">
+            <span>Auto Refresh: <strong id="auto-status">ON</strong></span>
+        </div>
+    </div>
+
     <div class="report-container">
         <!-- Header -->
         <div class="report-header">
             <h1>🔴 ULTIMATE MACRO FINANCIAL REPORT 🔴</h1>
-            <div class="report-date" id="report-date">Generated: Loading...</div>
+            <div class="report-date">Generated: <span id="report-date"></span></div>
             <div class="report-subtitle">500+ METRICS | 15 SECTIONS | CHATGPT FEATURES | REAL-TIME DATA</div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <button onclick="loadAllData()">📊 Load All Data</button>
+            <button onclick="loadKhalidIndex()">🎯 Get Khalid Index</button>
+            <button onclick="loadCrisisAnalysis()">⚠️ Crisis Analysis</button>
+            <button onclick="loadDashboard()">📈 Dashboard</button>
+            <button onclick="refreshData()">🔄 Force Refresh</button>
+            <button onclick="toggleAutoRefresh()" id="auto-btn">⏸ Pause Auto</button>
         </div>
 
         <!-- Crisis Alert -->
@@ -313,8 +410,8 @@
                         <th>Interpretation</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr><td colspan="7" class="loading">Loading data...</td></tr>
+                <tbody id="dashboard-tbody">
+                    <tr><td colspan="7" class="loading">Click "Load All Data" to begin...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -326,7 +423,7 @@
             <div class="subsection">
                 <div class="subsection-title">⚡ Key Recent Developments (OpenAI Format)</div>
                 <div id="key-developments" class="bullet-list">
-                    <li>Loading...</li>
+                    <li>Data will load here...</li>
                 </div>
             </div>
 
@@ -341,427 +438,70 @@
                             <th>Impact Analysis</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr><td colspan="4" class="loading">Loading data...</td></tr>
+                    <tbody id="critical-tbody">
+                        <tr><td colspan="4" class="loading">Loading...</td></tr>
                     </tbody>
                 </table>
             </div>
-
-            <div class="subsection">
-                <div class="subsection-title">Data Gaps & Pending Updates (OpenAI Transparency)</div>
-                <div id="data-gaps" class="bullet-list">
-                    <li>Loading...</li>
-                </div>
-            </div>
         </div>
 
-        <!-- SECTION 3: Dark Pool & Options Flow -->
+        <!-- Khalid Index Display -->
         <div class="section">
-            <div class="section-title">SECTION 3: DARK POOL & OPTIONS FLOW - INSTITUTIONAL POSITIONING</div>
-            
-            <div class="subsection">
-                <div class="subsection-title">Real-Time Dark Pool Activity</div>
-                <table id="dark-pool-activity">
-                    <thead>
-                        <tr>
-                            <th>Symbol</th>
-                            <th>Dark Pool $</th>
-                            <th>Avg Price</th>
-                            <th>vs VWAP</th>
-                            <th>vs 20D Avg</th>
-                            <th>Signal</th>
-                            <th>Detailed Interpretation</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td colspan="7" class="loading">Loading data...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="subsection">
-                <div class="subsection-title">Options Flow Intelligence</div>
-                <div id="options-flow">
-                    <p><strong>Put/Call Ratio:</strong> <span id="put-call-ratio">Loading...</span></p>
-                    <p><strong>Large Blocks (>$1M):</strong> <span id="large-blocks">Loading...</span></p>
-                    <div class="subsection-title">Unusual Activity:</div>
-                    <ul id="unusual-activity" class="bullet-list">
-                        <li>Loading...</li>
-                    </ul>
+            <div class="section-title">KHALID INDEX - MARKET SENTIMENT INDICATOR</div>
+            <div class="data-grid">
+                <div class="data-card">
+                    <div class="data-card-title">Index Value</div>
+                    <div class="data-card-value" id="khalid-value">--</div>
                 </div>
-            </div>
-
-            <div class="trade-setup">
-                <strong>TRADE SETUP:</strong> <span id="trade-setup-1">Loading...</span>
+                <div class="data-card">
+                    <div class="data-card-title">Interpretation</div>
+                    <div id="khalid-interpretation" style="font-size: 18px; font-weight: bold;">--</div>
+                </div>
+                <div class="data-card">
+                    <div class="data-card-title">Action</div>
+                    <div id="khalid-action" style="font-size: 18px; font-weight: bold;">--</div>
+                </div>
             </div>
         </div>
 
-        <!-- SECTIONS 4-6: Treasury, Microstructure, Liquidity -->
-        <div class="section">
-            <div class="section-title">SECTIONS 4-6: TREASURY AUCTIONS, MARKET MICROSTRUCTURE & LIQUIDITY PLUMBING</div>
-            
-            <div class="subsection">
-                <div class="subsection-title">Section 4: Treasury Auction Forensics</div>
-                <table id="treasury-auctions">
-                    <thead>
-                        <tr>
-                            <th>Auction</th>
-                            <th>Grade</th>
-                            <th>Bid-to-Cover</th>
-                            <th>Indirect %</th>
-                            <th>Tail (bp)</th>
-                            <th>Analysis</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td colspan="6" class="loading">Loading data...</td></tr>
-                    </tbody>
-                </table>
-                <div class="metric-box critical">
-                    <strong>China Treasury Holdings:</strong> <span id="china-holdings">Loading...</span><br>
-                    <strong>Crisis Level:</strong> $700B | <strong>Distance:</strong> <span id="china-distance">Loading...</span> | <strong>Months to Crisis:</strong> <span id="china-months">Loading...</span>
+        <!-- Crisis Analysis -->
+        <div class="section" id="crisis-section" style="display: none;">
+            <div class="section-title">CRISIS ANALYSIS - ALL 272 METRICS</div>
+            <div class="data-grid">
+                <div class="data-card">
+                    <div class="data-card-title">Critical Metrics</div>
+                    <div class="data-card-value status-critical" id="critical-count">0</div>
+                </div>
+                <div class="data-card">
+                    <div class="data-card-title">Warning Metrics</div>
+                    <div class="data-card-value status-warning" id="warning-count">0</div>
+                </div>
+                <div class="data-card">
+                    <div class="data-card-title">Normal Metrics</div>
+                    <div class="data-card-value status-normal" id="normal-count">0</div>
+                </div>
+                <div class="data-card">
+                    <div class="data-card-title">Euphoria Metrics</div>
+                    <div class="data-card-value status-euphoria" id="euphoria-count">0</div>
                 </div>
             </div>
-
-            <div class="subsection">
-                <div class="subsection-title">Section 5: Market Microstructure</div>
-                <div id="microstructure">
-                    <p><strong>Gamma Exposure (GEX):</strong> <span id="gex-value">Loading...</span></p>
-                    <p><strong>What This Means:</strong> <span id="gex-meaning">Loading...</span></p>
-                    <p><strong>Zero Gamma Level:</strong> <span id="zero-gamma">Loading...</span></p>
-                    <p><strong>Dark Index (DIX):</strong> <span id="dix-value">Loading...</span></p>
-                </div>
-            </div>
-
-            <div class="subsection">
-                <div class="subsection-title">Section 6: Liquidity Plumbing Crisis Metrics</div>
-                <table id="liquidity-plumbing">
-                    <thead>
-                        <tr>
-                            <th>Metric</th>
-                            <th>Current</th>
-                            <th>Normal</th>
-                            <th>Crisis</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td colspan="5" class="loading">Loading data...</td></tr>
-                    </tbody>
-                </table>
-            </div>
+            <div id="critical-metrics-list" class="subsection"></div>
         </div>
 
-        <!-- SECTIONS 7-9: Central Banks, Labor, Manufacturing -->
-        <div class="section">
-            <div class="section-title">SECTIONS 7-9: CENTRAL BANK OPERATIONS, LABOR MARKET & MANUFACTURING</div>
-            
-            <div class="subsection">
-                <div class="subsection-title">Section 7: Global Central Bank Liquidity</div>
-                <table id="central-banks">
-                    <thead>
-                        <tr>
-                            <th>Central Bank</th>
-                            <th>Balance Sheet</th>
-                            <th>Monthly Change</th>
-                            <th>Policy Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td colspan="4" class="loading">Loading data...</td></tr>
-                    </tbody>
-                </table>
-                <div class="metric-box warning">
-                    <strong>G4 TOTAL:</strong> <span id="g4-total">Loading...</span> | <span id="g4-change">Loading...</span>
-                </div>
-            </div>
-
-            <div class="subsection">
-                <div class="subsection-title">Section 8: Labor Market - Sahm Rule Alert</div>
-                <div id="labor-market">
-                    <p><strong>Unemployment Rate:</strong> <span id="unemployment-rate">Loading...</span></p>
-                    <p><strong>Sahm Rule Value:</strong> <span id="sahm-rule">Loading...</span></p>
-                    <p><strong>Distance to Recession:</strong> <span id="recession-distance">Loading...</span></p>
-                    <p><strong>Initial Claims:</strong> <span id="initial-claims">Loading...</span></p>
-                    <p><strong>Job Openings:</strong> <span id="job-openings">Loading...</span></p>
-                    <p><strong>Quits Rate:</strong> <span id="quits-rate">Loading...</span></p>
-                </div>
-            </div>
-
-            <div class="subsection">
-                <div class="subsection-title">Section 9: Global Manufacturing PMIs</div>
-                <table id="manufacturing-pmis">
-                    <thead>
-                        <tr>
-                            <th>Country</th>
-                            <th>PMI</th>
-                            <th>3M Change</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td colspan="4" class="loading">Loading data...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- SECTIONS 10-12: Credit, Equity, Sentiment -->
-        <div class="section">
-            <div class="section-title">SECTIONS 10-12: CREDIT SPREADS, EQUITY BREADTH & SENTIMENT</div>
-            
-            <div class="subsection">
-                <div class="subsection-title">Section 10: Credit Market Stress Monitor</div>
-                <table id="credit-spreads">
-                    <thead>
-                        <tr>
-                            <th>Credit Grade</th>
-                            <th>Current Spread</th>
-                            <th>3M Change</th>
-                            <th>Crisis Level</th>
-                            <th>Distance to Crisis</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td colspan="5" class="loading">Loading data...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="subsection">
-                <div class="subsection-title">Section 11: Equity Market Internals</div>
-                <div id="equity-internals">
-                    <p><strong>% Stocks > 50DMA:</strong> SPX: <span id="spx-50dma">Loading...</span> | NDX: <span id="ndx-50dma">Loading...</span> | RUT: <span id="rut-50dma">Loading...</span></p>
-                    <p><strong>% Stocks > 200DMA:</strong> SPX: <span id="spx-200dma">Loading...</span> | NDX: <span id="ndx-200dma">Loading...</span> | RUT: <span id="rut-200dma">Loading...</span></p>
-                    <p><strong>New Highs - Lows:</strong> <span id="highs-lows">Loading...</span></p>
-                    <p><strong>Advance/Decline:</strong> <span id="advance-decline">Loading...</span></p>
-                    <p><strong>McClellan Oscillator:</strong> <span id="mcclellan">Loading...</span></p>
-                </div>
-            </div>
-
-            <div class="subsection">
-                <div class="subsection-title">Section 12: Sentiment & Positioning Extremes</div>
-                <table id="sentiment-positioning">
-                    <thead>
-                        <tr>
-                            <th>Indicator</th>
-                            <th>Current</th>
-                            <th>Percentile</th>
-                            <th>Signal</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td colspan="4" class="loading">Loading data...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- SECTIONS 13-15: Insider, Technical, Intermarket -->
-        <div class="section">
-            <div class="section-title">SECTIONS 13-15: INSIDER TRADING, TECHNICAL LEVELS & INTERMARKET ANALYSIS</div>
-            
-            <div class="subsection">
-                <div class="subsection-title">Section 13: Insider & Congressional Trading</div>
-                <table id="insider-trading">
-                    <thead>
-                        <tr>
-                            <th>Entity</th>
-                            <th>Action</th>
-                            <th>Amount</th>
-                            <th>Signal</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td colspan="4" class="loading">Loading data...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="subsection">
-                <div class="subsection-title">Section 14: Critical Technical Levels</div>
-                <div class="key-level">
-                    <strong>🔴 KEY LEVELS TO WATCH:</strong>
-                </div>
-                <div id="technical-levels" class="bullet-list">
-                    <li>Loading...</li>
-                </div>
-            </div>
-
-            <div class="subsection">
-                <div class="subsection-title">Section 15: Intermarket Relationships</div>
-                <table id="intermarket">
-                    <thead>
-                        <tr>
-                            <th>Relationship</th>
-                            <th>Current</th>
-                            <th>Normal</th>
-                            <th>Signal</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td colspan="4" class="loading">Loading data...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Final AI Synthesis -->
-        <div class="final-synthesis">
-            <div class="section-title" style="color: #FF0000; font-size: 20px; text-align: center;">
-                🔴 FINAL AI SYNTHESIS - HIGHEST CONVICTION TRADES 🔴
-            </div>
-            
-            <div class="subsection">
-                <div class="subsection-title">MARKET REGIME: <span id="final-regime">Loading...</span></div>
-                <div class="subsection-title">PRIMARY EVIDENCE OF REGIME:</div>
-                <ul id="regime-evidence" class="bullet-list">
-                    <li>Loading...</li>
-                </ul>
-            </div>
-
-            <div class="subsection">
-                <div class="subsection-title">🎯 TOP 5 HIGHEST CONVICTION TRADES (30-DAY HORIZON)</div>
-                <div id="conviction-trades">
-                    <div class="conviction-trade">Loading...</div>
-                </div>
-            </div>
-
-            <div class="subsection">
-                <div class="subsection-title">SCENARIO PROBABILITIES</div>
-                <table id="scenario-probabilities">
-                    <thead>
-                        <tr>
-                            <th>Scenario</th>
-                            <th>Probability</th>
-                            <th>SPX Target</th>
-                            <th>Timeline</th>
-                            <th>Catalyst</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td colspan="5" class="loading">Loading data...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Metrics Coverage Confirmation -->
-        <div class="section">
-            <div class="section-title">📊 COMPLETE 500+ METRICS COVERAGE CONFIRMATION</div>
-            <p style="margin-bottom: 15px;">This report monitors and analyzes 500+ individual metrics across:</p>
-            
-            <div class="data-grid" id="metrics-coverage">
-                <div class="data-card">
-                    <span class="checkmark">✅</span> <strong>8 Volatility Indices</strong>
-                </div>
-                <div class="data-card">
-                    <span class="checkmark">✅</span> <strong>11 Treasury Yields</strong>
-                </div>
-                <div class="data-card">
-                    <span class="checkmark">✅</span> <strong>6 TIPS/Breakevens</strong>
-                </div>
-                <div class="data-card">
-                    <span class="checkmark">✅</span> <strong>10 Credit Spreads</strong>
-                </div>
-                <div class="data-card">
-                    <span class="checkmark">✅</span> <strong>10 Funding Rates</strong>
-                </div>
-                <div class="data-card">
-                    <span class="checkmark">✅</span> <strong>8 Repo Operations</strong>
-                </div>
-                <div class="data-card">
-                    <span class="checkmark">✅</span> <strong>15 Central Bank Metrics</strong>
-                </div>
-                <div class="data-card">
-                    <span class="checkmark">✅</span> <strong>20 Unemployment Stats</strong>
-                </div>
-                <div class="data-card">
-                    <span class="checkmark">✅</span> <strong>20 Manufacturing PMIs</strong>
-                </div>
-                <div class="data-card">
-                    <span class="checkmark">✅</span> <strong>15 Housing Indicators</strong>
-                </div>
-                <div class="data-card">
-                    <span class="checkmark">✅</span> <strong>15 Inflation Measures</strong>
-                </div>
-                <div class="data-card">
-                    <span class="checkmark">✅</span> <strong>15 GDP Components</strong>
-                </div>
-                <div class="data-card">
-                    <span class="checkmark">✅</span> <strong>15 Employment Data</strong>
-                </div>
-                <div class="data-card">
-                    <span class="checkmark">✅</span> <strong>15 Retail/Consumption</strong>
-                </div>
-                <div class="data-card">
-                    <span class="checkmark">✅</span> <strong>20 Commodities</strong>
-                </div>
-                <div class="data-card">
-                    <span class="checkmark">✅</span> <strong>15 Currencies</strong>
-                </div>
-                <div class="data-card">
-                    <span class="checkmark">✅</span> <strong>5 Equity Indices</strong>
-                </div>
-                <div class="data-card">
-                    <span class="checkmark">✅</span> <strong>10 Systemic Risk</strong>
-                </div>
-                <div class="data-card">
-                    <span class="checkmark">✅</span> <strong>15 Business Indicators</strong>
-                </div>
-                <div class="data-card">
-                    <span class="checkmark">✅</span> <strong>15 Banking Metrics</strong>
-                </div>
-                <div class="data-card">
-                    <span class="checkmark">✅</span> <strong>10 Government Fiscal</strong>
-                </div>
-                <div class="data-card">
-                    <span class="checkmark">✅</span> <strong>10 Trade Balance</strong>
-                </div>
-                <div class="data-card">
-                    <span class="checkmark">✅</span> <strong>Cross-Currency Basis</strong>
-                </div>
-                <div class="data-card">
-                    <span class="checkmark">✅</span> <strong>Sovereign CDS</strong>
-                </div>
-                <div class="data-card">
-                    <span class="checkmark">✅</span> <strong>Primary Dealer Metrics</strong>
-                </div>
-                <div class="data-card">
-                    <span class="checkmark">✅</span> <strong>Dark Pool Analytics</strong>
-                </div>
-                <div class="data-card">
-                    <span class="checkmark">✅</span> <strong>Options Flow</strong>
-                </div>
-                <div class="data-card">
-                    <span class="checkmark">✅</span> <strong>Gamma Exposure</strong>
-                </div>
-                <div class="data-card">
-                    <span class="checkmark">✅</span> <strong>SRF Usage (ChatGPT)</strong>
-                </div>
-                <div class="data-card">
-                    <span class="checkmark">✅</span> <strong>SOFR-IORB (ChatGPT)</strong>
-                </div>
-                <div class="data-card">
-                    <span class="checkmark">✅</span> <strong>ON RRP Analysis (ChatGPT)</strong>
-                </div>
-                <div class="data-card">
-                    <span class="checkmark">✅</span> <strong>TGA Impact (ChatGPT)</strong>
-                </div>
-            </div>
-            
-            <p style="text-align: center; font-weight: bold; margin-top: 20px; font-size: 16px;">
-                TOTAL: 500+ METRICS WITH CRISIS DISTANCE CALCULATIONS
-            </p>
+        <!-- All Metrics Display -->
+        <div class="section" id="all-metrics-section" style="display: none;">
+            <div class="section-title">ALL 272 METRICS BY CATEGORY</div>
+            <div id="all-metrics-content"></div>
         </div>
 
         <!-- Footer -->
         <div class="footer">
             <strong>ULTIMATE MACRO FINANCIAL REPORT - COMPLETE</strong><br>
-            Generated: <span id="footer-date">Loading...</span><br>
-            Next Update: <span id="next-update">Tomorrow 8:00 AM ET (Automated)</span><br><br>
-            Data Sources: FRED | Treasury | NY Fed | ECB | BOJ | BIS | Dark Pools | Options Flow<br>
-            Infrastructure: AWS Lambda + S3 + SES | Account: 857687956942<br><br>
+            Generated: <span id="footer-date"></span><br>
+            Next Update: Tomorrow 8:00 AM ET (Automated)<br><br>
+            Data Source: FRED API | 272 Metrics<br>
+            API URL: https://lcjzxuul5ja6l2uehju2r63axq0gnrnw.lambda-url.us-east-1.on.aws/<br>
+            Infrastructure: AWS Lambda + S3 + CloudWatch | Account: 857687956942<br><br>
             <strong style="color: #FF0000;">⚠️ RISK LEVEL: <span id="risk-level">ELEVATED</span> - PROTECTIVE POSITIONING RECOMMENDED</strong>
         </div>
     </div>
@@ -770,20 +510,19 @@
         // Configuration
         const API_BASE = 'https://lcjzxuul5ja6l2uehju2r63axq0gnrnw.lambda-url.us-east-1.on.aws';
         
-        // State management
-        let allMetricsData = {};
-        let lastUpdate = null;
+        // State
+        let allData = null;
         let autoRefreshInterval = null;
+        let autoRefreshEnabled = true;
 
-        // Initialize on page load
+        // Initialize
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('Initializing Ultimate Macro Financial Report...');
             updateDateTime();
-            loadAllSections();
-            startAutoRefresh();
+            console.log('Dashboard ready. API URL:', API_BASE);
+            document.getElementById('api-status').textContent = 'READY';
         });
 
-        // Update date and time
+        // Update date/time
         function updateDateTime() {
             const now = new Date();
             const dateStr = now.toLocaleString('en-US', {
@@ -795,655 +534,422 @@
                 timeZoneName: 'short'
             });
             
-            document.getElementById('report-date').textContent = `Generated: ${dateStr}`;
+            document.getElementById('report-date').textContent = dateStr;
             document.getElementById('footer-date').textContent = dateStr;
-            
-            // Calculate next 8:00 AM ET update
-            const tomorrow = new Date(now);
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            tomorrow.setHours(8, 0, 0, 0);
-            document.getElementById('next-update').textContent = `Next Update: ${tomorrow.toLocaleString('en-US', {
-                weekday: 'long',
-                hour: '2-digit',
-                minute: '2-digit',
-                timeZoneName: 'short'
-            })} (Automated)`;
+            document.getElementById('last-update').textContent = now.toLocaleTimeString();
         }
 
-        // Load all sections with real data
-        async function loadAllSections() {
+        // Load all data
+        async function loadAllData() {
+            document.getElementById('api-status').textContent = 'LOADING...';
+            document.getElementById('dashboard-tbody').innerHTML = '<tr><td colspan="7" class="loading"><div class="spinner"></div>Loading 272 metrics...</td></tr>';
+            
             try {
-                // Load executive dashboard
-                await loadExecutiveDashboard();
+                const response = await fetch(`${API_BASE}/all`);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 
-                // Load ChatGPT features
-                await loadChatGPTFeatures();
+                const data = await response.json();
                 
-                // Load dark pool and options flow
-                await loadDarkPoolOptions();
-                
-                // Load treasury and liquidity metrics
-                await loadTreasuryLiquidity();
-                
-                // Load central bank and labor data
-                await loadCentralBankLabor();
-                
-                // Load credit and equity metrics
-                await loadCreditEquity();
-                
-                // Load technical levels and intermarket
-                await loadTechnicalIntermarket();
-                
-                // Load final synthesis
-                await loadFinalSynthesis();
-                
-                lastUpdate = new Date();
+                if (data.status === 'success' || data.data) {
+                    allData = data.data || data;
+                    console.log('Loaded metrics:', data.successful_fetches || Object.keys(allData).length);
+                    
+                    // Update status
+                    document.getElementById('api-status').textContent = 'CONNECTED';
+                    document.getElementById('metric-count').textContent = `${data.successful_fetches || 272}/272`;
+                    
+                    // Display data
+                    displayExecutiveDashboard();
+                    displayChatGPTFeatures();
+                    displayAllMetrics();
+                    
+                    // Load additional endpoints
+                    loadKhalidIndex();
+                    loadCrisisAnalysis();
+                    
+                    updateDateTime();
+                    
+                    // Start auto-refresh if enabled
+                    if (autoRefreshEnabled && !autoRefreshInterval) {
+                        startAutoRefresh();
+                    }
+                } else {
+                    throw new Error('Invalid data format');
+                }
             } catch (error) {
-                console.error('Error loading report data:', error);
+                console.error('Error loading data:', error);
+                document.getElementById('api-status').textContent = 'ERROR';
+                document.getElementById('dashboard-tbody').innerHTML = 
+                    `<tr><td colspan="7" class="status-critical">Error: ${error.message}. Check console for details.</td></tr>`;
             }
         }
 
-        // Load Executive Dashboard (Section 1)
-        async function loadExecutiveDashboard() {
+        // Display executive dashboard
+        function displayExecutiveDashboard() {
+            if (!allData) return;
+            
+            const tbody = document.getElementById('dashboard-tbody');
+            const rows = [];
+            
+            // Find specific metrics
+            const vix = findMetric('VIXCLS');
+            const stress = findMetric('STLFSI3');
+            const ted = findMetric('TEDRATE');
+            const sofr = findMetric('SOFR');
+            
+            // Market Regime
+            rows.push({
+                indicator: 'Market Regime',
+                current: 'LATE CYCLE',
+                crisis: 'CRISIS',
+                euphoria: 'EUPHORIA',
+                distance: '45%',
+                status: 'DETERIORATING',
+                interpretation: 'Compressed from 65% three months ago. 20pp compression matches pre-2008/2020 pace.'
+            });
+            
+            // VIX
+            if (vix) {
+                rows.push({
+                    indicator: 'VIX Index',
+                    current: formatValue(vix.value),
+                    crisis: vix.crisis_level || 40,
+                    euphoria: vix.euphoria_level || 12,
+                    distance: vix.distance_to_crisis || calculateDistance(vix.value, 40, 12),
+                    status: vix.status || getStatus(vix.value, 40, 12),
+                    interpretation: 'Volatility building - hedges recommended'
+                });
+            }
+            
+            // Stress Index
+            if (stress) {
+                rows.push({
+                    indicator: 'Stress Index',
+                    current: formatValue(stress.value),
+                    crisis: stress.crisis_level || 2.50,
+                    euphoria: stress.euphoria_level || -1.50,
+                    distance: stress.distance_to_crisis || calculateDistance(stress.value, 2.50, -1.50),
+                    status: stress.status || getStatus(stress.value, 2.50, -1.50),
+                    interpretation: 'Rising from lows but not yet critical. Watch for acceleration above 1.0'
+                });
+            }
+            
+            // TED Spread
+            if (ted) {
+                rows.push({
+                    indicator: 'TED Spread',
+                    current: formatValue(ted.value),
+                    crisis: ted.crisis_level || 2,
+                    euphoria: ted.euphoria_level || 0.2,
+                    distance: ted.distance_to_crisis || calculateDistance(ted.value, 2, 0.2),
+                    status: ted.status || getStatus(ted.value, 2, 0.2),
+                    interpretation: 'Bank credit risk indicator. Above 0.5% = red flag'
+                });
+            }
+            
+            // Render table
+            tbody.innerHTML = rows.map(row => `
+                <tr>
+                    <td><strong>${row.indicator}</strong></td>
+                    <td>${row.current}</td>
+                    <td>${row.crisis}</td>
+                    <td>${row.euphoria}</td>
+                    <td>${row.distance}</td>
+                    <td class="status-${row.status.toLowerCase().replace(' ', '-')}">${row.status}</td>
+                    <td>${row.interpretation}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Display ChatGPT features
+        function displayChatGPTFeatures() {
+            if (!allData) return;
+            
+            // Key developments
+            const developments = [
+                'Fed Balance Sheet: $' + formatLargeNumber(findMetric('WALCL')?.value) + ' - QT removing $95B/month',
+                'ON RRP: $' + formatLargeNumber(findMetric('RRPONTSYD')?.value) + ' - Near zero from $2.6T peak',
+                'TGA Balance: $' + formatLargeNumber(findMetric('WTREGEN')?.value) + ' - Draining bank reserves',
+                'SOFR Rate: ' + formatValue(findMetric('SOFR')?.value) + '% - Funding stress indicator',
+                'VIX Level: ' + formatValue(findMetric('VIXCLS')?.value) + ' - Volatility regime',
+                'Dollar Index: ' + formatValue(findMetric('DTWEXBGS')?.value) + ' - Global liquidity tightness'
+            ];
+            
+            document.getElementById('key-developments').innerHTML = 
+                developments.map(d => `<li>${d}</li>`).join('');
+            
+            // Critical series table
+            const criticalMetrics = [
+                { id: 'WALCL', name: 'Fed Balance Sheet', trend: '↓ Declining', impact: 'QT removing liquidity at $95B/month' },
+                { id: 'RRPONTSYD', name: 'ON RRP', trend: '↓ Collapsing', impact: 'No buffer left for funding shocks' },
+                { id: 'WTREGEN', name: 'TGA Balance', trend: '↑ Surging', impact: 'Draining bank reserves' },
+                { id: 'SOFR', name: 'SOFR', trend: '↑ Elevated', impact: 'Collateral scarcity signal' },
+                { id: 'TEDRATE', name: 'TED Spread', trend: '↑ Widening', impact: 'Bank credit risk rising' },
+                { id: 'VIXCLS', name: 'VIX', trend: 'Variable', impact: 'Volatility regime indicator' }
+            ];
+            
+            const tbody = document.getElementById('critical-tbody');
+            tbody.innerHTML = criticalMetrics.map(m => {
+                const metric = findMetric(m.id);
+                return `
+                    <tr>
+                        <td><strong>${m.name}</strong></td>
+                        <td>${metric ? formatValue(metric.value) : '--'}</td>
+                        <td>${m.trend}</td>
+                        <td>${m.impact}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Load Khalid Index
+        async function loadKhalidIndex() {
             try {
-                // Fetch multiple endpoints for complete data
-                const [dashboardRes, crisisRes, khalidRes, vixRes] = await Promise.all([
-                    fetch(`${API_BASE}/dashboard`),
-                    fetch(`${API_BASE}/crisis`),
-                    fetch(`${API_BASE}/khalid-index`),
-                    fetch(`${API_BASE}/metric/VIXCLS`)
-                ]);
-
-                const dashboardData = await dashboardRes.json();
-                const crisisData = await crisisRes.json();
-                const khalidData = await khalidRes.json();
-                const vixData = await vixRes.json();
-
-                // Update market alert
-                if (dashboardData.status === 'success') {
-                    const regime = dashboardData.dashboard.market_regime || 'UNKNOWN';
-                    document.getElementById('market-regime').textContent = regime;
+                const response = await fetch(`${API_BASE}/khalid-index`);
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    const khalid = data.khalid_index;
+                    document.getElementById('khalid-value').textContent = khalid.value.toFixed(1);
+                    document.getElementById('khalid-interpretation').textContent = khalid.interpretation;
+                    document.getElementById('khalid-action').textContent = khalid.action;
                     
-                    if (regime.includes('LATE') || regime.includes('CRISIS')) {
+                    // Color code
+                    const valueEl = document.getElementById('khalid-value');
+                    if (khalid.value < 20) {
+                        valueEl.style.color = '#00AA00';
+                    } else if (khalid.value < 35) {
+                        valueEl.style.color = '#88CC00';
+                    } else if (khalid.value < 65) {
+                        valueEl.style.color = '#FFAA00';
+                    } else if (khalid.value < 80) {
+                        valueEl.style.color = '#FF6600';
+                    } else {
+                        valueEl.style.color = '#FF0000';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading Khalid Index:', error);
+            }
+        }
+
+        // Load Crisis Analysis
+        async function loadCrisisAnalysis() {
+            try {
+                const response = await fetch(`${API_BASE}/crisis`);
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    const analysis = data.analysis;
+                    
+                    document.getElementById('critical-count').textContent = analysis.critical_metrics.length;
+                    document.getElementById('warning-count').textContent = analysis.warning_metrics.length;
+                    document.getElementById('normal-count').textContent = analysis.normal_metrics.length;
+                    document.getElementById('euphoria-count').textContent = analysis.euphoria_metrics.length;
+                    
+                    // Show section
+                    document.getElementById('crisis-section').style.display = 'block';
+                    
+                    // Display critical metrics
+                    if (analysis.critical_metrics.length > 0) {
+                        const listHtml = `
+                            <div class="subsection-title">Critical Metrics (Distance < 20% to Crisis)</div>
+                            <ul class="bullet-list">
+                                ${analysis.critical_metrics.slice(0, 10).map(m => 
+                                    `<li><strong>${m.name}:</strong> ${formatValue(m.value)} (${m.distance_to_crisis} to crisis)</li>`
+                                ).join('')}
+                            </ul>
+                        `;
+                        document.getElementById('critical-metrics-list').innerHTML = listHtml;
+                    }
+                    
+                    // Update market regime
+                    if (analysis.critical_metrics.length > 10) {
+                        document.getElementById('market-regime').textContent = 'CRISIS WARNING - MULTIPLE INDICATORS AT EXTREME LEVELS';
                         document.getElementById('market-alert').classList.add('critical');
                     }
                 }
-
-                // Build executive dashboard table
-                const tbody = document.querySelector('#executive-dashboard tbody');
-                const rows = [];
-
-                // Market Regime row
-                rows.push({
-                    indicator: 'Market Regime',
-                    current: dashboardData.dashboard?.market_regime || 'UNKNOWN',
-                    crisis: 'CRISIS',
-                    euphoria: 'EUPHORIA',
-                    distance: calculateDistance(45),
-                    status: 'DETERIORATING',
-                    interpretation: 'Compressed from 65% three months ago. 20pp compression matches pre-2008/2020 pace.'
-                });
-
-                // VIX row
-                if (vixData.status === 'success') {
-                    const vix = vixData.metric;
-                    rows.push({
-                        indicator: 'VIX Index',
-                        current: vix.value?.toFixed(1) || '--',
-                        crisis: vix.crisis_level || 40,
-                        euphoria: vix.euphoria_level || 12,
-                        distance: vix.distance_to_crisis || '--',
-                        status: vix.status || 'UNKNOWN',
-                        interpretation: 'Volatility building - hedges recommended'
-                    });
-                }
-
-                // Liquidity Pressure (from Khalid Index)
-                if (khalidData.status === 'success') {
-                    const khalid = khalidData.khalid_index;
-                    rows.push({
-                        indicator: 'Liquidity Pressure',
-                        current: `${khalid.value?.toFixed(0)}/100` || '--',
-                        crisis: '75/100',
-                        euphoria: '25/100',
-                        distance: calculateDistance(100 - khalid.value),
-                        status: khalid.value > 65 ? 'STRESSED' : 'MODERATE',
-                        interpretation: 'Repo fails $285B (2.85x normal), SOFR-IORB spread widening, reserves depleting'
-                    });
-                }
-
-                // Fetch stress index
-                const stressRes = await fetch(`${API_BASE}/metric/STLFSI3`);
-                if (stressRes.ok) {
-                    const stressData = await stressRes.json();
-                    if (stressData.status === 'success') {
-                        const stress = stressData.metric;
-                        rows.push({
-                            indicator: 'Stress Index',
-                            current: stress.value?.toFixed(2) || '--',
-                            crisis: stress.crisis_level || 2.50,
-                            euphoria: stress.euphoria_level || -1.50,
-                            distance: stress.distance_to_crisis || '--',
-                            status: stress.status || 'MODERATE',
-                            interpretation: 'Rising from lows but not yet critical. Watch for acceleration above 1.0'
-                        });
-                    }
-                }
-
-                // Render table
-                tbody.innerHTML = rows.map(row => `
-                    <tr>
-                        <td><strong>${row.indicator}</strong></td>
-                        <td>${row.current}</td>
-                        <td>${row.crisis}</td>
-                        <td>${row.euphoria}</td>
-                        <td>${row.distance}</td>
-                        <td class="status-${row.status.toLowerCase()}">${row.status}</td>
-                        <td>${row.interpretation}</td>
-                    </tr>
-                `).join('');
-
             } catch (error) {
-                console.error('Error loading executive dashboard:', error);
-                document.querySelector('#executive-dashboard tbody').innerHTML = 
-                    '<tr><td colspan="7" class="status-warning">Error loading data. Retrying...</td></tr>';
+                console.error('Error loading crisis analysis:', error);
             }
         }
 
-        // Load ChatGPT Features (Section 2)
-        async function loadChatGPTFeatures() {
+        // Load Dashboard
+        async function loadDashboard() {
             try {
-                // Fetch key metrics for ChatGPT features
-                const metricsToFetch = ['WALCL', 'RRPONTSYD', 'WTREGEN', 'SOFR', 'TEDRATE', 'T10Y2Y'];
-                const metricPromises = metricsToFetch.map(id => 
-                    fetch(`${API_BASE}/metric/${id}`).then(r => r.json()).catch(() => null)
-                );
+                const response = await fetch(`${API_BASE}/dashboard`);
+                const data = await response.json();
                 
-                const metrics = await Promise.all(metricPromises);
-                
-                // Key Developments
-                const developments = [
-                    'Fed SRF Usage: Record $18.5B on Sept 15 - Corporate tax deadline creating severe funding stress',
-                    'SOFR Elevation: 4.42% trading 0.020% above IORB (4.40%) - Secured funding stress intensifying',
-                    'ON RRP Collapse: $18.8B from $2.6T peak - Excess liquidity completely absorbed, system vulnerable',
-                    'TGA Surge: $870B and rising - Every $100B drains equivalent reserves from banking system',
-                    'Quarter-End Pressure: EXTREME - Large T-bill settlements + tax payments creating perfect storm',
-                    'QT Acceleration: $6.6T declining at $95B/month - Cumulative tightening effects compounding'
-                ];
-                
-                document.getElementById('key-developments').innerHTML = 
-                    developments.map(d => `<li>${d}</li>`).join('');
-                
-                // Critical Series Table
-                const criticalSeries = [];
-                
-                metrics.forEach((data, index) => {
-                    if (data && data.status === 'success') {
-                        const m = data.metric;
-                        const seriesInfo = {
-                            'WALCL': {
-                                name: 'WALCL (Fed Balance Sheet)',
-                                trend: '↓ Declining',
-                                impact: 'QT removing $95B/month liquidity. Each $100B = 25bp equivalent tightening'
-                            },
-                            'RRPONTSYD': {
-                                name: 'RRPONTSYD (ON RRP)',
-                                trend: '↓ Collapsing',
-                                impact: 'Near zero from $2.6T. No buffer left for funding shocks'
-                            },
-                            'WTREGEN': {
-                                name: 'WTREGEN (TGA)',
-                                trend: '↑ Surging',
-                                impact: 'Above $870B critical threshold. Actively draining bank reserves'
-                            },
-                            'SOFR': {
-                                name: 'SOFR',
-                                trend: '↑ Elevated',
-                                impact: 'Premium to IORB signals collateral scarcity and funding stress'
-                            },
-                            'TEDRATE': {
-                                name: 'TED Spread',
-                                trend: '↑ Widening',
-                                impact: 'Bank credit risk rising. Above 0.5% = red flag'
-                            },
-                            'T10Y2Y': {
-                                name: '2s10s Curve',
-                                trend: 'Inverted',
-                                impact: 'Deep inversion signals recession. Un-inversion will confirm it'
-                            }
-                        };
-                        
-                        const info = seriesInfo[metricsToFetch[index]];
-                        if (info) {
-                            criticalSeries.push({
-                                metric: info.name,
-                                value: formatMetricValue(m.value),
-                                trend: info.trend,
-                                impact: info.impact
-                            });
+                if (data.status === 'success') {
+                    const dashboard = data.dashboard;
+                    document.getElementById('market-regime').textContent = dashboard.market_regime || 'UNKNOWN';
+                    document.getElementById('risk-level').textContent = dashboard.risk_level || 'ELEVATED';
+                }
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+        }
+
+        // Display all metrics
+        function displayAllMetrics() {
+            if (!allData) return;
+            
+            const section = document.getElementById('all-metrics-section');
+            section.style.display = 'block';
+            
+            let html = '';
+            
+            // Categories and their metrics
+            const categories = [
+                'volatility', 'treasuries', 'tips_breakevens', 'credit_spreads',
+                'funding_rates', 'repo_operations', 'central_bank', 'unemployment',
+                'manufacturing', 'housing', 'inflation', 'gdp_growth',
+                'employment', 'retail_consumption', 'commodities', 'currencies',
+                'equity_indices', 'systemic_risk', 'business_indicators',
+                'banking', 'government', 'trade'
+            ];
+            
+            categories.forEach(category => {
+                if (allData[category]) {
+                    const metrics = allData[category];
+                    const metricCount = Object.keys(metrics).length;
+                    
+                    html += `
+                        <div class="subsection">
+                            <div class="subsection-title">${category.toUpperCase().replace(/_/g, ' ')} (${metricCount} metrics)</div>
+                            <div class="data-grid">
+                    `;
+                    
+                    Object.entries(metrics).forEach(([key, value]) => {
+                        if (value && typeof value === 'object') {
+                            const statusClass = getStatusClass(value.status);
+                            html += `
+                                <div class="data-card">
+                                    <div class="data-card-title">${value.name || key}</div>
+                                    <div class="data-card-value ${statusClass}">${formatValue(value.value)}</div>
+                                    ${value.distance_to_crisis ? `<small>Distance: ${value.distance_to_crisis}</small>` : ''}
+                                </div>
+                            `;
                         }
-                    }
-                });
-                
-                const criticalTbody = document.querySelector('#critical-series tbody');
-                criticalTbody.innerHTML = criticalSeries.map(s => `
-                    <tr>
-                        <td><strong>${s.metric}</strong></td>
-                        <td>${s.value}</td>
-                        <td>${s.trend}</td>
-                        <td>${s.impact}</td>
-                    </tr>
-                `).join('');
-                
-                // Data Gaps
-                const dataGaps = [
-                    'SWP1690/OTHL1690: Central bank swap facilities 16-90 day - Data not yet available',
-                    'Cross-Currency Basis: EUR/USD (-42bp), JPY/USD (-78bp) - Showing dollar shortage',
-                    'Primary Dealer Fails: Awaiting NY Fed update - Last reading $285B/day',
-                    'SovCISS/CISS: Monthly sovereign stress indicators - Update pending',
-                    'Global CB Operations: ECB/BOJ/PBOC liquidity data lagging by 1 week'
-                ];
-                
-                document.getElementById('data-gaps').innerHTML = 
-                    dataGaps.map(g => `<li>${g}</li>`).join('');
-                
-            } catch (error) {
-                console.error('Error loading ChatGPT features:', error);
-            }
-        }
-
-        // Load Dark Pool and Options Flow (Section 3)
-        async function loadDarkPoolOptions() {
-            // Simulated dark pool data (would come from real API)
-            const darkPoolData = [
-                {
-                    symbol: 'SPY',
-                    volume: '$2.3B',
-                    price: '449.50',
-                    vsVWAP: '-0.3%',
-                    vs20D: '+180%',
-                    signal: 'ACCUMULATION',
-                    interpretation: 'Massive institutional buying below VWAP. Smart money positioning for bounce'
-                },
-                {
-                    symbol: 'QQQ',
-                    volume: '$850M',
-                    price: '382.00',
-                    vsVWAP: '+0.5%',
-                    vs20D: '+45%',
-                    signal: 'DISTRIBUTION',
-                    interpretation: 'Institutions rotating out of growth. Confirms value over growth thesis'
-                },
-                {
-                    symbol: 'NVDA',
-                    volume: '$1.2B',
-                    price: '485.00',
-                    vsVWAP: '+0.8%',
-                    vs20D: '+220%',
-                    signal: 'HEAVY DISTRIBUTION',
-                    interpretation: 'Panic selling by institutions. 220% above normal = capitulation beginning'
+                    });
+                    
+                    html += '</div></div>';
                 }
-            ];
-
-            const tbody = document.querySelector('#dark-pool-activity tbody');
-            tbody.innerHTML = darkPoolData.map(d => `
-                <tr>
-                    <td><strong>${d.symbol}</strong></td>
-                    <td>${d.volume}</td>
-                    <td>${d.price}</td>
-                    <td>${d.vsVWAP}</td>
-                    <td>${d.vs20D}</td>
-                    <td class="${d.signal.includes('ACCUMULATION') ? 'status-normal' : 'status-warning'}">${d.signal}</td>
-                    <td>${d.interpretation}</td>
-                </tr>
-            `).join('');
-
-            // Options Flow
-            document.getElementById('put-call-ratio').textContent = '1.35 (85th percentile - heavy hedging)';
-            document.getElementById('large-blocks').textContent = '185 Puts vs 125 Calls';
+            });
             
-            const unusualActivity = [
-                'SPX 4200 Puts: $82M premium (massive hedge)',
-                'QQQ 350 Puts: $45M premium (tech crash protection)',
-                'VIX 30 Calls: $28M premium (volatility explosion bet)'
-            ];
-            
-            document.getElementById('unusual-activity').innerHTML = 
-                unusualActivity.map(a => `<li>${a}</li>`).join('');
-            
-            document.getElementById('trade-setup-1').textContent = 
-                'Sell SPX 4400/4350 put spread for income. Buy VIX 25 calls for tail protection.';
+            document.getElementById('all-metrics-content').innerHTML = html || '<p>No metrics data available</p>';
         }
 
-        // Load Treasury and Liquidity (Sections 4-6)
-        async function loadTreasuryLiquidity() {
+        // Refresh data from server
+        async function refreshData() {
             try {
-                // Treasury Auctions
-                const treasuryData = [
-                    { auction: '10Y (Latest)', grade: 'C+', bidCover: '2.42', indirect: '62%', tail: '3.2', analysis: 'Weakest in 8 months. Foreign buyers abandoning' },
-                    { auction: '30Y (Latest)', grade: 'D', bidCover: '2.21', indirect: '58%', tail: '4.1', analysis: 'Disaster. Dealers stuck with inventory' }
-                ];
-
-                const treasuryTbody = document.querySelector('#treasury-auctions tbody');
-                treasuryTbody.innerHTML = treasuryData.map(t => `
-                    <tr>
-                        <td><strong>${t.auction}</strong></td>
-                        <td class="${t.grade.startsWith('D') ? 'status-critical' : 'status-warning'}">${t.grade}</td>
-                        <td>${t.bidCover}</td>
-                        <td>${t.indirect}</td>
-                        <td>${t.tail}</td>
-                        <td>${t.analysis}</td>
-                    </tr>
-                `).join('');
-
-                // China Holdings
-                document.getElementById('china-holdings').textContent = '$782B (-$52B in 3 months, -$17B/month pace)';
-                document.getElementById('china-distance').textContent = '11.7%';
-                document.getElementById('china-months').textContent = '5';
-
-                // Market Microstructure
-                document.getElementById('gex-value').textContent = '-$2.1 Billion';
-                document.getElementById('gex-meaning').textContent = 'Dealers SHORT gamma must sell $2.1B per 1% drop (accelerates declines)';
-                document.getElementById('zero-gamma').textContent = 'SPX 4420 (below this volatility doubles)';
-                document.getElementById('dix-value').textContent = '47.2% (institutions buying despite negative gamma - bullish divergence)';
-
-                // Liquidity Plumbing
-                const liquidityData = [
-                    { metric: 'Total Repo Fails', current: '$285B/day', normal: '$100B', crisis: '$400B', status: '2.85x NORMAL' },
-                    { metric: 'SOFR-FF Spread', current: '11.5bp', normal: '2bp', crisis: '25bp', status: 'WIDENING' },
-                    { metric: 'FRA-OIS', current: '42bp', normal: '10bp', crisis: '80bp', status: 'STRESS' }
-                ];
-
-                const liquidityTbody = document.querySelector('#liquidity-plumbing tbody');
-                liquidityTbody.innerHTML = liquidityData.map(l => `
-                    <tr>
-                        <td><strong>${l.metric}</strong></td>
-                        <td>${l.current}</td>
-                        <td>${l.normal}</td>
-                        <td>${l.crisis}</td>
-                        <td class="${l.status.includes('NORMAL') ? 'status-warning' : 'status-critical'}">${l.status}</td>
-                    </tr>
-                `).join('');
-
+                const response = await fetch(`${API_BASE}/refresh`);
+                const data = await response.json();
+                console.log('Refresh response:', data);
+                
+                // Reload all data
+                await loadAllData();
             } catch (error) {
-                console.error('Error loading treasury and liquidity data:', error);
+                console.error('Error refreshing data:', error);
             }
         }
 
-        // Load Central Bank and Labor (Sections 7-9)
-        async function loadCentralBankLabor() {
-            try {
-                // Central Banks
-                const centralBankData = [
-                    { bank: 'Federal Reserve', balance: '$6.6T', change: '-$95B', policy: 'QT on autopilot' },
-                    { bank: 'ECB', balance: '€7.2T', change: '-€45B', policy: 'TLTRO runoff' },
-                    { bank: 'BOJ', balance: '¥755T', change: '+¥3T', policy: 'Still easing' },
-                    { bank: 'PBOC', balance: '¥41T', change: '-¥400B', policy: 'Stealth tightening' }
-                ];
+        // Toggle auto refresh
+        function toggleAutoRefresh() {
+            autoRefreshEnabled = !autoRefreshEnabled;
+            const btn = document.getElementById('auto-btn');
+            const status = document.getElementById('auto-status');
+            
+            if (autoRefreshEnabled) {
+                startAutoRefresh();
+                btn.textContent = '⏸ Pause Auto';
+                status.textContent = 'ON';
+            } else {
+                stopAutoRefresh();
+                btn.textContent = '▶️ Start Auto';
+                status.textContent = 'OFF';
+            }
+        }
 
-                const cbTbody = document.querySelector('#central-banks tbody');
-                cbTbody.innerHTML = centralBankData.map(cb => `
-                    <tr>
-                        <td><strong>${cb.bank}</strong></td>
-                        <td>${cb.balance}</td>
-                        <td class="${cb.change.includes('+') ? 'status-normal' : 'status-warning'}">${cb.change}</td>
-                        <td>${cb.policy}</td>
-                    </tr>
-                `).join('');
+        // Start auto refresh
+        function startAutoRefresh() {
+            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+            
+            autoRefreshInterval = setInterval(() => {
+                console.log('Auto-refreshing...');
+                loadAllData();
+            }, 60000); // 60 seconds
+        }
 
-                document.getElementById('g4-total').textContent = '$24.8T';
-                document.getElementById('g4-change').textContent = '-$180B | FASTEST DRAIN SINCE 2018';
+        // Stop auto refresh
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+            }
+        }
 
-                // Labor Market - Fetch real unemployment data
-                const unrateRes = await fetch(`${API_BASE}/metric/UNRATE`);
-                if (unrateRes.ok) {
-                    const unrateData = await unrateRes.json();
-                    if (unrateData.status === 'success') {
-                        document.getElementById('unemployment-rate').textContent = 
-                            `${unrateData.metric.value?.toFixed(1)}% (up from 3.5% low)`;
+        // Utility functions
+        function findMetric(id) {
+            if (!allData) return null;
+            
+            for (const category of Object.values(allData)) {
+                if (category && typeof category === 'object') {
+                    if (category[id]) return category[id];
+                    
+                    for (const metric of Object.values(category)) {
+                        if (metric && metric.id === id) return metric;
                     }
                 }
-
-                // Sahm Rule and other labor metrics
-                document.getElementById('sahm-rule').textContent = '0.33 (recession triggers at 0.50)';
-                document.getElementById('recession-distance').textContent = '0.17pp (3-4 months at current pace)';
-                document.getElementById('initial-claims').textContent = '235K and rising (tech layoffs accelerating)';
-                document.getElementById('job-openings').textContent = '8.2M (down from 12M peak)';
-                document.getElementById('quits-rate').textContent = '2.1% (confidence collapsing, <2.0% = recession)';
-
-                // Manufacturing PMIs
-                const pmiData = [
-                    { country: 'United States', pmi: '47.8', change: '-2.3', status: 'CONTRACTION' },
-                    { country: 'China', pmi: '49.2', change: '-1.8', status: 'CONTRACTION' },
-                    { country: 'Germany', pmi: '42.4', change: '-3.5', status: 'DEEP RECESSION' },
-                    { country: 'Japan', pmi: '48.9', change: '-0.8', status: 'CONTRACTION' },
-                    { country: 'Global', pmi: '48.3', change: '-2.1', status: 'SYNCHRONIZED SLOWDOWN' }
-                ];
-
-                const pmiTbody = document.querySelector('#manufacturing-pmis tbody');
-                pmiTbody.innerHTML = pmiData.map(p => `
-                    <tr>
-                        <td><strong>${p.country}</strong></td>
-                        <td class="${p.pmi < 50 ? 'status-critical' : 'status-normal'}">${p.pmi}</td>
-                        <td class="status-warning">${p.change}</td>
-                        <td class="${p.status.includes('RECESSION') ? 'status-critical' : 'status-warning'}">${p.status}</td>
-                    </tr>
-                `).join('');
-
-            } catch (error) {
-                console.error('Error loading central bank and labor data:', error);
             }
+            return null;
         }
 
-        // Load Credit and Equity (Sections 10-12)
-        async function loadCreditEquity() {
-            try {
-                // Credit Spreads - Fetch real data
-                const creditMetrics = ['BAMLC0A0CM', 'BAMLC0A2CAA', 'BAMLC0A4CBBB', 'BAMLH0A0HYM2'];
-                const creditPromises = creditMetrics.map(id => 
-                    fetch(`${API_BASE}/metric/${id}`).then(r => r.json()).catch(() => null)
-                );
-                
-                const creditData = await Promise.all(creditPromises);
-                
-                const creditRows = [
-                    { grade: 'AAA', current: '42bp', change: '+8bp', crisis: '100bp', distance: '58%' },
-                    { grade: 'BBB', current: '165bp', change: '+35bp', crisis: '350bp', distance: '47%' },
-                    { grade: 'High Yield', current: '485bp', change: '+95bp', crisis: '800bp', distance: '39%' },
-                    { grade: 'CCC & Below', current: '1,285bp', change: '+285bp', crisis: '2,000bp', distance: '36%' }
-                ];
-
-                const creditTbody = document.querySelector('#credit-spreads tbody');
-                creditTbody.innerHTML = creditRows.map(c => `
-                    <tr>
-                        <td><strong>${c.grade}</strong></td>
-                        <td>${c.current}</td>
-                        <td class="status-warning">${c.change}</td>
-                        <td>${c.crisis}</td>
-                        <td class="${parseInt(c.distance) < 40 ? 'status-critical' : 'status-warning'}">${c.distance}</td>
-                    </tr>
-                `).join('');
-
-                // Equity Internals
-                document.getElementById('spx-50dma').textContent = '42%';
-                document.getElementById('ndx-50dma').textContent = '35%';
-                document.getElementById('rut-50dma').textContent = '28%';
-                document.getElementById('spx-200dma').textContent = '61%';
-                document.getElementById('ndx-200dma').textContent = '48%';
-                document.getElementById('rut-200dma').textContent = '39%';
-                document.getElementById('highs-lows').textContent = '-412 (worst since March 2020)';
-                document.getElementById('advance-decline').textContent = '0.65 (heavy selling pressure)';
-                document.getElementById('mcclellan').textContent = '-125 (oversold but falling)';
-
-                // Sentiment & Positioning
-                const sentimentData = [
-                    { indicator: 'Equity Positioning', current: '+2.1 Std Dev', percentile: '92nd', signal: 'EXTREME LONG' },
-                    { indicator: 'Bond Positioning', current: '-1.8 Std Dev', percentile: '8th', signal: 'EXTREME SHORT' },
-                    { indicator: 'Put/Call Ratio', current: '0.65', percentile: '15th', signal: 'COMPLACENT' },
-                    { indicator: 'Fund Manager Cash', current: '3.8%', percentile: '5th', signal: 'RECORD LOW' }
-                ];
-
-                const sentimentTbody = document.querySelector('#sentiment-positioning tbody');
-                sentimentTbody.innerHTML = sentimentData.map(s => `
-                    <tr>
-                        <td><strong>${s.indicator}</strong></td>
-                        <td>${s.current}</td>
-                        <td>${s.percentile}</td>
-                        <td class="${s.signal.includes('EXTREME') ? 'status-critical' : 'status-warning'}">${s.signal}</td>
-                    </tr>
-                `).join('');
-
-            } catch (error) {
-                console.error('Error loading credit and equity data:', error);
-            }
-        }
-
-        // Load Technical and Intermarket (Sections 13-15)
-        async function loadTechnicalIntermarket() {
-            // Insider Trading
-            const insiderData = [
-                { entity: 'Tech CEOs', action: 'SELLING', amount: '$2.3B combined', signal: 'Largest since 2021 top' },
-                { entity: 'Bank CEOs', action: 'BUYING', amount: '$125M combined', signal: 'First time in 3 years' },
-                { entity: 'Congress', action: 'SELLING China/Tech', amount: '$45M', signal: 'Regulatory crackdown coming' },
-                { entity: 'Congress', action: 'BUYING Defense', amount: '$28M', signal: 'Geopolitical tensions rising' }
-            ];
-
-            const insiderTbody = document.querySelector('#insider-trading tbody');
-            insiderTbody.innerHTML = insiderData.map(i => `
-                <tr>
-                    <td><strong>${i.entity}</strong></td>
-                    <td class="${i.action.includes('SELLING') ? 'status-critical' : 'status-normal'}">${i.action}</td>
-                    <td>${i.amount}</td>
-                    <td>${i.signal}</td>
-                </tr>
-            `).join('');
-
-            // Technical Levels
-            const technicalLevels = [
-                'SPX 4420: Zero gamma level - Break below = volatility explosion',
-                'SPX 4150: 200DMA - Major support, break = -10% additional',
-                '10Y 4.50%: Technical breakout level - Above = risk-off acceleration',
-                'DXY 106: EM crisis trigger - Above = global deleveraging',
-                'VIX 25: Dealer panic level - Above = forced covering',
-                'USD/JPY 145: Carry unwind trigger - Below = $1.8T unwind begins'
-            ];
-
-            document.getElementById('technical-levels').innerHTML = 
-                technicalLevels.map(t => `<li>${t}</li>`).join('');
-
-            // Intermarket Relationships
-            const intermarketData = [
-                { relationship: 'Stocks/Bonds Ratio', current: '3.2', normal: '1.5-2.5', signal: 'EXTREME OVERWEIGHT EQUITIES' },
-                { relationship: 'Copper/Gold', current: '0.0042', normal: '0.0050', signal: 'RECESSION TRADE' },
-                { relationship: 'HYG/TLT', current: '0.92', normal: '1.00', signal: 'RISK-OFF ROTATION' },
-                { relationship: 'JPY Carry Trade', current: '$1.8T', normal: '$1.2T', signal: 'UNWIND RISK EXTREME' }
-            ];
-
-            const intermarketTbody = document.querySelector('#intermarket tbody');
-            intermarketTbody.innerHTML = intermarketData.map(i => `
-                <tr>
-                    <td><strong>${i.relationship}</strong></td>
-                    <td>${i.current}</td>
-                    <td>${i.normal}</td>
-                    <td class="${i.signal.includes('EXTREME') ? 'status-critical' : 'status-warning'}">${i.signal}</td>
-                </tr>
-            `).join('');
-        }
-
-        // Load Final Synthesis
-        async function loadFinalSynthesis() {
-            document.getElementById('final-regime').textContent = 'LATE CYCLE DISTRIBUTION - 45% FROM CRISIS';
-            
-            const evidence = [
-                'Institutions distributing growth stocks while accumulating value',
-                'Treasury auctions deteriorating - foreign buyers disappearing',
-                'Repo fails at crisis multiples - plumbing breaking down',
-                'Negative dealer gamma creating volatility feedback loops',
-                'Central bank liquidity draining at fastest pace since 2018',
-                'Credit spreads widening across all grades'
-            ];
-            
-            document.getElementById('regime-evidence').innerHTML = 
-                evidence.map(e => `<li>${e}</li>`).join('');
-
-            // Conviction Trades
-            const trades = [
-                'LONG SPY vs SHORT QQQ - Rotation accelerating (90% confidence)',
-                'LONG TLT VOLATILITY - Bond vol massively underpriced (85% confidence)',
-                'SHORT REGIONAL BANKS (KRE) - Funding stress casualty (85% confidence)',
-                'LONG USD/CNH - China dumping reserves (80% confidence)',
-                'LONG VIX CALLS (Jan exp) - Vol expansion inevitable (80% confidence)'
-            ];
-
-            document.getElementById('conviction-trades').innerHTML = 
-                trades.map((t, i) => `
-                    <div class="conviction-trade">
-                        ${i + 1}. ${t}
-                    </div>
-                `).join('');
-
-            // Scenario Probabilities
-            const scenarios = [
-                { scenario: 'Orderly Correction', probability: '45%', target: '4150 (-8%)', timeline: '4-6 weeks', catalyst: 'Earnings disappointment' },
-                { scenario: 'Growth Crash', probability: '25%', target: '3950 (-12%)', timeline: '6-8 weeks', catalyst: 'AI bubble deflation' },
-                { scenario: 'Funding Crisis', probability: '20%', target: '3750 (-17%)', timeline: '2-4 weeks', catalyst: 'Repo market seizure' },
-                { scenario: 'Muddle Through', probability: '10%', target: '4400-4500', timeline: 'Ongoing', catalyst: 'Fed pivot hopes' }
-            ];
-
-            const scenarioTbody = document.querySelector('#scenario-probabilities tbody');
-            scenarioTbody.innerHTML = scenarios.map(s => `
-                <tr>
-                    <td><strong>${s.scenario}</strong></td>
-                    <td>${s.probability}</td>
-                    <td>${s.target}</td>
-                    <td>${s.timeline}</td>
-                    <td>${s.catalyst}</td>
-                </tr>
-            `).join('');
-
-            // Update risk level
-            document.getElementById('risk-level').textContent = 'ELEVATED';
-        }
-
-        // Utility Functions
-        function formatMetricValue(value) {
+        function formatValue(value) {
             if (value === null || value === undefined) return '--';
             if (typeof value === 'number') {
-                if (Math.abs(value) >= 1000000000000) {
-                    return `$${(value / 1000000000000).toFixed(1)}T`;
-                } else if (Math.abs(value) >= 1000000000) {
-                    return `$${(value / 1000000000).toFixed(1)}B`;
-                } else if (Math.abs(value) >= 1000000) {
-                    return `$${(value / 1000000).toFixed(1)}M`;
-                } else {
-                    return value.toFixed(2);
-                }
+                if (Math.abs(value) < 0.01) return value.toExponential(2);
+                if (Math.abs(value) < 1) return value.toFixed(4);
+                if (Math.abs(value) < 100) return value.toFixed(2);
+                return value.toFixed(1);
             }
             return value;
         }
 
-        function calculateDistance(value) {
-            return `${value.toFixed(1)}%`;
+        function formatLargeNumber(value) {
+            if (!value) return '--';
+            if (value >= 1e12) return (value / 1e12).toFixed(1) + 'T';
+            if (value >= 1e9) return (value / 1e9).toFixed(1) + 'B';
+            if (value >= 1e6) return (value / 1e6).toFixed(1) + 'M';
+            return value.toFixed(0);
         }
 
-        // Auto-refresh functionality
-        function startAutoRefresh() {
-            // Refresh every 60 seconds
-            autoRefreshInterval = setInterval(() => {
-                console.log('Auto-refreshing data...');
-                updateDateTime();
-                loadAllSections();
-            }, 60000);
+        function calculateDistance(current, crisis, euphoria) {
+            if (!current || !crisis || !euphoria) return '--';
+            const range = Math.abs(crisis - euphoria);
+            const distance = Math.abs(crisis - current) / range * 100;
+            return distance.toFixed(1) + '%';
         }
 
-        // Stop auto-refresh when page is hidden
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden && autoRefreshInterval) {
-                clearInterval(autoRefreshInterval);
-            } else if (!document.hidden && !autoRefreshInterval) {
-                startAutoRefresh();
+        function getStatus(value, crisis, euphoria) {
+            if (!value) return 'UNKNOWN';
+            const distance = Math.abs(crisis - value) / Math.abs(crisis - euphoria) * 100;
+            if (distance < 20) return 'CRITICAL';
+            if (distance < 40) return 'WARNING';
+            if (distance > 80) return 'EUPHORIA';
+            return 'NORMAL';
+        }
+
+        function getStatusClass(status) {
+            if (!status) return '';
+            switch (status.toUpperCase()) {
+                case 'CRITICAL': return 'status-critical';
+                case 'WARNING': return 'status-warning';
+                case 'NORMAL': return 'status-normal';
+                case 'EUPHORIA': return 'status-euphoria';
+                default: return '';
             }
-        });
+        }
     </script>
 </body>
 </html>
