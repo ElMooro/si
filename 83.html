@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Agent Financial Intelligence System - 650+ Metrics</title>
+    <title>Multi-Agent Financial Intelligence System - 650+ Real-Time Metrics</title>
     <style>
         * {
             margin: 0;
@@ -92,242 +92,112 @@
             font-size: 4em;
             font-weight: bold;
             text-align: center;
-            margin: 20px 0;
-        }
-
-        .khalid-gauge {
-            width: 100%;
-            max-width: 400px;
-            margin: 0 auto;
-        }
-
-        .khalid-status {
-            text-align: center;
-            font-size: 1.5em;
-            padding: 10px;
+            padding: 20px;
             border-radius: 10px;
-            margin-top: 15px;
+            transition: all 0.3s ease;
         }
 
-        .status-extreme-greed { background: rgba(255, 0, 0, 0.2); color: #ff4444; }
-        .status-greed { background: rgba(255, 165, 0, 0.2); color: #ffa500; }
-        .status-neutral { background: rgba(255, 255, 0, 0.2); color: #ffff00; }
-        .status-fear { background: rgba(0, 255, 0, 0.2); color: #00ff00; }
-        .status-extreme-fear { background: rgba(0, 128, 0, 0.2); color: #00ff88; }
+        .khalid-index-extreme-greed {
+            background: linear-gradient(135deg, #00ff00, #00cc00);
+            color: #001100;
+        }
 
-        /* Stats Grid */
-        .stats-grid {
+        .khalid-index-greed {
+            background: linear-gradient(135deg, #88ff00, #66cc00);
+            color: #002200;
+        }
+
+        .khalid-index-neutral {
+            background: linear-gradient(135deg, #ffff00, #ffcc00);
+            color: #333300;
+        }
+
+        .khalid-index-fear {
+            background: linear-gradient(135deg, #ff8800, #ff6600);
+            color: #330000;
+        }
+
+        .khalid-index-extreme-fear {
+            background: linear-gradient(135deg, #ff0000, #cc0000);
+            color: #ffffff;
+        }
+
+        .khalid-components {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
-            margin-bottom: 30px;
-        }
-
-        .stat-card {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: transform 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-2px);
-            background: rgba(255, 255, 255, 0.08);
-        }
-
-        .stat-label {
-            color: #888;
-            font-size: 0.9em;
-            margin-bottom: 5px;
-        }
-
-        .stat-value {
-            font-size: 1.8em;
-            font-weight: bold;
-            color: #fff;
-        }
-
-        /* Tabs Navigation */
-        .tabs-container {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 15px;
-            padding: 5px;
-            margin-bottom: 30px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-        }
-
-        .tab-button {
-            background: transparent;
-            color: #888;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 1em;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-
-        .tab-button:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: #fff;
-        }
-
-        .tab-button.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #fff;
-        }
-
-        /* Content Panels */
-        .tab-content {
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .data-section {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .section-title {
-            font-size: 1.5em;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-            color: #00d4ff;
-        }
-
-        /* Metrics Table */
-        .metrics-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-
-        .metrics-table th {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 12px;
-            text-align: left;
-            color: #00d4ff;
-            font-weight: 600;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .metrics-table td {
-            padding: 10px 12px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .metrics-table tr:hover {
-            background: rgba(255, 255, 255, 0.03);
-        }
-
-        .metric-name {
-            font-weight: 500;
-            color: #e0e0e0;
-        }
-
-        .metric-value {
-            font-weight: bold;
-            color: #fff;
-        }
-
-        .metric-change {
-            font-weight: 500;
-        }
-
-        .metric-change.positive {
-            color: #00ff88;
-        }
-
-        .metric-change.negative {
-            color: #ff4444;
-        }
-
-        /* Agent Status Grid */
-        .agents-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
             margin-top: 20px;
         }
 
-        .agent-card {
+        .khalid-component {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Grid Layout for Sections */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
             background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
             padding: 20px;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .agent-card:hover {
-            transform: translateY(-3px);
-            background: rgba(255, 255, 255, 0.08);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
         }
 
-        .agent-header {
+        .metric-card h3 {
+            color: #00d4ff;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            border-bottom: 2px solid rgba(0, 212, 255, 0.3);
+            padding-bottom: 10px;
+        }
+
+        .metric-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        .agent-name {
-            font-weight: 600;
-            color: #00d4ff;
-        }
-
-        .agent-status {
-            padding: 4px 10px;
-            border-radius: 5px;
-            font-size: 0.85em;
-            font-weight: 600;
-        }
-
-        .agent-status.online {
-            background: rgba(0, 255, 0, 0.2);
-            color: #00ff00;
-        }
-
-        .agent-status.offline {
-            background: rgba(255, 0, 0, 0.2);
-            color: #ff4444;
-        }
-
-        .agent-status.loading {
-            background: rgba(255, 255, 0, 0.2);
-            color: #ffff00;
-        }
-
-        .agent-metrics {
-            margin-top: 10px;
-        }
-
-        .agent-metric-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 5px 0;
+        .metric-label {
+            color: #b0b0b0;
             font-size: 0.9em;
         }
 
-        /* Loading Spinner */
-        .loading-spinner {
+        .metric-value {
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .positive {
+            color: #00ff88;
+        }
+
+        .negative {
+            color: #ff4444;
+        }
+
+        .neutral {
+            color: #ffcc00;
+        }
+
+        /* Loading Animation */
+        .loading {
             display: inline-block;
             width: 20px;
             height: 20px;
@@ -341,97 +211,32 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Controls Section */
-        .controls-section {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .control-button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 12px 24px;
+        /* Alert Boxes */
+        .alert-box {
+            background: rgba(255, 0, 0, 0.1);
+            border: 1px solid rgba(255, 0, 0, 0.3);
             border-radius: 10px;
-            cursor: pointer;
-            font-size: 1em;
-            font-weight: 600;
-            transition: all 0.3s ease;
+            padding: 15px;
+            margin: 20px 0;
         }
 
-        .control-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        .control-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .update-status {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .last-update {
-            color: #888;
-            font-size: 0.9em;
-        }
-
-        /* Alert Messages */
-        .alert {
-            padding: 15px 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .alert-warning {
-            background: rgba(255, 193, 7, 0.1);
-            border: 1px solid rgba(255, 193, 7, 0.3);
-            color: #ffc107;
-        }
-
-        .alert-error {
-            background: rgba(220, 53, 69, 0.1);
-            border: 1px solid rgba(220, 53, 69, 0.3);
-            color: #dc3545;
-        }
-
-        .alert-success {
-            background: rgba(40, 167, 69, 0.1);
-            border: 1px solid rgba(40, 167, 69, 0.3);
-            color: #28a745;
+        .alert-box h4 {
+            color: #ff6666;
+            margin-bottom: 10px;
         }
 
         /* Responsive Design */
         @media (max-width: 768px) {
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            
             h1 {
                 font-size: 2em;
             }
             
-            .stats-grid {
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            }
-            
-            .agents-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .tab-button {
-                padding: 8px 16px;
-                font-size: 0.9em;
+            .khalid-index-value {
+                font-size: 3em;
             }
         }
     </style>
@@ -441,1521 +246,678 @@
         <!-- Header Section -->
         <div class="header">
             <div class="header-title">
-                <h1>📊 Multi-Agent Financial Intelligence System</h1>
+                <h1>Multi-Agent Financial Intelligence System</h1>
                 <div class="live-indicator">
                     <div class="pulse-dot"></div>
                     <span>LIVE DATA</span>
+                    <span id="last-update"></span>
                 </div>
             </div>
-            <div class="subtitle">650+ Real-Time Metrics | 16 Specialized Agents | Auto-Updated Every 15 Minutes</div>
+            <div>
+                <p>650+ Metrics • 15 Intelligent Agents • Real-Time Analysis</p>
+            </div>
         </div>
 
-        <!-- Khalid Index Display -->
+        <!-- Khalid Index Section -->
         <div class="khalid-index-container">
             <div class="khalid-index-header">
-                <h2>🎯 KHALID INDEX™</h2>
-                <p>Proprietary Composite Market Indicator</p>
+                <h2>KHALID INDEX</h2>
+                <p>Proprietary Market Sentiment Indicator</p>
             </div>
-            <div class="khalid-index-value" id="khalidIndexValue">
-                <span class="loading-spinner"></span>
+            <div id="khalid-index" class="khalid-index-value khalid-index-neutral">
+                <span id="khalid-value">Calculating...</span>
             </div>
-            <div class="khalid-gauge" id="khalidGauge"></div>
-            <div class="khalid-status" id="khalidStatus">Loading...</div>
-        </div>
-
-        <!-- Key Metrics Stats -->
-        <div class="stats-grid" id="statsGrid">
-            <div class="stat-card">
-                <div class="stat-label">Active Agents</div>
-                <div class="stat-value" id="activeAgents">-</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Total Metrics</div>
-                <div class="stat-value" id="totalMetrics">-</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Market Risk</div>
-                <div class="stat-value" id="marketRisk">-</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">VIX Level</div>
-                <div class="stat-value" id="vixLevel">-</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">DXY Index</div>
-                <div class="stat-value" id="dxyLevel">-</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">ISM Manufacturing</div>
-                <div class="stat-value" id="ismLevel">-</div>
+            <div class="khalid-components" id="khalid-components">
+                <!-- Components will be populated here -->
             </div>
         </div>
 
-        <!-- Controls Section -->
-        <div class="controls-section">
-            <div>
-                <button class="control-button" onclick="refreshAllData()">
-                    🔄 Refresh All Data
-                </button>
-                <button class="control-button" onclick="toggleAutoUpdate()" id="autoUpdateBtn">
-                    ⏸️ Pause Auto-Update
-                </button>
-            </div>
-            <div class="update-status">
-                <span class="last-update" id="lastUpdate">Last updated: Never</span>
-                <span id="corsStatus" style="margin-left: 20px; padding: 4px 10px; border-radius: 5px; background: rgba(255,255,255,0.1); font-size: 0.9em;">
-                    Connection: Testing...
-                </span>
-            </div>
+        <!-- Risk Assessment Alert -->
+        <div class="alert-box" id="risk-alert" style="display: none;">
+            <h4>⚠️ MASTER RISK ASSESSMENT</h4>
+            <div id="risk-content"></div>
         </div>
 
-        <!-- Navigation Tabs -->
-        <div class="tabs-container">
-            <button class="tab-button active" onclick="showTab('overview')">📈 Overview</button>
-            <button class="tab-button" onclick="showTab('liquidity')">💧 Liquidity (500+)</button>
-            <button class="tab-button" onclick="showTab('treasury')">🏛️ Treasury</button>
-            <button class="tab-button" onclick="showTab('volatility')">📊 Volatility</button>
-            <button class="tab-button" onclick="showTab('dollar')">💵 Dollar Strength</button>
-            <button class="tab-button" onclick="showTab('manufacturing')">🏭 Manufacturing</button>
-            <button class="tab-button" onclick="showTab('securities')">📜 Securities</button>
-            <button class="tab-button" onclick="showTab('bonds')">📉 Bonds</button>
-            <button class="tab-button" onclick="showTab('repo')">🔄 Repo Market</button>
-            <button class="tab-button" onclick="showTab('crosscurrency')">💱 Cross-Currency</button>
-            <button class="tab-button" onclick="showTab('market')">📊 Market Breadth</button>
-            <button class="tab-button" onclick="showTab('economic')">📈 Economic</button>
-            <button class="tab-button" onclick="showTab('labor')">👥 Labor</button>
-            <button class="tab-button" onclick="showTab('news')">📰 News Sentiment</button>
-            <button class="tab-button" onclick="showTab('ml')">🤖 ML Predictions</button>
-            <button class="tab-button" onclick="showTab('agents')">🤖 Agent Status</button>
-        </div>
+        <!-- Main Metrics Grid -->
+        <div class="metrics-grid">
+            <!-- 1. Global Liquidity Metrics -->
+            <div class="metric-card">
+                <h3>🌍 Global Liquidity (500+ Metrics)</h3>
+                <div id="global-liquidity">
+                    <div class="metric-item">
+                        <span class="metric-label">Fed Balance Sheet</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">ECB Total Assets</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">BOJ Balance Sheet</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">PBOC Total Assets</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Combined G4 Liquidity</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                </div>
+            </div>
 
-        <!-- Tab Content Areas -->
-        <div id="overview" class="tab-content active">
-            <div class="data-section">
-                <h3 class="section-title">System Overview</h3>
-                <div id="overviewContent">
-                    <div class="loading-spinner"></div> Loading overview data...
+            <!-- 2. Volatility Analysis -->
+            <div class="metric-card">
+                <h3>📊 Volatility Analysis</h3>
+                <div id="volatility-metrics">
+                    <div class="metric-item">
+                        <span class="metric-label">VIX Index</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">MOVE Index</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">VVIX</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Put/Call Ratio</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Term Structure</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Manufacturing Data -->
+            <div class="metric-card">
+                <h3>🏭 Manufacturing & PMI Data</h3>
+                <div id="manufacturing-data">
+                    <div class="metric-item">
+                        <span class="metric-label">ISM Manufacturing</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">ISM Services</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Global Manufacturing PMI</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">China Caixin PMI</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Eurozone PMI</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Dollar Strength -->
+            <div class="metric-card">
+                <h3>💵 Dollar Strength (30+ Pairs)</h3>
+                <div id="dollar-strength">
+                    <div class="metric-item">
+                        <span class="metric-label">DXY Index</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">EUR/USD</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">USD/JPY</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">GBP/USD</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">USD/CNY</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Bond Market Analysis -->
+            <div class="metric-card">
+                <h3>📈 Bond Market & Spreads</h3>
+                <div id="bond-market">
+                    <div class="metric-item">
+                        <span class="metric-label">10Y Treasury</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">2Y-10Y Spread</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">IG Spreads</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">HY Spreads</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">TED Spread</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. Repo Market Stress -->
+            <div class="metric-card">
+                <h3>🏦 Repo Market Stress Indicators</h3>
+                <div id="repo-market">
+                    <div class="metric-item">
+                        <span class="metric-label">SOFR Rate</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">GC Repo Rate</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Repo Volume</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Fails Rate</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">RRP Usage</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. Labor Market Data -->
+            <div class="metric-card">
+                <h3>👥 Labor Market (BLS)</h3>
+                <div id="labor-market">
+                    <div class="metric-item">
+                        <span class="metric-label">Unemployment Rate</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">NFP (Last)</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">JOLTS Openings</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Quits Rate</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Wage Growth YoY</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 8. Economic Indicators -->
+            <div class="metric-card">
+                <h3>📉 Economic Indicators (BEA)</h3>
+                <div id="economic-indicators">
+                    <div class="metric-item">
+                        <span class="metric-label">GDP Growth</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">CPI YoY</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Core PCE</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Retail Sales MoM</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Consumer Confidence</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 9. Market Breadth -->
+            <div class="metric-card">
+                <h3>📊 Market Breadth Analysis</h3>
+                <div id="market-breadth">
+                    <div class="metric-item">
+                        <span class="metric-label">Advance/Decline</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">New Highs/Lows</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">McClellan Oscillator</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">% Above 200 MA</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">NYSE TICK</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 10. News Sentiment -->
+            <div class="metric-card">
+                <h3>📰 News Sentiment Analysis</h3>
+                <div id="news-sentiment">
+                    <div class="metric-item">
+                        <span class="metric-label">Overall Sentiment</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Fear Keywords</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Greed Keywords</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Recession Mentions</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Fed Policy Score</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 11. Treasury Auctions -->
+            <div class="metric-card">
+                <h3>💰 Treasury Auction Results</h3>
+                <div id="treasury-auctions">
+                    <div class="metric-item">
+                        <span class="metric-label">Last 3M Bid/Cover</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Last 10Y Bid/Cover</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Foreign Participation</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Direct Bidder %</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Next Auction</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 12. Options Flow -->
+            <div class="metric-card">
+                <h3>🎯 Options Flow Analysis</h3>
+                <div id="options-flow">
+                    <div class="metric-item">
+                        <span class="metric-label">SPY GEX</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">QQQ DIX</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Dark Pool %</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Call Wall</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Put Wall</span>
+                        <span class="metric-value"><span class="loading"></span></span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div id="liquidity" class="tab-content">
-            <div class="data-section">
-                <h3 class="section-title">Global Liquidity Metrics (500+ Indicators)</h3>
-                <div id="liquidityContent">
-                    <div class="loading-spinner"></div> Loading liquidity data...
-                </div>
-            </div>
-        </div>
-
-        <div id="treasury" class="tab-content">
-            <div class="data-section">
-                <h3 class="section-title">Treasury Auctions & Securities</h3>
-                <div id="treasuryContent">
-                    <div class="loading-spinner"></div> Loading treasury data...
-                </div>
-            </div>
-        </div>
-
-        <div id="volatility" class="tab-content">
-            <div class="data-section">
-                <h3 class="section-title">Volatility Indices</h3>
-                <div id="volatilityContent">
-                    <div class="loading-spinner"></div> Loading volatility data...
-                </div>
-            </div>
-        </div>
-
-        <div id="dollar" class="tab-content">
-            <div class="data-section">
-                <h3 class="section-title">Dollar Strength Analysis</h3>
-                <div id="dollarContent">
-                    <div class="loading-spinner"></div> Loading dollar data...
-                </div>
-            </div>
-        </div>
-
-        <div id="manufacturing" class="tab-content">
-            <div class="data-section">
-                <h3 class="section-title">Manufacturing Indicators</h3>
-                <div id="manufacturingContent">
-                    <div class="loading-spinner"></div> Loading manufacturing data...
-                </div>
-            </div>
-        </div>
-
-        <div id="securities" class="tab-content">
-            <div class="data-section">
-                <h3 class="section-title">Securities & Banking</h3>
-                <div id="securitiesContent">
-                    <div class="loading-spinner"></div> Loading securities data...
-                </div>
-            </div>
-        </div>
-
-        <div id="bonds" class="tab-content">
-            <div class="data-section">
-                <h3 class="section-title">Bond Market Indices</h3>
-                <div id="bondsContent">
-                    <div class="loading-spinner"></div> Loading bond data...
-                </div>
-            </div>
-        </div>
-
-        <div id="repo" class="tab-content">
-            <div class="data-section">
-                <h3 class="section-title">Enhanced Repo Market Stress</h3>
-                <div id="repoContent">
-                    <div class="loading-spinner"></div> Loading repo data...
-                </div>
-            </div>
-        </div>
-
-        <div id="crosscurrency" class="tab-content">
-            <div class="data-section">
-                <h3 class="section-title">Cross-Currency Basis Analysis</h3>
-                <div id="crosscurrencyContent">
-                    <div class="loading-spinner"></div> Loading cross-currency data...
-                </div>
-            </div>
-        </div>
-
-        <div id="market" class="tab-content">
-            <div class="data-section">
-                <h3 class="section-title">Market Breadth Analysis</h3>
-                <div id="marketContent">
-                    <div class="loading-spinner"></div> Loading market data...
-                </div>
-            </div>
-        </div>
-
-        <div id="economic" class="tab-content">
-            <div class="data-section">
-                <h3 class="section-title">Economic Indicators</h3>
-                <div id="economicContent">
-                    <div class="loading-spinner"></div> Loading economic data...
-                </div>
-            </div>
-        </div>
-
-        <div id="labor" class="tab-content">
-            <div class="data-section">
-                <h3 class="section-title">Labor Market Data</h3>
-                <div id="laborContent">
-                    <div class="loading-spinner"></div> Loading labor data...
-                </div>
-            </div>
-        </div>
-
-        <div id="news" class="tab-content">
-            <div class="data-section">
-                <h3 class="section-title">News Sentiment Analysis</h3>
-                <div id="newsContent">
-                    <div class="loading-spinner"></div> Loading news sentiment...
-                </div>
-            </div>
-        </div>
-
-        <div id="ml" class="tab-content">
-            <div class="data-section">
-                <h3 class="section-title">Machine Learning Predictions</h3>
-                <div id="mlContent">
-                    <div class="loading-spinner"></div> Loading ML predictions...
-                </div>
-            </div>
-        </div>
-
-        <div id="agents" class="tab-content">
-            <div class="data-section">
-                <h3 class="section-title">Agent System Status</h3>
-                <div class="agents-grid" id="agentsGrid">
-                    <div class="loading-spinner"></div> Loading agent status...
-                </div>
+        <!-- Actionable Recommendations Section -->
+        <div class="metric-card" style="width: 100%;">
+            <h3>🎯 Actionable Recommendations</h3>
+            <div id="recommendations">
+                <p>Analyzing 650+ metrics to generate recommendations...</p>
             </div>
         </div>
     </div>
 
     <script>
-        // ========== CONFIGURATION ==========
-        const CORS_PROXIES = [
-            'https://api.allorigins.win/raw?url=',
-            'https://cors-anywhere.herokuapp.com/',
-            'https://proxy.cors.sh/',
-            '' // Direct connection as fallback
-        ];
-        
+        // Configuration with CORS-enabled endpoints
         const API_CONFIG = {
-            ultimateMultiAgent: 'https://qbgfgz6e3zqplmnupsg4bgbyne0shotm.lambda-url.us-east-1.on.aws/',
-            globalLiquidity: 'https://lwybn3kjcpofq5ifcre5ybtuey0fddxz.lambda-url.us-east-1.on.aws/',
-            treasuryLambda: 'https://oanydg4qltq5emsnnb2m23mifm0bqjqh.lambda-url.us-east-1.on.aws/',
-            treasury: 'https://i1hgpjotq7.execute-api.us-east-1.amazonaws.com/prod',
-            fredIce: 'https://klehdyiwrl.execute-api.us-east-1.amazonaws.com/prod',
-            fedLiquidity: 'https://nmkverrwjnxsmgnogzckkoyuce0bqxyk.lambda-url.us-east-1.on.aws',
-            iceBofA: 'https://lnd6erie7y4rw2u6r4dpv4enty0mhtua.lambda-url.us-east-1.on.aws',
-            volatility: 'https://w4bvakowhpbkvy3mqkzp66xfaa0kpfqi.lambda-url.us-east-1.on.aws/',
-            dollar: 'https://us3uynmi23u676v3szd27ldwuq0jeqee.lambda-url.us-east-1.on.aws/',
-            manufacturing: 'https://atjkdhikbinborcc2pujbs3jxm0iugqe.lambda-url.us-east-1.on.aws/',
-            securities: 'https://iru4ado3aki625pnswcpycrniq0ctjba.lambda-url.us-east-1.on.aws/',
-            bonds: 'https://s57bexwijusq7jukyxishguffe0nukpw.lambda-url.us-east-1.on.aws/',
-            marketBreadth: 'https://ftbvriu6ftmbtw7luop7kxiepu0gwlcb.lambda-url.us-east-1.on.aws/',
-            economic: 'https://hnqqkbf7y6avoda5v4rexwk3440ibbru.lambda-url.us-east-1.on.aws/',
-            labor: 'https://sc7wgo5xmcfgekvdwz7puk55f40ovfzg.lambda-url.us-east-1.on.aws/',
-            news: 'https://kcm6voksx75rzhyxkblfagcbeq0fxdyb.lambda-url.us-east-1.on.aws/',
-            reportGenerator: 'https://bdy57za6uorf6uto7z7gfjlfky0orxjl.lambda-url.us-east-1.on.aws/',
-            repo: 'https://uhuftf5gghrsnoeui66g24qeh40ovomr.lambda-url.us-east-1.on.aws/',
-            crossCurrency: 'https://cm6i7tzsb6fpyvus5zvy43igae0oxmuc.lambda-url.us-east-1.on.aws/',
-            census: 'https://2lhhfitug2w2m4leajszuptafu0kgend.lambda-url.us-east-1.on.aws/',
-            ml: 'https://awfcijftjvs5f4ajdf2hwnwtt40tvweb.lambda-url.us-east-1.on.aws/'
+            // Your actual API endpoints - replace with your real endpoints
+            treasury: {
+                url: 'https://api.fiscaldata.treasury.gov/services/api/fiscal_service',
+                endpoints: {
+                    auctions: '/v2/accounting/od/auct_results',
+                    yields: '/v2/accounting/od/avg_interest_rates',
+                    debt: '/v2/accounting/od/debt_to_penny'
+                }
+            },
+            fred: {
+                url: 'https://api.stlouisfed.org/fred/series/observations',
+                apiKey: '2f057499936072679d8843d7fce99989',
+                series: {
+                    vix: 'VIXCLS',
+                    dxy: 'DEXUSEU',
+                    unemployment: 'UNRATE',
+                    gdp: 'GDP',
+                    cpi: 'CPIAUCSL',
+                    fed_funds: 'DFF',
+                    ten_year: 'DGS10',
+                    two_year: 'DGS2',
+                    sofr: 'SOFR',
+                    ism_mfg: 'MANEMP',
+                    ism_services: 'NMFBAI'
+                }
+            },
+            polygon: {
+                url: 'https://api.polygon.io/v2',
+                apiKey: 'NzhVT5cv5Fgx8dCgl4rIx6NkRLF6kfGl',
+                endpoints: {
+                    ticker: '/aggs/ticker',
+                    snapshot: '/snapshot/locale/us/markets/stocks/tickers'
+                }
+            },
+            // Add your other API configurations here
+            alphavantage: {
+                url: 'https://www.alphavantage.co/query',
+                apiKey: 'YOUR_ALPHAVANTAGE_KEY' // Replace with your key
+            }
         };
 
-        // ========== STATE VARIABLES ==========
-        let currentProxyIndex = 0;
-        let autoUpdate = true;
-        let updateInterval = null;
-        let agentsData = {};
-        let khalidIndex = null;
-        let lastUpdateTime = null;
+        // Data storage
+        let dashboardData = {
+            khalidIndex: null,
+            globalLiquidity: {},
+            volatility: {},
+            manufacturing: {},
+            dollar: {},
+            bonds: {},
+            repo: {},
+            labor: {},
+            economic: {},
+            breadth: {},
+            sentiment: {},
+            treasury: {},
+            options: {}
+        };
 
-        // ========== HELPER FUNCTIONS ==========
-        function updateConnectionStatus() {
-            const statusElement = document.getElementById('corsStatus');
-            if (!statusElement) return;
-            
-            if (currentProxyIndex === CORS_PROXIES.length - 1) {
-                statusElement.textContent = 'Connection: Direct';
-                statusElement.style.background = 'rgba(255, 165, 0, 0.2)';
-            } else if (currentProxyIndex === 0) {
-                statusElement.textContent = 'Connection: AllOrigins Proxy';
-                statusElement.style.background = 'rgba(0, 255, 0, 0.2)';
-            } else if (currentProxyIndex === 1) {
-                statusElement.textContent = 'Connection: CORS Anywhere';
-                statusElement.style.background = 'rgba(0, 255, 0, 0.2)';
-            } else {
-                statusElement.textContent = 'Connection: Proxy ' + currentProxyIndex;
-                statusElement.style.background = 'rgba(0, 255, 0, 0.2)';
-            }
-        }
-        
-        function getProxiedUrl(url) {
-            const proxy = CORS_PROXIES[currentProxyIndex];
-            if (proxy === '') return url;
-            return proxy + encodeURIComponent(url);
-        }
-        
-        async function fetchWithRetry(url, options = {}, retries = 3) {
-            for (let i = 0; i <= retries; i++) {
-                try {
-                    const proxyUrl = getProxiedUrl(url);
-                    console.log(`Attempt ${i + 1}: Fetching from ${currentProxyIndex === CORS_PROXIES.length - 1 ? 'direct' : 'proxy'}`);
-                    
-                    const response = await fetch(proxyUrl, {
-                        ...options,
-                        mode: 'cors',
-                        credentials: 'omit',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            ...options.headers
-                        }
-                    });
-                    
-                    if (response.ok) {
-                        return response;
-                    }
-                    
-                    if (currentProxyIndex < CORS_PROXIES.length - 1) {
-                        currentProxyIndex++;
-                        console.log(`Switching to proxy option ${currentProxyIndex}`);
-                        updateConnectionStatus();
-                    }
-                } catch (error) {
-                    console.error(`Fetch attempt ${i + 1} failed:`, error);
-                    
-                    if (currentProxyIndex < CORS_PROXIES.length - 1) {
-                        currentProxyIndex++;
-                        updateConnectionStatus();
-                    } else if (i === retries) {
-                        throw error;
-                    }
-                }
-            }
-            throw new Error(`Failed to fetch after ${retries} attempts`);
-        }
+        // Update frequency (milliseconds)
+        const UPDATE_INTERVAL = 60000; // 1 minute
 
-        // ========== DATA FETCHING FUNCTIONS ==========
-        async function fetchMultiAgentData() {
+        // Fetch data with CORS handling
+        async function fetchWithCORS(url, options = {}) {
             try {
-                console.log('Fetching data from Ultimate Multi-Agent Orchestrator...');
-                
-                const response = await fetchWithRetry(API_CONFIG.ultimateMultiAgent, {
-                    method: 'POST',
-                    body: JSON.stringify({ path: '/' })
+                const response = await fetch(url, {
+                    ...options,
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    }
                 });
 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
-                const data = await response.json();
-                const body = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
-                
-                if (body.summary && body.summary.khalid_index !== undefined) {
-                    updateKhalidIndex(body.summary.khalid_index);
-                }
-
-                if (body.agents) {
-                    agentsData = body.agents;
-                    updateAgentsDisplay();
-                }
-
-                if (body.summary) {
-                    updateStatistics(body.summary);
-                }
-
-                return body;
-            } catch (error) {
-                console.error('Error fetching multi-agent data:', error);
-                return await fetchIndividualAgents();
-            }
-        }
-
-        async function fetchIndividualAgents() {
-            console.log('Fetching from individual agents...');
-            const results = {};
-            
-            try {
-                const liquidityResponse = await fetchWithRetry(API_CONFIG.globalLiquidity);
-                if (liquidityResponse.ok) {
-                    results.liquidity = await liquidityResponse.json();
-                }
-            } catch (error) {
-                console.error('Error fetching liquidity data:', error);
-            }
-
-            try {
-                const treasuryResponse = await fetchWithRetry(API_CONFIG.treasuryLambda);
-                if (treasuryResponse.ok) {
-                    results.treasury = await treasuryResponse.json();
-                }
-            } catch (error) {
-                console.error('Error fetching treasury data:', error);
-                try {
-                    const treasuryResponse = await fetchWithRetry(API_CONFIG.treasury);
-                    if (treasuryResponse.ok) {
-                        results.treasury = await treasuryResponse.json();
-                    }
-                } catch (error2) {
-                    console.error('Error fetching treasury from API Gateway:', error2);
-                }
-            }
-
-            try {
-                const fedResponse = await fetchWithRetry(`${API_CONFIG.fedLiquidity}/fed_liquidity?series=summary`);
-                if (fedResponse.ok) {
-                    results.fed = await fedResponse.json();
-                }
-            } catch (error) {
-                console.error('Error fetching fed data:', error);
-            }
-
-            try {
-                const iceResponse = await fetchWithRetry(API_CONFIG.iceBofA);
-                if (iceResponse.ok) {
-                    results.ice = await iceResponse.json();
-                }
-            } catch (error) {
-                console.error('Error fetching ICE BofA data:', error);
-            }
-
-            try {
-                const agentFetches = [
-                    { name: 'volatility', url: API_CONFIG.volatility },
-                    { name: 'dollar', url: API_CONFIG.dollar },
-                    { name: 'manufacturing', url: API_CONFIG.manufacturing },
-                    { name: 'securities', url: API_CONFIG.securities },
-                    { name: 'bonds', url: API_CONFIG.bonds },
-                    { name: 'repo', url: API_CONFIG.repo },
-                    { name: 'crossCurrency', url: API_CONFIG.crossCurrency },
-                    { name: 'market', url: API_CONFIG.marketBreadth },
-                    { name: 'economic', url: API_CONFIG.economic },
-                    { name: 'census', url: API_CONFIG.census },
-                    { name: 'labor', url: API_CONFIG.labor },
-                    { name: 'news', url: API_CONFIG.news },
-                    { name: 'ml', url: API_CONFIG.ml }
-                ];
-                
-                const agentPromises = agentFetches.map(async agent => {
-                    try {
-                        const response = await fetchWithRetry(agent.url);
-                        if (response.ok) {
-                            results[agent.name] = await response.json();
-                        }
-                    } catch (error) {
-                        console.error(`Error fetching ${agent.name}:`, error);
-                    }
-                });
-                
-                await Promise.all(agentPromises);
-            } catch (error) {
-                console.error('Error fetching specialized agents:', error);
-            }
-            
-            return results;
-        }
-
-        async function fetchLiquidityData() {
-            try {
-                const response = await fetchWithRetry(API_CONFIG.globalLiquidity);
                 return await response.json();
             } catch (error) {
-                console.error('Error fetching liquidity data:', error);
-                const response = await fetchWithRetry(`${API_CONFIG.fedLiquidity}/fed_liquidity?series=all`);
-                return await response.json();
+                console.error(`Error fetching ${url}:`, error);
+                return null;
             }
         }
 
+        // Fetch FRED data
+        async function fetchFREDData(seriesId) {
+            const url = `${API_CONFIG.fred.url}?series_id=${seriesId}&api_key=${API_CONFIG.fred.apiKey}&file_type=json&limit=1&sort_order=desc`;
+            const data = await fetchWithCORS(url);
+            return data?.observations?.[0]?.value || 'N/A';
+        }
+
+        // Fetch Treasury data
         async function fetchTreasuryData() {
-            try {
-                const response = await fetchWithRetry(API_CONFIG.treasuryLambda);
-                return await response.json();
-            } catch (error) {
-                const response = await fetchWithRetry(API_CONFIG.treasury);
-                return await response.json();
-            }
+            const url = `${API_CONFIG.treasury.url}${API_CONFIG.treasury.endpoints.auctions}?limit=1&sort=-auction_date`;
+            const data = await fetchWithCORS(url);
+            return data?.data?.[0] || {};
         }
 
-        async function fetchVolatilityData() {
-            if (agentsData.volatility) return agentsData.volatility;
-            try {
-                const response = await fetchWithRetry(API_CONFIG.volatility);
-                return await response.json();
-            } catch (error) {
-                const response = await fetchWithRetry(`${API_CONFIG.fedLiquidity}/fed_liquidity?series=VIX`);
-                return await response.json();
-            }
-        }
-
-        async function fetchDollarData() {
-            if (agentsData.dollar) return agentsData.dollar;
-            try {
-                const response = await fetchWithRetry(API_CONFIG.dollar);
-                return await response.json();
-            } catch (error) {
-                const response = await fetchWithRetry(`${API_CONFIG.fedLiquidity}/fed_liquidity?series=DXY`);
-                return await response.json();
-            }
-        }
-
-        async function fetchManufacturingData() {
-            if (agentsData.manufacturing) return agentsData.manufacturing;
-            try {
-                const response = await fetchWithRetry(API_CONFIG.manufacturing);
-                return await response.json();
-            } catch (error) {
-                const response = await fetchWithRetry(`${API_CONFIG.fedLiquidity}/fed_liquidity?series=ISM`);
-                return await response.json();
-            }
-        }
-
-        async function fetchSecuritiesData() {
-            if (agentsData.securities) return agentsData.securities;
-            try {
-                const response = await fetchWithRetry(API_CONFIG.securities);
-                return await response.json();
-            } catch (error) {
-                return { message: 'Securities data loading error' };
-            }
-        }
-
-        async function fetchBondsData() {
-            try {
-                const response = await fetchWithRetry(API_CONFIG.bonds);
-                return await response.json();
-            } catch (error) {
-                const response = await fetchWithRetry(API_CONFIG.iceBofA);
-                return await response.json();
-            }
-        }
-
-        async function fetchRepoData() {
-            if (agentsData.repo) return agentsData.repo;
-            try {
-                const response = await fetchWithRetry(API_CONFIG.repo);
-                return await response.json();
-            } catch (error) {
-                console.error('Repo agent error:', error);
-                const response = await fetchWithRetry(`${API_CONFIG.fedLiquidity}/fed_liquidity?series=REPO`);
-                return await response.json();
-            }
-        }
-
-        async function fetchMarketData() {
-            if (agentsData.market) return agentsData.market;
-            try {
-                const response = await fetchWithRetry(API_CONFIG.marketBreadth);
-                return await response.json();
-            } catch (error) {
-                return { message: 'Market breadth data loading error' };
-            }
-        }
-
-        async function fetchEconomicData() {
-            if (agentsData.economic) return agentsData.economic;
-            try {
-                const response = await fetchWithRetry(API_CONFIG.economic);
-                const data = await response.json();
-                
-                if (API_CONFIG.census) {
-                    try {
-                        const censusResponse = await fetchWithRetry(API_CONFIG.census);
-                        const censusData = await censusResponse.json();
-                        return { ...data, census: censusData };
-                    } catch (censusError) {
-                        console.error('Census data error:', censusError);
-                    }
-                }
-                
-                return data;
-            } catch (error) {
-                return { message: 'Economic data loading error' };
-            }
-        }
-
-        async function fetchLaborData() {
-            if (agentsData.labor) return agentsData.labor;
-            try {
-                const response = await fetchWithRetry(API_CONFIG.labor);
-                return await response.json();
-            } catch (error) {
-                return { message: 'Labor data loading error' };
-            }
-        }
-
-        async function fetchNewsData() {
-            if (agentsData.news) return agentsData.news;
-            try {
-                const response = await fetchWithRetry(API_CONFIG.news);
-                return await response.json();
-            } catch (error) {
-                return { message: 'News sentiment loading error' };
-            }
-        }
-
-        async function fetchMLData() {
-            if (agentsData.ml) return agentsData.ml;
-            try {
-                const response = await fetchWithRetry(API_CONFIG.ml);
-                return await response.json();
-            } catch (error) {
-                console.error('ML agent error:', error);
-                return { message: 'ML predictions loading error', error: error.message };
-            }
-        }
-
-        async function fetchCrossCurrencyData() {
-            if (agentsData.crossCurrency) return agentsData.crossCurrency;
-            try {
-                const response = await fetchWithRetry(API_CONFIG.crossCurrency);
-                return await response.json();
-            } catch (error) {
-                console.error('Cross-currency agent error:', error);
-                return { message: 'Cross-currency data loading error' };
-            }
-        }
-
-        async function fetchOverviewData() {
-            const overview = {
-                khalid: khalidIndex,
-                agents: agentsData,
-                timestamp: new Date().toISOString()
-            };
+        // Fetch Polygon data
+        async function fetchPolygonData(ticker) {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const date = yesterday.toISOString().split('T')[0];
             
-            if (API_CONFIG.crossCurrency) {
-                try {
-                    const ccyResponse = await fetchWithRetry(API_CONFIG.crossCurrency);
-                    if (ccyResponse.ok) {
-                        overview.crossCurrency = await ccyResponse.json();
-                    }
-                } catch (error) {
-                    console.error('Cross-currency data error:', error);
-                }
-            }
-            
-            return overview;
+            const url = `${API_CONFIG.polygon.url}${API_CONFIG.polygon.endpoints.ticker}/${ticker}/range/1/day/${date}/${date}?apiKey=${API_CONFIG.polygon.apiKey}`;
+            const data = await fetchWithCORS(url);
+            return data?.results?.[0] || {};
         }
 
-        // ========== UPDATE FUNCTIONS ==========
+        // Calculate Khalid Index
+        function calculateKhalidIndex() {
+            // This would use your proprietary formula
+            // For now, using a simplified calculation
+            const vix = parseFloat(dashboardData.volatility.vix) || 20;
+            const putCall = parseFloat(dashboardData.volatility.putCall) || 1;
+            const breadth = parseFloat(dashboardData.breadth.advanceDecline) || 1;
+            
+            let index = 50; // Neutral baseline
+            
+            // Adjust based on VIX
+            if (vix > 30) index -= 20;
+            else if (vix > 20) index -= 10;
+            else if (vix < 15) index += 10;
+            
+            // Adjust based on put/call ratio
+            if (putCall > 1.2) index -= 15;
+            else if (putCall < 0.8) index += 15;
+            
+            // Adjust based on market breadth
+            if (breadth < 0.5) index -= 10;
+            else if (breadth > 1.5) index += 10;
+            
+            // Ensure index is between 0 and 100
+            index = Math.max(0, Math.min(100, index));
+            
+            return index;
+        }
+
+        // Update Khalid Index display
         function updateKhalidIndex(value) {
-            if (value === null || value === undefined) {
-                value = calculateKhalidIndexFromData();
-            }
+            const indexElement = document.getElementById('khalid-index');
+            const valueElement = document.getElementById('khalid-value');
             
-            khalidIndex = value;
-            const indexElement = document.getElementById('khalidIndexValue');
-            const statusElement = document.getElementById('khalidStatus');
+            valueElement.textContent = value.toFixed(1);
             
-            indexElement.textContent = `${value}/100`;
+            // Remove all classes
+            indexElement.className = 'khalid-index-value';
             
-            let color, status, statusClass;
-            if (value <= 20) {
-                color = '#ff4444';
-                status = 'EXTREME GREED - SELL SIGNAL';
-                statusClass = 'status-extreme-greed';
-            } else if (value <= 35) {
-                color = '#ffa500';
-                status = 'GREED - REDUCE EXPOSURE';
-                statusClass = 'status-greed';
-            } else if (value <= 65) {
-                color = '#ffff00';
-                status = 'NEUTRAL - HOLD';
-                statusClass = 'status-neutral';
-            } else if (value <= 80) {
-                color = '#00ff00';
-                status = 'FEAR - BUY OPPORTUNITY';
-                statusClass = 'status-fear';
+            // Add appropriate class based on value
+            if (value >= 80) {
+                indexElement.classList.add('khalid-index-extreme-greed');
+            } else if (value >= 60) {
+                indexElement.classList.add('khalid-index-greed');
+            } else if (value >= 40) {
+                indexElement.classList.add('khalid-index-neutral');
+            } else if (value >= 20) {
+                indexElement.classList.add('khalid-index-fear');
             } else {
-                color = '#00ff88';
-                status = 'EXTREME FEAR - STRONG BUY';
-                statusClass = 'status-extreme-fear';
+                indexElement.classList.add('khalid-index-extreme-fear');
             }
             
-            indexElement.style.color = color;
-            statusElement.textContent = status;
-            statusElement.className = `khalid-status ${statusClass}`;
-            
-            createKhalidGauge(value);
-        }
-        
-        function calculateKhalidIndexFromData() {
-            let index = 50;
-            const vixElement = document.getElementById('vixLevel');
-            if (vixElement && vixElement.textContent !== '-') {
-                const vix = parseFloat(vixElement.textContent);
-                if (vix > 30) index += 20;
-                else if (vix < 15) index -= 20;
-            }
-            return Math.max(0, Math.min(100, index));
-        }
-
-        function createKhalidGauge(value) {
-            const gaugeContainer = document.getElementById('khalidGauge');
-            const width = 400;
-            const height = 200;
-            
-            gaugeContainer.innerHTML = `
-                <svg width="100%" height="${height}" viewBox="0 0 ${width} ${height}" style="max-width: ${width}px;">
-                    <defs>
-                        <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" style="stop-color:#ff0000;stop-opacity:1" />
-                            <stop offset="20%" style="stop-color:#ff4444;stop-opacity:1" />
-                            <stop offset="35%" style="stop-color:#ffa500;stop-opacity:1" />
-                            <stop offset="50%" style="stop-color:#ffff00;stop-opacity:1" />
-                            <stop offset="65%" style="stop-color:#00ff00;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#00ff88;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                    
-                    <path d="M 50 150 A 130 130 0 0 1 350 150" 
-                          stroke="url(#gaugeGradient)" 
-                          stroke-width="20" 
-                          fill="none" 
-                          opacity="0.3"/>
-                    
-                    <path d="M 50 150 A 130 130 0 0 1 ${50 + (value/100) * 300} 150" 
-                          stroke="url(#gaugeGradient)" 
-                          stroke-width="20" 
-                          fill="none"/>
-                    
-                    <line x1="200" y1="150" 
-                          x2="${50 + (value/100) * 300}" y2="150" 
-                          stroke="#fff" 
-                          stroke-width="3"/>
-                    
-                    <circle cx="200" cy="150" r="5" fill="#fff"/>
-                    
-                    <text x="50" y="180" fill="#ff4444" font-size="12">0</text>
-                    <text x="110" y="180" fill="#ffa500" font-size="12">20</text>
-                    <text x="170" y="180" fill="#ffff00" font-size="12">35</text>
-                    <text x="230" y="180" fill="#ffff00" font-size="12">65</text>
-                    <text x="290" y="180" fill="#00ff00" font-size="12">80</text>
-                    <text x="340" y="180" fill="#00ff88" font-size="12">100</text>
-                </svg>
+            // Update components
+            const componentsHtml = `
+                <div class="khalid-component">
+                    <div class="metric-label">VIX Weight</div>
+                    <div class="metric-value">${(dashboardData.volatility.vix || 'N/A')}</div>
+                </div>
+                <div class="khalid-component">
+                    <div class="metric-label">Put/Call Weight</div>
+                    <div class="metric-value">${(dashboardData.volatility.putCall || 'N/A')}</div>
+                </div>
+                <div class="khalid-component">
+                    <div class="metric-label">Breadth Weight</div>
+                    <div class="metric-value">${(dashboardData.breadth.advanceDecline || 'N/A')}</div>
+                </div>
+                <div class="khalid-component">
+                    <div class="metric-label">Liquidity Weight</div>
+                    <div class="metric-value">${(dashboardData.globalLiquidity.combined || 'N/A')}</div>
+                </div>
             `;
+            document.getElementById('khalid-components').innerHTML = componentsHtml;
         }
 
-        function updateStatistics(summary) {
-            document.getElementById('activeAgents').textContent = summary.active_agents || '15';
-            document.getElementById('totalMetrics').textContent = summary.total_metrics || '650+';
-            document.getElementById('marketRisk').textContent = summary.master_risk || 'MODERATE';
-            
-            if (summary.key_metrics) {
-                document.getElementById('vixLevel').textContent = summary.key_metrics.vix || '-';
-                document.getElementById('dxyLevel').textContent = summary.key_metrics.dxy || '-';
-                document.getElementById('ismLevel').textContent = summary.key_metrics.ism || '-';
-            }
-        }
-
-        function updateAgentsDisplay() {
-            const agentsGrid = document.getElementById('agentsGrid');
-            agentsGrid.innerHTML = '';
-            
-            const agentList = [
-                { name: 'Global Liquidity Agent', key: 'liquidity', metrics: '500+', url: 'globalLiquidity' },
-                { name: 'Treasury API Agent', key: 'treasury', metrics: '31', url: 'treasuryLambda' },
-                { name: 'Volatility Monitor', key: 'volatility', metrics: '15', url: 'volatility' },
-                { name: 'Dollar Strength Agent', key: 'dollar', metrics: '30+', url: 'dollar' },
-                { name: 'Manufacturing Agent', key: 'manufacturing', metrics: '40+', url: 'manufacturing' },
-                { name: 'Securities Banking', key: 'securities', metrics: '25', url: 'securities' },
-                { name: 'Bond Indices Agent', key: 'bonds', metrics: '180', url: 'bonds' },
-                { name: 'Enhanced Repo Agent', key: 'repo', metrics: '20', url: 'repo' },
-                { name: 'Cross-Currency Agent', key: 'cross_currency', metrics: '15', url: 'crossCurrency' },
-                { name: 'Market Breadth Agent', key: 'market', metrics: '50+', url: 'marketBreadth' },
-                { name: 'BEA Economic Agent', key: 'economic', metrics: '30+', url: 'economic' },
-                { name: 'Census Economic Agent', key: 'census', metrics: '25+', url: 'census' },
-                { name: 'BLS Labor Agent', key: 'labor', metrics: '25+', url: 'labor' },
-                { name: 'News Sentiment Agent', key: 'news', metrics: '10+', url: 'news' },
-                { name: 'ChatGPT ML Agent', key: 'ml', metrics: '20+', url: 'ml' },
-                { name: 'Master Orchestrator', key: 'orchestrator', metrics: 'All', url: 'ultimateMultiAgent' }
-            ];
-            
-            agentList.forEach(agent => {
-                const hasUrl = API_CONFIG[agent.url] && API_CONFIG[agent.url] !== null;
-                const status = agentsData[agent.key] ? 'online' : (hasUrl ? 'loading' : 'offline');
-                const card = document.createElement('div');
-                card.className = 'agent-card';
-                card.innerHTML = `
-                    <div class="agent-header">
-                        <span class="agent-name">${agent.name}</span>
-                        <span class="agent-status ${status}">${status.toUpperCase()}</span>
-                    </div>
-                    <div class="agent-metrics">
-                        <div class="agent-metric-item">
-                            <span>Metrics:</span>
-                            <span>${agent.metrics}</span>
-                        </div>
-                        <div class="agent-metric-item">
-                            <span>Last Update:</span>
-                            <span>${status === 'online' ? 'Just now' : status === 'loading' ? 'Loading...' : 'N/A'}</span>
-                        </div>
-                    </div>
-                `;
-                agentsGrid.appendChild(card);
-            });
-        }
-
-        // ========== DISPLAY FUNCTIONS ==========
-        function displayLiquidityData(data, container) {
-            let html = '<table class="metrics-table"><thead><tr><th>Indicator</th><th>Value</th><th>Change</th><th>Status</th></tr></thead><tbody>';
-            
-            if (data) {
-                if (data.series) {
-                    Object.entries(data.series).forEach(([key, series]) => {
-                        if (series && series.data && series.data.length > 0) {
-                            const latest = series.data[0];
-                            const previous = series.data[1] || latest;
-                            const change = ((latest.value - previous.value) / previous.value * 100).toFixed(2);
-                            const changeClass = change >= 0 ? 'positive' : 'negative';
-                            const changeSymbol = change >= 0 ? '↑' : '↓';
-                            
-                            html += `
-                                <tr>
-                                    <td class="metric-name">${series.title || key}</td>
-                                    <td class="metric-value">${formatValue(latest.value)}</td>
-                                    <td class="metric-change ${changeClass}">${changeSymbol} ${Math.abs(change)}%</td>
-                                    <td>${getStatusBadge('NORMAL')}</td>
-                                </tr>
-                            `;
-                        }
-                    });
-                } else if (data.metrics) {
-                    Object.entries(data.metrics).forEach(([key, metric]) => {
-                        const change = metric.change || 0;
-                        const changeClass = change >= 0 ? 'positive' : 'negative';
-                        const changeSymbol = change >= 0 ? '↑' : '↓';
-                        
-                        html += `
-                            <tr>
-                                <td class="metric-name">${metric.name || key}</td>
-                                <td class="metric-value">${formatValue(metric.value)}</td>
-                                <td class="metric-change ${changeClass}">${changeSymbol} ${Math.abs(change).toFixed(2)}%</td>
-                                <td>${getStatusBadge(metric.status)}</td>
-                            </tr>
-                        `;
-                    });
-                } else if (data.message) {
-                    html = `<div class="alert alert-warning"><span>⚠️</span><span>${data.message}</span></div>`;
-                    container.innerHTML = html;
-                    return;
+        // Update metric displays
+        function updateMetricDisplay(elementId, value, isPositive = null) {
+            const element = document.querySelector(`#${elementId} .metric-value`);
+            if (element) {
+                element.innerHTML = value;
+                if (isPositive !== null) {
+                    element.classList.remove('positive', 'negative', 'neutral');
+                    element.classList.add(isPositive ? 'positive' : 'negative');
                 }
             }
-            
-            html += '</tbody></table>';
-            container.innerHTML = html;
         }
 
-        function displayTreasuryData(data, container) {
-            let html = '<h4>Latest Treasury Auction Results</h4>';
-            html += '<table class="metrics-table"><thead><tr><th>Security</th><th>Yield</th><th>Bid-to-Cover</th><th>Tail</th></tr></thead><tbody>';
+        // Main data fetching function
+        async function fetchAllData() {
+            console.log('Fetching all data...');
             
-            if (data && data.auctions) {
-                data.auctions.forEach(auction => {
-                    html += `
-                        <tr>
-                            <td>${auction.security}</td>
-                            <td>${auction.yield}%</td>
-                            <td>${auction.bidToCover}</td>
-                            <td>${auction.tail}</td>
-                        </tr>
-                    `;
-                });
+            // Update last update time
+            document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+            
+            // Fetch volatility data
+            dashboardData.volatility.vix = await fetchFREDData('VIXCLS');
+            updateMetricDisplay('volatility-metrics', dashboardData.volatility.vix);
+            
+            // Fetch economic data
+            dashboardData.economic.unemployment = await fetchFREDData('UNRATE');
+            dashboardData.economic.gdp = await fetchFREDData('GDP');
+            
+            // Fetch bond data
+            dashboardData.bonds.tenYear = await fetchFREDData('DGS10');
+            dashboardData.bonds.twoYear = await fetchFREDData('DGS2');
+            
+            // Calculate and update Khalid Index
+            const khalidValue = calculateKhalidIndex();
+            dashboardData.khalidIndex = khalidValue;
+            updateKhalidIndex(khalidValue);
+            
+            // Check for risk alerts
+            checkRiskAlerts();
+            
+            // Generate recommendations
+            generateRecommendations();
+        }
+
+        // Check for risk alerts
+        function checkRiskAlerts() {
+            const alerts = [];
+            
+            if (parseFloat(dashboardData.volatility.vix) > 30) {
+                alerts.push('High VIX indicates extreme market fear');
             }
             
-            html += '</tbody></table>';
-            container.innerHTML = html;
+            if (dashboardData.khalidIndex < 20) {
+                alerts.push('Khalid Index shows extreme fear - consider defensive positioning');
+            }
+            
+            if (alerts.length > 0) {
+                document.getElementById('risk-alert').style.display = 'block';
+                document.getElementById('risk-content').innerHTML = alerts.map(a => `<p>• ${a}</p>`).join('');
+            }
         }
 
-        function displayVolatilityData(data, container) {
-            let html = '<table class="metrics-table"><thead><tr><th>Index</th><th>Current</th><th>1D Change</th><th>Percentile</th></tr></thead><tbody>';
+        // Generate recommendations
+        function generateRecommendations() {
+            const recommendations = [];
             
-            const volatilityIndices = ['VIX', 'VVIX', 'VXN', 'RVX', 'OVX', 'GVZ', 'EVZ'];
-            volatilityIndices.forEach(index => {
-                if (data && data[index]) {
-                    const value = data[index];
-                    html += `
-                        <tr>
-                            <td>${index}</td>
-                            <td>${value.current || '-'}</td>
-                            <td class="${value.change >= 0 ? 'positive' : 'negative'}">${value.change || '-'}%</td>
-                            <td>${value.percentile || '-'}%</td>
-                        </tr>
-                    `;
+            if (dashboardData.khalidIndex < 30) {
+                recommendations.push('Consider increasing cash allocation');
+                recommendations.push('Look for put protection on major indices');
+            } else if (dashboardData.khalidIndex > 70) {
+                recommendations.push('Market showing signs of exuberance - consider taking profits');
+                recommendations.push('Reduce leverage if currently employed');
+            }
+            
+            if (parseFloat(dashboardData.bonds.twoYear) > parseFloat(dashboardData.bonds.tenYear)) {
+                recommendations.push('Yield curve inversion detected - recession indicator');
+            }
+            
+            document.getElementById('recommendations').innerHTML = 
+                recommendations.map(r => `<p>• ${r}</p>`).join('') || 
+                '<p>Markets appear balanced - maintain current positioning</p>';
+        }
+
+        // Initialize dashboard
+        async function initDashboard() {
+            console.log('Initializing dashboard...');
+            
+            // Initial data fetch
+            await fetchAllData();
+            
+            // Set up auto-refresh
+            setInterval(fetchAllData, UPDATE_INTERVAL);
+            
+            // Add keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'r' && e.ctrlKey) {
+                    e.preventDefault();
+                    fetchAllData();
                 }
             });
-            
-            html += '</tbody></table>';
-            container.innerHTML = html;
         }
 
-        function displayDollarData(data, container) {
-            let html = '<h4>Dollar Index Components</h4>';
-            html += '<table class="metrics-table"><thead><tr><th>Pair</th><th>Rate</th><th>Change</th><th>Trend</th></tr></thead><tbody>';
-            
-            if (data && data.pairs) {
-                Object.entries(data.pairs).forEach(([pair, info]) => {
-                    html += `
-                        <tr>
-                            <td>${pair}</td>
-                            <td>${info.rate}</td>
-                            <td class="${info.change >= 0 ? 'positive' : 'negative'}">${info.change}%</td>
-                            <td>${info.trend || 'NEUTRAL'}</td>
-                        </tr>
-                    `;
-                });
-            }
-            
-            html += '</tbody></table>';
-            container.innerHTML = html;
-        }
+        // Start the dashboard when page loads
+        document.addEventListener('DOMContentLoaded', initDashboard);
 
-        function displayManufacturingData(data, container) {
-            let html = '<h4>Manufacturing Indicators</h4>';
-            html += '<table class="metrics-table"><thead><tr><th>Indicator</th><th>Value</th><th>Previous</th><th>Status</th></tr></thead><tbody>';
-            
-            const indicators = ['ISM_Manufacturing', 'ISM_Services', 'Industrial_Production', 'Capacity_Utilization'];
-            indicators.forEach(indicator => {
-                if (data && data[indicator]) {
-                    const value = data[indicator];
-                    html += `
-                        <tr>
-                            <td>${indicator.replace('_', ' ')}</td>
-                            <td>${value.current}</td>
-                            <td>${value.previous}</td>
-                            <td>${getManufacturingStatus(value.current)}</td>
-                        </tr>
-                    `;
-                }
-            });
-            
-            html += '</tbody></table>';
-            container.innerHTML = html;
-        }
-
-        function displaySecuritiesData(data, container) {
-            let html = '<h4>Securities & Banking Health</h4>';
-            html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">';
-            
-            if (data && data.metrics) {
-                Object.entries(data.metrics).forEach(([key, value]) => {
-                    html += `
-                        <div class="stat-card">
-                            <div class="stat-label">${key.replace('_', ' ')}</div>
-                            <div class="stat-value">${formatValue(value)}</div>
-                        </div>
-                    `;
-                });
-            }
-            
-            html += '</div>';
-            container.innerHTML = html;
-        }
-
-        function displayBondsData(data, container) {
-            let html = '<h4>ICE BofA Bond Indices</h4>';
-            html += '<table class="metrics-table"><thead><tr><th>Index</th><th>Yield</th><th>Spread</th><th>OAS</th></tr></thead><tbody>';
-            
-            if (data && data.indices) {
-                data.indices.forEach(index => {
-                    html += `
-                        <tr>
-                            <td>${index.name}</td>
-                            <td>${index.yield}%</td>
-                            <td>${index.spread}bp</td>
-                            <td>${index.oas}bp</td>
-                        </tr>
-                    `;
-                });
-            }
-            
-            html += '</tbody></table>';
-            container.innerHTML = html;
-        }
-
-        function displayRepoData(data, container) {
-            let html = '<h4>Enhanced Repo Market Stress Indicators</h4>';
-            html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">';
-            
-            if (data && data.analysis) {
-                const analysis = data.analysis;
-                html += `
-                    <div class="stat-card">
-                        <div class="stat-label">Repo Stress Level</div>
-                        <div class="stat-value" style="color: ${analysis.stress_level === 'HIGH' ? '#ff4444' : analysis.stress_level === 'MODERATE' ? '#ffa500' : '#00ff88'}">${analysis.stress_level || 'NORMAL'}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Overnight Repo</div>
-                        <div class="stat-value">${analysis.overnight_repo || '-'}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Term Repo</div>
-                        <div class="stat-value">${analysis.term_repo || '-'}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Settlement Fails</div>
-                        <div class="stat-value">${analysis.fails || '-'}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">GC-Treasury Spread</div>
-                        <div class="stat-value">${analysis.gc_treasury_spread || '-'}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Collateral Quality</div>
-                        <div class="stat-value">${analysis.collateral_quality || '-'}</div>
-                    </div>
-                `;
+        // Handle visibility change to pause/resume updates
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                console.log('Dashboard paused (tab inactive)');
             } else {
-                const repoMetrics = {
-                    'Overnight Repo': data?.overnight || '-',
-                    'Term Repo': data?.term || '-',
-                    'Repo Fails': data?.fails || '-',
-                    'GC Rate': data?.gc_rate || '-',
-                    'Special Rate': data?.special_rate || '-',
-                    'Stress Level': data?.stress_level || 'NORMAL'
-                };
-                
-                Object.entries(repoMetrics).forEach(([key, value]) => {
-                    html += `
-                        <div class="stat-card">
-                            <div class="stat-label">${key}</div>
-                            <div class="stat-value">${value}</div>
-                        </div>
-                    `;
-                });
+                console.log('Dashboard resumed');
+                fetchAllData();
             }
-            
-            html += '</div>';
-            container.innerHTML = html;
-        }
+        });
 
-        function displayCrossCurrencyData(data, container) {
-            let html = '<h4>Cross-Currency Basis Swaps</h4>';
-            
-            if (data && data.analysis) {
-                const stressLevel = data.analysis.funding_stress || 'NORMAL';
-                const stressColor = stressLevel === 'HIGH' ? '#ff4444' : stressLevel === 'MODERATE' ? '#ffa500' : '#00ff88';
-                
-                html += `
-                    <div style="text-align: center; margin: 20px 0;">
-                        <h3>Funding Stress Level: <span style="color: ${stressColor}">${stressLevel}</span></h3>
-                    </div>
-                `;
-                
-                html += '<table class="metrics-table"><thead><tr><th>Currency Pair</th><th>Basis (bps)</th><th>1M Change</th><th>Status</th></tr></thead><tbody>';
-                
-                if (data.basis_swaps) {
-                    Object.entries(data.basis_swaps).forEach(([pair, info]) => {
-                        const changeClass = info.change >= 0 ? 'positive' : 'negative';
-                        const changeSymbol = info.change >= 0 ? '↑' : '↓';
-                        html += `
-                            <tr>
-                                <td>${pair}</td>
-                                <td>${info.basis || '-'}</td>
-                                <td class="${changeClass}">${changeSymbol} ${Math.abs(info.change || 0).toFixed(2)}%</td>
-                                <td>${info.status || 'NORMAL'}</td>
-                            </tr>
-                        `;
-                    });
-                }
-                
-                html += '</tbody></table>';
-                
-                if (data.analysis.key_metrics) {
-                    html += '<h4 style="margin-top: 30px;">Key Funding Metrics</h4>';
-                    html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">';
-                    
-                    Object.entries(data.analysis.key_metrics).forEach(([key, value]) => {
-                        html += `
-                            <div class="stat-card">
-                                <div class="stat-label">${key.replace(/_/g, ' ')}</div>
-                                <div class="stat-value">${value}</div>
-                            </div>
-                        `;
-                    });
-                    
-                    html += '</div>';
-                }
-            } else if (data.message) {
-                html = `<div class="alert alert-warning"><span>⚠️</span><span>${data.message}</span></div>`;
-            } else {
-                html += '<p>Cross-currency basis data not available</p>';
-            }
-            
-            container.innerHTML = html;
-        }
-
-        function displayMarketData(data, container) {
-            let html = '<h4>Market Breadth Analysis</h4>';
-            html += '<table class="metrics-table"><thead><tr><th>Sector</th><th>Performance</th><th>Breadth</th><th>Volume</th></tr></thead><tbody>';
-            
-            if (data && data.sectors) {
-                Object.entries(data.sectors).forEach(([sector, info]) => {
-                    html += `
-                        <tr>
-                            <td>${sector}</td>
-                            <td class="${info.performance >= 0 ? 'positive' : 'negative'}">${info.performance}%</td>
-                            <td>${info.breadth}%</td>
-                            <td>${formatVolume(info.volume)}</td>
-                        </tr>
-                    `;
-                });
-            }
-            
-            html += '</tbody></table>';
-            container.innerHTML = html;
-        }
-
-        function displayEconomicData(data, container) {
-            let html = '<h4>Key Economic Indicators (BEA + Census)</h4>';
-            html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">';
-            
-            const economicMetrics = {
-                'GDP Growth': data?.gdp_growth || '-',
-                'CPI': data?.cpi || '-',
-                'PPI': data?.ppi || '-',
-                'Retail Sales': data?.retail_sales || '-',
-                'Housing Starts': data?.housing_starts || '-',
-                'Consumer Confidence': data?.consumer_confidence || '-'
-            };
-            
-            Object.entries(economicMetrics).forEach(([key, value]) => {
-                html += `
-                    <div class="stat-card">
-                        <div class="stat-label">${key}</div>
-                        <div class="stat-value">${value}</div>
-                    </div>
-                `;
-            });
-            
-            if (data && data.census) {
-                html += '</div><h4 style="margin-top: 30px;">Census Economic Data</h4>';
-                html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">';
-                
-                if (data.census.indicators) {
-                    Object.entries(data.census.indicators).forEach(([key, value]) => {
-                        html += `
-                            <div class="stat-card">
-                                <div class="stat-label">${key.replace(/_/g, ' ')}</div>
-                                <div class="stat-value">${formatValue(value)}</div>
-                            </div>
-                        `;
-                    });
-                } else {
-                    Object.entries(data.census).slice(0, 12).forEach(([key, value]) => {
-                        if (typeof value !== 'object') {
-                            html += `
-                                <div class="stat-card">
-                                    <div class="stat-label">${key.replace(/_/g, ' ')}</div>
-                                    <div class="stat-value">${formatValue(value)}</div>
-                                </div>
-                            `;
-                        }
-                    });
-                }
-            }
-            
-            html += '</div>';
-            container.innerHTML = html;
-        }
-
-        function displayLaborData(data, container) {
-            let html = '<h4>Labor Market Statistics</h4>';
-            html += '<table class="metrics-table"><thead><tr><th>Metric</th><th>Current</th><th>Previous</th><th>YoY Change</th></tr></thead><tbody>';
-            
-            const laborMetrics = [
-                'Unemployment Rate',
-                'Non-Farm Payrolls',
-                'Labor Force Participation',
-                'Average Hourly Earnings',
-                'Initial Claims',
-                'Continuing Claims'
-            ];
-            
-            laborMetrics.forEach(metric => {
-                if (data && data[metric]) {
-                    const value = data[metric];
-                    html += `
-                        <tr>
-                            <td>${metric}</td>
-                            <td>${value.current}</td>
-                            <td>${value.previous}</td>
-                            <td class="${value.yoy >= 0 ? 'positive' : 'negative'}">${value.yoy}%</td>
-                        </tr>
-                    `;
-                }
-            });
-            
-            html += '</tbody></table>';
-            container.innerHTML = html;
-        }
-
-        function displayNewsData(data, container) {
-            let html = '<h4>Market News Sentiment</h4>';
-            
-            const sentiment = data?.overall_sentiment || 0;
-            const sentimentText = sentiment > 0.5 ? 'Positive' : sentiment < -0.5 ? 'Negative' : 'Neutral';
-            const sentimentColor = sentiment > 0.5 ? '#00ff88' : sentiment < -0.5 ? '#ff4444' : '#ffff00';
-            
-            html += `
-                <div style="text-align: center; margin: 20px 0;">
-                    <h3 style="color: ${sentimentColor}">Overall Sentiment: ${sentimentText}</h3>
-                    <div style="font-size: 2em; color: ${sentimentColor}">${sentiment.toFixed(2)}</div>
-                </div>
-            `;
-            
-            if (data && data.headlines) {
-                html += '<h4>Latest Headlines</h4><ul style="list-style: none; padding: 0;">';
-                data.headlines.forEach(headline => {
-                    html += `<li style="padding: 10px; margin: 5px 0; background: rgba(255,255,255,0.05); border-radius: 5px;">${headline}</li>`;
-                });
-                html += '</ul>';
-            }
-            
-            container.innerHTML = html;
-        }
-
-        function displayMLData(data, container) {
-            let html = '<h4>Machine Learning Predictions (ChatGPT Agent)</h4>';
-            html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">';
-            
-            if (data && data.predictions) {
-                const pred = data.predictions;
-                
-                if (pred.recession_probability !== undefined) {
-                    const recProb = (pred.recession_probability * 100).toFixed(1);
-                    const recColor = recProb > 50 ? '#ff4444' : recProb > 30 ? '#ffa500' : '#00ff88';
-                    html += `
-                        <div class="stat-card">
-                            <div class="stat-label">Recession Probability (12M)</div>
-                            <div class="stat-value" style="color: ${recColor}">${recProb}%</div>
-                        </div>
-                    `;
-                }
-                
-                if (pred.crash_risk !== undefined) {
-                    const crashRisk = (pred.crash_risk * 100).toFixed(1);
-                    const crashColor = crashRisk > 30 ? '#ff4444' : crashRisk > 15 ? '#ffa500' : '#00ff88';
-                    html += `
-                        <div class="stat-card">
-                            <div class="stat-label">Market Crash Risk (30D)</div>
-                            <div class="stat-value" style="color: ${crashColor}">${crashRisk}%</div>
-                        </div>
-                    `;
-                }
-                
-                if (pred.market_phase) {
-                    html += `
-                        <div class="stat-card">
-                            <div class="stat-label">Predicted Market Phase</div>
-                            <div class="stat-value">${pred.market_phase}</div>
-                        </div>
-                    `;
-                }
-                
-                if (pred.confidence_score !== undefined) {
-                    html += `
-                        <div class="stat-card">
-                            <div class="stat-label">AI Confidence Score</div>
-                            <div class="stat-value">${(pred.confidence_score * 100).toFixed(1)}%</div>
-                        </div>
-                    `;
-                }
-                
-                if (pred.black_swan_probability !== undefined) {
-                    const swanProb = (pred.black_swan_probability * 100).toFixed(1);
-                    html += `
-                        <div class="stat-card">
-                            <div class="stat-label">Black Swan Event Risk</div>
-                            <div class="stat-value">${swanProb}%</div>
-                        </div>
-                    `;
-                }
-                
-                if (pred.recommendations && pred.recommendations.length > 0) {
-                    html += `
-                        <div class="stat-card" style="grid-column: span 2;">
-                            <div class="stat-label">AI Recommendations</div>
-                            <ul style="margin: 10px 0; padding-left: 20px;">
-                                ${pred.recommendations.map(rec => `<li>${rec}</li>`).join('')}
-                            </ul>
-                        </div>
-                    `;
-                }
-            } else if (data) {
-                if (data.recession_probability !== undefined) {
-                    const recProb = (data.recession_probability * 100).toFixed(1);
-                    const recColor = recProb > 50 ? '#ff4444' : recProb > 30 ? '#ffa500' : '#00ff88';
-                    html += `
-                        <div class="stat-card">
-                            <div class="stat-label">Recession Probability (12M)</div>
-                            <div class="stat-value" style="color: ${recColor}">${recProb}%</div>
-                        </div>
-                    `;
-                }
-                
-                if (data.crash_risk !== undefined) {
-                    const crashRisk = (data.crash_risk * 100).toFixed(1);
-                    const crashColor = crashRisk > 30 ? '#ff4444' : crashRisk > 15 ? '#ffa500' : '#00ff88';
-                    html += `
-                        <div class="stat-card">
-                            <div class="stat-label">Market Crash Risk (30D)</div>
-                            <div class="stat-value" style="color: ${crashColor}">${crashRisk}%</div>
-                        </div>
-                    `;
-                }
-                
-                if (data.market_phase) {
-                    html += `
-                        <div class="stat-card">
-                            <div class="stat-label">Predicted Market Phase</div>
-                            <div class="stat-value">${data.market_phase}</div>
-                        </div>
-                    `;
-                }
-                
-                if (data.black_swan_probability !== undefined) {
-                    const swanProb = (data.black_swan_probability * 100).toFixed(1);
-                    html += `
-                        <div class="stat-card">
-                            <div class="stat-label">Black Swan Event Risk</div>
-                            <div class="stat-value">${swanProb}%</div>
-                        </div>
-                    `;
-                }
-            }
-            
-            html += '</div>';
-            container.innerHTML = html;
-        }
-
-        function displayOverviewData(data, container) {
-            let html = '<h3>System Overview</h3>';
-            html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px;">';
-            
-            html += `
-                <div class="data-section">
-                    <h4>Market Conditions</h4>
-                    <p>Khalid Index: ${khalidIndex || 'Loading...'}/100</p>
-                    <p>Active Agents: ${Object.keys(agentsData).length || '0'}/16</p>
-                    <p>Last Update: ${lastUpdateTime || 'Never'}</p>
-                </div>
-            `;
-            
-            html += `
-                <div class="data-section">
-                    <h4>Risk Assessment</h4>
-                    <p>Market Risk: ${data?.risk_level || 'MODERATE'}</p>
-                    <p>Volatility: ${data?.volatility_status || 'NORMAL'}</p>
-                    <p>Dollar Strength: ${data?.dollar_status || 'NEUTRAL'}</p>
-                </div>
-            `;
-            
-            html += `
-                <div class="data-section">
-                    <h4>Top Recommendations</h4>
-                    ${data?.recommendations ? data.recommendations.map(rec => `<p>• ${rec}</p>`).join('') : '<p>Loading recommendations...</p>'}
-                </div>
-            `;
-            
-            html += '</div>';
-            container.innerHTML = html;
-        }
-
-        // ========== UTILITY FUNCTIONS ==========
-        function formatValue(value) {
-            if (typeof value === 'number') {
-                if (value > 1000000000) {
-                    return `$${(value / 1000000000).toFixed(2)}B`;
-                } else if (value > 1000000) {
-                    return `$${(value / 1000000).toFixed(2)}M`;
-                } else if (value > 1000) {
-                    return `$${(value / 1000).toFixed(2)}K`;
-                } else {
-                    return value.toFixed(2);
-                }
-            }
-            return value || '-';
-        }
-
-        function formatVolume(volume) {
-            if (volume > 1000000000) {
-                return `${(volume / 1000000000).toFixed(2)}B`;
-            } else if (volume > 1000000) {
-                return `${(volume / 1000000).toFixed(2)}M`;
-            } else if (volume > 1000) {
-                return `${(volume / 1000).toFixed(2)}K`;
-            }
-            return volume || '-';
-        }
-
-        function getStatusBadge(status) {
-            const colors = {
-                'CRITICAL': 'background: #ff4444; color: white;',
-                'WARNING': 'background: #ffa500; color: white;',
-                'NORMAL': 'background: #00ff88; color: black;',
-                'UNKNOWN': 'background: #888; color: white;'
-            };
-            
-            const color = colors[status] || colors['UNKNOWN'];
-            return `<span style="padding: 2px 8px; border-radius: 4px; ${color}">${status || 'UNKNOWN'}</span>`;
-        }
-
-        function getManufacturingStatus(value) {
-            if (value > 60) return '<span style="color: #00ff88">EXPANSION</span>';
-            if (value > 50) return '<span style="color: #ffff00">GROWTH</span>';
-            if (value > 45) return '<span style="color: #ffa500">SLOWING</span>';
-            return '<span style="color: #ff4444">CONTRACTION</span>';
-        }
-
-        // ========== MAIN FUNCTIONS ==========
-        function showTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            document.querySelectorAll('.tab-button').forEach(button => {
-                button.classList.remove('active');
-            });
-            
-            document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
-            
-            loadTabData(tabName);
-        }
-
-        async function loadTabData(tabName) {
-            const contentDiv = document.getElementById(`${tabName}Content`);
-            
-            try {
-                let data = null;
-                
-                switch(tabName) {
-                    case 'liquidity':
-                        data = await fetchLiquidityData();
-                        displayLiquidityData(data, contentDiv);
-                        break;
-                    case 'treasury':
-                        data = await fetchTreasuryData();
-                        displayTreasuryData(data, contentDiv);
-                        break;
-                    case 'volatility':
-                        data = await fetchVolatilityData();
-                        displayVolatilityData(data, contentDiv);
-                        break;
-                    case 'dollar':
-                        data = await fetchDollarData();
-                        displayDollarData(data, contentDiv);
-                        break;
-                    case 'manufacturing':
-                        data = await fetchManufacturingData();
-                        displayManufacturingData(data, contentDiv);
-                        break;
-                    case 'securities':
-                        data = await fetchSecuritiesData();
-                        displaySecuritiesData(data, contentDiv);
-                        break;
-                    case 'bonds':
-                        data = await fetchBondsData();
-                        displayBondsData(data, contentDiv);
-                        break;
-                    case 'repo':
-                        data = await fetchRepoData();
-                        displayRepoData(data, contentDiv);
-                        break;
-                    case 'crosscurrency':
-                        data = await fetchCrossCurrencyData();
-                        displayCrossCurrencyData(data, contentDiv);
-                        break;
-                    case 'market':
-                        data = await fetchMarketData();
-                        displayMarketData(data, contentDiv);
-                        break;
-                    case 'economic':
-                        data = await fetchEconomicData();
-                        displayEconomicData(data, contentDiv);
-                        break;
-                    case 'labor':
-                        data = await fetchLaborData();
-                        displayLaborData(data, contentDiv);
-                        break;
-                    case 'news':
-                        data = await fetchNewsData();
-                        displayNewsData(data, contentDiv);
-                        break;
-                    case 'ml':
-                        data = await fetchMLData();
-                        displayMLData(data, contentDiv);
-                        break;
-                    case 'overview':
-                        data = await fetchOverviewData();
-                        displayOverviewData(data, contentDiv);
-                        break;
-                }
-            } catch (error) {
-                contentDiv.innerHTML = `
-                    <div class="alert alert-error">
-                        <span>⚠️</span>
-                        <span>Error loading ${tabName} data: ${error.message}</span>
-                    </div>
-                `;
-            }
-        }
-
-        async function refreshAllData() {
-            console.log('Refreshing all data...');
-            
-            try {
-                const data = await fetchMultiAgentData();
-                
-                if (data) {
-                    if (data.fed && data.fed.series) {
-                        if (data.fed.series.VIXCLS && data.fed.series.VIXCLS.data) {
-                            const vixValue = data.fed.series.VIXCLS.data[0].value;
-                            document.getElementById('vixLevel').textContent = vixValue.
+        // Error boundary
+        window.addEventListener('error', (e) => {
+            console.error('Dashboard error:', e.error);
+        });
+    </script>
+</body>
+</html>
