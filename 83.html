@@ -503,6 +503,9 @@
             </div>
             <div class="update-status">
                 <span class="last-update" id="lastUpdate">Last updated: Never</span>
+                <span id="corsStatus" style="margin-left: 20px; padding: 4px 10px; border-radius: 5px; background: rgba(255,255,255,0.1); font-size: 0.9em;">
+                    Connection: Testing...
+                </span>
             </div>
         </div>
 
@@ -729,10 +732,12 @@
         });
 
         function initializeDashboard() {
-            // All 16 agents are now configured with CORS proxy
+            // All 16 agents are now configured
             console.log('Multi-Agent Dashboard initialized with all 16 Lambda agents');
-            console.log('Using CORS proxy for all endpoints to bypass restrictions');
-            console.log('Agents configured:', Object.keys(API_CONFIG).filter(k => k !== 'CORS_PROXY').length);
+            console.log('Testing connection methods...');
+            
+            // Update connection status
+            updateConnectionStatus();
             
             // Start loading all data
             refreshAllData();
@@ -751,12 +756,8 @@
             try {
                 console.log('Fetching data from Ultimate Multi-Agent Orchestrator...');
                 
-                // Use proxied URL for CORS
-                const response = await fetch(API_CONFIG.ultimateMultiAgent, {
+                const response = await fetchWithRetry(API_CONFIG.ultimateMultiAgent, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
                     body: JSON.stringify({ path: '/' })
                 });
 
@@ -800,7 +801,7 @@
             
             // Fetch Global Liquidity data (500+ metrics)
             try {
-                const liquidityResponse = await fetch(API_CONFIG.globalLiquidity);
+                const liquidityResponse = await fetchWithRetry(API_CONFIG.globalLiquidity);
                 if (liquidityResponse.ok) {
                     results.liquidity = await liquidityResponse.json();
                 }
@@ -808,9 +809,9 @@
                 console.error('Error fetching liquidity data:', error);
             }
 
-            // Fetch Treasury data (already has CORS proxy)
+            // Fetch Treasury data
             try {
-                const treasuryResponse = await fetch(API_CONFIG.treasuryLambda);
+                const treasuryResponse = await fetchWithRetry(API_CONFIG.treasuryLambda);
                 if (treasuryResponse.ok) {
                     results.treasury = await treasuryResponse.json();
                 }
@@ -818,7 +819,7 @@
                 console.error('Error fetching treasury data:', error);
                 // Try API Gateway fallback
                 try {
-                    const treasuryResponse = await fetch(API_CONFIG.treasury);
+                    const treasuryResponse = await fetchWithRetry(API_CONFIG.treasury);
                     if (treasuryResponse.ok) {
                         results.treasury = await treasuryResponse.json();
                     }
@@ -827,9 +828,9 @@
                 }
             }
 
-            // Fetch Fed Liquidity data (already has CORS proxy)
+            // Fetch Fed Liquidity data
             try {
-                const fedResponse = await fetch(`${API_CONFIG.fedLiquidity}/fed_liquidity?series=summary`);
+                const fedResponse = await fetchWithRetry(`${API_CONFIG.fedLiquidity}/fed_liquidity?series=summary`);
                 if (fedResponse.ok) {
                     results.fed = await fedResponse.json();
                 }
@@ -837,9 +838,9 @@
                 console.error('Error fetching fed data:', error);
             }
 
-            // Fetch ICE BofA data (already has CORS proxy)
+            // Fetch ICE BofA data
             try {
-                const iceResponse = await fetch(API_CONFIG.iceBofA);
+                const iceResponse = await fetchWithRetry(API_CONFIG.iceBofA);
                 if (iceResponse.ok) {
                     results.ice = await iceResponse.json();
                 }
@@ -868,7 +869,7 @@
                 // Fetch all agents in parallel
                 const agentPromises = agentFetches.map(async agent => {
                     try {
-                        const response = await fetch(agent.url);
+                        const response = await fetchWithRetry(agent.url);
                         if (response.ok) {
                             results[agent.name] = await response.json();
                         }
@@ -1144,12 +1145,12 @@
         // Fetch functions for each data type
         async function fetchLiquidityData() {
             try {
-                const response = await fetch(API_CONFIG.globalLiquidity);
+                const response = await fetchWithRetry(API_CONFIG.globalLiquidity);
                 return await response.json();
             } catch (error) {
                 console.error('Error fetching liquidity data:', error);
                 // Fallback to Fed liquidity data
-                const response = await fetch(`${API_CONFIG.fedLiquidity}/fed_liquidity?series=all`);
+                const response = await fetchWithRetry(`${API_CONFIG.fedLiquidity}/fed_liquidity?series=all`);
                 return await response.json();
             }
         }
@@ -1157,11 +1158,11 @@
         async function fetchTreasuryData() {
             try {
                 // Try the new Lambda URL first
-                const response = await fetch(API_CONFIG.treasuryLambda);
+                const response = await fetchWithRetry(API_CONFIG.treasuryLambda);
                 return await response.json();
             } catch (error) {
                 // Fallback to API Gateway
-                const response = await fetch(API_CONFIG.treasury);
+                const response = await fetchWithRetry(API_CONFIG.treasury);
                 return await response.json();
             }
         }
@@ -1169,11 +1170,11 @@
         async function fetchVolatilityData() {
             if (agentsData.volatility) return agentsData.volatility;
             try {
-                const response = await fetch(API_CONFIG.volatility);
+                const response = await fetchWithRetry(API_CONFIG.volatility);
                 return await response.json();
             } catch (error) {
                 // Fallback to Fed liquidity VIX data
-                const response = await fetch(`${API_CONFIG.fedLiquidity}/fed_liquidity?series=VIX`);
+                const response = await fetchWithRetry(`${API_CONFIG.fedLiquidity}/fed_liquidity?series=VIX`);
                 return await response.json();
             }
         }
@@ -1181,11 +1182,11 @@
         async function fetchDollarData() {
             if (agentsData.dollar) return agentsData.dollar;
             try {
-                const response = await fetch(API_CONFIG.dollar);
+                const response = await fetchWithRetry(API_CONFIG.dollar);
                 return await response.json();
             } catch (error) {
                 // Fallback to Fed liquidity DXY data
-                const response = await fetch(`${API_CONFIG.fedLiquidity}/fed_liquidity?series=DXY`);
+                const response = await fetchWithRetry(`${API_CONFIG.fedLiquidity}/fed_liquidity?series=DXY`);
                 return await response.json();
             }
         }
@@ -1193,11 +1194,11 @@
         async function fetchManufacturingData() {
             if (agentsData.manufacturing) return agentsData.manufacturing;
             try {
-                const response = await fetch(API_CONFIG.manufacturing);
+                const response = await fetchWithRetry(API_CONFIG.manufacturing);
                 return await response.json();
             } catch (error) {
                 // Fallback to Fed liquidity ISM data
-                const response = await fetch(`${API_CONFIG.fedLiquidity}/fed_liquidity?series=ISM`);
+                const response = await fetchWithRetry(`${API_CONFIG.fedLiquidity}/fed_liquidity?series=ISM`);
                 return await response.json();
             }
         }
@@ -1205,7 +1206,7 @@
         async function fetchSecuritiesData() {
             if (agentsData.securities) return agentsData.securities;
             try {
-                const response = await fetch(API_CONFIG.securities);
+                const response = await fetchWithRetry(API_CONFIG.securities);
                 return await response.json();
             } catch (error) {
                 return { message: 'Securities data loading error' };
@@ -1215,11 +1216,11 @@
         async function fetchBondsData() {
             try {
                 // Try the new Lambda URL first
-                const response = await fetch(API_CONFIG.bonds);
+                const response = await fetchWithRetry(API_CONFIG.bonds);
                 return await response.json();
             } catch (error) {
                 // Fallback to ICE BofA
-                const response = await fetch(API_CONFIG.iceBofA);
+                const response = await fetchWithRetry(API_CONFIG.iceBofA);
                 return await response.json();
             }
         }
@@ -1227,12 +1228,12 @@
         async function fetchRepoData() {
             if (agentsData.repo) return agentsData.repo;
             try {
-                const response = await fetch(API_CONFIG.repo);
+                const response = await fetchWithRetry(API_CONFIG.repo);
                 return await response.json();
             } catch (error) {
                 console.error('Repo agent error:', error);
                 // Fallback to Fed liquidity repo data
-                const response = await fetch(`${API_CONFIG.fedLiquidity}/fed_liquidity?series=REPO`);
+                const response = await fetchWithRetry(`${API_CONFIG.fedLiquidity}/fed_liquidity?series=REPO`);
                 return await response.json();
             }
         }
@@ -1240,7 +1241,7 @@
         async function fetchMarketData() {
             if (agentsData.market) return agentsData.market;
             try {
-                const response = await fetch(API_CONFIG.marketBreadth);
+                const response = await fetchWithRetry(API_CONFIG.marketBreadth);
                 return await response.json();
             } catch (error) {
                 return { message: 'Market breadth data loading error' };
@@ -1251,13 +1252,13 @@
             if (agentsData.economic) return agentsData.economic;
             try {
                 // Try BEA Economic Agent first
-                const response = await fetch(API_CONFIG.economic);
+                const response = await fetchWithRetry(API_CONFIG.economic);
                 const data = await response.json();
                 
                 // Also try Census Economic Agent for additional data
                 if (API_CONFIG.census) {
                     try {
-                        const censusResponse = await fetch(API_CONFIG.census);
+                        const censusResponse = await fetchWithRetry(API_CONFIG.census);
                         const censusData = await censusResponse.json();
                         // Merge census data with BEA data
                         return { ...data, census: censusData };
@@ -1275,7 +1276,7 @@
         async function fetchLaborData() {
             if (agentsData.labor) return agentsData.labor;
             try {
-                const response = await fetch(API_CONFIG.labor);
+                const response = await fetchWithRetry(API_CONFIG.labor);
                 return await response.json();
             } catch (error) {
                 return { message: 'Labor data loading error' };
@@ -1285,7 +1286,7 @@
         async function fetchNewsData() {
             if (agentsData.news) return agentsData.news;
             try {
-                const response = await fetch(API_CONFIG.news);
+                const response = await fetchWithRetry(API_CONFIG.news);
                 return await response.json();
             } catch (error) {
                 return { message: 'News sentiment loading error' };
@@ -1295,7 +1296,7 @@
         async function fetchMLData() {
             if (agentsData.ml) return agentsData.ml;
             try {
-                const response = await fetch(API_CONFIG.ml);
+                const response = await fetchWithRetry(API_CONFIG.ml);
                 return await response.json();
             } catch (error) {
                 console.error('ML agent error:', error);
@@ -1306,7 +1307,7 @@
         async function fetchCrossCurrencyData() {
             if (agentsData.crossCurrency) return agentsData.crossCurrency;
             try {
-                const response = await fetch(API_CONFIG.crossCurrency);
+                const response = await fetchWithRetry(API_CONFIG.crossCurrency);
                 return await response.json();
             } catch (error) {
                 console.error('Cross-currency agent error:', error);
@@ -1325,7 +1326,7 @@
             // Try to fetch cross-currency basis data
             if (API_CONFIG.crossCurrency) {
                 try {
-                    const ccyResponse = await fetch(API_CONFIG.crossCurrency);
+                    const ccyResponse = await fetchWithRetry(API_CONFIG.crossCurrency);
                     if (ccyResponse.ok) {
                         overview.crossCurrency = await ccyResponse.json();
                     }
@@ -2062,6 +2063,9 @@
                 // Update last update time
                 lastUpdateTime = new Date().toLocaleString();
                 document.getElementById('lastUpdate').textContent = `Last updated: ${lastUpdateTime}`;
+                
+                // Update connection status
+                updateConnectionStatus();
                 
                 // Load current tab data
                 const activeTab = document.querySelector('.tab-content.active').id;
