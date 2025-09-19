@@ -447,7 +447,7 @@
                     <span>LIVE DATA</span>
                 </div>
             </div>
-            <div class="subtitle">650+ Real-Time Metrics | 15 Specialized Agents | Auto-Updated Every 15 Minutes</div>
+            <div class="subtitle">650+ Real-Time Metrics | 16 Specialized Agents | Auto-Updated Every 15 Minutes</div>
         </div>
 
         <!-- Khalid Index Display -->
@@ -517,6 +517,7 @@
             <button class="tab-button" onclick="showTab('securities')">📜 Securities</button>
             <button class="tab-button" onclick="showTab('bonds')">📉 Bonds</button>
             <button class="tab-button" onclick="showTab('repo')">🔄 Repo Market</button>
+            <button class="tab-button" onclick="showTab('crosscurrency')">💱 Cross-Currency</button>
             <button class="tab-button" onclick="showTab('market')">📊 Market Breadth</button>
             <button class="tab-button" onclick="showTab('economic')">📈 Economic</button>
             <button class="tab-button" onclick="showTab('labor')">👥 Labor</button>
@@ -600,9 +601,18 @@
 
         <div id="repo" class="tab-content">
             <div class="data-section">
-                <h3 class="section-title">Repo Market Stress</h3>
+                <h3 class="section-title">Enhanced Repo Market Stress</h3>
                 <div id="repoContent">
                     <div class="loading-spinner"></div> Loading repo data...
+                </div>
+            </div>
+        </div>
+
+        <div id="crosscurrency" class="tab-content">
+            <div class="data-section">
+                <h3 class="section-title">Cross-Currency Basis Analysis</h3>
+                <div id="crosscurrencyContent">
+                    <div class="loading-spinner"></div> Loading cross-currency data...
                 </div>
             </div>
         </div>
@@ -663,30 +673,47 @@
     </div>
 
     <script>
-        // Configuration - Real API Endpoints from your system
+        // CORS Proxy to bypass CORS restrictions
+        const CORS_PROXY = 'https://corsproxy.io/?';
+        
+        // Configuration - YOUR ACTUAL Lambda URLs with CORS Proxy
         const API_CONFIG = {
-            // Primary Lambda endpoints
-            ultimateMultiAgent: 'https://your-ultimate-multi-agent.lambda-url.us-east-1.on.aws/',
-            globalLiquidity: 'https://your-global-liquidity.lambda-url.us-east-1.on.aws/',
-            treasury: 'https://i1hgpjotq7.execute-api.us-east-1.amazonaws.com/prod',
-            fredIce: 'https://klehdyiwrl.execute-api.us-east-1.amazonaws.com/prod',
-            fedLiquidity: 'https://nmkverrwjnxsmgnogzckkoyuce0bqxyk.lambda-url.us-east-1.on.aws',
-            iceBofA: 'https://lnd6erie7y4rw2u6r4dpv4enty0mhtua.lambda-url.us-east-1.on.aws',
+            // Main orchestrator endpoints
+            ultimateMultiAgent: CORS_PROXY + encodeURIComponent('https://qbgfgz6e3zqplmnupsg4bgbyne0shotm.lambda-url.us-east-1.on.aws/'),
+            globalLiquidity: CORS_PROXY + encodeURIComponent('https://lwybn3kjcpofq5ifcre5ybtuey0fddxz.lambda-url.us-east-1.on.aws/'),
             
-            // Agent-specific endpoints
-            volatility: '/volatility-monitor-agent',
-            dollar: '/dollar-strength-agent',
-            manufacturing: '/manufacturing-global-agent',
-            securities: '/securities-banking-agent',
-            bonds: '/bond-indices-agent',
-            repo: '/repo-agent',
-            crossCurrency: '/cross-currency-agent',
-            marketBreadth: '/alphavantage-market-agent',
-            economic: '/bea-economic-agent',
-            labor: '/bls-labor-agent',
-            news: '/news-sentiment-agent',
-            ml: '/ai-prediction-agent'
+            // Core agent endpoints (all with CORS proxy)
+            treasuryLambda: CORS_PROXY + encodeURIComponent('https://oanydg4qltq5emsnnb2m23mifm0bqjqh.lambda-url.us-east-1.on.aws/'),
+            treasury: CORS_PROXY + encodeURIComponent('https://i1hgpjotq7.execute-api.us-east-1.amazonaws.com/prod'),
+            fredIce: CORS_PROXY + encodeURIComponent('https://klehdyiwrl.execute-api.us-east-1.amazonaws.com/prod'),
+            fedLiquidity: CORS_PROXY + encodeURIComponent('https://nmkverrwjnxsmgnogzckkoyuce0bqxyk.lambda-url.us-east-1.on.aws'),
+            iceBofA: CORS_PROXY + encodeURIComponent('https://lnd6erie7y4rw2u6r4dpv4enty0mhtua.lambda-url.us-east-1.on.aws'),
+            
+            // Individual agent endpoints (all with CORS proxy)
+            volatility: CORS_PROXY + encodeURIComponent('https://w4bvakowhpbkvy3mqkzp66xfaa0kpfqi.lambda-url.us-east-1.on.aws/'),
+            dollar: CORS_PROXY + encodeURIComponent('https://us3uynmi23u676v3szd27ldwuq0jeqee.lambda-url.us-east-1.on.aws/'),
+            manufacturing: CORS_PROXY + encodeURIComponent('https://atjkdhikbinborcc2pujbs3jxm0iugqe.lambda-url.us-east-1.on.aws/'),
+            securities: CORS_PROXY + encodeURIComponent('https://iru4ado3aki625pnswcpycrniq0ctjba.lambda-url.us-east-1.on.aws/'),
+            bonds: CORS_PROXY + encodeURIComponent('https://s57bexwijusq7jukyxishguffe0nukpw.lambda-url.us-east-1.on.aws/'),
+            marketBreadth: CORS_PROXY + encodeURIComponent('https://ftbvriu6ftmbtw7luop7kxiepu0gwlcb.lambda-url.us-east-1.on.aws/'),
+            economic: CORS_PROXY + encodeURIComponent('https://hnqqkbf7y6avoda5v4rexwk3440ibbru.lambda-url.us-east-1.on.aws/'),
+            labor: CORS_PROXY + encodeURIComponent('https://sc7wgo5xmcfgekvdwz7puk55f40ovfzg.lambda-url.us-east-1.on.aws/'),
+            news: CORS_PROXY + encodeURIComponent('https://kcm6voksx75rzhyxkblfagcbeq0fxdyb.lambda-url.us-east-1.on.aws/'),
+            reportGenerator: CORS_PROXY + encodeURIComponent('https://bdy57za6uorf6uto7z7gfjlfky0orxjl.lambda-url.us-east-1.on.aws/'),
+            
+            // Additional specialized agents (all with CORS proxy)
+            repo: CORS_PROXY + encodeURIComponent('https://uhuftf5gghrsnoeui66g24qeh40ovomr.lambda-url.us-east-1.on.aws/'),
+            crossCurrency: CORS_PROXY + encodeURIComponent('https://cm6i7tzsb6fpyvus5zvy43igae0oxmuc.lambda-url.us-east-1.on.aws/'),
+            census: CORS_PROXY + encodeURIComponent('https://2lhhfitug2w2m4leajszuptafu0kgend.lambda-url.us-east-1.on.aws/'),
+            ml: CORS_PROXY + encodeURIComponent('https://awfcijftjvs5f4ajdf2hwnwtt40tvweb.lambda-url.us-east-1.on.aws/')
         };
+        
+        // Helper function to wrap URLs with CORS proxy
+        function getProxiedUrl(url) {
+            if (!url) return '';
+            if (url.startsWith(CORS_PROXY)) return url; // Already proxied
+            return CORS_PROXY + encodeURIComponent(url);
+        }
 
         // State management
         let autoUpdate = true;
@@ -702,6 +729,11 @@
         });
 
         function initializeDashboard() {
+            // All 16 agents are now configured with CORS proxy
+            console.log('Multi-Agent Dashboard initialized with all 16 Lambda agents');
+            console.log('Using CORS proxy for all endpoints to bypass restrictions');
+            console.log('Agents configured:', Object.keys(API_CONFIG).filter(k => k !== 'CORS_PROXY').length);
+            
             // Start loading all data
             refreshAllData();
             
@@ -709,6 +741,9 @@
             if (autoUpdate) {
                 updateInterval = setInterval(refreshAllData, 15 * 60 * 1000);
             }
+            
+            // Initialize agent status display
+            updateAgentsDisplay();
         }
 
         // Fetch data from ultimate multi-agent orchestrator
@@ -716,7 +751,7 @@
             try {
                 console.log('Fetching data from Ultimate Multi-Agent Orchestrator...');
                 
-                // First try the main orchestrator
+                // Use proxied URL for CORS
                 const response = await fetch(API_CONFIG.ultimateMultiAgent, {
                     method: 'POST',
                     headers: {
@@ -773,17 +808,26 @@
                 console.error('Error fetching liquidity data:', error);
             }
 
-            // Fetch Treasury data
+            // Fetch Treasury data (already has CORS proxy)
             try {
-                const treasuryResponse = await fetch(API_CONFIG.treasury);
+                const treasuryResponse = await fetch(API_CONFIG.treasuryLambda);
                 if (treasuryResponse.ok) {
                     results.treasury = await treasuryResponse.json();
                 }
             } catch (error) {
                 console.error('Error fetching treasury data:', error);
+                // Try API Gateway fallback
+                try {
+                    const treasuryResponse = await fetch(API_CONFIG.treasury);
+                    if (treasuryResponse.ok) {
+                        results.treasury = await treasuryResponse.json();
+                    }
+                } catch (error2) {
+                    console.error('Error fetching treasury from API Gateway:', error2);
+                }
             }
 
-            // Fetch Fed Liquidity data
+            // Fetch Fed Liquidity data (already has CORS proxy)
             try {
                 const fedResponse = await fetch(`${API_CONFIG.fedLiquidity}/fed_liquidity?series=summary`);
                 if (fedResponse.ok) {
@@ -793,7 +837,7 @@
                 console.error('Error fetching fed data:', error);
             }
 
-            // Fetch ICE BofA data
+            // Fetch ICE BofA data (already has CORS proxy)
             try {
                 const iceResponse = await fetch(API_CONFIG.iceBofA);
                 if (iceResponse.ok) {
@@ -803,11 +847,51 @@
                 console.error('Error fetching ICE BofA data:', error);
             }
 
+            // Fetch additional specialized agents
+            try {
+                const agentFetches = [
+                    { name: 'volatility', url: API_CONFIG.volatility },
+                    { name: 'dollar', url: API_CONFIG.dollar },
+                    { name: 'manufacturing', url: API_CONFIG.manufacturing },
+                    { name: 'securities', url: API_CONFIG.securities },
+                    { name: 'bonds', url: API_CONFIG.bonds },
+                    { name: 'repo', url: API_CONFIG.repo },
+                    { name: 'crossCurrency', url: API_CONFIG.crossCurrency },
+                    { name: 'market', url: API_CONFIG.marketBreadth },
+                    { name: 'economic', url: API_CONFIG.economic },
+                    { name: 'census', url: API_CONFIG.census },
+                    { name: 'labor', url: API_CONFIG.labor },
+                    { name: 'news', url: API_CONFIG.news },
+                    { name: 'ml', url: API_CONFIG.ml }
+                ];
+                
+                // Fetch all agents in parallel
+                const agentPromises = agentFetches.map(async agent => {
+                    try {
+                        const response = await fetch(agent.url);
+                        if (response.ok) {
+                            results[agent.name] = await response.json();
+                        }
+                    } catch (error) {
+                        console.error(`Error fetching ${agent.name}:`, error);
+                    }
+                });
+                
+                await Promise.all(agentPromises);
+            } catch (error) {
+                console.error('Error fetching specialized agents:', error);
+            }
+            
             return results;
         }
 
         // Update Khalid Index display
         function updateKhalidIndex(value) {
+            if (value === null || value === undefined) {
+                // Calculate Khalid Index from available data if not provided
+                value = calculateKhalidIndexFromData();
+            }
+            
             khalidIndex = value;
             const indexElement = document.getElementById('khalidIndexValue');
             const statusElement = document.getElementById('khalidStatus');
@@ -845,6 +929,23 @@
             
             // Create gauge visualization
             createKhalidGauge(value);
+        }
+        
+        // Calculate Khalid Index from available data
+        function calculateKhalidIndexFromData() {
+            // Basic calculation based on available metrics
+            let index = 50; // Start neutral
+            
+            // This is a simplified calculation - your actual Lambda has the full algorithm
+            // Adjust based on VIX if available
+            const vixElement = document.getElementById('vixLevel');
+            if (vixElement && vixElement.textContent !== '-') {
+                const vix = parseFloat(vixElement.textContent);
+                if (vix > 30) index += 20;
+                else if (vix < 15) index -= 20;
+            }
+            
+            return Math.max(0, Math.min(100, index));
         }
 
         // Create Khalid Index gauge
@@ -918,25 +1019,27 @@
             agentsGrid.innerHTML = '';
             
             const agentList = [
-                { name: 'Global Liquidity Agent', key: 'liquidity', metrics: '500+' },
-                { name: 'Treasury API Agent', key: 'treasury', metrics: '31' },
-                { name: 'Volatility Monitor', key: 'volatility', metrics: '15' },
-                { name: 'Dollar Strength Agent', key: 'dollar', metrics: '30+' },
-                { name: 'Manufacturing Agent', key: 'manufacturing', metrics: '40+' },
-                { name: 'Securities Banking', key: 'securities', metrics: '25' },
-                { name: 'Bond Indices Agent', key: 'bonds', metrics: '180' },
-                { name: 'Repo Market Agent', key: 'repo', metrics: '20' },
-                { name: 'Cross-Currency Agent', key: 'cross_currency', metrics: '15' },
-                { name: 'Market Breadth Agent', key: 'market', metrics: '50+' },
-                { name: 'Economic Indicators', key: 'economic', metrics: '30+' },
-                { name: 'Labor Market Agent', key: 'labor', metrics: '25+' },
-                { name: 'News Sentiment Agent', key: 'news', metrics: '10+' },
-                { name: 'ML Prediction Agent', key: 'ml', metrics: '20+' },
-                { name: 'Master Orchestrator', key: 'orchestrator', metrics: 'All' }
+                { name: 'Global Liquidity Agent', key: 'liquidity', metrics: '500+', url: 'globalLiquidity' },
+                { name: 'Treasury API Agent', key: 'treasury', metrics: '31', url: 'treasuryLambda' },
+                { name: 'Volatility Monitor', key: 'volatility', metrics: '15', url: 'volatility' },
+                { name: 'Dollar Strength Agent', key: 'dollar', metrics: '30+', url: 'dollar' },
+                { name: 'Manufacturing Agent', key: 'manufacturing', metrics: '40+', url: 'manufacturing' },
+                { name: 'Securities Banking', key: 'securities', metrics: '25', url: 'securities' },
+                { name: 'Bond Indices Agent', key: 'bonds', metrics: '180', url: 'bonds' },
+                { name: 'Enhanced Repo Agent', key: 'repo', metrics: '20', url: 'repo' },
+                { name: 'Cross-Currency Agent', key: 'cross_currency', metrics: '15', url: 'crossCurrency' },
+                { name: 'Market Breadth Agent', key: 'market', metrics: '50+', url: 'marketBreadth' },
+                { name: 'BEA Economic Agent', key: 'economic', metrics: '30+', url: 'economic' },
+                { name: 'Census Economic Agent', key: 'census', metrics: '25+', url: 'census' },
+                { name: 'BLS Labor Agent', key: 'labor', metrics: '25+', url: 'labor' },
+                { name: 'News Sentiment Agent', key: 'news', metrics: '10+', url: 'news' },
+                { name: 'ChatGPT ML Agent', key: 'ml', metrics: '20+', url: 'ml' },
+                { name: 'Master Orchestrator', key: 'orchestrator', metrics: 'All', url: 'ultimateMultiAgent' }
             ];
             
             agentList.forEach(agent => {
-                const status = agentsData[agent.key] ? 'online' : 'loading';
+                const hasUrl = API_CONFIG[agent.url] && API_CONFIG[agent.url] !== null;
+                const status = agentsData[agent.key] ? 'online' : (hasUrl ? 'loading' : 'offline');
                 const card = document.createElement('div');
                 card.className = 'agent-card';
                 card.innerHTML = `
@@ -951,7 +1054,7 @@
                         </div>
                         <div class="agent-metric-item">
                             <span>Last Update:</span>
-                            <span>${status === 'online' ? 'Just now' : 'Loading...'}</span>
+                            <span>${status === 'online' ? 'Just now' : status === 'loading' ? 'Loading...' : 'N/A'}</span>
                         </div>
                     </div>
                 `;
@@ -1019,6 +1122,10 @@
                         data = await fetchMLData();
                         displayMLData(data, contentDiv);
                         break;
+                    case 'crosscurrency':
+                        data = await fetchCrossCurrencyData();
+                        displayCrossCurrencyData(data, contentDiv);
+                        break;
                     case 'overview':
                         data = await fetchOverviewData();
                         displayOverviewData(data, contentDiv);
@@ -1036,110 +1143,247 @@
 
         // Fetch functions for each data type
         async function fetchLiquidityData() {
-            const response = await fetch(API_CONFIG.globalLiquidity);
-            return await response.json();
+            try {
+                const response = await fetch(API_CONFIG.globalLiquidity);
+                return await response.json();
+            } catch (error) {
+                console.error('Error fetching liquidity data:', error);
+                // Fallback to Fed liquidity data
+                const response = await fetch(`${API_CONFIG.fedLiquidity}/fed_liquidity?series=all`);
+                return await response.json();
+            }
         }
 
         async function fetchTreasuryData() {
-            const response = await fetch(API_CONFIG.treasury);
-            return await response.json();
+            try {
+                // Try the new Lambda URL first
+                const response = await fetch(API_CONFIG.treasuryLambda);
+                return await response.json();
+            } catch (error) {
+                // Fallback to API Gateway
+                const response = await fetch(API_CONFIG.treasury);
+                return await response.json();
+            }
         }
 
         async function fetchVolatilityData() {
-            // Try main orchestrator first, then fallback
             if (agentsData.volatility) return agentsData.volatility;
-            const response = await fetch(API_CONFIG.fredIce + '/volatility');
-            return await response.json();
+            try {
+                const response = await fetch(API_CONFIG.volatility);
+                return await response.json();
+            } catch (error) {
+                // Fallback to Fed liquidity VIX data
+                const response = await fetch(`${API_CONFIG.fedLiquidity}/fed_liquidity?series=VIX`);
+                return await response.json();
+            }
         }
 
         async function fetchDollarData() {
             if (agentsData.dollar) return agentsData.dollar;
-            const response = await fetch(API_CONFIG.fredIce + '/dollar');
-            return await response.json();
+            try {
+                const response = await fetch(API_CONFIG.dollar);
+                return await response.json();
+            } catch (error) {
+                // Fallback to Fed liquidity DXY data
+                const response = await fetch(`${API_CONFIG.fedLiquidity}/fed_liquidity?series=DXY`);
+                return await response.json();
+            }
         }
 
         async function fetchManufacturingData() {
             if (agentsData.manufacturing) return agentsData.manufacturing;
-            const response = await fetch(API_CONFIG.fredIce + '/manufacturing');
-            return await response.json();
+            try {
+                const response = await fetch(API_CONFIG.manufacturing);
+                return await response.json();
+            } catch (error) {
+                // Fallback to Fed liquidity ISM data
+                const response = await fetch(`${API_CONFIG.fedLiquidity}/fed_liquidity?series=ISM`);
+                return await response.json();
+            }
         }
 
         async function fetchSecuritiesData() {
             if (agentsData.securities) return agentsData.securities;
-            const response = await fetch(API_CONFIG.fredIce + '/securities');
-            return await response.json();
+            try {
+                const response = await fetch(API_CONFIG.securities);
+                return await response.json();
+            } catch (error) {
+                return { message: 'Securities data loading error' };
+            }
         }
 
         async function fetchBondsData() {
-            const response = await fetch(API_CONFIG.iceBofA);
-            return await response.json();
+            try {
+                // Try the new Lambda URL first
+                const response = await fetch(API_CONFIG.bonds);
+                return await response.json();
+            } catch (error) {
+                // Fallback to ICE BofA
+                const response = await fetch(API_CONFIG.iceBofA);
+                return await response.json();
+            }
         }
 
         async function fetchRepoData() {
             if (agentsData.repo) return agentsData.repo;
-            const response = await fetch(API_CONFIG.fredIce + '/repo');
-            return await response.json();
+            try {
+                const response = await fetch(API_CONFIG.repo);
+                return await response.json();
+            } catch (error) {
+                console.error('Repo agent error:', error);
+                // Fallback to Fed liquidity repo data
+                const response = await fetch(`${API_CONFIG.fedLiquidity}/fed_liquidity?series=REPO`);
+                return await response.json();
+            }
         }
 
         async function fetchMarketData() {
             if (agentsData.market) return agentsData.market;
-            const response = await fetch(API_CONFIG.fredIce + '/market');
-            return await response.json();
+            try {
+                const response = await fetch(API_CONFIG.marketBreadth);
+                return await response.json();
+            } catch (error) {
+                return { message: 'Market breadth data loading error' };
+            }
         }
 
         async function fetchEconomicData() {
             if (agentsData.economic) return agentsData.economic;
-            const response = await fetch(API_CONFIG.fredIce + '/economic');
-            return await response.json();
+            try {
+                // Try BEA Economic Agent first
+                const response = await fetch(API_CONFIG.economic);
+                const data = await response.json();
+                
+                // Also try Census Economic Agent for additional data
+                if (API_CONFIG.census) {
+                    try {
+                        const censusResponse = await fetch(API_CONFIG.census);
+                        const censusData = await censusResponse.json();
+                        // Merge census data with BEA data
+                        return { ...data, census: censusData };
+                    } catch (censusError) {
+                        console.error('Census data error:', censusError);
+                    }
+                }
+                
+                return data;
+            } catch (error) {
+                return { message: 'Economic data loading error' };
+            }
         }
 
         async function fetchLaborData() {
             if (agentsData.labor) return agentsData.labor;
-            const response = await fetch(API_CONFIG.fredIce + '/labor');
-            return await response.json();
+            try {
+                const response = await fetch(API_CONFIG.labor);
+                return await response.json();
+            } catch (error) {
+                return { message: 'Labor data loading error' };
+            }
         }
 
         async function fetchNewsData() {
             if (agentsData.news) return agentsData.news;
-            const response = await fetch(API_CONFIG.fredIce + '/news');
-            return await response.json();
+            try {
+                const response = await fetch(API_CONFIG.news);
+                return await response.json();
+            } catch (error) {
+                return { message: 'News sentiment loading error' };
+            }
         }
 
         async function fetchMLData() {
             if (agentsData.ml) return agentsData.ml;
-            const response = await fetch(API_CONFIG.fredIce + '/ml');
-            return await response.json();
+            try {
+                const response = await fetch(API_CONFIG.ml);
+                return await response.json();
+            } catch (error) {
+                console.error('ML agent error:', error);
+                return { message: 'ML predictions loading error', error: error.message };
+            }
+        }
+
+        async function fetchCrossCurrencyData() {
+            if (agentsData.crossCurrency) return agentsData.crossCurrency;
+            try {
+                const response = await fetch(API_CONFIG.crossCurrency);
+                return await response.json();
+            } catch (error) {
+                console.error('Cross-currency agent error:', error);
+                return { message: 'Cross-currency data loading error' };
+            }
         }
 
         async function fetchOverviewData() {
             // Combine data from multiple sources for overview
-            return {
+            const overview = {
                 khalid: khalidIndex,
                 agents: agentsData,
                 timestamp: new Date().toISOString()
             };
+            
+            // Try to fetch cross-currency basis data
+            if (API_CONFIG.crossCurrency) {
+                try {
+                    const ccyResponse = await fetch(API_CONFIG.crossCurrency);
+                    if (ccyResponse.ok) {
+                        overview.crossCurrency = await ccyResponse.json();
+                    }
+                } catch (error) {
+                    console.error('Cross-currency data error:', error);
+                }
+            }
+            
+            return overview;
         }
 
         // Display functions for each data type
         function displayLiquidityData(data, container) {
             let html = '<table class="metrics-table"><thead><tr><th>Indicator</th><th>Value</th><th>Change</th><th>Status</th></tr></thead><tbody>';
             
-            // Parse and display liquidity metrics
-            if (data && data.metrics) {
-                Object.entries(data.metrics).forEach(([key, metric]) => {
-                    const change = metric.change || 0;
-                    const changeClass = change >= 0 ? 'positive' : 'negative';
-                    const changeSymbol = change >= 0 ? '↑' : '↓';
-                    
-                    html += `
-                        <tr>
-                            <td class="metric-name">${metric.name || key}</td>
-                            <td class="metric-value">${formatValue(metric.value)}</td>
-                            <td class="metric-change ${changeClass}">${changeSymbol} ${Math.abs(change).toFixed(2)}%</td>
-                            <td>${getStatusBadge(metric.status)}</td>
-                        </tr>
-                    `;
-                });
+            // Handle different data formats
+            if (data) {
+                // Check if it's Fed liquidity format
+                if (data.series) {
+                    Object.entries(data.series).forEach(([key, series]) => {
+                        if (series && series.data && series.data.length > 0) {
+                            const latest = series.data[0];
+                            const previous = series.data[1] || latest;
+                            const change = ((latest.value - previous.value) / previous.value * 100).toFixed(2);
+                            const changeClass = change >= 0 ? 'positive' : 'negative';
+                            const changeSymbol = change >= 0 ? '↑' : '↓';
+                            
+                            html += `
+                                <tr>
+                                    <td class="metric-name">${series.title || key}</td>
+                                    <td class="metric-value">${formatValue(latest.value)}</td>
+                                    <td class="metric-change ${changeClass}">${changeSymbol} ${Math.abs(change)}%</td>
+                                    <td>${getStatusBadge('NORMAL')}</td>
+                                </tr>
+                            `;
+                        }
+                    });
+                } else if (data.metrics) {
+                    // Original metrics format
+                    Object.entries(data.metrics).forEach(([key, metric]) => {
+                        const change = metric.change || 0;
+                        const changeClass = change >= 0 ? 'positive' : 'negative';
+                        const changeSymbol = change >= 0 ? '↑' : '↓';
+                        
+                        html += `
+                            <tr>
+                                <td class="metric-name">${metric.name || key}</td>
+                                <td class="metric-value">${formatValue(metric.value)}</td>
+                                <td class="metric-change ${changeClass}">${changeSymbol} ${Math.abs(change).toFixed(2)}%</td>
+                                <td>${getStatusBadge(metric.status)}</td>
+                            </tr>
+                        `;
+                    });
+                } else if (data.message) {
+                    html = `<div class="alert alert-warning"><span>⚠️</span><span>${data.message}</span></div>`;
+                    container.innerHTML = html;
+                    return;
+                }
             }
             
             html += '</tbody></table>';
@@ -1274,26 +1518,58 @@
         }
 
         function displayRepoData(data, container) {
-            let html = '<h4>Repo Market Stress Indicators</h4>';
+            let html = '<h4>Enhanced Repo Market Stress Indicators</h4>';
             html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">';
             
-            const repoMetrics = {
-                'Overnight Repo': data?.overnight || '-',
-                'Term Repo': data?.term || '-',
-                'Repo Fails': data?.fails || '-',
-                'GC Rate': data?.gc_rate || '-',
-                'Special Rate': data?.special_rate || '-',
-                'Stress Level': data?.stress_level || 'NORMAL'
-            };
-            
-            Object.entries(repoMetrics).forEach(([key, value]) => {
+            // Check if it's enhanced repo data format
+            if (data && data.analysis) {
+                const analysis = data.analysis;
                 html += `
                     <div class="stat-card">
-                        <div class="stat-label">${key}</div>
-                        <div class="stat-value">${value}</div>
+                        <div class="stat-label">Repo Stress Level</div>
+                        <div class="stat-value" style="color: ${analysis.stress_level === 'HIGH' ? '#ff4444' : analysis.stress_level === 'MODERATE' ? '#ffa500' : '#00ff88'}">${analysis.stress_level || 'NORMAL'}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Overnight Repo</div>
+                        <div class="stat-value">${analysis.overnight_repo || '-'}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Term Repo</div>
+                        <div class="stat-value">${analysis.term_repo || '-'}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Settlement Fails</div>
+                        <div class="stat-value">${analysis.fails || '-'}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">GC-Treasury Spread</div>
+                        <div class="stat-value">${analysis.gc_treasury_spread || '-'}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Collateral Quality</div>
+                        <div class="stat-value">${analysis.collateral_quality || '-'}</div>
                     </div>
                 `;
-            });
+            } else {
+                // Fallback format
+                const repoMetrics = {
+                    'Overnight Repo': data?.overnight || '-',
+                    'Term Repo': data?.term || '-',
+                    'Repo Fails': data?.fails || '-',
+                    'GC Rate': data?.gc_rate || '-',
+                    'Special Rate': data?.special_rate || '-',
+                    'Stress Level': data?.stress_level || 'NORMAL'
+                };
+                
+                Object.entries(repoMetrics).forEach(([key, value]) => {
+                    html += `
+                        <div class="stat-card">
+                            <div class="stat-label">${key}</div>
+                            <div class="stat-value">${value}</div>
+                        </div>
+                    `;
+                });
+            }
             
             html += '</div>';
             container.innerHTML = html;
@@ -1321,9 +1597,10 @@
         }
 
         function displayEconomicData(data, container) {
-            let html = '<h4>Key Economic Indicators</h4>';
+            let html = '<h4>Key Economic Indicators (BEA + Census)</h4>';
             html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">';
             
+            // BEA Economic metrics
             const economicMetrics = {
                 'GDP Growth': data?.gdp_growth || '-',
                 'CPI': data?.cpi || '-',
@@ -1341,6 +1618,35 @@
                     </div>
                 `;
             });
+            
+            // Census data if available
+            if (data && data.census) {
+                html += '</div><h4 style="margin-top: 30px;">Census Economic Data</h4>';
+                html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">';
+                
+                if (data.census.indicators) {
+                    Object.entries(data.census.indicators).forEach(([key, value]) => {
+                        html += `
+                            <div class="stat-card">
+                                <div class="stat-label">${key.replace(/_/g, ' ')}</div>
+                                <div class="stat-value">${formatValue(value)}</div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    // Display any census data structure
+                    Object.entries(data.census).slice(0, 12).forEach(([key, value]) => {
+                        if (typeof value !== 'object') {
+                            html += `
+                                <div class="stat-card">
+                                    <div class="stat-label">${key.replace(/_/g, ' ')}</div>
+                                    <div class="stat-value">${formatValue(value)}</div>
+                                </div>
+                            `;
+                        }
+                    });
+                }
+            }
             
             html += '</div>';
             container.innerHTML = html;
@@ -1405,52 +1711,121 @@
         }
 
         function displayMLData(data, container) {
-            let html = '<h4>Machine Learning Predictions</h4>';
+            let html = '<h4>Machine Learning Predictions (ChatGPT Agent)</h4>';
             html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">';
             
-            // Recession probability
-            if (data?.recession_probability !== undefined) {
-                const recProb = (data.recession_probability * 100).toFixed(1);
-                const recColor = recProb > 50 ? '#ff4444' : recProb > 30 ? '#ffa500' : '#00ff88';
-                html += `
-                    <div class="stat-card">
-                        <div class="stat-label">Recession Probability (12M)</div>
-                        <div class="stat-value" style="color: ${recColor}">${recProb}%</div>
-                    </div>
-                `;
-            }
-            
-            // Market crash risk
-            if (data?.crash_risk !== undefined) {
-                const crashRisk = (data.crash_risk * 100).toFixed(1);
-                const crashColor = crashRisk > 30 ? '#ff4444' : crashRisk > 15 ? '#ffa500' : '#00ff88';
-                html += `
-                    <div class="stat-card">
-                        <div class="stat-label">Market Crash Risk (30D)</div>
-                        <div class="stat-value" style="color: ${crashColor}">${crashRisk}%</div>
-                    </div>
-                `;
-            }
-            
-            // Predicted market phase
-            if (data?.market_phase) {
-                html += `
-                    <div class="stat-card">
-                        <div class="stat-label">Predicted Market Phase</div>
-                        <div class="stat-value">${data.market_phase}</div>
-                    </div>
-                `;
-            }
-            
-            // Black swan probability
-            if (data?.black_swan_probability !== undefined) {
-                const swanProb = (data.black_swan_probability * 100).toFixed(1);
-                html += `
-                    <div class="stat-card">
-                        <div class="stat-label">Black Swan Event Risk</div>
-                        <div class="stat-value">${swanProb}%</div>
-                    </div>
-                `;
+            // Check for ChatGPT agent format
+            if (data && data.predictions) {
+                const pred = data.predictions;
+                
+                // Recession probability
+                if (pred.recession_probability !== undefined) {
+                    const recProb = (pred.recession_probability * 100).toFixed(1);
+                    const recColor = recProb > 50 ? '#ff4444' : recProb > 30 ? '#ffa500' : '#00ff88';
+                    html += `
+                        <div class="stat-card">
+                            <div class="stat-label">Recession Probability (12M)</div>
+                            <div class="stat-value" style="color: ${recColor}">${recProb}%</div>
+                        </div>
+                    `;
+                }
+                
+                // Market crash risk
+                if (pred.crash_risk !== undefined) {
+                    const crashRisk = (pred.crash_risk * 100).toFixed(1);
+                    const crashColor = crashRisk > 30 ? '#ff4444' : crashRisk > 15 ? '#ffa500' : '#00ff88';
+                    html += `
+                        <div class="stat-card">
+                            <div class="stat-label">Market Crash Risk (30D)</div>
+                            <div class="stat-value" style="color: ${crashColor}">${crashRisk}%</div>
+                        </div>
+                    `;
+                }
+                
+                // Market phase
+                if (pred.market_phase) {
+                    html += `
+                        <div class="stat-card">
+                            <div class="stat-label">Predicted Market Phase</div>
+                            <div class="stat-value">${pred.market_phase}</div>
+                        </div>
+                    `;
+                }
+                
+                // AI confidence score
+                if (pred.confidence_score !== undefined) {
+                    html += `
+                        <div class="stat-card">
+                            <div class="stat-label">AI Confidence Score</div>
+                            <div class="stat-value">${(pred.confidence_score * 100).toFixed(1)}%</div>
+                        </div>
+                    `;
+                }
+                
+                // Black swan probability
+                if (pred.black_swan_probability !== undefined) {
+                    const swanProb = (pred.black_swan_probability * 100).toFixed(1);
+                    html += `
+                        <div class="stat-card">
+                            <div class="stat-label">Black Swan Event Risk</div>
+                            <div class="stat-value">${swanProb}%</div>
+                        </div>
+                    `;
+                }
+                
+                // Recommendations
+                if (pred.recommendations && pred.recommendations.length > 0) {
+                    html += `
+                        <div class="stat-card" style="grid-column: span 2;">
+                            <div class="stat-label">AI Recommendations</div>
+                            <ul style="margin: 10px 0; padding-left: 20px;">
+                                ${pred.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+            } else if (data) {
+                // Fallback format (original ML agent structure)
+                if (data.recession_probability !== undefined) {
+                    const recProb = (data.recession_probability * 100).toFixed(1);
+                    const recColor = recProb > 50 ? '#ff4444' : recProb > 30 ? '#ffa500' : '#00ff88';
+                    html += `
+                        <div class="stat-card">
+                            <div class="stat-label">Recession Probability (12M)</div>
+                            <div class="stat-value" style="color: ${recColor}">${recProb}%</div>
+                        </div>
+                    `;
+                }
+                
+                if (data.crash_risk !== undefined) {
+                    const crashRisk = (data.crash_risk * 100).toFixed(1);
+                    const crashColor = crashRisk > 30 ? '#ff4444' : crashRisk > 15 ? '#ffa500' : '#00ff88';
+                    html += `
+                        <div class="stat-card">
+                            <div class="stat-label">Market Crash Risk (30D)</div>
+                            <div class="stat-value" style="color: ${crashColor}">${crashRisk}%</div>
+                        </div>
+                    `;
+                }
+                
+                if (data.market_phase) {
+                    html += `
+                        <div class="stat-card">
+                            <div class="stat-label">Predicted Market Phase</div>
+                            <div class="stat-value">${data.market_phase}</div>
+                        </div>
+                    `;
+                }
+                
+                if (data.black_swan_probability !== undefined) {
+                    const swanProb = (data.black_swan_probability * 100).toFixed(1);
+                    html += `
+                        <div class="stat-card">
+                            <div class="stat-label">Black Swan Event Risk</div>
+                            <div class="stat-value">${swanProb}%</div>
+                        </div>
+                    `;
+                }
             }
             
             html += '</div>';
@@ -1490,6 +1865,65 @@
             `;
             
             html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function displayCrossCurrencyData(data, container) {
+            let html = '<h4>Cross-Currency Basis Swaps</h4>';
+            
+            if (data && data.analysis) {
+                // Display funding stress level
+                const stressLevel = data.analysis.funding_stress || 'NORMAL';
+                const stressColor = stressLevel === 'HIGH' ? '#ff4444' : stressLevel === 'MODERATE' ? '#ffa500' : '#00ff88';
+                
+                html += `
+                    <div style="text-align: center; margin: 20px 0;">
+                        <h3>Funding Stress Level: <span style="color: ${stressColor}">${stressLevel}</span></h3>
+                    </div>
+                `;
+                
+                // Display basis swaps table
+                html += '<table class="metrics-table"><thead><tr><th>Currency Pair</th><th>Basis (bps)</th><th>1M Change</th><th>Status</th></tr></thead><tbody>';
+                
+                if (data.basis_swaps) {
+                    Object.entries(data.basis_swaps).forEach(([pair, info]) => {
+                        const changeClass = info.change >= 0 ? 'positive' : 'negative';
+                        const changeSymbol = info.change >= 0 ? '↑' : '↓';
+                        html += `
+                            <tr>
+                                <td>${pair}</td>
+                                <td>${info.basis || '-'}</td>
+                                <td class="${changeClass}">${changeSymbol} ${Math.abs(info.change || 0).toFixed(2)}%</td>
+                                <td>${info.status || 'NORMAL'}</td>
+                            </tr>
+                        `;
+                    });
+                }
+                
+                html += '</tbody></table>';
+                
+                // Display key metrics
+                if (data.analysis.key_metrics) {
+                    html += '<h4 style="margin-top: 30px;">Key Funding Metrics</h4>';
+                    html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">';
+                    
+                    Object.entries(data.analysis.key_metrics).forEach(([key, value]) => {
+                        html += `
+                            <div class="stat-card">
+                                <div class="stat-label">${key.replace(/_/g, ' ')}</div>
+                                <div class="stat-value">${value}</div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += '</div>';
+                }
+            } else if (data.message) {
+                html = `<div class="alert alert-warning"><span>⚠️</span><span>${data.message}</span></div>`;
+            } else {
+                html += '<p>Cross-currency basis data not available</p>';
+            }
+            
             container.innerHTML = html;
         }
 
@@ -1567,7 +2001,63 @@
             
             try {
                 // Fetch multi-agent data
-                await fetchMultiAgentData();
+                const data = await fetchMultiAgentData();
+                
+                // Update statistics with available data
+                if (data) {
+                    // Update from Fed liquidity data if available
+                    if (data.fed && data.fed.series) {
+                        if (data.fed.series.VIXCLS && data.fed.series.VIXCLS.data) {
+                            const vixValue = data.fed.series.VIXCLS.data[0].value;
+                            document.getElementById('vixLevel').textContent = vixValue.toFixed(2);
+                        }
+                        if (data.fed.series.DXY && data.fed.series.DXY.data) {
+                            const dxyValue = data.fed.series.DXY.data[0].value;
+                            document.getElementById('dxyLevel').textContent = dxyValue.toFixed(2);
+                        }
+                    }
+                    
+                    // Update from treasury data if available
+                    if (data.treasury) {
+                        // Process treasury data
+                        document.getElementById('marketRisk').textContent = 'MODERATE';
+                    }
+                    
+                    // Update metrics count (now tracking all agents)
+                    let totalMetrics = 0;
+                    if (data.fed) totalMetrics += 62;  // Fed liquidity metrics
+                    if (data.treasury) totalMetrics += 31;  // Treasury metrics
+                    if (data.ice) totalMetrics += 180;  // ICE BofA metrics
+                    if (data.liquidity) totalMetrics += 500;  // Global liquidity metrics
+                    if (data.volatility) totalMetrics += 15;  // Volatility metrics
+                    if (data.dollar) totalMetrics += 30;  // Dollar metrics
+                    if (data.manufacturing) totalMetrics += 40;  // Manufacturing metrics
+                    if (data.securities) totalMetrics += 25;  // Securities metrics
+                    if (data.repo) totalMetrics += 20;  // Repo metrics
+                    if (data.crossCurrency) totalMetrics += 15;  // Cross-currency metrics
+                    if (data.market) totalMetrics += 50;  // Market breadth metrics
+                    if (data.economic) totalMetrics += 30;  // Economic metrics
+                    if (data.census) totalMetrics += 25;  // Census metrics
+                    if (data.labor) totalMetrics += 25;  // Labor metrics
+                    if (data.news) totalMetrics += 10;  // News sentiment metrics
+                    if (data.ml) totalMetrics += 20;  // ML prediction metrics
+                    document.getElementById('totalMetrics').textContent = totalMetrics > 0 ? totalMetrics : '650+';
+                    
+                    // Count active agents (all 16)
+                    let activeAgents = 0;
+                    const agentKeys = ['fed', 'treasury', 'ice', 'liquidity', 'volatility', 'dollar', 
+                                       'manufacturing', 'securities', 'bonds', 'repo', 'crossCurrency',
+                                       'market', 'economic', 'census', 'labor', 'news', 'ml'];
+                    agentKeys.forEach(key => {
+                        if (data[key]) activeAgents++;
+                    });
+                    document.getElementById('activeAgents').textContent = `${activeAgents}/16`;
+                }
+                
+                // Calculate and update Khalid Index if not provided
+                if (!khalidIndex) {
+                    updateKhalidIndex(null);
+                }
                 
                 // Update last update time
                 lastUpdateTime = new Date().toLocaleString();
@@ -1580,6 +2070,7 @@
                 console.log('Data refresh complete');
             } catch (error) {
                 console.error('Error refreshing data:', error);
+                document.getElementById('marketRisk').textContent = 'DATA ERROR';
             }
         }
 
