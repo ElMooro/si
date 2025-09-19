@@ -508,7 +508,7 @@
 
     <script>
         // Configuration
-        const API_BASE = 'https://7qxm5omh36b3uklcvlsx2pu2j40echen.lambda-url.us-east-1.on.aws';
+        const API_BASE = 'https://eezt4oyhbd5ce6mffvk4iu4jaa0cstzo.lambda-url.us-east-1.on.aws';
         
         // State
         let allData = null;
@@ -549,14 +549,31 @@
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 
                 const data = await response.json();
+                console.log('API Response:', data);
                 
-                if (data.status === 'success' || data.data) {
-                    allData = data.data || data;
+                // Check if we got actual metrics or just a status message
+                if (data.message && !data.metrics && !data.data) {
+                    // API is returning status only, not actual data
+                    document.getElementById('api-status').textContent = 'API ISSUE';
+                    document.getElementById('dashboard-tbody').innerHTML = 
+                        `<tr><td colspan="7" class="status-warning">
+                            API Connected but not returning metrics data.<br>
+                            Response: ${JSON.stringify(data)}<br>
+                            The Lambda function needs to return actual metrics, not just status.
+                        </td></tr>`;
+                    
+                    // Try to load sample data for display
+                    displaySampleDashboard();
+                    return;
+                }
+                
+                if (data.status === 'success' || data.data || data.metrics) {
+                    allData = data.data || data.metrics || data;
                     console.log('Loaded metrics:', data.successful_fetches || Object.keys(allData).length);
                     
                     // Update status
                     document.getElementById('api-status').textContent = 'CONNECTED';
-                    document.getElementById('metric-count').textContent = `${data.successful_fetches || 272}/272`;
+                    document.getElementById('metric-count').textContent = `${data.successful_fetches || Object.keys(allData).length}/272`;
                     
                     // Display data
                     displayExecutiveDashboard();
@@ -707,8 +724,9 @@
             try {
                 const response = await fetch(`${API_BASE}/khalid-index`);
                 const data = await response.json();
+                console.log('Khalid Index response:', data);
                 
-                if (data.status === 'success') {
+                if (data.status === 'success' && data.khalid_index) {
                     const khalid = data.khalid_index;
                     document.getElementById('khalid-value').textContent = khalid.value.toFixed(1);
                     document.getElementById('khalid-interpretation').textContent = khalid.interpretation;
@@ -727,9 +745,16 @@
                     } else {
                         valueEl.style.color = '#FF0000';
                     }
+                } else {
+                    // API not returning expected data
+                    document.getElementById('khalid-value').textContent = 'N/A';
+                    document.getElementById('khalid-interpretation').textContent = 'Data not available';
+                    document.getElementById('khalid-action').textContent = 'Check API';
+                    console.warn('Khalid Index endpoint not returning expected structure');
                 }
             } catch (error) {
                 console.error('Error loading Khalid Index:', error);
+                document.getElementById('khalid-value').textContent = 'Error';
             }
         }
 
@@ -738,8 +763,9 @@
             try {
                 const response = await fetch(`${API_BASE}/crisis`);
                 const data = await response.json();
+                console.log('Crisis analysis response:', data);
                 
-                if (data.status === 'success') {
+                if (data.status === 'success' && data.analysis) {
                     const analysis = data.analysis;
                     
                     document.getElementById('critical-count').textContent = analysis.critical_metrics.length;
@@ -768,10 +794,46 @@
                         document.getElementById('market-regime').textContent = 'CRISIS WARNING - MULTIPLE INDICATORS AT EXTREME LEVELS';
                         document.getElementById('market-alert').classList.add('critical');
                     }
+                } else {
+                    // API not returning expected data
+                    document.getElementById('crisis-section').style.display = 'block';
+                    document.getElementById('critical-count').textContent = 'N/A';
+                    document.getElementById('warning-count').textContent = 'N/A';
+                    document.getElementById('normal-count').textContent = 'N/A';
+                    document.getElementById('euphoria-count').textContent = 'N/A';
+                    console.warn('Crisis endpoint not returning expected structure');
                 }
             } catch (error) {
                 console.error('Error loading crisis analysis:', error);
+                document.getElementById('critical-count').textContent = 'Error';
             }
+        }
+        
+        // Add function to display sample dashboard when API isn't returning data
+        function displaySampleDashboard() {
+            const tbody = document.getElementById('dashboard-tbody');
+            tbody.innerHTML = `
+                <tr>
+                    <td><strong>Market Regime</strong></td>
+                    <td>LATE CYCLE</td>
+                    <td>CRISIS</td>
+                    <td>EUPHORIA</td>
+                    <td>45%</td>
+                    <td class="status-deteriorating">DETERIORATING</td>
+                    <td>Sample data - API needs to return actual metrics</td>
+                </tr>
+                <tr>
+                    <td><strong>VIX Index</strong></td>
+                    <td>--</td>
+                    <td>40</td>
+                    <td>12</td>
+                    <td>--</td>
+                    <td class="status-warning">NO DATA</td>
+                    <td>Waiting for API to return metrics</td>
+                </tr>
+            `;
+            
+            document.getElementById('market-regime').textContent = 'API CONNECTED - Awaiting Metrics Data';
         }
 
         // Load Dashboard
