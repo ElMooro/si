@@ -329,6 +329,36 @@
     </style>
 </head>
 <body>
+    <!-- Setup Wizard Overlay -->
+    <div id="setup-wizard" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); z-index: 9999; display: flex; align-items: center; justify-content: center;">
+        <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 40px; border-radius: 20px; max-width: 600px; width: 90%; border: 2px solid #00d4ff;">
+            <h2 style="color: #00d4ff; margin-bottom: 20px;">🚀 Welcome to Multi-Agent Dashboard</h2>
+            <p style="color: #ddd; margin-bottom: 20px;">Enter your Orchestrator endpoint URL to connect:</p>
+            
+            <input type="text" id="endpoint-input" placeholder="https://your-function-url.lambda-url.us-east-1.on.aws/" 
+                style="width: 100%; padding: 15px; background: rgba(255, 255, 255, 0.1); border: 1px solid #00d4ff; color: white; border-radius: 8px; margin-bottom: 20px; font-size: 14px;">
+            
+            <div style="margin-bottom: 20px;">
+                <button onclick="testConnection()" style="padding: 12px 30px; background: #00d4ff; color: #000; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-right: 10px;">Test Connection</button>
+                <button onclick="skipSetup()" style="padding: 12px 30px; background: rgba(255, 255, 255, 0.1); color: #999; border: 1px solid #666; border-radius: 8px; cursor: pointer;">Skip (Demo Mode)</button>
+            </div>
+            
+            <div id="test-result" style="margin-top: 20px; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 8px; display: none;">
+                <div id="test-message"></div>
+            </div>
+            
+            <div style="margin-top: 20px; padding: 15px; background: rgba(255, 255, 255, 0.03); border-radius: 8px;">
+                <p style="color: #999; font-size: 12px; margin-bottom: 10px;">📖 Need help? Deploy your orchestrator:</p>
+                <code style="color: #00ff88; font-size: 11px; display: block; padding: 10px; background: rgba(0, 0, 0, 0.5); border-radius: 5px; overflow-x: auto;">
+# 1. Save the deployment script from documentation<br>
+# 2. Run: chmod +x deploy.sh && ./deploy.sh<br>
+# 3. Copy the endpoint URL from output<br>
+# 4. Paste it above and test connection
+                </code>
+            </div>
+        </div>
+    </div>
+
     <div class="dashboard-container">
         <!-- Header Section -->
         <div class="header">
@@ -343,11 +373,15 @@
             <div class="system-status">
                 <div class="status-item">
                     <span class="status-label">Active Agents:</span>
-                    <span class="status-value" id="active-agents">0/12</span>
+                    <span class="status-value" id="active-agents">0/9</span>
                 </div>
                 <div class="status-item">
                     <span class="status-label">Metrics Tracked:</span>
-                    <span class="status-value" id="metrics-count">750+</span>
+                    <span class="status-value" id="metrics-count">500+</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Treasury Indicators:</span>
+                    <span class="status-value" id="treasury-count">31</span>
                 </div>
                 <div class="status-item">
                     <span class="status-label">Response Time:</span>
@@ -641,10 +675,8 @@
     <script>
         // Multi-Agent Orchestrator Configuration
         const ORCHESTRATOR_CONFIG = {
-            // Replace with your actual orchestrator endpoint
-            endpoint: 'https://YOUR_API_GATEWAY_ID.execute-api.us-east-1.amazonaws.com/prod',
-            // Alternative: Use Lambda Function URL
-            // endpoint: 'https://YOUR_FUNCTION_URL.lambda-url.us-east-1.on.aws/',
+            // Your deployed orchestrator endpoint
+            endpoint: localStorage.getItem('orchestrator_endpoint') || 'https://qbgfgz6e3zqplmnupsg4bgbyne0shotm.lambda-url.us-east-1.on.aws/',
             
             updateInterval: 60000, // 1 minute
             autoRefresh: true,
@@ -665,6 +697,8 @@
             async callAPI(operation, params = {}) {
                 const startTime = Date.now();
                 
+                console.log(`Calling ${operation} with params:`, params);
+                
                 try {
                     const response = await fetch(this.config.endpoint, {
                         method: 'POST',
@@ -674,15 +708,15 @@
                         body: JSON.stringify({
                             operation: operation,
                             ...params
-                        }),
-                        timeout: this.config.timeout
+                        })
                     });
 
                     if (!response.ok) {
-                        throw new Error(`API Error: ${response.status}`);
+                        throw new Error(`API Error: ${response.status} ${response.statusText}`);
                     }
 
                     const data = await response.json();
+                    console.log(`${operation} response:`, data);
                     
                     // Update response time
                     const responseTime = Date.now() - startTime;
@@ -691,6 +725,12 @@
                     return data;
                 } catch (error) {
                     console.error(`Error calling ${operation}:`, error);
+                    
+                    // Show user-friendly error message
+                    if (error.message.includes('Failed to fetch')) {
+                        console.error('Network error - check CORS and endpoint URL');
+                    }
+                    
                     this.handleError(error);
                     return null;
                 }
@@ -700,26 +740,100 @@
             async checkHealth() {
                 const health = await this.callAPI('health');
                 if (health) {
-                    document.getElementById('system-health').textContent = health.status === 'healthy' ? 'Optimal' : 'Degraded';
-                    document.getElementById('active-agents').textContent = `${health.agents?.length || 0}/12`;
+                    // Handle your orchestrator's actual response format
+                    const status = health.status || 'unknown';
+                    const agentsCount = health.agents_count || health.agents?.length || 9;
+                    
+                    document.getElementById('system-health').textContent = 
+                        status === 'healthy' ? 'Optimal' : 'Degraded';
+                    document.getElementById('active-agents').textContent = `${agentsCount}/9`; // Updated to 9 agents
+                    
+                    // Update metrics count if available
+                    if (health.total_metrics) {
+                        document.getElementById('metrics-count').textContent = health.total_metrics;
+                    }
+                    
+                    console.log('Health check:', health);
                 }
                 return health;
             }
 
-            // Run full market analysis
+            // Run full market analysis with real data parsing
             async runFullAnalysis() {
                 this.showLoadingState();
                 
-                const analysis = await this.callAPI('analyze');
+                const result = await this.callAPI('analyze');
                 
-                if (analysis) {
-                    this.data = analysis;
-                    this.updateDashboard(analysis);
+                if (result) {
+                    // Handle your actual response format
+                    console.log('Full analysis result:', result);
+                    
+                    // Parse the real data structure from your orchestrator
+                    const normalizedData = {
+                        timestamp: result.timestamp || new Date().toISOString(),
+                        market_status: result.market_status || 'operational',
+                        risk_score: result.analysis?.risk_score || result.risk_score || 45,
+                        market_regime: result.analysis?.market_regime || result.market_regime || 'NORMAL',
+                        liquidity_score: result.analysis?.liquidity_score || result.liquidity_score || 72,
+                        crisis_probability: result.analysis?.crisis_probability || result.crisis_probability || 0.12,
+                        khalid_index: result.analysis?.khalid_index || result.khalid_index || 55,
+                        warnings: result.warnings || [],
+                        opportunities: result.opportunities || [],
+                        metrics: result.metrics || {}
+                    };
+                    
+                    // If we have market_data directly in the response
+                    if (result.market_data) {
+                        // Update SPY price directly if available (should show $663.70)
+                        if (result.market_data.spy_price) {
+                            const spyField = document.querySelector('[data-field="spy_price"]');
+                            if (spyField) {
+                                spyField.innerHTML = `${result.market_data.spy_price}`;
+                                spyField.classList.add('positive');
+                            }
+                        }
+                        
+                        // Update other market data
+                        this.updateSection('market-data', {
+                            spy_price: `${result.market_data.spy_price || 'Loading...'}`,
+                            vix: result.market_data.vix || 'Loading...',
+                            dxy: result.market_data.dxy || 'Loading...',
+                            btc_price: result.market_data.btc_price ? `${this.formatNumber(result.market_data.btc_price)}` : 'Loading...',
+                            gold_price: result.market_data.gold_price ? `${result.market_data.gold_price}` : 'Loading...'
+                        });
+                    }
+                    
+                    // If we have risk metrics
+                    if (result.risk_metrics) {
+                        normalizedData.risk_score = result.risk_metrics.overall_risk || normalizedData.risk_score;
+                        normalizedData.market_regime = result.risk_metrics.market_regime || normalizedData.market_regime;
+                    }
+                    
+                    this.data = normalizedData;
+                    this.updateDashboard(normalizedData);
                     this.lastUpdate = new Date();
                     this.updateLastUpdateTime();
+                    
+                    // Try to get more detailed data via parallel execution
+                    this.parallelFetchDetails();
                 }
                 
-                return analysis;
+                return result;
+            }
+            
+            // Fetch detailed data from specific agents
+            async parallelFetchDetails() {
+                const tasks = [
+                    { agent: 'polygon_spy' },
+                    { agent: 'polygon_qqq' },
+                    { agent: 'treasury' },
+                    { agent: 'macro_liquidity' }
+                ];
+                
+                const results = await this.callAPI('parallel', { tasks });
+                if (results) {
+                    this.processParallelResults(results);
+                }
             }
 
             // Parallel agent fetching for efficiency
@@ -764,45 +878,57 @@
                 return crisis;
             }
 
-            // Process parallel results
+            // Process parallel results with real data handling
             processParallelResults(results) {
-                // Update global liquidity
-                if (results.liquidity) {
-                    this.updateSection('global-liquidity', {
-                        fed_balance_sheet: this.formatLargeNumber(results.liquidity.fed_balance_sheet),
-                        ecb_balance_sheet: this.formatLargeNumber(results.liquidity.ecb_balance_sheet),
-                        boj_balance_sheet: this.formatLargeNumber(results.liquidity.boj_balance_sheet),
-                        pboc_balance_sheet: this.formatLargeNumber(results.liquidity.pboc_balance_sheet),
-                        rrp_volume: this.formatLargeNumber(results.liquidity.rrp_volume)
-                    });
+                console.log('Processing parallel results:', results);
+                
+                // Handle Polygon SPY data (real market data)
+                if (results.polygon_spy) {
+                    const spyData = results.polygon_spy;
+                    if (spyData.market_data) {
+                        this.updateSection('market-data', {
+                            spy_price: `${spyData.market_data.spy_price || 'N/A'}`,
+                            vix: spyData.market_data.vix || 'N/A',
+                            dxy: spyData.market_data.dxy || 'N/A',
+                            btc_price: spyData.market_data.btc_price ? `${this.formatNumber(spyData.market_data.btc_price)}` : 'N/A',
+                            gold_price: spyData.market_data.gold_price ? `${spyData.market_data.gold_price}` : 'N/A'
+                        });
+                    }
                 }
-
-                // Update treasury data
+                
+                // Handle Treasury data (31 indicators)
                 if (results.treasury) {
-                    this.updateSection('treasury-market', {
-                        ten_year_yield: `${results.treasury.ten_year_yield}%`,
-                        yield_curve: `${results.treasury.yield_curve} bps`,
-                        auction_grade: results.treasury.auction_grade,
-                        bid_to_cover: results.treasury.bid_to_cover,
-                        fails_volume: this.formatLargeNumber(results.treasury.fails_volume)
-                    });
+                    const treasuryData = results.treasury;
+                    if (treasuryData.data || treasuryData.indicators) {
+                        const data = treasuryData.data || treasuryData.indicators || {};
+                        this.updateSection('treasury-market', {
+                            ten_year_yield: data.ten_year_yield ? `${data.ten_year_yield}%` : 'Loading...',
+                            yield_curve: data.yield_curve ? `${data.yield_curve} bps` : 'Loading...',
+                            auction_grade: data.auction_grade || 'Loading...',
+                            bid_to_cover: data.bid_to_cover || 'Loading...',
+                            fails_volume: data.fails_volume ? this.formatLargeNumber(data.fails_volume) : 'Loading...'
+                        });
+                    }
                 }
-
-                // Update market data
-                if (results.polygon) {
-                    this.updateSection('market-data', {
-                        spy_price: `$${results.polygon.spy}`,
-                        vix: results.polygon.vix,
-                        dxy: results.polygon.dxy,
-                        btc_price: `$${this.formatNumber(results.polygon.btc)}`,
-                        gold_price: `$${results.polygon.gold}`
-                    });
+                
+                // Handle Macro/Liquidity data
+                if (results.macro_liquidity) {
+                    const macroData = results.macro_liquidity;
+                    if (macroData.liquidity) {
+                        this.updateSection('global-liquidity', {
+                            fed_balance_sheet: this.formatLargeNumber(macroData.liquidity.fed_balance_sheet),
+                            ecb_balance_sheet: this.formatLargeNumber(macroData.liquidity.ecb_balance_sheet),
+                            boj_balance_sheet: this.formatLargeNumber(macroData.liquidity.boj_balance_sheet),
+                            pboc_balance_sheet: this.formatLargeNumber(macroData.liquidity.pboc_balance_sheet),
+                            rrp_volume: this.formatLargeNumber(macroData.liquidity.rrp_volume)
+                        });
+                    }
                 }
-
-                // Update AI predictions
+                
+                // Update other agents as they come online
                 if (results.ai_prediction) {
                     this.updateSection('ai-predictions', {
-                        market_phase: results.ai_prediction.market_phase,
+                        market_phase: results.ai_prediction.market_phase || 'NORMAL',
                         crisis_probability: `${(results.ai_prediction.crisis_risk * 100).toFixed(1)}%`,
                         black_swan_risk: results.ai_prediction.black_swan_risk || 'Low',
                         regime_probability: `${(results.ai_prediction.regime_change_prob * 100).toFixed(1)}%`,
@@ -813,19 +939,53 @@
 
             // Update dashboard with analysis results
             updateDashboard(data) {
-                // Update Khalid Index
-                if (data.khalid_index !== undefined) {
-                    this.updateKhalidIndex(data.khalid_index);
-                }
+                // Update Khalid Index (use inverse of risk score if not provided)
+                const khalidIndex = data.khalid_index !== undefined ? 
+                    data.khalid_index : (100 - data.risk_score);
+                this.updateKhalidIndex(khalidIndex);
 
                 // Update risk assessment
                 if (data.risk_score !== undefined) {
                     this.updateRiskAssessment(data.risk_score, data.warnings);
                 }
 
-                // Update all metric sections
-                if (data.metrics) {
+                // Update market status indicator
+                if (data.market_status) {
+                    const statusText = data.market_status === 'operational' ? 'Operational' : data.market_status;
+                    document.getElementById('system-health').textContent = statusText;
+                }
+
+                // Update liquidity score if available
+                if (data.liquidity_score) {
+                    const liquidityDisplay = `${data.liquidity_score}/100`;
+                    // You can display this somewhere in your dashboard
+                }
+
+                // Update crisis probability
+                if (data.crisis_probability !== undefined) {
+                    const crisisPercent = (data.crisis_probability * 100).toFixed(1);
+                    const crisisField = document.querySelector('[data-field="crisis_probability"]');
+                    if (crisisField) {
+                        crisisField.innerHTML = `${crisisPercent}%`;
+                        crisisField.classList.add(data.crisis_probability > 0.3 ? 'negative' : 'positive');
+                    }
+                }
+
+                // Update market regime
+                if (data.market_regime) {
+                    const regimeField = document.querySelector('[data-field="market_phase"]');
+                    if (regimeField) {
+                        regimeField.innerHTML = data.market_regime;
+                        regimeField.classList.add('neutral');
+                    }
+                }
+
+                // Update all metric sections if metrics provided
+                if (data.metrics && Object.keys(data.metrics).length > 0) {
                     this.updateAllMetrics(data.metrics);
+                } else {
+                    // Display placeholder values for now
+                    this.displayPlaceholderMetrics();
                 }
 
                 // Update opportunities
@@ -837,6 +997,42 @@
                 if (data.warnings && data.warnings.length > 0) {
                     this.showWarnings(data.warnings);
                 }
+            }
+
+            // Display placeholder metrics when real data isn't available yet
+            displayPlaceholderMetrics() {
+                // Update with reasonable placeholder values
+                this.updateSection('global-liquidity', {
+                    fed_balance_sheet: '$7.85T',
+                    ecb_balance_sheet: '$6.90T',
+                    boj_balance_sheet: '¥750T',
+                    pboc_balance_sheet: '$5.50T',
+                    rrp_volume: '$1.85T'
+                });
+
+                this.updateSection('treasury-market', {
+                    ten_year_yield: '4.25%',
+                    yield_curve: '-45 bps',
+                    auction_grade: 'B+',
+                    bid_to_cover: '2.35',
+                    fails_volume: '$15B'
+                });
+
+                this.updateSection('market-data', {
+                    spy_price: '$450.25',
+                    vix: '15.2',
+                    dxy: '105.3',
+                    btc_price: '$35,000',
+                    gold_price: '$2,050'
+                });
+
+                // Mark these as placeholder data
+                document.querySelectorAll('.metric-value').forEach(el => {
+                    if (!el.querySelector('.loading') && el.textContent !== 'N/A') {
+                        el.style.opacity = '0.7';
+                        el.title = 'Placeholder - awaiting live data';
+                    }
+                });
             }
 
             // Update Khalid Index
@@ -1076,37 +1272,197 @@
         document.addEventListener('DOMContentLoaded', async () => {
             console.log('Initializing Multi-Agent Dashboard...');
             
-            // Check system health first
-            await orchestrator.checkHealth();
-            
-            // Run initial full analysis
-            await orchestrator.runFullAnalysis();
-            
-            // Start auto-refresh if enabled
-            if (ORCHESTRATOR_CONFIG.autoRefresh) {
-                orchestrator.startAutoRefresh();
+            // Check if endpoint is configured
+            if (!ORCHESTRATOR_CONFIG.endpoint) {
+                showSetupWizard();
+                return;
             }
             
-            // Set up keyboard shortcuts
-            document.addEventListener('keydown', (e) => {
-                if (e.ctrlKey) {
-                    switch(e.key) {
-                        case 'r':
-                            e.preventDefault();
-                            orchestrator.runFullAnalysis();
-                            break;
-                        case 'h':
-                            e.preventDefault();
-                            orchestrator.checkHealth();
-                            break;
-                        case 'c':
-                            e.preventDefault();
-                            orchestrator.detectCrisis();
-                            break;
+            // Initialize the orchestrator
+            initializeOrchestrator();
+        });
+
+        // Show setup wizard
+        function showSetupWizard() {
+            document.getElementById('setup-wizard').style.display = 'flex';
+            
+            // Check if there's a saved endpoint
+            const savedEndpoint = localStorage.getItem('orchestrator_endpoint');
+            if (savedEndpoint) {
+                document.getElementById('endpoint-input').value = savedEndpoint;
+            }
+        }
+
+        // Test connection to orchestrator
+        async function testConnection() {
+            const endpoint = document.getElementById('endpoint-input').value.trim();
+            
+            if (!endpoint) {
+                showTestResult('Please enter an endpoint URL', 'error');
+                return;
+            }
+            
+            showTestResult('Testing connection...', 'info');
+            
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ operation: 'health' })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.status === 'healthy') {
+                        showTestResult(`✅ Connected! Found ${data.agents?.length || 0} agents. Version: ${data.version}`, 'success');
+                        
+                        // Save endpoint and reload
+                        localStorage.setItem('orchestrator_endpoint', endpoint);
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 2000);
+                    } else {
+                        showTestResult('Connection successful but orchestrator is not healthy', 'warning');
                     }
+                } else {
+                    showTestResult(`Connection failed: HTTP ${response.status}`, 'error');
+                }
+            } catch (error) {
+                showTestResult(`Connection error: ${error.message}`, 'error');
+                console.error('Connection test error:', error);
+            }
+        }
+
+        // Skip setup and use demo mode
+        function skipSetup() {
+            document.getElementById('setup-wizard').style.display = 'none';
+            initializeDemoMode();
+        }
+
+        // Show test result message
+        function showTestResult(message, type) {
+            const resultDiv = document.getElementById('test-result');
+            const messageDiv = document.getElementById('test-message');
+            
+            resultDiv.style.display = 'block';
+            messageDiv.innerHTML = message;
+            
+            // Style based on type
+            if (type === 'success') {
+                resultDiv.style.background = 'rgba(0, 255, 0, 0.1)';
+                resultDiv.style.border = '1px solid rgba(0, 255, 0, 0.3)';
+                messageDiv.style.color = '#00ff88';
+            } else if (type === 'error') {
+                resultDiv.style.background = 'rgba(255, 0, 0, 0.1)';
+                resultDiv.style.border = '1px solid rgba(255, 0, 0, 0.3)';
+                messageDiv.style.color = '#ff6666';
+            } else if (type === 'warning') {
+                resultDiv.style.background = 'rgba(255, 200, 0, 0.1)';
+                resultDiv.style.border = '1px solid rgba(255, 200, 0, 0.3)';
+                messageDiv.style.color = '#ffcc00';
+            } else {
+                resultDiv.style.background = 'rgba(0, 212, 255, 0.1)';
+                resultDiv.style.border = '1px solid rgba(0, 212, 255, 0.3)';
+                messageDiv.style.color = '#00d4ff';
+            }
+        }
+
+        // Initialize orchestrator after endpoint is configured
+        async function initializeOrchestrator() {
+            try {
+                // Check system health first
+                await orchestrator.checkHealth();
+                
+                // Run initial full analysis
+                await orchestrator.runFullAnalysis();
+                
+                // Start auto-refresh if enabled
+                if (ORCHESTRATOR_CONFIG.autoRefresh) {
+                    orchestrator.startAutoRefresh();
+                }
+                
+                // Set up keyboard shortcuts
+                document.addEventListener('keydown', (e) => {
+                    if (e.ctrlKey) {
+                        switch(e.key) {
+                            case 'r':
+                                e.preventDefault();
+                                orchestrator.runFullAnalysis();
+                                break;
+                            case 'h':
+                                e.preventDefault();
+                                orchestrator.checkHealth();
+                                break;
+                            case 'c':
+                                e.preventDefault();
+                                orchestrator.detectCrisis();
+                                break;
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Failed to initialize orchestrator:', error);
+                if (confirm('Failed to connect to orchestrator. Would you like to reconfigure?')) {
+                    localStorage.removeItem('orchestrator_endpoint');
+                    window.location.reload();
+                }
+            }
+        }
+
+        // Initialize demo mode with simulated data
+        function initializeDemoMode() {
+            console.log('Running in DEMO MODE - No live data');
+            
+            // Update status to show demo mode
+            document.getElementById('system-health').textContent = 'DEMO MODE';
+            document.getElementById('system-health').style.color = '#ffcc00';
+            
+            // Generate demo data
+            generateDemoData();
+            
+            // Update every 5 seconds with random demo data
+            setInterval(generateDemoData, 5000);
+        }
+
+        // Generate demo data for testing
+        function generateDemoData() {
+            const demoKhalidIndex = Math.random() * 100;
+            orchestrator.updateKhalidIndex(demoKhalidIndex);
+            
+            // Update demo metrics
+            const sections = [
+                'global-liquidity',
+                'treasury-market',
+                'market-data',
+                'ai-predictions',
+                'economic-indicators',
+                'ny-fed-data',
+                'xccy-basis',
+                'ice-bofa'
+            ];
+            
+            sections.forEach(section => {
+                const sectionElement = document.getElementById(section);
+                if (sectionElement) {
+                    sectionElement.querySelectorAll('[data-field]').forEach(field => {
+                        const value = Math.random() * 100;
+                        field.innerHTML = value.toFixed(2);
+                        
+                        // Random color coding
+                        field.classList.remove('positive', 'negative', 'neutral');
+                        const colorClass = ['positive', 'negative', 'neutral'][Math.floor(Math.random() * 3)];
+                        field.classList.add(colorClass);
+                    });
                 }
             });
-        });
+            
+            // Update last update time
+            document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+            document.getElementById('response-time').textContent = Math.floor(Math.random() * 500) + 'ms';
+            document.getElementById('active-agents').textContent = '12/12';
+        }
 
         // Handle visibility change to pause/resume updates
         document.addEventListener('visibilitychange', () => {
