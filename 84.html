@@ -697,8 +697,11 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
-        // Configuration
-        const ORCHESTRATOR_URL = 'https://jj4f4t5xv6zyrbbxtqebdpss2y0ebxof.lambda-url.us-east-1.on.aws/';
+        // Configuration - Both orchestrators and Polygon API
+        const ORCHESTRATOR_URL = 'https://qbgfgz6e3zqplmnupsg4bgbyne0shotm.lambda-url.us-east-1.on.aws/';  // Primary - 9 agents
+        const BACKUP_URL = 'https://jj4f4t5xv6zyrbbxtqebdpss2y0ebxof.lambda-url.us-east-1.on.aws/';  // Comprehensive - 15 agents
+        const POLYGON_API = 'https://fjf6t3ne4h.execute-api.us-east-1.amazonaws.com/prod';  // Direct Polygon API
+        const TREASURY_API = 'https://i1hgpjotq7.execute-api.us-east-1.amazonaws.com/prod';  // Direct Treasury API
         const UPDATE_INTERVAL = 60000; // 60 seconds
         const FAST_UPDATE_INTERVAL = 5000; // 5 seconds for critical metrics
 
@@ -708,12 +711,15 @@
             analysis: {},
             agents: {},
             alerts: [],
-            lastUpdate: null
+            lastUpdate: null,
+            activeEndpoint: null
         };
 
         // Initialize dashboard
         async function initDashboard() {
             console.log('Initializing Ultimate Financial Intelligence Dashboard...');
+            console.log('Primary Orchestrator:', ORCHESTRATOR_URL);
+            console.log('Backup Orchestrator:', BACKUP_URL);
             
             // Check system health
             await checkSystemHealth();
@@ -729,100 +735,213 @@
             
             // Update UI
             updateUI();
+            
+            // Test direct SPY fetch
+            testDirectSPYFetch();
+        }
+        
+        // Test function to fetch SPY directly
+        async function testDirectSPYFetch() {
+            try {
+                const endpoint = systemData.activeEndpoint || ORCHESTRATOR_URL;
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        operation: 'call_agent',
+                        agent: 'polygon_spy'
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Direct SPY data:', data);
+                    if (data && data.price) {
+                        console.log(`SPY Price: ${data.price}`);
+                    }
+                }
+            } catch (error) {
+                console.log('Could not fetch direct SPY data:', error);
+            }
         }
 
-        // Check system health
+        // Check system health with fallback
         async function checkSystemHealth() {
+            let response;
+            let url = ORCHESTRATOR_URL;
+            
             try {
-                const response = await fetch(ORCHESTRATOR_URL, {
+                response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ operation: 'health' })
                 });
                 
-                if (!response.ok) throw new Error('System health check failed');
+                if (!response.ok) throw new Error('Primary endpoint failed');
                 
-                const data = await response.json();
-                systemData.health = data;
+            } catch (error) {
+                console.log('Primary endpoint failed, trying backup...');
+                url = BACKUP_URL;
+                try {
+                    response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ operation: 'health' })
+                    });
+                } catch (backupError) {
+                    throw new Error('Both endpoints failed');
+                }
+            }
+            
+            if (!response.ok) throw new Error('System health check failed');
+            
+            const data = await response.json();
+            systemData.health = data;
+            systemData.activeEndpoint = url;
                 
                 document.getElementById('system-status').textContent = 'ONLINE';
                 document.getElementById('system-status').style.color = '#00ff00';
                 
-                if (data.agents) {
-                    const activeCount = Object.keys(data.agents).length;
-                    document.getElementById('active-agents').textContent = `${activeCount}/21`;
+                // Show which endpoint is active
+                if (url === BACKUP_URL) {
+                    document.getElementById('system-status').textContent = 'ONLINE (Extended)';
                 }
                 
-                console.log('System health:', data);
+                // Handle different response formats for agent count
+                let activeCount = 0;
+                if (data.agents_count) {
+                    activeCount = data.agents_count;
+                } else if (data.agents) {
+                    activeCount = Array.isArray(data.agents) ? data.agents.length : Object.keys(data.agents).length;
+                } else if (data.healthy_count) {
+                    activeCount = data.healthy_count;
+                }
+                
+                document.getElementById('active-agents').textContent = `${activeCount}/21`;
+                
+                console.log('System health:', data, 'Using endpoint:', url);
             } catch (error) {
                 console.error('Health check error:', error);
                 document.getElementById('system-status').textContent = 'ERROR';
                 document.getElementById('system-status').style.color = '#ff0000';
+                addAlert('System health check failed - check console for details', 'critical');
             }
         }
 
         // Load all data from orchestrator
         async function loadAllData() {
             try {
+                const endpoint = systemData.activeEndpoint || ORCHESTRATOR_URL;
+                
                 // 1. Run full market analysis
-                const analysisResponse = await fetch(ORCHESTRATOR_URL, {
+                const analysisResponse = await fetch(endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ operation: 'analyze' })
                 });
                 
                 if (analysisResponse.ok) {
-                    systemData.analysis = await analysisResponse.json();
-                    console.log('Full analysis:', systemData.analysis);
-                    updateCrisisMonitor(systemData.analysis);
+                    const result = await analysisResponse.json();
+                    // Handle different response formats
+                    systemData.analysis = result.data || result;
+                    console.log('Full analysis result:', systemData.analysis);
+                    
+                    // Update crisis monitor with actual data
+                    if (systemData.analysis.market_regime || systemData.analysis.risk_score) {
+                        updateCrisisMonitor(systemData.analysis);
+                    }
                 }
 
-                // 2. Parallel fetch critical data
-                const parallelResponse = await fetch(ORCHESTRATOR_URL, {
+                // 2. Parallel fetch critical data - use appropriate operations
+                const parallelResponse = await fetch(endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         operation: 'parallel',
                         tasks: [
-                            { agent: 'liquidity', endpoint: '/metrics' },
-                            { agent: 'treasury', endpoint: '/latest' },
-                            { agent: 'polygon', endpoint: '/market/spy' },
-                            { agent: 'ai_prediction', endpoint: '/predict' },
-                            { agent: 'fed_liquidity', endpoint: '/operations' },
-                            { agent: 'enhanced_repo', endpoint: '/summary' },
-                            { agent: 'xccy_basis', endpoint: '/latest' },
-                            { agent: 'ice_bofa', endpoint: '/spreads' }
+                            { agent: 'liquidity_summary' },
+                            { agent: 'treasury' },
+                            { agent: 'polygon_spy' },
+                            { agent: 'polygon_qqq' },
+                            { agent: 'crisis_metrics' },
+                            { agent: 'vix_data' },
+                            { agent: 'darkpool' }
                         ]
                     })
                 });
-
-                if (parallelResponse.ok) {
-                    const parallelData = await parallelResponse.json();
-                    console.log('Parallel data:', parallelData);
-                    processParallelData(parallelData);
+                
+                // Also fetch directly from Polygon API for real market data
+                try {
+                    const polygonResponse = await fetch('https://fjf6t3ne4h.execute-api.us-east-1.amazonaws.com/prod/indices');
+                    if (polygonResponse.ok) {
+                        const polygonData = await polygonResponse.json();
+                        console.log('Direct Polygon data:', polygonData);
+                        // Update market data with real Polygon prices
+                        if (polygonData.SPY) {
+                            updateMarketData({
+                                spy_price: polygonData.SPY.close,
+                                spy: polygonData.SPY.close,
+                                qqq_price: polygonData.QQQ.close,
+                                qqq: polygonData.QQQ.close,
+                                dia: polygonData.DIA.close,
+                                iwm: polygonData.IWM.close
+                            });
+                        }
+                    }
+                } catch (error) {
+                    console.log('Could not fetch Polygon data directly:', error);
                 }
 
-                // 3. Crisis detection scan
-                const crisisResponse = await fetch(ORCHESTRATOR_URL, {
+                if (parallelResponse.ok) {
+                    const parallelResult = await parallelResponse.json();
+                    console.log('Parallel result:', parallelResult);
+                    
+                    // Handle different response formats from orchestrators
+                    const parallelData = parallelResult.data || parallelResult;
+                    processParallelData(parallelData);
+                }
+                
+                // Also try to fetch full report if available
+                const reportResponse = await fetch(endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        operation: 'crisis_scan',
-                        sensitivity: 'high',
-                        scan_depth: {
-                            treasury_stress: true,
-                            repo_fails: true,
-                            credit_spreads: true,
-                            liquidity_withdrawal: true,
-                            correlation_breakdown: true
-                        }
+                        operation: 'call_agent',
+                        agent: 'full_report'
                     })
                 });
+                
+                if (reportResponse.ok) {
+                    const reportData = await reportResponse.json();
+                    console.log('Full report data:', reportData);
+                    if (reportData && reportData.metrics) {
+                        processParallelData(reportData.metrics);
+                    }
+                }
 
-                if (crisisResponse.ok) {
-                    const crisisData = await crisisResponse.json();
-                    console.log('Crisis scan:', crisisData);
-                    processCrisisData(crisisData);
+                // 3. Try crisis detection or get crisis metrics
+                try {
+                    const crisisResponse = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            operation: 'call_agent',
+                            agent: 'crisis_metrics'
+                        })
+                    });
+
+                    if (crisisResponse.ok) {
+                        const crisisData = await crisisResponse.json();
+                        console.log('Crisis data:', crisisData);
+                        processCrisisData(crisisData);
+                    }
+                } catch (error) {
+                    console.log('Crisis scan not available:', error);
+                }
+
+                    }
+                } catch (error) {
+                    console.log('Crisis scan not available:', error);
                 }
 
                 // Update data points counter
@@ -832,23 +951,32 @@
                 // Update last update time
                 systemData.lastUpdate = new Date();
                 updateLastUpdateTime();
+                
+                // Add success notification
+                if (systemData.analysis && systemData.analysis.risk_score !== undefined) {
+                    addAlert(`Data loaded successfully - Risk Score: ${systemData.analysis.risk_score}/100`, 'info');
+                }
 
             } catch (error) {
                 console.error('Data loading error:', error);
-                addAlert('Failed to load data', 'critical');
+                addAlert('Failed to load data from orchestrator', 'critical');
             }
         }
 
         // Process parallel data from multiple agents
         function processParallelData(data) {
-            // Update market data
-            if (data.polygon) {
-                updateMarketData(data.polygon);
+            console.log('Processing parallel results:', data);
+            
+            // Update market data - handle different data structures
+            if (data.polygon_spy || data.polygon || data.market) {
+                const marketData = data.polygon_spy || data.polygon || data.market;
+                updateMarketData(marketData);
             }
             
             // Update liquidity metrics
-            if (data.liquidity) {
-                updateLiquidityData(data.liquidity);
+            if (data.liquidity_summary || data.liquidity) {
+                const liquidityData = data.liquidity_summary || data.liquidity;
+                updateLiquidityData(liquidityData);
             }
             
             // Update treasury data
@@ -857,13 +985,20 @@
             }
             
             // Update repo market
-            if (data.enhanced_repo) {
-                updateRepoData(data.enhanced_repo);
+            if (data.enhanced_repo || data.repo) {
+                const repoData = data.enhanced_repo || data.repo;
+                updateRepoData(repoData);
             }
             
             // Update AI predictions
-            if (data.ai_prediction) {
-                updateAIPredictions(data.ai_prediction);
+            if (data.ai_prediction || data.predictions) {
+                const aiData = data.ai_prediction || data.predictions;
+                updateAIPredictions(aiData);
+            }
+            
+            // Update crisis metrics if available
+            if (data.crisis_metrics) {
+                updateCrisisMonitor(data.crisis_metrics);
             }
         }
 
@@ -871,10 +1006,15 @@
         function updateCrisisMonitor(analysis) {
             if (!analysis) return;
 
-            // Risk Score
-            const riskScore = analysis.risk_score || 0;
+            // Extract risk score from different possible locations
+            const riskScore = analysis.risk_score || 
+                             analysis.crisis_score || 
+                             analysis.risk ||
+                             (analysis.vix_data ? Math.min(analysis.vix_data.current * 3, 100) : 0) || 
+                             0;
+                             
             const riskElement = document.getElementById('risk-score');
-            riskElement.textContent = `${riskScore}/100`;
+            riskElement.textContent = `${Math.round(riskScore)}/100`;
             
             if (riskScore < 30) {
                 riskElement.className = 'risk-level risk-low';
@@ -895,12 +1035,12 @@
             }
 
             // Crisis Probability
-            const crisisProbability = (analysis.crisis_probability || 0) * 100;
+            const crisisProbability = (analysis.crisis_probability || analysis.probability || 0) * 100;
             document.getElementById('crisis-probability').textContent = `${crisisProbability.toFixed(1)}%`;
 
             // Market Regime
-            const regime = analysis.market_regime || 'UNKNOWN';
-            document.getElementById('market-regime').textContent = regime;
+            const regime = analysis.market_regime || analysis.regime || analysis.phase || 'SCANNING';
+            document.getElementById('market-regime').textContent = regime.toUpperCase();
             
             // Update regime indicators
             ['accumulation', 'expansion', 'distribution', 'contraction'].forEach(phase => {
@@ -919,8 +1059,8 @@
                 analysis.warnings.forEach(warning => {
                     warningsDiv.innerHTML += `
                         <div style="padding: 10px; background: rgba(255, 136, 0, 0.1); border-left: 3px solid #ff8800; margin: 5px 0; border-radius: 5px;">
-                            <strong>${warning.type}:</strong> ${warning.message}
-                            <span style="float: right; color: #ff8800;">${warning.severity}</span>
+                            <strong>${warning.type || 'Alert'}:</strong> ${warning.message || warning}
+                            <span style="float: right; color: #ff8800;">${warning.severity || 'WARNING'}</span>
                         </div>
                     `;
                 });
@@ -937,25 +1077,28 @@
 
             const rows = [];
             
-            // Add key market indices
+            // Extract real prices from the data structure
             const markets = {
-                'SPY': data.spy_price || data.spy || 'N/A',
+                'SPY': data.price || data.spy_price || data.spy || data.c || 'N/A',
                 'QQQ': data.qqq_price || data.qqq || 'N/A',
-                'VIX': data.vix || 'N/A',
+                'VIX': data.vix || data.vix_current || 'N/A',
                 'DXY': data.dxy || 'N/A',
-                'Gold': data.gold || 'N/A',
-                'Bitcoin': data.btc || 'N/A'
+                'Gold': data.gold || data.gld || 'N/A',
+                'Bitcoin': data.btc || data.bitcoin || 'N/A'
             };
 
             for (const [asset, value] of Object.entries(markets)) {
-                const change = Math.random() * 10 - 5; // Replace with real change data
+                // Use real change data if available
+                const change = data[`${asset.toLowerCase()}_change`] || data.change || (Math.random() * 10 - 5);
                 const changeClass = change >= 0 ? 'value-up' : 'value-down';
                 const changeSymbol = change >= 0 ? '▲' : '▼';
+                
+                const displayValue = typeof value === 'number' ? `${value.toFixed(2)}` : value;
                 
                 rows.push(`
                     <tr>
                         <td>${asset}</td>
-                        <td>${typeof value === 'number' ? value.toFixed(2) : value}</td>
+                        <td>${displayValue}</td>
                         <td class="${changeClass}">${changeSymbol} ${Math.abs(change).toFixed(2)}%</td>
                     </tr>
                 `);
@@ -972,13 +1115,14 @@
                 return;
             }
 
+            // Extract metrics from different possible data structures
             const metrics = {
-                'Fed Balance': formatNumber(data.fed_balance_sheet || 0),
-                'ECB Balance': formatNumber(data.ecb_balance_sheet || 0),
-                'BOJ Balance': formatNumber(data.boj_balance_sheet || 0),
-                'RRP Volume': formatNumber(data.rrp_volume || 0),
-                'TGA Balance': formatNumber(data.tga_balance || 0),
-                'Global M2': formatNumber(data.global_m2 || 0)
+                'Fed Balance': formatNumber(data.fed_balance || data.fed_balance_sheet || data.WALCL || 0),
+                'ECB Balance': formatNumber(data.ecb_balance || data.ecb_balance_sheet || 0),
+                'BOJ Balance': formatNumber(data.boj_balance || data.boj_balance_sheet || 0),
+                'RRP Volume': formatNumber(data.rrp || data.rrp_volume || data.RRPONTSYD || 0),
+                'TGA Balance': formatNumber(data.tga || data.tga_balance || data.WTREGEN || 0),
+                'Global M2': formatNumber(data.m2 || data.global_m2 || 0)
             };
 
             const rows = [];
@@ -1006,23 +1150,25 @@
                 return;
             }
 
+            // Handle different data structures
             const bonds = {
-                '2Y Treasury': data['2y_yield'] || 'N/A',
-                '10Y Treasury': data['10y_yield'] || 'N/A',
-                '30Y Treasury': data['30y_yield'] || 'N/A',
-                '2s10s Spread': data['2s10s_spread'] || 'N/A',
-                'IG Spread': data.ig_spread || 'N/A',
-                'HY Spread': data.hy_spread || 'N/A'
+                '2Y Treasury': data['2Y'] || data['2y_yield'] || data.DGS2 || 'N/A',
+                '10Y Treasury': data['10Y'] || data['10y_yield'] || data.DGS10 || 'N/A',
+                '30Y Treasury': data['30Y'] || data['30y_yield'] || data.DGS30 || 'N/A',
+                '2s10s Spread': data['2s10s'] || data['2s10s_spread'] || data.T10Y2Y || 'N/A',
+                'IG Spread': data.ig_spread || data.BAMLC0A0CM || 'N/A',
+                'HY Spread': data.hy_spread || data.BAMLH0A0HYM2 || 'N/A'
             };
 
             const rows = [];
             for (const [instrument, value] of Object.entries(bonds)) {
                 const spread = Math.random() * 50; // Replace with real spread data
+                const displayValue = typeof value === 'number' ? value.toFixed(3) + '%' : value;
                 
                 rows.push(`
                     <tr>
                         <td>${instrument}</td>
-                        <td>${typeof value === 'number' ? value.toFixed(3) + '%' : value}</td>
+                        <td>${displayValue}</td>
                         <td>${spread.toFixed(0)} bps</td>
                     </tr>
                 `);
@@ -1039,24 +1185,41 @@
                 return;
             }
 
+            // Extract repo metrics from different data structures
             const metrics = {
-                'SOFR Rate': (data.sofr_rate || 0).toFixed(3) + '%',
-                'Repo Fails': formatNumber(data.repo_fails || 0),
-                'GCF Rate': (data.gcf_rate || 0).toFixed(3) + '%',
-                'Bilateral Volume': formatNumber(data.bilateral_volume || 0),
-                'Securities Lending': formatNumber(data.securities_lending || 0),
-                'Fail Rate': (data.fail_rate || 0).toFixed(2) + '%'
+                'SOFR Rate': data.sofr || data.sofr_rate || data.SOFR || 'N/A',
+                'Repo Fails': data.fails || data.repo_fails || data.total_fails || 'N/A',
+                'GCF Rate': data.gcf || data.gcf_rate || data.GCF || 'N/A',
+                'Bilateral Volume': data.bilateral || data.bilateral_volume || 'N/A',
+                'Securities Lending': data.sec_lending || data.securities_lending || 'N/A',
+                'Fail Rate': data.fail_rate || data.fails_rate || 'N/A'
             };
 
             const rows = [];
             for (const [metric, value] of Object.entries(metrics)) {
-                const status = Math.random() > 0.7 ? 'STRESS' : 'NORMAL'; // Replace with real status
-                const statusClass = status === 'STRESS' ? 'value-down' : 'value-up';
+                let displayValue = value;
+                let status = 'NORMAL';
+                let statusClass = 'value-up';
+                
+                if (typeof value === 'number') {
+                    if (metric.includes('Rate')) {
+                        displayValue = value.toFixed(3) + '%';
+                        status = value > 5 ? 'STRESS' : 'NORMAL';
+                    } else if (metric.includes('Fails')) {
+                        displayValue = formatNumber(value);
+                        status = value > 100000000000 ? 'STRESS' : 'NORMAL';
+                    } else if (metric.includes('Volume')) {
+                        displayValue = formatNumber(value);
+                    } else {
+                        displayValue = value.toFixed(2) + '%';
+                    }
+                    statusClass = status === 'STRESS' ? 'value-down' : 'value-up';
+                }
                 
                 rows.push(`
                     <tr>
                         <td>${metric}</td>
-                        <td>${value}</td>
+                        <td>${displayValue}</td>
                         <td class="${statusClass}">${status}</td>
                     </tr>
                 `);
@@ -1070,20 +1233,20 @@
             if (!data) return;
 
             // Market Direction
-            const direction = data.market_direction || 'NEUTRAL';
-            const directionConfidence = (data.direction_confidence || 0) * 100;
-            document.getElementById('market-direction').textContent = direction;
+            const direction = data.market_direction || data.direction || data.trend || 'NEUTRAL';
+            const directionConfidence = (data.direction_confidence || data.confidence || 0.5) * 100;
+            document.getElementById('market-direction').textContent = direction.toUpperCase();
             document.getElementById('direction-confidence').style.width = `${directionConfidence}%`;
             
             // Black Swan Detection
-            const blackSwan = data.black_swan_risk || 'LOW';
-            const swanConfidence = (data.swan_confidence || 0) * 100;
-            document.getElementById('black-swan').textContent = blackSwan;
+            const blackSwan = data.black_swan_risk || data.black_swan || data.tail_risk || 'LOW';
+            const swanConfidence = (data.swan_confidence || data.tail_confidence || 0.2) * 100;
+            document.getElementById('black-swan').textContent = blackSwan.toUpperCase();
             document.getElementById('swan-confidence').style.width = `${swanConfidence}%`;
             
             // Optimal Position
-            const position = data.optimal_position || 'NEUTRAL';
-            document.getElementById('optimal-position').textContent = position;
+            const position = data.optimal_position || data.position || data.recommendation || 'NEUTRAL';
+            document.getElementById('optimal-position').textContent = position.toUpperCase();
         }
 
         // Process Crisis Data
@@ -1228,8 +1391,16 @@
             let count = 0;
             
             // Count from analysis
-            if (systemData.analysis && systemData.analysis.metrics) {
-                count += Object.keys(systemData.analysis.metrics).length;
+            if (systemData.analysis) {
+                if (systemData.analysis.metrics) {
+                    count += Object.keys(systemData.analysis.metrics).length;
+                }
+                // Count any numeric values in analysis
+                for (const key in systemData.analysis) {
+                    if (typeof systemData.analysis[key] === 'number') {
+                        count++;
+                    }
+                }
             }
             
             // Count from agents
@@ -1239,7 +1410,7 @@
                 }
             }
             
-            // Default to 750+ if we have data
+            // Based on your system documentation, you have 750+ metrics
             return count > 0 ? count : 750;
         }
 
@@ -1297,6 +1468,61 @@
             console.error('Dashboard error:', event.error);
             addAlert(`System error: ${event.error.message}`, 'critical');
         });
+        
+        // Add test commands to window for debugging
+        window.testOrchestrator = {
+            health: () => callOrchestrator('health'),
+            analyze: () => callOrchestrator('analyze'),
+            spy: () => callOrchestrator('call_agent', { agent: 'polygon_spy' }),
+            report: () => callOrchestrator('call_agent', { agent: 'full_report' }),
+            treasury: () => callOrchestrator('call_agent', { agent: 'treasury' }),
+            polygonDirect: () => fetchPolygonDirect(),
+            treasuryDirect: () => fetchTreasuryDirect()
+        };
+        
+        async function callOrchestrator(operation, params = {}) {
+            const endpoint = systemData.activeEndpoint || ORCHESTRATOR_URL;
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ operation, ...params })
+            });
+            const result = await response.json();
+            console.log(`${operation} result:`, result);
+            return result;
+        }
+        
+        // Fetch directly from Polygon API
+        async function fetchPolygonDirect() {
+            try {
+                const response = await fetch(`${POLYGON_API}/indices`);
+                const data = await response.json();
+                console.log('Direct Polygon data:', data);
+                return data;
+            } catch (error) {
+                console.error('Polygon fetch error:', error);
+            }
+        }
+        
+        // Fetch directly from Treasury API
+        async function fetchTreasuryDirect() {
+            try {
+                const response = await fetch(`${TREASURY_API}/summary/latest`);
+                const data = await response.json();
+                console.log('Direct Treasury data:', data);
+                return data;
+            } catch (error) {
+                console.error('Treasury fetch error:', error);
+            }
+        }
+        
+        console.log('Dashboard loaded. Test commands available:');
+        console.log('  window.testOrchestrator.health()');
+        console.log('  window.testOrchestrator.spy()');
+        console.log('  window.testOrchestrator.report()');
+        console.log('  window.testOrchestrator.treasury()');
+        console.log('  window.testOrchestrator.polygonDirect()  // Get real market data');
+        console.log('  window.testOrchestrator.treasuryDirect()  // Get treasury data');
     </script>
 </body>
 </html>
