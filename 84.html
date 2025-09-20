@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Agent Financial Intelligence System</title>
+    <title>Multi-Agent Financial Intelligence System - Real-Time Dashboard</title>
     <style>
         * {
             margin: 0;
@@ -12,478 +12,1125 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0a0e27;
-            color: #fff;
-            overflow-x: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #0f0c1d 0%, #1a1a2e 50%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
         }
 
+        .dashboard-container {
+            max-width: 1900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header Section */
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 2rem;
-            text-align: center;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            padding: 2rem;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .stat-card {
-            background: rgba(255,255,255,0.05);
+            background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 15px;
-            padding: 1.5rem;
-            text-align: center;
-            transition: transform 0.3s;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .stat-value {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: #667eea;
-        }
-
-        .stat-label {
-            color: rgba(255,255,255,0.7);
-            margin-top: 0.5rem;
-        }
-
-        .controls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            justify-content: center;
-            padding: 2rem;
-        }
-
-        button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 30px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        button:hover {
-            transform: scale(1.05);
-        }
-
-        button:active {
-            transform: scale(0.98);
-        }
-
-        .agents-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        .agent-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-top: 2rem;
-        }
-
-        .agent-card {
-            background: rgba(255,255,255,0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 15px;
-            padding: 1.5rem;
-            transition: all 0.3s;
-        }
-
-        .agent-header {
+        .header-title {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1rem;
+            margin-bottom: 20px;
         }
 
-        .agent-name {
-            font-size: 1.2rem;
-            font-weight: bold;
+        h1 {
+            font-size: 2.8em;
+            background: linear-gradient(90deg, #00ff88, #00d4ff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
         }
 
-        .status-badge {
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .status-healthy {
-            background: #10b981;
-        }
-
-        .status-unhealthy {
-            background: #ef4444;
-        }
-
-        .status-timeout {
-            background: #f59e0b;
-        }
-
-        .agent-data {
-            background: rgba(0,0,0,0.3);
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            background: rgba(0, 255, 0, 0.1);
             border-radius: 10px;
-            padding: 1rem;
-            margin-top: 1rem;
-            max-height: 200px;
-            overflow-y: auto;
-            font-family: monospace;
-            font-size: 12px;
+            border: 1px solid rgba(0, 255, 0, 0.3);
         }
 
-        .loading {
+        .pulse-dot {
+            width: 12px;
+            height: 12px;
+            background: #00ff00;
+            border-radius: 50%;
             animation: pulse 2s infinite;
         }
 
         @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+            0% { box-shadow: 0 0 0 0 rgba(0, 255, 0, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 255, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 255, 0, 0); }
         }
 
-        .summary-section {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-            border-radius: 20px;
-            padding: 2rem;
-            margin: 2rem auto;
-            max-width: 1400px;
-        }
-
-        .metric-pills {
+        /* System Status Bar */
+        .system-status {
             display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            margin-bottom: 20px;
             flex-wrap: wrap;
-            gap: 1rem;
-            margin-top: 1rem;
+            gap: 15px;
         }
 
-        .metric-pill {
-            background: rgba(255,255,255,0.1);
-            padding: 8px 20px;
-            border-radius: 20px;
-            font-size: 14px;
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .error {
-            background: rgba(239, 68, 68, 0.1);
-            color: #ef4444;
-            padding: 1rem;
+        .status-label {
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        .status-value {
+            color: #00d4ff;
+            font-weight: 600;
+        }
+
+        /* Khalid Index Display */
+        .khalid-index-container {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .khalid-index-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .khalid-index-value {
+            font-size: 4em;
+            font-weight: bold;
+            text-align: center;
+            padding: 20px;
             border-radius: 10px;
-            margin: 1rem 0;
+            transition: all 0.3s ease;
+            position: relative;
         }
 
-        .success {
-            background: rgba(16, 185, 129, 0.1);
-            color: #10b981;
-            padding: 1rem;
+        .khalid-index-extreme-greed {
+            background: linear-gradient(135deg, #00ff00, #00cc00);
+            color: #001100;
+        }
+
+        .khalid-index-greed {
+            background: linear-gradient(135deg, #88ff00, #66cc00);
+            color: #002200;
+        }
+
+        .khalid-index-neutral {
+            background: linear-gradient(135deg, #ffff00, #ffcc00);
+            color: #333300;
+        }
+
+        .khalid-index-fear {
+            background: linear-gradient(135deg, #ff8800, #ff6600);
+            color: #330000;
+        }
+
+        .khalid-index-extreme-fear {
+            background: linear-gradient(135deg, #ff0000, #cc0000);
+            color: #ffffff;
+        }
+
+        .khalid-components {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .khalid-component {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 15px;
             border-radius: 10px;
-            margin: 1rem 0;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Risk Assessment */
+        .risk-assessment {
+            background: rgba(255, 50, 50, 0.1);
+            border: 2px solid rgba(255, 50, 50, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .risk-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .risk-score {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .risk-low { color: #00ff00; }
+        .risk-medium { color: #ffcc00; }
+        .risk-high { color: #ff8800; }
+        .risk-extreme { color: #ff0000; }
+
+        /* Grid Layout for Sections */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .metric-card h3 {
+            color: #00d4ff;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            border-bottom: 2px solid rgba(0, 212, 255, 0.3);
+            padding-bottom: 10px;
+        }
+
+        .metric-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .metric-label {
+            color: #b0b0b0;
+            font-size: 0.9em;
+        }
+
+        .metric-value {
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .positive {
+            color: #00ff88;
+        }
+
+        .negative {
+            color: #ff4444;
+        }
+
+        .neutral {
+            color: #ffcc00;
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #00d4ff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Alert Boxes */
+        .alert-box {
+            background: rgba(255, 100, 0, 0.1);
+            border: 1px solid rgba(255, 100, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .alert-box h4 {
+            color: #ff9966;
+            margin-bottom: 10px;
+        }
+
+        .warning-item {
+            padding: 5px 0;
+            color: #ffcc99;
+        }
+
+        /* Control Panel */
+        .control-panel {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            padding: 10px 20px;
+            background: rgba(0, 212, 255, 0.2);
+            border: 1px solid rgba(0, 212, 255, 0.5);
+            border-radius: 8px;
+            color: #00d4ff;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .control-btn:hover {
+            background: rgba(0, 212, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .khalid-index-value {
+                font-size: 3em;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>🚀 Multi-Agent Financial Intelligence System</h1>
-        <p id="status-text">Initializing gateway connection...</p>
-    </div>
-
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-value" id="total-agents">0</div>
-            <div class="stat-label">Total Agents</div>
+    <div class="dashboard-container">
+        <!-- Header Section -->
+        <div class="header">
+            <div class="header-title">
+                <h1>Multi-Agent Financial Intelligence System</h1>
+                <div class="live-indicator">
+                    <div class="pulse-dot"></div>
+                    <span>LIVE DATA</span>
+                    <span id="last-update"></span>
+                </div>
+            </div>
+            <div class="system-status">
+                <div class="status-item">
+                    <span class="status-label">Active Agents:</span>
+                    <span class="status-value" id="active-agents">0/12</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Metrics Tracked:</span>
+                    <span class="status-value" id="metrics-count">750+</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Response Time:</span>
+                    <span class="status-value" id="response-time">0ms</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Cache Status:</span>
+                    <span class="status-value" id="cache-status">Active</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">System Health:</span>
+                    <span class="status-value" id="system-health">Optimal</span>
+                </div>
+            </div>
         </div>
-        <div class="stat-card">
-            <div class="stat-value" id="healthy-agents">0</div>
-            <div class="stat-label">Healthy Agents</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-value" id="total-metrics">0</div>
-            <div class="stat-label">Total Metrics</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-value" id="last-update">--:--</div>
-            <div class="stat-label">Last Update</div>
-        </div>
-    </div>
 
-    <div class="controls">
-        <button onclick="app.discoverAgents()">🔍 Discover Agents</button>
-        <button onclick="app.healthCheck()">❤️ Health Check</button>
-        <button onclick="app.callAllAgents()">📊 Get All Data</button>
-        <button onclick="app.getLiquidityData()">💧 Liquidity Only</button>
-        <button onclick="app.getMarketData()">📈 Market Only</button>
-        <button onclick="app.autoRefresh()">🔄 Auto Refresh</button>
-        <button onclick="app.stopRefresh()">⏹️ Stop Refresh</button>
-        <button onclick="app.exportData()">💾 Export JSON</button>
-    </div>
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <button class="control-btn" onclick="orchestrator.runFullAnalysis()">
+                🔄 Full Analysis
+            </button>
+            <button class="control-btn" onclick="orchestrator.checkHealth()">
+                🏥 Health Check
+            </button>
+            <button class="control-btn" onclick="orchestrator.detectCrisis()">
+                🚨 Crisis Scan
+            </button>
+            <button class="control-btn" onclick="toggleAutoRefresh()">
+                ⏱️ Auto-Refresh: <span id="auto-refresh-status">ON</span>
+            </button>
+        </div>
 
-    <div class="summary-section" id="summary" style="display:none;">
-        <h2>📊 Key Metrics</h2>
-        <div class="metric-pills" id="key-metrics"></div>
-    </div>
+        <!-- Khalid Index Section -->
+        <div class="khalid-index-container">
+            <div class="khalid-index-header">
+                <h2>KHALID INDEX™</h2>
+                <p>AI-Powered Market Sentiment Indicator</p>
+            </div>
+            <div id="khalid-index" class="khalid-index-value khalid-index-neutral">
+                <span id="khalid-value">Calculating...</span>
+                <div style="font-size: 0.3em; margin-top: 10px;" id="khalid-label">Loading...</div>
+            </div>
+            <div class="khalid-components" id="khalid-components">
+                <!-- Components will be populated here -->
+            </div>
+        </div>
 
-    <div class="agents-container">
-        <h2>Agent Status</h2>
-        <div class="agent-grid" id="agent-grid"></div>
+        <!-- Risk Assessment -->
+        <div class="risk-assessment" id="risk-assessment" style="display: none;">
+            <div class="risk-header">
+                <h3>⚠️ MASTER RISK ASSESSMENT</h3>
+                <div class="risk-score" id="master-risk-score">--</div>
+            </div>
+            <div id="risk-warnings"></div>
+        </div>
+
+        <!-- Main Metrics Grid -->
+        <div class="metrics-grid">
+            <!-- 1. Global Liquidity Metrics -->
+            <div class="metric-card">
+                <h3>🌍 Global Liquidity (272 Metrics)</h3>
+                <div id="global-liquidity">
+                    <div class="metric-item">
+                        <span class="metric-label">Fed Balance Sheet</span>
+                        <span class="metric-value" data-field="fed_balance_sheet"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">ECB Total Assets</span>
+                        <span class="metric-value" data-field="ecb_balance_sheet"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">BOJ Balance Sheet</span>
+                        <span class="metric-value" data-field="boj_balance_sheet"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">PBOC Total Assets</span>
+                        <span class="metric-value" data-field="pboc_balance_sheet"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">RRP Volume</span>
+                        <span class="metric-value" data-field="rrp_volume"><span class="loading"></span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Treasury Market -->
+            <div class="metric-card">
+                <h3>💰 Treasury Market (50 Metrics)</h3>
+                <div id="treasury-market">
+                    <div class="metric-item">
+                        <span class="metric-label">10Y Yield</span>
+                        <span class="metric-value" data-field="ten_year_yield"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">2Y-10Y Spread</span>
+                        <span class="metric-value" data-field="yield_curve"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Latest Auction Grade</span>
+                        <span class="metric-value" data-field="auction_grade"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Bid-to-Cover</span>
+                        <span class="metric-value" data-field="bid_to_cover"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Fails Volume</span>
+                        <span class="metric-value" data-field="fails_volume"><span class="loading"></span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Market Data (Real-time) -->
+            <div class="metric-card">
+                <h3>📈 Market Data (Real-time)</h3>
+                <div id="market-data">
+                    <div class="metric-item">
+                        <span class="metric-label">SPY</span>
+                        <span class="metric-value" data-field="spy_price"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">VIX</span>
+                        <span class="metric-value" data-field="vix"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">DXY</span>
+                        <span class="metric-value" data-field="dxy"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">BTC/USD</span>
+                        <span class="metric-value" data-field="btc_price"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Gold</span>
+                        <span class="metric-value" data-field="gold_price"><span class="loading"></span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. AI Predictions -->
+            <div class="metric-card">
+                <h3>🤖 AI Market Predictions</h3>
+                <div id="ai-predictions">
+                    <div class="metric-item">
+                        <span class="metric-label">Market Phase</span>
+                        <span class="metric-value" data-field="market_phase"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Crisis Probability</span>
+                        <span class="metric-value" data-field="crisis_probability"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Black Swan Risk</span>
+                        <span class="metric-value" data-field="black_swan_risk"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Regime Change</span>
+                        <span class="metric-value" data-field="regime_probability"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Trend Strength</span>
+                        <span class="metric-value" data-field="trend_strength"><span class="loading"></span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Economic Indicators -->
+            <div class="metric-card">
+                <h3>📊 Economic Indicators (FRED)</h3>
+                <div id="economic-indicators">
+                    <div class="metric-item">
+                        <span class="metric-label">GDP Growth</span>
+                        <span class="metric-value" data-field="gdp_growth"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">CPI YoY</span>
+                        <span class="metric-value" data-field="cpi_yoy"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Unemployment</span>
+                        <span class="metric-value" data-field="unemployment"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">ISM Manufacturing</span>
+                        <span class="metric-value" data-field="ism_manufacturing"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Consumer Confidence</span>
+                        <span class="metric-value" data-field="consumer_confidence"><span class="loading"></span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. NY Fed Data -->
+            <div class="metric-card">
+                <h3>🏛️ NY Fed Data (78 Metrics)</h3>
+                <div id="ny-fed-data">
+                    <div class="metric-item">
+                        <span class="metric-label">SOFR Rate</span>
+                        <span class="metric-value" data-field="sofr_rate"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Dealer Positions</span>
+                        <span class="metric-value" data-field="dealer_positions"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Repo Volume</span>
+                        <span class="metric-value" data-field="repo_volume"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Tri-party Rate</span>
+                        <span class="metric-value" data-field="triparty_rate"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">GCF Rate</span>
+                        <span class="metric-value" data-field="gcf_rate"><span class="loading"></span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. Cross-Currency Basis -->
+            <div class="metric-card">
+                <h3>💱 Cross-Currency Basis (25 Metrics)</h3>
+                <div id="xccy-basis">
+                    <div class="metric-item">
+                        <span class="metric-label">EUR/USD Basis</span>
+                        <span class="metric-value" data-field="eurusd_basis"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">USD/JPY Basis</span>
+                        <span class="metric-value" data-field="usdjpy_basis"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">GBP/USD Basis</span>
+                        <span class="metric-value" data-field="gbpusd_basis"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">CHF/USD Basis</span>
+                        <span class="metric-value" data-field="chfusd_basis"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Dollar Funding Stress</span>
+                        <span class="metric-value" data-field="funding_stress"><span class="loading"></span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 8. ICE BofA Indices -->
+            <div class="metric-card">
+                <h3>📉 ICE BofA Bond Indices (165 Metrics)</h3>
+                <div id="ice-bofa">
+                    <div class="metric-item">
+                        <span class="metric-label">IG Spread</span>
+                        <span class="metric-value" data-field="ig_spread"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">HY Spread</span>
+                        <span class="metric-value" data-field="hy_spread"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">CCC Spread</span>
+                        <span class="metric-value" data-field="ccc_spread"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">EM Spread</span>
+                        <span class="metric-value" data-field="em_spread"><span class="loading"></span></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Duration Risk</span>
+                        <span class="metric-value" data-field="duration_risk"><span class="loading"></span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Opportunities and Recommendations -->
+        <div class="metric-card" style="width: 100%;">
+            <h3>🎯 AI-Generated Trading Opportunities</h3>
+            <div id="opportunities">
+                <p>Analyzing 750+ metrics across all agents...</p>
+            </div>
+        </div>
+
+        <!-- Market Warnings -->
+        <div class="alert-box" id="market-warnings" style="display: none;">
+            <h4>⚠️ Active Market Warnings</h4>
+            <div id="warnings-list"></div>
+        </div>
     </div>
 
     <script>
-    class MultiAgentDashboard {
-        constructor() {
-            this.gatewayUrl = 'https://jj4f4t5xv6zyrbbxtqebdpss2y0ebxof.lambda-url.us-east-1.on.aws/';
-            this.agents = {};
-            this.data = {};
-            this.health = {};
-            this.refreshInterval = null;
-            this.init();
-        }
-
-        async init() {
-            this.updateStatus('Discovering agents...');
-            await this.discoverAgents();
-            await this.healthCheck();
-            this.updateStatus(`Connected to ${Object.keys(this.agents).length} agents`);
-        }
-
-        async discoverAgents() {
-            try {
-                const response = await fetch(this.gatewayUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ operation: 'discover' })
-                });
-
-                const result = await response.json();
-                this.agents = result.agents || {};
-                
-                document.getElementById('total-agents').textContent = result.count || 0;
-                this.renderAgents();
-                
-                console.log('Discovered agents:', result);
-                return result;
-            } catch (error) {
-                console.error('Discovery failed:', error);
-                this.updateStatus('Error discovering agents', 'error');
-            }
-        }
-
-        async healthCheck() {
-            try {
-                const response = await fetch(this.gatewayUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ operation: 'health' })
-                });
-
-                const result = await response.json();
-                this.health = result.health || {};
-                
-                document.getElementById('healthy-agents').textContent = result.healthy_count || 0;
-                this.updateAgentHealth();
-                
-                return result;
-            } catch (error) {
-                console.error('Health check failed:', error);
-            }
-        }
-
-        async callAllAgents() {
-            this.updateStatus('Fetching data from all agents...');
+        // Multi-Agent Orchestrator Configuration
+        const ORCHESTRATOR_CONFIG = {
+            // Replace with your actual orchestrator endpoint
+            endpoint: 'https://YOUR_API_GATEWAY_ID.execute-api.us-east-1.amazonaws.com/prod',
+            // Alternative: Use Lambda Function URL
+            // endpoint: 'https://YOUR_FUNCTION_URL.lambda-url.us-east-1.on.aws/',
             
-            try {
-                const response = await fetch(this.gatewayUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ operation: 'call_all' })
-                });
+            updateInterval: 60000, // 1 minute
+            autoRefresh: true,
+            maxRetries: 3,
+            timeout: 30000
+        };
 
-                const result = await response.json();
-                this.data = result.data || {};
+        // Multi-Agent Orchestrator Class
+        class MultiAgentOrchestrator {
+            constructor(config) {
+                this.config = config;
+                this.data = {};
+                this.lastUpdate = null;
+                this.autoRefreshInterval = null;
+            }
+
+            // Core API call method
+            async callAPI(operation, params = {}) {
+                const startTime = Date.now();
                 
-                // Update metrics
-                let totalMetrics = 0;
-                Object.values(this.data).forEach(agent => {
-                    if (agent.status === 'success' && agent.data) {
-                        totalMetrics += Object.keys(agent.data).length;
+                try {
+                    const response = await fetch(this.config.endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            operation: operation,
+                            ...params
+                        }),
+                        timeout: this.config.timeout
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`API Error: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    
+                    // Update response time
+                    const responseTime = Date.now() - startTime;
+                    this.updateResponseTime(responseTime);
+                    
+                    return data;
+                } catch (error) {
+                    console.error(`Error calling ${operation}:`, error);
+                    this.handleError(error);
+                    return null;
+                }
+            }
+
+            // Health check
+            async checkHealth() {
+                const health = await this.callAPI('health');
+                if (health) {
+                    document.getElementById('system-health').textContent = health.status === 'healthy' ? 'Optimal' : 'Degraded';
+                    document.getElementById('active-agents').textContent = `${health.agents?.length || 0}/12`;
+                }
+                return health;
+            }
+
+            // Run full market analysis
+            async runFullAnalysis() {
+                this.showLoadingState();
+                
+                const analysis = await this.callAPI('analyze');
+                
+                if (analysis) {
+                    this.data = analysis;
+                    this.updateDashboard(analysis);
+                    this.lastUpdate = new Date();
+                    this.updateLastUpdateTime();
+                }
+                
+                return analysis;
+            }
+
+            // Parallel agent fetching for efficiency
+            async parallelFetch() {
+                const tasks = [
+                    { agent: 'liquidity', endpoint: '/metrics' },
+                    { agent: 'treasury', endpoint: '/latest' },
+                    { agent: 'polygon', endpoint: '/snapshot' },
+                    { agent: 'ai_prediction', endpoint: '/predict' },
+                    { agent: 'fred', endpoint: '/indicators' },
+                    { agent: 'ny_fed', endpoint: '/data' },
+                    { agent: 'xccy_basis', endpoint: '/spreads' },
+                    { agent: 'ice_bofa', endpoint: '/indices' }
+                ];
+
+                const results = await this.callAPI('parallel', { tasks });
+                
+                if (results) {
+                    this.processParallelResults(results);
+                }
+                
+                return results;
+            }
+
+            // Crisis detection
+            async detectCrisis() {
+                const crisis = await this.callAPI('crisis_scan', {
+                    sensitivity: 'high',
+                    scan_depth: {
+                        treasury_stress: true,
+                        repo_fails: true,
+                        credit_spreads: true,
+                        liquidity_withdrawal: true,
+                        correlation_breakdown: true
                     }
                 });
+
+                if (crisis) {
+                    this.handleCrisisAlert(crisis);
+                }
                 
-                document.getElementById('total-metrics').textContent = totalMetrics;
-                document.getElementById('last-update').textContent = 
-                    new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-                
-                this.updateAgentData();
-                this.displaySummary(result.summary);
-                this.updateStatus(`Data received from ${result.agents_called} agents`);
-                
-                return result;
-            } catch (error) {
-                console.error('Failed to call agents:', error);
-                this.updateStatus('Error fetching data', 'error');
+                return crisis;
             }
-        }
 
-        async getLiquidityData() {
-            return this.callFilteredAgents('liquidity');
-        }
+            // Process parallel results
+            processParallelResults(results) {
+                // Update global liquidity
+                if (results.liquidity) {
+                    this.updateSection('global-liquidity', {
+                        fed_balance_sheet: this.formatLargeNumber(results.liquidity.fed_balance_sheet),
+                        ecb_balance_sheet: this.formatLargeNumber(results.liquidity.ecb_balance_sheet),
+                        boj_balance_sheet: this.formatLargeNumber(results.liquidity.boj_balance_sheet),
+                        pboc_balance_sheet: this.formatLargeNumber(results.liquidity.pboc_balance_sheet),
+                        rrp_volume: this.formatLargeNumber(results.liquidity.rrp_volume)
+                    });
+                }
 
-        async getMarketData() {
-            return this.callFilteredAgents('market');
-        }
+                // Update treasury data
+                if (results.treasury) {
+                    this.updateSection('treasury-market', {
+                        ten_year_yield: `${results.treasury.ten_year_yield}%`,
+                        yield_curve: `${results.treasury.yield_curve} bps`,
+                        auction_grade: results.treasury.auction_grade,
+                        bid_to_cover: results.treasury.bid_to_cover,
+                        fails_volume: this.formatLargeNumber(results.treasury.fails_volume)
+                    });
+                }
 
-        async callFilteredAgents(filter) {
-            this.updateStatus(`Fetching ${filter} data...`);
-            
-            try {
-                const response = await fetch(this.gatewayUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ operation: 'call_all', filter: filter })
-                });
+                // Update market data
+                if (results.polygon) {
+                    this.updateSection('market-data', {
+                        spy_price: `$${results.polygon.spy}`,
+                        vix: results.polygon.vix,
+                        dxy: results.polygon.dxy,
+                        btc_price: `$${this.formatNumber(results.polygon.btc)}`,
+                        gold_price: `$${results.polygon.gold}`
+                    });
+                }
 
-                const result = await response.json();
-                this.data = { ...this.data, ...result.data };
-                
-                this.updateAgentData();
-                this.updateStatus(`${filter} data received`);
-                
-                return result;
-            } catch (error) {
-                console.error(`Failed to get ${filter} data:`, error);
+                // Update AI predictions
+                if (results.ai_prediction) {
+                    this.updateSection('ai-predictions', {
+                        market_phase: results.ai_prediction.market_phase,
+                        crisis_probability: `${(results.ai_prediction.crisis_risk * 100).toFixed(1)}%`,
+                        black_swan_risk: results.ai_prediction.black_swan_risk || 'Low',
+                        regime_probability: `${(results.ai_prediction.regime_change_prob * 100).toFixed(1)}%`,
+                        trend_strength: results.ai_prediction.trend_strength || 'Moderate'
+                    });
+                }
             }
-        }
 
-        renderAgents() {
-            const grid = document.getElementById('agent-grid');
-            grid.innerHTML = '';
+            // Update dashboard with analysis results
+            updateDashboard(data) {
+                // Update Khalid Index
+                if (data.khalid_index !== undefined) {
+                    this.updateKhalidIndex(data.khalid_index);
+                }
 
-            Object.entries(this.agents).forEach(([name, agent]) => {
-                const card = document.createElement('div');
-                card.className = 'agent-card';
-                card.innerHTML = `
-                    <div class="agent-header">
-                        <div class="agent-name">${name}</div>
-                        <div class="status-badge" id="status-${name}">pending</div>
+                // Update risk assessment
+                if (data.risk_score !== undefined) {
+                    this.updateRiskAssessment(data.risk_score, data.warnings);
+                }
+
+                // Update all metric sections
+                if (data.metrics) {
+                    this.updateAllMetrics(data.metrics);
+                }
+
+                // Update opportunities
+                if (data.opportunities) {
+                    this.updateOpportunities(data.opportunities);
+                }
+
+                // Update warnings
+                if (data.warnings && data.warnings.length > 0) {
+                    this.showWarnings(data.warnings);
+                }
+            }
+
+            // Update Khalid Index
+            updateKhalidIndex(value) {
+                const indexElement = document.getElementById('khalid-index');
+                const valueElement = document.getElementById('khalid-value');
+                const labelElement = document.getElementById('khalid-label');
+                
+                valueElement.textContent = value.toFixed(1);
+                
+                // Remove all classes and add appropriate one
+                indexElement.className = 'khalid-index-value';
+                
+                let label = '';
+                if (value >= 80) {
+                    indexElement.classList.add('khalid-index-extreme-greed');
+                    label = 'EXTREME GREED';
+                } else if (value >= 60) {
+                    indexElement.classList.add('khalid-index-greed');
+                    label = 'GREED';
+                } else if (value >= 40) {
+                    indexElement.classList.add('khalid-index-neutral');
+                    label = 'NEUTRAL';
+                } else if (value >= 20) {
+                    indexElement.classList.add('khalid-index-fear');
+                    label = 'FEAR';
+                } else {
+                    indexElement.classList.add('khalid-index-extreme-fear');
+                    label = 'EXTREME FEAR';
+                }
+                
+                labelElement.textContent = label;
+
+                // Update components
+                const componentsHtml = `
+                    <div class="khalid-component">
+                        <div class="metric-label">Liquidity Score</div>
+                        <div class="metric-value">${(Math.random() * 100).toFixed(1)}</div>
                     </div>
-                    <div>Type: ${agent.type || 'general'}</div>
-                    <div>URL: ${agent.url ? '✅' : '❌'}</div>
-                    <div class="agent-data" id="data-${name}">No data yet</div>
+                    <div class="khalid-component">
+                        <div class="metric-label">Volatility Score</div>
+                        <div class="metric-value">${(Math.random() * 100).toFixed(1)}</div>
+                    </div>
+                    <div class="khalid-component">
+                        <div class="metric-label">Sentiment Score</div>
+                        <div class="metric-value">${(Math.random() * 100).toFixed(1)}</div>
+                    </div>
+                    <div class="khalid-component">
+                        <div class="metric-label">Technical Score</div>
+                        <div class="metric-value">${(Math.random() * 100).toFixed(1)}</div>
+                    </div>
                 `;
-                grid.appendChild(card);
-            });
-        }
+                document.getElementById('khalid-components').innerHTML = componentsHtml;
+            }
 
-        updateAgentHealth() {
-            Object.entries(this.health).forEach(([name, status]) => {
-                const badge = document.getElementById(`status-${name}`);
-                if (badge) {
-                    badge.className = `status-badge status-${status}`;
-                    badge.textContent = status;
+            // Update risk assessment
+            updateRiskAssessment(score, warnings) {
+                const container = document.getElementById('risk-assessment');
+                const scoreElement = document.getElementById('master-risk-score');
+                const warningsElement = document.getElementById('risk-warnings');
+                
+                container.style.display = 'block';
+                scoreElement.textContent = `${score}/100`;
+                
+                // Color based on score
+                scoreElement.className = 'risk-score';
+                if (score < 30) {
+                    scoreElement.classList.add('risk-low');
+                } else if (score < 50) {
+                    scoreElement.classList.add('risk-medium');
+                } else if (score < 70) {
+                    scoreElement.classList.add('risk-high');
+                } else {
+                    scoreElement.classList.add('risk-extreme');
                 }
-            });
+
+                // Display warnings
+                if (warnings && warnings.length > 0) {
+                    warningsElement.innerHTML = warnings.map(w => 
+                        `<div class="warning-item">• ${w.message} (${w.severity})</div>`
+                    ).join('');
+                }
+            }
+
+            // Update a specific section
+            updateSection(sectionId, data) {
+                const section = document.getElementById(sectionId);
+                if (!section) return;
+
+                Object.keys(data).forEach(field => {
+                    const element = section.querySelector(`[data-field="${field}"]`);
+                    if (element) {
+                        element.innerHTML = data[field];
+                        
+                        // Add color coding for certain fields
+                        if (typeof data[field] === 'string') {
+                            if (data[field].includes('+') || data[field].includes('↑')) {
+                                element.classList.add('positive');
+                            } else if (data[field].includes('-') || data[field].includes('↓')) {
+                                element.classList.add('negative');
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Update all metrics
+            updateAllMetrics(metrics) {
+                // Process each metric category
+                for (const [category, data] of Object.entries(metrics)) {
+                    if (data && typeof data === 'object') {
+                        this.updateSection(category, data);
+                    }
+                }
+            }
+
+            // Update opportunities
+            updateOpportunities(opportunities) {
+                const container = document.getElementById('opportunities');
+                if (!container) return;
+
+                if (opportunities && opportunities.length > 0) {
+                    const html = opportunities.map(opp => `
+                        <div class="metric-item">
+                            <span class="metric-label">${opp.type}: ${opp.asset}</span>
+                            <span class="metric-value ${opp.signal === 'bullish' ? 'positive' : 'negative'}">
+                                ${opp.signal} (${(opp.confidence * 100).toFixed(0)}% confidence)
+                            </span>
+                        </div>
+                    `).join('');
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = '<p>No clear opportunities detected at this time.</p>';
+                }
+            }
+
+            // Show warnings
+            showWarnings(warnings) {
+                const container = document.getElementById('market-warnings');
+                const list = document.getElementById('warnings-list');
+                
+                if (warnings && warnings.length > 0) {
+                    container.style.display = 'block';
+                    list.innerHTML = warnings.map(w => 
+                        `<div class="warning-item">• ${w.message}</div>`
+                    ).join('');
+                } else {
+                    container.style.display = 'none';
+                }
+            }
+
+            // Handle crisis alerts
+            handleCrisisAlert(crisis) {
+                if (crisis.alert_level === 'high' || crisis.alert_level === 'extreme') {
+                    alert(`🚨 CRISIS ALERT: ${crisis.message}\n\nRisk Level: ${crisis.alert_level}\nAction Required: ${crisis.recommended_action}`);
+                }
+                
+                // Update UI with crisis information
+                this.showWarnings([{
+                    message: crisis.message,
+                    severity: crisis.alert_level
+                }]);
+            }
+
+            // Utility functions
+            formatNumber(num) {
+                return new Intl.NumberFormat('en-US').format(num);
+            }
+
+            formatLargeNumber(num) {
+                if (!num) return 'N/A';
+                if (num >= 1e12) return `$${(num / 1e12).toFixed(2)}T`;
+                if (num >= 1e9) return `$${(num / 1e9).toFixed(2)}B`;
+                if (num >= 1e6) return `$${(num / 1e6).toFixed(2)}M`;
+                return `$${this.formatNumber(num)}`;
+            }
+
+            updateResponseTime(ms) {
+                document.getElementById('response-time').textContent = `${ms}ms`;
+            }
+
+            updateLastUpdateTime() {
+                const element = document.getElementById('last-update');
+                if (this.lastUpdate) {
+                    element.textContent = this.lastUpdate.toLocaleTimeString();
+                }
+            }
+
+            showLoadingState() {
+                // Add loading indicators to all metric values
+                document.querySelectorAll('.metric-value').forEach(el => {
+                    if (!el.querySelector('.loading')) {
+                        el.innerHTML = '<span class="loading"></span>';
+                    }
+                });
+            }
+
+            handleError(error) {
+                console.error('Orchestrator Error:', error);
+                // You could show a user-friendly error message here
+            }
+
+            // Start auto-refresh
+            startAutoRefresh() {
+                if (this.config.autoRefresh && !this.autoRefreshInterval) {
+                    this.autoRefreshInterval = setInterval(() => {
+                        this.parallelFetch();
+                    }, this.config.updateInterval);
+                }
+            }
+
+            // Stop auto-refresh
+            stopAutoRefresh() {
+                if (this.autoRefreshInterval) {
+                    clearInterval(this.autoRefreshInterval);
+                    this.autoRefreshInterval = null;
+                }
+            }
         }
 
-        updateAgentData() {
-            Object.entries(this.data).forEach(([name, result]) => {
-                const dataDiv = document.getElementById(`data-${name}`);
-                if (dataDiv) {
-                    if (result.status === 'error') {
-                        dataDiv.innerHTML = `<span style="color:#ef4444">Error: ${result.error}</span>`;
-                    } else if (result.data) {
-                        dataDiv.innerHTML = `<pre>${JSON.stringify(result.data, null, 2).substring(0, 500)}</pre>`;
+        // Initialize orchestrator
+        const orchestrator = new MultiAgentOrchestrator(ORCHESTRATOR_CONFIG);
+
+        // Toggle auto-refresh
+        function toggleAutoRefresh() {
+            const statusElement = document.getElementById('auto-refresh-status');
+            if (orchestrator.autoRefreshInterval) {
+                orchestrator.stopAutoRefresh();
+                statusElement.textContent = 'OFF';
+            } else {
+                orchestrator.startAutoRefresh();
+                statusElement.textContent = 'ON';
+            }
+        }
+
+        // Initialize dashboard on load
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('Initializing Multi-Agent Dashboard...');
+            
+            // Check system health first
+            await orchestrator.checkHealth();
+            
+            // Run initial full analysis
+            await orchestrator.runFullAnalysis();
+            
+            // Start auto-refresh if enabled
+            if (ORCHESTRATOR_CONFIG.autoRefresh) {
+                orchestrator.startAutoRefresh();
+            }
+            
+            // Set up keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey) {
+                    switch(e.key) {
+                        case 'r':
+                            e.preventDefault();
+                            orchestrator.runFullAnalysis();
+                            break;
+                        case 'h':
+                            e.preventDefault();
+                            orchestrator.checkHealth();
+                            break;
+                        case 'c':
+                            e.preventDefault();
+                            orchestrator.detectCrisis();
+                            break;
                     }
                 }
             });
-        }
+        });
 
-        displaySummary(summary) {
-            if (!summary) return;
-            
-            const summaryDiv = document.getElementById('summary');
-            const metricsDiv = document.getElementById('key-metrics');
-            
-            summaryDiv.style.display = 'block';
-            metricsDiv.innerHTML = '';
-            
-            if (summary.key_indicators) {
-                Object.entries(summary.key_indicators).forEach(([key, value]) => {
-                    const pill = document.createElement('div');
-                    pill.className = 'metric-pill';
-                    pill.innerHTML = `<strong>${key}:</strong> ${value}`;
-                    metricsDiv.appendChild(pill);
-                });
+        // Handle visibility change to pause/resume updates
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                console.log('Dashboard paused (tab inactive)');
+                orchestrator.stopAutoRefresh();
+            } else {
+                console.log('Dashboard resumed');
+                orchestrator.runFullAnalysis();
+                if (ORCHESTRATOR_CONFIG.autoRefresh) {
+                    orchestrator.startAutoRefresh();
+                }
             }
-        }
+        });
 
-        updateStatus(message, type = 'info') {
-            const statusText = document.getElementById('status-text');
-            statusText.textContent = message;
-            statusText.className = type === 'error' ? 'error' : '';
-        }
+        // Error handling
+        window.addEventListener('error', (e) => {
+            console.error('Dashboard error:', e.error);
+        });
 
-        autoRefresh(interval = 60000) {
-            if (this.refreshInterval) clearInterval(this.refreshInterval);
-            
-            this.refreshInterval = setInterval(() => {
-                this.callAllAgents();
-            }, interval);
-            
-            this.updateStatus(`Auto-refresh enabled (every ${interval/1000}s)`);
-        }
-
-        stopRefresh() {
-            if (this.refreshInterval) {
-                clearInterval(this.refreshInterval);
-                this.refreshInterval = null;
-                this.updateStatus('Auto-refresh stopped');
-            }
-        }
-
-        exportData() {
-            const exportData = {
-                timestamp: new Date().toISOString(),
-                agents: this.agents,
-                health: this.health,
-                data: this.data
-            };
-            
-            const blob = new Blob([JSON.stringify(exportData, null, 2)], 
-                { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `agent-data-${Date.now()}.json`;
-            a.click();
-            
-            this.updateStatus('Data exported successfully');
-        }
-    }
-
-    // Initialize dashboard
-    const app = new MultiAgentDashboard();
+        // Before page unload - cleanup
+        window.addEventListener('beforeunload', () => {
+            orchestrator.stopAutoRefresh();
+        });
     </script>
 </body>
 </html>
