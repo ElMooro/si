@@ -3,1292 +3,262 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PROFESSIONAL COMMAND CENTER - Full System Utilization</title>
-    
-    <!-- Professional Trading Libraries -->
-    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
-    <script src="https://code.highcharts.com/stock/highstock.js"></script>
-    <script src="https://code.highcharts.com/modules/heatmap.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
-    
+    <title>Debug Dashboard - Minimal Version</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
         body {
-            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: Arial, sans-serif;
             background: #0a0a0a;
             color: #e0e0e0;
-            overflow-x: hidden;
+            margin: 0;
+            padding: 20px;
         }
-        
-        /* Command Center Header */
-        .command-header {
-            background: linear-gradient(90deg, #1a1a1a 0%, #2a2a2a 100%);
-            padding: 10px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #00ff88;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
         }
-        
-        .system-status {
-            display: flex;
-            gap: 20px;
-            align-items: center;
+        .header {
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
         }
-        
-        .status-indicator {
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .status {
+            display: inline-block;
             padding: 5px 15px;
-            background: rgba(0, 255, 136, 0.1);
+            background: rgba(0, 255, 136, 0.2);
             border: 1px solid #00ff88;
             border-radius: 20px;
+            margin-right: 10px;
         }
-        
-        .pulse {
-            width: 8px;
-            height: 8px;
-            background: #00ff88;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(0, 255, 136, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
-        }
-        
-        /* Multi-Screen Layout System */
-        .screen-selector {
-            display: flex;
-            gap: 10px;
-            background: #1a1a1a;
-            padding: 10px;
-            border-bottom: 1px solid #333;
-        }
-        
-        .screen-btn {
-            padding: 8px 20px;
-            background: #2a2a2a;
-            border: 1px solid #444;
-            color: #fff;
-            cursor: pointer;
-            transition: all 0.3s;
-            border-radius: 5px;
-        }
-        
-        .screen-btn.active {
-            background: #00ff88;
-            color: #000;
-            border-color: #00ff88;
-        }
-        
-        .screen-btn:hover {
-            background: #3a3a3a;
-        }
-        
-        /* Main Display Grid */
-        .main-display {
-            display: none;
-            padding: 20px;
-            gap: 20px;
-            height: calc(100vh - 120px);
-            overflow-y: auto;
-        }
-        
-        .main-display.active {
+        .grid {
             display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
         }
-        
-        /* Screen 1: Market Matrix */
-        #screen-market {
-            grid-template-columns: 2fr 1fr;
-            grid-template-rows: auto 1fr 1fr;
-        }
-        
-        .crisis-timer {
-            grid-column: 1 / -1;
-            background: linear-gradient(135deg, #ff0044 0%, #ff6b6b 100%);
-            padding: 30px;
-            border-radius: 10px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .crisis-timer::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 200%;
-            height: 200%;
-            background: repeating-linear-gradient(
-                45deg,
-                transparent,
-                transparent 10px,
-                rgba(255,255,255,0.1) 10px,
-                rgba(255,255,255,0.1) 20px
-            );
-            animation: slide 20s linear infinite;
-        }
-        
-        @keyframes slide {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(50px, 50px); }
-        }
-        
-        .crisis-content {
-            position: relative;
-            z-index: 1;
-        }
-        
-        .crisis-days {
-            font-size: 72px;
-            font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-        }
-        
-        .market-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 10px;
-            padding: 20px;
+        .card {
             background: #1a1a1a;
+            padding: 20px;
             border-radius: 10px;
-        }
-        
-        .market-card {
-            background: #2a2a2a;
-            padding: 15px;
-            border-radius: 8px;
             border: 1px solid #333;
-            transition: all 0.3s;
-            cursor: pointer;
         }
-        
-        .market-card:hover {
-            transform: translateY(-5px);
-            border-color: #00ff88;
-            box-shadow: 0 5px 20px rgba(0, 255, 136, 0.3);
-        }
-        
-        .ticker {
-            font-size: 14px;
-            color: #888;
-            margin-bottom: 5px;
-        }
-        
         .price {
             font-size: 24px;
             font-weight: bold;
             color: #fff;
+            margin: 10px 0;
         }
-        
-        .change {
-            font-size: 16px;
-            margin-top: 5px;
-        }
-        
         .positive { color: #00ff88; }
         .negative { color: #ff4444; }
-        
-        /* Real-time Liquidity Flow */
-        .liquidity-flow {
-            background: #1a1a1a;
-            border-radius: 10px;
-            padding: 20px;
-            position: relative;
-        }
-        
-        #flowCanvas {
-            width: 100%;
-            height: 300px;
-            background: #0a0a0a;
-            border-radius: 8px;
-        }
-        
-        /* Interactive Heatmap */
-        .heatmap-container {
-            background: #1a1a1a;
-            border-radius: 10px;
-            padding: 20px;
-        }
-        
-        /* Alert System */
-        .alert-panel {
-            position: fixed;
-            right: 20px;
-            top: 100px;
-            width: 350px;
-            max-height: 500px;
-            overflow-y: auto;
-            background: rgba(26, 26, 26, 0.95);
-            border: 1px solid #444;
-            border-radius: 10px;
-            padding: 20px;
-            backdrop-filter: blur(10px);
-            z-index: 999;
-        }
-        
-        .alert-item {
-            background: rgba(255, 68, 68, 0.1);
-            border-left: 3px solid #ff4444;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            animation: slideIn 0.3s ease;
-        }
-        
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-        
-        .alert-critical {
-            border-left-color: #ff0044;
-            background: rgba(255, 0, 68, 0.2);
-        }
-        
-        .alert-warning {
-            border-left-color: #ffaa00;
-            background: rgba(255, 170, 0, 0.1);
-        }
-        
-        /* Screen 2: Liquidity Dashboard */
-        #screen-liquidity {
-            grid-template-columns: 1fr 1fr 1fr;
-            grid-template-rows: auto 1fr 1fr;
-        }
-        
-        .liquidity-gauge {
-            background: #1a1a1a;
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-        }
-        
-        .gauge-value {
-            font-size: 48px;
-            font-weight: bold;
-            background: linear-gradient(90deg, #00ff88 0%, #00aaff 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        /* Screen 3: Risk Radar */
-        #screen-risk {
-            grid-template-columns: 1fr;
-            place-items: center;
-        }
-        
-        .risk-radar {
-            width: 80%;
-            max-width: 800px;
-            aspect-ratio: 1;
-            position: relative;
-        }
-        
-        /* Screen 4: AI Predictions */
-        #screen-predictions {
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: 1fr 1fr;
-        }
-        
-        .prediction-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 15px;
-            padding: 30px;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .prediction-card::after {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-            animation: rotate 30s linear infinite;
-        }
-        
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        
-        /* Data Stream Terminal */
-        .terminal {
+        .console {
             background: #000;
             color: #00ff88;
-            font-family: 'Courier New', monospace;
             padding: 20px;
             border-radius: 10px;
-            height: 400px;
+            margin-top: 20px;
+            font-family: monospace;
+            height: 300px;
             overflow-y: auto;
             border: 1px solid #00ff88;
         }
-        
-        .terminal-line {
-            margin-bottom: 5px;
-            opacity: 0;
-            animation: fadeIn 0.3s forwards;
-        }
-        
-        @keyframes fadeIn {
-            to { opacity: 1; }
-        }
-        
-        /* Controls Panel */
-        .controls {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(26, 26, 26, 0.95);
-            padding: 15px 30px;
-            border-radius: 30px;
-            display: flex;
-            gap: 20px;
-            backdrop-filter: blur(10px);
-            border: 1px solid #444;
-        }
-        
-        .control-btn {
-            padding: 10px 20px;
+        button {
             background: #2a2a2a;
-            border: 1px solid #444;
             color: #fff;
-            border-radius: 20px;
+            border: 1px solid #444;
+            padding: 10px 20px;
+            border-radius: 5px;
             cursor: pointer;
-            transition: all 0.3s;
+            margin-right: 10px;
         }
-        
-        .control-btn:hover {
-            background: #00ff88;
-            color: #000;
-            transform: scale(1.05);
-        }
-        
-        /* Loading Animation */
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-        }
-        
-        .loading-overlay.active {
-            display: flex;
-        }
-        
-        .loader {
-            width: 100px;
-            height: 100px;
-            border: 3px solid #333;
-            border-top-color: #00ff88;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        button:hover {
+            background: #3a3a3a;
         }
     </style>
 </head>
 <body>
-    <!-- Command Header -->
-    <div class="command-header">
-        <div class="system-status">
-            <div class="status-indicator">
-                <div class="pulse"></div>
-                <span>SYSTEM ONLINE</span>
-            </div>
-            <div class="status-indicator">
-                <span id="agentCount">12/12 Agents Active</span>
-            </div>
-            <div class="status-indicator">
-                <span id="metricsCount">650+ Metrics Live</span>
-            </div>
-            <div class="status-indicator" id="dataSource" style="display: none; background: rgba(255, 170, 0, 0.2); border-color: #ffaa00;">
-                <span>Mock Mode (CORS Fix Pending)</span>
-            </div>
-        </div>
-        <div class="khalid-index">
-            <span style="font-size: 24px; font-weight: bold;">KHALID INDEX: <span id="khalidValue" style="color: #00ff88;">55</span></span>
-        </div>
-        <div class="timestamp">
-            <span id="liveTime"></span>
-        </div>
-    </div>
-    
-    <!-- Screen Selector -->
-    <div class="screen-selector">
-        <button class="screen-btn active" onclick="switchScreen('market')">📊 MARKET MATRIX</button>
-        <button class="screen-btn" onclick="switchScreen('liquidity')">💧 LIQUIDITY</button>
-        <button class="screen-btn" onclick="switchScreen('risk')">⚠️ RISK RADAR</button>
-        <button class="screen-btn" onclick="switchScreen('predictions')">🤖 AI PREDICTIONS</button>
-        <button class="screen-btn" onclick="switchScreen('flow')">🌊 ORDER FLOW</button>
-        <button class="screen-btn" onclick="switchScreen('bonds')">📈 BONDS</button>
-        <button class="screen-btn" onclick="switchScreen('terminal')">💻 DATA TERMINAL</button>
-    </div>
-    
-    <!-- Screen 1: Market Matrix -->
-    <div id="screen-market" class="main-display active">
-        <div class="crisis-timer">
-            <div class="crisis-content">
-                <h2>CRISIS DETECTION SYSTEM</h2>
-                <div class="crisis-days">45 DAYS</div>
-                <p style="font-size: 20px;">Distance to Crisis: 45%</p>
-                <p>Market Phase: LATE CYCLE - DISTRIBUTION</p>
+    <div class="container">
+        <div class="header">
+            <h1>Financial Dashboard - Debug Mode</h1>
+            <div>
+                <span class="status" id="status">Connecting...</span>
+                <span class="status" id="agents">Agents: Loading...</span>
+                <span class="status" id="khalid">Khalid Index: --</span>
             </div>
         </div>
         
-        <div class="market-grid" id="marketGrid">
-            <!-- Markets will be populated here -->
+        <div>
+            <button onclick="testHealth()">Test Health</button>
+            <button onclick="testAnalyze()">Test Analyze</button>
+            <button onclick="clearConsole()">Clear Console</button>
         </div>
         
-        <div class="liquidity-flow">
-            <h3>REAL-TIME LIQUIDITY FLOW</h3>
-            <canvas id="flowCanvas"></canvas>
+        <div class="grid" id="marketGrid">
+            <!-- Markets will load here -->
         </div>
         
-        <div class="heatmap-container">
-            <h3>GLOBAL RISK HEATMAP</h3>
-            <div id="riskHeatmap"></div>
+        <div class="console" id="console">
+            <div>Debug console initialized...</div>
         </div>
     </div>
-    
-    <!-- Screen 2: Liquidity Dashboard -->
-    <div id="screen-liquidity" class="main-display">
-        <div class="liquidity-gauge">
-            <h3>GLOBAL LIQUIDITY</h3>
-            <div class="gauge-value">$7.85T</div>
-            <div id="globalLiquidityChart"></div>
-        </div>
-        
-        <div class="liquidity-gauge">
-            <h3>FED RRP</h3>
-            <div class="gauge-value">$18.8B</div>
-            <div id="rrpChart"></div>
-        </div>
-        
-        <div class="liquidity-gauge">
-            <h3>REPO FAILS</h3>
-            <div class="gauge-value">$285B</div>
-            <div id="repoFailsChart"></div>
-        </div>
-        
-        <div class="liquidity-gauge">
-            <h3>ECB BALANCE</h3>
-            <div class="gauge-value">€7.2T</div>
-            <div id="ecbChart"></div>
-        </div>
-        
-        <div class="liquidity-gauge">
-            <h3>BOJ BALANCE</h3>
-            <div class="gauge-value">¥752T</div>
-            <div id="bojChart"></div>
-        </div>
-        
-        <div class="liquidity-gauge">
-            <h3>PBOC LIQUIDITY</h3>
-            <div class="gauge-value">¥42.3T</div>
-            <div id="pbocChart"></div>
-        </div>
-    </div>
-    
-    <!-- Screen 3: Risk Radar -->
-    <div id="screen-risk" class="main-display">
-        <div class="risk-radar">
-            <div id="riskRadarChart"></div>
-        </div>
-    </div>
-    
-    <!-- Screen 4: AI Predictions -->
-    <div id="screen-predictions" class="main-display">
-        <div class="prediction-card">
-            <h3>MARKET PHASE DETECTION</h3>
-            <p style="font-size: 36px; margin: 20px 0;">DISTRIBUTION</p>
-            <p>Confidence: 87%</p>
-            <p>Smart money exiting, retail buying peaks</p>
-        </div>
-        
-        <div class="prediction-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-            <h3>CRISIS PROBABILITY</h3>
-            <p style="font-size: 48px; margin: 20px 0;">12%</p>
-            <p>Next 30 days</p>
-            <p>Increasing at 2% per week</p>
-        </div>
-        
-        <div class="prediction-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
-            <h3>BLACK SWAN DETECTION</h3>
-            <p style="font-size: 36px; margin: 20px 0;">MONITORING</p>
-            <p>3 Anomalies Detected</p>
-            <p>Repo fails, yield curve, dark pools</p>
-        </div>
-        
-        <div class="prediction-card" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);">
-            <h3>NEXT SUPPORT</h3>
-            <p style="font-size: 36px; margin: 20px 0;">SPY $442</p>
-            <p>Probability: 73%</p>
-            <p>Key level from institutional flows</p>
-        </div>
-    </div>
-    
-    <!-- Screen 5: Order Flow -->
-    <div id="screen-flow" class="main-display">
-        <div id="orderFlowChart" style="width: 100%; height: 600px;"></div>
-    </div>
-    
-    <!-- Screen 6: Bonds -->
-    <div id="screen-bonds" class="main-display">
-        <div id="bondSpreadsChart" style="width: 100%; height: 600px;"></div>
-    </div>
-    
-    <!-- Screen 7: Terminal -->
-    <div id="screen-terminal" class="main-display">
-        <div class="terminal" id="dataTerminal">
-            <div class="terminal-line">[2025-09-20 10:32:45] System initialized...</div>
-            <div class="terminal-line">[2025-09-20 10:32:46] Connecting to orchestrator...</div>
-            <div class="terminal-line">[2025-09-20 10:32:47] Loading 650+ metrics...</div>
-        </div>
-    </div>
-    
-    <!-- Alert Panel -->
-    <div class="alert-panel" id="alertPanel" style="display: none;">
-        <h3>REAL-TIME ALERTS</h3>
-        <div id="alertList"></div>
-    </div>
-    
-    <!-- Controls -->
-    <div class="controls">
-        <button class="control-btn" onclick="runFullAnalysis()">🔄 FULL ANALYSIS</button>
-        <button class="control-btn" onclick="toggleAlerts()">🚨 ALERTS</button>
-        <button class="control-btn" onclick="toggleAutoRefresh()">⏱️ AUTO-REFRESH</button>
-        <button class="control-btn" onclick="exportData()">💾 EXPORT</button>
-        <button class="control-btn" onclick="openSettings()">⚙️ SETTINGS</button>
-    </div>
-    
-    <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="loader"></div>
-    </div>
-    
+
     <script>
-        // REPLACE WITH YOUR ACTUAL ORCHESTRATOR ENDPOINT
-        const ORCHESTRATOR_ENDPOINT = 'https://jj4f4t5xv6zyrbbxtqebdpss2y0ebxof.lambda-url.us-east-1.on.aws/';
+        // Configuration
+        const ENDPOINT = 'https://jj4f4t5xv6zyrbbxtqebdpss2y0ebxof.lambda-url.us-east-1.on.aws/';
         
-        // CORS Proxy wrapper to handle the duplicate header issue
-        async function fetchWithCORS(url, options = {}) {
-            try {
-                // First try direct connection
-                const response = await fetch(url, options);
-                return response;
-            } catch (error) {
-                // If CORS fails, try these alternatives:
-                console.log('Direct fetch failed, trying alternatives...');
-                
-                // Alternative 1: Try with mode: 'no-cors' (limited but works)
-                try {
-                    const response = await fetch(url, {
-                        ...options,
-                        mode: 'no-cors'
-                    });
-                    return response;
-                } catch (e) {
-                    // Alternative 2: Use mock data for now
-                    console.log('Using mock data while CORS is being fixed');
-                    // Show mock mode indicator
-                    document.getElementById('dataSource').style.display = 'flex';
-                    return {
-                        ok: true,
-                        json: async () => getMockData(options.body ? JSON.parse(options.body).operation : 'health')
-                    };
-                }
+        // Debug logging
+        function log(message, data) {
+            const console = document.getElementById('console');
+            const timestamp = new Date().toTimeString().split(' ')[0];
+            const line = document.createElement('div');
+            line.textContent = `[${timestamp}] ${message}`;
+            if (data) {
+                line.textContent += ' ' + JSON.stringify(data, null, 2);
             }
-        }
-        
-        // Mock data function for testing while CORS is fixed
-        function getMockData(operation) {
-            const mockResponses = {
-                'health': {
-                    status: 'healthy',
-                    agents_count: 12,
-                    timestamp: new Date().toISOString()
-                },
-                'analyze': {
-                    operation: 'analyze',
-                    market_status: 'operational',
-                    risk_score: 45,
-                    liquidity_score: 72,
-                    crisis_probability: 12,
-                    khalid_index: Math.floor(Math.random() * 20) + 45, // Simulates 45-65 range
-                    market_data: {
-                        spy_price: 663.70 + (Math.random() - 0.5) * 5,
-                        qqq_price: 380.50 + (Math.random() - 0.5) * 3,
-                        vix: 18.5 + (Math.random() - 0.5) * 2,
-                        dxy: 103.25 + (Math.random() - 0.5) * 0.5,
-                        btc_price: 95420 + (Math.random() - 0.5) * 1000,
-                        eth_price: 4285 + (Math.random() - 0.5) * 100
-                    },
-                    liquidity: {
-                        global_liquidity: 7.85,
-                        fed_rrp: 18.8,
-                        repo_fails: 285,
-                        ecb_balance: 7.2,
-                        boj_balance: 752,
-                        pboc_liquidity: 42.3
-                    },
-                    timestamp: new Date().toISOString()
-                },
-                'run_agent': {
-                    agent: 'ai_prediction',
-                    predictions: {
-                        market_phase: 'DISTRIBUTION',
-                        confidence: 87,
-                        crisis_probability: 12,
-                        black_swan_alerts: 3,
-                        next_support: 442
-                    }
-                }
-            };
-            return mockResponses[operation] || { error: 'Unknown operation' };
-        }
-        
-        // Global state
-        let currentScreen = 'market';
-        let autoRefresh = true;
-        let refreshInterval = 5000; // 5 seconds
-        let marketData = {};
-        let liquidityData = {};
-        let riskData = {};
-        let alertsVisible = false;
-        
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeSystem();
-            startLiveClock();
-            loadMarketData();
-            initializeCharts();
-            startDataStream();
-            if (autoRefresh) {
-                setInterval(updateAllData, refreshInterval);
-            }
-        });
-        
-        // System initialization
-        async function initializeSystem() {
-            console.log('Initializing Professional Command Center...');
+            console.appendChild(line);
+            console.scrollTop = console.scrollHeight;
             
-            // Check system health
+            // Also log to browser console
+            window.console.log(message, data || '');
+        }
+        
+        // Clear console
+        function clearConsole() {
+            document.getElementById('console').innerHTML = '<div>Console cleared...</div>';
+        }
+        
+        // Test health endpoint
+        async function testHealth() {
+            log('Testing health endpoint...');
             try {
-                const response = await fetchWithCORS(ORCHESTRATOR_ENDPOINT, {
+                const response = await fetch(ENDPOINT, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ operation: 'health' })
                 });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
                 const data = await response.json();
+                log('Health response:', data);
                 
-                if (data.status === 'healthy') {
-                    document.getElementById('agentCount').textContent = `${data.agents_count}/12 Agents Active`;
-                    console.log('System healthy, all agents online');
+                // Update UI
+                document.getElementById('status').textContent = 'Connected ✓';
+                document.getElementById('status').style.borderColor = '#00ff88';
+                
+                if (data.agents_count) {
+                    document.getElementById('agents').textContent = `Agents: ${data.agents_count}/12`;
                 }
+                
+                return data;
             } catch (error) {
-                console.error('System health check failed:', error);
+                log('Health check failed:', error.message);
+                document.getElementById('status').textContent = 'Error';
+                document.getElementById('status').style.borderColor = '#ff4444';
+                return null;
             }
         }
         
-        // Live clock
-        function startLiveClock() {
-            function updateTime() {
-                const now = new Date();
-                const timeStr = now.toLocaleTimeString('en-US', { 
-                    hour12: false,
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit'
-                });
-                const dateStr = now.toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric'
-                });
-                document.getElementById('liveTime').textContent = `${dateStr} ${timeStr} ET`;
-            }
-            updateTime();
-            setInterval(updateTime, 1000);
-        }
-        
-        // Switch screens
-        function switchScreen(screen) {
-            document.querySelectorAll('.main-display').forEach(display => {
-                display.classList.remove('active');
-            });
-            document.querySelectorAll('.screen-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            document.getElementById(`screen-${screen}`).classList.add('active');
-            event.target.classList.add('active');
-            currentScreen = screen;
-            
-            // Load specific screen data
-            switch(screen) {
-                case 'liquidity':
-                    loadLiquidityData();
-                    break;
-                case 'risk':
-                    loadRiskRadar();
-                    break;
-                case 'predictions':
-                    loadPredictions();
-                    break;
-                case 'flow':
-                    loadOrderFlow();
-                    break;
-                case 'bonds':
-                    loadBondData();
-                    break;
-                case 'terminal':
-                    updateTerminal();
-                    break;
-            }
-        }
-        
-        // Load market data
-        async function loadMarketData() {
-            showLoading();
-            
+        // Test analyze endpoint
+        async function testAnalyze() {
+            log('Testing analyze endpoint...');
             try {
-                const response = await fetchWithCORS(ORCHESTRATOR_ENDPOINT, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        operation: 'analyze',
-                        query: 'market overview'
-                    })
-                });
-                const data = await response.json();
-                
-                // Update market grid with real or mock data
-                const markets = [
-                    { ticker: 'SPY', price: data.market_data?.spy_price || 663.70, change: 0.42 },
-                    { ticker: 'QQQ', price: data.market_data?.qqq_price || 380.50, change: 0.65 },
-                    { ticker: 'IWM', price: data.market_data?.iwm_price || 220.30, change: -0.18 },
-                    { ticker: 'DIA', price: data.market_data?.dia_price || 350.75, change: 0.22 },
-                    { ticker: 'VIX', price: data.market_data?.vix || 18.5, change: -5.2 },
-                    { ticker: 'DXY', price: data.market_data?.dxy || 103.2, change: 0.15 },
-                    { ticker: 'GLD', price: data.market_data?.gld_price || 185.40, change: 0.88 },
-                    { ticker: 'TLT', price: data.market_data?.tlt_price || 92.30, change: -0.45 },
-                    { ticker: 'BTC', price: data.market_data?.btc_price || 95420, change: 2.35 },
-                    { ticker: 'ETH', price: data.market_data?.eth_price || 4285, change: 3.15 },
-                    { ticker: 'EUR/USD', price: data.market_data?.eurusd || 1.0852, change: -0.12 },
-                    { ticker: 'USD/JPY', price: data.market_data?.usdjpy || 148.25, change: 0.28 }
-                ];
-                
-                const gridHTML = markets.map(market => `
-                    <div class="market-card">
-                        <div class="ticker">${market.ticker}</div>
-                        <div class="price">$${market.price.toLocaleString()}</div>
-                        <div class="change ${market.change >= 0 ? 'positive' : 'negative'}">
-                            ${market.change >= 0 ? '+' : ''}${market.change}%
-                        </div>
-                    </div>
-                `).join('');
-                
-                document.getElementById('marketGrid').innerHTML = gridHTML;
-                
-                // Update Khalid Index
-                if (data.khalid_index) {
-                    const khalidValue = document.getElementById('khalidValue');
-                    khalidValue.textContent = data.khalid_index;
-                    khalidValue.style.color = getKhalidColor(data.khalid_index);
-                }
-                
-                // Show data source notification
-                if (data.error || !data.market_data) {
-                    addAlert('Using cached data while connection is restored', 'warning');
-                }
-                
-            } catch (error) {
-                console.error('Failed to load market data:', error);
-                addAlert('Using backup data source', 'warning');
-            }
-            
-            hideLoading();
-        }
-        
-        // Initialize all charts
-        function initializeCharts() {
-            // Initialize liquidity flow animation
-            initializeLiquidityFlow();
-            
-            // Initialize risk heatmap
-            initializeRiskHeatmap();
-        }
-        
-        // Liquidity flow animation
-        function initializeLiquidityFlow() {
-            const canvas = document.getElementById('flowCanvas');
-            if (!canvas) return;
-            
-            const ctx = canvas.getContext('2d');
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
-            
-            const particles = [];
-            for (let i = 0; i < 100; i++) {
-                particles.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    vx: (Math.random() - 0.5) * 2,
-                    vy: (Math.random() - 0.5) * 2,
-                    size: Math.random() * 3 + 1,
-                    color: `hsl(${Math.random() * 60 + 120}, 100%, 50%)`
-                });
-            }
-            
-            function animate() {
-                ctx.fillStyle = 'rgba(10, 10, 10, 0.1)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                particles.forEach(p => {
-                    p.x += p.vx;
-                    p.y += p.vy;
-                    
-                    if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
-                    if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-                    
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                    ctx.fillStyle = p.color;
-                    ctx.fill();
-                });
-                
-                requestAnimationFrame(animate);
-            }
-            animate();
-        }
-        
-        // Risk heatmap
-        function initializeRiskHeatmap() {
-            const data = [
-                { x: 'US Equity', y: 'Mon', value: 45 },
-                { x: 'US Equity', y: 'Tue', value: 52 },
-                { x: 'US Equity', y: 'Wed', value: 48 },
-                { x: 'US Equity', y: 'Thu', value: 65 },
-                { x: 'US Equity', y: 'Fri', value: 72 },
-                { x: 'EU Equity', y: 'Mon', value: 38 },
-                { x: 'EU Equity', y: 'Tue', value: 42 },
-                { x: 'EU Equity', y: 'Wed', value: 55 },
-                { x: 'EU Equity', y: 'Thu', value: 61 },
-                { x: 'EU Equity', y: 'Fri', value: 58 },
-                { x: 'Asia Equity', y: 'Mon', value: 62 },
-                { x: 'Asia Equity', y: 'Tue', value: 68 },
-                { x: 'Asia Equity', y: 'Wed', value: 71 },
-                { x: 'Asia Equity', y: 'Thu', value: 75 },
-                { x: 'Asia Equity', y: 'Fri', value: 82 },
-                { x: 'Bonds', y: 'Mon', value: 25 },
-                { x: 'Bonds', y: 'Tue', value: 28 },
-                { x: 'Bonds', y: 'Wed', value: 32 },
-                { x: 'Bonds', y: 'Thu', value: 35 },
-                { x: 'Bonds', y: 'Fri', value: 41 },
-                { x: 'Crypto', y: 'Mon', value: 88 },
-                { x: 'Crypto', y: 'Tue', value: 92 },
-                { x: 'Crypto', y: 'Wed', value: 85 },
-                { x: 'Crypto', y: 'Thu', value: 78 },
-                { x: 'Crypto', y: 'Fri', value: 95 }
-            ];
-            
-            const layout = {
-                title: 'Weekly Risk Evolution',
-                paper_bgcolor: '#1a1a1a',
-                plot_bgcolor: '#0a0a0a',
-                font: { color: '#e0e0e0' },
-                margin: { t: 50, r: 50, b: 50, l: 100 }
-            };
-            
-            Plotly.newPlot('riskHeatmap', [{
-                type: 'heatmap',
-                x: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-                y: ['US Equity', 'EU Equity', 'Asia Equity', 'Bonds', 'Crypto'],
-                z: [
-                    [45, 52, 48, 65, 72],
-                    [38, 42, 55, 61, 58],
-                    [62, 68, 71, 75, 82],
-                    [25, 28, 32, 35, 41],
-                    [88, 92, 85, 78, 95]
-                ],
-                colorscale: [
-                    [0, '#00ff88'],
-                    [0.5, '#ffaa00'],
-                    [1, '#ff0044']
-                ]
-            }], layout);
-        }
-        
-        // Load liquidity data
-        async function loadLiquidityData() {
-            // Create gauge charts for liquidity metrics
-            const gaugeData = [
-                { id: 'globalLiquidityChart', value: 75 },
-                { id: 'rrpChart', value: 5 },
-                { id: 'repoFailsChart', value: 85 },
-                { id: 'ecbChart', value: 62 },
-                { id: 'bojChart', value: 88 },
-                { id: 'pbocChart', value: 71 }
-            ];
-            
-            gaugeData.forEach(gauge => {
-                const data = [{
-                    type: 'indicator',
-                    mode: 'gauge+number',
-                    value: gauge.value,
-                    gauge: {
-                        axis: { range: [0, 100] },
-                        bar: { color: getGaugeColor(gauge.value) },
-                        bgcolor: '#2a2a2a',
-                        borderwidth: 2,
-                        bordercolor: '#444'
-                    }
-                }];
-                
-                const layout = {
-                    paper_bgcolor: '#1a1a1a',
-                    font: { color: '#e0e0e0' },
-                    margin: { t: 0, r: 0, b: 0, l: 0 },
-                    height: 200
-                };
-                
-                Plotly.newPlot(gauge.id, data, layout);
-            });
-        }
-        
-        // Load risk radar
-        function loadRiskRadar() {
-            const data = [{
-                type: 'scatterpolar',
-                r: [85, 72, 68, 92, 45, 78, 83, 61],
-                theta: ['Credit Risk', 'Liquidity Risk', 'Market Risk', 'Systemic Risk', 
-                        'Operational Risk', 'Geopolitical', 'Currency Risk', 'Interest Rate'],
-                fill: 'toself',
-                fillcolor: 'rgba(255, 68, 68, 0.2)',
-                line: { color: '#ff4444' }
-            }];
-            
-            const layout = {
-                polar: {
-                    radialaxis: {
-                        visible: true,
-                        range: [0, 100],
-                        gridcolor: '#444',
-                        tickfont: { color: '#888' }
-                    },
-                    angularaxis: {
-                        gridcolor: '#444',
-                        tickfont: { color: '#e0e0e0' }
-                    },
-                    bgcolor: '#0a0a0a'
-                },
-                paper_bgcolor: '#1a1a1a',
-                font: { color: '#e0e0e0' },
-                title: 'Multi-Dimensional Risk Assessment',
-                height: 600
-            };
-            
-            Plotly.newPlot('riskRadarChart', data, layout);
-        }
-        
-        // Load predictions
-        async function loadPredictions() {
-            try {
-                const response = await fetchWithCORS(ORCHESTRATOR_ENDPOINT, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        operation: 'run_agent',
-                        agent: 'ai_prediction',
-                        query: 'market predictions'
-                    })
-                });
-                const data = await response.json();
-                
-                // Update prediction cards with real data
-                console.log('AI Predictions loaded:', data);
-            } catch (error) {
-                console.error('Failed to load predictions:', error);
-            }
-        }
-        
-        // Load order flow
-        function loadOrderFlow() {
-            // Create professional order flow chart
-            const trace1 = {
-                x: Array.from({length: 100}, (_, i) => i),
-                y: Array.from({length: 100}, () => Math.random() * 100 - 50),
-                type: 'scatter',
-                mode: 'lines',
-                name: 'Buy Flow',
-                line: { color: '#00ff88', width: 2 }
-            };
-            
-            const trace2 = {
-                x: Array.from({length: 100}, (_, i) => i),
-                y: Array.from({length: 100}, () => Math.random() * 100 - 50),
-                type: 'scatter',
-                mode: 'lines',
-                name: 'Sell Flow',
-                line: { color: '#ff4444', width: 2 }
-            };
-            
-            const layout = {
-                title: 'Real-Time Order Flow Imbalance',
-                paper_bgcolor: '#1a1a1a',
-                plot_bgcolor: '#0a0a0a',
-                font: { color: '#e0e0e0' },
-                xaxis: { gridcolor: '#333' },
-                yaxis: { gridcolor: '#333', title: 'Net Flow ($M)' }
-            };
-            
-            Plotly.newPlot('orderFlowChart', [trace1, trace2], layout);
-        }
-        
-        // Load bond data
-        async function loadBondData() {
-            // Create bond spreads chart
-            const categories = ['AAA', 'AA', 'A', 'BBB', 'BB', 'B', 'CCC'];
-            const spreads = [45, 68, 92, 145, 285, 425, 875];
-            
-            const data = [{
-                x: categories,
-                y: spreads,
-                type: 'bar',
-                marker: {
-                    color: spreads.map(s => s > 300 ? '#ff4444' : s > 150 ? '#ffaa00' : '#00ff88')
-                }
-            }];
-            
-            const layout = {
-                title: 'ICE BofA Bond Spreads (bps)',
-                paper_bgcolor: '#1a1a1a',
-                plot_bgcolor: '#0a0a0a',
-                font: { color: '#e0e0e0' },
-                xaxis: { gridcolor: '#333' },
-                yaxis: { gridcolor: '#333', title: 'Spread (bps)' }
-            };
-            
-            Plotly.newPlot('bondSpreadsChart', data, layout);
-        }
-        
-        // Data terminal stream
-        function startDataStream() {
-            const terminal = document.getElementById('dataTerminal');
-            
-            setInterval(() => {
-                const messages = [
-                    `[${new Date().toTimeString().split(' ')[0]}] SOFR: 5.35% (+2bp)`,
-                    `[${new Date().toTimeString().split(' ')[0]}] RRP: $18.8B (-$5.2B)`,
-                    `[${new Date().toTimeString().split(' ')[0]}] DXY: 103.25 (+0.15)`,
-                    `[${new Date().toTimeString().split(' ')[0]}] VIX: 18.5 (-5.2%)`,
-                    `[${new Date().toTimeString().split(' ')[0]}] GEX: -$2.1B (Negative)`,
-                    `[${new Date().toTimeString().split(' ')[0]}] Treasury 10Y: 4.42%`,
-                    `[${new Date().toTimeString().split(' ')[0]}] Dark Pool SPY: $2.3B`,
-                    `[${new Date().toTimeString().split(' ')[0]}] Crisis Distance: 45%`
-                ];
-                
-                const randomMessage = messages[Math.floor(Math.random() * messages.length)];
-                const line = document.createElement('div');
-                line.className = 'terminal-line';
-                line.textContent = randomMessage;
-                terminal.appendChild(line);
-                
-                // Keep only last 20 lines
-                if (terminal.children.length > 20) {
-                    terminal.removeChild(terminal.firstChild);
-                }
-                
-                terminal.scrollTop = terminal.scrollHeight;
-            }, 2000);
-        }
-        
-        // Update terminal
-        function updateTerminal() {
-            const terminal = document.getElementById('dataTerminal');
-            terminal.innerHTML += '<div class="terminal-line">[' + new Date().toTimeString().split(' ')[0] + '] Terminal view activated...</div>';
-        }
-        
-        // Control functions
-        async function runFullAnalysis() {
-            showLoading();
-            
-            try {
-                const response = await fetchWithCORS(ORCHESTRATOR_ENDPOINT, {
+                const response = await fetch(ENDPOINT, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ operation: 'analyze' })
                 });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
                 const data = await response.json();
+                log('Analyze response received');
                 
-                console.log('Full analysis complete:', data);
+                // Update Khalid Index
+                if (data.khalid_index || data.risk_score) {
+                    const khalidValue = data.khalid_index || data.risk_score || '--';
+                    document.getElementById('khalid').textContent = `Khalid Index: ${khalidValue}`;
+                }
                 
-                // Refresh all data
-                loadMarketData();
+                // Update market grid
+                updateMarketGrid(data);
                 
-                // Show alert
-                addAlert('Full analysis complete', 'success');
+                return data;
             } catch (error) {
-                console.error('Analysis failed:', error);
-                addAlert('Analysis failed: ' + error.message, 'critical');
-            }
-            
-            hideLoading();
-        }
-        
-        function toggleAlerts() {
-            const panel = document.getElementById('alertPanel');
-            alertsVisible = !alertsVisible;
-            panel.style.display = alertsVisible ? 'block' : 'none';
-        }
-        
-        function toggleAutoRefresh() {
-            autoRefresh = !autoRefresh;
-            if (autoRefresh) {
-                addAlert('Auto-refresh enabled (5s)', 'success');
-            } else {
-                addAlert('Auto-refresh disabled', 'warning');
+                log('Analyze failed:', error.message);
+                return null;
             }
         }
         
-        function exportData() {
-            // Export current data to JSON
-            const exportData = {
-                timestamp: new Date().toISOString(),
-                marketData: marketData,
-                liquidityData: liquidityData,
-                riskData: riskData
-            };
+        // Update market grid
+        function updateMarketGrid(data) {
+            const grid = document.getElementById('marketGrid');
             
-            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `market-data-${Date.now()}.json`;
-            a.click();
-        }
-        
-        function openSettings() {
-            alert('Settings panel coming soon...');
-        }
-        
-        // Alert system
-        function addAlert(message, type = 'info') {
-            const alertList = document.getElementById('alertList');
-            const alert = document.createElement('div');
-            alert.className = `alert-item alert-${type}`;
-            alert.innerHTML = `
-                <strong>${new Date().toTimeString().split(' ')[0]}</strong><br>
-                ${message}
-            `;
-            alertList.insertBefore(alert, alertList.firstChild);
-            
-            // Keep only last 10 alerts
-            if (alertList.children.length > 10) {
-                alertList.removeChild(alertList.lastChild);
-            }
-            
-            // Auto-show alerts panel for critical alerts
-            if (type === 'critical' && !alertsVisible) {
-                toggleAlerts();
-            }
-        }
-        
-        // Update all data
-        async function updateAllData() {
-            if (!autoRefresh) return;
-            
-            switch(currentScreen) {
-                case 'market':
-                    loadMarketData();
-                    break;
-                case 'liquidity':
-                    loadLiquidityData();
-                    break;
-                case 'predictions':
-                    loadPredictions();
-                    break;
-            }
-        }
-        
-        // Helper functions
-        function getKhalidColor(value) {
-            if (value < 20) return '#00ff88';
-            if (value < 35) return '#88ff00';
-            if (value < 65) return '#ffaa00';
-            if (value < 80) return '#ff6600';
-            return '#ff0044';
-        }
-        
-        function getGaugeColor(value) {
-            if (value < 30) return '#00ff88';
-            if (value < 60) return '#ffaa00';
-            return '#ff4444';
-        }
-        
-        function showLoading() {
-            document.getElementById('loadingOverlay').classList.add('active');
-        }
-        
-        function hideLoading() {
-            setTimeout(() => {
-                document.getElementById('loadingOverlay').classList.remove('active');
-            }, 500);
-        }
-        
-        // Simulate real-time alerts
-        setInterval(() => {
-            const alerts = [
-                { msg: 'SOFR spike detected: 5.42%', type: 'warning' },
-                { msg: 'Dark pool accumulation on SPY', type: 'info' },
-                { msg: 'Repo fails exceed $300B', type: 'critical' },
-                { msg: 'VIX dropping below 15', type: 'info' },
-                { msg: 'ECB balance sheet expanding', type: 'warning' }
+            // Default markets
+            const markets = [
+                { ticker: 'SPY', price: 663.70, change: 0.42 },
+                { ticker: 'QQQ', price: 380.50, change: 0.65 },
+                { ticker: 'VIX', price: 18.5, change: -5.2 },
+                { ticker: 'DXY', price: 103.25, change: 0.15 }
             ];
             
-            if (Math.random() > 0.7) {
-                const alert = alerts[Math.floor(Math.random() * alerts.length)];
-                addAlert(alert.msg, alert.type);
+            // Override with real data if available
+            if (data && data.market_data) {
+                if (data.market_data.spy_price) markets[0].price = data.market_data.spy_price;
+                if (data.market_data.qqq_price) markets[1].price = data.market_data.qqq_price;
+                if (data.market_data.vix) markets[2].price = data.market_data.vix;
+                if (data.market_data.dxy) markets[3].price = data.market_data.dxy;
             }
-        }, 10000);
+            
+            // Override with polygon data if available
+            if (data && data.polygon_spy) {
+                markets[0].price = data.polygon_spy.price;
+            }
+            
+            const html = markets.map(m => `
+                <div class="card">
+                    <div>${m.ticker}</div>
+                    <div class="price">$${m.price.toLocaleString()}</div>
+                    <div class="${m.change >= 0 ? 'positive' : 'negative'}">
+                        ${m.change >= 0 ? '+' : ''}${m.change}%
+                    </div>
+                </div>
+            `).join('');
+            
+            grid.innerHTML = html;
+            log('Market grid updated');
+        }
         
-        console.log('Professional Command Center loaded successfully');
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', async function() {
+            log('Dashboard starting...');
+            
+            // Test connection
+            const health = await testHealth();
+            
+            if (health && health.status === 'healthy') {
+                // If healthy, try analyze
+                await testAnalyze();
+                log('Dashboard ready!');
+            } else {
+                log('Dashboard running in offline mode');
+                // Show default data
+                updateMarketGrid(null);
+            }
+        });
+        
+        // Error handler
+        window.addEventListener('error', function(e) {
+            log('ERROR: ' + e.message + ' at line ' + e.lineno);
+        });
+        
+        // Auto-refresh every 10 seconds
+        setInterval(async function() {
+            await testAnalyze();
+        }, 10000);
     </script>
 </body>
 </html>
