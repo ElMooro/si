@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Agent Financial Intelligence System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0e27;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: rgba(255,255,255,0.7);
+            margin-top: 0.5rem;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .agents-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .agent-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .agent-card {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .agent-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .agent-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-healthy {
+            background: #10b981;
+        }
+
+        .status-unhealthy {
+            background: #ef4444;
+        }
+
+        .status-timeout {
+            background: #f59e0b;
+        }
+
+        .agent-data {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1rem;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .loading {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .summary-section {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 2rem auto;
+            max-width: 1400px;
+        }
+
+        .metric-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .metric-pill {
+            background: rgba(255,255,255,0.1);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+        }
+
+        .success {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚀 Multi-Agent Financial Intelligence System</h1>
+        <p id="status-text">Initializing gateway connection...</p>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value" id="total-agents">0</div>
+            <div class="stat-label">Total Agents</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="healthy-agents">0</div>
+            <div class="stat-label">Healthy Agents</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="total-metrics">0</div>
+            <div class="stat-label">Total Metrics</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="last-update">--:--</div>
+            <div class="stat-label">Last Update</div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button onclick="app.discoverAgents()">🔍 Discover Agents</button>
+        <button onclick="app.healthCheck()">❤️ Health Check</button>
+        <button onclick="app.callAllAgents()">📊 Get All Data</button>
+        <button onclick="app.getLiquidityData()">💧 Liquidity Only</button>
+        <button onclick="app.getMarketData()">📈 Market Only</button>
+        <button onclick="app.autoRefresh()">🔄 Auto Refresh</button>
+        <button onclick="app.stopRefresh()">⏹️ Stop Refresh</button>
+        <button onclick="app.exportData()">💾 Export JSON</button>
+    </div>
+
+    <div class="summary-section" id="summary" style="display:none;">
+        <h2>📊 Key Metrics</h2>
+        <div class="metric-pills" id="key-metrics"></div>
+    </div>
+
+    <div class="agents-container">
+        <h2>Agent Status</h2>
+        <div class="agent-grid" id="agent-grid"></div>
+    </div>
+
+    <script>
+    class MultiAgentDashboard {
+        constructor() {
+            this.gatewayUrl = 'https://jj4f4t5xv6zyrbbxtqebdpss2y0ebxof.lambda-url.us-east-1.on.aws/';
+            this.agents = {};
+            this.data = {};
+            this.health = {};
+            this.refreshInterval = null;
+            this.init();
+        }
+
+        async init() {
+            this.updateStatus('Discovering agents...');
+            await this.discoverAgents();
+            await this.healthCheck();
+            this.updateStatus(`Connected to ${Object.keys(this.agents).length} agents`);
+        }
+
+        async discoverAgents() {
+            try {
+                const response = await fetch(this.gatewayUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ operation: 'discover' })
+                });
+
+                const result = await response.json();
+                this.agents = result.agents || {};
+                
+                document.getElementById('total-agents').textContent = result.count || 0;
+                this.renderAgents();
+                
+                console.log('Discovered agents:', result);
+                return result;
+            } catch (error) {
+                console.error('Discovery failed:', error);
+                this.updateStatus('Error discovering agents', 'error');
+            }
+        }
+
+        async healthCheck() {
+            try {
+                const response = await fetch(this.gatewayUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ operation: 'health' })
+                });
+
+                const result = await response.json();
+                this.health = result.health || {};
+                
+                document.getElementById('healthy-agents').textContent = result.healthy_count || 0;
+                this.updateAgentHealth();
+                
+                return result;
+            } catch (error) {
+                console.error('Health check failed:', error);
+            }
+        }
+
+        async callAllAgents() {
+            this.updateStatus('Fetching data from all agents...');
+            
+            try {
+                const response = await fetch(this.gatewayUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ operation: 'call_all' })
+                });
+
+                const result = await response.json();
+                this.data = result.data || {};
+                
+                // Update metrics
+                let totalMetrics = 0;
+                Object.values(this.data).forEach(agent => {
+                    if (agent.status === 'success' && agent.data) {
+                        totalMetrics += Object.keys(agent.data).length;
+                    }
+                });
+                
+                document.getElementById('total-metrics').textContent = totalMetrics;
+                document.getElementById('last-update').textContent = 
+                    new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                
+                this.updateAgentData();
+                this.displaySummary(result.summary);
+                this.updateStatus(`Data received from ${result.agents_called} agents`);
+                
+                return result;
+            } catch (error) {
+                console.error('Failed to call agents:', error);
+                this.updateStatus('Error fetching data', 'error');
+            }
+        }
+
+        async getLiquidityData() {
+            return this.callFilteredAgents('liquidity');
+        }
+
+        async getMarketData() {
+            return this.callFilteredAgents('market');
+        }
+
+        async callFilteredAgents(filter) {
+            this.updateStatus(`Fetching ${filter} data...`);
+            
+            try {
+                const response = await fetch(this.gatewayUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ operation: 'call_all', filter: filter })
+                });
+
+                const result = await response.json();
+                this.data = { ...this.data, ...result.data };
+                
+                this.updateAgentData();
+                this.updateStatus(`${filter} data received`);
+                
+                return result;
+            } catch (error) {
+                console.error(`Failed to get ${filter} data:`, error);
+            }
+        }
+
+        renderAgents() {
+            const grid = document.getElementById('agent-grid');
+            grid.innerHTML = '';
+
+            Object.entries(this.agents).forEach(([name, agent]) => {
+                const card = document.createElement('div');
+                card.className = 'agent-card';
+                card.innerHTML = `
+                    <div class="agent-header">
+                        <div class="agent-name">${name}</div>
+                        <div class="status-badge" id="status-${name}">pending</div>
+                    </div>
+                    <div>Type: ${agent.type || 'general'}</div>
+                    <div>URL: ${agent.url ? '✅' : '❌'}</div>
+                    <div class="agent-data" id="data-${name}">No data yet</div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        updateAgentHealth() {
+            Object.entries(this.health).forEach(([name, status]) => {
+                const badge = document.getElementById(`status-${name}`);
+                if (badge) {
+                    badge.className = `status-badge status-${status}`;
+                    badge.textContent = status;
+                }
+            });
+        }
+
+        updateAgentData() {
+            Object.entries(this.data).forEach(([name, result]) => {
+                const dataDiv = document.getElementById(`data-${name}`);
+                if (dataDiv) {
+                    if (result.status === 'error') {
+                        dataDiv.innerHTML = `<span style="color:#ef4444">Error: ${result.error}</span>`;
+                    } else if (result.data) {
+                        dataDiv.innerHTML = `<pre>${JSON.stringify(result.data, null, 2).substring(0, 500)}</pre>`;
+                    }
+                }
+            });
+        }
+
+        displaySummary(summary) {
+            if (!summary) return;
+            
+            const summaryDiv = document.getElementById('summary');
+            const metricsDiv = document.getElementById('key-metrics');
+            
+            summaryDiv.style.display = 'block';
+            metricsDiv.innerHTML = '';
+            
+            if (summary.key_indicators) {
+                Object.entries(summary.key_indicators).forEach(([key, value]) => {
+                    const pill = document.createElement('div');
+                    pill.className = 'metric-pill';
+                    pill.innerHTML = `<strong>${key}:</strong> ${value}`;
+                    metricsDiv.appendChild(pill);
+                });
+            }
+        }
+
+        updateStatus(message, type = 'info') {
+            const statusText = document.getElementById('status-text');
+            statusText.textContent = message;
+            statusText.className = type === 'error' ? 'error' : '';
+        }
+
+        autoRefresh(interval = 60000) {
+            if (this.refreshInterval) clearInterval(this.refreshInterval);
+            
+            this.refreshInterval = setInterval(() => {
+                this.callAllAgents();
+            }, interval);
+            
+            this.updateStatus(`Auto-refresh enabled (every ${interval/1000}s)`);
+        }
+
+        stopRefresh() {
+            if (this.refreshInterval) {
+                clearInterval(this.refreshInterval);
+                this.refreshInterval = null;
+                this.updateStatus('Auto-refresh stopped');
+            }
+        }
+
+        exportData() {
+            const exportData = {
+                timestamp: new Date().toISOString(),
+                agents: this.agents,
+                health: this.health,
+                data: this.data
+            };
+            
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], 
+                { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `agent-data-${Date.now()}.json`;
+            a.click();
+            
+            this.updateStatus('Data exported successfully');
+        }
+    }
+
+    // Initialize dashboard
+    const app = new MultiAgentDashboard();
+    </script>
+</body>
+</html>
