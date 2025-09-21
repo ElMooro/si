@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JustHodl.AI | Live Financial Command Center</title>
+    <title>JustHodl.AI | Live Financial Data System</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
@@ -139,6 +139,7 @@
             display: flex;
             gap: 15px;
             flex-wrap: wrap;
+            align-items: center;
         }
 
         .btn {
@@ -158,7 +159,7 @@
             color: var(--bg-primary);
         }
 
-        .btn-primary:hover {
+        .btn-primary:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0, 255, 65, 0.3);
         }
@@ -169,20 +170,14 @@
             border: 1px solid var(--border);
         }
 
-        .btn-secondary:hover {
+        .btn-secondary:hover:not(:disabled) {
             background: var(--bg-tertiary);
             border-color: var(--primary);
         }
 
-        .auto-refresh-indicator {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 15px;
-            background: rgba(0, 170, 255, 0.1);
-            border: 1px solid var(--info);
-            border-radius: 20px;
-            margin-left: auto;
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         /* Main Container */
@@ -192,83 +187,10 @@
             margin: 0 auto;
         }
 
-        /* Data Display */
-        .data-section {
-            margin-bottom: 30px;
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid var(--border);
-        }
-
-        .section-title {
-            font-size: 24px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .agent-badge {
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            background: rgba(0, 255, 65, 0.2);
-            color: var(--primary);
-            border: 1px solid var(--primary);
-        }
-
-        .agent-badge.error {
-            background: rgba(255, 0, 64, 0.2);
-            color: var(--danger);
-            border-color: var(--danger);
-        }
-
-        /* JSON Data Display */
-        .json-viewer {
-            background: #000;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 20px;
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
-            overflow-x: auto;
-            max-height: 600px;
-            overflow-y: auto;
-        }
-
-        .json-key {
-            color: #00aaff;
-        }
-
-        .json-string {
-            color: #00ff41;
-        }
-
-        .json-number {
-            color: #ffaa00;
-        }
-
-        .json-boolean {
-            color: #ff00ff;
-        }
-
-        .json-null {
-            color: #ff0040;
-        }
-
-        /* Agent Status Grid */
+        /* Agent Grid */
         .agents-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
             gap: 20px;
             margin-bottom: 30px;
         }
@@ -276,69 +198,100 @@
         .agent-card {
             background: var(--bg-tertiary);
             border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 15px;
+            border-radius: 12px;
+            padding: 20px;
             transition: all 0.3s;
             position: relative;
+            overflow: hidden;
+        }
+
+        .agent-card.loading {
+            opacity: 0.7;
         }
 
         .agent-card.healthy {
             border-color: var(--primary);
         }
 
-        .agent-card.unhealthy {
+        .agent-card.error {
             border-color: var(--danger);
         }
 
-        .agent-card:hover {
-            transform: scale(1.02);
-            box-shadow: 0 5px 15px rgba(0, 255, 65, 0.2);
+        .agent-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
         }
 
         .agent-name {
             font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 10px;
+            font-weight: 700;
             text-transform: uppercase;
+            color: var(--primary);
         }
 
         .agent-status {
-            font-size: 12px;
-            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
-        .agent-url {
-            font-size: 11px;
-            color: var(--text-secondary);
-            word-break: break-all;
-            margin-bottom: 10px;
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--text-secondary);
+        }
+
+        .status-indicator.healthy {
+            background: var(--primary);
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.error {
+            background: var(--danger);
         }
 
         .agent-data {
-            font-size: 12px;
             background: #000;
-            border-radius: 4px;
-            padding: 8px;
-            margin-top: 10px;
-            max-height: 150px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 15px;
+            max-height: 400px;
             overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
         }
 
-        /* Loading Animation */
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid var(--border);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-right: 10px;
+        .agent-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .metric-item {
+            background: rgba(0, 255, 65, 0.05);
+            border: 1px solid rgba(0, 255, 65, 0.2);
+            border-radius: 6px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            font-size: 10px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
         }
 
         /* Terminal */
@@ -349,7 +302,7 @@
             padding: 15px;
             font-family: 'Courier New', monospace;
             font-size: 12px;
-            max-height: 400px;
+            max-height: 300px;
             overflow-y: auto;
             margin-bottom: 30px;
         }
@@ -382,21 +335,101 @@
             color: var(--info);
         }
 
-        /* Error Display */
-        .error-message {
-            background: rgba(255, 0, 64, 0.1);
-            border: 1px solid var(--danger);
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
+        /* Loading Spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
         }
 
-        .error-icon {
-            font-size: 24px;
-            color: var(--danger);
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* JSON Formatter */
+        .json-key {
+            color: #00aaff;
+        }
+
+        .json-string {
+            color: #00ff41;
+        }
+
+        .json-number {
+            color: #ffaa00;
+        }
+
+        .json-boolean {
+            color: #ff00ff;
+        }
+
+        .json-null {
+            color: #ff0040;
+        }
+
+        /* Summary Section */
+        .summary-section {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .summary-item {
+            text-align: center;
+        }
+
+        .summary-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .summary-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        /* Auto-refresh indicator */
+        .auto-refresh-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: rgba(0, 170, 255, 0.1);
+            border: 1px solid var(--info);
+            border-radius: 20px;
+            font-size: 12px;
+            margin-left: auto;
+        }
+
+        .progress-bar {
+            width: 100px;
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--info);
+            transition: width 1s linear;
         }
 
         /* Responsive */
@@ -404,10 +437,6 @@
             .header {
                 flex-direction: column;
                 gap: 15px;
-            }
-
-            .controls {
-                padding: 15px;
             }
 
             .agents-grid {
@@ -421,111 +450,79 @@
     <header class="header">
         <div class="logo">
             <div class="logo-icon">JH</div>
-            <div class="logo-text">JUSTHODL.AI - REAL DATA</div>
+            <div class="logo-text">JUSTHODL.AI LIVE DATA</div>
         </div>
         
         <div class="header-stats">
             <div class="stat-item">
-                <div class="stat-value" id="totalAgents">0/0</div>
+                <div class="stat-value" id="activeAgents">0/15</div>
                 <div class="stat-label">Active Agents</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value" id="responseTime">0ms</div>
-                <div class="stat-label">Response Time</div>
+                <div class="stat-value" id="totalDataPoints">0</div>
+                <div class="stat-label">Data Points</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value" id="dataPoints">0</div>
-                <div class="stat-label">Data Points</div>
+                <div class="stat-value" id="lastUpdate">Never</div>
+                <div class="stat-label">Last Update</div>
             </div>
             <div class="connection-status">
                 <div class="status-dot" id="connectionDot"></div>
-                <span id="connectionStatus">Connecting...</span>
+                <span id="connectionStatus">Initializing...</span>
             </div>
         </div>
     </header>
 
     <!-- Controls -->
     <div class="controls">
-        <button class="btn btn-primary" onclick="fetchHealthCheck()">
-            <i class="fas fa-heartbeat"></i> Health Check
+        <button class="btn btn-primary" onclick="fetchAllAgentData()" id="fetchAllBtn">
+            <i class="fas fa-download"></i> Fetch All Agent Data
         </button>
-        <button class="btn btn-primary" onclick="fetchAnalyze()">
-            <i class="fas fa-chart-line"></i> Full Analysis
+        <button class="btn btn-primary" onclick="testIndividualAgents()" id="testAgentsBtn">
+            <i class="fas fa-vial"></i> Test Each Agent
         </button>
-        <button class="btn btn-primary" onclick="fetchDiscover()">
-            <i class="fas fa-search"></i> Discover
+        <button class="btn btn-secondary" onclick="toggleAutoRefresh()" id="autoRefreshBtn">
+            <i class="fas fa-sync"></i> Enable Auto-Refresh
         </button>
-        <button class="btn btn-secondary" onclick="toggleAutoRefresh()">
-            <i class="fas fa-sync"></i> <span id="autoRefreshBtn">Enable Auto-Refresh</span>
-        </button>
-        <button class="btn btn-secondary" onclick="clearAllData()">
-            <i class="fas fa-trash"></i> Clear Data
+        <button class="btn btn-secondary" onclick="clearAll()">
+            <i class="fas fa-trash"></i> Clear All
         </button>
         
-        <div class="auto-refresh-indicator">
-            <span id="refreshIndicator">Manual Mode</span>
-            <span id="refreshCountdown"></span>
+        <div class="auto-refresh-badge" id="refreshBadge" style="display: none;">
+            <span>Auto-refresh in <span id="countdown">30</span>s</span>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
         </div>
     </div>
 
     <!-- Main Container -->
     <div class="main-container">
         
-        <!-- Terminal Log -->
+        <!-- Terminal -->
         <div class="terminal" id="terminal">
             <div class="terminal-line">
                 <span class="terminal-timestamp">[00:00:00]</span>
-                <span class="terminal-message">JUSTHODL.AI Real-Time Data System Initializing...</span>
+                <span class="terminal-message">JUSTHODL.AI Live Data System v2.0 - Ready to fetch real agent data</span>
             </div>
         </div>
 
-        <!-- Agent Status Section -->
-        <div class="data-section">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <i class="fas fa-robot"></i> Agent Status
-                    <span id="agentStatusBadge" class="agent-badge">LOADING</span>
-                </h2>
-                <button class="btn btn-secondary" onclick="testAllAgents()">
-                    <i class="fas fa-vial"></i> Test All Agents
-                </button>
-            </div>
-            <div class="agents-grid" id="agentsGrid">
-                <!-- Agents will be populated here -->
+        <!-- Summary Section -->
+        <div class="summary-section" id="summarySection" style="display: none;">
+            <h2 style="font-size: 20px; margin-bottom: 20px;">
+                <i class="fas fa-chart-line"></i> Live Market Summary
+            </h2>
+            <div class="summary-grid" id="summaryGrid">
+                <!-- Summary items will be populated here -->
             </div>
         </div>
 
-        <!-- Health Check Data -->
-        <div class="data-section" id="healthSection" style="display: none;">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <i class="fas fa-heartbeat"></i> Health Check Results
-                    <span class="agent-badge" id="healthBadge">LIVE</span>
-                </h2>
-                <span id="healthTimestamp"></span>
-            </div>
-            <div class="json-viewer" id="healthData">
-                <!-- Health data will appear here -->
-            </div>
-        </div>
-
-        <!-- Analysis Data -->
-        <div class="data-section" id="analysisSection" style="display: none;">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <i class="fas fa-analytics"></i> Full System Analysis
-                    <span class="agent-badge" id="analysisBadge">LIVE</span>
-                </h2>
-                <span id="analysisTimestamp"></span>
-            </div>
-            <div class="json-viewer" id="analysisData">
-                <!-- Analysis data will appear here -->
-            </div>
-        </div>
-
-        <!-- Individual Agent Data Sections -->
-        <div id="agentDataSections">
-            <!-- Dynamic agent sections will be created here -->
+        <!-- Agents Grid -->
+        <h2 style="font-size: 24px; margin-bottom: 20px;">
+            <i class="fas fa-robot"></i> Live Agent Data
+        </h2>
+        <div class="agents-grid" id="agentsGrid">
+            <!-- Agent cards will be populated here -->
         </div>
 
     </div>
@@ -533,31 +530,33 @@
     <script>
         // Configuration
         const API_ENDPOINT = 'https://api.justhodl.ai/';
-        const AGENT_URLS = {
-            'polygon-api': 'https://fjf6t3ne4h.execute-api.us-east-1.amazonaws.com/prod',
-            'alphavantage-technical-analysis': 'https://ngqq4e3hmqi6j5nky2mzoixc5e0yybrh.lambda-url.us-east-1.on.aws/',
-            'global-liquidity-agent-v2': 'https://lwybn3kjcpofq5ifcre5ybtuey0fddxz.lambda-url.us-east-1.on.aws/',
-            'treasury-api': 'https://oanydg4qltq5emsnnb2m23mifm0bqjqh.lambda-url.us-east-1.on.aws/',
-            'fred-api': 'https://klehdyiwrl.execute-api.us-east-1.amazonaws.com/prod',
-            'ny-fed': 'https://jc6ripzwk1.execute-api.us-east-1.amazonaws.com/prod',
-            'coinmarketcap-agent': 'https://i5msak7bhk.execute-api.us-east-1.amazonaws.com/prod/crypto',
-            'census-economic-agent': 'https://2lhhfitug2w2m4leajszuptafu0kgend.lambda-url.us-east-1.on.aws/',
-            'ice-bofa': 'https://s57bexwijusq7jukyxishguffe0nukpw.lambda-url.us-east-1.on.aws/',
-            'enhanced-repo-agent': 'https://uhuftf5gghrsnoeui66g24qeh40ovomr.lambda-url.us-east-1.on.aws/',
-            'cross-currency': 'https://cm6i7tzsb6fpyvus5zvy43igae0oxmuc.lambda-url.us-east-1.on.aws/',
-            'aiapi-market-analyzer': 'https://6fa5qo7fov36efsq7vftugu2iy0wfecn.lambda-url.us-east-1.on.aws/',
-            'chatgpt-agent-api': 'https://aamyjez2avm6kvjowjowlcuk5m0pemhl.lambda-url.us-east-1.on.aws/',
-            'fed-liquidity': 'https://mjqyipzzwjcmx44irtvijecswm0nkikf.lambda-url.us-east-1.on.aws/',
-            'news-sentiment-agent': 'https://kcm6voksx75rzhyxkblfagcbeq0fxdyb.lambda-url.us-east-1.on.aws/'
-        };
+        
+        // All agents with their configurations
+        const AGENTS = [
+            { name: 'polygon-api', displayName: 'POLYGON - Stock Market Data' },
+            { name: 'alphavantage', displayName: 'ALPHAVANTAGE - Technical Analysis' },
+            { name: 'global-liquidity', displayName: 'GLOBAL LIQUIDITY - 272 Metrics' },
+            { name: 'treasury-api', displayName: 'TREASURY - Auctions & Yields' },
+            { name: 'fred-api', displayName: 'FRED - Economic Data' },
+            { name: 'ny-fed', displayName: 'NY FED - Repo & Operations' },
+            { name: 'coinmarketcap', displayName: 'CRYPTO - Top 100 Coins' },
+            { name: 'census', displayName: 'CENSUS - Economic Indicators' },
+            { name: 'ice-bofa', displayName: 'ICE BOFA - Bond Indices' },
+            { name: 'enhanced-repo', displayName: 'REPO MARKET - Complete Data' },
+            { name: 'cross-currency', displayName: 'CROSS CURRENCY - Basis Swaps' },
+            { name: 'ai-prediction', displayName: 'AI PREDICTIONS - Market Analysis' },
+            { name: 'chatgpt', displayName: 'CHATGPT - Analysis Reports' },
+            { name: 'fed-liquidity', displayName: 'FED LIQUIDITY - Balance Sheet' },
+            { name: 'news-sentiment', displayName: 'NEWS SENTIMENT - Market Mood' }
+        ];
 
-        // Global State
+        // Global state
         let autoRefreshInterval = null;
-        let refreshCountdown = 30;
-        let lastHealthData = null;
-        let lastAnalysisData = null;
+        let countdownInterval = null;
+        let agentData = {};
+        let fetchInProgress = false;
 
-        // Terminal Logger
+        // Terminal logger
         function log(message, type = 'info') {
             const terminal = document.getElementById('terminal');
             const timestamp = new Date().toLocaleTimeString();
@@ -579,22 +578,24 @@
             terminal.scrollTop = terminal.scrollHeight;
         }
 
-        // Update Connection Status
+        // Update connection status
         function updateConnectionStatus(connected, message) {
             const dot = document.getElementById('connectionDot');
             const status = document.getElementById('connectionStatus');
             
             if (connected) {
                 dot.classList.remove('error');
-                status.textContent = message || 'Connected to api.justhodl.ai';
+                status.textContent = message || 'Connected';
             } else {
                 dot.classList.add('error');
-                status.textContent = message || 'Connection Error';
+                status.textContent = message || 'Error';
             }
         }
 
-        // JSON Formatter
+        // Format JSON for display
         function formatJSON(obj) {
+            if (!obj) return 'No data';
+            
             return JSON.stringify(obj, null, 2)
                 .replace(/"([^"]+)":/g, '<span class="json-key">"$1":</span>')
                 .replace(/: "([^"]*)"/g, ': <span class="json-string">"$1"</span>')
@@ -603,257 +604,166 @@
                 .replace(/: null/g, ': <span class="json-null">null</span>');
         }
 
-        // Count Data Points
-        function countDataPoints(obj) {
-            let count = 0;
-            function traverse(o) {
-                for (let key in o) {
-                    if (o.hasOwnProperty(key)) {
+        // Extract key metrics from agent data
+        function extractKeyMetrics(agentName, data) {
+            const metrics = [];
+            
+            if (!data || typeof data !== 'object') return metrics;
+            
+            // Try to extract meaningful metrics based on agent type
+            if (agentName.includes('liquidity')) {
+                if (data.global_liquidity) metrics.push({ label: 'Global Liquidity', value: data.global_liquidity });
+                if (data.fed_balance) metrics.push({ label: 'Fed Balance', value: data.fed_balance });
+                if (data.ecb_balance) metrics.push({ label: 'ECB Balance', value: data.ecb_balance });
+            }
+            
+            if (agentName.includes('treasury')) {
+                if (data.yield_10y) metrics.push({ label: '10Y Yield', value: data.yield_10y });
+                if (data.yield_2y) metrics.push({ label: '2Y Yield', value: data.yield_2y });
+                if (data.spread_2s10s) metrics.push({ label: '2s10s Spread', value: data.spread_2s10s });
+            }
+            
+            if (agentName.includes('polygon')) {
+                if (data.sp500) metrics.push({ label: 'S&P 500', value: data.sp500 });
+                if (data.nasdaq) metrics.push({ label: 'NASDAQ', value: data.nasdaq });
+                if (data.dow) metrics.push({ label: 'DOW', value: data.dow });
+            }
+            
+            if (agentName.includes('crypto') || agentName.includes('coinmarketcap')) {
+                if (data.btc_price) metrics.push({ label: 'BTC', value: `$${data.btc_price}` });
+                if (data.eth_price) metrics.push({ label: 'ETH', value: `$${data.eth_price}` });
+                if (data.total_market_cap) metrics.push({ label: 'Market Cap', value: data.total_market_cap });
+            }
+            
+            // If no specific metrics found, try to extract first few numeric values
+            if (metrics.length === 0) {
+                let count = 0;
+                for (const [key, value] of Object.entries(data)) {
+                    if (count >= 4) break;
+                    if (typeof value === 'number' || typeof value === 'string') {
+                        metrics.push({ 
+                            label: key.replace(/_/g, ' ').toUpperCase(), 
+                            value: value 
+                        });
                         count++;
-                        if (typeof o[key] === 'object' && o[key] !== null) {
-                            traverse(o[key]);
-                        }
                     }
                 }
             }
-            traverse(obj);
-            return count;
+            
+            return metrics;
         }
 
-        // Fetch Health Check
-        async function fetchHealthCheck() {
-            const startTime = Date.now();
-            log('Initiating health check...', 'info');
-            updateConnectionStatus(true, 'Checking health...');
-            
-            try {
-                const response = await fetch(API_ENDPOINT, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ operation: 'health' })
-                });
-                
-                const responseTime = Date.now() - startTime;
-                document.getElementById('responseTime').textContent = `${responseTime}ms`;
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const data = await response.json();
-                lastHealthData = data;
-                
-                // Update display
-                displayHealthData(data);
-                updateAgentStatus(data);
-                
-                // Update stats
-                const healthyAgents = data.healthy_agents || 0;
-                const totalAgents = data.total_agents || 0;
-                document.getElementById('totalAgents').textContent = `${healthyAgents}/${totalAgents}`;
-                document.getElementById('dataPoints').textContent = countDataPoints(data);
-                
-                updateConnectionStatus(true, 'Connected - Health Check Complete');
-                log(`Health check successful: ${healthyAgents}/${totalAgents} agents healthy (${responseTime}ms)`, 'success');
-                
-            } catch (error) {
-                log(`Health check failed: ${error.message}`, 'error');
-                updateConnectionStatus(false, 'Health Check Failed');
-                displayError('healthSection', error.message);
+        // Create or update agent card
+        function createAgentCard(agent) {
+            const existingCard = document.getElementById(`agent-${agent.name}`);
+            if (existingCard) {
+                return existingCard;
             }
-        }
-
-        // Fetch Analyze
-        async function fetchAnalyze() {
-            const startTime = Date.now();
-            log('Running full system analysis...', 'info');
-            updateConnectionStatus(true, 'Analyzing all agents...');
             
-            try {
-                const response = await fetch(API_ENDPOINT, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ operation: 'analyze' })
-                });
-                
-                const responseTime = Date.now() - startTime;
-                document.getElementById('responseTime').textContent = `${responseTime}ms`;
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const data = await response.json();
-                lastAnalysisData = data;
-                
-                // Update display
-                displayAnalysisData(data);
-                processAgentData(data);
-                
-                // Update stats
-                document.getElementById('dataPoints').textContent = countDataPoints(data);
-                
-                updateConnectionStatus(true, 'Connected - Analysis Complete');
-                log(`Full analysis complete: ${Object.keys(data).length} agents returned data (${responseTime}ms)`, 'success');
-                
-            } catch (error) {
-                log(`Analysis failed: ${error.message}`, 'error');
-                updateConnectionStatus(false, 'Analysis Failed');
-                displayError('analysisSection', error.message);
-            }
-        }
-
-        // Fetch Discover
-        async function fetchDiscover() {
-            const startTime = Date.now();
-            log('Running discover operation...', 'info');
-            updateConnectionStatus(true, 'Discovering...');
-            
-            try {
-                const response = await fetch(API_ENDPOINT, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ operation: 'discover' })
-                });
-                
-                const responseTime = Date.now() - startTime;
-                document.getElementById('responseTime').textContent = `${responseTime}ms`;
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const data = await response.json();
-                
-                // Display as analysis data
-                displayAnalysisData(data);
-                
-                updateConnectionStatus(true, 'Connected - Discover Complete');
-                log(`Discover operation complete (${responseTime}ms)`, 'success');
-                
-            } catch (error) {
-                log(`Discover failed: ${error.message}`, 'error');
-                updateConnectionStatus(false, 'Discover Failed');
-            }
-        }
-
-        // Display Health Data
-        function displayHealthData(data) {
-            const section = document.getElementById('healthSection');
-            const dataDiv = document.getElementById('healthData');
-            const timestamp = document.getElementById('healthTimestamp');
-            
-            section.style.display = 'block';
-            timestamp.textContent = new Date().toLocaleString();
-            dataDiv.innerHTML = formatJSON(data);
-        }
-
-        // Display Analysis Data
-        function displayAnalysisData(data) {
-            const section = document.getElementById('analysisSection');
-            const dataDiv = document.getElementById('analysisData');
-            const timestamp = document.getElementById('analysisTimestamp');
-            
-            section.style.display = 'block';
-            timestamp.textContent = new Date().toLocaleString();
-            dataDiv.innerHTML = formatJSON(data);
-        }
-
-        // Process Agent Data
-        function processAgentData(data) {
-            const sectionsDiv = document.getElementById('agentDataSections');
-            sectionsDiv.innerHTML = '';
-            
-            // Process each agent's data
-            Object.keys(data).forEach(agentName => {
-                if (typeof data[agentName] === 'object' && data[agentName] !== null) {
-                    createAgentDataSection(agentName, data[agentName]);
-                }
-            });
-        }
-
-        // Create Agent Data Section
-        function createAgentDataSection(agentName, agentData) {
-            const sectionsDiv = document.getElementById('agentDataSections');
-            
-            const section = document.createElement('div');
-            section.className = 'data-section';
-            
-            const isHealthy = agentData.status !== 'error' && agentData.error === undefined;
-            const dataPoints = countDataPoints(agentData);
-            
-            section.innerHTML = `
-                <div class="section-header">
-                    <h2 class="section-title">
-                        <i class="fas fa-database"></i> ${agentName.toUpperCase()}
-                        <span class="agent-badge ${isHealthy ? '' : 'error'}">
-                            ${isHealthy ? `${dataPoints} POINTS` : 'ERROR'}
-                        </span>
-                    </h2>
-                    <span>${new Date().toLocaleTimeString()}</span>
-                </div>
-                <div class="json-viewer">
-                    ${formatJSON(agentData)}
-                </div>
-            `;
-            
-            sectionsDiv.appendChild(section);
-        }
-
-        // Update Agent Status Grid
-        function updateAgentStatus(healthData) {
-            const grid = document.getElementById('agentsGrid');
-            const badge = document.getElementById('agentStatusBadge');
-            
-            grid.innerHTML = '';
-            
-            // Get agent status from health data
-            const agents = healthData.agent_status || {};
-            const healthyCount = Object.values(agents).filter(a => a.status === 'healthy').length;
-            const totalCount = Object.keys(agents).length;
-            
-            badge.textContent = `${healthyCount}/${totalCount} HEALTHY`;
-            badge.className = healthyCount === totalCount ? 'agent-badge' : 'agent-badge error';
-            
-            // Create cards for each agent
-            Object.keys(AGENT_URLS).forEach(agentName => {
-                const agentInfo = agents[agentName] || { status: 'unknown' };
-                const card = createAgentCard(agentName, agentInfo);
-                grid.appendChild(card);
-            });
-        }
-
-        // Create Agent Card
-        function createAgentCard(agentName, agentInfo) {
             const card = document.createElement('div');
-            const isHealthy = agentInfo.status === 'healthy';
-            
-            card.className = `agent-card ${isHealthy ? 'healthy' : 'unhealthy'}`;
-            
+            card.id = `agent-${agent.name}`;
+            card.className = 'agent-card';
             card.innerHTML = `
-                <div class="agent-name">${agentName}</div>
-                <div class="agent-status">
-                    Status: <strong style="color: ${isHealthy ? 'var(--primary)' : 'var(--danger)'}">
-                        ${agentInfo.status || 'UNKNOWN'}
-                    </strong>
+                <div class="agent-header">
+                    <div class="agent-name">${agent.displayName}</div>
+                    <div class="agent-status">
+                        <span class="status-indicator" id="status-${agent.name}"></span>
+                        <span id="status-text-${agent.name}">Waiting</span>
+                    </div>
                 </div>
-                <div class="agent-url">${AGENT_URLS[agentName]}</div>
-                ${agentInfo.message ? `<div class="agent-data">${agentInfo.message}</div>` : ''}
-                ${agentInfo.response_time ? `<div class="agent-status">Response: ${agentInfo.response_time}ms</div>` : ''}
-                ${agentInfo.error ? `<div class="agent-data" style="color: var(--danger);">Error: ${agentInfo.error}</div>` : ''}
+                <div class="agent-metrics" id="metrics-${agent.name}" style="display: none;">
+                    <!-- Metrics will be populated here -->
+                </div>
+                <div class="agent-data" id="data-${agent.name}">
+                    <div style="text-align: center; color: var(--text-secondary);">
+                        Click "Fetch All Agent Data" or "Test Each Agent" to load data
+                    </div>
+                </div>
+                <div style="margin-top: 10px;">
+                    <button class="btn btn-secondary" onclick="fetchSingleAgent('${agent.name}')" style="width: 100%;">
+                        <i class="fas fa-sync"></i> Refresh This Agent
+                    </button>
+                </div>
             `;
-            
-            // Add click to test individual agent
-            card.onclick = () => testSingleAgent(agentName);
             
             return card;
         }
 
-        // Test Single Agent
-        async function testSingleAgent(agentName) {
-            log(`Testing agent: ${agentName}...`, 'info');
+        // Initialize agent cards
+        function initializeAgentCards() {
+            const grid = document.getElementById('agentsGrid');
+            grid.innerHTML = '';
+            
+            AGENTS.forEach(agent => {
+                const card = createAgentCard(agent);
+                grid.appendChild(card);
+            });
+        }
+
+        // Update agent card with data
+        function updateAgentCard(agentName, data, status = 'success') {
+            const statusIndicator = document.getElementById(`status-${agentName}`);
+            const statusText = document.getElementById(`status-text-${agentName}`);
+            const dataDiv = document.getElementById(`data-${agentName}`);
+            const metricsDiv = document.getElementById(`metrics-${agentName}`);
+            const card = document.getElementById(`agent-${agentName}`);
+            
+            if (!card) return;
+            
+            card.classList.remove('loading', 'healthy', 'error');
+            
+            if (status === 'loading') {
+                card.classList.add('loading');
+                statusIndicator.className = 'status-indicator';
+                statusText.innerHTML = '<span class="loading-spinner"></span> Loading...';
+                dataDiv.innerHTML = '<div style="text-align: center;">Fetching data...</div>';
+                return;
+            }
+            
+            if (status === 'error' || !data || data.error) {
+                card.classList.add('error');
+                statusIndicator.className = 'status-indicator error';
+                statusText.textContent = 'Error';
+                dataDiv.innerHTML = `<div style="color: var(--danger);">
+                    Error: ${data?.error || data?.message || 'Failed to fetch data'}
+                </div>`;
+                metricsDiv.style.display = 'none';
+                return;
+            }
+            
+            // Success - display the data
+            card.classList.add('healthy');
+            statusIndicator.className = 'status-indicator healthy';
+            statusText.textContent = 'Live';
+            
+            // Extract and display key metrics
+            const metrics = extractKeyMetrics(agentName, data);
+            if (metrics.length > 0) {
+                metricsDiv.style.display = 'grid';
+                metricsDiv.innerHTML = metrics.map(m => `
+                    <div class="metric-item">
+                        <div class="metric-value">${m.value}</div>
+                        <div class="metric-label">${m.label}</div>
+                    </div>
+                `).join('');
+            } else {
+                metricsDiv.style.display = 'none';
+            }
+            
+            // Display full JSON data
+            dataDiv.innerHTML = formatJSON(data);
+            
+            // Store the data
+            agentData[agentName] = data;
+        }
+
+        // Fetch single agent data
+        async function fetchSingleAgent(agentName) {
+            log(`Fetching data for ${agentName}...`, 'info');
+            updateAgentCard(agentName, null, 'loading');
             
             try {
+                const startTime = Date.now();
                 const response = await fetch(API_ENDPOINT, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -863,110 +773,247 @@
                     })
                 });
                 
+                const responseTime = Date.now() - startTime;
+                
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}`);
                 }
                 
                 const data = await response.json();
-                log(`Agent ${agentName} test successful: ${JSON.stringify(data).length} bytes received`, 'success');
                 
-                // Create section for this agent's data
-                createAgentDataSection(agentName, data);
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                updateAgentCard(agentName, data, 'success');
+                log(`${agentName}: Success (${responseTime}ms, ${JSON.stringify(data).length} bytes)`, 'success');
+                
+                return data;
                 
             } catch (error) {
-                log(`Agent ${agentName} test failed: ${error.message}`, 'error');
+                updateAgentCard(agentName, { error: error.message }, 'error');
+                log(`${agentName}: Failed - ${error.message}`, 'error');
+                return null;
             }
         }
 
-        // Test All Agents
-        async function testAllAgents() {
-            log('Testing all agents individually...', 'info');
-            
-            for (const agentName of Object.keys(AGENT_URLS)) {
-                await testSingleAgent(agentName);
-                await new Promise(resolve => setTimeout(resolve, 500)); // Small delay between tests
+        // Fetch all agent data using analyze operation
+        async function fetchAllAgentData() {
+            if (fetchInProgress) {
+                log('Fetch already in progress, please wait...', 'warning');
+                return;
             }
             
-            log('All agent tests complete', 'success');
+            fetchInProgress = true;
+            document.getElementById('fetchAllBtn').disabled = true;
+            
+            log('Fetching all agent data via analyze operation...', 'info');
+            updateConnectionStatus(true, 'Fetching all data...');
+            
+            try {
+                const startTime = Date.now();
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ operation: 'analyze' })
+                });
+                
+                const responseTime = Date.now() - startTime;
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Process the response data for each agent
+                let successCount = 0;
+                let totalCount = 0;
+                
+                AGENTS.forEach(agent => {
+                    const agentKey = agent.name.replace('-api', '').replace('-agent', '');
+                    const agentData = data[agentKey] || data[agent.name] || null;
+                    
+                    if (agentData && !agentData.error) {
+                        updateAgentCard(agent.name, agentData, 'success');
+                        successCount++;
+                    } else {
+                        updateAgentCard(agent.name, agentData || { error: 'No data returned' }, 'error');
+                    }
+                    totalCount++;
+                });
+                
+                // Update stats
+                document.getElementById('activeAgents').textContent = `${successCount}/${totalCount}`;
+                document.getElementById('totalDataPoints').textContent = Object.keys(data).reduce((sum, key) => {
+                    return sum + (typeof data[key] === 'object' ? Object.keys(data[key]).length : 1);
+                }, 0);
+                document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+                
+                updateConnectionStatus(true, `Connected - ${successCount} agents active`);
+                log(`Analyze complete: ${successCount}/${totalCount} agents returned data (${responseTime}ms)`, 'success');
+                
+                // Update summary
+                updateSummary();
+                
+            } catch (error) {
+                log(`Failed to fetch agent data: ${error.message}`, 'error');
+                updateConnectionStatus(false, 'Fetch failed');
+            } finally {
+                fetchInProgress = false;
+                document.getElementById('fetchAllBtn').disabled = false;
+            }
         }
 
-        // Display Error
-        function displayError(sectionId, errorMessage) {
-            const section = document.getElementById(sectionId);
-            const dataDiv = section.querySelector('.json-viewer');
+        // Test individual agents one by one
+        async function testIndividualAgents() {
+            if (fetchInProgress) {
+                log('Fetch already in progress, please wait...', 'warning');
+                return;
+            }
             
-            section.style.display = 'block';
-            dataDiv.innerHTML = `
-                <div class="error-message">
-                    <i class="fas fa-exclamation-triangle error-icon"></i>
-                    <div>
-                        <strong>Error:</strong> ${errorMessage}
+            fetchInProgress = true;
+            document.getElementById('testAgentsBtn').disabled = true;
+            
+            log('Testing each agent individually...', 'info');
+            updateConnectionStatus(true, 'Testing agents...');
+            
+            let successCount = 0;
+            
+            for (const agent of AGENTS) {
+                const data = await fetchSingleAgent(agent.name);
+                if (data && !data.error) {
+                    successCount++;
+                }
+                
+                // Update stats after each agent
+                document.getElementById('activeAgents').textContent = `${successCount}/${AGENTS.length}`;
+                document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+                
+                // Small delay between requests
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            updateConnectionStatus(true, `Complete - ${successCount}/${AGENTS.length} agents active`);
+            log(`Individual testing complete: ${successCount}/${AGENTS.length} agents successful`, 'success');
+            
+            // Update summary
+            updateSummary();
+            
+            fetchInProgress = false;
+            document.getElementById('testAgentsBtn').disabled = false;
+        }
+
+        // Update summary section
+        function updateSummary() {
+            const summarySection = document.getElementById('summarySection');
+            const summaryGrid = document.getElementById('summaryGrid');
+            
+            // Extract key values from agent data
+            const summary = [];
+            
+            // Try to get key market indicators
+            Object.entries(agentData).forEach(([agentName, data]) => {
+                if (!data || data.error) return;
+                
+                if (agentName.includes('polygon') && data.sp500) {
+                    summary.push({ label: 'S&P 500', value: data.sp500 });
+                }
+                if (agentName.includes('treasury') && data.yield_10y) {
+                    summary.push({ label: '10Y Yield', value: data.yield_10y });
+                }
+                if (agentName.includes('crypto') && data.btc_price) {
+                    summary.push({ label: 'Bitcoin', value: `$${data.btc_price}` });
+                }
+                if (agentName.includes('liquidity') && data.total_liquidity) {
+                    summary.push({ label: 'Total Liquidity', value: data.total_liquidity });
+                }
+            });
+            
+            if (summary.length > 0) {
+                summarySection.style.display = 'block';
+                summaryGrid.innerHTML = summary.map(item => `
+                    <div class="summary-item">
+                        <div class="summary-value">${item.value}</div>
+                        <div class="summary-label">${item.label}</div>
                     </div>
-                </div>
-            `;
+                `).join('');
+            }
         }
 
-        // Clear All Data
-        function clearAllData() {
-            document.getElementById('healthSection').style.display = 'none';
-            document.getElementById('analysisSection').style.display = 'none';
-            document.getElementById('agentDataSections').innerHTML = '';
-            document.getElementById('terminal').innerHTML = `
-                <div class="terminal-line">
-                    <span class="terminal-timestamp">[${new Date().toLocaleTimeString()}]</span>
-                    <span class="terminal-message">Terminal cleared. Ready for new operations.</span>
-                </div>
-            `;
-            log('All data cleared', 'info');
-        }
-
-        // Toggle Auto-Refresh
+        // Toggle auto-refresh
         function toggleAutoRefresh() {
             const btn = document.getElementById('autoRefreshBtn');
-            const indicator = document.getElementById('refreshIndicator');
+            const badge = document.getElementById('refreshBadge');
             
             if (autoRefreshInterval) {
+                // Stop auto-refresh
                 clearInterval(autoRefreshInterval);
+                clearInterval(countdownInterval);
                 autoRefreshInterval = null;
-                btn.textContent = 'Enable Auto-Refresh';
-                indicator.textContent = 'Manual Mode';
-                document.getElementById('refreshCountdown').textContent = '';
+                countdownInterval = null;
+                
+                btn.innerHTML = '<i class="fas fa-sync"></i> Enable Auto-Refresh';
+                badge.style.display = 'none';
+                
                 log('Auto-refresh disabled', 'warning');
             } else {
-                autoRefreshInterval = setInterval(() => {
-                    refreshCountdown--;
-                    document.getElementById('refreshCountdown').textContent = `${refreshCountdown}s`;
+                // Start auto-refresh
+                let countdown = 30;
+                
+                btn.innerHTML = '<i class="fas fa-sync"></i> Disable Auto-Refresh';
+                badge.style.display = 'inline-flex';
+                
+                // Update countdown every second
+                countdownInterval = setInterval(() => {
+                    countdown--;
+                    document.getElementById('countdown').textContent = countdown;
+                    document.getElementById('progressFill').style.width = `${(30 - countdown) / 30 * 100}%`;
                     
-                    if (refreshCountdown <= 0) {
-                        refreshCountdown = 30;
-                        fetchHealthCheck();
-                        fetchAnalyze();
+                    if (countdown <= 0) {
+                        countdown = 30;
                     }
                 }, 1000);
                 
-                btn.textContent = 'Disable Auto-Refresh';
-                indicator.textContent = 'Auto-Refresh Active';
+                // Fetch data every 30 seconds
+                autoRefreshInterval = setInterval(() => {
+                    fetchAllAgentData();
+                }, 30000);
+                
                 log('Auto-refresh enabled (30s interval)', 'success');
                 
-                // Immediate refresh
-                fetchHealthCheck();
-                fetchAnalyze();
+                // Initial fetch
+                fetchAllAgentData();
             }
         }
 
-        // Initialize on Load
+        // Clear all data
+        function clearAll() {
+            agentData = {};
+            document.getElementById('summarySection').style.display = 'none';
+            initializeAgentCards();
+            
+            document.getElementById('activeAgents').textContent = '0/15';
+            document.getElementById('totalDataPoints').textContent = '0';
+            document.getElementById('lastUpdate').textContent = 'Never';
+            
+            log('All data cleared', 'info');
+        }
+
+        // Initialize on load
         document.addEventListener('DOMContentLoaded', () => {
-            log('JUSTHODL.AI Real-Time Data System v1.0', 'info');
-            log('Connecting to api.justhodl.ai...', 'info');
-            log('System ready. Click "Health Check" or "Full Analysis" to fetch real data.', 'success');
+            log('JUSTHODL.AI Live Data System v2.0 initialized', 'success');
+            log('Click "Fetch All Agent Data" to get real-time data from all agents', 'info');
+            log('Or click "Test Each Agent" to test agents individually', 'info');
             
-            updateConnectionStatus(true, 'Ready - Click buttons to fetch data');
+            updateConnectionStatus(true, 'Ready');
+            initializeAgentCards();
             
-            // Initial health check
+            // Auto-fetch after 2 seconds
             setTimeout(() => {
-                log('Running initial health check...', 'info');
-                fetchHealthCheck();
-            }, 1000);
+                log('Running initial data fetch...', 'info');
+                fetchAllAgentData();
+            }, 2000);
         });
     </script>
 </body>
