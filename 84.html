@@ -292,23 +292,6 @@
             background: rgba(0, 255, 65, 0.02);
         }
 
-        /* Risk Levels */
-        .risk-low { color: var(--primary); }
-        .risk-medium { color: var(--warning); }
-        .risk-high { color: var(--danger); }
-        .risk-extreme { color: #ff00ff; font-weight: bold; }
-
-        /* Section Headers */
-        .section-header {
-            background: linear-gradient(90deg, rgba(255, 0, 64, 0.1), transparent);
-            border-left: 4px solid var(--danger);
-            padding: 10px 15px;
-            margin-bottom: 15px;
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--danger);
-        }
-
         /* Terminal */
         .terminal {
             background: #000;
@@ -317,7 +300,7 @@
             padding: 10px;
             font-family: 'Courier New', monospace;
             font-size: 11px;
-            max-height: 300px;
+            max-height: 500px;
             overflow-y: auto;
             margin-bottom: 20px;
         }
@@ -373,15 +356,42 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .data-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .metrics-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+        /* Agent Status Grid */
+        .agent-status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .agent-status {
+            padding: 8px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .agent-status.active {
+            border-color: var(--primary);
+        }
+
+        .agent-status.error {
+            border-color: var(--danger);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--primary);
+        }
+
+        .status-dot.error {
+            background: var(--danger);
         }
     </style>
 </head>
@@ -390,16 +400,16 @@
     <header class="header">
         <div class="header-top">
             <div class="logo">
-                <div class="logo-text">🔴 ULTIMATE MACRO FINANCIAL COMMAND CENTER</div>
+                <div class="logo-text">🔴 JUSTHODL.AI ULTIMATE MACRO COMMAND CENTER</div>
             </div>
             <div class="crisis-indicator">
                 <div class="crisis-meter">
-                    <span>CRISIS DISTANCE:</span>
-                    <span class="crisis-value" id="crisisDistance">Calculating...</span>
+                    <span>CRISIS PROBABILITY:</span>
+                    <span class="crisis-value" id="crisisProb">---%</span>
                 </div>
                 <div class="khalid-index">
                     <div class="khalid-value" id="khalidIndex">--/100</div>
-                    <div class="khalid-label">KHALID INDEX: LOADING</div>
+                    <div class="khalid-label">KHALID INDEX</div>
                 </div>
             </div>
         </div>
@@ -408,14 +418,16 @@
     <!-- Navigation -->
     <nav class="nav-tabs">
         <button class="nav-tab active" onclick="switchTab('executive')">Executive Dashboard</button>
-        <button class="nav-tab" onclick="switchTab('federal-reserve')">Federal Reserve</button>
-        <button class="nav-tab" onclick="switchTab('treasury')">Treasury Securities</button>
-        <button class="nav-tab" onclick="switchTab('central-banks')">Central Banks</button>
-        <button class="nav-tab" onclick="switchTab('money-market')">Money Markets</button>
-        <button class="nav-tab" onclick="switchTab('liquidity')">Liquidity Metrics</button>
-        <button class="nav-tab" onclick="switchTab('credit')">Credit Markets</button>
-        <button class="nav-tab" onclick="switchTab('economic')">Economic Data</button>
-        <button class="nav-tab" onclick="switchTab('raw')">Raw Data Feed</button>
+        <button class="nav-tab" onclick="switchTab('markets')">Markets</button>
+        <button class="nav-tab" onclick="switchTab('treasury')">Treasury & Fed</button>
+        <button class="nav-tab" onclick="switchTab('liquidity')">Liquidity</button>
+        <button class="nav-tab" onclick="switchTab('crypto')">Crypto</button>
+        <button class="nav-tab" onclick="switchTab('ai-predictions')">AI Predictions</button>
+        <button class="nav-tab" onclick="switchTab('bonds')">Bonds</button>
+        <button class="nav-tab" onclick="switchTab('currency')">Currencies</button>
+        <button class="nav-tab" onclick="switchTab('risk')">Risk Metrics</button>
+        <button class="nav-tab" onclick="switchTab('agents')">Agent Status</button>
+        <button class="nav-tab" onclick="switchTab('raw')">Raw Data</button>
     </nav>
 
     <!-- Control Panel -->
@@ -429,7 +441,8 @@
         <span style="margin-left: auto; color: var(--text-secondary); font-size: 11px;">
             Last Update: <span id="lastUpdate">Never</span> | 
             Response: <span id="responseTime">0ms</span> | 
-            Data Points: <span id="dataPoints">0</span>
+            Data Points: <span id="dataPoints">0</span> |
+            Agents Active: <span id="agentsActive">0/14</span>
         </span>
     </div>
 
@@ -448,7 +461,7 @@
                 <div class="data-card">
                     <div class="data-card-header">
                         <div class="data-card-title">
-                            <i class="fas fa-exclamation-triangle"></i> Critical Federal Reserve Indicators
+                            <i class="fas fa-exclamation-triangle"></i> Critical Indicators
                         </div>
                         <span class="status-badge badge-critical">LIVE</span>
                     </div>
@@ -456,164 +469,92 @@
                         <thead>
                             <tr>
                                 <th>Indicator</th>
-                                <th>Current</th>
-                                <th>1W Change</th>
-                                <th>1M Change</th>
+                                <th>Current Value</th>
+                                <th>Change</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
                     </table>
                 </div>
-
-                <div class="data-card">
-                    <div class="data-card-header">
-                        <div class="data-card-title">
-                            <i class="fas fa-chart-line"></i> Key Series Update
-                        </div>
-                        <span class="status-badge badge-live">REAL-TIME</span>
-                    </div>
-                    <table class="data-table" id="keySeries">
-                        <thead>
-                            <tr>
-                                <th>Series</th>
-                                <th>Value</th>
-                                <th>Change</th>
-                                <th>Impact</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
             </div>
         </div>
 
-        <!-- Federal Reserve Tab -->
-        <div id="federal-reserve" class="tab-content">
-            <div class="section-header">🏛️ FEDERAL RESERVE OPERATIONS</div>
-            
-            <div class="metrics-grid" id="fedMetrics">
-                <!-- Fed metrics will populate here -->
-            </div>
-
-            <div class="data-grid">
-                <div class="data-card">
-                    <div class="data-card-header">
-                        <div class="data-card-title">Balance Sheet Components</div>
-                        <span class="status-badge badge-live">LIVE</span>
-                    </div>
-                    <table class="data-table" id="fedBalanceSheet">
-                        <thead>
-                            <tr>
-                                <th>Component</th>
-                                <th>Value</th>
-                                <th>Weekly Δ</th>
-                                <th>Impact</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
+        <!-- Markets Tab -->
+        <div id="markets" class="tab-content">
+            <div class="section-header">📈 MARKET DATA</div>
+            <div class="metrics-grid" id="marketMetrics">
+                <!-- Market metrics -->
             </div>
         </div>
 
-        <!-- Treasury Securities Tab -->
+        <!-- Treasury Tab -->
         <div id="treasury" class="tab-content">
-            <div class="section-header">📊 TREASURY SECURITIES HOLDINGS</div>
-            
+            <div class="section-header">🏛️ TREASURY & FEDERAL RESERVE</div>
             <div class="metrics-grid" id="treasuryMetrics">
                 <!-- Treasury metrics -->
-            </div>
-
-            <div class="data-grid">
-                <div class="data-card">
-                    <div class="data-card-header">
-                        <div class="data-card-title">Treasury Maturity Breakdown</div>
-                        <span class="status-badge badge-warning">MONITORED</span>
-                    </div>
-                    <table class="data-table" id="treasuryMaturity">
-                        <thead>
-                            <tr>
-                                <th>Maturity</th>
-                                <th>Holdings</th>
-                                <th>Change</th>
-                                <th>% of Total</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Central Banks Tab -->
-        <div id="central-banks" class="tab-content">
-            <div class="section-header">🌍 GLOBAL CENTRAL BANK OPERATIONS</div>
-            
-            <div class="metrics-grid" id="cbMetrics">
-                <!-- Central bank metrics -->
-            </div>
-
-            <div class="data-grid">
-                <div class="data-card">
-                    <div class="data-card-header">
-                        <div class="data-card-title">Central Bank Balance Sheets</div>
-                        <span class="status-badge badge-critical">QT ACTIVE</span>
-                    </div>
-                    <table class="data-table" id="cbBalanceSheets">
-                        <thead>
-                            <tr>
-                                <th>Central Bank</th>
-                                <th>Total Assets</th>
-                                <th>Monthly Δ</th>
-                                <th>Policy</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Money Market Tab -->
-        <div id="money-market" class="tab-content">
-            <div class="section-header">💱 MONEY MARKET CONDITIONS</div>
-            
-            <div class="metrics-grid" id="moneyMarketMetrics">
-                <!-- Money market metrics -->
             </div>
         </div>
 
         <!-- Liquidity Tab -->
         <div id="liquidity" class="tab-content">
-            <div class="section-header">💧 LIQUIDITY & FUNDING METRICS</div>
-            
+            <div class="section-header">💧 LIQUIDITY METRICS</div>
             <div class="metrics-grid" id="liquidityMetrics">
                 <!-- Liquidity metrics -->
             </div>
         </div>
 
-        <!-- Credit Tab -->
-        <div id="credit" class="tab-content">
-            <div class="section-header">📈 CREDIT MARKET CONDITIONS</div>
-            
-            <div class="metrics-grid" id="creditMetrics">
-                <!-- Credit metrics -->
+        <!-- Crypto Tab -->
+        <div id="crypto" class="tab-content">
+            <div class="section-header">₿ CRYPTOCURRENCY</div>
+            <div class="metrics-grid" id="cryptoMetrics">
+                <!-- Crypto metrics -->
             </div>
         </div>
 
-        <!-- Economic Data Tab -->
-        <div id="economic" class="tab-content">
-            <div class="section-header">📊 ECONOMIC INDICATORS</div>
-            
-            <div class="metrics-grid" id="economicMetrics">
-                <!-- Economic metrics -->
+        <!-- AI Predictions Tab -->
+        <div id="ai-predictions" class="tab-content">
+            <div class="section-header">🤖 AI PREDICTIONS</div>
+            <div class="metrics-grid" id="aiMetrics">
+                <!-- AI metrics -->
+            </div>
+        </div>
+
+        <!-- Bonds Tab -->
+        <div id="bonds" class="tab-content">
+            <div class="section-header">📊 BOND MARKETS</div>
+            <div class="metrics-grid" id="bondMetrics">
+                <!-- Bond metrics -->
+            </div>
+        </div>
+
+        <!-- Currency Tab -->
+        <div id="currency" class="tab-content">
+            <div class="section-header">💱 CURRENCY MARKETS</div>
+            <div class="metrics-grid" id="currencyMetrics">
+                <!-- Currency metrics -->
+            </div>
+        </div>
+
+        <!-- Risk Tab -->
+        <div id="risk" class="tab-content">
+            <div class="section-header">⚠️ RISK METRICS</div>
+            <div class="metrics-grid" id="riskMetrics">
+                <!-- Risk metrics -->
+            </div>
+        </div>
+
+        <!-- Agent Status Tab -->
+        <div id="agents" class="tab-content">
+            <div class="section-header">🤖 DATA AGENT STATUS</div>
+            <div class="agent-status-grid" id="agentStatusGrid">
+                <!-- Agent status -->
             </div>
         </div>
 
         <!-- Raw Data Tab -->
         <div id="raw" class="tab-content">
-            <div class="section-header">💾 RAW DATA FEED - ALL SERIES</div>
+            <div class="section-header">💾 RAW DATA FEED - ALL SOURCES</div>
             <div class="terminal" id="rawDataTerminal">
                 <pre id="rawDataContent" style="color: var(--primary); white-space: pre-wrap; word-wrap: break-word;">
 Waiting for data...
@@ -624,98 +565,17 @@ Waiting for data...
     </div>
 
     <script>
-        // Configuration - ALL YOUR FRED SERIES
-        const FRED_SERIES = {
-            // Federal Reserve Operations
-            'RESPPALGUOXAWXCH52NWW': { name: 'Reserve Position Change Y/Y', category: 'federal-reserve' },
-            'RESPPALGUONNWW': { name: 'Reserve Position ON', category: 'federal-reserve' },
-            'SWP1690': { name: 'Swap Lines 16-90 Days', category: 'federal-reserve' },
-            'OTHL1690': { name: 'Other Liquidity 16-90 Days', category: 'federal-reserve' },
-            'SUBLPDCISTQNQ': { name: 'Subordinated Debt', category: 'federal-reserve' },
-            'DRISCFLM': { name: 'Discount Rate FLM', category: 'federal-reserve' },
-            'RMFSL': { name: 'Reserve Money Supply', category: 'federal-reserve' },
-            'SBCACBW027SBOG': { name: 'Small Bank Credit', category: 'federal-reserve' },
-            'RREP15': { name: 'Reverse Repo 15 Days', category: 'federal-reserve' },
-            'OTHL15': { name: 'Other Liquidity 15 Days', category: 'federal-reserve' },
-            'RESH4MFNWW': { name: 'Reserve H4', category: 'federal-reserve' },
-            'BOGZ1FL663067003Q': { name: 'Flow of Funds', category: 'federal-reserve' },
-            'RESPPNTEPNWW': { name: 'Reserve Position NTE', category: 'federal-reserve' },
-            'OTHL91T1Y': { name: 'Other Liquidity 91D-1Y', category: 'federal-reserve' },
-            'SWP15': { name: 'Swap Lines 15 Days', category: 'federal-reserve' },
-            'RESPPALGUMXCH1NWW': { name: 'Reserve Position MX Change', category: 'federal-reserve' },
-            'REP1690': { name: 'Repo 16-90 Days', category: 'federal-reserve' },
-            
-            // Treasury Securities
-            'TREAS911Y': { name: 'Treasury 91D-1Y', category: 'treasury' },
-            'TREAS1590': { name: 'Treasury 15-90 Days', category: 'treasury' },
-            
-            // Central Banks
-            'JPNASSETS': { name: 'BOJ Total Assets', category: 'central-banks' },
-            'ECBASSETSW': { name: 'ECB Total Assets', category: 'central-banks' },
-            'BSFGLV02EZM460S': { name: 'ECB Balance Sheet FG', category: 'central-banks' },
-            'BSOBLV02EZM460S': { name: 'ECB Other Liabilities', category: 'central-banks' },
-            'BSCURT02EZQ160S': { name: 'ECB Currency', category: 'central-banks' },
-            'BCEMFT02EEM460S': { name: 'ECB MFI Total', category: 'central-banks' },
-            'BSCICP02MXM460S': { name: 'Bank Credit Mexico', category: 'central-banks' },
-            'BSCICP02EZM460S': { name: 'Bank Credit Eurozone', category: 'central-banks' },
-            'BSCICP02USM460S': { name: 'Bank Credit US', category: 'central-banks' },
-            'BSFGLV02DEM460S': { name: 'ECB Germany', category: 'central-banks' },
-            'BSOBLV02ATM460S': { name: 'ECB Austria', category: 'central-banks' },
-            'BSOBLV02FIM460S': { name: 'ECB Finland', category: 'central-banks' },
-            'BSOBLV02ESM460S': { name: 'ECB Spain', category: 'central-banks' },
-            
-            // Money Markets
-            'MABMM301EZM189S': { name: 'Money Market EU', category: 'money-market' },
-            'MABMM301JPM189S': { name: 'Money Market JP', category: 'money-market' },
-            'DRISCFS': { name: 'Discount Rate FS', category: 'money-market' },
-            
-            // Core Fed Data
-            'WALCL': { name: 'Fed Total Assets', category: 'federal-reserve', critical: true },
-            'WRESBAL': { name: 'Reserve Balances', category: 'federal-reserve', critical: true },
-            'NONBORRES': { name: 'Non-Borrowed Reserves', category: 'federal-reserve' },
-            'TOTRESNS': { name: 'Total Reserves', category: 'federal-reserve' },
-            
-            // Economic Indicators
-            'MNFCTRIRSA': { name: 'Manufacturing Index', category: 'economic' },
-            'ISRATIO': { name: 'Inventory/Sales Ratio', category: 'economic' },
-            'REVOLSL': { name: 'Revolving Credit', category: 'economic' },
-            'RETAILIMSA': { name: 'Retail Imports', category: 'economic' },
-            'INTGSTMXM193N': { name: 'Mexico Interest Rate', category: 'economic' },
-            'AMERIBOR': { name: 'AMERIBOR Rate', category: 'economic' },
-            'T10YIE': { name: '10Y Inflation Expectation', category: 'economic' },
-            'IGREA': { name: 'IG Real Estate', category: 'economic' },
-            'PCU5231205231204': { name: 'Producer Price Index', category: 'economic' },
-            'G7LOLITOAASTSAM': { name: 'G7 Leading Indicator', category: 'economic' }
-        };
-
-        // FRED API configuration
-        const FRED_API_KEY = 'YOUR_FRED_API_KEY'; // You need to add your FRED API key
-        const FRED_API_BASE = 'https://api.stlouisfed.org/fred';
-
+        // Configuration - YOUR ACTUAL BACKEND
+        const API_ENDPOINT = 'https://api.justhodl.ai/';
+        const BACKUP_ENDPOINT = 'https://6kxsmitl3uzekqfzjki7mprzku0ruzin.lambda-url.us-east-1.on.aws/';
+        
         // Global state
-        let allSeriesData = {};
+        let currentData = null;
         let autoRefreshInterval = null;
         let fetchInProgress = false;
+        let agentStatuses = {};
 
-        // Fetch data from FRED API
-        async function fetchFREDSeries(seriesId) {
-            try {
-                const url = `${FRED_API_BASE}/series/observations?series_id=${seriesId}&api_key=${FRED_API_KEY}&file_type=json&limit=100&sort_order=desc`;
-                const response = await fetch(url);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                return data.observations;
-            } catch (error) {
-                console.error(`Error fetching ${seriesId}:`, error);
-                return null;
-            }
-        }
-
-        // Fetch all data
+        // Fetch all data from YOUR backend
         async function fetchAllData() {
             if (fetchInProgress) {
                 console.log('Fetch already in progress...');
@@ -726,408 +586,647 @@ Waiting for data...
             const startTime = Date.now();
             document.getElementById('lastUpdate').textContent = 'Fetching...';
             
-            // Show loading state
-            showLoadingState();
-            
             try {
-                // For demo purposes, we'll simulate the fetch
-                // In production, you'd uncomment the actual fetch code below
-                
-                /* PRODUCTION CODE - Uncomment when you have a FRED API key
-                const promises = Object.keys(FRED_SERIES).map(async (seriesId) => {
-                    const data = await fetchFREDSeries(seriesId);
-                    if (data) {
-                        allSeriesData[seriesId] = data;
-                    }
+                // Use your actual API endpoint
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ operation: 'data' })
                 });
                 
-                await Promise.all(promises);
-                */
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 
-                // DEMO: Simulate fetched data
-                simulateFetchedData();
+                const data = await response.json();
+                currentData = data;
                 
-                // Calculate metrics
-                calculateKhalidIndex();
-                calculateCrisisDistance();
+                console.log('Received data:', data);
                 
-                // Update all displays
-                updateExecutiveDashboard();
-                updateFederalReserve();
-                updateTreasurySecurities();
-                updateCentralBanks();
-                updateMoneyMarkets();
-                updateLiquidityMetrics();
-                updateCreditMarkets();
-                updateEconomicIndicators();
-                updateRawDataFeed();
+                // Process and display the data
+                processAllData(data);
                 
                 // Update stats
                 const responseTime = Date.now() - startTime;
                 document.getElementById('responseTime').textContent = `${responseTime}ms`;
                 document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
-                document.getElementById('dataPoints').textContent = Object.keys(allSeriesData).length * 100; // Assuming 100 points per series
+                
+                // Count data points
+                const dataPoints = countDataPoints(data);
+                document.getElementById('dataPoints').textContent = dataPoints;
+                
+                // Update raw data view
+                document.getElementById('rawDataContent').textContent = JSON.stringify(data, null, 2);
                 
             } catch (error) {
                 console.error('Failed to fetch data:', error);
-                document.getElementById('lastUpdate').textContent = 'Error';
+                
+                // Try backup endpoint
+                try {
+                    console.log('Trying backup endpoint...');
+                    const response = await fetch(BACKUP_ENDPOINT, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ operation: 'data' })
+                    });
+                    
+                    const data = await response.json();
+                    currentData = data;
+                    processAllData(data);
+                    
+                    document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString() + ' (backup)';
+                } catch (backupError) {
+                    console.error('Backup also failed:', backupError);
+                    document.getElementById('lastUpdate').textContent = 'Error';
+                }
             } finally {
                 fetchInProgress = false;
-                hideLoadingState();
             }
         }
 
-        // Simulate fetched data for demo
-        function simulateFetchedData() {
-            Object.keys(FRED_SERIES).forEach(seriesId => {
-                const baseValue = Math.random() * 1000000000;
-                const observations = [];
-                const now = new Date();
+        // Process all data from your backend
+        function processAllData(data) {
+            console.log('Processing complete data structure:', data);
+            
+            // Clear existing metrics
+            clearAllMetrics();
+            
+            // DYNAMIC DATA PROCESSING - Handle ANY structure
+            // Process all top-level keys from the response
+            Object.keys(data).forEach(key => {
+                console.log(`Processing key: ${key}`, data[key]);
                 
-                for (let i = 0; i < 100; i++) {
-                    const date = new Date(now);
-                    date.setDate(date.getDate() - i);
-                    
-                    observations.push({
-                        date: date.toISOString().split('T')[0],
-                        value: (baseValue * (1 + (Math.random() - 0.5) * 0.02)).toFixed(2)
+                // Special handling for known structures
+                if (key === 'agents_status' || key === 'agent_status') {
+                    processAgentStatus(data[key]);
+                } else if (key.includes('treasury') || key === 'FedLiquidityAgent') {
+                    processDynamicData(data[key], 'treasuryMetrics', 'Treasury');
+                } else if (key.includes('market') || key === 'StockMarketsAgent' || key === 'USMarketsAgent') {
+                    processDynamicData(data[key], 'marketMetrics', 'Market');
+                } else if (key.includes('liquidity')) {
+                    processDynamicData(data[key], 'liquidityMetrics', 'Liquidity');
+                } else if (key.includes('crypto') || key === 'CryptoAgent') {
+                    processDynamicData(data[key], 'cryptoMetrics', 'Crypto');
+                } else if (key.includes('ai') || key.includes('prediction') || key === 'AIPredictionsAgent') {
+                    processDynamicData(data[key], 'aiMetrics', 'AI');
+                } else if (key.includes('bond') || key === 'BondRatesAgent') {
+                    processDynamicData(data[key], 'bondMetrics', 'Bonds');
+                } else if (key.includes('currency') || key === 'CurrencyAgent' || key === 'DollarIndexAgent') {
+                    processDynamicData(data[key], 'currencyMetrics', 'Currency');
+                } else if (key.includes('risk') || key === 'RiskMetricsAgent') {
+                    processDynamicData(data[key], 'riskMetrics', 'Risk');
+                } else if (key === 'data' && typeof data[key] === 'object') {
+                    // Handle nested data structure
+                    Object.keys(data[key]).forEach(subKey => {
+                        processDataByKey(subKey, data[key][subKey]);
                     });
+                } else if (typeof data[key] === 'object' && data[key] !== null) {
+                    // Process any other object data
+                    processDataByKey(key, data[key]);
+                }
+            });
+            
+            // Update executive dashboard with all available data
+            updateExecutiveDashboard(data);
+            
+            // Update the Khalid Index if available
+            updateKhalidIndex(data);
+        }
+
+        // Process data by key name
+        function processDataByKey(key, value) {
+            console.log(`Processing data key: ${key}`, value);
+            
+            // Determine which container to use based on key name
+            let container = null;
+            
+            if (key.toLowerCase().includes('treasury') || key.toLowerCase().includes('fed')) {
+                container = document.getElementById('treasuryMetrics');
+            } else if (key.toLowerCase().includes('market') || key.toLowerCase().includes('stock')) {
+                container = document.getElementById('marketMetrics');
+            } else if (key.toLowerCase().includes('crypto') || key.toLowerCase().includes('bitcoin')) {
+                container = document.getElementById('cryptoMetrics');
+            } else if (key.toLowerCase().includes('bond')) {
+                container = document.getElementById('bondMetrics');
+            } else if (key.toLowerCase().includes('currency') || key.toLowerCase().includes('dollar')) {
+                container = document.getElementById('currencyMetrics');
+            } else if (key.toLowerCase().includes('risk')) {
+                container = document.getElementById('riskMetrics');
+            } else if (key.toLowerCase().includes('ai') || key.toLowerCase().includes('prediction')) {
+                container = document.getElementById('aiMetrics');
+            } else if (key.toLowerCase().includes('liquidity')) {
+                container = document.getElementById('liquidityMetrics');
+            } else {
+                // Default to executive metrics
+                container = document.getElementById('executiveMetrics');
+            }
+            
+            if (container && value) {
+                processDynamicData(value, container.id, key);
+            }
+        }
+
+        // Dynamic data processor - handles any data structure
+        function processDynamicData(data, containerId, category) {
+            const container = document.getElementById(containerId);
+            if (!container) {
+                console.warn(`Container ${containerId} not found`);
+                return;
+            }
+            
+            // If data is a string or number, display it directly
+            if (typeof data === 'string' || typeof data === 'number') {
+                addMetricCard(container, category, data);
+                return;
+            }
+            
+            // If data is an object, process each property
+            if (typeof data === 'object' && data !== null) {
+                // Check if it has a data property
+                if (data.data) {
+                    processDynamicData(data.data, containerId, category);
+                    return;
                 }
                 
-                allSeriesData[seriesId] = observations;
-            });
+                // Process each property
+                Object.entries(data).forEach(([key, value]) => {
+                    // Skip metadata fields
+                    if (key === 'status' || key === 'timestamp' || key === 'agent') {
+                        return;
+                    }
+                    
+                    const label = formatLabel(key);
+                    
+                    if (value === null || value === undefined) {
+                        return;
+                    }
+                    
+                    // Handle different value types
+                    if (typeof value === 'object') {
+                        // Check for common patterns
+                        if (value.value !== undefined) {
+                            addMetricCard(container, label, value.value, value.change);
+                        } else if (value.price !== undefined) {
+                            addMetricCard(container, label, value.price, value.change || value.change_24h);
+                        } else if (value.current !== undefined) {
+                            addMetricCard(container, label, value.current, value.change);
+                        } else if (value.last !== undefined) {
+                            addMetricCard(container, label, value.last, value.change);
+                        } else if (typeof value === 'object' && Object.keys(value).length > 0) {
+                            // Recursively process nested objects
+                            Object.entries(value).forEach(([subKey, subValue]) => {
+                                if (typeof subValue === 'string' || typeof subValue === 'number') {
+                                    addMetricCard(container, `${label} - ${formatLabel(subKey)}`, subValue);
+                                }
+                            });
+                        }
+                    } else {
+                        // Direct value (string or number)
+                        addMetricCard(container, label, value);
+                    }
+                });
+            }
         }
 
-        // Calculate Khalid Index
-        function calculateKhalidIndex() {
-            // Complex proprietary calculation based on multiple factors
-            let index = 50; // Base neutral
+        // Format label from key
+        function formatLabel(key) {
+            return key
+                .replace(/_/g, ' ')
+                .replace(/-/g, ' ')
+                .replace(/([A-Z])/g, ' $1')
+                .trim()
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                .join(' ');
+        }
+
+        // Update Khalid Index
+        function updateKhalidIndex(data) {
+            // Look for Khalid Index in various possible locations
+            let khalidValue = null;
             
-            // Factor in various metrics
-            if (allSeriesData['WALCL']) {
-                const walcl = parseFloat(allSeriesData['WALCL'][0].value);
-                const walclPrev = parseFloat(allSeriesData['WALCL'][7].value);
-                const walclChange = (walcl - walclPrev) / walclPrev;
-                index += walclChange * 100;
+            if (data.khalid_index) {
+                khalidValue = data.khalid_index;
+            } else if (data.risk_metrics && data.risk_metrics.khalid_index) {
+                khalidValue = data.risk_metrics.khalid_index;
+            } else if (data.RiskMetricsAgent && data.RiskMetricsAgent.khalid_index) {
+                khalidValue = data.RiskMetricsAgent.khalid_index;
             }
             
-            // Add more factors...
-            index = Math.max(0, Math.min(100, index));
+            if (khalidValue) {
+                document.getElementById('khalidIndex').textContent = khalidValue + '/100';
+            }
             
-            document.getElementById('khalidIndex').textContent = `${Math.round(index)}/100`;
+            // Update crisis probability
+            let crisisProb = null;
+            if (data.crisis_probability) {
+                crisisProb = data.crisis_probability;
+            } else if (data.risk_metrics && data.risk_metrics.crisis_probability) {
+                crisisProb = data.risk_metrics.crisis_probability;
+            } else if (data.RiskMetricsAgent && data.RiskMetricsAgent.crisis_probability) {
+                crisisProb = data.RiskMetricsAgent.crisis_probability;
+            }
             
-            // Update label
-            let status = 'HOLD';
-            if (index < 20) status = 'EXTREME FEAR - BUY';
-            else if (index < 35) status = 'FEAR - ADD';
-            else if (index < 65) status = 'NEUTRAL - HOLD';
-            else if (index < 80) status = 'GREED - TAKE PROFITS';
-            else status = 'EXTREME GREED - SELL';
-            
-            document.querySelector('.khalid-label').textContent = `KHALID INDEX: ${status}`;
+            if (crisisProb) {
+                document.getElementById('crisisProb').textContent = crisisProb + '%';
+            }
         }
 
-        // Calculate Crisis Distance
-        function calculateCrisisDistance() {
-            // Calculate distance to crisis based on multiple metrics
-            let distance = 50; // Placeholder calculation
-            document.getElementById('crisisDistance').textContent = `${distance}%`;
-        }
-
-        // Update Executive Dashboard
-        function updateExecutiveDashboard() {
-            const container = document.getElementById('executiveMetrics');
+        // Process agent status
+        function processAgentStatus(agentsStatus) {
+            const container = document.getElementById('agentStatusGrid');
             container.innerHTML = '';
             
-            // Show critical metrics
-            const criticalSeries = ['WALCL', 'TOTRESNS', 'JPNASSETS', 'ECBASSETSW'];
+            let activeCount = 0;
             
-            criticalSeries.forEach(seriesId => {
-                if (allSeriesData[seriesId]) {
-                    const latest = allSeriesData[seriesId][0];
-                    const prev = allSeriesData[seriesId][7]; // Week ago
-                    const change = ((parseFloat(latest.value) - parseFloat(prev.value)) / parseFloat(prev.value) * 100).toFixed(2);
-                    
-                    const card = document.createElement('div');
-                    card.className = 'metric-card';
-                    card.innerHTML = `
-                        <div class="metric-label">${FRED_SERIES[seriesId].name}</div>
-                        <div class="metric-value">${formatValue(latest.value)}</div>
-                        <div class="metric-change ${change >= 0 ? 'change-positive' : 'change-negative'}">
-                            ${change >= 0 ? '+' : ''}${change}%
-                        </div>
-                    `;
-                    container.appendChild(card);
+            Object.entries(agentsStatus).forEach(([agent, status]) => {
+                const isActive = status === 'active' || status === 'success';
+                if (isActive) activeCount++;
+                
+                const statusDiv = document.createElement('div');
+                statusDiv.className = `agent-status ${isActive ? 'active' : 'error'}`;
+                statusDiv.innerHTML = `
+                    <span>${agent.replace('_', ' ')}</span>
+                    <span class="status-dot ${isActive ? '' : 'error'}"></span>
+                `;
+                container.appendChild(statusDiv);
+            });
+            
+            document.getElementById('agentsActive').textContent = `${activeCount}/14`;
+        }
+
+        // Process market data
+        function processMarketData(marketData) {
+            const container = document.getElementById('marketMetrics');
+            
+            if (marketData.sp500) {
+                addMetricCard(container, 'S&P 500', marketData.sp500.value, marketData.sp500.change);
+            }
+            if (marketData.spy) {
+                addMetricCard(container, 'SPY', marketData.spy.value, marketData.spy.change);
+            }
+            if (marketData.vix) {
+                addMetricCard(container, 'VIX', marketData.vix.value, marketData.vix.change);
+            }
+            if (marketData.nasdaq) {
+                addMetricCard(container, 'NASDAQ', marketData.nasdaq.value, marketData.nasdaq.change);
+            }
+            if (marketData.dow) {
+                addMetricCard(container, 'DOW', marketData.dow.value, marketData.dow.change);
+            }
+        }
+
+        // Process treasury data
+        function processTreasuryData(treasuryData) {
+            const container = document.getElementById('treasuryMetrics');
+            
+            if (treasuryData.fed_balance_sheet) {
+                addMetricCard(container, 'Fed Balance Sheet', treasuryData.fed_balance_sheet, null, true);
+            }
+            if (treasuryData['10y_yield']) {
+                addMetricCard(container, '10Y Treasury', treasuryData['10y_yield'] + '%');
+            }
+            if (treasuryData['2y_yield']) {
+                addMetricCard(container, '2Y Treasury', treasuryData['2y_yield'] + '%');
+            }
+            if (treasuryData.reverse_repo) {
+                addMetricCard(container, 'Reverse Repo', treasuryData.reverse_repo);
+            }
+            if (treasuryData.fed_funds_rate) {
+                addMetricCard(container, 'Fed Funds Rate', treasuryData.fed_funds_rate + '%');
+            }
+        }
+
+        // Process liquidity data
+        function processLiquidityData(liquidityData) {
+            const container = document.getElementById('liquidityMetrics');
+            
+            Object.entries(liquidityData).forEach(([key, value]) => {
+                const label = key.replace(/_/g, ' ').toUpperCase();
+                addMetricCard(container, label, value);
+            });
+        }
+
+        // Process crypto data
+        function processCryptoData(cryptoData) {
+            const container = document.getElementById('cryptoMetrics');
+            
+            if (cryptoData.bitcoin) {
+                addMetricCard(container, 'Bitcoin', cryptoData.bitcoin.price, cryptoData.bitcoin.change);
+            }
+            if (cryptoData.ethereum) {
+                addMetricCard(container, 'Ethereum', cryptoData.ethereum.price, cryptoData.ethereum.change);
+            }
+            if (cryptoData.total_market_cap) {
+                addMetricCard(container, 'Total Crypto Cap', cryptoData.total_market_cap);
+            }
+        }
+
+        // Process AI predictions
+        function processAIPredictions(aiData) {
+            const container = document.getElementById('aiMetrics');
+            
+            if (aiData.market_phase) {
+                addMetricCard(container, 'Market Phase', aiData.market_phase);
+            }
+            if (aiData.forecast_1w) {
+                addMetricCard(container, '1-Week Forecast', aiData.forecast_1w);
+            }
+            if (aiData.forecast_1m) {
+                addMetricCard(container, '1-Month Forecast', aiData.forecast_1m);
+            }
+            if (aiData.forecast_3m) {
+                addMetricCard(container, '3-Month Forecast', aiData.forecast_3m);
+            }
+        }
+
+        // Process bond data
+        function processBondData(bondData) {
+            const container = document.getElementById('bondMetrics');
+            
+            Object.entries(bondData).forEach(([key, value]) => {
+                const label = key.replace(/_/g, ' ').toUpperCase();
+                addMetricCard(container, label, value);
+            });
+        }
+
+        // Process currency data
+        function processCurrencyData(currencyData) {
+            const container = document.getElementById('currencyMetrics');
+            
+            Object.entries(currencyData).forEach(([key, value]) => {
+                const label = key.toUpperCase();
+                addMetricCard(container, label, value);
+            });
+        }
+
+        // Process risk metrics
+        function processRiskMetrics(riskData) {
+            const container = document.getElementById('riskMetrics');
+            
+            if (riskData.crisis_probability) {
+                addMetricCard(container, 'Crisis Probability', riskData.crisis_probability + '%', null, true);
+                document.getElementById('crisisProb').textContent = riskData.crisis_probability + '%';
+            }
+            if (riskData.black_swan_risk) {
+                addMetricCard(container, 'Black Swan Risk', riskData.black_swan_risk + '%', null, true);
+            }
+            if (riskData.high_yield_spread) {
+                addMetricCard(container, 'HY Spread', riskData.high_yield_spread + '%');
+            }
+            if (riskData.dollar_index) {
+                addMetricCard(container, 'Dollar Index', riskData.dollar_index);
+            }
+        }
+
+        // Process all agent data generically
+        function processAllAgentData(data) {
+            // This function will handle any data structure from your agents
+            Object.entries(data).forEach(([key, value]) => {
+                if (typeof value === 'object' && value !== null && !['agents_status'].includes(key)) {
+                    // Process nested data structures
+                    if (value.data) {
+                        processNestedData(key, value.data);
+                    } else if (Array.isArray(value)) {
+                        processArrayData(key, value);
+                    } else {
+                        processObjectData(key, value);
+                    }
+                }
+            });
+        }
+
+        // Process nested data
+        function processNestedData(category, data) {
+            // Find or create appropriate container
+            let container = document.getElementById(category + 'Metrics');
+            if (!container) {
+                // If no specific container, add to executive metrics
+                container = document.getElementById('executiveMetrics');
+            }
+            
+            if (typeof data === 'object') {
+                Object.entries(data).forEach(([key, value]) => {
+                    if (value && (typeof value === 'string' || typeof value === 'number')) {
+                        const label = key.replace(/_/g, ' ').toUpperCase();
+                        addMetricCard(container, label, value);
+                    }
+                });
+            }
+        }
+
+        // Process array data
+        function processArrayData(category, dataArray) {
+            // Handle arrays of data
+            console.log(`Processing array data for ${category}:`, dataArray);
+        }
+
+        // Process object data
+        function processObjectData(category, dataObject) {
+            // Handle object data
+            console.log(`Processing object data for ${category}:`, dataObject);
+        }
+
+        // Update executive dashboard with comprehensive data
+        function updateExecutiveDashboard(data) {
+            const container = document.getElementById('executiveMetrics');
+            
+            // Define priority metrics to show on executive dashboard
+            const priorityMetrics = [];
+            
+            // Search for key metrics in the data structure
+            const searchPaths = [
+                // Direct paths
+                'sp500', 'spy', 'vix', 'bitcoin', 'ethereum',
+                'fed_balance_sheet', 'crisis_probability', 'dollar_index',
+                // Nested paths
+                'market_data.sp500', 'market_data.spy', 'market_data.vix',
+                'crypto_data.bitcoin', 'crypto_data.ethereum',
+                'treasury_data.fed_balance_sheet',
+                'risk_metrics.crisis_probability',
+                'risk_metrics.dollar_index',
+                // Agent-based paths
+                'StockMarketsAgent.sp500', 'StockMarketsAgent.spy',
+                'USMarketsAgent.sp500', 'USMarketsAgent.spy',
+                'CryptoAgent.bitcoin', 'CryptoAgent.ethereum',
+                'FedLiquidityAgent.fed_balance_sheet',
+                'RiskMetricsAgent.crisis_probability',
+                'DollarIndexAgent.dollar_index'
+            ];
+            
+            // Try to find each metric in the data
+            searchPaths.forEach(path => {
+                const value = getNestedValueFlexible(data, path);
+                if (value !== undefined && value !== null) {
+                    const label = path.split('.').pop().replace(/_/g, ' ').toUpperCase();
+                    priorityMetrics.push({ label, value });
                 }
             });
             
-            // Update critical indicators table
-            updateCriticalIndicatorsTable();
+            // Add found metrics to the dashboard
+            priorityMetrics.forEach(metric => {
+                let displayValue = metric.value;
+                let change = null;
+                
+                if (typeof metric.value === 'object') {
+                    displayValue = metric.value.value || metric.value.price || metric.value.current || metric.value.last;
+                    change = metric.value.change || metric.value.change_24h || metric.value.change_percent;
+                }
+                
+                if (displayValue !== undefined && displayValue !== null) {
+                    addMetricCard(container, metric.label, displayValue, change);
+                }
+            });
+            
+            // Update critical indicators table with all available data
+            updateCriticalTableDynamic(data);
         }
 
-        // Update Critical Indicators Table
-        function updateCriticalIndicatorsTable() {
+        // Flexible nested value getter
+        function getNestedValueFlexible(obj, path) {
+            // Try direct path first
+            const directResult = getNestedValue(obj, path);
+            if (directResult !== undefined) return directResult;
+            
+            // Try to find the value anywhere in the object
+            const lastKey = path.split('.').pop();
+            return findValueByKey(obj, lastKey);
+        }
+
+        // Find value by key anywhere in the object
+        function findValueByKey(obj, targetKey) {
+            if (!obj || typeof obj !== 'object') return undefined;
+            
+            // Check if current object has the key
+            if (obj.hasOwnProperty(targetKey)) {
+                return obj[targetKey];
+            }
+            
+            // Search in nested objects
+            for (let key in obj) {
+                if (typeof obj[key] === 'object' && obj[key] !== null) {
+                    const result = findValueByKey(obj[key], targetKey);
+                    if (result !== undefined) return result;
+                }
+            }
+            
+            return undefined;
+        }
+
+        // Update critical table dynamically
+        function updateCriticalTableDynamic(data) {
             const tbody = document.querySelector('#criticalIndicators tbody');
             tbody.innerHTML = '';
             
-            const indicators = ['WALCL', 'WRESBAL', 'TOTRESNS', 'RMFSL'];
+            // List of critical indicators to find
+            const criticalIndicators = [
+                'sp500', 'spy', 'vix', 'nasdaq', 'dow',
+                'bitcoin', 'ethereum', 'total_market_cap',
+                'fed_balance_sheet', '10y_yield', '2y_yield',
+                'reverse_repo', 'fed_funds_rate',
+                'crisis_probability', 'black_swan_risk',
+                'dollar_index', 'high_yield_spread'
+            ];
             
-            indicators.forEach(seriesId => {
-                if (allSeriesData[seriesId]) {
-                    const latest = allSeriesData[seriesId][0];
-                    const weekAgo = allSeriesData[seriesId][7];
-                    const monthAgo = allSeriesData[seriesId][30];
-                    
-                    const weekChange = calculateChange(latest.value, weekAgo.value);
-                    const monthChange = calculateChange(latest.value, monthAgo.value);
-                    
+            criticalIndicators.forEach(indicator => {
+                const value = findValueByKey(data, indicator);
+                if (value !== undefined && value !== null) {
                     const row = tbody.insertRow();
+                    let displayValue = value;
+                    let change = '';
+                    let status = 'STABLE';
+                    
+                    if (typeof value === 'object') {
+                        displayValue = value.value || value.price || value.current || value.last || JSON.stringify(value);
+                        change = value.change || value.change_24h || value.change_percent || '';
+                        
+                        // Determine status based on change
+                        if (change) {
+                            const changeNum = parseFloat(change.toString().replace('%', '').replace('+', ''));
+                            if (Math.abs(changeNum) > 5) status = 'VOLATILE';
+                            if (Math.abs(changeNum) > 10) status = 'CRITICAL';
+                        }
+                    }
+                    
                     row.innerHTML = `
-                        <td>${FRED_SERIES[seriesId].name}</td>
-                        <td>${formatValue(latest.value)}</td>
-                        <td class="${weekChange >= 0 ? 'change-positive' : 'change-negative'}">
-                            ${weekChange >= 0 ? '+' : ''}${weekChange}%
-                        </td>
-                        <td class="${monthChange >= 0 ? 'change-positive' : 'change-negative'}">
-                            ${monthChange >= 0 ? '+' : ''}${monthChange}%
-                        </td>
-                        <td>${getStatus(weekChange, monthChange)}</td>
+                        <td>${formatLabel(indicator)}</td>
+                        <td>${displayValue}</td>
+                        <td class="${change && change.toString().includes('+') ? 'change-positive' : 'change-negative'}">${change}</td>
+                        <td class="${status === 'CRITICAL' ? 'risk-extreme' : status === 'VOLATILE' ? 'risk-high' : ''}">${status}</td>
                     `;
                 }
             });
         }
 
-        // Update Federal Reserve section
-        function updateFederalReserve() {
-            const container = document.getElementById('fedMetrics');
-            container.innerHTML = '';
-            
-            Object.keys(FRED_SERIES).forEach(seriesId => {
-                if (FRED_SERIES[seriesId].category === 'federal-reserve' && allSeriesData[seriesId]) {
-                    const latest = allSeriesData[seriesId][0];
-                    const prev = allSeriesData[seriesId][1];
-                    const change = calculateChange(latest.value, prev.value);
-                    
-                    const card = document.createElement('div');
-                    card.className = 'metric-card';
-                    card.innerHTML = `
-                        <div class="metric-label">${FRED_SERIES[seriesId].name}</div>
-                        <div class="metric-value">${formatValue(latest.value)}</div>
-                        <div class="metric-change ${change >= 0 ? 'change-positive' : 'change-negative'}">
-                            ${change >= 0 ? '+' : ''}${change}%
-                        </div>
-                    `;
-                    container.appendChild(card);
-                }
-            });
+        // Helper function to get nested value
+        function getNestedValue(obj, path) {
+            return path.split('.').reduce((current, part) => current?.[part], obj);
         }
 
-        // Update Treasury Securities
-        function updateTreasurySecurities() {
-            const container = document.getElementById('treasuryMetrics');
-            container.innerHTML = '';
+        // Helper function to add metric card
+        function addMetricCard(container, label, value, change = null, isCritical = false) {
+            const card = document.createElement('div');
+            card.className = `metric-card ${isCritical ? 'critical' : ''}`;
             
-            Object.keys(FRED_SERIES).forEach(seriesId => {
-                if (FRED_SERIES[seriesId].category === 'treasury' && allSeriesData[seriesId]) {
-                    const latest = allSeriesData[seriesId][0];
-                    const change = calculateChange(latest.value, allSeriesData[seriesId][1].value);
-                    
-                    const card = document.createElement('div');
-                    card.className = 'metric-card';
-                    card.innerHTML = `
-                        <div class="metric-label">${FRED_SERIES[seriesId].name}</div>
-                        <div class="metric-value">${formatValue(latest.value)}</div>
-                        <div class="metric-change ${change >= 0 ? 'change-positive' : 'change-negative'}">
-                            ${change >= 0 ? '+' : ''}${change}%
-                        </div>
-                    `;
-                    container.appendChild(card);
-                }
-            });
-        }
-
-        // Update Central Banks
-        function updateCentralBanks() {
-            const container = document.getElementById('cbMetrics');
-            container.innerHTML = '';
+            let displayValue = value;
+            let changeHtml = '';
             
-            Object.keys(FRED_SERIES).forEach(seriesId => {
-                if (FRED_SERIES[seriesId].category === 'central-banks' && allSeriesData[seriesId]) {
-                    const latest = allSeriesData[seriesId][0];
-                    const change = calculateChange(latest.value, allSeriesData[seriesId][1].value);
-                    
-                    const card = document.createElement('div');
-                    card.className = 'metric-card';
-                    card.innerHTML = `
-                        <div class="metric-label">${FRED_SERIES[seriesId].name}</div>
-                        <div class="metric-value">${formatValue(latest.value)}</div>
-                        <div class="metric-change ${change >= 0 ? 'change-positive' : 'change-negative'}">
-                            ${change >= 0 ? '+' : ''}${change}%
-                        </div>
-                    `;
-                    container.appendChild(card);
-                }
-            });
-        }
-
-        // Update Money Markets
-        function updateMoneyMarkets() {
-            const container = document.getElementById('moneyMarketMetrics');
-            container.innerHTML = '';
-            
-            Object.keys(FRED_SERIES).forEach(seriesId => {
-                if (FRED_SERIES[seriesId].category === 'money-market' && allSeriesData[seriesId]) {
-                    const latest = allSeriesData[seriesId][0];
-                    const change = calculateChange(latest.value, allSeriesData[seriesId][1].value);
-                    
-                    const card = document.createElement('div');
-                    card.className = 'metric-card';
-                    card.innerHTML = `
-                        <div class="metric-label">${FRED_SERIES[seriesId].name}</div>
-                        <div class="metric-value">${formatValue(latest.value)}</div>
-                        <div class="metric-change ${change >= 0 ? 'change-positive' : 'change-negative'}">
-                            ${change >= 0 ? '+' : ''}${change}%
-                        </div>
-                    `;
-                    container.appendChild(card);
-                }
-            });
-        }
-
-        // Update Liquidity Metrics
-        function updateLiquidityMetrics() {
-            const container = document.getElementById('liquidityMetrics');
-            container.innerHTML = '';
-            
-            // Add liquidity-related metrics
-            const liquiditySeries = ['WRESBAL', 'TOTRESNS', 'NONBORRES'];
-            liquiditySeries.forEach(seriesId => {
-                if (allSeriesData[seriesId]) {
-                    const latest = allSeriesData[seriesId][0];
-                    const change = calculateChange(latest.value, allSeriesData[seriesId][1].value);
-                    
-                    const card = document.createElement('div');
-                    card.className = 'metric-card';
-                    card.innerHTML = `
-                        <div class="metric-label">${FRED_SERIES[seriesId].name}</div>
-                        <div class="metric-value">${formatValue(latest.value)}</div>
-                        <div class="metric-change ${change >= 0 ? 'change-positive' : 'change-negative'}">
-                            ${change >= 0 ? '+' : ''}${change}%
-                        </div>
-                    `;
-                    container.appendChild(card);
-                }
-            });
-        }
-
-        // Update Credit Markets
-        function updateCreditMarkets() {
-            const container = document.getElementById('creditMetrics');
-            container.innerHTML = '';
-            
-            const creditSeries = ['REVOLSL', 'SBCACBW027SBOG'];
-            creditSeries.forEach(seriesId => {
-                if (allSeriesData[seriesId]) {
-                    const latest = allSeriesData[seriesId][0];
-                    const change = calculateChange(latest.value, allSeriesData[seriesId][1].value);
-                    
-                    const card = document.createElement('div');
-                    card.className = 'metric-card';
-                    card.innerHTML = `
-                        <div class="metric-label">${FRED_SERIES[seriesId].name}</div>
-                        <div class="metric-value">${formatValue(latest.value)}</div>
-                        <div class="metric-change ${change >= 0 ? 'change-positive' : 'change-negative'}">
-                            ${change >= 0 ? '+' : ''}${change}%
-                        </div>
-                    `;
-                    container.appendChild(card);
-                }
-            });
-        }
-
-        // Update Economic Indicators
-        function updateEconomicIndicators() {
-            const container = document.getElementById('economicMetrics');
-            container.innerHTML = '';
-            
-            Object.keys(FRED_SERIES).forEach(seriesId => {
-                if (FRED_SERIES[seriesId].category === 'economic' && allSeriesData[seriesId]) {
-                    const latest = allSeriesData[seriesId][0];
-                    const change = calculateChange(latest.value, allSeriesData[seriesId][1].value);
-                    
-                    const card = document.createElement('div');
-                    card.className = 'metric-card';
-                    card.innerHTML = `
-                        <div class="metric-label">${FRED_SERIES[seriesId].name}</div>
-                        <div class="metric-value">${formatValue(latest.value)}</div>
-                        <div class="metric-change ${change >= 0 ? 'change-positive' : 'change-negative'}">
-                            ${change >= 0 ? '+' : ''}${change}%
-                        </div>
-                    `;
-                    container.appendChild(card);
-                }
-            });
-        }
-
-        // Update Raw Data Feed
-        function updateRawDataFeed() {
-            const content = document.getElementById('rawDataContent');
-            let rawData = '=== REAL-TIME FRED DATA FEED ===\n\n';
-            
-            Object.keys(allSeriesData).forEach(seriesId => {
-                if (allSeriesData[seriesId] && allSeriesData[seriesId][0]) {
-                    const latest = allSeriesData[seriesId][0];
-                    rawData += `[${seriesId}] ${FRED_SERIES[seriesId].name}\n`;
-                    rawData += `  Latest: ${latest.value} (${latest.date})\n`;
-                    rawData += `  Week Δ: ${calculateChange(latest.value, allSeriesData[seriesId][7]?.value || latest.value)}%\n`;
-                    rawData += `  Category: ${FRED_SERIES[seriesId].category}\n\n`;
-                }
-            });
-            
-            content.textContent = rawData;
-        }
-
-        // Helper functions
-        function formatValue(value) {
-            const num = parseFloat(value);
-            if (num > 1000000000) {
-                return `$${(num / 1000000000).toFixed(2)}T`;
-            } else if (num > 1000000) {
-                return `$${(num / 1000000).toFixed(2)}B`;
-            } else if (num > 1000) {
-                return `$${(num / 1000).toFixed(2)}K`;
+            if (typeof value === 'object' && value !== null) {
+                displayValue = value.value || value.price || JSON.stringify(value);
+                change = value.change || change;
             }
-            return num.toFixed(2);
+            
+            if (change) {
+                const changeClass = change.toString().includes('+') ? 'change-positive' : 'change-negative';
+                changeHtml = `<div class="metric-change ${changeClass}">${change}</div>`;
+            }
+            
+            card.innerHTML = `
+                <div class="metric-label">${label}</div>
+                <div class="metric-value">${displayValue}</div>
+                ${changeHtml}
+            `;
+            
+            container.appendChild(card);
         }
 
-        function calculateChange(current, previous) {
-            const curr = parseFloat(current);
-            const prev = parseFloat(previous);
-            if (prev === 0) return 0;
-            return ((curr - prev) / prev * 100).toFixed(2);
-        }
-
-        function getStatus(weekChange, monthChange) {
-            if (monthChange < -10) return 'CRITICAL';
-            if (monthChange < -5) return 'WARNING';
-            if (monthChange < 0) return 'DECLINING';
-            if (monthChange > 10) return 'SURGING';
-            if (monthChange > 5) return 'RISING';
-            return 'STABLE';
-        }
-
-        function showLoadingState() {
-            // Add loading spinner to all metric containers
-            const containers = document.querySelectorAll('.metrics-grid');
-            containers.forEach(container => {
-                if (!container.innerHTML.includes('spinner')) {
-                    container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+        // Clear all metrics
+        function clearAllMetrics() {
+            const containers = [
+                'executiveMetrics', 'marketMetrics', 'treasuryMetrics', 
+                'liquidityMetrics', 'cryptoMetrics', 'aiMetrics', 
+                'bondMetrics', 'currencyMetrics', 'riskMetrics'
+            ];
+            
+            containers.forEach(id => {
+                const container = document.getElementById(id);
+                if (container) {
+                    container.innerHTML = '';
                 }
             });
         }
 
-        function hideLoadingState() {
-            // Loading state will be replaced by actual data
+        // Count data points
+        function countDataPoints(obj) {
+            let count = 0;
+            
+            function traverse(o) {
+                for (let key in o) {
+                    if (o.hasOwnProperty(key)) {
+                        count++;
+                        if (typeof o[key] === 'object' && o[key] !== null) {
+                            traverse(o[key]);
+                        }
+                    }
+                }
+            }
+            
+            traverse(obj);
+            return count;
         }
 
         // Switch tabs
@@ -1153,7 +1252,7 @@ Waiting for data...
                 autoRefreshInterval = null;
                 btn.textContent = 'AUTO-REFRESH OFF';
             } else {
-                autoRefreshInterval = setInterval(fetchAllData, 60000); // 60 seconds
+                autoRefreshInterval = setInterval(fetchAllData, 30000); // 30 seconds
                 btn.textContent = 'AUTO-REFRESH ON';
                 fetchAllData(); // Fetch immediately
             }
@@ -1161,13 +1260,16 @@ Waiting for data...
 
         // Initialize on load
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('Dashboard initialized with', Object.keys(FRED_SERIES).length, 'FRED series');
+            console.log('JustHodl.AI Dashboard initialized');
+            console.log('Connecting to:', API_ENDPOINT);
+            
+            // Fetch data immediately
             fetchAllData();
             
-            // Auto-enable refresh after 5 seconds
+            // Auto-enable refresh after 3 seconds
             setTimeout(() => {
                 toggleAutoRefresh();
-            }, 5000);
+            }, 3000);
         });
     </script>
 </body>
