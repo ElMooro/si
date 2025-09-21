@@ -572,10 +572,10 @@
 
     <!-- Control Panel -->
     <div class="control-panel">
-        <button class="btn btn-danger" onclick="DataManager.fetchData()">
+        <button class="btn btn-danger" onclick="window.DataManager.fetchData()">
             <i class="fas fa-sync"></i> FETCH ALL DATA
         </button>
-        <button class="btn btn-danger" onclick="DataManager.toggleAutoRefresh()">
+        <button class="btn btn-danger" onclick="window.DataManager.toggleAutoRefresh()">
             <i class="fas fa-clock"></i> <span id="autoRefreshBtn">AUTO-REFRESH OFF</span>
         </button>
         <div class="stats">
@@ -1165,8 +1165,11 @@
             }
         }
 
-        // Initialize Data Manager
-        const DataManager = new DataManager();
+        // Initialize Data Manager instance
+        const dataManager = new DataManager();
+
+        // Make it globally accessible for button clicks
+        window.DataManager = dataManager;
 
         // Tab switching
         function switchTab(tabName) {
@@ -1185,14 +1188,14 @@
         // Initialize on load
         document.addEventListener('DOMContentLoaded', () => {
             console.log('JustHodl.AI Dashboard Professional v2.0');
-            console.log('Connecting to:', DataManager.API_ENDPOINT);
+            console.log('Connecting to:', dataManager.API_ENDPOINT);
             
             // Initial fetch
-            DataManager.fetchData();
+            dataManager.fetchData();
             
             // Auto-enable refresh
             setTimeout(() => {
-                DataManager.toggleAutoRefresh();
+                dataManager.toggleAutoRefresh();
             }, 3000);
         });
     </script>
