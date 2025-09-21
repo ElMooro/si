@@ -632,8 +632,8 @@
     </div>
 
     <script>
-        // Configuration - Using your new orchestrator endpoint
-        const API_ENDPOINT = 'https://6kxsmitl3uzekqfzjki7mprzku0ruzin.lambda-url.us-east-1.on.aws/';
+        // Configuration - Using api.justhodl.ai with CORS enabled
+        const API_ENDPOINT = 'https://api.justhodl.ai/';
         
         // Global state
         let autoRefreshInterval = null;
@@ -727,12 +727,33 @@
             let activeAgents = 0;
             let totalMetrics = 0;
 
-            // Check for processed data
-            const processed = data.processed || {};
-            const rawData = data.raw_data || data;
+            // Handle different data formats
+            let rawData = data;
+            
+            // If we only have health data, show it
+            if (data.health && Object.keys(data).length === 1) {
+                log('Only health data available, need to update orchestrator for real data', 'warning');
+                const healthyCount = Object.values(data.health).filter(s => s === 'healthy').length;
+                activeAgents = healthyCount;
+                
+                // Show health status in overview
+                const overviewSummary = document.getElementById('overviewSummary');
+                overviewSummary.innerHTML = `
+                    <div class="summary-card" style="grid-column: span 2;">
+                        <div class="summary-value">${healthyCount}/15</div>
+                        <div class="summary-label">Agents Healthy</div>
+                    </div>
+                `;
+                
+                document.getElementById('activeAgents').textContent = activeAgents;
+                return;
+            }
 
-            // Count active agents and total metrics
+            // Count active agents and total metrics from actual data
             Object.keys(rawData).forEach(key => {
+                // Skip non-data keys
+                if (key === 'health' || key === 'operation' || key === 'timestamp') return;
+                
                 if (rawData[key] && typeof rawData[key] === 'object' && !rawData[key].error) {
                     activeAgents++;
                     totalMetrics += Object.keys(rawData[key]).length;
@@ -750,19 +771,61 @@
             overviewSummary.innerHTML = '';
             overviewMetrics.innerHTML = '';
 
-            // Key Summary Metrics
-            if (processed.key_metrics) {
-                Object.entries(processed.key_metrics).forEach(([key, value]) => {
-                    overviewSummary.innerHTML += `
+            // Create summary cards for available data
+            let summaryHtml = '';
+            
+            // Check for key data points
+            if (rawData['polygon-api'] || rawData.polygon) {
+                const polygonData = rawData['polygon-api'] || rawData.polygon;
+                if (polygonData.sp500) {
+                    summaryHtml += `
                         <div class="summary-card">
-                            <div class="summary-value">${formatValue(value)}</div>
-                            <div class="summary-label">${key.replace(/_/g, ' ')}</div>
+                            <div class="summary-value">${formatValue(polygonData.sp500)}</div>
+                            <div class="summary-label">S&P 500</div>
                         </div>
                     `;
-                });
+                }
             }
+            
+            if (rawData['global-liquidity'] || rawData.liquidity) {
+                const liqData = rawData['global-liquidity'] || rawData.liquidity;
+                if (liqData.total_liquidity) {
+                    summaryHtml += `
+                        <div class="summary-card">
+                            <div class="summary-value">${formatValue(liqData.total_liquidity, 'currency')}</div>
+                            <div class="summary-label">Global Liquidity</div>
+                        </div>
+                    `;
+                }
+            }
+            
+            if (rawData['treasury-api'] || rawData.treasury) {
+                const treasuryData = rawData['treasury-api'] || rawData.treasury;
+                if (treasuryData.yield_10y) {
+                    summaryHtml += `
+                        <div class="summary-card">
+                            <div class="summary-value">${formatValue(treasuryData.yield_10y, 'percent')}</div>
+                            <div class="summary-label">10Y Yield</div>
+                        </div>
+                    `;
+                }
+            }
+            
+            if (rawData.coinmarketcap || rawData.crypto) {
+                const cryptoData = rawData.coinmarketcap || rawData.crypto;
+                if (cryptoData.btc_price) {
+                    summaryHtml += `
+                        <div class="summary-card">
+                            <div class="summary-value">${formatValue(cryptoData.btc_price, 'currency')}</div>
+                            <div class="summary-label">Bitcoin</div>
+                        </div>
+                    `;
+                }
+            }
+            
+            overviewSummary.innerHTML = summaryHtml || '<div style="color: var(--text-secondary);">Fetching real data from agents...</div>';
 
-            // Process each data category
+            // Process each data category with all possible key names
             processLiquidityData(rawData);
             processMarketData(rawData);
             processTreasuryData(rawData);
@@ -780,31 +843,24 @@
             const container = document.getElementById('liquidityMetrics');
             container.innerHTML = '';
 
-            const liquidityData = data['global-liquidity'] || data.liquidity || {};
+            // Try different possible keys for liquidity data
+            const liquidityData = data['global-liquidity'] || data.liquidity || data['global-liquidity-agent-v2'] || {};
             
-            // Key liquidity metrics to display
-            const metrics = [
-                { key: 'fed_balance', label: 'Fed Balance Sheet', format: 'currency' },
-                { key: 'ecb_balance', label: 'ECB Balance Sheet', format: 'currency' },
-                { key: 'boj_balance', label: 'BOJ Balance Sheet', format: 'currency' },
-                { key: 'pboc_balance', label: 'PBOC Balance Sheet', format: 'currency' },
-                { key: 'total_liquidity', label: 'Total Global Liquidity', format: 'currency' },
-                { key: 'rrp_volume', label: 'RRP Volume', format: 'currency' },
-                { key: 'tga_balance', label: 'TGA Balance', format: 'currency' },
-                { key: 'bank_reserves', label: 'Bank Reserves', format: 'currency' }
-            ];
-
-            metrics.forEach(metric => {
-                const value = liquidityData[metric.key];
-                if (value !== undefined) {
-                    container.innerHTML += createMetricCard(
-                        metric.label,
-                        formatValue(value, metric.format),
-                        null,
-                        'LIQUIDITY METRIC'
-                    );
-                }
-            });
+            // Display whatever data we have
+            if (Object.keys(liquidityData).length > 0) {
+                Object.entries(liquidityData).forEach(([key, value]) => {
+                    if (key !== 'error' && key !== 'status') {
+                        container.innerHTML += createMetricCard(
+                            key.replace(/_/g, ' ').toUpperCase(),
+                            formatValue(value, detectFormat(key, value)),
+                            null,
+                            'LIQUIDITY'
+                        );
+                    }
+                });
+            } else {
+                container.innerHTML = '<div style="color: var(--text-secondary); padding: 20px;">No liquidity data available</div>';
+            }
         }
 
         // Process market data
@@ -812,32 +868,27 @@
             const container = document.getElementById('marketMetrics');
             container.innerHTML = '';
 
-            const marketData = data.polygon || data.market || {};
-            const alphaData = data.alphavantage || {};
+            // Try different possible keys for market data
+            const marketData = data['polygon-api'] || data.polygon || data.market || {};
+            const alphaData = data.alphavantage || data['alphavantage-technical-analysis'] || {};
 
-            // Market metrics
-            const metrics = [
-                { key: 'sp500', label: 'S&P 500', data: marketData },
-                { key: 'nasdaq', label: 'NASDAQ', data: marketData },
-                { key: 'dow', label: 'Dow Jones', data: marketData },
-                { key: 'russell2000', label: 'Russell 2000', data: marketData },
-                { key: 'vix', label: 'VIX', data: marketData },
-                { key: 'dxy', label: 'Dollar Index', data: marketData },
-                { key: 'gold', label: 'Gold', data: marketData },
-                { key: 'oil', label: 'WTI Crude', data: marketData }
-            ];
-
-            metrics.forEach(metric => {
-                const value = metric.data[metric.key];
-                if (value !== undefined) {
-                    container.innerHTML += createMetricCard(
-                        metric.label,
-                        formatValue(value),
-                        null,
-                        'MARKET DATA'
-                    );
-                }
-            });
+            // Combine all market data
+            const allMarketData = { ...marketData, ...alphaData };
+            
+            if (Object.keys(allMarketData).length > 0) {
+                Object.entries(allMarketData).forEach(([key, value]) => {
+                    if (key !== 'error' && key !== 'status') {
+                        container.innerHTML += createMetricCard(
+                            key.replace(/_/g, ' ').toUpperCase(),
+                            formatValue(value, detectFormat(key, value)),
+                            null,
+                            'MARKET'
+                        );
+                    }
+                });
+            } else {
+                container.innerHTML = '<div style="color: var(--text-secondary); padding: 20px;">No market data available</div>';
+            }
         }
 
         // Process treasury data
@@ -845,31 +896,28 @@
             const container = document.getElementById('treasuryMetrics');
             container.innerHTML = '';
 
+            // Try different possible keys for treasury data
             const treasuryData = data.treasury || data['treasury-api'] || {};
+            const iceBofaData = data['ice-bofa'] || data.bonds || {};
+            const repoData = data['enhanced-repo-agent'] || data.repo || {};
 
-            // Treasury metrics
-            const metrics = [
-                { key: 'yield_2y', label: '2-Year Yield', format: 'percent' },
-                { key: 'yield_5y', label: '5-Year Yield', format: 'percent' },
-                { key: 'yield_10y', label: '10-Year Yield', format: 'percent' },
-                { key: 'yield_30y', label: '30-Year Yield', format: 'percent' },
-                { key: 'spread_2s10s', label: '2s10s Spread', format: 'basis' },
-                { key: 'spread_5s30s', label: '5s30s Spread', format: 'basis' },
-                { key: 'next_auction', label: 'Next Auction', format: 'currency' },
-                { key: 'total_debt', label: 'Total Debt', format: 'currency' }
-            ];
-
-            metrics.forEach(metric => {
-                const value = treasuryData[metric.key];
-                if (value !== undefined) {
-                    container.innerHTML += createMetricCard(
-                        metric.label,
-                        formatValue(value, metric.format),
-                        null,
-                        'TREASURY'
-                    );
-                }
-            });
+            // Combine all treasury/bond data
+            const allTreasuryData = { ...treasuryData, ...iceBofaData, ...repoData };
+            
+            if (Object.keys(allTreasuryData).length > 0) {
+                Object.entries(allTreasuryData).forEach(([key, value]) => {
+                    if (key !== 'error' && key !== 'status') {
+                        container.innerHTML += createMetricCard(
+                            key.replace(/_/g, ' ').toUpperCase(),
+                            formatValue(value, detectFormat(key, value)),
+                            null,
+                            'TREASURY/BONDS'
+                        );
+                    }
+                });
+            } else {
+                container.innerHTML = '<div style="color: var(--text-secondary); padding: 20px;">No treasury data available</div>';
+            }
         }
 
         // Process crypto data
@@ -877,31 +925,23 @@
             const container = document.getElementById('cryptoMetrics');
             container.innerHTML = '';
 
-            const cryptoData = data.coinmarketcap || data.crypto || {};
+            // Try different possible keys for crypto data
+            const cryptoData = data.coinmarketcap || data['coinmarketcap-agent'] || data.crypto || {};
 
-            // Crypto metrics
-            const metrics = [
-                { key: 'btc_price', label: 'Bitcoin', format: 'currency' },
-                { key: 'eth_price', label: 'Ethereum', format: 'currency' },
-                { key: 'total_market_cap', label: 'Total Market Cap', format: 'currency' },
-                { key: 'btc_dominance', label: 'BTC Dominance', format: 'percent' },
-                { key: 'altcoin_market_cap', label: 'Altcoin Market Cap', format: 'currency' },
-                { key: 'defi_tvl', label: 'DeFi TVL', format: 'currency' },
-                { key: 'stable_coin_cap', label: 'Stablecoin Cap', format: 'currency' },
-                { key: 'crypto_fear_greed', label: 'Fear & Greed Index', format: 'number' }
-            ];
-
-            metrics.forEach(metric => {
-                const value = cryptoData[metric.key];
-                if (value !== undefined) {
-                    container.innerHTML += createMetricCard(
-                        metric.label,
-                        formatValue(value, metric.format),
-                        null,
-                        'CRYPTO'
-                    );
-                }
-            });
+            if (Object.keys(cryptoData).length > 0) {
+                Object.entries(cryptoData).forEach(([key, value]) => {
+                    if (key !== 'error' && key !== 'status') {
+                        container.innerHTML += createMetricCard(
+                            key.replace(/_/g, ' ').toUpperCase(),
+                            formatValue(value, detectFormat(key, value)),
+                            null,
+                            'CRYPTO'
+                        );
+                    }
+                });
+            } else {
+                container.innerHTML = '<div style="color: var(--text-secondary); padding: 20px;">No crypto data available</div>';
+            }
         }
 
         // Process economic data
@@ -909,32 +949,60 @@
             const container = document.getElementById('economicMetrics');
             container.innerHTML = '';
 
+            // Try different possible keys for economic data
             const fredData = data.fred || data['fred-api'] || {};
-            const censusData = data.census || {};
+            const censusData = data.census || data['census-economic-agent'] || {};
+            const nyFedData = data['ny-fed'] || data.nyfed || {};
 
-            // Economic metrics
-            const metrics = [
-                { key: 'gdp', label: 'GDP Growth', format: 'percent', data: fredData },
-                { key: 'inflation', label: 'Inflation Rate', format: 'percent', data: fredData },
-                { key: 'unemployment', label: 'Unemployment', format: 'percent', data: fredData },
-                { key: 'retail_sales', label: 'Retail Sales', format: 'percent', data: censusData },
-                { key: 'housing_starts', label: 'Housing Starts', format: 'number', data: censusData },
-                { key: 'consumer_confidence', label: 'Consumer Confidence', format: 'number', data: fredData },
-                { key: 'pmi', label: 'Manufacturing PMI', format: 'number', data: fredData },
-                { key: 'trade_balance', label: 'Trade Balance', format: 'currency', data: censusData }
-            ];
+            // Combine all economic data
+            const allEconomicData = { ...fredData, ...censusData, ...nyFedData };
+            
+            if (Object.keys(allEconomicData).length > 0) {
+                Object.entries(allEconomicData).forEach(([key, value]) => {
+                    if (key !== 'error' && key !== 'status') {
+                        container.innerHTML += createMetricCard(
+                            key.replace(/_/g, ' ').toUpperCase(),
+                            formatValue(value, detectFormat(key, value)),
+                            null,
+                            'ECONOMIC'
+                        );
+                    }
+                });
+            } else {
+                container.innerHTML = '<div style="color: var(--text-secondary); padding: 20px;">No economic data available</div>';
+            }
+        }
 
-            metrics.forEach(metric => {
-                const value = metric.data[metric.key];
-                if (value !== undefined) {
-                    container.innerHTML += createMetricCard(
-                        metric.label,
-                        formatValue(value, metric.format),
-                        null,
-                        'ECONOMIC'
-                    );
-                }
-            });
+        // Detect format based on key name and value
+        function detectFormat(key, value) {
+            const lowerKey = key.toLowerCase();
+            
+            // Check for currency indicators
+            if (lowerKey.includes('price') || lowerKey.includes('cap') || 
+                lowerKey.includes('volume') || lowerKey.includes('balance') ||
+                lowerKey.includes('liquidity') || lowerKey.includes('tvl')) {
+                return 'currency';
+            }
+            
+            // Check for percentage indicators
+            if (lowerKey.includes('rate') || lowerKey.includes('yield') || 
+                lowerKey.includes('percent') || lowerKey.includes('dominance') ||
+                lowerKey.includes('apy') || lowerKey.includes('apr')) {
+                return 'percent';
+            }
+            
+            // Check for basis points
+            if (lowerKey.includes('spread') || lowerKey.includes('basis')) {
+                return 'basis';
+            }
+            
+            // Auto-detect by value
+            if (typeof value === 'number') {
+                if (value > 10000) return 'currency';
+                if (value < 100) return 'percent';
+            }
+            
+            return 'auto';
         }
 
         // Format value based on type
@@ -960,18 +1028,19 @@
             }
         }
 
-        // Fetch data from the new orchestrator
+        // Fetch data from api.justhodl.ai
         async function fetchData() {
             updateConnectionStatus('loading', 'Fetching data...');
-            log('Fetching data from orchestrator...', 'info');
+            log('Fetching data from api.justhodl.ai...', 'info');
             
             const startTime = Date.now();
             
             try {
+                // Try analyze operation first to get all agent data
                 const response = await fetch(API_ENDPOINT, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ operation: 'data' })
+                    body: JSON.stringify({ operation: 'analyze' })
                 });
                 
                 if (!response.ok) {
@@ -990,12 +1059,56 @@
                 updateConnectionStatus('connected', 'Connected - Live Data');
                 log(`Data fetched successfully in ${responseTime}ms`, 'info');
                 
+                // Also try to fetch individual agents if needed
+                if (data.health && !data.polygon && !data['global-liquidity']) {
+                    log('Health status received, fetching individual agent data...', 'warning');
+                    await fetchIndividualAgents();
+                }
+                
                 lastUpdateTime = new Date();
                 
             } catch (error) {
                 updateConnectionStatus('error', 'Connection Error');
                 log(`Failed to fetch data: ${error.message}`, 'error');
             }
+        }
+        
+        // Fetch individual agents through api.justhodl.ai
+        async function fetchIndividualAgents() {
+            const agents = [
+                'polygon-api', 'global-liquidity', 'treasury-api', 'fred-api',
+                'ny-fed', 'coinmarketcap', 'alphavantage', 'census',
+                'ice-bofa', 'enhanced-repo', 'cross-currency', 'ai-prediction',
+                'chatgpt', 'fed-liquidity', 'news-sentiment'
+            ];
+            
+            const allData = {};
+            
+            for (const agent of agents) {
+                try {
+                    log(`Fetching ${agent}...`, 'info');
+                    
+                    const response = await fetch(API_ENDPOINT, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            operation: 'run_agent',
+                            agent: agent
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        const agentData = await response.json();
+                        allData[agent] = agentData;
+                        log(`${agent}: Data received`, 'info');
+                    }
+                } catch (error) {
+                    log(`${agent}: Failed - ${error.message}`, 'error');
+                }
+            }
+            
+            // Process all collected data
+            processData(allData);
         }
 
         // Switch tabs
@@ -1083,11 +1196,11 @@
         // Initialize on load
         document.addEventListener('DOMContentLoaded', () => {
             log('JUSTHODL.AI System v2.0 initialized', 'info');
-            log('Using new orchestrator endpoint for real data', 'info');
+            log('Connecting to api.justhodl.ai...', 'info');
+            log('Fetching real data from all agents...', 'info');
             
             // Initial fetch
             setTimeout(() => {
-                log('Running initial data fetch...', 'info');
                 fetchData();
             }, 1000);
         });
