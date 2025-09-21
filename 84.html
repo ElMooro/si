@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JustHodl.AI | Live Financial Data System</title>
+    <title>JustHodl.AI | Professional Financial Command Center</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
@@ -17,6 +17,8 @@
             --border: #2d3561;
             --text-primary: #e0e7ff;
             --text-secondary: #94a3b8;
+            --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-2: linear-gradient(135deg, #00ff41 0%, #00aaff 100%);
         }
 
         * {
@@ -30,6 +32,35 @@
             background: var(--bg-primary);
             color: var(--text-primary);
             overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(45deg, #0a0e27, #1a1f3a);
+            overflow: hidden;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 255, 65, 0.05) 0%, transparent 70%);
+            animation: rotate 30s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         /* Header */
@@ -55,7 +86,7 @@
         .logo-icon {
             width: 45px;
             height: 45px;
-            background: linear-gradient(135deg, #00ff41 0%, #00aaff 100%);
+            background: var(--gradient-2);
             border-radius: 10px;
             display: flex;
             align-items: center;
@@ -74,7 +105,7 @@
         .logo-text {
             font-size: 24px;
             font-weight: 800;
-            background: linear-gradient(135deg, #00ff41 0%, #00aaff 100%);
+            background: var(--gradient-2);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -122,24 +153,54 @@
             animation: blink 2s infinite;
         }
 
-        .status-dot.error {
-            background: var(--danger);
-        }
-
         @keyframes blink {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.3; }
         }
 
-        /* Controls */
-        .controls {
+        /* Navigation */
+        .nav-tabs {
+            display: flex;
+            gap: 5px;
             padding: 20px 30px;
             background: var(--bg-secondary);
             border-bottom: 1px solid var(--border);
+            overflow-x: auto;
+        }
+
+        .nav-tab {
+            padding: 12px 24px;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .nav-tab:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--border);
+        }
+
+        .nav-tab.active {
+            background: var(--gradient-2);
+            color: var(--bg-primary);
+            font-weight: 600;
+        }
+
+        /* Control Bar */
+        .control-bar {
+            padding: 15px 30px;
+            background: rgba(17, 24, 39, 0.95);
             display: flex;
             gap: 15px;
-            flex-wrap: wrap;
             align-items: center;
+            flex-wrap: wrap;
         }
 
         .btn {
@@ -155,11 +216,11 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #00ff41 0%, #00aaff 100%);
+            background: var(--gradient-2);
             color: var(--bg-primary);
         }
 
-        .btn-primary:hover:not(:disabled) {
+        .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0, 255, 65, 0.3);
         }
@@ -170,14 +231,21 @@
             border: 1px solid var(--border);
         }
 
-        .btn-secondary:hover:not(:disabled) {
+        .btn-secondary:hover {
             background: var(--bg-tertiary);
             border-color: var(--primary);
         }
 
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+        .auto-refresh-indicator {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 12px;
+            background: rgba(0, 170, 255, 0.1);
+            border: 1px solid var(--info);
+            border-radius: 20px;
+            font-size: 12px;
         }
 
         /* Main Container */
@@ -187,111 +255,115 @@
             margin: 0 auto;
         }
 
-        /* Agent Grid */
-        .agents-grid {
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Grid Layouts */
+        .metrics-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
             margin-bottom: 30px;
         }
 
-        .agent-card {
-            background: var(--bg-tertiary);
+        /* Cards */
+        .card {
+            background: linear-gradient(135deg, rgba(26, 31, 58, 0.9) 0%, rgba(17, 24, 39, 0.9) 100%);
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: 20px;
+            backdrop-filter: blur(10px);
             transition: all 0.3s;
             position: relative;
             overflow: hidden;
         }
 
-        .agent-card.loading {
-            opacity: 0.7;
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 255, 65, 0.1);
         }
 
-        .agent-card.healthy {
-            border-color: var(--primary);
-        }
-
-        .agent-card.error {
-            border-color: var(--danger);
-        }
-
-        .agent-header {
+        .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
-            padding-bottom: 10px;
+            padding-bottom: 15px;
             border-bottom: 1px solid var(--border);
         }
 
-        .agent-name {
+        .card-title {
             font-size: 16px;
-            font-weight: 700;
-            text-transform: uppercase;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
             color: var(--primary);
         }
 
-        .agent-status {
-            display: flex;
+        .card-value {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .card-change {
+            font-size: 14px;
+            display: inline-flex;
             align-items: center;
             gap: 5px;
         }
 
-        .status-indicator {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: var(--text-secondary);
-        }
-
-        .status-indicator.healthy {
-            background: var(--primary);
-            animation: pulse 2s infinite;
-        }
-
-        .status-indicator.error {
-            background: var(--danger);
-        }
-
-        .agent-data {
-            background: #000;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 15px;
-            max-height: 400px;
-            overflow-y: auto;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-        }
-
-        .agent-metrics {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .metric-item {
-            background: rgba(0, 255, 65, 0.05);
-            border: 1px solid rgba(0, 255, 65, 0.2);
-            border-radius: 6px;
-            padding: 10px;
-            text-align: center;
-        }
-
-        .metric-value {
-            font-size: 18px;
-            font-weight: bold;
+        .change-up {
             color: var(--primary);
-            margin-bottom: 5px;
         }
 
-        .metric-label {
-            font-size: 10px;
+        .change-down {
+            color: var(--danger);
+        }
+
+        .card-label {
+            font-size: 12px;
             color: var(--text-secondary);
             text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Data Table */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .data-table th {
+            background: var(--bg-tertiary);
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border);
+            color: var(--primary);
+        }
+
+        .data-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table tr:hover {
+            background: rgba(0, 255, 65, 0.05);
         }
 
         /* Terminal */
@@ -302,9 +374,8 @@
             padding: 15px;
             font-family: 'Courier New', monospace;
             font-size: 12px;
-            max-height: 300px;
+            max-height: 400px;
             overflow-y: auto;
-            margin-bottom: 30px;
         }
 
         .terminal-line {
@@ -327,20 +398,12 @@
             color: var(--danger);
         }
 
-        .terminal-warning {
-            color: var(--warning);
-        }
-
-        .terminal-info {
-            color: var(--info);
-        }
-
         /* Loading Spinner */
-        .loading-spinner {
+        .loading {
             display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid var(--border);
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--border);
             border-top-color: var(--primary);
             border-radius: 50%;
             animation: spin 1s linear infinite;
@@ -351,85 +414,46 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* JSON Formatter */
-        .json-key {
-            color: #00aaff;
-        }
-
-        .json-string {
-            color: #00ff41;
-        }
-
-        .json-number {
-            color: #ffaa00;
-        }
-
-        .json-boolean {
-            color: #ff00ff;
-        }
-
-        .json-null {
-            color: #ff0040;
-        }
-
-        /* Summary Section */
-        .summary-section {
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 30px;
-        }
-
+        /* Summary Cards */
         .summary-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
+            gap: 15px;
+            margin-bottom: 30px;
         }
 
-        .summary-item {
+        .summary-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
             text-align: center;
         }
 
         .summary-value {
-            font-size: 32px;
+            font-size: 24px;
             font-weight: bold;
             color: var(--primary);
             margin-bottom: 5px;
         }
 
         .summary-label {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-secondary);
             text-transform: uppercase;
         }
 
-        /* Auto-refresh indicator */
-        .auto-refresh-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 12px;
-            background: rgba(0, 170, 255, 0.1);
-            border: 1px solid var(--info);
-            border-radius: 20px;
+        /* JSON Viewer */
+        .json-viewer {
+            background: #000;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
             font-size: 12px;
-            margin-left: auto;
-        }
-
-        .progress-bar {
-            width: 100px;
-            height: 4px;
-            background: var(--border);
-            border-radius: 2px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: var(--info);
-            transition: width 1s linear;
+            max-height: 500px;
+            overflow: auto;
+            white-space: pre-wrap;
         }
 
         /* Responsive */
@@ -439,135 +463,193 @@
                 gap: 15px;
             }
 
-            .agents-grid {
+            .metrics-grid {
                 grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
+    <div class="bg-animation"></div>
+
     <!-- Header -->
     <header class="header">
         <div class="logo">
             <div class="logo-icon">JH</div>
-            <div class="logo-text">JUSTHODL.AI LIVE DATA</div>
+            <div class="logo-text">JUSTHODL.AI</div>
         </div>
         
         <div class="header-stats">
             <div class="stat-item">
-                <div class="stat-value" id="activeAgents">0/15</div>
+                <div class="stat-value" id="activeAgents">0</div>
                 <div class="stat-label">Active Agents</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value" id="totalDataPoints">0</div>
+                <div class="stat-value" id="totalMetrics">0</div>
                 <div class="stat-label">Data Points</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value" id="lastUpdate">Never</div>
-                <div class="stat-label">Last Update</div>
+                <div class="stat-value" id="responseTime">0ms</div>
+                <div class="stat-label">Response Time</div>
             </div>
             <div class="connection-status">
-                <div class="status-dot" id="connectionDot"></div>
-                <span id="connectionStatus">Initializing...</span>
+                <div class="status-dot"></div>
+                <span id="connectionStatus">Connecting...</span>
             </div>
         </div>
     </header>
 
-    <!-- Controls -->
-    <div class="controls">
-        <button class="btn btn-primary" onclick="fetchAllAgentData()" id="fetchAllBtn">
-            <i class="fas fa-download"></i> Fetch All Agent Data
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+        <button class="nav-tab active" onclick="switchTab('overview')">
+            <i class="fas fa-th-large"></i> Overview
         </button>
-        <button class="btn btn-primary" onclick="testIndividualAgents()" id="testAgentsBtn">
-            <i class="fas fa-vial"></i> Test Each Agent
+        <button class="nav-tab" onclick="switchTab('liquidity')">
+            <i class="fas fa-water"></i> Liquidity
         </button>
-        <button class="btn btn-secondary" onclick="toggleAutoRefresh()" id="autoRefreshBtn">
-            <i class="fas fa-sync"></i> Enable Auto-Refresh
+        <button class="nav-tab" onclick="switchTab('markets')">
+            <i class="fas fa-chart-line"></i> Markets
         </button>
-        <button class="btn btn-secondary" onclick="clearAll()">
-            <i class="fas fa-trash"></i> Clear All
+        <button class="nav-tab" onclick="switchTab('treasury')">
+            <i class="fas fa-university"></i> Treasury
+        </button>
+        <button class="nav-tab" onclick="switchTab('crypto')">
+            <i class="fab fa-bitcoin"></i> Crypto
+        </button>
+        <button class="nav-tab" onclick="switchTab('economic')">
+            <i class="fas fa-globe"></i> Economic
+        </button>
+        <button class="nav-tab" onclick="switchTab('raw')">
+            <i class="fas fa-code"></i> Raw Data
+        </button>
+        <button class="nav-tab" onclick="switchTab('terminal')">
+            <i class="fas fa-terminal"></i> Terminal
+        </button>
+    </nav>
+
+    <!-- Control Bar -->
+    <div class="control-bar">
+        <button class="btn btn-primary" onclick="fetchData()">
+            <i class="fas fa-sync"></i> Refresh Data
+        </button>
+        <button class="btn btn-secondary" onclick="toggleAutoRefresh()">
+            <i class="fas fa-clock"></i> <span id="autoRefreshBtn">Enable Auto-Refresh</span>
+        </button>
+        <button class="btn btn-secondary" onclick="exportData()">
+            <i class="fas fa-download"></i> Export Data
         </button>
         
-        <div class="auto-refresh-badge" id="refreshBadge" style="display: none;">
+        <div class="auto-refresh-indicator" id="refreshIndicator" style="display: none;">
+            <i class="fas fa-sync fa-spin"></i>
             <span>Auto-refresh in <span id="countdown">30</span>s</span>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
-            </div>
         </div>
     </div>
 
     <!-- Main Container -->
     <div class="main-container">
-        
-        <!-- Terminal -->
-        <div class="terminal" id="terminal">
-            <div class="terminal-line">
-                <span class="terminal-timestamp">[00:00:00]</span>
-                <span class="terminal-message">JUSTHODL.AI Live Data System v2.0 - Ready to fetch real agent data</span>
+
+        <!-- Overview Tab -->
+        <div id="overview" class="tab-content active">
+            <div class="summary-grid" id="overviewSummary">
+                <!-- Summary cards will be populated here -->
+            </div>
+
+            <div class="metrics-grid" id="overviewMetrics">
+                <!-- Metric cards will be populated here -->
             </div>
         </div>
 
-        <!-- Summary Section -->
-        <div class="summary-section" id="summarySection" style="display: none;">
-            <h2 style="font-size: 20px; margin-bottom: 20px;">
-                <i class="fas fa-chart-line"></i> Live Market Summary
+        <!-- Liquidity Tab -->
+        <div id="liquidity" class="tab-content">
+            <h2 style="margin-bottom: 20px; color: var(--primary);">
+                <i class="fas fa-water"></i> Global Liquidity Metrics
             </h2>
-            <div class="summary-grid" id="summaryGrid">
-                <!-- Summary items will be populated here -->
+            <div class="metrics-grid" id="liquidityMetrics">
+                <!-- Liquidity metrics will be populated here -->
             </div>
         </div>
 
-        <!-- Agents Grid -->
-        <h2 style="font-size: 24px; margin-bottom: 20px;">
-            <i class="fas fa-robot"></i> Live Agent Data
-        </h2>
-        <div class="agents-grid" id="agentsGrid">
-            <!-- Agent cards will be populated here -->
+        <!-- Markets Tab -->
+        <div id="markets" class="tab-content">
+            <h2 style="margin-bottom: 20px; color: var(--primary);">
+                <i class="fas fa-chart-line"></i> Market Data
+            </h2>
+            <div class="metrics-grid" id="marketMetrics">
+                <!-- Market metrics will be populated here -->
+            </div>
+        </div>
+
+        <!-- Treasury Tab -->
+        <div id="treasury" class="tab-content">
+            <h2 style="margin-bottom: 20px; color: var(--primary);">
+                <i class="fas fa-university"></i> Treasury & Bonds
+            </h2>
+            <div class="metrics-grid" id="treasuryMetrics">
+                <!-- Treasury metrics will be populated here -->
+            </div>
+        </div>
+
+        <!-- Crypto Tab -->
+        <div id="crypto" class="tab-content">
+            <h2 style="margin-bottom: 20px; color: var(--primary);">
+                <i class="fab fa-bitcoin"></i> Cryptocurrency Markets
+            </h2>
+            <div class="metrics-grid" id="cryptoMetrics">
+                <!-- Crypto metrics will be populated here -->
+            </div>
+        </div>
+
+        <!-- Economic Tab -->
+        <div id="economic" class="tab-content">
+            <h2 style="margin-bottom: 20px; color: var(--primary);">
+                <i class="fas fa-globe"></i> Economic Indicators
+            </h2>
+            <div class="metrics-grid" id="economicMetrics">
+                <!-- Economic metrics will be populated here -->
+            </div>
+        </div>
+
+        <!-- Raw Data Tab -->
+        <div id="raw" class="tab-content">
+            <h2 style="margin-bottom: 20px; color: var(--primary);">
+                <i class="fas fa-code"></i> Raw JSON Data
+            </h2>
+            <div class="json-viewer" id="rawDataViewer">
+                <!-- Raw JSON will be displayed here -->
+            </div>
+        </div>
+
+        <!-- Terminal Tab -->
+        <div id="terminal" class="tab-content">
+            <h2 style="margin-bottom: 20px; color: var(--primary);">
+                <i class="fas fa-terminal"></i> System Terminal
+            </h2>
+            <div class="terminal" id="systemTerminal">
+                <!-- Terminal messages will appear here -->
+            </div>
         </div>
 
     </div>
 
     <script>
-        // Configuration
-        const API_ENDPOINT = 'https://api.justhodl.ai/';
+        // Configuration - Using your new orchestrator endpoint
+        const API_ENDPOINT = 'https://6kxsmitl3uzekqfzjki7mprzku0ruzin.lambda-url.us-east-1.on.aws/';
         
-        // All agents with their configurations
-        const AGENTS = [
-            { name: 'polygon-api', displayName: 'POLYGON - Stock Market Data' },
-            { name: 'alphavantage', displayName: 'ALPHAVANTAGE - Technical Analysis' },
-            { name: 'global-liquidity', displayName: 'GLOBAL LIQUIDITY - 272 Metrics' },
-            { name: 'treasury-api', displayName: 'TREASURY - Auctions & Yields' },
-            { name: 'fred-api', displayName: 'FRED - Economic Data' },
-            { name: 'ny-fed', displayName: 'NY FED - Repo & Operations' },
-            { name: 'coinmarketcap', displayName: 'CRYPTO - Top 100 Coins' },
-            { name: 'census', displayName: 'CENSUS - Economic Indicators' },
-            { name: 'ice-bofa', displayName: 'ICE BOFA - Bond Indices' },
-            { name: 'enhanced-repo', displayName: 'REPO MARKET - Complete Data' },
-            { name: 'cross-currency', displayName: 'CROSS CURRENCY - Basis Swaps' },
-            { name: 'ai-prediction', displayName: 'AI PREDICTIONS - Market Analysis' },
-            { name: 'chatgpt', displayName: 'CHATGPT - Analysis Reports' },
-            { name: 'fed-liquidity', displayName: 'FED LIQUIDITY - Balance Sheet' },
-            { name: 'news-sentiment', displayName: 'NEWS SENTIMENT - Market Mood' }
-        ];
-
         // Global state
         let autoRefreshInterval = null;
         let countdownInterval = null;
-        let agentData = {};
-        let fetchInProgress = false;
+        let currentData = null;
+        let lastUpdateTime = null;
 
         // Terminal logger
         function log(message, type = 'info') {
-            const terminal = document.getElementById('terminal');
+            const terminal = document.getElementById('systemTerminal');
             const timestamp = new Date().toLocaleTimeString();
             const line = document.createElement('div');
             line.className = 'terminal-line';
             
             let messageClass = 'terminal-message';
             if (type === 'error') messageClass = 'terminal-error';
-            if (type === 'warning') messageClass = 'terminal-warning';
-            if (type === 'success') messageClass = 'terminal-message';
-            if (type === 'info') messageClass = 'terminal-info';
             
             line.innerHTML = `
                 <span class="terminal-timestamp">[${timestamp}]</span>
@@ -579,372 +661,366 @@
         }
 
         // Update connection status
-        function updateConnectionStatus(connected, message) {
-            const dot = document.getElementById('connectionDot');
-            const status = document.getElementById('connectionStatus');
-            
-            if (connected) {
-                dot.classList.remove('error');
-                status.textContent = message || 'Connected';
-            } else {
-                dot.classList.add('error');
-                status.textContent = message || 'Error';
-            }
+        function updateConnectionStatus(status, message) {
+            const statusElement = document.getElementById('connectionStatus');
+            statusElement.textContent = message || status;
         }
 
-        // Format JSON for display
-        function formatJSON(obj) {
-            if (!obj) return 'No data';
-            
-            return JSON.stringify(obj, null, 2)
-                .replace(/"([^"]+)":/g, '<span class="json-key">"$1":</span>')
-                .replace(/: "([^"]*)"/g, ': <span class="json-string">"$1"</span>')
-                .replace(/: (\d+\.?\d*)/g, ': <span class="json-number">$1</span>')
-                .replace(/: (true|false)/g, ': <span class="json-boolean">$1</span>')
-                .replace(/: null/g, ': <span class="json-null">null</span>');
+        // Format number with commas
+        function formatNumber(num) {
+            if (typeof num !== 'number') return num;
+            return num.toLocaleString('en-US', { maximumFractionDigits: 2 });
         }
 
-        // Extract key metrics from agent data
-        function extractKeyMetrics(agentName, data) {
-            const metrics = [];
-            
-            if (!data || typeof data !== 'object') return metrics;
-            
-            // Try to extract meaningful metrics based on agent type
-            if (agentName.includes('liquidity')) {
-                if (data.global_liquidity) metrics.push({ label: 'Global Liquidity', value: data.global_liquidity });
-                if (data.fed_balance) metrics.push({ label: 'Fed Balance', value: data.fed_balance });
-                if (data.ecb_balance) metrics.push({ label: 'ECB Balance', value: data.ecb_balance });
-            }
-            
-            if (agentName.includes('treasury')) {
-                if (data.yield_10y) metrics.push({ label: '10Y Yield', value: data.yield_10y });
-                if (data.yield_2y) metrics.push({ label: '2Y Yield', value: data.yield_2y });
-                if (data.spread_2s10s) metrics.push({ label: '2s10s Spread', value: data.spread_2s10s });
-            }
-            
-            if (agentName.includes('polygon')) {
-                if (data.sp500) metrics.push({ label: 'S&P 500', value: data.sp500 });
-                if (data.nasdaq) metrics.push({ label: 'NASDAQ', value: data.nasdaq });
-                if (data.dow) metrics.push({ label: 'DOW', value: data.dow });
-            }
-            
-            if (agentName.includes('crypto') || agentName.includes('coinmarketcap')) {
-                if (data.btc_price) metrics.push({ label: 'BTC', value: `$${data.btc_price}` });
-                if (data.eth_price) metrics.push({ label: 'ETH', value: `$${data.eth_price}` });
-                if (data.total_market_cap) metrics.push({ label: 'Market Cap', value: data.total_market_cap });
-            }
-            
-            // If no specific metrics found, try to extract first few numeric values
-            if (metrics.length === 0) {
-                let count = 0;
-                for (const [key, value] of Object.entries(data)) {
-                    if (count >= 4) break;
-                    if (typeof value === 'number' || typeof value === 'string') {
-                        metrics.push({ 
-                            label: key.replace(/_/g, ' ').toUpperCase(), 
-                            value: value 
-                        });
-                        count++;
-                    }
+        // Format currency
+        function formatCurrency(num) {
+            if (typeof num !== 'number') return num;
+            if (num >= 1e12) return `$${(num / 1e12).toFixed(2)}T`;
+            if (num >= 1e9) return `$${(num / 1e9).toFixed(2)}B`;
+            if (num >= 1e6) return `$${(num / 1e6).toFixed(2)}M`;
+            return `$${formatNumber(num)}`;
+        }
+
+        // Format percentage
+        function formatPercent(num) {
+            if (typeof num !== 'number') return num;
+            return `${num.toFixed(2)}%`;
+        }
+
+        // Extract value from various data formats
+        function extractValue(data, keys) {
+            for (const key of keys) {
+                if (data && data[key] !== undefined) {
+                    return data[key];
                 }
             }
-            
-            return metrics;
+            return null;
         }
 
-        // Create or update agent card
-        function createAgentCard(agent) {
-            const existingCard = document.getElementById(`agent-${agent.name}`);
-            if (existingCard) {
-                return existingCard;
-            }
-            
-            const card = document.createElement('div');
-            card.id = `agent-${agent.name}`;
-            card.className = 'agent-card';
-            card.innerHTML = `
-                <div class="agent-header">
-                    <div class="agent-name">${agent.displayName}</div>
-                    <div class="agent-status">
-                        <span class="status-indicator" id="status-${agent.name}"></span>
-                        <span id="status-text-${agent.name}">Waiting</span>
+        // Create metric card
+        function createMetricCard(title, value, change = null, label = '') {
+            const changeHtml = change !== null ? 
+                `<div class="card-change ${change >= 0 ? 'change-up' : 'change-down'}">
+                    <i class="fas fa-${change >= 0 ? 'arrow-up' : 'arrow-down'}"></i>
+                    ${Math.abs(change).toFixed(2)}%
+                </div>` : '';
+
+            return `
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">${title}</div>
                     </div>
-                </div>
-                <div class="agent-metrics" id="metrics-${agent.name}" style="display: none;">
-                    <!-- Metrics will be populated here -->
-                </div>
-                <div class="agent-data" id="data-${agent.name}">
-                    <div style="text-align: center; color: var(--text-secondary);">
-                        Click "Fetch All Agent Data" or "Test Each Agent" to load data
-                    </div>
-                </div>
-                <div style="margin-top: 10px;">
-                    <button class="btn btn-secondary" onclick="fetchSingleAgent('${agent.name}')" style="width: 100%;">
-                        <i class="fas fa-sync"></i> Refresh This Agent
-                    </button>
+                    <div class="card-value">${value}</div>
+                    ${changeHtml}
+                    ${label ? `<div class="card-label">${label}</div>` : ''}
                 </div>
             `;
-            
-            return card;
         }
 
-        // Initialize agent cards
-        function initializeAgentCards() {
-            const grid = document.getElementById('agentsGrid');
-            grid.innerHTML = '';
+        // Process and display data
+        function processData(data) {
+            if (!data) return;
+
+            currentData = data;
             
-            AGENTS.forEach(agent => {
-                const card = createAgentCard(agent);
-                grid.appendChild(card);
+            // Count active agents and metrics
+            let activeAgents = 0;
+            let totalMetrics = 0;
+
+            // Check for processed data
+            const processed = data.processed || {};
+            const rawData = data.raw_data || data;
+
+            // Count active agents and total metrics
+            Object.keys(rawData).forEach(key => {
+                if (rawData[key] && typeof rawData[key] === 'object' && !rawData[key].error) {
+                    activeAgents++;
+                    totalMetrics += Object.keys(rawData[key]).length;
+                }
+            });
+
+            // Update header stats
+            document.getElementById('activeAgents').textContent = activeAgents;
+            document.getElementById('totalMetrics').textContent = totalMetrics;
+
+            // Process Overview
+            const overviewSummary = document.getElementById('overviewSummary');
+            const overviewMetrics = document.getElementById('overviewMetrics');
+            
+            overviewSummary.innerHTML = '';
+            overviewMetrics.innerHTML = '';
+
+            // Key Summary Metrics
+            if (processed.key_metrics) {
+                Object.entries(processed.key_metrics).forEach(([key, value]) => {
+                    overviewSummary.innerHTML += `
+                        <div class="summary-card">
+                            <div class="summary-value">${formatValue(value)}</div>
+                            <div class="summary-label">${key.replace(/_/g, ' ')}</div>
+                        </div>
+                    `;
+                });
+            }
+
+            // Process each data category
+            processLiquidityData(rawData);
+            processMarketData(rawData);
+            processTreasuryData(rawData);
+            processCryptoData(rawData);
+            processEconomicData(rawData);
+
+            // Update raw data view
+            document.getElementById('rawDataViewer').textContent = JSON.stringify(data, null, 2);
+
+            log(`Data processed: ${activeAgents} agents, ${totalMetrics} metrics`, 'info');
+        }
+
+        // Process liquidity data
+        function processLiquidityData(data) {
+            const container = document.getElementById('liquidityMetrics');
+            container.innerHTML = '';
+
+            const liquidityData = data['global-liquidity'] || data.liquidity || {};
+            
+            // Key liquidity metrics to display
+            const metrics = [
+                { key: 'fed_balance', label: 'Fed Balance Sheet', format: 'currency' },
+                { key: 'ecb_balance', label: 'ECB Balance Sheet', format: 'currency' },
+                { key: 'boj_balance', label: 'BOJ Balance Sheet', format: 'currency' },
+                { key: 'pboc_balance', label: 'PBOC Balance Sheet', format: 'currency' },
+                { key: 'total_liquidity', label: 'Total Global Liquidity', format: 'currency' },
+                { key: 'rrp_volume', label: 'RRP Volume', format: 'currency' },
+                { key: 'tga_balance', label: 'TGA Balance', format: 'currency' },
+                { key: 'bank_reserves', label: 'Bank Reserves', format: 'currency' }
+            ];
+
+            metrics.forEach(metric => {
+                const value = liquidityData[metric.key];
+                if (value !== undefined) {
+                    container.innerHTML += createMetricCard(
+                        metric.label,
+                        formatValue(value, metric.format),
+                        null,
+                        'LIQUIDITY METRIC'
+                    );
+                }
             });
         }
 
-        // Update agent card with data
-        function updateAgentCard(agentName, data, status = 'success') {
-            const statusIndicator = document.getElementById(`status-${agentName}`);
-            const statusText = document.getElementById(`status-text-${agentName}`);
-            const dataDiv = document.getElementById(`data-${agentName}`);
-            const metricsDiv = document.getElementById(`metrics-${agentName}`);
-            const card = document.getElementById(`agent-${agentName}`);
+        // Process market data
+        function processMarketData(data) {
+            const container = document.getElementById('marketMetrics');
+            container.innerHTML = '';
+
+            const marketData = data.polygon || data.market || {};
+            const alphaData = data.alphavantage || {};
+
+            // Market metrics
+            const metrics = [
+                { key: 'sp500', label: 'S&P 500', data: marketData },
+                { key: 'nasdaq', label: 'NASDAQ', data: marketData },
+                { key: 'dow', label: 'Dow Jones', data: marketData },
+                { key: 'russell2000', label: 'Russell 2000', data: marketData },
+                { key: 'vix', label: 'VIX', data: marketData },
+                { key: 'dxy', label: 'Dollar Index', data: marketData },
+                { key: 'gold', label: 'Gold', data: marketData },
+                { key: 'oil', label: 'WTI Crude', data: marketData }
+            ];
+
+            metrics.forEach(metric => {
+                const value = metric.data[metric.key];
+                if (value !== undefined) {
+                    container.innerHTML += createMetricCard(
+                        metric.label,
+                        formatValue(value),
+                        null,
+                        'MARKET DATA'
+                    );
+                }
+            });
+        }
+
+        // Process treasury data
+        function processTreasuryData(data) {
+            const container = document.getElementById('treasuryMetrics');
+            container.innerHTML = '';
+
+            const treasuryData = data.treasury || data['treasury-api'] || {};
+
+            // Treasury metrics
+            const metrics = [
+                { key: 'yield_2y', label: '2-Year Yield', format: 'percent' },
+                { key: 'yield_5y', label: '5-Year Yield', format: 'percent' },
+                { key: 'yield_10y', label: '10-Year Yield', format: 'percent' },
+                { key: 'yield_30y', label: '30-Year Yield', format: 'percent' },
+                { key: 'spread_2s10s', label: '2s10s Spread', format: 'basis' },
+                { key: 'spread_5s30s', label: '5s30s Spread', format: 'basis' },
+                { key: 'next_auction', label: 'Next Auction', format: 'currency' },
+                { key: 'total_debt', label: 'Total Debt', format: 'currency' }
+            ];
+
+            metrics.forEach(metric => {
+                const value = treasuryData[metric.key];
+                if (value !== undefined) {
+                    container.innerHTML += createMetricCard(
+                        metric.label,
+                        formatValue(value, metric.format),
+                        null,
+                        'TREASURY'
+                    );
+                }
+            });
+        }
+
+        // Process crypto data
+        function processCryptoData(data) {
+            const container = document.getElementById('cryptoMetrics');
+            container.innerHTML = '';
+
+            const cryptoData = data.coinmarketcap || data.crypto || {};
+
+            // Crypto metrics
+            const metrics = [
+                { key: 'btc_price', label: 'Bitcoin', format: 'currency' },
+                { key: 'eth_price', label: 'Ethereum', format: 'currency' },
+                { key: 'total_market_cap', label: 'Total Market Cap', format: 'currency' },
+                { key: 'btc_dominance', label: 'BTC Dominance', format: 'percent' },
+                { key: 'altcoin_market_cap', label: 'Altcoin Market Cap', format: 'currency' },
+                { key: 'defi_tvl', label: 'DeFi TVL', format: 'currency' },
+                { key: 'stable_coin_cap', label: 'Stablecoin Cap', format: 'currency' },
+                { key: 'crypto_fear_greed', label: 'Fear & Greed Index', format: 'number' }
+            ];
+
+            metrics.forEach(metric => {
+                const value = cryptoData[metric.key];
+                if (value !== undefined) {
+                    container.innerHTML += createMetricCard(
+                        metric.label,
+                        formatValue(value, metric.format),
+                        null,
+                        'CRYPTO'
+                    );
+                }
+            });
+        }
+
+        // Process economic data
+        function processEconomicData(data) {
+            const container = document.getElementById('economicMetrics');
+            container.innerHTML = '';
+
+            const fredData = data.fred || data['fred-api'] || {};
+            const censusData = data.census || {};
+
+            // Economic metrics
+            const metrics = [
+                { key: 'gdp', label: 'GDP Growth', format: 'percent', data: fredData },
+                { key: 'inflation', label: 'Inflation Rate', format: 'percent', data: fredData },
+                { key: 'unemployment', label: 'Unemployment', format: 'percent', data: fredData },
+                { key: 'retail_sales', label: 'Retail Sales', format: 'percent', data: censusData },
+                { key: 'housing_starts', label: 'Housing Starts', format: 'number', data: censusData },
+                { key: 'consumer_confidence', label: 'Consumer Confidence', format: 'number', data: fredData },
+                { key: 'pmi', label: 'Manufacturing PMI', format: 'number', data: fredData },
+                { key: 'trade_balance', label: 'Trade Balance', format: 'currency', data: censusData }
+            ];
+
+            metrics.forEach(metric => {
+                const value = metric.data[metric.key];
+                if (value !== undefined) {
+                    container.innerHTML += createMetricCard(
+                        metric.label,
+                        formatValue(value, metric.format),
+                        null,
+                        'ECONOMIC'
+                    );
+                }
+            });
+        }
+
+        // Format value based on type
+        function formatValue(value, format = 'auto') {
+            if (value === null || value === undefined) return 'N/A';
             
-            if (!card) return;
-            
-            card.classList.remove('loading', 'healthy', 'error');
-            
-            if (status === 'loading') {
-                card.classList.add('loading');
-                statusIndicator.className = 'status-indicator';
-                statusText.innerHTML = '<span class="loading-spinner"></span> Loading...';
-                dataDiv.innerHTML = '<div style="text-align: center;">Fetching data...</div>';
-                return;
-            }
-            
-            if (status === 'error' || !data || data.error) {
-                card.classList.add('error');
-                statusIndicator.className = 'status-indicator error';
-                statusText.textContent = 'Error';
-                dataDiv.innerHTML = `<div style="color: var(--danger);">
-                    Error: ${data?.error || data?.message || 'Failed to fetch data'}
-                </div>`;
-                metricsDiv.style.display = 'none';
-                return;
-            }
-            
-            // Success - display the data
-            card.classList.add('healthy');
-            statusIndicator.className = 'status-indicator healthy';
-            statusText.textContent = 'Live';
-            
-            // Extract and display key metrics
-            const metrics = extractKeyMetrics(agentName, data);
-            if (metrics.length > 0) {
-                metricsDiv.style.display = 'grid';
-                metricsDiv.innerHTML = metrics.map(m => `
-                    <div class="metric-item">
-                        <div class="metric-value">${m.value}</div>
-                        <div class="metric-label">${m.label}</div>
-                    </div>
-                `).join('');
+            if (format === 'currency') {
+                return formatCurrency(value);
+            } else if (format === 'percent') {
+                return formatPercent(value);
+            } else if (format === 'basis') {
+                return `${value} bps`;
+            } else if (format === 'number') {
+                return formatNumber(value);
             } else {
-                metricsDiv.style.display = 'none';
+                // Auto-detect format
+                if (typeof value === 'number') {
+                    if (value > 1000) return formatCurrency(value);
+                    if (value < 100) return formatPercent(value);
+                    return formatNumber(value);
+                }
+                return value;
             }
-            
-            // Display full JSON data
-            dataDiv.innerHTML = formatJSON(data);
-            
-            // Store the data
-            agentData[agentName] = data;
         }
 
-        // Fetch single agent data
-        async function fetchSingleAgent(agentName) {
-            log(`Fetching data for ${agentName}...`, 'info');
-            updateAgentCard(agentName, null, 'loading');
+        // Fetch data from the new orchestrator
+        async function fetchData() {
+            updateConnectionStatus('loading', 'Fetching data...');
+            log('Fetching data from orchestrator...', 'info');
+            
+            const startTime = Date.now();
             
             try {
-                const startTime = Date.now();
                 const response = await fetch(API_ENDPOINT, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        operation: 'run_agent',
-                        agent: agentName
-                    })
+                    body: JSON.stringify({ operation: 'data' })
                 });
-                
-                const responseTime = Date.now() - startTime;
                 
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}`);
                 }
                 
                 const data = await response.json();
-                
-                if (data.error) {
-                    throw new Error(data.error);
-                }
-                
-                updateAgentCard(agentName, data, 'success');
-                log(`${agentName}: Success (${responseTime}ms, ${JSON.stringify(data).length} bytes)`, 'success');
-                
-                return data;
-                
-            } catch (error) {
-                updateAgentCard(agentName, { error: error.message }, 'error');
-                log(`${agentName}: Failed - ${error.message}`, 'error');
-                return null;
-            }
-        }
-
-        // Fetch all agent data using analyze operation
-        async function fetchAllAgentData() {
-            if (fetchInProgress) {
-                log('Fetch already in progress, please wait...', 'warning');
-                return;
-            }
-            
-            fetchInProgress = true;
-            document.getElementById('fetchAllBtn').disabled = true;
-            
-            log('Fetching all agent data via analyze operation...', 'info');
-            updateConnectionStatus(true, 'Fetching all data...');
-            
-            try {
-                const startTime = Date.now();
-                const response = await fetch(API_ENDPOINT, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ operation: 'analyze' })
-                });
-                
                 const responseTime = Date.now() - startTime;
                 
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
+                // Update response time
+                document.getElementById('responseTime').textContent = `${responseTime}ms`;
                 
-                const data = await response.json();
+                // Process and display the data
+                processData(data);
                 
-                // Process the response data for each agent
-                let successCount = 0;
-                let totalCount = 0;
+                updateConnectionStatus('connected', 'Connected - Live Data');
+                log(`Data fetched successfully in ${responseTime}ms`, 'info');
                 
-                AGENTS.forEach(agent => {
-                    const agentKey = agent.name.replace('-api', '').replace('-agent', '');
-                    const agentData = data[agentKey] || data[agent.name] || null;
-                    
-                    if (agentData && !agentData.error) {
-                        updateAgentCard(agent.name, agentData, 'success');
-                        successCount++;
-                    } else {
-                        updateAgentCard(agent.name, agentData || { error: 'No data returned' }, 'error');
-                    }
-                    totalCount++;
-                });
-                
-                // Update stats
-                document.getElementById('activeAgents').textContent = `${successCount}/${totalCount}`;
-                document.getElementById('totalDataPoints').textContent = Object.keys(data).reduce((sum, key) => {
-                    return sum + (typeof data[key] === 'object' ? Object.keys(data[key]).length : 1);
-                }, 0);
-                document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
-                
-                updateConnectionStatus(true, `Connected - ${successCount} agents active`);
-                log(`Analyze complete: ${successCount}/${totalCount} agents returned data (${responseTime}ms)`, 'success');
-                
-                // Update summary
-                updateSummary();
+                lastUpdateTime = new Date();
                 
             } catch (error) {
-                log(`Failed to fetch agent data: ${error.message}`, 'error');
-                updateConnectionStatus(false, 'Fetch failed');
-            } finally {
-                fetchInProgress = false;
-                document.getElementById('fetchAllBtn').disabled = false;
+                updateConnectionStatus('error', 'Connection Error');
+                log(`Failed to fetch data: ${error.message}`, 'error');
             }
         }
 
-        // Test individual agents one by one
-        async function testIndividualAgents() {
-            if (fetchInProgress) {
-                log('Fetch already in progress, please wait...', 'warning');
-                return;
-            }
-            
-            fetchInProgress = true;
-            document.getElementById('testAgentsBtn').disabled = true;
-            
-            log('Testing each agent individually...', 'info');
-            updateConnectionStatus(true, 'Testing agents...');
-            
-            let successCount = 0;
-            
-            for (const agent of AGENTS) {
-                const data = await fetchSingleAgent(agent.name);
-                if (data && !data.error) {
-                    successCount++;
-                }
-                
-                // Update stats after each agent
-                document.getElementById('activeAgents').textContent = `${successCount}/${AGENTS.length}`;
-                document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
-                
-                // Small delay between requests
-                await new Promise(resolve => setTimeout(resolve, 500));
-            }
-            
-            updateConnectionStatus(true, `Complete - ${successCount}/${AGENTS.length} agents active`);
-            log(`Individual testing complete: ${successCount}/${AGENTS.length} agents successful`, 'success');
-            
-            // Update summary
-            updateSummary();
-            
-            fetchInProgress = false;
-            document.getElementById('testAgentsBtn').disabled = false;
-        }
-
-        // Update summary section
-        function updateSummary() {
-            const summarySection = document.getElementById('summarySection');
-            const summaryGrid = document.getElementById('summaryGrid');
-            
-            // Extract key values from agent data
-            const summary = [];
-            
-            // Try to get key market indicators
-            Object.entries(agentData).forEach(([agentName, data]) => {
-                if (!data || data.error) return;
-                
-                if (agentName.includes('polygon') && data.sp500) {
-                    summary.push({ label: 'S&P 500', value: data.sp500 });
-                }
-                if (agentName.includes('treasury') && data.yield_10y) {
-                    summary.push({ label: '10Y Yield', value: data.yield_10y });
-                }
-                if (agentName.includes('crypto') && data.btc_price) {
-                    summary.push({ label: 'Bitcoin', value: `$${data.btc_price}` });
-                }
-                if (agentName.includes('liquidity') && data.total_liquidity) {
-                    summary.push({ label: 'Total Liquidity', value: data.total_liquidity });
-                }
+        // Switch tabs
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
             });
             
-            if (summary.length > 0) {
-                summarySection.style.display = 'block';
-                summaryGrid.innerHTML = summary.map(item => `
-                    <div class="summary-item">
-                        <div class="summary-value">${item.value}</div>
-                        <div class="summary-label">${item.label}</div>
-                    </div>
-                `).join('');
-            }
+            // Remove active from all nav tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active to clicked nav tab
+            event.target.classList.add('active');
         }
 
         // Toggle auto-refresh
         function toggleAutoRefresh() {
             const btn = document.getElementById('autoRefreshBtn');
-            const badge = document.getElementById('refreshBadge');
+            const indicator = document.getElementById('refreshIndicator');
             
             if (autoRefreshInterval) {
                 // Stop auto-refresh
@@ -953,22 +1029,21 @@
                 autoRefreshInterval = null;
                 countdownInterval = null;
                 
-                btn.innerHTML = '<i class="fas fa-sync"></i> Enable Auto-Refresh';
-                badge.style.display = 'none';
+                btn.textContent = 'Enable Auto-Refresh';
+                indicator.style.display = 'none';
                 
-                log('Auto-refresh disabled', 'warning');
+                log('Auto-refresh disabled', 'info');
             } else {
                 // Start auto-refresh
                 let countdown = 30;
                 
-                btn.innerHTML = '<i class="fas fa-sync"></i> Disable Auto-Refresh';
-                badge.style.display = 'inline-flex';
+                btn.textContent = 'Disable Auto-Refresh';
+                indicator.style.display = 'flex';
                 
-                // Update countdown every second
+                // Update countdown
                 countdownInterval = setInterval(() => {
                     countdown--;
                     document.getElementById('countdown').textContent = countdown;
-                    document.getElementById('progressFill').style.width = `${(30 - countdown) / 30 * 100}%`;
                     
                     if (countdown <= 0) {
                         countdown = 30;
@@ -977,43 +1052,44 @@
                 
                 // Fetch data every 30 seconds
                 autoRefreshInterval = setInterval(() => {
-                    fetchAllAgentData();
+                    fetchData();
                 }, 30000);
                 
-                log('Auto-refresh enabled (30s interval)', 'success');
+                log('Auto-refresh enabled (30s interval)', 'info');
                 
                 // Initial fetch
-                fetchAllAgentData();
+                fetchData();
             }
         }
 
-        // Clear all data
-        function clearAll() {
-            agentData = {};
-            document.getElementById('summarySection').style.display = 'none';
-            initializeAgentCards();
+        // Export data
+        function exportData() {
+            if (!currentData) {
+                log('No data to export', 'error');
+                return;
+            }
             
-            document.getElementById('activeAgents').textContent = '0/15';
-            document.getElementById('totalDataPoints').textContent = '0';
-            document.getElementById('lastUpdate').textContent = 'Never';
+            const dataStr = JSON.stringify(currentData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `justhodl_data_${Date.now()}.json`;
+            link.click();
             
-            log('All data cleared', 'info');
+            log('Data exported successfully', 'info');
         }
 
         // Initialize on load
         document.addEventListener('DOMContentLoaded', () => {
-            log('JUSTHODL.AI Live Data System v2.0 initialized', 'success');
-            log('Click "Fetch All Agent Data" to get real-time data from all agents', 'info');
-            log('Or click "Test Each Agent" to test agents individually', 'info');
+            log('JUSTHODL.AI System v2.0 initialized', 'info');
+            log('Using new orchestrator endpoint for real data', 'info');
             
-            updateConnectionStatus(true, 'Ready');
-            initializeAgentCards();
-            
-            // Auto-fetch after 2 seconds
+            // Initial fetch
             setTimeout(() => {
                 log('Running initial data fetch...', 'info');
-                fetchAllAgentData();
-            }, 2000);
+                fetchData();
+            }, 1000);
         });
     </script>
 </body>
