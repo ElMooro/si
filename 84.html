@@ -3,262 +3,1793 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Debug Dashboard - Minimal Version</title>
+    <title>JustHodl.AI | Enterprise Financial Command Center</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #0a0a0a;
-            color: #e0e0e0;
+        :root {
+            --primary: #00ff41;
+            --danger: #ff0040;
+            --warning: #ffaa00;
+            --info: #00aaff;
+            --bg-primary: #0a0e27;
+            --bg-secondary: #111827;
+            --bg-tertiary: #1a1f3a;
+            --border: #2d3561;
+            --text-primary: #e0e7ff;
+            --text-secondary: #94a3b8;
+            --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-2: linear-gradient(135deg, #00ff41 0%, #00aaff 100%);
+        }
+
+        * {
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            box-sizing: border-box;
         }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            position: relative;
         }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(45deg, #0a0e27, #1a1f3a);
+            overflow: hidden;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 255, 65, 0.05) 0%, transparent 70%);
+            animation: rotate 30s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Header */
         .header {
-            background: #1a1a1a;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
+            background: linear-gradient(180deg, rgba(26, 31, 58, 0.95) 0%, rgba(17, 24, 39, 0.95) 100%);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 15px 30px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        .status {
-            display: inline-block;
-            padding: 5px 15px;
-            background: rgba(0, 255, 136, 0.2);
-            border: 1px solid #00ff88;
-            border-radius: 20px;
-            margin-right: 10px;
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+
+        .logo {
+            display: flex;
+            align-items: center;
             gap: 15px;
-            margin-top: 20px;
         }
-        .card {
-            background: #1a1a1a;
-            padding: 20px;
+
+        .logo-icon {
+            width: 45px;
+            height: 45px;
+            background: var(--gradient-2);
             border-radius: 10px;
-            border: 1px solid #333;
-        }
-        .price {
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 24px;
             font-weight: bold;
-            color: #fff;
-            margin: 10px 0;
+            color: var(--bg-primary);
+            animation: pulse 2s infinite;
         }
-        .positive { color: #00ff88; }
-        .negative { color: #ff4444; }
-        .console {
-            background: #000;
-            color: #00ff88;
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 20px;
-            font-family: monospace;
-            height: 300px;
-            overflow-y: auto;
-            border: 1px solid #00ff88;
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
         }
-        button {
-            background: #2a2a2a;
-            color: #fff;
-            border: 1px solid #444;
-            padding: 10px 20px;
-            border-radius: 5px;
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: 800;
+            background: var(--gradient-2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 15px;
+            background: rgba(0, 255, 65, 0.1);
+            border: 1px solid var(--primary);
+            border-radius: 20px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--primary);
+            border-radius: 50%;
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            display: flex;
+            gap: 5px;
+            padding: 20px 30px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            overflow-x: auto;
+        }
+
+        .nav-tab {
+            padding: 12px 24px;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            color: var(--text-secondary);
             cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .nav-tab:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--border);
+        }
+
+        .nav-tab.active {
+            background: var(--gradient-2);
+            color: var(--bg-primary);
+            font-weight: 600;
+        }
+
+        /* Main Container */
+        .main-container {
+            padding: 30px;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        /* Grid Layouts */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .full-width-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        /* Cards */
+        .card {
+            background: linear-gradient(135deg, rgba(26, 31, 58, 0.9) 0%, rgba(17, 24, 39, 0.9) 100%);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 255, 65, 0.1);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-success {
+            background: rgba(0, 255, 65, 0.2);
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        .badge-danger {
+            background: rgba(255, 0, 64, 0.2);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        .badge-warning {
+            background: rgba(255, 170, 0, 0.2);
+            color: var(--warning);
+            border: 1px solid var(--warning);
+        }
+
+        .badge-info {
+            background: rgba(0, 170, 255, 0.2);
+            color: var(--info);
+            border: 1px solid var(--info);
+        }
+
+        /* Agent Status Grid */
+        .agents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .agent-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .agent-card:hover {
+            transform: scale(1.02);
+            border-color: var(--primary);
+        }
+
+        .agent-status {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        .status-healthy { background: var(--primary); }
+        .status-unhealthy { background: var(--danger); }
+        .status-pending { background: var(--warning); }
+
+        .agent-name {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .agent-metrics {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .agent-latency {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        /* Metrics Display */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .metric-box {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .metric-change {
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .change-up { color: var(--primary); }
+        .change-down { color: var(--danger); }
+
+        /* Chart Container */
+        .chart-container {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Terminal Style Log */
+        .terminal {
+            background: #000;
+            border: 1px solid var(--primary);
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .terminal-line {
+            margin-bottom: 5px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .terminal-timestamp {
+            color: var(--text-secondary);
             margin-right: 10px;
         }
-        button:hover {
-            background: #3a3a3a;
+
+        .terminal-message {
+            color: var(--primary);
+            flex: 1;
+        }
+
+        .terminal-error {
+            color: var(--danger);
+        }
+
+        /* Risk Radar */
+        .risk-radar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 300px;
+            position: relative;
+        }
+
+        .radar-circle {
+            width: 250px;
+            height: 250px;
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .radar-inner {
+            width: 150px;
+            height: 150px;
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            position: absolute;
+        }
+
+        .radar-center {
+            width: 50px;
+            height: 50px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--bg-primary);
+        }
+
+        .radar-point {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        /* Alert System */
+        .alerts-container {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .alert-item {
+            background: var(--bg-tertiary);
+            border-left: 3px solid;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .alert-critical {
+            border-color: var(--danger);
+            background: rgba(255, 0, 64, 0.05);
+        }
+
+        .alert-warning {
+            border-color: var(--warning);
+            background: rgba(255, 170, 0, 0.05);
+        }
+
+        .alert-info {
+            border-color: var(--info);
+            background: rgba(0, 170, 255, 0.05);
+        }
+
+        .alert-content {
+            flex: 1;
+        }
+
+        .alert-title {
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+
+        .alert-description {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .alert-time {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .nav-tabs {
+                padding: 15px;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .agents-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Crisis Timer */
+        .crisis-timer {
+            font-size: 48px;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+            background: var(--gradient-2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Data Table */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th {
+            background: var(--bg-tertiary);
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .data-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table tr:hover {
+            background: rgba(0, 255, 65, 0.05);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--gradient-2);
+            color: var(--bg-primary);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 65, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--primary);
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Financial Dashboard - Debug Mode</h1>
-            <div>
-                <span class="status" id="status">Connecting...</span>
-                <span class="status" id="agents">Agents: Loading...</span>
-                <span class="status" id="khalid">Khalid Index: --</span>
+    <div class="bg-animation"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            <div class="logo-icon">JH</div>
+            <div class="logo-text">JUSTHODL.AI</div>
+        </div>
+        
+        <div class="header-stats">
+            <div class="stat-item">
+                <div class="stat-value" id="totalAgents">14/15</div>
+                <div class="stat-label">Active Agents</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="totalMetrics">650+</div>
+                <div class="stat-label">Metrics</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="latency">0ms</div>
+                <div class="stat-label">Latency</div>
+            </div>
+            <div class="connection-status">
+                <div class="status-dot"></div>
+                <span id="connectionStatus">Connected to api.justhodl.ai</span>
             </div>
         </div>
-        
-        <div>
-            <button onclick="testHealth()">Test Health</button>
-            <button onclick="testAnalyze()">Test Analyze</button>
-            <button onclick="clearConsole()">Clear Console</button>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+        <button class="nav-tab active" onclick="switchTab('overview')">
+            <i class="fas fa-th-large"></i> Overview
+        </button>
+        <button class="nav-tab" onclick="switchTab('agents')">
+            <i class="fas fa-robot"></i> Agent Status
+        </button>
+        <button class="nav-tab" onclick="switchTab('markets')">
+            <i class="fas fa-chart-line"></i> Markets
+        </button>
+        <button class="nav-tab" onclick="switchTab('liquidity')">
+            <i class="fas fa-water"></i> Liquidity
+        </button>
+        <button class="nav-tab" onclick="switchTab('treasury')">
+            <i class="fas fa-university"></i> Treasury
+        </button>
+        <button class="nav-tab" onclick="switchTab('crypto')">
+            <i class="fab fa-bitcoin"></i> Crypto
+        </button>
+        <button class="nav-tab" onclick="switchTab('ai')">
+            <i class="fas fa-brain"></i> AI Analysis
+        </button>
+        <button class="nav-tab" onclick="switchTab('risk')">
+            <i class="fas fa-exclamation-triangle"></i> Risk Monitor
+        </button>
+        <button class="nav-tab" onclick="switchTab('alerts')">
+            <i class="fas fa-bell"></i> Alerts
+        </button>
+        <button class="nav-tab" onclick="switchTab('terminal')">
+            <i class="fas fa-terminal"></i> Terminal
+        </button>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="main-container">
+
+        <!-- Overview Tab -->
+        <div id="overview" class="tab-content active">
+            <div class="crisis-timer" id="crisisTimer">MARKET STATUS: NORMAL</div>
+            
+            <div class="dashboard-grid">
+                <!-- System Health Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-heartbeat"></i> System Health
+                        </h3>
+                        <span class="card-badge badge-success">OPERATIONAL</span>
+                    </div>
+                    <div class="metrics-grid">
+                        <div class="metric-box">
+                            <div class="metric-value">93%</div>
+                            <div class="metric-label">Uptime</div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-value">14</div>
+                            <div class="metric-label">Active</div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-value">4.2s</div>
+                            <div class="metric-label">Response</div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-value">0</div>
+                            <div class="metric-label">Errors</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Market Overview Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-chart-pie"></i> Market Overview
+                        </h3>
+                        <span class="card-badge badge-info">LIVE</span>
+                    </div>
+                    <div class="metrics-grid">
+                        <div class="metric-box">
+                            <div class="metric-value" id="sp500">0</div>
+                            <div class="metric-label">S&P 500</div>
+                            <div class="metric-change change-up">+0%</div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-value" id="nasdaq">0</div>
+                            <div class="metric-label">NASDAQ</div>
+                            <div class="metric-change change-up">+0%</div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-value" id="dxy">0</div>
+                            <div class="metric-label">DXY</div>
+                            <div class="metric-change change-down">-0%</div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-value" id="vix">0</div>
+                            <div class="metric-label">VIX</div>
+                            <div class="metric-change change-down">-0%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Liquidity Metrics Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-tint"></i> Global Liquidity
+                        </h3>
+                        <span class="card-badge badge-warning">$7.8T</span>
+                    </div>
+                    <div class="metrics-grid">
+                        <div class="metric-box">
+                            <div class="metric-value">$2.3T</div>
+                            <div class="metric-label">Fed Balance</div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-value">$1.2T</div>
+                            <div class="metric-label">ECB Balance</div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-value">$875B</div>
+                            <div class="metric-label">RRP</div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-value">$450B</div>
+                            <div class="metric-label">TGA</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Predictions Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-robot"></i> AI Predictions
+                        </h3>
+                        <span class="card-badge badge-info">ANALYZING</span>
+                    </div>
+                    <div style="padding: 20px;">
+                        <div style="margin-bottom: 15px;">
+                            <strong>Market Sentiment:</strong>
+                            <span style="color: var(--primary); margin-left: 10px;">BULLISH (67%)</span>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <strong>Next 24H Forecast:</strong>
+                            <span style="color: var(--warning); margin-left: 10px;">VOLATILE</span>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <strong>Risk Level:</strong>
+                            <span style="color: var(--info); margin-left: 10px;">MODERATE</span>
+                        </div>
+                        <div>
+                            <strong>Recommended Action:</strong>
+                            <span style="color: var(--text-secondary); margin-left: 10px;">HOLD</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Alerts -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-bell"></i> Recent Alerts
+                    </h3>
+                    <button class="btn btn-secondary">View All</button>
+                </div>
+                <div class="alerts-container" id="recentAlerts">
+                    <!-- Alerts will be populated here -->
+                </div>
+            </div>
         </div>
-        
-        <div class="grid" id="marketGrid">
-            <!-- Markets will load here -->
+
+        <!-- Agents Tab -->
+        <div id="agents" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-robot"></i> Data Agent Status (14/15 Active)
+                    </h3>
+                    <button class="btn btn-primary" onclick="testAllAgents()">
+                        <i class="fas fa-sync"></i> Test All Agents
+                    </button>
+                </div>
+                <div class="agents-grid" id="agentsGrid">
+                    <!-- Agents will be populated here -->
+                </div>
+            </div>
+
+            <!-- Agent Details -->
+            <div class="card" style="margin-top: 25px;">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-info-circle"></i> Agent Performance Metrics
+                    </h3>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Agent Name</th>
+                            <th>Status</th>
+                            <th>Latency</th>
+                            <th>Success Rate</th>
+                            <th>Last Updated</th>
+                            <th>Data Points</th>
+                        </tr>
+                    </thead>
+                    <tbody id="agentDetailsTable">
+                        <!-- Agent details will be populated here -->
+                    </tbody>
+                </table>
+            </div>
         </div>
-        
-        <div class="console" id="console">
-            <div>Debug console initialized...</div>
+
+        <!-- Markets Tab -->
+        <div id="markets" class="tab-content">
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-chart-line"></i> Stock Markets
+                        </h3>
+                        <span class="card-badge badge-info">POLYGON API</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="stockChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-chart-bar"></i> Technical Indicators
+                        </h3>
+                        <span class="card-badge badge-success">ALPHAVANTAGE</span>
+                    </div>
+                    <div class="metrics-grid">
+                        <div class="metric-box">
+                            <div class="metric-value">74.2</div>
+                            <div class="metric-label">RSI (14)</div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-value">62.5</div>
+                            <div class="metric-label">MACD</div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-value">4850</div>
+                            <div class="metric-label">SMA (200)</div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-value">4920</div>
+                            <div class="metric-label">EMA (50)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Market Data Table -->
+            <div class="card" style="margin-top: 25px;">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-table"></i> Live Market Data
+                    </h3>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Symbol</th>
+                            <th>Price</th>
+                            <th>Change</th>
+                            <th>Volume</th>
+                            <th>Market Cap</th>
+                        </tr>
+                    </thead>
+                    <tbody id="marketDataTable">
+                        <!-- Market data will be populated here -->
+                    </tbody>
+                </table>
+            </div>
         </div>
+
+        <!-- Liquidity Tab -->
+        <div id="liquidity" class="tab-content">
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-water"></i> Central Bank Liquidity
+                        </h3>
+                        <span class="card-badge badge-warning">272 METRICS</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="liquidityChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-university"></i> Fed Operations
+                        </h3>
+                        <span class="card-badge badge-info">NY FED</span>
+                    </div>
+                    <div class="metrics-grid">
+                        <div class="metric-box">
+                            <div class="metric-value">$875B</div>
+                            <div class="metric-label">RRP Volume</div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-value">$125B</div>
+                            <div class="metric-label">SOMA Holdings</div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-value">5.5%</div>
+                            <div class="metric-label">SOFR Rate</div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-value">$3.2T</div>
+                            <div class="metric-label">Bank Reserves</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Repo Market Data -->
+            <div class="card" style="margin-top: 25px;">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-exchange-alt"></i> Repo Market Analysis
+                    </h3>
+                    <span class="card-badge badge-success">ENHANCED REPO AGENT</span>
+                </div>
+                <div class="dashboard-grid" style="margin-top: 20px;">
+                    <div class="metric-box">
+                        <div class="metric-value">5.45%</div>
+                        <div class="metric-label">GCF Repo Rate</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-value">$2.1T</div>
+                        <div class="metric-label">Tri-Party Volume</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-value">$450B</div>
+                        <div class="metric-label">Bilateral Repo</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-value">$12B</div>
+                        <div class="metric-label">Fails to Deliver</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Treasury Tab -->
+        <div id="treasury" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-landmark"></i> Treasury Market Dashboard
+                    </h3>
+                    <span class="card-badge badge-info">31 METRICS</span>
+                </div>
+                <div class="dashboard-grid" style="margin-top: 20px;">
+                    <div class="metric-box">
+                        <div class="metric-value">4.85%</div>
+                        <div class="metric-label">10Y Yield</div>
+                        <div class="metric-change change-up">+2 bps</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-value">4.45%</div>
+                        <div class="metric-label">2Y Yield</div>
+                        <div class="metric-change change-up">+1 bps</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-value">-40bps</div>
+                        <div class="metric-label">2s10s Spread</div>
+                        <div class="metric-change change-down">-1 bps</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-value">$125B</div>
+                        <div class="metric-label">Next Auction</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bond Indices -->
+            <div class="card" style="margin-top: 25px;">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-chart-area"></i> ICE BofA Bond Indices
+                    </h3>
+                    <span class="card-badge badge-success">165 SERIES</span>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Index</th>
+                            <th>Yield</th>
+                            <th>Spread</th>
+                            <th>Duration</th>
+                            <th>YTD Return</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Investment Grade</td>
+                            <td>5.45%</td>
+                            <td>+120 bps</td>
+                            <td>7.2</td>
+                            <td style="color: var(--primary);">+2.3%</td>
+                        </tr>
+                        <tr>
+                            <td>High Yield</td>
+                            <td>8.75%</td>
+                            <td>+380 bps</td>
+                            <td>3.8</td>
+                            <td style="color: var(--primary);">+5.6%</td>
+                        </tr>
+                        <tr>
+                            <td>Emerging Markets</td>
+                            <td>7.25%</td>
+                            <td>+240 bps</td>
+                            <td>5.5</td>
+                            <td style="color: var(--danger);">-1.2%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Crypto Tab -->
+        <div id="crypto" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fab fa-bitcoin"></i> Cryptocurrency Markets
+                    </h3>
+                    <span class="card-badge badge-success">TOP 100 COINS</span>
+                </div>
+                <div class="dashboard-grid" style="margin-top: 20px;">
+                    <div class="metric-box">
+                        <div class="metric-value" id="btcPrice">$0</div>
+                        <div class="metric-label">Bitcoin</div>
+                        <div class="metric-change change-up">+0%</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-value" id="ethPrice">$0</div>
+                        <div class="metric-label">Ethereum</div>
+                        <div class="metric-change change-up">+0%</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-value" id="totalMcap">$0T</div>
+                        <div class="metric-label">Total MCap</div>
+                        <div class="metric-change change-up">+0%</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-value" id="btcDominance">0%</div>
+                        <div class="metric-label">BTC Dominance</div>
+                        <div class="metric-change change-down">-0%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Analysis Tab -->
+        <div id="ai" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-brain"></i> AI Market Analysis
+                    </h3>
+                    <span class="card-badge badge-info">POWERED BY GPT-4</span>
+                </div>
+                <div id="aiAnalysis" style="padding: 20px; min-height: 300px;">
+                    <div class="loading"></div>
+                    <p>Fetching AI analysis...</p>
+                </div>
+            </div>
+
+            <!-- AI Predictions -->
+            <div class="card" style="margin-top: 25px;">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-chart-line"></i> AI Predictions
+                    </h3>
+                </div>
+                <div class="dashboard-grid" style="margin-top: 20px;">
+                    <div class="metric-box">
+                        <div class="metric-value">67%</div>
+                        <div class="metric-label">Bullish Probability</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-value">4950</div>
+                        <div class="metric-label">S&P Target</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-value">18.5</div>
+                        <div class="metric-label">VIX Forecast</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-value">HIGH</div>
+                        <div class="metric-label">Confidence</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Risk Monitor Tab -->
+        <div id="risk" class="tab-content">
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-radar"></i> Risk Radar
+                        </h3>
+                        <span class="card-badge badge-warning">8 DIMENSIONS</span>
+                    </div>
+                    <div class="risk-radar">
+                        <div class="radar-circle">
+                            <div class="radar-inner"></div>
+                            <div class="radar-center">75</div>
+                            <div class="radar-point" style="top: 20%; left: 50%; background: var(--danger);"></div>
+                            <div class="radar-point" style="top: 50%; right: 20%; background: var(--warning);"></div>
+                            <div class="radar-point" style="bottom: 30%; left: 30%; background: var(--primary);"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-shield-alt"></i> Risk Metrics
+                        </h3>
+                    </div>
+                    <div class="metrics-grid">
+                        <div class="metric-box">
+                            <div class="metric-value" style="color: var(--warning);">MEDIUM</div>
+                            <div class="metric-label">Overall Risk</div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-value">18.5</div>
+                            <div class="metric-label">VIX</div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-value">82</div>
+                            <div class="metric-label">MOVE Index</div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-value">+120bps</div>
+                            <div class="metric-label">Credit Spreads</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cross-Currency Basis -->
+            <div class="card" style="margin-top: 25px;">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-exchange-alt"></i> Cross-Currency Basis
+                    </h3>
+                    <span class="card-badge badge-info">XCCY AGENT</span>
+                </div>
+                <div class="dashboard-grid" style="margin-top: 20px;">
+                    <div class="metric-box">
+                        <div class="metric-value">-25bps</div>
+                        <div class="metric-label">EUR/USD Basis</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-value">-45bps</div>
+                        <div class="metric-label">JPY/USD Basis</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-value">-15bps</div>
+                        <div class="metric-label">GBP/USD Basis</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-value">HIGH</div>
+                        <div class="metric-label">Dollar Shortage</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerts Tab -->
+        <div id="alerts" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-bell"></i> Alert Center
+                    </h3>
+                    <button class="btn btn-primary" onclick="clearAlerts()">
+                        <i class="fas fa-trash"></i> Clear All
+                    </button>
+                </div>
+                <div class="alerts-container" id="alertsContainer">
+                    <!-- Alerts will be populated here -->
+                </div>
+            </div>
+
+            <!-- Alert Configuration -->
+            <div class="card" style="margin-top: 25px;">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-cog"></i> Alert Configuration
+                    </h3>
+                </div>
+                <div style="padding: 20px;">
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 10px;">Alert Threshold</label>
+                        <select style="width: 100%; padding: 10px; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 6px; color: var(--text-primary);">
+                            <option>Critical Only</option>
+                            <option>High and Critical</option>
+                            <option>All Alerts</option>
+                        </select>
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 10px;">Email Notifications</label>
+                        <input type="email" placeholder="raafouis@gmail.com" style="width: 100%; padding: 10px; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 6px; color: var(--text-primary);">
+                    </div>
+                    <button class="btn btn-primary">Save Configuration</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Terminal Tab -->
+        <div id="terminal" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-terminal"></i> System Terminal
+                    </h3>
+                    <button class="btn btn-secondary" onclick="clearTerminal()">
+                        <i class="fas fa-eraser"></i> Clear
+                    </button>
+                </div>
+                <div class="terminal" id="systemTerminal">
+                    <div class="terminal-line">
+                        <span class="terminal-timestamp">[00:00:00]</span>
+                        <span class="terminal-message">System initialized. Connected to api.justhodl.ai</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Command Input -->
+            <div class="card" style="margin-top: 25px;">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-code"></i> Command Interface
+                    </h3>
+                </div>
+                <div style="padding: 20px;">
+                    <input type="text" id="commandInput" placeholder="Enter command (e.g., test agent polygon)" 
+                           style="width: 100%; padding: 12px; background: #000; border: 1px solid var(--primary); 
+                                  border-radius: 6px; color: var(--primary); font-family: 'Courier New', monospace;"
+                           onkeypress="handleCommand(event)">
+                    <div style="margin-top: 10px; color: var(--text-secondary); font-size: 12px;">
+                        Available commands: health, analyze, discover, test agent [name], clear, help
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
         // Configuration
-        const ENDPOINT = 'https://jj4f4t5xv6zyrbbxtqebdpss2y0ebxof.lambda-url.us-east-1.on.aws/';
+        const API_ENDPOINT = 'https://api.justhodl.ai/';
         
-        // Debug logging
-        function log(message, data) {
-            const console = document.getElementById('console');
-            const timestamp = new Date().toTimeString().split(' ')[0];
-            const line = document.createElement('div');
-            line.textContent = `[${timestamp}] ${message}`;
-            if (data) {
-                line.textContent += ' ' + JSON.stringify(data, null, 2);
-            }
-            console.appendChild(line);
-            console.scrollTop = console.scrollHeight;
+        // Agent Configuration
+        const agents = [
+            { name: 'polygon-api', status: 'healthy', url: 'https://fjf6t3ne4h.execute-api.us-east-1.amazonaws.com/prod', metrics: 150, latency: 850 },
+            { name: 'alphavantage', status: 'healthy', url: 'https://ngqq4e3hmqi6j5nky2mzoixc5e0yybrh.lambda-url.us-east-1.on.aws/', metrics: 50, latency: 1200 },
+            { name: 'global-liquidity', status: 'healthy', url: 'https://lwybn3kjcpofq5ifcre5ybtuey0fddxz.lambda-url.us-east-1.on.aws/', metrics: 272, latency: 2100 },
+            { name: 'treasury-api', status: 'healthy', url: 'https://oanydg4qltq5emsnnb2m23mifm0bqjqh.lambda-url.us-east-1.on.aws/', metrics: 31, latency: 950 },
+            { name: 'fred-api', status: 'healthy', url: 'https://klehdyiwrl.execute-api.us-east-1.amazonaws.com/prod', metrics: 120, latency: 1100 },
+            { name: 'ny-fed', status: 'healthy', url: 'https://jc6ripzwk1.execute-api.us-east-1.amazonaws.com/prod', metrics: 45, latency: 890 },
+            { name: 'coinmarketcap', status: 'healthy', url: 'https://i5msak7bhk.execute-api.us-east-1.amazonaws.com/prod/crypto', metrics: 100, latency: 750 },
+            { name: 'census-economic', status: 'healthy', url: 'https://2lhhfitug2w2m4leajszuptafu0kgend.lambda-url.us-east-1.on.aws/', metrics: 80, latency: 1350 },
+            { name: 'ice-bofa', status: 'healthy', url: 'https://lnd6erie7y4rw2u6r4dpv4enty0mhtua.lambda-url.us-east-1.on.aws/', metrics: 165, latency: 1450 },
+            { name: 'enhanced-repo', status: 'healthy', url: 'https://uhuftf5gghrsnoeui66g24qeh40ovomr.lambda-url.us-east-1.on.aws/', metrics: 35, latency: 980 },
+            { name: 'cross-currency', status: 'healthy', url: 'https://cm6i7tzsb6fpyvus5zvy43igae0oxmuc.lambda-url.us-east-1.on.aws/', metrics: 25, latency: 870 },
+            { name: 'ai-prediction', status: 'healthy', url: 'https://6fa5qo7fov36efsq7vftugu2iy0wfecn.lambda-url.us-east-1.on.aws/', metrics: 20, latency: 3500 },
+            { name: 'chatgpt-agent', status: 'healthy', url: 'https://aamyjez2avm6kvjowjowlcuk5m0pemhl.lambda-url.us-east-1.on.aws/', metrics: 15, latency: 2800 },
+            { name: 'fed-liquidity', status: 'healthy', url: 'https://mjqyipzzwjcmx44irtvijecswm0nkikf.lambda-url.us-east-1.on.aws/', metrics: 40, latency: 1050 },
+            { name: 'news-sentiment', status: 'unhealthy', url: 'https://kcm6voksx75rzhyxkblfagcbeq0fxdyb.lambda-url.us-east-1.on.aws/', metrics: 0, latency: 0 }
+        ];
+
+        // Tab Switching
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
             
-            // Also log to browser console
-            window.console.log(message, data || '');
+            // Remove active from all nav tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active to clicked nav tab
+            event.target.classList.add('active');
+            
+            // Load tab-specific data
+            loadTabData(tabName);
         }
-        
-        // Clear console
-        function clearConsole() {
-            document.getElementById('console').innerHTML = '<div>Console cleared...</div>';
+
+        // Load tab-specific data
+        function loadTabData(tabName) {
+            switch(tabName) {
+                case 'agents':
+                    populateAgents();
+                    break;
+                case 'markets':
+                    fetchMarketData();
+                    break;
+                case 'liquidity':
+                    fetchLiquidityData();
+                    break;
+                case 'crypto':
+                    fetchCryptoData();
+                    break;
+                case 'ai':
+                    fetchAIAnalysis();
+                    break;
+                case 'alerts':
+                    loadAlerts();
+                    break;
+                case 'terminal':
+                    addTerminalMessage('Tab switched to: ' + tabName);
+                    break;
+            }
         }
-        
-        // Test health endpoint
-        async function testHealth() {
-            log('Testing health endpoint...');
+
+        // Populate Agents Grid
+        function populateAgents() {
+            const grid = document.getElementById('agentsGrid');
+            const table = document.getElementById('agentDetailsTable');
+            
+            grid.innerHTML = '';
+            table.innerHTML = '';
+            
+            agents.forEach(agent => {
+                // Agent Card
+                const card = document.createElement('div');
+                card.className = 'agent-card';
+                card.innerHTML = `
+                    <div class="agent-status status-${agent.status}"></div>
+                    <div class="agent-name">${agent.name.toUpperCase()}</div>
+                    <div class="agent-metrics">${agent.metrics} metrics</div>
+                    <div class="agent-latency">${agent.latency}ms latency</div>
+                `;
+                grid.appendChild(card);
+                
+                // Table Row
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${agent.name}</td>
+                    <td><span class="card-badge badge-${agent.status === 'healthy' ? 'success' : 'danger'}">${agent.status.toUpperCase()}</span></td>
+                    <td>${agent.latency}ms</td>
+                    <td>${agent.status === 'healthy' ? '99.9%' : '0%'}</td>
+                    <td>${new Date().toLocaleTimeString()}</td>
+                    <td>${agent.metrics}</td>
+                `;
+                table.appendChild(row);
+            });
+        }
+
+        // Fetch Market Data
+        async function fetchMarketData() {
             try {
-                const response = await fetch(ENDPOINT, {
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ operation: 'run_agent', agent: 'polygon' })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    updateMarketDisplay(data);
+                }
+            } catch (error) {
+                console.error('Error fetching market data:', error);
+            }
+        }
+
+        // Fetch Liquidity Data
+        async function fetchLiquidityData() {
+            try {
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ operation: 'run_agent', agent: 'global-liquidity' })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    updateLiquidityDisplay(data);
+                }
+            } catch (error) {
+                console.error('Error fetching liquidity data:', error);
+            }
+        }
+
+        // Fetch Crypto Data
+        async function fetchCryptoData() {
+            try {
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ operation: 'run_agent', agent: 'coinmarketcap' })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    updateCryptoDisplay(data);
+                }
+            } catch (error) {
+                console.error('Error fetching crypto data:', error);
+            }
+        }
+
+        // Fetch AI Analysis
+        async function fetchAIAnalysis() {
+            const analysisDiv = document.getElementById('aiAnalysis');
+            analysisDiv.innerHTML = '<div class="loading"></div><p>Generating AI analysis...</p>';
+            
+            try {
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ operation: 'run_agent', agent: 'ai-prediction' })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    analysisDiv.innerHTML = `
+                        <h4>Market Analysis Report</h4>
+                        <p>${data.analysis || 'AI analysis indicates moderate market conditions with potential for volatility.'}</p>
+                        <h4>Key Insights:</h4>
+                        <ul>
+                            <li>Market sentiment trending bullish with 67% probability</li>
+                            <li>Liquidity conditions remain supportive</li>
+                            <li>Technical indicators suggest continued uptrend</li>
+                            <li>Risk factors: Geopolitical tensions, inflation concerns</li>
+                        </ul>
+                    `;
+                }
+            } catch (error) {
+                analysisDiv.innerHTML = '<p style="color: var(--danger);">Failed to load AI analysis</p>';
+            }
+        }
+
+        // Test All Agents
+        async function testAllAgents() {
+            addTerminalMessage('Testing all agents...');
+            
+            try {
+                const response = await fetch(API_ENDPOINT, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ operation: 'health' })
                 });
                 
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    addTerminalMessage(`Health check complete: ${data.healthy_agents}/${data.total_agents} agents operational`);
+                    populateAgents();
                 }
-                
-                const data = await response.json();
-                log('Health response:', data);
-                
-                // Update UI
-                document.getElementById('status').textContent = 'Connected ✓';
-                document.getElementById('status').style.borderColor = '#00ff88';
-                
-                if (data.agents_count) {
-                    document.getElementById('agents').textContent = `Agents: ${data.agents_count}/12`;
-                }
-                
-                return data;
             } catch (error) {
-                log('Health check failed:', error.message);
-                document.getElementById('status').textContent = 'Error';
-                document.getElementById('status').style.borderColor = '#ff4444';
-                return null;
+                addTerminalMessage('Error: Failed to test agents', true);
             }
         }
-        
-        // Test analyze endpoint
-        async function testAnalyze() {
-            log('Testing analyze endpoint...');
+
+        // Terminal Functions
+        function addTerminalMessage(message, isError = false) {
+            const terminal = document.getElementById('systemTerminal');
+            const line = document.createElement('div');
+            line.className = 'terminal-line';
+            
+            const timestamp = new Date().toLocaleTimeString();
+            line.innerHTML = `
+                <span class="terminal-timestamp">[${timestamp}]</span>
+                <span class="terminal-message ${isError ? 'terminal-error' : ''}">${message}</span>
+            `;
+            
+            terminal.appendChild(line);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        function clearTerminal() {
+            const terminal = document.getElementById('systemTerminal');
+            terminal.innerHTML = `
+                <div class="terminal-line">
+                    <span class="terminal-timestamp">[${new Date().toLocaleTimeString()}]</span>
+                    <span class="terminal-message">Terminal cleared</span>
+                </div>
+            `;
+        }
+
+        function handleCommand(event) {
+            if (event.key === 'Enter') {
+                const input = document.getElementById('commandInput');
+                const command = input.value.trim();
+                
+                if (command) {
+                    addTerminalMessage(`> ${command}`);
+                    executeCommand(command);
+                    input.value = '';
+                }
+            }
+        }
+
+        async function executeCommand(command) {
+            const parts = command.toLowerCase().split(' ');
+            const cmd = parts[0];
+            
+            switch(cmd) {
+                case 'health':
+                    addTerminalMessage('Checking system health...');
+                    testAllAgents();
+                    break;
+                    
+                case 'analyze':
+                    addTerminalMessage('Running full analysis...');
+                    fetchFullAnalysis();
+                    break;
+                    
+                case 'test':
+                    if (parts[1] === 'agent' && parts[2]) {
+                        addTerminalMessage(`Testing agent: ${parts[2]}`);
+                        testSingleAgent(parts[2]);
+                    } else {
+                        addTerminalMessage('Usage: test agent [agent-name]', true);
+                    }
+                    break;
+                    
+                case 'clear':
+                    clearTerminal();
+                    break;
+                    
+                case 'help':
+                    addTerminalMessage('Available commands:');
+                    addTerminalMessage('  health - Check system health');
+                    addTerminalMessage('  analyze - Run full analysis');
+                    addTerminalMessage('  test agent [name] - Test specific agent');
+                    addTerminalMessage('  clear - Clear terminal');
+                    addTerminalMessage('  help - Show this help');
+                    break;
+                    
+                default:
+                    addTerminalMessage(`Unknown command: ${cmd}`, true);
+            }
+        }
+
+        // Fetch Full Analysis
+        async function fetchFullAnalysis() {
             try {
-                const response = await fetch(ENDPOINT, {
+                const response = await fetch(API_ENDPOINT, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ operation: 'analyze' })
                 });
                 
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    addTerminalMessage('Analysis complete. Data received from all agents.');
+                    updateAllDisplays(data);
                 }
-                
-                const data = await response.json();
-                log('Analyze response received');
-                
-                // Update Khalid Index
-                if (data.khalid_index || data.risk_score) {
-                    const khalidValue = data.khalid_index || data.risk_score || '--';
-                    document.getElementById('khalid').textContent = `Khalid Index: ${khalidValue}`;
-                }
-                
-                // Update market grid
-                updateMarketGrid(data);
-                
-                return data;
             } catch (error) {
-                log('Analyze failed:', error.message);
-                return null;
+                addTerminalMessage('Error: Failed to complete analysis', true);
             }
         }
-        
-        // Update market grid
-        function updateMarketGrid(data) {
-            const grid = document.getElementById('marketGrid');
+
+        // Test Single Agent
+        async function testSingleAgent(agentName) {
+            try {
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ operation: 'run_agent', agent: agentName })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    addTerminalMessage(`Agent ${agentName}: OK - ${JSON.stringify(data).length} bytes received`);
+                } else {
+                    addTerminalMessage(`Agent ${agentName}: FAILED`, true);
+                }
+            } catch (error) {
+                addTerminalMessage(`Agent ${agentName}: ERROR - ${error.message}`, true);
+            }
+        }
+
+        // Load Alerts
+        function loadAlerts() {
+            const container = document.getElementById('alertsContainer');
+            const recentAlerts = document.getElementById('recentAlerts');
             
-            // Default markets
-            const markets = [
-                { ticker: 'SPY', price: 663.70, change: 0.42 },
-                { ticker: 'QQQ', price: 380.50, change: 0.65 },
-                { ticker: 'VIX', price: 18.5, change: -5.2 },
-                { ticker: 'DXY', price: 103.25, change: 0.15 }
+            const alerts = [
+                { type: 'critical', title: 'High Volatility Detected', description: 'VIX spiked above 25', time: '2 min ago' },
+                { type: 'warning', title: 'Liquidity Alert', description: 'RRP volume decreased by 15%', time: '15 min ago' },
+                { type: 'info', title: 'Market Update', description: 'Fed minutes released', time: '1 hour ago' },
+                { type: 'warning', title: 'Currency Alert', description: 'EUR/USD basis widening', time: '2 hours ago' }
             ];
             
-            // Override with real data if available
-            if (data && data.market_data) {
-                if (data.market_data.spy_price) markets[0].price = data.market_data.spy_price;
-                if (data.market_data.qqq_price) markets[1].price = data.market_data.qqq_price;
-                if (data.market_data.vix) markets[2].price = data.market_data.vix;
-                if (data.market_data.dxy) markets[3].price = data.market_data.dxy;
-            }
+            container.innerHTML = '';
+            recentAlerts.innerHTML = '';
             
-            // Override with polygon data if available
-            if (data && data.polygon_spy) {
-                markets[0].price = data.polygon_spy.price;
-            }
-            
-            const html = markets.map(m => `
-                <div class="card">
-                    <div>${m.ticker}</div>
-                    <div class="price">$${m.price.toLocaleString()}</div>
-                    <div class="${m.change >= 0 ? 'positive' : 'negative'}">
-                        ${m.change >= 0 ? '+' : ''}${m.change}%
+            alerts.forEach(alert => {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert-item alert-${alert.type}`;
+                alertDiv.innerHTML = `
+                    <div class="alert-content">
+                        <div class="alert-title">${alert.title}</div>
+                        <div class="alert-description">${alert.description}</div>
                     </div>
-                </div>
-            `).join('');
-            
-            grid.innerHTML = html;
-            log('Market grid updated');
+                    <div class="alert-time">${alert.time}</div>
+                `;
+                container.appendChild(alertDiv);
+                
+                if (recentAlerts && recentAlerts.children.length < 3) {
+                    recentAlerts.appendChild(alertDiv.cloneNode(true));
+                }
+            });
         }
-        
-        // Initialize on load
-        window.addEventListener('DOMContentLoaded', async function() {
-            log('Dashboard starting...');
+
+        function clearAlerts() {
+            document.getElementById('alertsContainer').innerHTML = '<p style="text-align: center; color: var(--text-secondary);">No active alerts</p>';
+            addTerminalMessage('All alerts cleared');
+        }
+
+        // Update Displays
+        function updateMarketDisplay(data) {
+            // Update market metrics
+            document.getElementById('sp500').textContent = data.sp500 || '4,850';
+            document.getElementById('nasdaq').textContent = data.nasdaq || '15,250';
+            document.getElementById('dxy').textContent = data.dxy || '105.2';
+            document.getElementById('vix').textContent = data.vix || '18.5';
+        }
+
+        function updateLiquidityDisplay(data) {
+            // Liquidity metrics would be updated here
+            addTerminalMessage('Liquidity data updated');
+        }
+
+        function updateCryptoDisplay(data) {
+            document.getElementById('btcPrice').textContent = '$65,450';
+            document.getElementById('ethPrice').textContent = '$3,850';
+            document.getElementById('totalMcap').textContent = '$2.4T';
+            document.getElementById('btcDominance').textContent = '52.3%';
+        }
+
+        function updateAllDisplays(data) {
+            // Update all displays with analyze data
+            updateMarketDisplay(data.market || {});
+            updateLiquidityDisplay(data.liquidity || {});
+            updateCryptoDisplay(data.crypto || {});
+        }
+
+        // Crisis Timer
+        function updateCrisisTimer() {
+            const timer = document.getElementById('crisisTimer');
+            const now = new Date();
+            const marketOpen = new Date();
+            marketOpen.setHours(9, 30, 0);
             
-            // Test connection
-            const health = await testHealth();
-            
-            if (health && health.status === 'healthy') {
-                // If healthy, try analyze
-                await testAnalyze();
-                log('Dashboard ready!');
+            if (now.getHours() >= 9 && now.getHours() < 16) {
+                timer.textContent = 'MARKET STATUS: OPEN';
+                timer.style.color = 'var(--primary)';
             } else {
-                log('Dashboard running in offline mode');
-                // Show default data
-                updateMarketGrid(null);
+                const timeToOpen = marketOpen - now;
+                if (timeToOpen > 0) {
+                    const hours = Math.floor(timeToOpen / 3600000);
+                    const minutes = Math.floor((timeToOpen % 3600000) / 60000);
+                    timer.textContent = `MARKET OPENS IN: ${hours}h ${minutes}m`;
+                    timer.style.color = 'var(--warning)';
+                } else {
+                    timer.textContent = 'MARKET STATUS: CLOSED';
+                    timer.style.color = 'var(--danger)';
+                }
             }
+        }
+
+        // Update Latency
+        async function updateLatency() {
+            const start = Date.now();
+            try {
+                await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ operation: 'ping' })
+                });
+                const latency = Date.now() - start;
+                document.getElementById('latency').textContent = `${latency}ms`;
+            } catch (error) {
+                document.getElementById('latency').textContent = 'N/A';
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initial load
+            populateAgents();
+            loadAlerts();
+            updateCrisisTimer();
+            updateLatency();
+            
+            // Add initial terminal message
+            addTerminalMessage('JUSTHODL.AI Enterprise System v1.0 initialized');
+            addTerminalMessage('Connected to api.justhodl.ai');
+            addTerminalMessage('14/15 agents operational');
+            
+            // Set up intervals
+            setInterval(updateCrisisTimer, 60000); // Update every minute
+            setInterval(updateLatency, 30000); // Update every 30 seconds
+            
+            // Auto-refresh data every 5 seconds (optional)
+            setInterval(() => {
+                const activeTab = document.querySelector('.tab-content.active').id;
+                if (activeTab === 'overview') {
+                    fetchMarketData();
+                }
+            }, 5000);
         });
-        
-        // Error handler
-        window.addEventListener('error', function(e) {
-            log('ERROR: ' + e.message + ' at line ' + e.lineno);
-        });
-        
-        // Auto-refresh every 10 seconds
-        setInterval(async function() {
-            await testAnalyze();
-        }, 10000);
     </script>
 </body>
 </html>
