@@ -48,6 +48,8 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .logo {
@@ -57,7 +59,7 @@
         }
 
         .logo-text {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 800;
             color: var(--danger);
         }
@@ -66,6 +68,7 @@
             display: flex;
             align-items: center;
             gap: 20px;
+            flex-wrap: wrap;
         }
 
         .crisis-meter {
@@ -137,6 +140,15 @@
             font-weight: 600;
         }
 
+        .nav-tab .badge {
+            background: var(--primary);
+            color: #000;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            margin-left: 5px;
+        }
+
         /* Main Container */
         .main-container {
             padding: 20px;
@@ -153,10 +165,21 @@
             display: block;
         }
 
+        /* Section Header */
+        .section-header {
+            background: linear-gradient(90deg, rgba(255, 0, 64, 0.1), transparent);
+            border-left: 4px solid var(--danger);
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--danger);
+        }
+
         /* Grid Layouts */
         .metrics-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 10px;
             margin-bottom: 20px;
         }
@@ -173,15 +196,34 @@
             background: var(--bg-tertiary);
             border: 1px solid var(--border);
             border-radius: 8px;
-            padding: 12px;
+            padding: 15px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary);
+            transform: scaleX(0);
+            transition: transform 0.3s;
         }
 
         .metric-card:hover {
             border-color: var(--primary);
             transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 255, 65, 0.1);
+        }
+
+        .metric-card:hover::before {
+            transform: scaleX(1);
         }
 
         .metric-card.critical {
@@ -189,22 +231,30 @@
             background: rgba(255, 0, 64, 0.05);
         }
 
+        .metric-card.critical::before {
+            background: var(--danger);
+        }
+
         .metric-label {
-            font-size: 10px;
+            font-size: 11px;
             color: var(--text-secondary);
             text-transform: uppercase;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
         }
 
         .metric-value {
-            font-size: 20px;
+            font-size: 24px;
             font-weight: bold;
             color: var(--primary);
+            margin-bottom: 5px;
         }
 
         .metric-change {
-            font-size: 11px;
+            font-size: 12px;
             margin-top: 5px;
+            font-weight: 600;
         }
 
         .change-positive {
@@ -261,12 +311,6 @@
             border: 1px solid var(--danger);
         }
 
-        .badge-warning {
-            background: rgba(255, 170, 0, 0.2);
-            color: var(--warning);
-            border: 1px solid var(--warning);
-        }
-
         /* Data Table */
         .data-table {
             width: 100%;
@@ -284,7 +328,7 @@
         }
 
         .data-table td {
-            padding: 6px 8px;
+            padding: 8px;
             border-bottom: 1px solid rgba(45, 53, 97, 0.3);
         }
 
@@ -297,12 +341,18 @@
             background: #000;
             border: 1px solid var(--primary);
             border-radius: 6px;
-            padding: 10px;
+            padding: 15px;
             font-family: 'Courier New', monospace;
             font-size: 11px;
-            max-height: 500px;
+            height: 500px;
             overflow-y: auto;
             margin-bottom: 20px;
+        }
+
+        .terminal pre {
+            color: var(--primary);
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
 
         /* Control Panel */
@@ -313,6 +363,7 @@
             background: rgba(17, 24, 39, 0.95);
             border-bottom: 1px solid var(--border);
             flex-wrap: wrap;
+            align-items: center;
         }
 
         .btn {
@@ -323,6 +374,9 @@
             cursor: pointer;
             transition: all 0.3s;
             font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
         }
 
         .btn-danger {
@@ -332,6 +386,16 @@
 
         .btn-danger:hover {
             background: #ff1a4a;
+            transform: translateY(-1px);
+        }
+
+        .stats {
+            margin-left: auto;
+            color: var(--text-secondary);
+            font-size: 11px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
         }
 
         /* Loading */
@@ -348,7 +412,7 @@
             width: 40px;
             height: 40px;
             animation: spin 1s linear infinite;
-            margin: 0 auto;
+            margin: 0 auto 10px;
         }
 
         @keyframes spin {
@@ -359,28 +423,41 @@
         /* Agent Status Grid */
         .agent-status-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 8px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
             margin-bottom: 20px;
         }
 
         .agent-status {
-            padding: 8px;
+            padding: 12px;
             background: var(--bg-tertiary);
             border: 1px solid var(--border);
             border-radius: 6px;
-            font-size: 11px;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            transition: all 0.3s;
         }
 
         .agent-status.active {
             border-color: var(--primary);
+            background: rgba(0, 255, 65, 0.05);
         }
 
         .agent-status.error {
             border-color: var(--danger);
+            background: rgba(255, 0, 64, 0.05);
+        }
+
+        .agent-name {
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
         .status-dot {
@@ -388,10 +465,51 @@
             height: 8px;
             border-radius: 50%;
             background: var(--primary);
+            animation: pulse 2s infinite;
         }
 
         .status-dot.error {
             background: var(--danger);
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .data-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .header-top {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .crisis-indicator {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            color: var(--border);
+            margin-bottom: 15px;
         }
     </style>
 </head>
@@ -405,7 +523,7 @@
             <div class="crisis-indicator">
                 <div class="crisis-meter">
                     <span>CRISIS PROBABILITY:</span>
-                    <span class="crisis-value" id="crisisProb">---%</span>
+                    <span class="crisis-value" id="crisisProb">Loading...</span>
                 </div>
                 <div class="khalid-index">
                     <div class="khalid-value" id="khalidIndex">--/100</div>
@@ -417,33 +535,55 @@
 
     <!-- Navigation -->
     <nav class="nav-tabs">
-        <button class="nav-tab active" onclick="switchTab('executive')">Executive Dashboard</button>
-        <button class="nav-tab" onclick="switchTab('markets')">Markets</button>
-        <button class="nav-tab" onclick="switchTab('treasury')">Treasury & Fed</button>
-        <button class="nav-tab" onclick="switchTab('liquidity')">Liquidity</button>
-        <button class="nav-tab" onclick="switchTab('crypto')">Crypto</button>
-        <button class="nav-tab" onclick="switchTab('ai-predictions')">AI Predictions</button>
-        <button class="nav-tab" onclick="switchTab('bonds')">Bonds</button>
-        <button class="nav-tab" onclick="switchTab('currency')">Currencies</button>
-        <button class="nav-tab" onclick="switchTab('risk')">Risk Metrics</button>
-        <button class="nav-tab" onclick="switchTab('agents')">Agent Status</button>
-        <button class="nav-tab" onclick="switchTab('raw')">Raw Data</button>
+        <button class="nav-tab active" onclick="switchTab('executive')">
+            Executive <span class="badge" id="executiveBadge">0</span>
+        </button>
+        <button class="nav-tab" onclick="switchTab('markets')">
+            Markets <span class="badge" id="marketsBadge">0</span>
+        </button>
+        <button class="nav-tab" onclick="switchTab('treasury')">
+            Treasury & Fed <span class="badge" id="treasuryBadge">0</span>
+        </button>
+        <button class="nav-tab" onclick="switchTab('liquidity')">
+            Liquidity <span class="badge" id="liquidityBadge">0</span>
+        </button>
+        <button class="nav-tab" onclick="switchTab('crypto')">
+            Crypto <span class="badge" id="cryptoBadge">0</span>
+        </button>
+        <button class="nav-tab" onclick="switchTab('ai-predictions')">
+            AI Predictions <span class="badge" id="aiBadge">0</span>
+        </button>
+        <button class="nav-tab" onclick="switchTab('bonds')">
+            Bonds <span class="badge" id="bondsBadge">0</span>
+        </button>
+        <button class="nav-tab" onclick="switchTab('currency')">
+            Currencies <span class="badge" id="currencyBadge">0</span>
+        </button>
+        <button class="nav-tab" onclick="switchTab('risk')">
+            Risk Metrics <span class="badge" id="riskBadge">0</span>
+        </button>
+        <button class="nav-tab" onclick="switchTab('agents')">
+            Agent Status <span class="badge" id="agentsBadge">0</span>
+        </button>
+        <button class="nav-tab" onclick="switchTab('raw')">
+            Raw Data
+        </button>
     </nav>
 
     <!-- Control Panel -->
     <div class="control-panel">
-        <button class="btn btn-danger" onclick="fetchAllData()">
+        <button class="btn btn-danger" onclick="DataManager.fetchData()">
             <i class="fas fa-sync"></i> FETCH ALL DATA
         </button>
-        <button class="btn btn-danger" onclick="toggleAutoRefresh()">
+        <button class="btn btn-danger" onclick="DataManager.toggleAutoRefresh()">
             <i class="fas fa-clock"></i> <span id="autoRefreshBtn">AUTO-REFRESH OFF</span>
         </button>
-        <span style="margin-left: auto; color: var(--text-secondary); font-size: 11px;">
-            Last Update: <span id="lastUpdate">Never</span> | 
-            Response: <span id="responseTime">0ms</span> | 
-            Data Points: <span id="dataPoints">0</span> |
-            Agents Active: <span id="agentsActive">0/14</span>
-        </span>
+        <div class="stats">
+            <span>Last Update: <strong id="lastUpdate">Never</strong></span>
+            <span>Response: <strong id="responseTime">0ms</strong></span>
+            <span>Data Points: <strong id="dataPoints">0</strong></span>
+            <span>Agents: <strong id="agentsActive">0/14</strong></span>
+        </div>
     </div>
 
     <!-- Main Container -->
@@ -451,25 +591,21 @@
 
         <!-- Executive Dashboard -->
         <div id="executive" class="tab-content active">
-            <div class="section-header">⚠️ EXECUTIVE CRISIS DASHBOARD - REAL-TIME DATA</div>
-            
-            <div class="metrics-grid" id="executiveMetrics">
-                <!-- Will be populated with key metrics -->
-            </div>
-
+            <div class="section-header">⚠️ EXECUTIVE DASHBOARD - REAL-TIME SYNTHESIS</div>
+            <div class="metrics-grid" id="executiveMetrics"></div>
             <div class="data-grid">
                 <div class="data-card">
                     <div class="data-card-header">
                         <div class="data-card-title">
                             <i class="fas fa-exclamation-triangle"></i> Critical Indicators
                         </div>
-                        <span class="status-badge badge-critical">LIVE</span>
+                        <span class="status-badge badge-live">LIVE</span>
                     </div>
                     <table class="data-table" id="criticalIndicators">
                         <thead>
                             <tr>
                                 <th>Indicator</th>
-                                <th>Current Value</th>
+                                <th>Value</th>
                                 <th>Change</th>
                                 <th>Status</th>
                             </tr>
@@ -483,753 +619,556 @@
         <!-- Markets Tab -->
         <div id="markets" class="tab-content">
             <div class="section-header">📈 MARKET DATA</div>
-            <div class="metrics-grid" id="marketMetrics">
-                <!-- Market metrics -->
-            </div>
+            <div class="metrics-grid" id="marketMetrics"></div>
         </div>
 
         <!-- Treasury Tab -->
         <div id="treasury" class="tab-content">
             <div class="section-header">🏛️ TREASURY & FEDERAL RESERVE</div>
-            <div class="metrics-grid" id="treasuryMetrics">
-                <!-- Treasury metrics -->
-            </div>
+            <div class="metrics-grid" id="treasuryMetrics"></div>
         </div>
 
         <!-- Liquidity Tab -->
         <div id="liquidity" class="tab-content">
             <div class="section-header">💧 LIQUIDITY METRICS</div>
-            <div class="metrics-grid" id="liquidityMetrics">
-                <!-- Liquidity metrics -->
-            </div>
+            <div class="metrics-grid" id="liquidityMetrics"></div>
         </div>
 
         <!-- Crypto Tab -->
         <div id="crypto" class="tab-content">
             <div class="section-header">₿ CRYPTOCURRENCY</div>
-            <div class="metrics-grid" id="cryptoMetrics">
-                <!-- Crypto metrics -->
-            </div>
+            <div class="metrics-grid" id="cryptoMetrics"></div>
         </div>
 
         <!-- AI Predictions Tab -->
         <div id="ai-predictions" class="tab-content">
             <div class="section-header">🤖 AI PREDICTIONS</div>
-            <div class="metrics-grid" id="aiMetrics">
-                <!-- AI metrics -->
-            </div>
+            <div class="metrics-grid" id="aiMetrics"></div>
         </div>
 
         <!-- Bonds Tab -->
         <div id="bonds" class="tab-content">
             <div class="section-header">📊 BOND MARKETS</div>
-            <div class="metrics-grid" id="bondMetrics">
-                <!-- Bond metrics -->
-            </div>
+            <div class="metrics-grid" id="bondMetrics"></div>
         </div>
 
         <!-- Currency Tab -->
         <div id="currency" class="tab-content">
             <div class="section-header">💱 CURRENCY MARKETS</div>
-            <div class="metrics-grid" id="currencyMetrics">
-                <!-- Currency metrics -->
-            </div>
+            <div class="metrics-grid" id="currencyMetrics"></div>
         </div>
 
         <!-- Risk Tab -->
         <div id="risk" class="tab-content">
             <div class="section-header">⚠️ RISK METRICS</div>
-            <div class="metrics-grid" id="riskMetrics">
-                <!-- Risk metrics -->
-            </div>
+            <div class="metrics-grid" id="riskMetrics"></div>
         </div>
 
         <!-- Agent Status Tab -->
         <div id="agents" class="tab-content">
             <div class="section-header">🤖 DATA AGENT STATUS</div>
-            <div class="agent-status-grid" id="agentStatusGrid">
-                <!-- Agent status -->
-            </div>
+            <div class="agent-status-grid" id="agentStatusGrid"></div>
         </div>
 
         <!-- Raw Data Tab -->
         <div id="raw" class="tab-content">
-            <div class="section-header">💾 RAW DATA FEED - ALL SOURCES</div>
+            <div class="section-header">💾 RAW DATA FEED</div>
             <div class="terminal" id="rawDataTerminal">
-                <pre id="rawDataContent" style="color: var(--primary); white-space: pre-wrap; word-wrap: break-word;">
-Waiting for data...
-                </pre>
+                <pre id="rawDataContent">Waiting for data...</pre>
             </div>
         </div>
 
     </div>
 
     <script>
-        // Configuration - YOUR ACTUAL BACKEND
-        const API_ENDPOINT = 'https://api.justhodl.ai/';
-        const BACKUP_ENDPOINT = 'https://6kxsmitl3uzekqfzjki7mprzku0ruzin.lambda-url.us-east-1.on.aws/';
-        
-        // Global state
-        let currentData = null;
-        let autoRefreshInterval = null;
-        let fetchInProgress = false;
-        let agentStatuses = {};
-
-        // Fetch all data from YOUR backend
-        async function fetchAllData() {
-            if (fetchInProgress) {
-                console.log('Fetch already in progress...');
-                return;
+        // Professional Data Management System
+        class DataManager {
+            constructor() {
+                this.API_ENDPOINT = 'https://api.justhodl.ai/';
+                this.BACKUP_ENDPOINT = 'https://6kxsmitl3uzekqfzjki7mprzku0ruzin.lambda-url.us-east-1.on.aws/';
+                this.currentData = null;
+                this.autoRefreshInterval = null;
+                this.fetchInProgress = false;
+                this.agentMapping = {
+                    'FedLiquidityAgent': 'treasury',
+                    'TreasuryDirectAgent': 'treasury',
+                    'StockMarketsAgent': 'markets',
+                    'USMarketsAgent': 'markets',
+                    'GlobalMarketsAgent': 'markets',
+                    'CryptoAgent': 'crypto',
+                    'AIPredictionsAgent': 'ai-predictions',
+                    'MLForecastAgent': 'ai-predictions',
+                    'BondRatesAgent': 'bonds',
+                    'CurrencyAgent': 'currency',
+                    'DollarIndexAgent': 'currency',
+                    'RiskMetricsAgent': 'risk',
+                    'CrisisIndicatorAgent': 'risk',
+                    'FearGreedAgent': 'risk'
+                };
+                this.categoryCounters = {};
             }
 
-            fetchInProgress = true;
-            const startTime = Date.now();
-            document.getElementById('lastUpdate').textContent = 'Fetching...';
-            
-            try {
-                // Use your actual API endpoint
-                const response = await fetch(API_ENDPOINT, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ operation: 'data' })
-                });
+            async fetchData() {
+                if (this.fetchInProgress) {
+                    console.log('Fetch already in progress...');
+                    return;
+                }
+
+                this.fetchInProgress = true;
+                const startTime = Date.now();
+                this.updateStatus('Fetching...', 'lastUpdate');
+                this.showLoadingState();
+
+                try {
+                    const response = await fetch(this.API_ENDPOINT, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ operation: 'data' })
+                    });
+
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    
+                    const data = await response.json();
+                    this.currentData = data;
+                    
+                    console.log('Full API Response:', data);
+                    
+                    // Process the data
+                    this.processResponse(data);
+                    
+                    // Update stats
+                    const responseTime = Date.now() - startTime;
+                    this.updateStatus(`${responseTime}ms`, 'responseTime');
+                    this.updateStatus(new Date().toLocaleTimeString(), 'lastUpdate');
+                    this.updateStatus(this.countDataPoints(data), 'dataPoints');
+                    
+                    // Update raw data
+                    document.getElementById('rawDataContent').textContent = JSON.stringify(data, null, 2);
+                    
+                } catch (error) {
+                    console.error('Fetch error:', error);
+                    this.handleFetchError(error);
+                } finally {
+                    this.fetchInProgress = false;
+                    this.hideLoadingState();
+                }
+            }
+
+            processResponse(data) {
+                // Reset counters
+                this.categoryCounters = {};
+                this.clearAllMetrics();
+
+                // Process based on the structure of the response
+                if (data.data && typeof data.data === 'object') {
+                    // Handle nested data structure
+                    this.processNestedData(data.data);
+                    
+                    // Also process any top-level data
+                    Object.keys(data).forEach(key => {
+                        if (key !== 'data') {
+                            this.processTopLevelData(key, data[key]);
+                        }
+                    });
+                } else {
+                    // Process flat structure
+                    Object.keys(data).forEach(key => {
+                        this.processTopLevelData(key, data[key]);
+                    });
+                }
+
+                // Update executive dashboard
+                this.updateExecutiveDashboard();
                 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                // Update badges
+                this.updateBadges();
+            }
+
+            processNestedData(data) {
+                Object.keys(data).forEach(agentName => {
+                    const agentData = data[agentName];
+                    
+                    // Determine category
+                    const category = this.determineCategory(agentName);
+                    
+                    // Process the agent's data
+                    if (agentData && typeof agentData === 'object') {
+                        if (agentData.data) {
+                            this.displayDataInCategory(category, agentData.data, agentName);
+                        } else {
+                            this.displayDataInCategory(category, agentData, agentName);
+                        }
+                    }
+                });
+            }
+
+            processTopLevelData(key, value) {
+                // Handle agent status separately
+                if (key === 'agents_status' || key === 'agent_status') {
+                    this.displayAgentStatus(value);
+                    return;
+                }
+
+                // Determine category and display
+                const category = this.determineCategory(key);
+                
+                if (value && typeof value === 'object') {
+                    if (value.data) {
+                        this.displayDataInCategory(category, value.data, key);
+                    } else {
+                        this.displayDataInCategory(category, value, key);
+                    }
+                }
+            }
+
+            determineCategory(key) {
+                const lowerKey = key.toLowerCase();
+                
+                // Check agent mapping
+                if (this.agentMapping[key]) {
+                    return this.agentMapping[key];
                 }
                 
-                const data = await response.json();
-                currentData = data;
+                // Determine by keywords
+                if (lowerKey.includes('stock') || lowerKey.includes('market') || lowerKey.includes('spy') || lowerKey.includes('nasdaq')) {
+                    return 'markets';
+                } else if (lowerKey.includes('treasury') || lowerKey.includes('fed') || lowerKey.includes('liquidity')) {
+                    return 'treasury';
+                } else if (lowerKey.includes('crypto') || lowerKey.includes('bitcoin') || lowerKey.includes('ethereum')) {
+                    return 'crypto';
+                } else if (lowerKey.includes('ai') || lowerKey.includes('prediction') || lowerKey.includes('forecast') || lowerKey.includes('ml')) {
+                    return 'ai-predictions';
+                } else if (lowerKey.includes('bond') || lowerKey.includes('yield')) {
+                    return 'bonds';
+                } else if (lowerKey.includes('currency') || lowerKey.includes('dollar') || lowerKey.includes('dxy')) {
+                    return 'currency';
+                } else if (lowerKey.includes('risk') || lowerKey.includes('crisis') || lowerKey.includes('fear')) {
+                    return 'risk';
+                } else if (lowerKey.includes('repo') || lowerKey.includes('reserve')) {
+                    return 'liquidity';
+                } else {
+                    return 'executive'; // Default
+                }
+            }
+
+            displayDataInCategory(category, data, source) {
+                const containerMap = {
+                    'markets': 'marketMetrics',
+                    'treasury': 'treasuryMetrics',
+                    'liquidity': 'liquidityMetrics',
+                    'crypto': 'cryptoMetrics',
+                    'ai-predictions': 'aiMetrics',
+                    'bonds': 'bondMetrics',
+                    'currency': 'currencyMetrics',
+                    'risk': 'riskMetrics',
+                    'executive': 'executiveMetrics'
+                };
+
+                const containerId = containerMap[category] || 'executiveMetrics';
+                const container = document.getElementById(containerId);
                 
-                console.log('Received data:', data);
-                
+                if (!container) return;
+
                 // Process and display the data
-                processAllData(data);
+                this.processDataObject(data, container, source);
                 
-                // Update stats
-                const responseTime = Date.now() - startTime;
-                document.getElementById('responseTime').textContent = `${responseTime}ms`;
-                document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+                // Update counter
+                this.categoryCounters[category] = (this.categoryCounters[category] || 0) + 1;
+            }
+
+            processDataObject(data, container, source) {
+                if (!data || !container) return;
+
+                // Handle different data structures
+                if (typeof data === 'string' || typeof data === 'number') {
+                    this.addMetricCard(container, source, data);
+                } else if (Array.isArray(data)) {
+                    data.forEach((item, index) => {
+                        if (typeof item === 'object') {
+                            this.processDataObject(item, container, `${source}_${index}`);
+                        }
+                    });
+                } else if (typeof data === 'object') {
+                    Object.keys(data).forEach(key => {
+                        const value = data[key];
+                        
+                        // Skip metadata
+                        if (['status', 'timestamp', 'agent', 'error'].includes(key)) return;
+                        
+                        // Create label
+                        const label = this.formatLabel(key);
+                        
+                        // Handle different value types
+                        if (value === null || value === undefined) return;
+                        
+                        if (typeof value === 'object') {
+                            // Check for common patterns
+                            if (value.value !== undefined) {
+                                this.addMetricCard(container, label, value.value, value.change);
+                            } else if (value.price !== undefined) {
+                                this.addMetricCard(container, label, value.price, value.change || value.change_24h);
+                            } else if (value.current !== undefined) {
+                                this.addMetricCard(container, label, value.current, value.change);
+                            } else if (value.last !== undefined) {
+                                this.addMetricCard(container, label, value.last, value.change);
+                            } else {
+                                // Nested object - flatten
+                                Object.keys(value).forEach(subKey => {
+                                    const subValue = value[subKey];
+                                    if (typeof subValue !== 'object') {
+                                        this.addMetricCard(container, `${label} ${this.formatLabel(subKey)}`, subValue);
+                                    }
+                                });
+                            }
+                        } else {
+                            this.addMetricCard(container, label, value);
+                        }
+                    });
+                }
+            }
+
+            addMetricCard(container, label, value, change = null) {
+                const card = document.createElement('div');
+                card.className = 'metric-card';
                 
-                // Count data points
-                const dataPoints = countDataPoints(data);
-                document.getElementById('dataPoints').textContent = dataPoints;
+                // Format value
+                let displayValue = value;
+                if (typeof value === 'number') {
+                    displayValue = this.formatNumber(value);
+                }
                 
-                // Update raw data view
-                document.getElementById('rawDataContent').textContent = JSON.stringify(data, null, 2);
+                // Change HTML
+                let changeHtml = '';
+                if (change !== null && change !== undefined) {
+                    const changeClass = String(change).includes('-') ? 'change-negative' : 'change-positive';
+                    const changePrefix = String(change).includes('-') ? '' : '+';
+                    changeHtml = `<div class="metric-change ${changeClass}">${changePrefix}${change}</div>`;
+                }
                 
-            } catch (error) {
-                console.error('Failed to fetch data:', error);
+                card.innerHTML = `
+                    <div class="metric-label">${label}</div>
+                    <div class="metric-value">${displayValue}</div>
+                    ${changeHtml}
+                `;
                 
-                // Try backup endpoint
+                container.appendChild(card);
+            }
+
+            updateExecutiveDashboard() {
+                const container = document.getElementById('executiveMetrics');
+                const tbody = document.querySelector('#criticalIndicators tbody');
+                tbody.innerHTML = '';
+
+                // Find and display critical metrics
+                const criticalMetrics = [
+                    { key: 'sp500', label: 'S&P 500' },
+                    { key: 'vix', label: 'VIX' },
+                    { key: 'bitcoin', label: 'Bitcoin' },
+                    { key: 'fed_balance_sheet', label: 'Fed Balance' },
+                    { key: 'crisis_probability', label: 'Crisis Probability' }
+                ];
+
+                criticalMetrics.forEach(metric => {
+                    const value = this.findValueInData(metric.key);
+                    if (value !== undefined) {
+                        // Add to executive metrics
+                        this.addMetricCard(container, metric.label, value.value || value, value.change, true);
+                        
+                        // Add to table
+                        const row = tbody.insertRow();
+                        const change = value.change || '';
+                        const status = this.determineStatus(value.value || value, change);
+                        
+                        row.innerHTML = `
+                            <td>${metric.label}</td>
+                            <td>${this.formatNumber(value.value || value)}</td>
+                            <td class="${String(change).includes('-') ? 'change-negative' : 'change-positive'}">${change}</td>
+                            <td>${status}</td>
+                        `;
+                    }
+                });
+            }
+
+            findValueInData(key) {
+                if (!this.currentData) return undefined;
+                
+                // Search in the data structure
+                const search = (obj, searchKey) => {
+                    if (!obj) return undefined;
+                    
+                    for (let prop in obj) {
+                        if (prop.toLowerCase().includes(searchKey.toLowerCase())) {
+                            return obj[prop];
+                        }
+                        if (typeof obj[prop] === 'object') {
+                            const result = search(obj[prop], searchKey);
+                            if (result !== undefined) return result;
+                        }
+                    }
+                    return undefined;
+                };
+                
+                return search(this.currentData, key);
+            }
+
+            displayAgentStatus(agentStatus) {
+                const container = document.getElementById('agentStatusGrid');
+                container.innerHTML = '';
+                
+                let activeCount = 0;
+                const totalAgents = 14;
+
+                Object.keys(agentStatus).forEach(agent => {
+                    const status = agentStatus[agent];
+                    const isActive = status === 'active' || status === 'success' || status === true;
+                    if (isActive) activeCount++;
+                    
+                    const statusDiv = document.createElement('div');
+                    statusDiv.className = `agent-status ${isActive ? 'active' : 'error'}`;
+                    statusDiv.innerHTML = `
+                        <span class="agent-name">${this.formatLabel(agent)}</span>
+                        <div class="status-indicator">
+                            <span>${isActive ? 'Active' : 'Error'}</span>
+                            <span class="status-dot ${isActive ? '' : 'error'}"></span>
+                        </div>
+                    `;
+                    container.appendChild(statusDiv);
+                });
+                
+                this.updateStatus(`${activeCount}/${totalAgents}`, 'agentsActive');
+                this.categoryCounters['agents'] = activeCount;
+            }
+
+            updateBadges() {
+                Object.keys(this.categoryCounters).forEach(category => {
+                    const badgeId = category.replace('-', '') + 'Badge';
+                    const badge = document.getElementById(badgeId);
+                    if (badge) {
+                        badge.textContent = this.categoryCounters[category] || 0;
+                    }
+                });
+            }
+
+            formatLabel(key) {
+                return key
+                    .replace(/([A-Z])/g, ' $1')
+                    .replace(/_/g, ' ')
+                    .replace(/-/g, ' ')
+                    .trim()
+                    .split(' ')
+                    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                    .join(' ');
+            }
+
+            formatNumber(value) {
+                if (typeof value !== 'number') return value;
+                
+                if (value >= 1000000000) {
+                    return `$${(value / 1000000000).toFixed(2)}T`;
+                } else if (value >= 1000000) {
+                    return `$${(value / 1000000).toFixed(2)}M`;
+                } else if (value >= 1000) {
+                    return `$${(value / 1000).toFixed(2)}K`;
+                } else if (value < 1) {
+                    return value.toFixed(4);
+                }
+                return value.toFixed(2);
+            }
+
+            determineStatus(value, change) {
+                const changeNum = parseFloat(String(change).replace('%', '').replace('+', ''));
+                if (Math.abs(changeNum) > 10) return 'CRITICAL';
+                if (Math.abs(changeNum) > 5) return 'WARNING';
+                return 'STABLE';
+            }
+
+            clearAllMetrics() {
+                const containers = [
+                    'executiveMetrics', 'marketMetrics', 'treasuryMetrics',
+                    'liquidityMetrics', 'cryptoMetrics', 'aiMetrics',
+                    'bondMetrics', 'currencyMetrics', 'riskMetrics'
+                ];
+                
+                containers.forEach(id => {
+                    const container = document.getElementById(id);
+                    if (container) container.innerHTML = '';
+                });
+            }
+
+            countDataPoints(obj) {
+                let count = 0;
+                const traverse = (o) => {
+                    for (let key in o) {
+                        if (o.hasOwnProperty(key)) {
+                            count++;
+                            if (typeof o[key] === 'object' && o[key] !== null) {
+                                traverse(o[key]);
+                            }
+                        }
+                    }
+                };
+                traverse(obj);
+                return count;
+            }
+
+            updateStatus(value, elementId) {
+                const element = document.getElementById(elementId);
+                if (element) element.textContent = value;
+            }
+
+            showLoadingState() {
+                this.clearAllMetrics();
+                const containers = document.querySelectorAll('.metrics-grid');
+                containers.forEach(container => {
+                    if (container.children.length === 0) {
+                        container.innerHTML = '<div class="loading"><div class="spinner"></div>Loading data...</div>';
+                    }
+                });
+            }
+
+            hideLoadingState() {
+                const loadingElements = document.querySelectorAll('.loading');
+                loadingElements.forEach(el => el.remove());
+            }
+
+            async handleFetchError(error) {
+                console.log('Trying backup endpoint...');
                 try {
-                    console.log('Trying backup endpoint...');
-                    const response = await fetch(BACKUP_ENDPOINT, {
+                    const response = await fetch(this.BACKUP_ENDPOINT, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ operation: 'data' })
                     });
                     
                     const data = await response.json();
-                    currentData = data;
-                    processAllData(data);
-                    
-                    document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString() + ' (backup)';
+                    this.currentData = data;
+                    this.processResponse(data);
+                    this.updateStatus(new Date().toLocaleTimeString() + ' (backup)', 'lastUpdate');
                 } catch (backupError) {
                     console.error('Backup also failed:', backupError);
-                    document.getElementById('lastUpdate').textContent = 'Error';
+                    this.updateStatus('Error', 'lastUpdate');
                 }
-            } finally {
-                fetchInProgress = false;
             }
-        }
 
-        // Process all data from your backend
-        function processAllData(data) {
-            console.log('Processing complete data structure:', data);
-            
-            // Clear existing metrics
-            clearAllMetrics();
-            
-            // DYNAMIC DATA PROCESSING - Handle ANY structure
-            // Process all top-level keys from the response
-            Object.keys(data).forEach(key => {
-                console.log(`Processing key: ${key}`, data[key]);
+            toggleAutoRefresh() {
+                const btn = document.getElementById('autoRefreshBtn');
                 
-                // Special handling for known structures
-                if (key === 'agents_status' || key === 'agent_status') {
-                    processAgentStatus(data[key]);
-                } else if (key.includes('treasury') || key === 'FedLiquidityAgent') {
-                    processDynamicData(data[key], 'treasuryMetrics', 'Treasury');
-                } else if (key.includes('market') || key === 'StockMarketsAgent' || key === 'USMarketsAgent') {
-                    processDynamicData(data[key], 'marketMetrics', 'Market');
-                } else if (key.includes('liquidity')) {
-                    processDynamicData(data[key], 'liquidityMetrics', 'Liquidity');
-                } else if (key.includes('crypto') || key === 'CryptoAgent') {
-                    processDynamicData(data[key], 'cryptoMetrics', 'Crypto');
-                } else if (key.includes('ai') || key.includes('prediction') || key === 'AIPredictionsAgent') {
-                    processDynamicData(data[key], 'aiMetrics', 'AI');
-                } else if (key.includes('bond') || key === 'BondRatesAgent') {
-                    processDynamicData(data[key], 'bondMetrics', 'Bonds');
-                } else if (key.includes('currency') || key === 'CurrencyAgent' || key === 'DollarIndexAgent') {
-                    processDynamicData(data[key], 'currencyMetrics', 'Currency');
-                } else if (key.includes('risk') || key === 'RiskMetricsAgent') {
-                    processDynamicData(data[key], 'riskMetrics', 'Risk');
-                } else if (key === 'data' && typeof data[key] === 'object') {
-                    // Handle nested data structure
-                    Object.keys(data[key]).forEach(subKey => {
-                        processDataByKey(subKey, data[key][subKey]);
-                    });
-                } else if (typeof data[key] === 'object' && data[key] !== null) {
-                    // Process any other object data
-                    processDataByKey(key, data[key]);
-                }
-            });
-            
-            // Update executive dashboard with all available data
-            updateExecutiveDashboard(data);
-            
-            // Update the Khalid Index if available
-            updateKhalidIndex(data);
-        }
-
-        // Process data by key name
-        function processDataByKey(key, value) {
-            console.log(`Processing data key: ${key}`, value);
-            
-            // Determine which container to use based on key name
-            let container = null;
-            
-            if (key.toLowerCase().includes('treasury') || key.toLowerCase().includes('fed')) {
-                container = document.getElementById('treasuryMetrics');
-            } else if (key.toLowerCase().includes('market') || key.toLowerCase().includes('stock')) {
-                container = document.getElementById('marketMetrics');
-            } else if (key.toLowerCase().includes('crypto') || key.toLowerCase().includes('bitcoin')) {
-                container = document.getElementById('cryptoMetrics');
-            } else if (key.toLowerCase().includes('bond')) {
-                container = document.getElementById('bondMetrics');
-            } else if (key.toLowerCase().includes('currency') || key.toLowerCase().includes('dollar')) {
-                container = document.getElementById('currencyMetrics');
-            } else if (key.toLowerCase().includes('risk')) {
-                container = document.getElementById('riskMetrics');
-            } else if (key.toLowerCase().includes('ai') || key.toLowerCase().includes('prediction')) {
-                container = document.getElementById('aiMetrics');
-            } else if (key.toLowerCase().includes('liquidity')) {
-                container = document.getElementById('liquidityMetrics');
-            } else {
-                // Default to executive metrics
-                container = document.getElementById('executiveMetrics');
-            }
-            
-            if (container && value) {
-                processDynamicData(value, container.id, key);
-            }
-        }
-
-        // Dynamic data processor - handles any data structure
-        function processDynamicData(data, containerId, category) {
-            const container = document.getElementById(containerId);
-            if (!container) {
-                console.warn(`Container ${containerId} not found`);
-                return;
-            }
-            
-            // If data is a string or number, display it directly
-            if (typeof data === 'string' || typeof data === 'number') {
-                addMetricCard(container, category, data);
-                return;
-            }
-            
-            // If data is an object, process each property
-            if (typeof data === 'object' && data !== null) {
-                // Check if it has a data property
-                if (data.data) {
-                    processDynamicData(data.data, containerId, category);
-                    return;
-                }
-                
-                // Process each property
-                Object.entries(data).forEach(([key, value]) => {
-                    // Skip metadata fields
-                    if (key === 'status' || key === 'timestamp' || key === 'agent') {
-                        return;
-                    }
-                    
-                    const label = formatLabel(key);
-                    
-                    if (value === null || value === undefined) {
-                        return;
-                    }
-                    
-                    // Handle different value types
-                    if (typeof value === 'object') {
-                        // Check for common patterns
-                        if (value.value !== undefined) {
-                            addMetricCard(container, label, value.value, value.change);
-                        } else if (value.price !== undefined) {
-                            addMetricCard(container, label, value.price, value.change || value.change_24h);
-                        } else if (value.current !== undefined) {
-                            addMetricCard(container, label, value.current, value.change);
-                        } else if (value.last !== undefined) {
-                            addMetricCard(container, label, value.last, value.change);
-                        } else if (typeof value === 'object' && Object.keys(value).length > 0) {
-                            // Recursively process nested objects
-                            Object.entries(value).forEach(([subKey, subValue]) => {
-                                if (typeof subValue === 'string' || typeof subValue === 'number') {
-                                    addMetricCard(container, `${label} - ${formatLabel(subKey)}`, subValue);
-                                }
-                            });
-                        }
-                    } else {
-                        // Direct value (string or number)
-                        addMetricCard(container, label, value);
-                    }
-                });
-            }
-        }
-
-        // Format label from key
-        function formatLabel(key) {
-            return key
-                .replace(/_/g, ' ')
-                .replace(/-/g, ' ')
-                .replace(/([A-Z])/g, ' $1')
-                .trim()
-                .split(' ')
-                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                .join(' ');
-        }
-
-        // Update Khalid Index
-        function updateKhalidIndex(data) {
-            // Look for Khalid Index in various possible locations
-            let khalidValue = null;
-            
-            if (data.khalid_index) {
-                khalidValue = data.khalid_index;
-            } else if (data.risk_metrics && data.risk_metrics.khalid_index) {
-                khalidValue = data.risk_metrics.khalid_index;
-            } else if (data.RiskMetricsAgent && data.RiskMetricsAgent.khalid_index) {
-                khalidValue = data.RiskMetricsAgent.khalid_index;
-            }
-            
-            if (khalidValue) {
-                document.getElementById('khalidIndex').textContent = khalidValue + '/100';
-            }
-            
-            // Update crisis probability
-            let crisisProb = null;
-            if (data.crisis_probability) {
-                crisisProb = data.crisis_probability;
-            } else if (data.risk_metrics && data.risk_metrics.crisis_probability) {
-                crisisProb = data.risk_metrics.crisis_probability;
-            } else if (data.RiskMetricsAgent && data.RiskMetricsAgent.crisis_probability) {
-                crisisProb = data.RiskMetricsAgent.crisis_probability;
-            }
-            
-            if (crisisProb) {
-                document.getElementById('crisisProb').textContent = crisisProb + '%';
-            }
-        }
-
-        // Process agent status
-        function processAgentStatus(agentsStatus) {
-            const container = document.getElementById('agentStatusGrid');
-            container.innerHTML = '';
-            
-            let activeCount = 0;
-            
-            Object.entries(agentsStatus).forEach(([agent, status]) => {
-                const isActive = status === 'active' || status === 'success';
-                if (isActive) activeCount++;
-                
-                const statusDiv = document.createElement('div');
-                statusDiv.className = `agent-status ${isActive ? 'active' : 'error'}`;
-                statusDiv.innerHTML = `
-                    <span>${agent.replace('_', ' ')}</span>
-                    <span class="status-dot ${isActive ? '' : 'error'}"></span>
-                `;
-                container.appendChild(statusDiv);
-            });
-            
-            document.getElementById('agentsActive').textContent = `${activeCount}/14`;
-        }
-
-        // Process market data
-        function processMarketData(marketData) {
-            const container = document.getElementById('marketMetrics');
-            
-            if (marketData.sp500) {
-                addMetricCard(container, 'S&P 500', marketData.sp500.value, marketData.sp500.change);
-            }
-            if (marketData.spy) {
-                addMetricCard(container, 'SPY', marketData.spy.value, marketData.spy.change);
-            }
-            if (marketData.vix) {
-                addMetricCard(container, 'VIX', marketData.vix.value, marketData.vix.change);
-            }
-            if (marketData.nasdaq) {
-                addMetricCard(container, 'NASDAQ', marketData.nasdaq.value, marketData.nasdaq.change);
-            }
-            if (marketData.dow) {
-                addMetricCard(container, 'DOW', marketData.dow.value, marketData.dow.change);
-            }
-        }
-
-        // Process treasury data
-        function processTreasuryData(treasuryData) {
-            const container = document.getElementById('treasuryMetrics');
-            
-            if (treasuryData.fed_balance_sheet) {
-                addMetricCard(container, 'Fed Balance Sheet', treasuryData.fed_balance_sheet, null, true);
-            }
-            if (treasuryData['10y_yield']) {
-                addMetricCard(container, '10Y Treasury', treasuryData['10y_yield'] + '%');
-            }
-            if (treasuryData['2y_yield']) {
-                addMetricCard(container, '2Y Treasury', treasuryData['2y_yield'] + '%');
-            }
-            if (treasuryData.reverse_repo) {
-                addMetricCard(container, 'Reverse Repo', treasuryData.reverse_repo);
-            }
-            if (treasuryData.fed_funds_rate) {
-                addMetricCard(container, 'Fed Funds Rate', treasuryData.fed_funds_rate + '%');
-            }
-        }
-
-        // Process liquidity data
-        function processLiquidityData(liquidityData) {
-            const container = document.getElementById('liquidityMetrics');
-            
-            Object.entries(liquidityData).forEach(([key, value]) => {
-                const label = key.replace(/_/g, ' ').toUpperCase();
-                addMetricCard(container, label, value);
-            });
-        }
-
-        // Process crypto data
-        function processCryptoData(cryptoData) {
-            const container = document.getElementById('cryptoMetrics');
-            
-            if (cryptoData.bitcoin) {
-                addMetricCard(container, 'Bitcoin', cryptoData.bitcoin.price, cryptoData.bitcoin.change);
-            }
-            if (cryptoData.ethereum) {
-                addMetricCard(container, 'Ethereum', cryptoData.ethereum.price, cryptoData.ethereum.change);
-            }
-            if (cryptoData.total_market_cap) {
-                addMetricCard(container, 'Total Crypto Cap', cryptoData.total_market_cap);
-            }
-        }
-
-        // Process AI predictions
-        function processAIPredictions(aiData) {
-            const container = document.getElementById('aiMetrics');
-            
-            if (aiData.market_phase) {
-                addMetricCard(container, 'Market Phase', aiData.market_phase);
-            }
-            if (aiData.forecast_1w) {
-                addMetricCard(container, '1-Week Forecast', aiData.forecast_1w);
-            }
-            if (aiData.forecast_1m) {
-                addMetricCard(container, '1-Month Forecast', aiData.forecast_1m);
-            }
-            if (aiData.forecast_3m) {
-                addMetricCard(container, '3-Month Forecast', aiData.forecast_3m);
-            }
-        }
-
-        // Process bond data
-        function processBondData(bondData) {
-            const container = document.getElementById('bondMetrics');
-            
-            Object.entries(bondData).forEach(([key, value]) => {
-                const label = key.replace(/_/g, ' ').toUpperCase();
-                addMetricCard(container, label, value);
-            });
-        }
-
-        // Process currency data
-        function processCurrencyData(currencyData) {
-            const container = document.getElementById('currencyMetrics');
-            
-            Object.entries(currencyData).forEach(([key, value]) => {
-                const label = key.toUpperCase();
-                addMetricCard(container, label, value);
-            });
-        }
-
-        // Process risk metrics
-        function processRiskMetrics(riskData) {
-            const container = document.getElementById('riskMetrics');
-            
-            if (riskData.crisis_probability) {
-                addMetricCard(container, 'Crisis Probability', riskData.crisis_probability + '%', null, true);
-                document.getElementById('crisisProb').textContent = riskData.crisis_probability + '%';
-            }
-            if (riskData.black_swan_risk) {
-                addMetricCard(container, 'Black Swan Risk', riskData.black_swan_risk + '%', null, true);
-            }
-            if (riskData.high_yield_spread) {
-                addMetricCard(container, 'HY Spread', riskData.high_yield_spread + '%');
-            }
-            if (riskData.dollar_index) {
-                addMetricCard(container, 'Dollar Index', riskData.dollar_index);
-            }
-        }
-
-        // Process all agent data generically
-        function processAllAgentData(data) {
-            // This function will handle any data structure from your agents
-            Object.entries(data).forEach(([key, value]) => {
-                if (typeof value === 'object' && value !== null && !['agents_status'].includes(key)) {
-                    // Process nested data structures
-                    if (value.data) {
-                        processNestedData(key, value.data);
-                    } else if (Array.isArray(value)) {
-                        processArrayData(key, value);
-                    } else {
-                        processObjectData(key, value);
-                    }
-                }
-            });
-        }
-
-        // Process nested data
-        function processNestedData(category, data) {
-            // Find or create appropriate container
-            let container = document.getElementById(category + 'Metrics');
-            if (!container) {
-                // If no specific container, add to executive metrics
-                container = document.getElementById('executiveMetrics');
-            }
-            
-            if (typeof data === 'object') {
-                Object.entries(data).forEach(([key, value]) => {
-                    if (value && (typeof value === 'string' || typeof value === 'number')) {
-                        const label = key.replace(/_/g, ' ').toUpperCase();
-                        addMetricCard(container, label, value);
-                    }
-                });
-            }
-        }
-
-        // Process array data
-        function processArrayData(category, dataArray) {
-            // Handle arrays of data
-            console.log(`Processing array data for ${category}:`, dataArray);
-        }
-
-        // Process object data
-        function processObjectData(category, dataObject) {
-            // Handle object data
-            console.log(`Processing object data for ${category}:`, dataObject);
-        }
-
-        // Update executive dashboard with comprehensive data
-        function updateExecutiveDashboard(data) {
-            const container = document.getElementById('executiveMetrics');
-            
-            // Define priority metrics to show on executive dashboard
-            const priorityMetrics = [];
-            
-            // Search for key metrics in the data structure
-            const searchPaths = [
-                // Direct paths
-                'sp500', 'spy', 'vix', 'bitcoin', 'ethereum',
-                'fed_balance_sheet', 'crisis_probability', 'dollar_index',
-                // Nested paths
-                'market_data.sp500', 'market_data.spy', 'market_data.vix',
-                'crypto_data.bitcoin', 'crypto_data.ethereum',
-                'treasury_data.fed_balance_sheet',
-                'risk_metrics.crisis_probability',
-                'risk_metrics.dollar_index',
-                // Agent-based paths
-                'StockMarketsAgent.sp500', 'StockMarketsAgent.spy',
-                'USMarketsAgent.sp500', 'USMarketsAgent.spy',
-                'CryptoAgent.bitcoin', 'CryptoAgent.ethereum',
-                'FedLiquidityAgent.fed_balance_sheet',
-                'RiskMetricsAgent.crisis_probability',
-                'DollarIndexAgent.dollar_index'
-            ];
-            
-            // Try to find each metric in the data
-            searchPaths.forEach(path => {
-                const value = getNestedValueFlexible(data, path);
-                if (value !== undefined && value !== null) {
-                    const label = path.split('.').pop().replace(/_/g, ' ').toUpperCase();
-                    priorityMetrics.push({ label, value });
-                }
-            });
-            
-            // Add found metrics to the dashboard
-            priorityMetrics.forEach(metric => {
-                let displayValue = metric.value;
-                let change = null;
-                
-                if (typeof metric.value === 'object') {
-                    displayValue = metric.value.value || metric.value.price || metric.value.current || metric.value.last;
-                    change = metric.value.change || metric.value.change_24h || metric.value.change_percent;
-                }
-                
-                if (displayValue !== undefined && displayValue !== null) {
-                    addMetricCard(container, metric.label, displayValue, change);
-                }
-            });
-            
-            // Update critical indicators table with all available data
-            updateCriticalTableDynamic(data);
-        }
-
-        // Flexible nested value getter
-        function getNestedValueFlexible(obj, path) {
-            // Try direct path first
-            const directResult = getNestedValue(obj, path);
-            if (directResult !== undefined) return directResult;
-            
-            // Try to find the value anywhere in the object
-            const lastKey = path.split('.').pop();
-            return findValueByKey(obj, lastKey);
-        }
-
-        // Find value by key anywhere in the object
-        function findValueByKey(obj, targetKey) {
-            if (!obj || typeof obj !== 'object') return undefined;
-            
-            // Check if current object has the key
-            if (obj.hasOwnProperty(targetKey)) {
-                return obj[targetKey];
-            }
-            
-            // Search in nested objects
-            for (let key in obj) {
-                if (typeof obj[key] === 'object' && obj[key] !== null) {
-                    const result = findValueByKey(obj[key], targetKey);
-                    if (result !== undefined) return result;
+                if (this.autoRefreshInterval) {
+                    clearInterval(this.autoRefreshInterval);
+                    this.autoRefreshInterval = null;
+                    btn.textContent = 'AUTO-REFRESH OFF';
+                } else {
+                    this.autoRefreshInterval = setInterval(() => this.fetchData(), 30000);
+                    btn.textContent = 'AUTO-REFRESH ON';
+                    this.fetchData();
                 }
             }
-            
-            return undefined;
         }
 
-        // Update critical table dynamically
-        function updateCriticalTableDynamic(data) {
-            const tbody = document.querySelector('#criticalIndicators tbody');
-            tbody.innerHTML = '';
-            
-            // List of critical indicators to find
-            const criticalIndicators = [
-                'sp500', 'spy', 'vix', 'nasdaq', 'dow',
-                'bitcoin', 'ethereum', 'total_market_cap',
-                'fed_balance_sheet', '10y_yield', '2y_yield',
-                'reverse_repo', 'fed_funds_rate',
-                'crisis_probability', 'black_swan_risk',
-                'dollar_index', 'high_yield_spread'
-            ];
-            
-            criticalIndicators.forEach(indicator => {
-                const value = findValueByKey(data, indicator);
-                if (value !== undefined && value !== null) {
-                    const row = tbody.insertRow();
-                    let displayValue = value;
-                    let change = '';
-                    let status = 'STABLE';
-                    
-                    if (typeof value === 'object') {
-                        displayValue = value.value || value.price || value.current || value.last || JSON.stringify(value);
-                        change = value.change || value.change_24h || value.change_percent || '';
-                        
-                        // Determine status based on change
-                        if (change) {
-                            const changeNum = parseFloat(change.toString().replace('%', '').replace('+', ''));
-                            if (Math.abs(changeNum) > 5) status = 'VOLATILE';
-                            if (Math.abs(changeNum) > 10) status = 'CRITICAL';
-                        }
-                    }
-                    
-                    row.innerHTML = `
-                        <td>${formatLabel(indicator)}</td>
-                        <td>${displayValue}</td>
-                        <td class="${change && change.toString().includes('+') ? 'change-positive' : 'change-negative'}">${change}</td>
-                        <td class="${status === 'CRITICAL' ? 'risk-extreme' : status === 'VOLATILE' ? 'risk-high' : ''}">${status}</td>
-                    `;
-                }
-            });
-        }
+        // Initialize Data Manager
+        const DataManager = new DataManager();
 
-        // Helper function to get nested value
-        function getNestedValue(obj, path) {
-            return path.split('.').reduce((current, part) => current?.[part], obj);
-        }
-
-        // Helper function to add metric card
-        function addMetricCard(container, label, value, change = null, isCritical = false) {
-            const card = document.createElement('div');
-            card.className = `metric-card ${isCritical ? 'critical' : ''}`;
-            
-            let displayValue = value;
-            let changeHtml = '';
-            
-            if (typeof value === 'object' && value !== null) {
-                displayValue = value.value || value.price || JSON.stringify(value);
-                change = value.change || change;
-            }
-            
-            if (change) {
-                const changeClass = change.toString().includes('+') ? 'change-positive' : 'change-negative';
-                changeHtml = `<div class="metric-change ${changeClass}">${change}</div>`;
-            }
-            
-            card.innerHTML = `
-                <div class="metric-label">${label}</div>
-                <div class="metric-value">${displayValue}</div>
-                ${changeHtml}
-            `;
-            
-            container.appendChild(card);
-        }
-
-        // Clear all metrics
-        function clearAllMetrics() {
-            const containers = [
-                'executiveMetrics', 'marketMetrics', 'treasuryMetrics', 
-                'liquidityMetrics', 'cryptoMetrics', 'aiMetrics', 
-                'bondMetrics', 'currencyMetrics', 'riskMetrics'
-            ];
-            
-            containers.forEach(id => {
-                const container = document.getElementById(id);
-                if (container) {
-                    container.innerHTML = '';
-                }
-            });
-        }
-
-        // Count data points
-        function countDataPoints(obj) {
-            let count = 0;
-            
-            function traverse(o) {
-                for (let key in o) {
-                    if (o.hasOwnProperty(key)) {
-                        count++;
-                        if (typeof o[key] === 'object' && o[key] !== null) {
-                            traverse(o[key]);
-                        }
-                    }
-                }
-            }
-            
-            traverse(obj);
-            return count;
-        }
-
-        // Switch tabs
+        // Tab switching
         function switchTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
@@ -1243,32 +1182,17 @@ Waiting for data...
             event.target.classList.add('active');
         }
 
-        // Toggle auto-refresh
-        function toggleAutoRefresh() {
-            const btn = document.getElementById('autoRefreshBtn');
-            
-            if (autoRefreshInterval) {
-                clearInterval(autoRefreshInterval);
-                autoRefreshInterval = null;
-                btn.textContent = 'AUTO-REFRESH OFF';
-            } else {
-                autoRefreshInterval = setInterval(fetchAllData, 30000); // 30 seconds
-                btn.textContent = 'AUTO-REFRESH ON';
-                fetchAllData(); // Fetch immediately
-            }
-        }
-
         // Initialize on load
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('JustHodl.AI Dashboard initialized');
-            console.log('Connecting to:', API_ENDPOINT);
+            console.log('JustHodl.AI Dashboard Professional v2.0');
+            console.log('Connecting to:', DataManager.API_ENDPOINT);
             
-            // Fetch data immediately
-            fetchAllData();
+            // Initial fetch
+            DataManager.fetchData();
             
-            // Auto-enable refresh after 3 seconds
+            // Auto-enable refresh
             setTimeout(() => {
-                toggleAutoRefresh();
+                DataManager.toggleAutoRefresh();
             }, 3000);
         });
     </script>
