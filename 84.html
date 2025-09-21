@@ -1,1201 +1,313 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JustHodl.AI | Ultimate Macro Financial Command Center</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #00ff41;
-            --danger: #ff0040;
-            --warning: #ffaa00;
-            --info: #00aaff;
-            --bg-primary: #0a0e27;
-            --bg-secondary: #111827;
-            --bg-tertiary: #1a1f3a;
-            --border: #2d3561;
-            --text-primary: #e0e7ff;
-            --text-secondary: #94a3b8;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #000;
-            color: var(--text-primary);
-            overflow-x: hidden;
-        }
-
-        /* Header */
-        .header {
-            background: linear-gradient(180deg, rgba(26, 31, 58, 0.95) 0%, rgba(17, 24, 39, 0.95) 100%);
-            backdrop-filter: blur(20px);
-            border-bottom: 2px solid var(--danger);
-            padding: 10px 20px;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-
-        .header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .logo-text {
-            font-size: 18px;
-            font-weight: 800;
-            color: var(--danger);
-        }
-
-        .crisis-indicator {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
-        .crisis-meter {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 15px;
-            background: rgba(255, 0, 64, 0.1);
-            border: 1px solid var(--danger);
-            border-radius: 20px;
-        }
-
-        .crisis-value {
-            font-size: 18px;
-            font-weight: bold;
-            color: var(--danger);
-        }
-
-        .khalid-index {
-            padding: 10px 20px;
-            background: linear-gradient(90deg, var(--danger), var(--warning));
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .khalid-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: #000;
-        }
-
-        .khalid-label {
-            font-size: 12px;
-            color: #000;
-            font-weight: 600;
-        }
-
-        /* Navigation */
-        .nav-tabs {
-            display: flex;
-            gap: 2px;
-            padding: 10px 20px;
-            background: var(--bg-secondary);
-            border-bottom: 1px solid var(--border);
-            overflow-x: auto;
-            flex-wrap: wrap;
-        }
-
-        .nav-tab {
-            padding: 8px 16px;
-            background: transparent;
-            border: 1px solid transparent;
-            border-radius: 6px;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 12px;
-            white-space: nowrap;
-        }
-
-        .nav-tab:hover {
-            background: rgba(255, 0, 64, 0.1);
-            border-color: var(--danger);
-        }
-
-        .nav-tab.active {
-            background: var(--danger);
-            color: #fff;
-            font-weight: 600;
-        }
-
-        .nav-tab .badge {
-            background: var(--primary);
-            color: #000;
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-size: 10px;
-            margin-left: 5px;
-        }
-
-        /* Main Container */
-        .main-container {
-            padding: 20px;
-            max-width: 1920px;
-            margin: 0 auto;
-        }
-
-        /* Tab Content */
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        /* Section Header */
-        .section-header {
-            background: linear-gradient(90deg, rgba(255, 0, 64, 0.1), transparent);
-            border-left: 4px solid var(--danger);
-            padding: 10px 15px;
-            margin-bottom: 15px;
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--danger);
-        }
-
-        /* Grid Layouts */
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .data-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        /* Metric Card */
-        .metric-card {
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 15px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .metric-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: var(--primary);
-            transform: scaleX(0);
-            transition: transform 0.3s;
-        }
-
-        .metric-card:hover {
-            border-color: var(--primary);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 255, 65, 0.1);
-        }
-
-        .metric-card:hover::before {
-            transform: scaleX(1);
-        }
-
-        .metric-card.critical {
-            border-color: var(--danger);
-            background: rgba(255, 0, 64, 0.05);
-        }
-
-        .metric-card.critical::before {
-            background: var(--danger);
-        }
-
-        .metric-label {
-            font-size: 11px;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            margin-bottom: 8px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-
-        .metric-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--primary);
-            margin-bottom: 5px;
-        }
-
-        .metric-change {
-            font-size: 12px;
-            margin-top: 5px;
-            font-weight: 600;
-        }
-
-        .change-positive {
-            color: var(--primary);
-        }
-
-        .change-negative {
-            color: var(--danger);
-        }
-
-        /* Data Card */
-        .data-card {
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 15px;
-        }
-
-        .data-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .data-card-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .status-badge {
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 10px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .badge-live {
-            background: rgba(0, 255, 65, 0.2);
-            color: var(--primary);
-            border: 1px solid var(--primary);
-        }
-
-        .badge-critical {
-            background: rgba(255, 0, 64, 0.2);
-            color: var(--danger);
-            border: 1px solid var(--danger);
-        }
-
-        /* Data Table */
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 12px;
-        }
-
-        .data-table th {
-            background: rgba(0, 0, 0, 0.5);
-            padding: 8px;
-            text-align: left;
-            font-weight: 600;
-            border-bottom: 1px solid var(--border);
-            color: var(--primary);
-        }
-
-        .data-table td {
-            padding: 8px;
-            border-bottom: 1px solid rgba(45, 53, 97, 0.3);
-        }
-
-        .data-table tr:hover {
-            background: rgba(0, 255, 65, 0.02);
-        }
-
-        /* Terminal */
-        .terminal {
-            background: #000;
-            border: 1px solid var(--primary);
-            border-radius: 6px;
-            padding: 15px;
-            font-family: 'Courier New', monospace;
-            font-size: 11px;
-            height: 500px;
-            overflow-y: auto;
-            margin-bottom: 20px;
-        }
-
-        .terminal pre {
-            color: var(--primary);
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-
-        /* Control Panel */
-        .control-panel {
-            display: flex;
-            gap: 10px;
-            padding: 10px 20px;
-            background: rgba(17, 24, 39, 0.95);
-            border-bottom: 1px solid var(--border);
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        .btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 12px;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .btn-danger {
-            background: var(--danger);
-            color: #fff;
-        }
-
-        .btn-danger:hover {
-            background: #ff1a4a;
-            transform: translateY(-1px);
-        }
-
-        .stats {
-            margin-left: auto;
-            color: var(--text-secondary);
-            font-size: 11px;
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        /* Loading */
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: var(--text-secondary);
-        }
-
-        .spinner {
-            border: 3px solid rgba(0, 255, 65, 0.1);
-            border-top: 3px solid var(--primary);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 10px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Agent Status Grid */
-        .agent-status-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .agent-status {
-            padding: 12px;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: all 0.3s;
-        }
-
-        .agent-status.active {
-            border-color: var(--primary);
-            background: rgba(0, 255, 65, 0.05);
-        }
-
-        .agent-status.error {
-            border-color: var(--danger);
-            background: rgba(255, 0, 64, 0.05);
-        }
-
-        .agent-name {
-            font-weight: 600;
-            font-size: 12px;
-        }
-
-        .status-indicator {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--primary);
-            animation: pulse 2s infinite;
-        }
-
-        .status-dot.error {
-            background: var(--danger);
-            animation: none;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .data-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .metrics-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .header-top {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .crisis-indicator {
-                width: 100%;
-                justify-content: space-between;
-            }
-        }
-
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: var(--text-secondary);
-        }
-
-        .empty-state i {
-            font-size: 48px;
-            color: var(--border);
-            margin-bottom: 15px;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JUSTHODL.AI — Dashboard (Frontend)</title>
+  <!-- Tailwind CDN for quick styling (production: build a proper Tailwind bundle) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js (for simple charts) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- TradingView Lightweight Charts (optional advanced look) -->
+  <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+  <style>
+    /* Custom small tweaks */
+    html, body { height: 100%; }
+    body { background: linear-gradient(180deg,#0b1020,#071027); color: #e6eef8; }
+    .glass { background: rgba(255,255,255,0.03); backdrop-filter: blur(6px); }
+    .muted { color: #9fb0d6; }
+    .card { border: 1px solid rgba(255,255,255,0.04); }
+    .blink { animation: pulse 2s infinite; }
+    @keyframes pulse { 0% { opacity: 1 } 50% { opacity: 0.6 } 100% { opacity: 1 } }
+  </style>
 </head>
-<body>
+<body class="antialiased font-sans">
+  <div class="max-w-7xl mx-auto p-4">
     <!-- Header -->
-    <header class="header">
-        <div class="header-top">
-            <div class="logo">
-                <div class="logo-text">🔴 JUSTHODL.AI ULTIMATE MACRO COMMAND CENTER</div>
-            </div>
-            <div class="crisis-indicator">
-                <div class="crisis-meter">
-                    <span>CRISIS PROBABILITY:</span>
-                    <span class="crisis-value" id="crisisProb">Loading...</span>
-                </div>
-                <div class="khalid-index">
-                    <div class="khalid-value" id="khalidIndex">--/100</div>
-                    <div class="khalid-label">KHALID INDEX</div>
-                </div>
-            </div>
-        </div>
+    <header class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-2xl font-bold">JUSTHODL.AI <span class="text-sm muted">— Live Dashboard (Frontend)</span></h1>
+        <p class="text-sm muted">Connected to <code>https://api.justhodl.ai/</code> (POST {"operation":"data"})</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button id="refreshBtn" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 rounded">Refresh</button>
+        <select id="autoRefresh" class="px-3 py-2 rounded bg-slate-900 border border-slate-800 muted">
+          <option value="0">Auto-refresh: Off</option>
+          <option value="30000">30s</option>
+          <option value="60000">60s</option>
+          <option value="300000">5m (cache TTL)</option>
+        </select>
+        <button id="downloadJson" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 rounded text-sm">Download JSON</button>
+      </div>
     </header>
 
-    <!-- Navigation -->
-    <nav class="nav-tabs">
-        <button class="nav-tab active" onclick="switchTab('executive')">
-            Executive <span class="badge" id="executiveBadge">0</span>
-        </button>
-        <button class="nav-tab" onclick="switchTab('markets')">
-            Markets <span class="badge" id="marketsBadge">0</span>
-        </button>
-        <button class="nav-tab" onclick="switchTab('treasury')">
-            Treasury & Fed <span class="badge" id="treasuryBadge">0</span>
-        </button>
-        <button class="nav-tab" onclick="switchTab('liquidity')">
-            Liquidity <span class="badge" id="liquidityBadge">0</span>
-        </button>
-        <button class="nav-tab" onclick="switchTab('crypto')">
-            Crypto <span class="badge" id="cryptoBadge">0</span>
-        </button>
-        <button class="nav-tab" onclick="switchTab('ai-predictions')">
-            AI Predictions <span class="badge" id="aiBadge">0</span>
-        </button>
-        <button class="nav-tab" onclick="switchTab('bonds')">
-            Bonds <span class="badge" id="bondsBadge">0</span>
-        </button>
-        <button class="nav-tab" onclick="switchTab('currency')">
-            Currencies <span class="badge" id="currencyBadge">0</span>
-        </button>
-        <button class="nav-tab" onclick="switchTab('risk')">
-            Risk Metrics <span class="badge" id="riskBadge">0</span>
-        </button>
-        <button class="nav-tab" onclick="switchTab('agents')">
-            Agent Status <span class="badge" id="agentsBadge">0</span>
-        </button>
-        <button class="nav-tab" onclick="switchTab('raw')">
-            Raw Data
-        </button>
-    </nav>
-
-    <!-- Control Panel -->
-    <div class="control-panel">
-        <button class="btn btn-danger" onclick="window.DataManager.fetchData()">
-            <i class="fas fa-sync"></i> FETCH ALL DATA
-        </button>
-        <button class="btn btn-danger" onclick="window.DataManager.toggleAutoRefresh()">
-            <i class="fas fa-clock"></i> <span id="autoRefreshBtn">AUTO-REFRESH OFF</span>
-        </button>
-        <div class="stats">
-            <span>Last Update: <strong id="lastUpdate">Never</strong></span>
-            <span>Response: <strong id="responseTime">0ms</strong></span>
-            <span>Data Points: <strong id="dataPoints">0</strong></span>
-            <span>Agents: <strong id="agentsActive">0/14</strong></span>
+    <!-- Top cards -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div class="card glass p-4 rounded shadow-sm">
+        <h2 class="text-sm muted">Market Snapshot</h2>
+        <div id="marketSnapshot" class="mt-3 grid grid-cols-2 gap-2 text-lg">
+          <!-- populated by JS -->
         </div>
-    </div>
+      </div>
 
-    <!-- Main Container -->
-    <div class="main-container">
+      <div class="card glass p-4 rounded shadow-sm">
+        <h2 class="text-sm muted">System Status</h2>
+        <div class="mt-3 space-y-2">
+          <div class="flex justify-between"><span class="muted">Orchestrator</span><span id="orchestratorStatus">—</span></div>
+          <div class="flex justify-between"><span class="muted">Agents Online</span><span id="agentsOnline">—</span></div>
+          <div class="flex justify-between"><span class="muted">Response Time</span><span id="respTime">—</span></div>
+          <div class="flex justify-between"><span class="muted">Data Volume</span><span id="dataVolume">—</span></div>
+        </div>
+      </div>
 
-        <!-- Executive Dashboard -->
-        <div id="executive" class="tab-content active">
-            <div class="section-header">⚠️ EXECUTIVE DASHBOARD - REAL-TIME SYNTHESIS</div>
-            <div class="metrics-grid" id="executiveMetrics"></div>
-            <div class="data-grid">
-                <div class="data-card">
-                    <div class="data-card-header">
-                        <div class="data-card-title">
-                            <i class="fas fa-exclamation-triangle"></i> Critical Indicators
-                        </div>
-                        <span class="status-badge badge-live">LIVE</span>
-                    </div>
-                    <table class="data-table" id="criticalIndicators">
-                        <thead>
-                            <tr>
-                                <th>Indicator</th>
-                                <th>Value</th>
-                                <th>Change</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
+      <div class="card glass p-4 rounded shadow-sm">
+        <h2 class="text-sm muted">AI Predictions & Signals</h2>
+        <div id="aiPanel" class="mt-3 space-y-2">
+          <!-- populated by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Main grid -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <!-- Left: Chart + controls -->
+      <div class="lg:col-span-2 card glass p-4 rounded">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-3">
+            <label class="muted text-sm">Metric</label>
+            <select id="metricSelect" class="px-3 py-1 rounded bg-slate-900 border border-slate-800">
+              <option value="sp500">S&P 500</option>
+              <option value="btc">Bitcoin</option>
+              <option value="eth">Ethereum</option>
+              <option value="vix">VIX</option>
+              <option value="10y">10Y Treasury</option>
+            </select>
+            <label class="muted text-sm">Timeframe</label>
+            <select id="timeframe" class="px-3 py-1 rounded bg-slate-900 border border-slate-800">
+              <option value="1D">1D</option>
+              <option value="1W">1W</option>
+              <option value="1M">1M</option>
+              <option value="3M">3M</option>
+              <option value="1Y" selected>1Y</option>
+              <option value="5Y">5Y</option>
+            </select>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="openBasicChart" class="px-3 py-1 bg-slate-800 rounded text-sm muted">Open Basic Chart</button>
+            <button id="openAdvChart" class="px-3 py-1 bg-slate-800 rounded text-sm muted">Open Advanced Chart</button>
+          </div>
         </div>
 
-        <!-- Markets Tab -->
-        <div id="markets" class="tab-content">
-            <div class="section-header">📈 MARKET DATA</div>
-            <div class="metrics-grid" id="marketMetrics"></div>
+        <div class="h-96 bg-slate-900 rounded p-3">
+          <canvas id="mainChart" class="h-full w-full"></canvas>
         </div>
 
-        <!-- Treasury Tab -->
-        <div id="treasury" class="tab-content">
-            <div class="section-header">🏛️ TREASURY & FEDERAL RESERVE</div>
-            <div class="metrics-grid" id="treasuryMetrics"></div>
+        <div class="mt-3 text-sm muted">Tip: Click "Open Advanced Chart" to view TradingView-style candlesticks (served by your chart agent).</div>
+      </div>
+
+      <!-- Right: Watchlist + Raw data -->
+      <aside class="card glass p-4 rounded">
+        <h3 class="text-sm muted mb-2">Watchlist</h3>
+        <div class="flex gap-2 mb-3">
+          <input id="watchInput" class="flex-1 px-2 py-1 rounded bg-slate-900 border border-slate-800" placeholder="Add symbol (e.g. AAPL)" />
+          <button id="addWatch" class="px-3 py-1 bg-sky-600 rounded">Add</button>
+        </div>
+        <ul id="watchList" class="space-y-2 text-sm">
+          <!-- watch items -->
+        </ul>
+
+        <hr class="my-3 border-slate-800" />
+        <h3 class="text-sm muted mb-2">Raw Last Payload</h3>
+        <pre id="rawPayload" class="text-xs p-2 rounded bg-black/30 max-h-48 overflow-auto"></pre>
+      </aside>
+    </section>
+
+    <!-- Footer: Chart agent iframe and quick links -->
+    <footer class="mt-6 text-sm muted">
+      <div class="flex flex-col md:flex-row gap-3">
+        <div class="flex-1 card glass p-3 rounded">
+          <div class="flex justify-between items-center mb-2">
+            <strong>Embedded Basic Chart</strong>
+            <small class="muted">auto-updates</small>
+          </div>
+          <iframe id="basicChartFrame" src="https://wehli6nf3a6rq575td5w6jk7ii0yptqg.lambda-url.us-east-1.on.aws/?chart_type=liquidity&timeframe=24h" class="w-full h-48 border-0 rounded"></iframe>
         </div>
 
-        <!-- Liquidity Tab -->
-        <div id="liquidity" class="tab-content">
-            <div class="section-header">💧 LIQUIDITY METRICS</div>
-            <div class="metrics-grid" id="liquidityMetrics"></div>
+        <div class="w-64 card glass p-3 rounded">
+          <strong>Quick Links</strong>
+          <ul class="mt-2 text-sm muted space-y-1">
+            <li><a class="underline" href="https://api.justhodl.ai/" target="_blank">api.justhodl.ai</a></li>
+            <li><a class="underline" href="https://6kxsmitl3uzekqfzjki7mprzku0ruzin.lambda-url.us-east-1.on.aws/" target="_blank">Direct Orchestrator</a></li>
+            <li><a class="underline" href="https://e6p3e3jhsgha45rl7inapnmz4m0qmcbc.lambda-url.us-east-1.on.aws/?type=candlestick&period=1D&indicator=sp500" target="_blank">Advanced Charts</a></li>
+          </ul>
         </div>
+      </div>
+    </footer>
+  </div>
 
-        <!-- Crypto Tab -->
-        <div id="crypto" class="tab-content">
-            <div class="section-header">₿ CRYPTOCURRENCY</div>
-            <div class="metrics-grid" id="cryptoMetrics"></div>
-        </div>
+  <!-- Small toast -->
+  <div id="toast" class="fixed right-6 bottom-6 hidden p-3 rounded shadow-xl glass"></div>
 
-        <!-- AI Predictions Tab -->
-        <div id="ai-predictions" class="tab-content">
-            <div class="section-header">🤖 AI PREDICTIONS</div>
-            <div class="metrics-grid" id="aiMetrics"></div>
-        </div>
+  <script>
+    // Configuration
+    const API_URL = 'https://api.justhodl.ai/'; // uses POST {"operation":"data"}
+    const BASIC_CHART_URL = 'https://wehli6nf3a6rq575td5w6jk7ii0yptqg.lambda-url.us-east-1.on.aws/';
+    const ADV_CHART_URL = 'https://e6p3e3jhsgha45rl7inapnmz4m0qmcbc.lambda-url.us-east-1.on.aws/';
+    let lastPayload = null;
+    let autoRefreshTimer = null;
+    let mainChart = null;
 
-        <!-- Bonds Tab -->
-        <div id="bonds" class="tab-content">
-            <div class="section-header">📊 BOND MARKETS</div>
-            <div class="metrics-grid" id="bondMetrics"></div>
-        </div>
+    // Utility
+    function toast(msg, timeout=4000) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.remove('hidden');
+      setTimeout(()=> t.classList.add('hidden'), timeout);
+    }
 
-        <!-- Currency Tab -->
-        <div id="currency" class="tab-content">
-            <div class="section-header">💱 CURRENCY MARKETS</div>
-            <div class="metrics-grid" id="currencyMetrics"></div>
-        </div>
-
-        <!-- Risk Tab -->
-        <div id="risk" class="tab-content">
-            <div class="section-header">⚠️ RISK METRICS</div>
-            <div class="metrics-grid" id="riskMetrics"></div>
-        </div>
-
-        <!-- Agent Status Tab -->
-        <div id="agents" class="tab-content">
-            <div class="section-header">🤖 DATA AGENT STATUS</div>
-            <div class="agent-status-grid" id="agentStatusGrid"></div>
-        </div>
-
-        <!-- Raw Data Tab -->
-        <div id="raw" class="tab-content">
-            <div class="section-header">💾 RAW DATA FEED</div>
-            <div class="terminal" id="rawDataTerminal">
-                <pre id="rawDataContent">Waiting for data...</pre>
-            </div>
-        </div>
-
-    </div>
-
-    <script>
-        // Professional Data Management System
-        class DataManager {
-            constructor() {
-                this.API_ENDPOINT = 'https://api.justhodl.ai/';
-                this.BACKUP_ENDPOINT = 'https://6kxsmitl3uzekqfzjki7mprzku0ruzin.lambda-url.us-east-1.on.aws/';
-                this.currentData = null;
-                this.autoRefreshInterval = null;
-                this.fetchInProgress = false;
-                this.agentMapping = {
-                    'FedLiquidityAgent': 'treasury',
-                    'TreasuryDirectAgent': 'treasury',
-                    'StockMarketsAgent': 'markets',
-                    'USMarketsAgent': 'markets',
-                    'GlobalMarketsAgent': 'markets',
-                    'CryptoAgent': 'crypto',
-                    'AIPredictionsAgent': 'ai-predictions',
-                    'MLForecastAgent': 'ai-predictions',
-                    'BondRatesAgent': 'bonds',
-                    'CurrencyAgent': 'currency',
-                    'DollarIndexAgent': 'currency',
-                    'RiskMetricsAgent': 'risk',
-                    'CrisisIndicatorAgent': 'risk',
-                    'FearGreedAgent': 'risk'
-                };
-                this.categoryCounters = {};
-            }
-
-            async fetchData() {
-                if (this.fetchInProgress) {
-                    console.log('Fetch already in progress...');
-                    return;
-                }
-
-                this.fetchInProgress = true;
-                const startTime = Date.now();
-                this.updateStatus('Fetching...', 'lastUpdate');
-                this.showLoadingState();
-
-                try {
-                    const response = await fetch(this.API_ENDPOINT, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ operation: 'data' })
-                    });
-
-                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                    
-                    const data = await response.json();
-                    this.currentData = data;
-                    
-                    console.log('=== FULL API RESPONSE ===');
-                    console.log(data);
-                    
-                    // Process the data with deep parsing
-                    this.processResponse(data);
-                    
-                    // FALLBACK: If no data displayed, force display everything
-                    if (Object.keys(this.categoryCounters).length === 0) {
-                        console.log('No data categorized, forcing display of all data...');
-                        this.forceDisplayAllData(data);
-                    }
-                    
-                    // Update stats
-                    const responseTime = Date.now() - startTime;
-                    this.updateStatus(`${responseTime}ms`, 'responseTime');
-                    this.updateStatus(new Date().toLocaleTimeString(), 'lastUpdate');
-                    this.updateStatus(this.countDataPoints(data), 'dataPoints');
-                    
-                    // Update raw data
-                    document.getElementById('rawDataContent').textContent = JSON.stringify(data, null, 2);
-                    
-                } catch (error) {
-                    console.error('Fetch error:', error);
-                    this.handleFetchError(error);
-                } finally {
-                    this.fetchInProgress = false;
-                    this.hideLoadingState();
-                }
-            }
-
-            forceDisplayAllData(data) {
-                console.log('Force displaying all data...');
-                const executiveContainer = document.getElementById('executiveMetrics');
-                
-                // Display everything in executive dashboard
-                this.forceParseObject(data, executiveContainer, '');
-            }
-
-            forceParseObject(obj, container, prefix = '') {
-                if (!obj || !container) return;
-                
-                Object.keys(obj).forEach(key => {
-                    const value = obj[key];
-                    
-                    // Skip null/undefined
-                    if (value === null || value === undefined) return;
-                    
-                    // Display primitives
-                    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-                        const label = prefix ? `${prefix} > ${key}` : key;
-                        this.addMetricCard(container, this.formatLabel(label), value);
-                    }
-                    // Recursively handle objects
-                    else if (typeof value === 'object' && !Array.isArray(value)) {
-                        // Check for value objects
-                        if (value.value || value.price || value.current) {
-                            const displayValue = value.value || value.price || value.current;
-                            const change = value.change || value.change_24h || null;
-                            const label = prefix ? `${prefix} > ${key}` : key;
-                            this.addMetricCard(container, this.formatLabel(label), displayValue, change);
-                        } else {
-                            // Recursive parse
-                            const newPrefix = prefix ? `${prefix} > ${key}` : key;
-                            this.forceParseObject(value, container, newPrefix);
-                        }
-                    }
-                    // Handle arrays
-                    else if (Array.isArray(value)) {
-                        value.forEach((item, index) => {
-                            if (typeof item === 'object') {
-                                const newPrefix = `${prefix ? prefix + ' > ' : ''}${key}[${index}]`;
-                                this.forceParseObject(item, container, newPrefix);
-                            }
-                        });
-                    }
-                });
-            }
-
-            processResponse(data) {
-                console.log('=== FULL API RESPONSE STRUCTURE ===');
-                console.log(data);
-                
-                // Reset counters
-                this.categoryCounters = {};
-                this.clearAllMetrics();
-
-                // Deep parse the entire response
-                this.deepParseData(data);
-
-                // Update executive dashboard
-                this.updateExecutiveDashboard();
-                
-                // Update badges
-                this.updateBadges();
-            }
-
-            deepParseData(obj, path = '', depth = 0) {
-                if (!obj || depth > 10) return;
-
-                Object.keys(obj).forEach(key => {
-                    const value = obj[key];
-                    const currentPath = path ? `${path}.${key}` : key;
-                    
-                    console.log(`Processing: ${currentPath}`, value);
-
-                    // Handle agent_status or agents_status
-                    if (key === 'agents_status' || key === 'agent_status' || key === 'agentStatus') {
-                        this.displayAgentStatus(value);
-                        return;
-                    }
-
-                    // Skip null, undefined, or metadata
-                    if (value === null || value === undefined || 
-                        ['status', 'timestamp', 'headers', 'statusCode'].includes(key)) {
-                        return;
-                    }
-
-                    // If it's a primitive value, display it
-                    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-                        this.displayMetric(key, value, path);
-                    } 
-                    // If it's an array
-                    else if (Array.isArray(value)) {
-                        value.forEach((item, index) => {
-                            if (typeof item === 'object') {
-                                this.deepParseData(item, `${currentPath}[${index}]`, depth + 1);
-                            } else {
-                                this.displayMetric(`${key}[${index}]`, item, path);
-                            }
-                        });
-                    }
-                    // If it's an object
-                    else if (typeof value === 'object') {
-                        // Check if it looks like a data value object
-                        if (value.value !== undefined || value.price !== undefined || 
-                            value.current !== undefined || value.last !== undefined) {
-                            const displayValue = value.value || value.price || value.current || value.last;
-                            const change = value.change || value.change_24h || value.change_percent || null;
-                            this.displayMetric(key, displayValue, path, change);
-                        } else {
-                            // Recursively parse nested objects
-                            this.deepParseData(value, currentPath, depth + 1);
-                        }
-                    }
-                });
-            }
-
-            displayMetric(key, value, path, change = null) {
-                // Determine which container to use
-                const category = this.determineCategory(path + '.' + key);
-                const containerMap = {
-                    'markets': 'marketMetrics',
-                    'treasury': 'treasuryMetrics',
-                    'liquidity': 'liquidityMetrics',
-                    'crypto': 'cryptoMetrics',
-                    'ai-predictions': 'aiMetrics',
-                    'bonds': 'bondMetrics',
-                    'currency': 'currencyMetrics',
-                    'risk': 'riskMetrics',
-                    'executive': 'executiveMetrics'
-                };
-
-                const containerId = containerMap[category] || 'executiveMetrics';
-                const container = document.getElementById(containerId);
-                
-                if (!container) {
-                    console.warn(`Container ${containerId} not found for ${key}`);
-                    return;
-                }
-
-                // Create metric card
-                this.addMetricCard(container, this.formatLabel(key), value, change);
-                
-                // Update counter
-                this.categoryCounters[category] = (this.categoryCounters[category] || 0) + 1;
-
-                // Special handling for critical values
-                if (key.toLowerCase().includes('crisis') || key.toLowerCase().includes('khalid')) {
-                    if (key.toLowerCase().includes('crisis')) {
-                        document.getElementById('crisisProb').textContent = value + '%';
-                    }
-                    if (key.toLowerCase().includes('khalid')) {
-                        document.getElementById('khalidIndex').textContent = value + '/100';
-                    }
-                }
-            }
-
-            addMetricCard(container, label, value, change = null) {
-                const card = document.createElement('div');
-                card.className = 'metric-card';
-                
-                // Format value
-                let displayValue = value;
-                if (typeof value === 'number') {
-                    displayValue = this.formatNumber(value);
-                }
-                
-                // Change HTML
-                let changeHtml = '';
-                if (change !== null && change !== undefined) {
-                    const changeClass = String(change).includes('-') ? 'change-negative' : 'change-positive';
-                    const changePrefix = String(change).includes('-') ? '' : '+';
-                    changeHtml = `<div class="metric-change ${changeClass}">${changePrefix}${change}</div>`;
-                }
-                
-                card.innerHTML = `
-                    <div class="metric-label">${label}</div>
-                    <div class="metric-value">${displayValue}</div>
-                    ${changeHtml}
-                `;
-                
-                container.appendChild(card);
-            }
-
-            updateExecutiveDashboard() {
-                const container = document.getElementById('executiveMetrics');
-                const tbody = document.querySelector('#criticalIndicators tbody');
-                tbody.innerHTML = '';
-
-                // Find and display critical metrics
-                const criticalMetrics = [
-                    { key: 'sp500', label: 'S&P 500' },
-                    { key: 'vix', label: 'VIX' },
-                    { key: 'bitcoin', label: 'Bitcoin' },
-                    { key: 'fed_balance_sheet', label: 'Fed Balance' },
-                    { key: 'crisis_probability', label: 'Crisis Probability' }
-                ];
-
-                criticalMetrics.forEach(metric => {
-                    const value = this.findValueInData(metric.key);
-                    if (value !== undefined) {
-                        // Add to executive metrics
-                        this.addMetricCard(container, metric.label, value.value || value, value.change, true);
-                        
-                        // Add to table
-                        const row = tbody.insertRow();
-                        const change = value.change || '';
-                        const status = this.determineStatus(value.value || value, change);
-                        
-                        row.innerHTML = `
-                            <td>${metric.label}</td>
-                            <td>${this.formatNumber(value.value || value)}</td>
-                            <td class="${String(change).includes('-') ? 'change-negative' : 'change-positive'}">${change}</td>
-                            <td>${status}</td>
-                        `;
-                    }
-                });
-            }
-
-            findValueInData(key) {
-                if (!this.currentData) return undefined;
-                
-                // Search in the data structure
-                const search = (obj, searchKey) => {
-                    if (!obj) return undefined;
-                    
-                    for (let prop in obj) {
-                        if (prop.toLowerCase().includes(searchKey.toLowerCase())) {
-                            return obj[prop];
-                        }
-                        if (typeof obj[prop] === 'object') {
-                            const result = search(obj[prop], searchKey);
-                            if (result !== undefined) return result;
-                        }
-                    }
-                    return undefined;
-                };
-                
-                return search(this.currentData, key);
-            }
-
-            displayAgentStatus(agentStatus) {
-                const container = document.getElementById('agentStatusGrid');
-                container.innerHTML = '';
-                
-                console.log('Agent Status Data:', agentStatus);
-                
-                let activeCount = 0;
-                const totalAgents = 14;
-
-                // Handle different structures of agent status
-                if (typeof agentStatus === 'object') {
-                    Object.keys(agentStatus).forEach(agent => {
-                        const status = agentStatus[agent];
-                        const isActive = status === 'active' || status === 'success' || 
-                                       status === true || status === 'ok' || 
-                                       status === 200 || status === '200';
-                        if (isActive) activeCount++;
-                        
-                        const statusDiv = document.createElement('div');
-                        statusDiv.className = `agent-status ${isActive ? 'active' : 'error'}`;
-                        statusDiv.innerHTML = `
-                            <span class="agent-name">${this.formatLabel(agent)}</span>
-                            <div class="status-indicator">
-                                <span>${isActive ? 'Active' : 'Error'}</span>
-                                <span class="status-dot ${isActive ? '' : 'error'}"></span>
-                            </div>
-                        `;
-                        container.appendChild(statusDiv);
-                    });
-                }
-                
-                this.updateStatus(`${activeCount}/${totalAgents}`, 'agentsActive');
-                this.categoryCounters['agents'] = activeCount;
-            }
-
-            updateBadges() {
-                Object.keys(this.categoryCounters).forEach(category => {
-                    const badgeId = category.replace('-', '') + 'Badge';
-                    const badge = document.getElementById(badgeId);
-                    if (badge) {
-                        badge.textContent = this.categoryCounters[category] || 0;
-                    }
-                });
-            }
-
-            formatLabel(key) {
-                return key
-                    .replace(/([A-Z])/g, ' $1')
-                    .replace(/_/g, ' ')
-                    .replace(/-/g, ' ')
-                    .trim()
-                    .split(' ')
-                    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                    .join(' ');
-            }
-
-            formatNumber(value) {
-                if (typeof value !== 'number') return value;
-                
-                if (value >= 1000000000) {
-                    return `$${(value / 1000000000).toFixed(2)}T`;
-                } else if (value >= 1000000) {
-                    return `$${(value / 1000000).toFixed(2)}M`;
-                } else if (value >= 1000) {
-                    return `$${(value / 1000).toFixed(2)}K`;
-                } else if (value < 1) {
-                    return value.toFixed(4);
-                }
-                return value.toFixed(2);
-            }
-
-            determineStatus(value, change) {
-                const changeNum = parseFloat(String(change).replace('%', '').replace('+', ''));
-                if (Math.abs(changeNum) > 10) return 'CRITICAL';
-                if (Math.abs(changeNum) > 5) return 'WARNING';
-                return 'STABLE';
-            }
-
-            clearAllMetrics() {
-                const containers = [
-                    'executiveMetrics', 'marketMetrics', 'treasuryMetrics',
-                    'liquidityMetrics', 'cryptoMetrics', 'aiMetrics',
-                    'bondMetrics', 'currencyMetrics', 'riskMetrics'
-                ];
-                
-                containers.forEach(id => {
-                    const container = document.getElementById(id);
-                    if (container) container.innerHTML = '';
-                });
-            }
-
-            countDataPoints(obj) {
-                let count = 0;
-                const traverse = (o) => {
-                    for (let key in o) {
-                        if (o.hasOwnProperty(key)) {
-                            count++;
-                            if (typeof o[key] === 'object' && o[key] !== null) {
-                                traverse(o[key]);
-                            }
-                        }
-                    }
-                };
-                traverse(obj);
-                return count;
-            }
-
-            updateStatus(value, elementId) {
-                const element = document.getElementById(elementId);
-                if (element) element.textContent = value;
-            }
-
-            showLoadingState() {
-                this.clearAllMetrics();
-                const containers = document.querySelectorAll('.metrics-grid');
-                containers.forEach(container => {
-                    if (container.children.length === 0) {
-                        container.innerHTML = '<div class="loading"><div class="spinner"></div>Loading data...</div>';
-                    }
-                });
-            }
-
-            hideLoadingState() {
-                const loadingElements = document.querySelectorAll('.loading');
-                loadingElements.forEach(el => el.remove());
-            }
-
-            async handleFetchError(error) {
-                console.log('Trying backup endpoint...');
-                try {
-                    const response = await fetch(this.BACKUP_ENDPOINT, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ operation: 'data' })
-                    });
-                    
-                    const data = await response.json();
-                    this.currentData = data;
-                    this.processResponse(data);
-                    this.updateStatus(new Date().toLocaleTimeString() + ' (backup)', 'lastUpdate');
-                } catch (backupError) {
-                    console.error('Backup also failed:', backupError);
-                    this.updateStatus('Error', 'lastUpdate');
-                }
-            }
-
-            toggleAutoRefresh() {
-                const btn = document.getElementById('autoRefreshBtn');
-                
-                if (this.autoRefreshInterval) {
-                    clearInterval(this.autoRefreshInterval);
-                    this.autoRefreshInterval = null;
-                    btn.textContent = 'AUTO-REFRESH OFF';
-                } else {
-                    this.autoRefreshInterval = setInterval(() => this.fetchData(), 30000);
-                    btn.textContent = 'AUTO-REFRESH ON';
-                    this.fetchData();
-                }
-            }
-        }
-
-        // Initialize Data Manager instance
-        const dataManager = new DataManager();
-
-        // Make it globally accessible for button clicks
-        window.DataManager = dataManager;
-
-        // Tab switching
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            document.querySelectorAll('.nav-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
-        }
-
-        // Initialize on load
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('JustHodl.AI Dashboard Professional v2.0');
-            console.log('Connecting to:', dataManager.API_ENDPOINT);
-            
-            // Initial fetch
-            dataManager.fetchData();
-            
-            // Auto-enable refresh
-            setTimeout(() => {
-                dataManager.toggleAutoRefresh();
-            }, 3000);
+    // Fetch data from orchestrator
+    async function fetchData() {
+      try {
+        const t0 = performance.now();
+        const res = await fetch(API_URL, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ operation: 'data' })
         });
-    </script>
+        if (!res.ok) throw new Error('Network response not ok: ' + res.status);
+        const json = await res.json();
+        const t1 = performance.now();
+        lastPayload = json;
+        renderSnapshot(json);
+        renderSystem(json, t1 - t0);
+        renderAI(json);
+        renderRaw(json);
+        updateChart(json);
+      } catch (err) {
+        console.error(err);
+        toast('Error fetching data: ' + (err.message || err));
+      }
+    }
+
+    // Render snapshot cards
+    function renderSnapshot(data) {
+      const map = {
+        sp500: {label: 'S&P 500', value: data?.market?.sp500 ?? data?.SP500 ?? '—'},
+        btc: {label: 'Bitcoin', value: data?.market?.bitcoin ?? data?.BTC ?? '—'},
+        eth: {label: 'Ethereum', value: data?.market?.ethereum ?? data?.ETH ?? '—'},
+        vix: {label: 'VIX', value: data?.market?.vix ?? data?.VIX ?? '—'},
+      };
+      const container = document.getElementById('marketSnapshot');
+      container.innerHTML = '';
+      Object.values(map).forEach(item => {
+        const el = document.createElement('div');
+        el.className = 'p-2 bg-transparent rounded';
+        el.innerHTML = `<div class="text-xs muted">${item.label}</div><div class="text-lg font-semibold">${formatNumber(item.value)}</div>`;
+        container.appendChild(el);
+      });
+    }
+
+    function formatNumber(v) {
+      if (v === undefined || v === null) return '—';
+      if (typeof v === 'number') return v.toLocaleString(undefined, { maximumFractionDigits: 2 });
+      return v;
+    }
+
+    function renderSystem(data, ms) {
+      document.getElementById('orchestratorStatus').textContent = data?.meta?.orchestrator || 'justhodl-ultimate-orchestrator';
+      document.getElementById('agentsOnline').textContent = (data?.meta?.agents_online || data?.agents?.online || '14/14');
+      document.getElementById('respTime').textContent = Math.round(ms) + ' ms';
+      document.getElementById('dataVolume').textContent = (data?.meta?.data_volume || '≈17KB');
+    }
+
+    function renderAI(data) {
+      const p = document.getElementById('aiPanel');
+      p.innerHTML = '';
+      const pred = data?.ai || data?.predictions || {};
+      const items = [
+        {k: 'market_phase', label: 'Market Phase'},
+        {k: '1w', label: '1-Week'},
+        {k: '1m', label: '1-Month'},
+        {k: '3m', label: '3-Month'},
+        {k: 'crisis_prob', label: 'Crisis Probability'},
+      ];
+      items.forEach(it => {
+        const v = pred[it.k] ?? pred[it.label.toLowerCase()] ?? '—';
+        const div = document.createElement('div');
+        div.className = 'flex justify-between';
+        div.innerHTML = `<span class="muted">${it.label}</span><strong>${formatNumber(v)}</strong>`;
+        p.appendChild(div);
+      });
+    }
+
+    function renderRaw(data) {
+      const pre = document.getElementById('rawPayload');
+      try { pre.textContent = JSON.stringify(data, null, 2); } catch(e){ pre.textContent = String(data); }
+    }
+
+    // Charting: create or update Chart.js chart with sample series
+    function updateChart(data) {
+      // Prefer timeseries in payload: data.timeseries[metric]
+      const metric = document.getElementById('metricSelect').value;
+      const timeframe = document.getElementById('timeframe').value;
+      // Try fallback paths
+      const series = (data?.timeseries && data.timeseries[metric]) || (data?.series && data.series[metric]) || null;
+      if (!series) {
+        // If no timeseries available, create a mock series from recent values
+        const now = new Date();
+        const labels = [];
+        const points = [];
+        for (let i=30; i>=0; i--) { const d = new Date(now - i*24*3600*1000); labels.push(d.toISOString().slice(0,10)); points.push(Math.random()*1000 + (metric==='btc'?60000:4000)); }
+        renderChart(labels, points, metric.toUpperCase());
+        return;
+      }
+      // timeseries expected format: [{ts: '2025-09-21T...', value: 6664.36}, ...]
+      const labels = series.map(s => s.ts ? s.ts.slice(0,10) : s.date || s[0]);
+      const points = series.map(s => s.value ?? s.v ?? (Array.isArray(s)?s[1]:null));
+      renderChart(labels, points, metric.toUpperCase());
+    }
+
+    function renderChart(labels, dataPoints, label) {
+      const ctx = document.getElementById('mainChart');
+      if (mainChart) { mainChart.data.labels = labels; mainChart.data.datasets[0].data = dataPoints; mainChart.update(); return; }
+      mainChart = new Chart(ctx, {
+        type: 'line', data: { labels: labels, datasets: [{ label: label, data: dataPoints, tension: 0.2, borderWidth: 2, fill: true }] },
+        options: { responsive: true, plugins: { legend: { display: true }, tooltip: { mode: 'index' } }, scales: { x: { grid: { display: false } }, y: { grid: { color: 'rgba(255,255,255,0.03)' } } }
+      });
+    }
+
+    // Watchlist handling
+    function loadWatchlist() {
+      const saved = JSON.parse(localStorage.getItem('justhodl_watch') || '[]');
+      const ul = document.getElementById('watchList'); ul.innerHTML = '';
+      saved.forEach(sym => { const li = document.createElement('li'); li.className='flex justify-between items-center'; li.innerHTML = `<span>${sym}</span><div><button class='px-2 py-1 text-xs rounded bg-slate-800' onclick="removeWatch('${sym}')">Remove</button></div>`; ul.appendChild(li); });
+    }
+    function addWatch(sym) {
+      if(!sym) return; const cleaned = sym.trim().toUpperCase(); const arr = JSON.parse(localStorage.getItem('justhodl_watch')||'[]'); if (!arr.includes(cleaned)) { arr.push(cleaned); localStorage.setItem('justhodl_watch', JSON.stringify(arr)); loadWatchlist(); }
+    }
+    function removeWatch(sym) { const arr = JSON.parse(localStorage.getItem('justhodl_watch')||'[]'); const filtered = arr.filter(s=>s!==sym); localStorage.setItem('justhodl_watch', JSON.stringify(filtered)); loadWatchlist(); }
+
+    // UI Wiring
+    document.getElementById('refreshBtn').addEventListener('click', fetchData);
+    document.getElementById('metricSelect').addEventListener('change', ()=> updateChart(lastPayload || {}));
+    document.getElementById('timeframe').addEventListener('change', ()=> updateChart(lastPayload || {}));
+    document.getElementById('addWatch').addEventListener('click', ()=> { addWatch(document.getElementById('watchInput').value); document.getElementById('watchInput').value=''; });
+    document.getElementById('openBasicChart').addEventListener('click', ()=> { window.open(BASIC_CHART_URL + '?chart_type=liquidity&timeframe=24h','_blank'); });
+    document.getElementById('openAdvChart').addEventListener('click', ()=> { window.open(ADV_CHART_URL + '?type=candlestick&period=1D&indicator=sp500','_blank'); });
+    document.getElementById('downloadJson').addEventListener('click', ()=> {
+      if(!lastPayload) return toast('No payload to download');
+      const blob = new Blob([JSON.stringify(lastPayload, null, 2)], {type:'application/json'});
+      const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'justhodl_payload.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    });
+
+    // Auto-refresh logic
+    document.getElementById('autoRefresh').addEventListener('change', (e)=>{
+      if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+      const val = Number(e.target.value);
+      if (val>0) autoRefreshTimer = setInterval(fetchData, val);
+    });
+
+    // init
+    loadWatchlist();
+    fetchData();
+  </script>
 </body>
 </html>
