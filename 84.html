@@ -731,10 +731,17 @@
                     const data = await response.json();
                     this.currentData = data;
                     
-                    console.log('Full API Response:', data);
+                    console.log('=== FULL API RESPONSE ===');
+                    console.log(data);
                     
-                    // Process the data
+                    // Process the data with deep parsing
                     this.processResponse(data);
+                    
+                    // FALLBACK: If no data displayed, force display everything
+                    if (Object.keys(this.categoryCounters).length === 0) {
+                        console.log('No data categorized, forcing display of all data...');
+                        this.forceDisplayAllData(data);
+                    }
                     
                     // Update stats
                     const responseTime = Date.now() - startTime;
@@ -754,28 +761,64 @@
                 }
             }
 
+            forceDisplayAllData(data) {
+                console.log('Force displaying all data...');
+                const executiveContainer = document.getElementById('executiveMetrics');
+                
+                // Display everything in executive dashboard
+                this.forceParseObject(data, executiveContainer, '');
+            }
+
+            forceParseObject(obj, container, prefix = '') {
+                if (!obj || !container) return;
+                
+                Object.keys(obj).forEach(key => {
+                    const value = obj[key];
+                    
+                    // Skip null/undefined
+                    if (value === null || value === undefined) return;
+                    
+                    // Display primitives
+                    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+                        const label = prefix ? `${prefix} > ${key}` : key;
+                        this.addMetricCard(container, this.formatLabel(label), value);
+                    }
+                    // Recursively handle objects
+                    else if (typeof value === 'object' && !Array.isArray(value)) {
+                        // Check for value objects
+                        if (value.value || value.price || value.current) {
+                            const displayValue = value.value || value.price || value.current;
+                            const change = value.change || value.change_24h || null;
+                            const label = prefix ? `${prefix} > ${key}` : key;
+                            this.addMetricCard(container, this.formatLabel(label), displayValue, change);
+                        } else {
+                            // Recursive parse
+                            const newPrefix = prefix ? `${prefix} > ${key}` : key;
+                            this.forceParseObject(value, container, newPrefix);
+                        }
+                    }
+                    // Handle arrays
+                    else if (Array.isArray(value)) {
+                        value.forEach((item, index) => {
+                            if (typeof item === 'object') {
+                                const newPrefix = `${prefix ? prefix + ' > ' : ''}${key}[${index}]`;
+                                this.forceParseObject(item, container, newPrefix);
+                            }
+                        });
+                    }
+                });
+            }
+
             processResponse(data) {
+                console.log('=== FULL API RESPONSE STRUCTURE ===');
+                console.log(data);
+                
                 // Reset counters
                 this.categoryCounters = {};
                 this.clearAllMetrics();
 
-                // Process based on the structure of the response
-                if (data.data && typeof data.data === 'object') {
-                    // Handle nested data structure
-                    this.processNestedData(data.data);
-                    
-                    // Also process any top-level data
-                    Object.keys(data).forEach(key => {
-                        if (key !== 'data') {
-                            this.processTopLevelData(key, data[key]);
-                        }
-                    });
-                } else {
-                    // Process flat structure
-                    Object.keys(data).forEach(key => {
-                        this.processTopLevelData(key, data[key]);
-                    });
-                }
+                // Deep parse the entire response
+                this.deepParseData(data);
 
                 // Update executive dashboard
                 this.updateExecutiveDashboard();
@@ -784,74 +827,60 @@
                 this.updateBadges();
             }
 
-            processNestedData(data) {
-                Object.keys(data).forEach(agentName => {
-                    const agentData = data[agentName];
+            deepParseData(obj, path = '', depth = 0) {
+                if (!obj || depth > 10) return;
+
+                Object.keys(obj).forEach(key => {
+                    const value = obj[key];
+                    const currentPath = path ? `${path}.${key}` : key;
                     
-                    // Determine category
-                    const category = this.determineCategory(agentName);
-                    
-                    // Process the agent's data
-                    if (agentData && typeof agentData === 'object') {
-                        if (agentData.data) {
-                            this.displayDataInCategory(category, agentData.data, agentName);
+                    console.log(`Processing: ${currentPath}`, value);
+
+                    // Handle agent_status or agents_status
+                    if (key === 'agents_status' || key === 'agent_status' || key === 'agentStatus') {
+                        this.displayAgentStatus(value);
+                        return;
+                    }
+
+                    // Skip null, undefined, or metadata
+                    if (value === null || value === undefined || 
+                        ['status', 'timestamp', 'headers', 'statusCode'].includes(key)) {
+                        return;
+                    }
+
+                    // If it's a primitive value, display it
+                    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+                        this.displayMetric(key, value, path);
+                    } 
+                    // If it's an array
+                    else if (Array.isArray(value)) {
+                        value.forEach((item, index) => {
+                            if (typeof item === 'object') {
+                                this.deepParseData(item, `${currentPath}[${index}]`, depth + 1);
+                            } else {
+                                this.displayMetric(`${key}[${index}]`, item, path);
+                            }
+                        });
+                    }
+                    // If it's an object
+                    else if (typeof value === 'object') {
+                        // Check if it looks like a data value object
+                        if (value.value !== undefined || value.price !== undefined || 
+                            value.current !== undefined || value.last !== undefined) {
+                            const displayValue = value.value || value.price || value.current || value.last;
+                            const change = value.change || value.change_24h || value.change_percent || null;
+                            this.displayMetric(key, displayValue, path, change);
                         } else {
-                            this.displayDataInCategory(category, agentData, agentName);
+                            // Recursively parse nested objects
+                            this.deepParseData(value, currentPath, depth + 1);
                         }
                     }
                 });
             }
 
-            processTopLevelData(key, value) {
-                // Handle agent status separately
-                if (key === 'agents_status' || key === 'agent_status') {
-                    this.displayAgentStatus(value);
-                    return;
-                }
-
-                // Determine category and display
-                const category = this.determineCategory(key);
-                
-                if (value && typeof value === 'object') {
-                    if (value.data) {
-                        this.displayDataInCategory(category, value.data, key);
-                    } else {
-                        this.displayDataInCategory(category, value, key);
-                    }
-                }
-            }
-
-            determineCategory(key) {
-                const lowerKey = key.toLowerCase();
-                
-                // Check agent mapping
-                if (this.agentMapping[key]) {
-                    return this.agentMapping[key];
-                }
-                
-                // Determine by keywords
-                if (lowerKey.includes('stock') || lowerKey.includes('market') || lowerKey.includes('spy') || lowerKey.includes('nasdaq')) {
-                    return 'markets';
-                } else if (lowerKey.includes('treasury') || lowerKey.includes('fed') || lowerKey.includes('liquidity')) {
-                    return 'treasury';
-                } else if (lowerKey.includes('crypto') || lowerKey.includes('bitcoin') || lowerKey.includes('ethereum')) {
-                    return 'crypto';
-                } else if (lowerKey.includes('ai') || lowerKey.includes('prediction') || lowerKey.includes('forecast') || lowerKey.includes('ml')) {
-                    return 'ai-predictions';
-                } else if (lowerKey.includes('bond') || lowerKey.includes('yield')) {
-                    return 'bonds';
-                } else if (lowerKey.includes('currency') || lowerKey.includes('dollar') || lowerKey.includes('dxy')) {
-                    return 'currency';
-                } else if (lowerKey.includes('risk') || lowerKey.includes('crisis') || lowerKey.includes('fear')) {
-                    return 'risk';
-                } else if (lowerKey.includes('repo') || lowerKey.includes('reserve')) {
-                    return 'liquidity';
-                } else {
-                    return 'executive'; // Default
-                }
-            }
-
-            displayDataInCategory(category, data, source) {
+            displayMetric(key, value, path, change = null) {
+                // Determine which container to use
+                const category = this.determineCategory(path + '.' + key);
                 const containerMap = {
                     'markets': 'marketMetrics',
                     'treasury': 'treasuryMetrics',
@@ -867,63 +896,25 @@
                 const containerId = containerMap[category] || 'executiveMetrics';
                 const container = document.getElementById(containerId);
                 
-                if (!container) return;
+                if (!container) {
+                    console.warn(`Container ${containerId} not found for ${key}`);
+                    return;
+                }
 
-                // Process and display the data
-                this.processDataObject(data, container, source);
+                // Create metric card
+                this.addMetricCard(container, this.formatLabel(key), value, change);
                 
                 // Update counter
                 this.categoryCounters[category] = (this.categoryCounters[category] || 0) + 1;
-            }
 
-            processDataObject(data, container, source) {
-                if (!data || !container) return;
-
-                // Handle different data structures
-                if (typeof data === 'string' || typeof data === 'number') {
-                    this.addMetricCard(container, source, data);
-                } else if (Array.isArray(data)) {
-                    data.forEach((item, index) => {
-                        if (typeof item === 'object') {
-                            this.processDataObject(item, container, `${source}_${index}`);
-                        }
-                    });
-                } else if (typeof data === 'object') {
-                    Object.keys(data).forEach(key => {
-                        const value = data[key];
-                        
-                        // Skip metadata
-                        if (['status', 'timestamp', 'agent', 'error'].includes(key)) return;
-                        
-                        // Create label
-                        const label = this.formatLabel(key);
-                        
-                        // Handle different value types
-                        if (value === null || value === undefined) return;
-                        
-                        if (typeof value === 'object') {
-                            // Check for common patterns
-                            if (value.value !== undefined) {
-                                this.addMetricCard(container, label, value.value, value.change);
-                            } else if (value.price !== undefined) {
-                                this.addMetricCard(container, label, value.price, value.change || value.change_24h);
-                            } else if (value.current !== undefined) {
-                                this.addMetricCard(container, label, value.current, value.change);
-                            } else if (value.last !== undefined) {
-                                this.addMetricCard(container, label, value.last, value.change);
-                            } else {
-                                // Nested object - flatten
-                                Object.keys(value).forEach(subKey => {
-                                    const subValue = value[subKey];
-                                    if (typeof subValue !== 'object') {
-                                        this.addMetricCard(container, `${label} ${this.formatLabel(subKey)}`, subValue);
-                                    }
-                                });
-                            }
-                        } else {
-                            this.addMetricCard(container, label, value);
-                        }
-                    });
+                // Special handling for critical values
+                if (key.toLowerCase().includes('crisis') || key.toLowerCase().includes('khalid')) {
+                    if (key.toLowerCase().includes('crisis')) {
+                        document.getElementById('crisisProb').textContent = value + '%';
+                    }
+                    if (key.toLowerCase().includes('khalid')) {
+                        document.getElementById('khalidIndex').textContent = value + '/100';
+                    }
                 }
             }
 
@@ -1015,25 +1006,32 @@
                 const container = document.getElementById('agentStatusGrid');
                 container.innerHTML = '';
                 
+                console.log('Agent Status Data:', agentStatus);
+                
                 let activeCount = 0;
                 const totalAgents = 14;
 
-                Object.keys(agentStatus).forEach(agent => {
-                    const status = agentStatus[agent];
-                    const isActive = status === 'active' || status === 'success' || status === true;
-                    if (isActive) activeCount++;
-                    
-                    const statusDiv = document.createElement('div');
-                    statusDiv.className = `agent-status ${isActive ? 'active' : 'error'}`;
-                    statusDiv.innerHTML = `
-                        <span class="agent-name">${this.formatLabel(agent)}</span>
-                        <div class="status-indicator">
-                            <span>${isActive ? 'Active' : 'Error'}</span>
-                            <span class="status-dot ${isActive ? '' : 'error'}"></span>
-                        </div>
-                    `;
-                    container.appendChild(statusDiv);
-                });
+                // Handle different structures of agent status
+                if (typeof agentStatus === 'object') {
+                    Object.keys(agentStatus).forEach(agent => {
+                        const status = agentStatus[agent];
+                        const isActive = status === 'active' || status === 'success' || 
+                                       status === true || status === 'ok' || 
+                                       status === 200 || status === '200';
+                        if (isActive) activeCount++;
+                        
+                        const statusDiv = document.createElement('div');
+                        statusDiv.className = `agent-status ${isActive ? 'active' : 'error'}`;
+                        statusDiv.innerHTML = `
+                            <span class="agent-name">${this.formatLabel(agent)}</span>
+                            <div class="status-indicator">
+                                <span>${isActive ? 'Active' : 'Error'}</span>
+                                <span class="status-dot ${isActive ? '' : 'error'}"></span>
+                            </div>
+                        `;
+                        container.appendChild(statusDiv);
+                    });
+                }
                 
                 this.updateStatus(`${activeCount}/${totalAgents}`, 'agentsActive');
                 this.categoryCounters['agents'] = activeCount;
