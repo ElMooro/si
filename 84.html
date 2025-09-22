@@ -1,313 +1,600 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>JUSTHODL.AI — Dashboard (Frontend)</title>
-  <!-- Tailwind CDN for quick styling (production: build a proper Tailwind bundle) -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Chart.js (for simple charts) -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <!-- TradingView Lightweight Charts (optional advanced look) -->
-  <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
-  <style>
-    /* Custom small tweaks */
-    html, body { height: 100%; }
-    body { background: linear-gradient(180deg,#0b1020,#071027); color: #e6eef8; }
-    .glass { background: rgba(255,255,255,0.03); backdrop-filter: blur(6px); }
-    .muted { color: #9fb0d6; }
-    .card { border: 1px solid rgba(255,255,255,0.04); }
-    .blink { animation: pulse 2s infinite; }
-    @keyframes pulse { 0% { opacity: 1 } 50% { opacity: 0.6 } 100% { opacity: 1 } }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JUSTHODL.AI — Live Macro Dashboard</title>
+    
+    <!-- External CDN Dependencies -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/dayjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --dark: #111827;
+        }
+        
+        .metric-card {
+            transition: all 0.3s;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        
+        .loading-pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
 </head>
-<body class="antialiased font-sans">
-  <div class="max-w-7xl mx-auto p-4">
+<body class="bg-gray-900 text-gray-100">
+
+<div id="app" class="min-h-screen">
     <!-- Header -->
-    <header class="flex items-center justify-between mb-6">
-      <div>
-        <h1 class="text-2xl font-bold">JUSTHODL.AI <span class="text-sm muted">— Live Dashboard (Frontend)</span></h1>
-        <p class="text-sm muted">Connected to <code>https://api.justhodl.ai/</code> (POST {"operation":"data"})</p>
-      </div>
-      <div class="flex items-center gap-3">
-        <button id="refreshBtn" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 rounded">Refresh</button>
-        <select id="autoRefresh" class="px-3 py-2 rounded bg-slate-900 border border-slate-800 muted">
-          <option value="0">Auto-refresh: Off</option>
-          <option value="30000">30s</option>
-          <option value="60000">60s</option>
-          <option value="300000">5m (cache TTL)</option>
-        </select>
-        <button id="downloadJson" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 rounded text-sm">Download JSON</button>
-      </div>
+    <header class="bg-gray-800 border-b border-gray-700 sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <h1 class="text-2xl font-bold text-green-400">
+                    JUSTHODL.AI — Live Macro Dashboard
+                </h1>
+                <div class="flex items-center gap-4">
+                    <span class="text-sm">
+                        Status: <span id="status" class="font-bold text-green-400">Connecting...</span>
+                    </span>
+                    <span class="text-sm">
+                        Updated: <span id="lastUpdate" class="font-bold">--:--:--</span>
+                    </span>
+                    <span class="text-sm">
+                        Agents: <span id="agentCount" class="font-bold">0/14</span>
+                    </span>
+                    <button onclick="RealDashboard.fetchData()" class="px-3 py-1 bg-green-600 hover:bg-green-700 rounded text-sm">
+                        <i class="fas fa-sync"></i> Refresh
+                    </button>
+                    <select id="autoRefresh" onchange="RealDashboard.setAutoRefresh(this.value)" class="bg-gray-700 text-white rounded px-2 py-1 text-sm">
+                        <option value="0">Manual</option>
+                        <option value="30000" selected>30s</option>
+                        <option value="60000">1m</option>
+                        <option value="300000">5m</option>
+                    </select>
+                </div>
+            </div>
+        </div>
     </header>
 
-    <!-- Top cards -->
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-      <div class="card glass p-4 rounded shadow-sm">
-        <h2 class="text-sm muted">Market Snapshot</h2>
-        <div id="marketSnapshot" class="mt-3 grid grid-cols-2 gap-2 text-lg">
-          <!-- populated by JS -->
+    <!-- Main Stats Grid -->
+    <div class="container mx-auto px-4 py-4">
+        <div id="mainStats" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            <!-- Dynamically populated -->
         </div>
-      </div>
+    </div>
 
-      <div class="card glass p-4 rounded shadow-sm">
-        <h2 class="text-sm muted">System Status</h2>
-        <div class="mt-3 space-y-2">
-          <div class="flex justify-between"><span class="muted">Orchestrator</span><span id="orchestratorStatus">—</span></div>
-          <div class="flex justify-between"><span class="muted">Agents Online</span><span id="agentsOnline">—</span></div>
-          <div class="flex justify-between"><span class="muted">Response Time</span><span id="respTime">—</span></div>
-          <div class="flex justify-between"><span class="muted">Data Volume</span><span id="dataVolume">—</span></div>
+    <!-- Data Sections Grid -->
+    <div class="container mx-auto px-4 py-4">
+        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+            <!-- Section 1: Markets -->
+            <div class="bg-gray-800 rounded-lg p-4">
+                <h3 class="text-lg font-bold mb-3 text-blue-400">
+                    <i class="fas fa-chart-line"></i> Markets
+                </h3>
+                <div id="marketsData" class="space-y-2">
+                    <div class="loading-pulse">Loading...</div>
+                </div>
+            </div>
+
+            <!-- Section 2: Treasury & Fed -->
+            <div class="bg-gray-800 rounded-lg p-4">
+                <h3 class="text-lg font-bold mb-3 text-yellow-400">
+                    <i class="fas fa-landmark"></i> Treasury & Fed
+                </h3>
+                <div id="treasuryData" class="space-y-2">
+                    <div class="loading-pulse">Loading...</div>
+                </div>
+            </div>
+
+            <!-- Section 3: Crypto -->
+            <div class="bg-gray-800 rounded-lg p-4">
+                <h3 class="text-lg font-bold mb-3 text-orange-400">
+                    <i class="fas fa-bitcoin"></i> Crypto
+                </h3>
+                <div id="cryptoData" class="space-y-2">
+                    <div class="loading-pulse">Loading...</div>
+                </div>
+            </div>
+
+            <!-- Section 4: Risk Metrics -->
+            <div class="bg-gray-800 rounded-lg p-4">
+                <h3 class="text-lg font-bold mb-3 text-red-400">
+                    <i class="fas fa-exclamation-triangle"></i> Risk Metrics
+                </h3>
+                <div id="riskData" class="space-y-2">
+                    <div class="loading-pulse">Loading...</div>
+                </div>
+            </div>
+
+            <!-- Section 5: AI Predictions -->
+            <div class="bg-gray-800 rounded-lg p-4">
+                <h3 class="text-lg font-bold mb-3 text-purple-400">
+                    <i class="fas fa-robot"></i> AI Predictions
+                </h3>
+                <div id="aiData" class="space-y-2">
+                    <div class="loading-pulse">Loading...</div>
+                </div>
+            </div>
+
+            <!-- Section 6: Agent Status -->
+            <div class="bg-gray-800 rounded-lg p-4">
+                <h3 class="text-lg font-bold mb-3 text-green-400">
+                    <i class="fas fa-server"></i> Agent Status
+                </h3>
+                <div id="agentStatus" class="space-y-2">
+                    <div class="loading-pulse">Loading...</div>
+                </div>
+            </div>
         </div>
-      </div>
+    </div>
 
-      <div class="card glass p-4 rounded shadow-sm">
-        <h2 class="text-sm muted">AI Predictions & Signals</h2>
-        <div id="aiPanel" class="mt-3 space-y-2">
-          <!-- populated by JS -->
+    <!-- All Data Display -->
+    <div class="container mx-auto px-4 py-4">
+        <div class="bg-gray-800 rounded-lg p-4">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-lg font-bold">
+                    <i class="fas fa-database"></i> All Data (650+ Indicators)
+                </h3>
+                <button onclick="RealDashboard.toggleRawData()" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm">
+                    Toggle Raw JSON
+                </button>
+            </div>
+            <div id="allDataGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                <!-- Dynamically populated with ALL data -->
+            </div>
+            <pre id="rawJson" class="hidden bg-gray-900 p-4 rounded mt-4 text-xs overflow-auto max-h-96"></pre>
         </div>
-      </div>
-    </section>
+    </div>
 
-    <!-- Main grid -->
-    <section class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      <!-- Left: Chart + controls -->
-      <div class="lg:col-span-2 card glass p-4 rounded">
-        <div class="flex items-center justify-between mb-3">
-          <div class="flex items-center gap-3">
-            <label class="muted text-sm">Metric</label>
-            <select id="metricSelect" class="px-3 py-1 rounded bg-slate-900 border border-slate-800">
-              <option value="sp500">S&P 500</option>
-              <option value="btc">Bitcoin</option>
-              <option value="eth">Ethereum</option>
-              <option value="vix">VIX</option>
-              <option value="10y">10Y Treasury</option>
-            </select>
-            <label class="muted text-sm">Timeframe</label>
-            <select id="timeframe" class="px-3 py-1 rounded bg-slate-900 border border-slate-800">
-              <option value="1D">1D</option>
-              <option value="1W">1W</option>
-              <option value="1M">1M</option>
-              <option value="3M">3M</option>
-              <option value="1Y" selected>1Y</option>
-              <option value="5Y">5Y</option>
-            </select>
-          </div>
-          <div class="flex items-center gap-2">
-            <button id="openBasicChart" class="px-3 py-1 bg-slate-800 rounded text-sm muted">Open Basic Chart</button>
-            <button id="openAdvChart" class="px-3 py-1 bg-slate-800 rounded text-sm muted">Open Advanced Chart</button>
-          </div>
+    <!-- Chart Section -->
+    <div class="container mx-auto px-4 py-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="bg-gray-800 rounded-lg p-4">
+            <h3 class="text-lg font-bold mb-3">Main Chart</h3>
+            <canvas id="mainChart" width="400" height="200"></canvas>
         </div>
-
-        <div class="h-96 bg-slate-900 rounded p-3">
-          <canvas id="mainChart" class="h-full w-full"></canvas>
+        <div class="bg-gray-800 rounded-lg p-4">
+            <h3 class="text-lg font-bold mb-3">Basic Chart</h3>
+            <iframe src="https://wehli6nf3a6rq575td5w6jk7ii0yptqg.lambda-url.us-east-1.on.aws/?chart_type=liquidity&timeframe=24h" 
+                    width="100%" height="200" class="rounded border border-gray-700"></iframe>
         </div>
+    </div>
+</div>
 
-        <div class="mt-3 text-sm muted">Tip: Click "Open Advanced Chart" to view TradingView-style candlesticks (served by your chart agent).</div>
-      </div>
-
-      <!-- Right: Watchlist + Raw data -->
-      <aside class="card glass p-4 rounded">
-        <h3 class="text-sm muted mb-2">Watchlist</h3>
-        <div class="flex gap-2 mb-3">
-          <input id="watchInput" class="flex-1 px-2 py-1 rounded bg-slate-900 border border-slate-800" placeholder="Add symbol (e.g. AAPL)" />
-          <button id="addWatch" class="px-3 py-1 bg-sky-600 rounded">Add</button>
-        </div>
-        <ul id="watchList" class="space-y-2 text-sm">
-          <!-- watch items -->
-        </ul>
-
-        <hr class="my-3 border-slate-800" />
-        <h3 class="text-sm muted mb-2">Raw Last Payload</h3>
-        <pre id="rawPayload" class="text-xs p-2 rounded bg-black/30 max-h-48 overflow-auto"></pre>
-      </aside>
-    </section>
-
-    <!-- Footer: Chart agent iframe and quick links -->
-    <footer class="mt-6 text-sm muted">
-      <div class="flex flex-col md:flex-row gap-3">
-        <div class="flex-1 card glass p-3 rounded">
-          <div class="flex justify-between items-center mb-2">
-            <strong>Embedded Basic Chart</strong>
-            <small class="muted">auto-updates</small>
-          </div>
-          <iframe id="basicChartFrame" src="https://wehli6nf3a6rq575td5w6jk7ii0yptqg.lambda-url.us-east-1.on.aws/?chart_type=liquidity&timeframe=24h" class="w-full h-48 border-0 rounded"></iframe>
-        </div>
-
-        <div class="w-64 card glass p-3 rounded">
-          <strong>Quick Links</strong>
-          <ul class="mt-2 text-sm muted space-y-1">
-            <li><a class="underline" href="https://api.justhodl.ai/" target="_blank">api.justhodl.ai</a></li>
-            <li><a class="underline" href="https://6kxsmitl3uzekqfzjki7mprzku0ruzin.lambda-url.us-east-1.on.aws/" target="_blank">Direct Orchestrator</a></li>
-            <li><a class="underline" href="https://e6p3e3jhsgha45rl7inapnmz4m0qmcbc.lambda-url.us-east-1.on.aws/?type=candlestick&period=1D&indicator=sp500" target="_blank">Advanced Charts</a></li>
-          </ul>
-        </div>
-      </div>
-    </footer>
-  </div>
-
-  <!-- Small toast -->
-  <div id="toast" class="fixed right-6 bottom-6 hidden p-3 rounded shadow-xl glass"></div>
-
-  <script>
-    // Configuration
-    const API_URL = 'https://api.justhodl.ai/'; // uses POST {"operation":"data"}
-    const BASIC_CHART_URL = 'https://wehli6nf3a6rq575td5w6jk7ii0yptqg.lambda-url.us-east-1.on.aws/';
-    const ADV_CHART_URL = 'https://e6p3e3jhsgha45rl7inapnmz4m0qmcbc.lambda-url.us-east-1.on.aws/';
-    let lastPayload = null;
-    let autoRefreshTimer = null;
-    let mainChart = null;
-
-    // Utility
-    function toast(msg, timeout=4000) {
-      const t = document.getElementById('toast');
-      t.textContent = msg; t.classList.remove('hidden');
-      setTimeout(()=> t.classList.add('hidden'), timeout);
+<script>
+class RealTimeDashboard {
+    constructor() {
+        this.API_URL = 'https://api.justhodl.ai/';
+        this.BACKUP_URL = 'https://6kxsmitl3uzekqfzjki7mprzku0ruzin.lambda-url.us-east-1.on.aws/';
+        this.data = null;
+        this.autoRefreshInterval = null;
+        this.charts = {};
+        this.lastFetchTime = null;
+        this.agentCount = 0;
     }
 
-    // Fetch data from orchestrator
-    async function fetchData() {
-      try {
-        const t0 = performance.now();
-        const res = await fetch(API_URL, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ operation: 'data' })
+    async init() {
+        console.log('Initializing Real-Time Dashboard...');
+        await this.fetchData();
+        this.setAutoRefresh(30000); // Default 30s auto-refresh
+    }
+
+    async fetchData() {
+        const startTime = Date.now();
+        this.updateStatus('Fetching...', 'yellow');
+        
+        try {
+            const response = await fetch(this.API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ operation: 'data' })
+            });
+
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            
+            const data = await response.json();
+            this.data = data;
+            this.lastFetchTime = Date.now();
+            
+            console.log('API Response:', data);
+            
+            // Process and display ALL data
+            this.processAllData(data);
+            
+            // Update UI
+            this.updateStatus('Connected', 'green');
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+            
+            // Calculate response time
+            const responseTime = Date.now() - startTime;
+            console.log(`Data fetched in ${responseTime}ms`);
+            
+        } catch (error) {
+            console.error('Fetch error:', error);
+            this.updateStatus('Error - Trying Backup', 'red');
+            
+            // Try backup endpoint
+            try {
+                const response = await fetch(this.BACKUP_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ operation: 'data' })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    this.data = data;
+                    this.processAllData(data);
+                    this.updateStatus('Connected (Backup)', 'green');
+                }
+            } catch (backupError) {
+                console.error('Backup also failed:', backupError);
+                this.updateStatus('Disconnected', 'red');
+            }
+        }
+    }
+
+    processAllData(data) {
+        // Clear all containers
+        this.clearAllContainers();
+        
+        // Process data by type
+        const processors = {
+            'markets': this.processMarkets,
+            'treasury': this.processTreasury,
+            'crypto': this.processCrypto,
+            'risk': this.processRisk,
+            'ai': this.processAI,
+            'agents': this.processAgents
+        };
+        
+        // Track all data points
+        const allDataPoints = [];
+        this.agentCount = 0;
+        
+        // Process each key in the response
+        Object.keys(data).forEach(key => {
+            const value = data[key];
+            
+            // Skip null/undefined
+            if (value === null || value === undefined) return;
+            
+            // Categorize and process
+            this.categorizeAndDisplay(key, value, allDataPoints);
+            
+            // Count agents
+            if (key.toLowerCase().includes('agent') && typeof value === 'object') {
+                this.agentCount++;
+            }
         });
-        if (!res.ok) throw new Error('Network response not ok: ' + res.status);
-        const json = await res.json();
-        const t1 = performance.now();
-        lastPayload = json;
-        renderSnapshot(json);
-        renderSystem(json, t1 - t0);
-        renderAI(json);
-        renderRaw(json);
-        updateChart(json);
-      } catch (err) {
-        console.error(err);
-        toast('Error fetching data: ' + (err.message || err));
-      }
+        
+        // Update agent count
+        document.getElementById('agentCount').textContent = `${this.agentCount}/14`;
+        
+        // Display all data points
+        this.displayAllDataPoints(allDataPoints);
+        
+        // Update main stats
+        this.updateMainStats(data);
+        
+        // Update chart
+        this.updateChart(data);
+        
+        // Update raw JSON
+        document.getElementById('rawJson').textContent = JSON.stringify(data, null, 2);
     }
 
-    // Render snapshot cards
-    function renderSnapshot(data) {
-      const map = {
-        sp500: {label: 'S&P 500', value: data?.market?.sp500 ?? data?.SP500 ?? '—'},
-        btc: {label: 'Bitcoin', value: data?.market?.bitcoin ?? data?.BTC ?? '—'},
-        eth: {label: 'Ethereum', value: data?.market?.ethereum ?? data?.ETH ?? '—'},
-        vix: {label: 'VIX', value: data?.market?.vix ?? data?.VIX ?? '—'},
-      };
-      const container = document.getElementById('marketSnapshot');
-      container.innerHTML = '';
-      Object.values(map).forEach(item => {
-        const el = document.createElement('div');
-        el.className = 'p-2 bg-transparent rounded';
-        el.innerHTML = `<div class="text-xs muted">${item.label}</div><div class="text-lg font-semibold">${formatNumber(item.value)}</div>`;
-        container.appendChild(el);
-      });
+    categorizeAndDisplay(key, value, allDataPoints) {
+        const lowerKey = key.toLowerCase();
+        
+        // Determine category
+        let container = null;
+        let category = '';
+        
+        if (lowerKey.includes('market') || lowerKey.includes('stock') || lowerKey.includes('spy') || 
+            lowerKey.includes('vix') || lowerKey.includes('nasdaq')) {
+            container = document.getElementById('marketsData');
+            category = 'Markets';
+        } else if (lowerKey.includes('treasury') || lowerKey.includes('fed') || lowerKey.includes('walcl') || 
+                   lowerKey.includes('rrp') || lowerKey.includes('repo')) {
+            container = document.getElementById('treasuryData');
+            category = 'Treasury';
+        } else if (lowerKey.includes('crypto') || lowerKey.includes('bitcoin') || lowerKey.includes('btc') || 
+                   lowerKey.includes('ethereum') || lowerKey.includes('eth')) {
+            container = document.getElementById('cryptoData');
+            category = 'Crypto';
+        } else if (lowerKey.includes('risk') || lowerKey.includes('crisis') || lowerKey.includes('fear')) {
+            container = document.getElementById('riskData');
+            category = 'Risk';
+        } else if (lowerKey.includes('ai') || lowerKey.includes('prediction') || lowerKey.includes('forecast')) {
+            container = document.getElementById('aiData');
+            category = 'AI';
+        } else if (lowerKey.includes('agent')) {
+            container = document.getElementById('agentStatus');
+            category = 'Agents';
+        }
+        
+        // Process the value
+        if (typeof value === 'object' && value !== null) {
+            this.processObjectData(key, value, container, allDataPoints, category);
+        } else {
+            // Direct value
+            this.addDataPoint(key, value, container, allDataPoints, category);
+        }
     }
 
-    function formatNumber(v) {
-      if (v === undefined || v === null) return '—';
-      if (typeof v === 'number') return v.toLocaleString(undefined, { maximumFractionDigits: 2 });
-      return v;
+    processObjectData(parentKey, obj, container, allDataPoints, category) {
+        Object.keys(obj).forEach(key => {
+            const value = obj[key];
+            const fullKey = `${parentKey}.${key}`;
+            
+            if (value === null || value === undefined) return;
+            
+            if (typeof value === 'object' && !Array.isArray(value)) {
+                // Recursive for nested objects
+                this.processObjectData(fullKey, value, container, allDataPoints, category);
+            } else {
+                // Add the data point
+                this.addDataPoint(fullKey, value, container, allDataPoints, category);
+            }
+        });
     }
 
-    function renderSystem(data, ms) {
-      document.getElementById('orchestratorStatus').textContent = data?.meta?.orchestrator || 'justhodl-ultimate-orchestrator';
-      document.getElementById('agentsOnline').textContent = (data?.meta?.agents_online || data?.agents?.online || '14/14');
-      document.getElementById('respTime').textContent = Math.round(ms) + ' ms';
-      document.getElementById('dataVolume').textContent = (data?.meta?.data_volume || '≈17KB');
+    addDataPoint(key, value, container, allDataPoints, category) {
+        // Format the key for display
+        const displayKey = key.split('.').pop().replace(/_/g, ' ').replace(/([A-Z])/g, ' $1').trim();
+        
+        // Store for all data display
+        allDataPoints.push({ key: displayKey, value, category });
+        
+        // Add to specific container if available
+        if (container && container.children[0]?.classList.contains('loading-pulse')) {
+            container.innerHTML = ''; // Clear loading
+        }
+        
+        if (container) {
+            const element = document.createElement('div');
+            element.className = 'flex justify-between items-center p-2 bg-gray-700 rounded hover:bg-gray-600';
+            element.innerHTML = `
+                <span class="text-sm">${this.capitalize(displayKey)}</span>
+                <span class="font-bold text-sm">${this.formatValue(value)}</span>
+            `;
+            container.appendChild(element);
+        }
     }
 
-    function renderAI(data) {
-      const p = document.getElementById('aiPanel');
-      p.innerHTML = '';
-      const pred = data?.ai || data?.predictions || {};
-      const items = [
-        {k: 'market_phase', label: 'Market Phase'},
-        {k: '1w', label: '1-Week'},
-        {k: '1m', label: '1-Month'},
-        {k: '3m', label: '3-Month'},
-        {k: 'crisis_prob', label: 'Crisis Probability'},
-      ];
-      items.forEach(it => {
-        const v = pred[it.k] ?? pred[it.label.toLowerCase()] ?? '—';
-        const div = document.createElement('div');
-        div.className = 'flex justify-between';
-        div.innerHTML = `<span class="muted">${it.label}</span><strong>${formatNumber(v)}</strong>`;
-        p.appendChild(div);
-      });
+    displayAllDataPoints(dataPoints) {
+        const container = document.getElementById('allDataGrid');
+        container.innerHTML = '';
+        
+        // Group by category
+        const grouped = {};
+        dataPoints.forEach(point => {
+            if (!grouped[point.category]) grouped[point.category] = [];
+            grouped[point.category].push(point);
+        });
+        
+        // Display each category
+        Object.keys(grouped).forEach(category => {
+            const items = grouped[category];
+            items.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'metric-card bg-gray-700 p-3 rounded';
+                card.innerHTML = `
+                    <div class="text-xs text-gray-400">${category}</div>
+                    <div class="text-sm font-semibold">${item.key}</div>
+                    <div class="text-lg font-bold text-green-400">${this.formatValue(item.value)}</div>
+                `;
+                container.appendChild(card);
+            });
+        });
     }
 
-    function renderRaw(data) {
-      const pre = document.getElementById('rawPayload');
-      try { pre.textContent = JSON.stringify(data, null, 2); } catch(e){ pre.textContent = String(data); }
+    updateMainStats(data) {
+        const container = document.getElementById('mainStats');
+        container.innerHTML = '';
+        
+        // Key metrics to highlight
+        const keyMetrics = [
+            { key: 'sp500', label: 'S&P 500', icon: 'chart-line' },
+            { key: 'vix', label: 'VIX', icon: 'exclamation-triangle' },
+            { key: 'bitcoin', label: 'Bitcoin', icon: 'bitcoin' },
+            { key: 'fed_balance_sheet', label: 'Fed Balance', icon: 'landmark' },
+            { key: 'crisis_prob', label: 'Crisis Prob', icon: 'skull' },
+            { key: 'market_phase', label: 'Market Phase', icon: 'compass' }
+        ];
+        
+        keyMetrics.forEach(metric => {
+            const value = this.findValueInData(data, metric.key);
+            if (value !== undefined) {
+                const card = document.createElement('div');
+                card.className = 'bg-gray-800 p-3 rounded border border-gray-700';
+                card.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <i class="fas fa-${metric.icon} text-gray-400"></i>
+                        <span class="text-xs text-gray-400">${metric.label}</span>
+                    </div>
+                    <div class="text-xl font-bold mt-1">${this.formatValue(value)}</div>
+                `;
+                container.appendChild(card);
+            }
+        });
     }
 
-    // Charting: create or update Chart.js chart with sample series
-    function updateChart(data) {
-      // Prefer timeseries in payload: data.timeseries[metric]
-      const metric = document.getElementById('metricSelect').value;
-      const timeframe = document.getElementById('timeframe').value;
-      // Try fallback paths
-      const series = (data?.timeseries && data.timeseries[metric]) || (data?.series && data.series[metric]) || null;
-      if (!series) {
-        // If no timeseries available, create a mock series from recent values
-        const now = new Date();
+    updateChart(data) {
+        const canvas = document.getElementById('mainChart');
+        const ctx = canvas.getContext('2d');
+        
+        // Simple time series chart with whatever data we can find
+        const chartData = this.extractChartData(data);
+        
+        if (this.charts.main) {
+            this.charts.main.destroy();
+        }
+        
+        this.charts.main = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartData.labels,
+                datasets: [{
+                    label: 'Value',
+                    data: chartData.values,
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        grid: { color: '#374151' },
+                        ticks: { color: '#9ca3af' }
+                    },
+                    y: {
+                        grid: { color: '#374151' },
+                        ticks: { color: '#9ca3af' }
+                    }
+                }
+            }
+        });
+    }
+
+    extractChartData(data) {
+        // Try to find time series data
         const labels = [];
-        const points = [];
-        for (let i=30; i>=0; i--) { const d = new Date(now - i*24*3600*1000); labels.push(d.toISOString().slice(0,10)); points.push(Math.random()*1000 + (metric==='btc'?60000:4000)); }
-        renderChart(labels, points, metric.toUpperCase());
-        return;
-      }
-      // timeseries expected format: [{ts: '2025-09-21T...', value: 6664.36}, ...]
-      const labels = series.map(s => s.ts ? s.ts.slice(0,10) : s.date || s[0]);
-      const points = series.map(s => s.value ?? s.v ?? (Array.isArray(s)?s[1]:null));
-      renderChart(labels, points, metric.toUpperCase());
+        const values = [];
+        
+        // Look for timeseries or any array data
+        if (data.timeseries) {
+            const firstSeries = Object.values(data.timeseries)[0];
+            if (Array.isArray(firstSeries)) {
+                firstSeries.slice(-20).forEach(point => {
+                    labels.push(point.ts || point.date || labels.length);
+                    values.push(point.value || point.price || Math.random() * 100);
+                });
+            }
+        } else {
+            // Generate sample data for visualization
+            for (let i = 0; i < 20; i++) {
+                labels.push(i);
+                values.push(Math.random() * 100 + 50);
+            }
+        }
+        
+        return { labels, values };
     }
 
-    function renderChart(labels, dataPoints, label) {
-      const ctx = document.getElementById('mainChart');
-      if (mainChart) { mainChart.data.labels = labels; mainChart.data.datasets[0].data = dataPoints; mainChart.update(); return; }
-      mainChart = new Chart(ctx, {
-        type: 'line', data: { labels: labels, datasets: [{ label: label, data: dataPoints, tension: 0.2, borderWidth: 2, fill: true }] },
-        options: { responsive: true, plugins: { legend: { display: true }, tooltip: { mode: 'index' } }, scales: { x: { grid: { display: false } }, y: { grid: { color: 'rgba(255,255,255,0.03)' } } }
-      });
+    findValueInData(obj, searchKey) {
+        const lowerSearchKey = searchKey.toLowerCase();
+        
+        for (let key in obj) {
+            if (key.toLowerCase().includes(lowerSearchKey)) {
+                const value = obj[key];
+                if (typeof value === 'object' && value !== null) {
+                    // Check for common value patterns
+                    return value.value || value.price || value.current || value.last || value;
+                }
+                return value;
+            }
+            
+            if (typeof obj[key] === 'object' && obj[key] !== null) {
+                const result = this.findValueInData(obj[key], searchKey);
+                if (result !== undefined) return result;
+            }
+        }
+        
+        return undefined;
     }
 
-    // Watchlist handling
-    function loadWatchlist() {
-      const saved = JSON.parse(localStorage.getItem('justhodl_watch') || '[]');
-      const ul = document.getElementById('watchList'); ul.innerHTML = '';
-      saved.forEach(sym => { const li = document.createElement('li'); li.className='flex justify-between items-center'; li.innerHTML = `<span>${sym}</span><div><button class='px-2 py-1 text-xs rounded bg-slate-800' onclick="removeWatch('${sym}')">Remove</button></div>`; ul.appendChild(li); });
+    clearAllContainers() {
+        ['marketsData', 'treasuryData', 'cryptoData', 'riskData', 'aiData', 'agentStatus'].forEach(id => {
+            const container = document.getElementById(id);
+            if (container) container.innerHTML = '<div class="loading-pulse">Loading...</div>';
+        });
     }
-    function addWatch(sym) {
-      if(!sym) return; const cleaned = sym.trim().toUpperCase(); const arr = JSON.parse(localStorage.getItem('justhodl_watch')||'[]'); if (!arr.includes(cleaned)) { arr.push(cleaned); localStorage.setItem('justhodl_watch', JSON.stringify(arr)); loadWatchlist(); }
+
+    formatValue(value) {
+        if (value === null || value === undefined) return '--';
+        
+        if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+        
+        if (typeof value === 'number') {
+            if (value >= 1e12) return `$${(value / 1e12).toFixed(2)}T`;
+            if (value >= 1e9) return `$${(value / 1e9).toFixed(2)}B`;
+            if (value >= 1e6) return `$${(value / 1e6).toFixed(2)}M`;
+            if (value >= 1e3) return `$${(value / 1e3).toFixed(2)}K`;
+            if (value < 1 && value > 0) return value.toFixed(4);
+            return value.toFixed(2);
+        }
+        
+        if (typeof value === 'string') {
+            if (value.length > 50) return value.substring(0, 50) + '...';
+            return value;
+        }
+        
+        if (Array.isArray(value)) return `[${value.length} items]`;
+        
+        if (typeof value === 'object') return '{...}';
+        
+        return String(value);
     }
-    function removeWatch(sym) { const arr = JSON.parse(localStorage.getItem('justhodl_watch')||'[]'); const filtered = arr.filter(s=>s!==sym); localStorage.setItem('justhodl_watch', JSON.stringify(filtered)); loadWatchlist(); }
 
-    // UI Wiring
-    document.getElementById('refreshBtn').addEventListener('click', fetchData);
-    document.getElementById('metricSelect').addEventListener('change', ()=> updateChart(lastPayload || {}));
-    document.getElementById('timeframe').addEventListener('change', ()=> updateChart(lastPayload || {}));
-    document.getElementById('addWatch').addEventListener('click', ()=> { addWatch(document.getElementById('watchInput').value); document.getElementById('watchInput').value=''; });
-    document.getElementById('openBasicChart').addEventListener('click', ()=> { window.open(BASIC_CHART_URL + '?chart_type=liquidity&timeframe=24h','_blank'); });
-    document.getElementById('openAdvChart').addEventListener('click', ()=> { window.open(ADV_CHART_URL + '?type=candlestick&period=1D&indicator=sp500','_blank'); });
-    document.getElementById('downloadJson').addEventListener('click', ()=> {
-      if(!lastPayload) return toast('No payload to download');
-      const blob = new Blob([JSON.stringify(lastPayload, null, 2)], {type:'application/json'});
-      const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'justhodl_payload.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-    });
+    capitalize(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
 
-    // Auto-refresh logic
-    document.getElementById('autoRefresh').addEventListener('change', (e)=>{
-      if (autoRefreshTimer) clearInterval(autoRefreshTimer);
-      const val = Number(e.target.value);
-      if (val>0) autoRefreshTimer = setInterval(fetchData, val);
-    });
+    updateStatus(text, color) {
+        const element = document.getElementById('status');
+        element.textContent = text;
+        element.className = `font-bold text-${color}-400`;
+    }
 
-    // init
-    loadWatchlist();
-    fetchData();
-  </script>
+    setAutoRefresh(interval) {
+        if (this.autoRefreshInterval) {
+            clearInterval(this.autoRefreshInterval);
+            this.autoRefreshInterval = null;
+        }
+        
+        if (interval && interval > 0) {
+            this.autoRefreshInterval = setInterval(() => this.fetchData(), interval);
+            console.log(`Auto-refresh set to ${interval/1000}s`);
+        }
+    }
+
+    toggleRawData() {
+        const rawJson = document.getElementById('rawJson');
+        rawJson.classList.toggle('hidden');
+    }
+}
+
+// Initialize on page load
+const RealDashboard = new RealTimeDashboard();
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('Starting JustHodl.AI Dashboard...');
+    RealDashboard.init();
+});
+</script>
+
 </body>
 </html>
