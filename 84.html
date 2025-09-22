@@ -370,8 +370,23 @@
             animation: spin 1s ease-in-out infinite;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            70% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .update-counter {
+            position: fixed;
+            top: 80px;
+            left: 20px;
+            background: rgba(0,0,0,0.8);
+            color: #00ff88;
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid #00ff88;
+            font-size: 14px;
+            z-index: 10000;
         }
     </style>
 </head>
@@ -1195,7 +1210,12 @@
 
         async function fetchData() {
             try {
-                console.log('Fetching data from API...');
+                const timestamp = new Date().toLocaleTimeString();
+                console.log(`[${timestamp}] Fetching data from API...`);
+                
+                // Visual indicator that fetch is happening
+                document.getElementById('refreshCountdown').style.background = '#00ff88';
+                
                 const response = await fetch('https://api.justhodl.ai/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1204,12 +1224,21 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('Data received:', data);
+                    console.log(`[${timestamp}] Data received:`, data);
                     allData = data;
                     updateWithRealData(data);
+                    
+                    // Show last update time
+                    const updateNotice = document.createElement('div');
+                    updateNotice.style.cssText = 'position: fixed; top: 80px; right: 20px; background: #00ff88; color: black; padding: 10px; border-radius: 5px; animation: fadeOut 3s forwards;';
+                    updateNotice.textContent = `Updated: ${timestamp}`;
+                    document.body.appendChild(updateNotice);
+                    setTimeout(() => updateNotice.remove(), 3000);
                 }
+                
+                document.getElementById('refreshCountdown').style.background = '';
             } catch (error) {
-                console.error('Error fetching data:', error);
+                console.error(`[${new Date().toLocaleTimeString()}] Error:`, error);
             }
         }
 
@@ -1323,14 +1352,53 @@
 
         function setupAutoRefresh() {
             let countdown = refreshInterval;
-            setInterval(() => {
+            let updateCount = 0;
+            
+            // Add update counter display
+            const counterDiv = document.createElement('div');
+            counterDiv.className = 'update-counter';
+            counterDiv.innerHTML = `Updates: <span id="updateCount">0</span> | Last: <span id="lastUpdate">Never</span>`;
+            document.body.appendChild(counterDiv);
+            
+            // Update every second
+            const countdownInterval = setInterval(() => {
                 countdown--;
                 document.getElementById('refreshCountdown').textContent = countdown;
+                
+                // Visual countdown indicator
+                if (countdown <= 5) {
+                    document.getElementById('refreshCountdown').style.color = '#ffaa00';
+                } else {
+                    document.getElementById('refreshCountdown').style.color = '#ffffff';
+                }
+                
                 if (countdown <= 0) {
                     countdown = refreshInterval;
+                    updateCount++;
+                    
+                    // Update counter display
+                    document.getElementById('updateCount').textContent = updateCount;
+                    document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+                    
+                    // Actually fetch data
                     fetchData();
+                    
+                    console.log(`[AUTO-UPDATE #${updateCount}] Fetching at ${new Date().toLocaleTimeString()}`);
                 }
             }, 1000);
+            
+            // Also add manual refresh button
+            const refreshBtn = document.createElement('button');
+            refreshBtn.textContent = 'Manual Refresh';
+            refreshBtn.style.cssText = 'position: fixed; bottom: 20px; left: 20px; background: #00ff88; color: black; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;';
+            refreshBtn.onclick = () => {
+                console.log('[MANUAL REFRESH] Triggered by user');
+                fetchData();
+                updateCount++;
+                document.getElementById('updateCount').textContent = updateCount;
+                document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+            };
+            document.body.appendChild(refreshBtn);
         }
 
         function updateTime() {
