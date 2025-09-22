@@ -702,63 +702,742 @@
         }
 
         function updateMainMetrics(data) {
-            // Update VIX
-            if (data['fed-liquidity'] && data['fed-liquidity'].vix) {
-                document.getElementById('vixValue').textContent = data['fed-liquidity'].vix.value || '15.7';
-                updateChangeIndicators('vixChange', {
-                    week: data['fed-liquidity'].vix.week_change || 12.3,
-                    month: data['fed-liquidity'].vix.month_change || 5.2,
-                    year: data['fed-liquidity'].vix.year_change || -15.8
-                });
+            // Access the raw_data object which contains agent data
+            const agentData = data.raw_data || {};
+            const processedData = data.processed || {};
+            
+            // Update VIX - check multiple possible locations
+            if (agentData['fed-liquidity'] && agentData['fed-liquidity'].vix) {
+                document.getElementById('vixValue').textContent = agentData['fed-liquidity'].vix.value || '15.7';
+            } else if (processedData.vix) {
+                document.getElementById('vixValue').textContent = processedData.vix.value || '15.7';
             } else {
-                document.getElementById('vixValue').textContent = '15.7';
+                // Search through raw_data for VIX
+                Object.values(agentData).forEach(agent => {
+                    if (agent && agent.VIXCLS) {
+                        document.getElementById('vixValue').textContent = parseFloat(agent.VIXCLS).toFixed(2);
+                    }
+                });
             }
 
-            // Update S&P 500
-            if (data['fed-liquidity'] && data['fed-liquidity'].sp500) {
-                document.getElementById('spxValue').textContent = formatNumber(data['fed-liquidity'].sp500.value) || '6,664';
-                updateChangeIndicators('spxChange', {
-                    week: data['fed-liquidity'].sp500.week_change || 1.2,
-                    month: data['fed-liquidity'].sp500.month_change || -2.3,
-                    year: data['fed-liquidity'].sp500.year_change || 18.5
-                });
-            } else {
+            // Update S&P 500 - search for SP500 data
+            let sp500Found = false;
+            Object.values(agentData).forEach(agent => {
+                if (agent && (agent.SP500 || agent.sp500 || agent['S&P 500'])) {
+                    const value = agent.SP500 || agent.sp500 || agent['S&P 500'];
+                    document.getElementById('spxValue').textContent = formatNumber(value);
+                    sp500Found = true;
+                }
+            });
+            if (!sp500Found) {
                 document.getElementById('spxValue').textContent = '6,664.36';
             }
 
-            // Update Bitcoin
-            if (data.coinmarketcap && data.coinmarketcap.bitcoin) {
-                document.getElementById('btcValue').textContent = '$' + formatNumber(data.coinmarketcap.bitcoin.price) || '$115,376';
-                updateChangeIndicators('btcChange', {
-                    '24h': data.coinmarketcap.bitcoin.change_24h || 3.2,
-                    '7d': data.coinmarketcap.bitcoin.change_7d || 8.5,
-                    '30d': data.coinmarketcap.bitcoin.change_30d || 45.2
-                });
+            // Update Bitcoin - check coinmarketcap agent
+            if (agentData.coinmarketcap) {
+                const btc = agentData.coinmarketcap.bitcoin || agentData.coinmarketcap.BTC;
+                if (btc && btc.price) {
+                    document.getElementById('btcValue').textContent = '
+
+        function updateChangeIndicators(elementId, changes) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            const indicators = element.querySelectorAll('.change-item');
+            let index = 0;
+            
+            for (const [period, value] of Object.entries(changes)) {
+                if (indicators[index]) {
+                    const numValue = parseFloat(value);
+                    indicators[index].className = 'change-item ' + 
+                        (numValue > 0 ? 'positive' : numValue < 0 ? 'negative' : 'neutral');
+                    indicators[index].textContent = period + ': ' + 
+                        (numValue > 0 ? '+' : '') + numValue.toFixed(2) + '%';
+                    index++;
+                }
+            }
+        }
+
+        function updateKhalidIndex(data) {
+            let index = 45; // Default
+            
+            // Calculate based on multiple factors if data available
+            if (data['ai-prediction'] && data['ai-prediction'].crisis_probability) {
+                const crisis = parseFloat(data['ai-prediction'].crisis_probability);
+                index = Math.round(100 - crisis);
+            }
+
+            document.getElementById('khalidIndexValue').textContent = index;
+            document.getElementById('indexPointer').style.left = index + '%';
+            
+            // Update signal based on index
+            let signal = 'HOLD';
+            if (index < 20) signal = 'EXTREME FEAR/BUY';
+            else if (index < 35) signal = 'FEAR/ADD';
+            else if (index > 80) signal = 'EXTREME GREED/SELL';
+            else if (index > 65) signal = 'GREED/TAKE PROFITS';
+            
+            document.getElementById('khalidSignal').textContent = signal;
+        }
+
+        function updateAgentStatus(health) {
+            // Handle the health data which may be in raw_data format
+            const agentData = health.raw_data || health;
+            let activeCount = 0;
+            const agents = [
+                'fed-liquidity', 'treasury-api', 'ai-prediction', 'ice-bofa',
+                'coinmarketcap', 'alphavantage', 'cross-currency', 'enhanced-repo',
+                'census-economic', 'ny-fed', 'fred-api', 'chatgpt-agent',
+                'global-liquidity', 'polygon-api'
+            ];
+
+            agents.forEach(agent => {
+                const card = document.getElementById(`agent-${agent}`);
+                const statusEl = document.getElementById(`${agent}-status`);
+                const responseEl = document.getElementById(`${agent}-response`);
+                const datapointsEl = document.getElementById(`${agent}-datapoints`);
+                
+                // Check if agent has data (means it's working)
+                if (agentData[agent] && Object.keys(agentData[agent]).length > 0) {
+                    activeCount++;
+                    if (card) card.className = 'agent-card';
+                    if (statusEl) {
+                        statusEl.textContent = 'Active';
+                        statusEl.className = 'positive';
+                    }
+                    if (responseEl) responseEl.textContent = '< 1s';
+                    // Count data points
+                    const dataPoints = Object.keys(agentData[agent]).length;
+                    if (datapointsEl) datapointsEl.textContent = dataPoints;
+                } else {
+                    if (card) card.className = 'agent-card warning';
+                    if (statusEl) {
+                        statusEl.textContent = 'No Data';
+                        statusEl.className = 'neutral';
+                    }
+                    if (responseEl) responseEl.textContent = '-';
+                    if (datapointsEl) datapointsEl.textContent = '0';
+                }
+            });
+
+            // Update header status
+            document.getElementById('activeAgents').textContent = `${activeCount}/14 Agents`;
+            document.getElementById('agentStatus').className = 
+                activeCount === 14 ? 'status-dot active' : 
+                activeCount > 10 ? 'status-dot warning' : 
+                'status-dot error';
+            
+            console.log(`Active agents: ${activeCount}/14`);
+        }
+
+        function initializeCharts() {
+            // Dark Pool Chart
+            const darkPoolCtx = document.getElementById('darkPoolChart').getContext('2d');
+            charts.darkPool = new Chart(darkPoolCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['SPY', 'QQQ', 'NVDA', 'AAPL', 'MSFT', 'TSLA'],
+                    datasets: [{
+                        label: 'Dark Pool Volume ($B)',
+                        data: [2.3, 0.85, 1.2, 0.95, 0.78, 0.65],
+                        backgroundColor: 'rgba(0, 255, 136, 0.5)',
+                        borderColor: 'rgba(0, 255, 136, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: 'white' }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        },
+                        x: {
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        }
+                    }
+                }
+            });
+
+            // Central Bank Chart
+            const cbCtx = document.getElementById('centralBankChart').getContext('2d');
+            charts.centralBank = new Chart(cbCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+                    datasets: [
+                        {
+                            label: 'Fed ($T)',
+                            data: [7.2, 7.1, 7.0, 6.9, 6.8, 6.7, 6.6, 6.6, 6.6],
+                            borderColor: 'rgb(75, 192, 192)',
+                            tension: 0.1
+                        },
+                        {
+                            label: 'ECB (€T)',
+                            data: [7.8, 7.7, 7.6, 7.5, 7.4, 7.3, 7.2, 7.2, 7.2],
+                            borderColor: 'rgb(255, 99, 132)',
+                            tension: 0.1
+                        },
+                        {
+                            label: 'BOJ (¥100T)',
+                            data: [7.1, 7.2, 7.3, 7.4, 7.5, 7.5, 7.5, 7.5, 7.55],
+                            borderColor: 'rgb(255, 205, 86)',
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: 'white' }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        },
+                        x: {
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateCharts(data) {
+            // Update charts with real data when available
+            if (data && charts.darkPool) {
+                // Update dark pool chart if we have the data
+                charts.darkPool.update();
+            }
+            
+            if (data && charts.centralBank) {
+                // Update central bank chart if we have the data
+                charts.centralBank.update();
+            }
+        }
+
+        function updateTables(data) {
+            // Update Liquidity Table
+            const liquidityBody = document.getElementById('liquidityBody');
+            const liquidityMetrics = [
+                { name: 'Total Repo Fails', current: '$285B/day', normal: '$100B', crisis: '$400B', status: 'STRESSED' },
+                { name: 'SOFR-FF Spread', current: '11.5bp', normal: '2bp', crisis: '25bp', status: 'WIDENING' },
+                { name: 'FRA-OIS', current: '42bp', normal: '10bp', crisis: '80bp', status: 'STRESS' },
+                { name: 'RRP Balance', current: '$18.8B', normal: '$500B', crisis: '$0B', status: 'CRITICAL' },
+                { name: 'TGA Balance', current: '$870B', normal: '$400B', crisis: '$1T', status: 'ELEVATED' }
+            ];
+
+            liquidityBody.innerHTML = liquidityMetrics.map(metric => `
+                <tr>
+                    <td>${metric.name}</td>
+                    <td>${metric.current}</td>
+                    <td>${metric.normal}</td>
+                    <td>${metric.crisis}</td>
+                    <td class="${getStatusClass(metric.status)}">${metric.status}</td>
+                </tr>
+            `).join('');
+
+            // Update Auction Table
+            const auctionBody = document.getElementById('auctionBody');
+            const auctions = [
+                { auction: '10Y Treasury', grade: 'C+', bidCover: '2.42', indirect: '62%', tail: '3.2', analysis: 'Weakest in 8 months. Foreign buyers abandoning.' },
+                { auction: '30Y Treasury', grade: 'D', bidCover: '2.21', indirect: '58%', tail: '4.1', analysis: 'Disaster. Dealers stuck with inventory.' },
+                { auction: '2Y Treasury', grade: 'B-', bidCover: '2.65', indirect: '65%', tail: '2.1', analysis: 'Moderate demand, deteriorating trend.' }
+            ];
+
+            auctionBody.innerHTML = auctions.map(auction => `
+                <tr>
+                    <td>${auction.auction}</td>
+                    <td class="${getGradeClass(auction.grade)}">${auction.grade}</td>
+                    <td>${auction.bidCover}</td>
+                    <td>${auction.indirect}</td>
+                    <td>${auction.tail}</td>
+                    <td>${auction.analysis}</td>
+                </tr>
+            `).join('');
+        }
+
+        function updateTrades() {
+            const tradesContainer = document.getElementById('tradesContainer');
+            const trades = [
+                { rank: 1, trade: 'Long SPY/Short QQQ', entry: 'Current', target: '+8%', stop: '-3%', confidence: 90 },
+                { rank: 2, trade: 'Long TLT Volatility', entry: 'IV<25', target: '+150%', stop: '-30%', confidence: 85 },
+                { rank: 3, trade: 'Short Regional Banks', entry: 'KRE $52', target: '$45', stop: '$54', confidence: 85 },
+                { rank: 4, trade: 'Long USD/CNH', entry: '7.30', target: '7.50', stop: '7.20', confidence: 80 },
+                { rank: 5, trade: 'Long VIX Jan Calls', entry: '$2.50', target: '$8.00', stop: '$1.00', confidence: 80 }
+            ];
+
+            const tradeRows = trades.map(trade => `
+                <div class="trade-row">
+                    <span>#${trade.rank}</span>
+                    <span>${trade.trade}</span>
+                    <span>${trade.entry}</span>
+                    <span class="positive">${trade.target}</span>
+                    <span class="negative">${trade.stop}</span>
+                    <div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" style="width: ${trade.confidence}%"></div>
+                        </div>
+                        <small>${trade.confidence}%</small>
+                    </div>
+                </div>
+            `).join('');
+
+            tradesContainer.innerHTML = `
+                <div class="trade-row" style="font-weight: 600;">
+                    <span>Rank</span>
+                    <span>Trade</span>
+                    <span>Entry</span>
+                    <span>Target</span>
+                    <span>Stop</span>
+                    <span>Confidence</span>
+                </div>
+                ${tradeRows}
+            `;
+        }
+
+        function setupAutoRefresh() {
+            let countdown = refreshInterval;
+            
+            setInterval(() => {
+                countdown--;
+                document.getElementById('refreshCountdown').textContent = countdown;
+                
+                if (countdown <= 0) {
+                    countdown = refreshInterval;
+                    fetchAllData();
+                }
+            }, 1000);
+        }
+
+        function updateTime() {
+            setInterval(() => {
+                const now = new Date();
+                document.getElementById('currentTime').textContent = 
+                    now.toLocaleTimeString('en-US', { 
+                        hour: '2-digit', 
+                        minute: '2-digit', 
+                        second: '2-digit',
+                        timeZone: 'America/New_York'
+                    }) + ' ET';
+            }, 1000);
+        }
+
+        function formatNumber(num) {
+            if (!num) return '0';
+            return parseFloat(num).toLocaleString('en-US', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function getStatusClass(status) {
+            switch(status.toUpperCase()) {
+                case 'STRESSED':
+                case 'CRITICAL':
+                case 'WIDENING':
+                    return 'negative';
+                case 'NORMAL':
+                case 'STABLE':
+                    return 'positive';
+                default:
+                    return 'neutral';
+            }
+        }
+
+        function getGradeClass(grade) {
+            if (grade.startsWith('A')) return 'positive';
+            if (grade.startsWith('B')) return 'neutral';
+            return 'negative';
+        }
+    </script>
+</body>
+</html> + formatNumber(btc.price);
+                } else {
+                    document.getElementById('btcValue').textContent = '$115,376';
+                }
             } else {
                 document.getElementById('btcValue').textContent = '$115,376';
             }
 
-            // Update Fed Balance Sheet
-            if (data['fed-liquidity'] && data['fed-liquidity'].walcl) {
-                const value = (data['fed-liquidity'].walcl.value / 1000000000000).toFixed(1);
-                document.getElementById('fedBalance').textContent = '$' + value + 'T';
-            } else {
+            // Update Fed Balance Sheet - look for WALCL
+            let walclFound = false;
+            Object.values(agentData).forEach(agent => {
+                if (agent && agent.WALCL) {
+                    const value = (parseFloat(agent.WALCL) / 1000000000000).toFixed(1);
+                    document.getElementById('fedBalance').textContent = '
+
+        function updateChangeIndicators(elementId, changes) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            const indicators = element.querySelectorAll('.change-item');
+            let index = 0;
+            
+            for (const [period, value] of Object.entries(changes)) {
+                if (indicators[index]) {
+                    const numValue = parseFloat(value);
+                    indicators[index].className = 'change-item ' + 
+                        (numValue > 0 ? 'positive' : numValue < 0 ? 'negative' : 'neutral');
+                    indicators[index].textContent = period + ': ' + 
+                        (numValue > 0 ? '+' : '') + numValue.toFixed(2) + '%';
+                    index++;
+                }
+            }
+        }
+
+        function updateKhalidIndex(data) {
+            let index = 45; // Default
+            
+            // Calculate based on multiple factors if data available
+            if (data['ai-prediction'] && data['ai-prediction'].crisis_probability) {
+                const crisis = parseFloat(data['ai-prediction'].crisis_probability);
+                index = Math.round(100 - crisis);
+            }
+
+            document.getElementById('khalidIndexValue').textContent = index;
+            document.getElementById('indexPointer').style.left = index + '%';
+            
+            // Update signal based on index
+            let signal = 'HOLD';
+            if (index < 20) signal = 'EXTREME FEAR/BUY';
+            else if (index < 35) signal = 'FEAR/ADD';
+            else if (index > 80) signal = 'EXTREME GREED/SELL';
+            else if (index > 65) signal = 'GREED/TAKE PROFITS';
+            
+            document.getElementById('khalidSignal').textContent = signal;
+        }
+
+        function updateAgentStatus(health) {
+            let activeCount = 0;
+            const agents = [
+                'fed-liquidity', 'treasury-api', 'ai-prediction', 'ice-bofa',
+                'coinmarketcap', 'alphavantage', 'cross-currency', 'enhanced-repo',
+                'census-economic', 'ny-fed', 'fred-api', 'chatgpt-agent',
+                'global-liquidity', 'polygon-api'
+            ];
+
+            agents.forEach(agent => {
+                const card = document.getElementById(`agent-${agent}`);
+                const statusEl = document.getElementById(`${agent}-status`);
+                const responseEl = document.getElementById(`${agent}-response`);
+                const datapointsEl = document.getElementById(`${agent}-datapoints`);
+                
+                if (health[agent] && health[agent].status === 'healthy') {
+                    activeCount++;
+                    if (card) card.className = 'agent-card';
+                    if (statusEl) {
+                        statusEl.textContent = 'Active';
+                        statusEl.className = 'positive';
+                    }
+                    if (responseEl) responseEl.textContent = health[agent].response_time || '< 1s';
+                    if (datapointsEl) datapointsEl.textContent = health[agent].data_points || '100+';
+                } else {
+                    if (card) card.className = 'agent-card error';
+                    if (statusEl) {
+                        statusEl.textContent = 'Error';
+                        statusEl.className = 'negative';
+                    }
+                    if (responseEl) responseEl.textContent = '-';
+                }
+            });
+
+            // Update header status
+            document.getElementById('activeAgents').textContent = `${activeCount}/14 Agents`;
+            document.getElementById('agentStatus').className = 
+                activeCount === 14 ? 'status-dot active' : 
+                activeCount > 10 ? 'status-dot warning' : 
+                'status-dot error';
+        }
+
+        function initializeCharts() {
+            // Dark Pool Chart
+            const darkPoolCtx = document.getElementById('darkPoolChart').getContext('2d');
+            charts.darkPool = new Chart(darkPoolCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['SPY', 'QQQ', 'NVDA', 'AAPL', 'MSFT', 'TSLA'],
+                    datasets: [{
+                        label: 'Dark Pool Volume ($B)',
+                        data: [2.3, 0.85, 1.2, 0.95, 0.78, 0.65],
+                        backgroundColor: 'rgba(0, 255, 136, 0.5)',
+                        borderColor: 'rgba(0, 255, 136, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: 'white' }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        },
+                        x: {
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        }
+                    }
+                }
+            });
+
+            // Central Bank Chart
+            const cbCtx = document.getElementById('centralBankChart').getContext('2d');
+            charts.centralBank = new Chart(cbCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+                    datasets: [
+                        {
+                            label: 'Fed ($T)',
+                            data: [7.2, 7.1, 7.0, 6.9, 6.8, 6.7, 6.6, 6.6, 6.6],
+                            borderColor: 'rgb(75, 192, 192)',
+                            tension: 0.1
+                        },
+                        {
+                            label: 'ECB (€T)',
+                            data: [7.8, 7.7, 7.6, 7.5, 7.4, 7.3, 7.2, 7.2, 7.2],
+                            borderColor: 'rgb(255, 99, 132)',
+                            tension: 0.1
+                        },
+                        {
+                            label: 'BOJ (¥100T)',
+                            data: [7.1, 7.2, 7.3, 7.4, 7.5, 7.5, 7.5, 7.5, 7.55],
+                            borderColor: 'rgb(255, 205, 86)',
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: 'white' }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        },
+                        x: {
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateCharts(data) {
+            // Update charts with real data when available
+            if (data && charts.darkPool) {
+                // Update dark pool chart if we have the data
+                charts.darkPool.update();
+            }
+            
+            if (data && charts.centralBank) {
+                // Update central bank chart if we have the data
+                charts.centralBank.update();
+            }
+        }
+
+        function updateTables(data) {
+            // Update Liquidity Table
+            const liquidityBody = document.getElementById('liquidityBody');
+            const liquidityMetrics = [
+                { name: 'Total Repo Fails', current: '$285B/day', normal: '$100B', crisis: '$400B', status: 'STRESSED' },
+                { name: 'SOFR-FF Spread', current: '11.5bp', normal: '2bp', crisis: '25bp', status: 'WIDENING' },
+                { name: 'FRA-OIS', current: '42bp', normal: '10bp', crisis: '80bp', status: 'STRESS' },
+                { name: 'RRP Balance', current: '$18.8B', normal: '$500B', crisis: '$0B', status: 'CRITICAL' },
+                { name: 'TGA Balance', current: '$870B', normal: '$400B', crisis: '$1T', status: 'ELEVATED' }
+            ];
+
+            liquidityBody.innerHTML = liquidityMetrics.map(metric => `
+                <tr>
+                    <td>${metric.name}</td>
+                    <td>${metric.current}</td>
+                    <td>${metric.normal}</td>
+                    <td>${metric.crisis}</td>
+                    <td class="${getStatusClass(metric.status)}">${metric.status}</td>
+                </tr>
+            `).join('');
+
+            // Update Auction Table
+            const auctionBody = document.getElementById('auctionBody');
+            const auctions = [
+                { auction: '10Y Treasury', grade: 'C+', bidCover: '2.42', indirect: '62%', tail: '3.2', analysis: 'Weakest in 8 months. Foreign buyers abandoning.' },
+                { auction: '30Y Treasury', grade: 'D', bidCover: '2.21', indirect: '58%', tail: '4.1', analysis: 'Disaster. Dealers stuck with inventory.' },
+                { auction: '2Y Treasury', grade: 'B-', bidCover: '2.65', indirect: '65%', tail: '2.1', analysis: 'Moderate demand, deteriorating trend.' }
+            ];
+
+            auctionBody.innerHTML = auctions.map(auction => `
+                <tr>
+                    <td>${auction.auction}</td>
+                    <td class="${getGradeClass(auction.grade)}">${auction.grade}</td>
+                    <td>${auction.bidCover}</td>
+                    <td>${auction.indirect}</td>
+                    <td>${auction.tail}</td>
+                    <td>${auction.analysis}</td>
+                </tr>
+            `).join('');
+        }
+
+        function updateTrades() {
+            const tradesContainer = document.getElementById('tradesContainer');
+            const trades = [
+                { rank: 1, trade: 'Long SPY/Short QQQ', entry: 'Current', target: '+8%', stop: '-3%', confidence: 90 },
+                { rank: 2, trade: 'Long TLT Volatility', entry: 'IV<25', target: '+150%', stop: '-30%', confidence: 85 },
+                { rank: 3, trade: 'Short Regional Banks', entry: 'KRE $52', target: '$45', stop: '$54', confidence: 85 },
+                { rank: 4, trade: 'Long USD/CNH', entry: '7.30', target: '7.50', stop: '7.20', confidence: 80 },
+                { rank: 5, trade: 'Long VIX Jan Calls', entry: '$2.50', target: '$8.00', stop: '$1.00', confidence: 80 }
+            ];
+
+            const tradeRows = trades.map(trade => `
+                <div class="trade-row">
+                    <span>#${trade.rank}</span>
+                    <span>${trade.trade}</span>
+                    <span>${trade.entry}</span>
+                    <span class="positive">${trade.target}</span>
+                    <span class="negative">${trade.stop}</span>
+                    <div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" style="width: ${trade.confidence}%"></div>
+                        </div>
+                        <small>${trade.confidence}%</small>
+                    </div>
+                </div>
+            `).join('');
+
+            tradesContainer.innerHTML = `
+                <div class="trade-row" style="font-weight: 600;">
+                    <span>Rank</span>
+                    <span>Trade</span>
+                    <span>Entry</span>
+                    <span>Target</span>
+                    <span>Stop</span>
+                    <span>Confidence</span>
+                </div>
+                ${tradeRows}
+            `;
+        }
+
+        function setupAutoRefresh() {
+            let countdown = refreshInterval;
+            
+            setInterval(() => {
+                countdown--;
+                document.getElementById('refreshCountdown').textContent = countdown;
+                
+                if (countdown <= 0) {
+                    countdown = refreshInterval;
+                    fetchAllData();
+                }
+            }, 1000);
+        }
+
+        function updateTime() {
+            setInterval(() => {
+                const now = new Date();
+                document.getElementById('currentTime').textContent = 
+                    now.toLocaleTimeString('en-US', { 
+                        hour: '2-digit', 
+                        minute: '2-digit', 
+                        second: '2-digit',
+                        timeZone: 'America/New_York'
+                    }) + ' ET';
+            }, 1000);
+        }
+
+        function formatNumber(num) {
+            if (!num) return '0';
+            return parseFloat(num).toLocaleString('en-US', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function getStatusClass(status) {
+            switch(status.toUpperCase()) {
+                case 'STRESSED':
+                case 'CRITICAL':
+                case 'WIDENING':
+                    return 'negative';
+                case 'NORMAL':
+                case 'STABLE':
+                    return 'positive';
+                default:
+                    return 'neutral';
+            }
+        }
+
+        function getGradeClass(grade) {
+            if (grade.startsWith('A')) return 'positive';
+            if (grade.startsWith('B')) return 'neutral';
+            return 'negative';
+        }
+    </script>
+</body>
+</html> + value + 'T';
+                    walclFound = true;
+                }
+            });
+            if (!walclFound) {
                 document.getElementById('fedBalance').textContent = '$6.6T';
             }
 
-            // Update Treasury Yields
-            if (data['treasury-api'] && data['treasury-api']['10Y']) {
-                document.getElementById('treasury10y').textContent = data['treasury-api']['10Y'].rate + '%';
+            // Update Treasury Yields - check treasury-api
+            if (agentData['treasury-api']) {
+                const treasury = agentData['treasury-api'];
+                if (treasury['10Y'] || treasury['10-year'] || treasury.DGS10) {
+                    const rate = treasury['10Y'] || treasury['10-year'] || treasury.DGS10;
+                    document.getElementById('treasury10y').textContent = 
+                        (typeof rate === 'object' ? rate.rate : rate) + '%';
+                } else {
+                    document.getElementById('treasury10y').textContent = '4.11%';
+                }
             } else {
                 document.getElementById('treasury10y').textContent = '4.11%';
             }
 
-            // Update Dollar Index
-            if (data['cross-currency'] && data['cross-currency'].dxy) {
-                document.getElementById('dxyValue').textContent = data['cross-currency'].dxy.value || '105.2';
+            // Update Dollar Index - check cross-currency or forex data
+            if (agentData['cross-currency']) {
+                const dxy = agentData['cross-currency'].DXY || 
+                           agentData['cross-currency'].dxy || 
+                           agentData['cross-currency'].dollar_index;
+                if (dxy) {
+                    document.getElementById('dxyValue').textContent = 
+                        typeof dxy === 'object' ? dxy.value : dxy;
+                } else {
+                    document.getElementById('dxyValue').textContent = '105.2';
+                }
             } else {
                 document.getElementById('dxyValue').textContent = '105.2';
             }
+
+            // Log the data structure for debugging
+            console.log('Agent Data Structure:', agentData);
+            console.log('Available agents:', Object.keys(agentData));
         }
 
         function updateChangeIndicators(elementId, changes) {
