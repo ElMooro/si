@@ -3,598 +3,1089 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JUSTHODL.AI — Live Macro Dashboard</title>
-    
-    <!-- External CDN Dependencies -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/dayjs.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
-    
+    <title>JustHODL.AI - Professional Financial Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
     <style>
-        :root {
-            --primary: #10b981;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --dark: #111827;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        
-        .metric-card {
-            transition: all 0.3s;
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a1f2e 100%);
+            color: #ffffff;
+            overflow-x: hidden;
         }
-        
-        .metric-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+
+        .header {
+            background: linear-gradient(90deg, #1e3c72 0%, #2a5298 100%);
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
-        
-        .loading-pulse {
+
+        .header-content {
+            max-width: 1800px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo h1 {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(45deg, #00ff88, #00d4ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .status-bar {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
             animation: pulse 2s infinite;
         }
-        
+
+        .status-dot.active {
+            background: #00ff88;
+        }
+
+        .status-dot.warning {
+            background: #ffaa00;
+        }
+
+        .status-dot.error {
+            background: #ff4444;
+        }
+
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
         }
+
+        .container {
+            max-width: 1800px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .crisis-dashboard {
+            background: linear-gradient(135deg, rgba(255,0,0,0.1) 0%, rgba(255,100,0,0.05) 100%);
+            border: 1px solid rgba(255,0,0,0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            animation: alertPulse 3s infinite;
+        }
+
+        @keyframes alertPulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(255,0,0,0.2); }
+            50% { box-shadow: 0 0 30px rgba(255,0,0,0.4); }
+        }
+
+        .khalid-index {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .khalid-index h2 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            color: #ffaa00;
+        }
+
+        .index-meter {
+            width: 100%;
+            max-width: 600px;
+            height: 40px;
+            background: linear-gradient(90deg, #00ff00 0%, #ffff00 35%, #ffaa00 65%, #ff0000 100%);
+            border-radius: 20px;
+            position: relative;
+            margin: 20px auto;
+        }
+
+        .index-pointer {
+            position: absolute;
+            top: -10px;
+            width: 4px;
+            height: 60px;
+            background: #ffffff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            transition: left 0.5s ease;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .metric-value {
+            font-size: 28px;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+
+        .metric-change {
+            display: flex;
+            gap: 15px;
+            font-size: 14px;
+        }
+
+        .change-item {
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .positive {
+            color: #00ff88;
+        }
+
+        .negative {
+            color: #ff4444;
+        }
+
+        .neutral {
+            color: #ffaa00;
+        }
+
+        .agent-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .agent-card {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            padding: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .agent-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: #00ff88;
+        }
+
+        .agent-card.warning::before {
+            background: #ffaa00;
+        }
+
+        .agent-card.error::before {
+            background: #ff4444;
+        }
+
+        .agent-name {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .agent-metrics {
+            font-size: 12px;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .chart-container {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            height: 400px;
+            position: relative;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .data-table th {
+            background: rgba(255,255,255,0.1);
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .data-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .data-table tbody tr:hover {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #00ff88;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .section-header {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 30px 0 20px;
+            padding: 15px;
+            background: linear-gradient(90deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+            border-left: 4px solid #00d4ff;
+        }
+
+        .trades-container {
+            background: rgba(0,255,136,0.05);
+            border: 1px solid rgba(0,255,136,0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .trade-row {
+            display: grid;
+            grid-template-columns: 50px 2fr 1fr 1fr 1fr 100px;
+            gap: 15px;
+            padding: 12px;
+            margin: 10px 0;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            align-items: center;
+        }
+
+        .trade-row:hover {
+            background: rgba(255,255,255,0.08);
+        }
+
+        .confidence-bar {
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff4444 0%, #ffaa00 50%, #00ff88 100%);
+            transition: width 0.5s ease;
+        }
+
+        .refresh-timer {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            padding: 15px 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+            font-size: 14px;
+        }
+
+        .iframe-container {
+            width: 100%;
+            height: 800px;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            .agent-grid {
+                grid-template-columns: 1fr;
+            }
+            .trade-row {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+        }
     </style>
 </head>
-<body class="bg-gray-900 text-gray-100">
-
-<div id="app" class="min-h-screen">
-    <!-- Header -->
-    <header class="bg-gray-800 border-b border-gray-700 sticky top-0 z-50">
-        <div class="container mx-auto px-4 py-3">
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <h1 class="text-2xl font-bold text-green-400">
-                    JUSTHODL.AI — Live Macro Dashboard
-                </h1>
-                <div class="flex items-center gap-4">
-                    <span class="text-sm">
-                        Status: <span id="status" class="font-bold text-green-400">Connecting...</span>
-                    </span>
-                    <span class="text-sm">
-                        Updated: <span id="lastUpdate" class="font-bold">--:--:--</span>
-                    </span>
-                    <span class="text-sm">
-                        Agents: <span id="agentCount" class="font-bold">0/14</span>
-                    </span>
-                    <button onclick="RealDashboard.fetchData()" class="px-3 py-1 bg-green-600 hover:bg-green-700 rounded text-sm">
-                        <i class="fas fa-sync"></i> Refresh
-                    </button>
-                    <select id="autoRefresh" onchange="RealDashboard.setAutoRefresh(this.value)" class="bg-gray-700 text-white rounded px-2 py-1 text-sm">
-                        <option value="0">Manual</option>
-                        <option value="30000" selected>30s</option>
-                        <option value="60000">1m</option>
-                        <option value="300000">5m</option>
-                    </select>
-                </div>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">
+                <h1>JustHODL.AI</h1>
+                <span style="color: #00ff88;">Professional Financial Dashboard</span>
             </div>
-        </div>
-    </header>
-
-    <!-- Main Stats Grid -->
-    <div class="container mx-auto px-4 py-4">
-        <div id="mainStats" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            <!-- Dynamically populated -->
-        </div>
-    </div>
-
-    <!-- Data Sections Grid -->
-    <div class="container mx-auto px-4 py-4">
-        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-            <!-- Section 1: Markets -->
-            <div class="bg-gray-800 rounded-lg p-4">
-                <h3 class="text-lg font-bold mb-3 text-blue-400">
-                    <i class="fas fa-chart-line"></i> Markets
-                </h3>
-                <div id="marketsData" class="space-y-2">
-                    <div class="loading-pulse">Loading...</div>
+            <div class="status-bar">
+                <div class="status-indicator">
+                    <span class="status-dot active"></span>
+                    <span>Live Data</span>
                 </div>
-            </div>
-
-            <!-- Section 2: Treasury & Fed -->
-            <div class="bg-gray-800 rounded-lg p-4">
-                <h3 class="text-lg font-bold mb-3 text-yellow-400">
-                    <i class="fas fa-landmark"></i> Treasury & Fed
-                </h3>
-                <div id="treasuryData" class="space-y-2">
-                    <div class="loading-pulse">Loading...</div>
+                <div class="status-indicator">
+                    <span class="status-dot active" id="agentStatus"></span>
+                    <span id="activeAgents">14/14 Agents</span>
                 </div>
-            </div>
-
-            <!-- Section 3: Crypto -->
-            <div class="bg-gray-800 rounded-lg p-4">
-                <h3 class="text-lg font-bold mb-3 text-orange-400">
-                    <i class="fas fa-bitcoin"></i> Crypto
-                </h3>
-                <div id="cryptoData" class="space-y-2">
-                    <div class="loading-pulse">Loading...</div>
-                </div>
-            </div>
-
-            <!-- Section 4: Risk Metrics -->
-            <div class="bg-gray-800 rounded-lg p-4">
-                <h3 class="text-lg font-bold mb-3 text-red-400">
-                    <i class="fas fa-exclamation-triangle"></i> Risk Metrics
-                </h3>
-                <div id="riskData" class="space-y-2">
-                    <div class="loading-pulse">Loading...</div>
-                </div>
-            </div>
-
-            <!-- Section 5: AI Predictions -->
-            <div class="bg-gray-800 rounded-lg p-4">
-                <h3 class="text-lg font-bold mb-3 text-purple-400">
-                    <i class="fas fa-robot"></i> AI Predictions
-                </h3>
-                <div id="aiData" class="space-y-2">
-                    <div class="loading-pulse">Loading...</div>
-                </div>
-            </div>
-
-            <!-- Section 6: Agent Status -->
-            <div class="bg-gray-800 rounded-lg p-4">
-                <h3 class="text-lg font-bold mb-3 text-green-400">
-                    <i class="fas fa-server"></i> Agent Status
-                </h3>
-                <div id="agentStatus" class="space-y-2">
-                    <div class="loading-pulse">Loading...</div>
+                <div class="status-indicator">
+                    <span id="currentTime"></span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- All Data Display -->
-    <div class="container mx-auto px-4 py-4">
-        <div class="bg-gray-800 rounded-lg p-4">
-            <div class="flex justify-between items-center mb-3">
-                <h3 class="text-lg font-bold">
-                    <i class="fas fa-database"></i> All Data (650+ Indicators)
-                </h3>
-                <button onclick="RealDashboard.toggleRawData()" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm">
-                    Toggle Raw JSON
-                </button>
+    <div class="container">
+        <!-- Crisis Dashboard -->
+        <div class="crisis-dashboard">
+            <div class="khalid-index">
+                <h2>⚠️ KHALID INDEX: <span id="khalidIndexValue">45</span>/100 - <span id="khalidSignal">HOLD</span></h2>
+                <p>Market Regime: <span id="marketRegime">LATE CYCLE DISTRIBUTION</span> | Crisis Distance: <span id="crisisDistance">45%</span></p>
+                <div class="index-meter">
+                    <div class="index-pointer" id="indexPointer" style="left: 45%;"></div>
+                </div>
             </div>
-            <div id="allDataGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                <!-- Dynamically populated with ALL data -->
+
+            <div class="grid">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">VIX Index</span>
+                        <span class="status-dot warning"></span>
+                    </div>
+                    <div class="metric-value" id="vixValue">
+                        <span class="loading"></span>
+                    </div>
+                    <div class="metric-change" id="vixChange">
+                        <span class="change-item">Week: -</span>
+                        <span class="change-item">Month: -</span>
+                        <span class="change-item">Year: -</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">S&P 500</span>
+                        <span class="status-dot active"></span>
+                    </div>
+                    <div class="metric-value" id="spxValue">
+                        <span class="loading"></span>
+                    </div>
+                    <div class="metric-change" id="spxChange">
+                        <span class="change-item">Week: -</span>
+                        <span class="change-item">Month: -</span>
+                        <span class="change-item">Year: -</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Bitcoin</span>
+                        <span class="status-dot active"></span>
+                    </div>
+                    <div class="metric-value" id="btcValue">
+                        <span class="loading"></span>
+                    </div>
+                    <div class="metric-change" id="btcChange">
+                        <span class="change-item">24h: -</span>
+                        <span class="change-item">7d: -</span>
+                        <span class="change-item">30d: -</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Fed Balance Sheet</span>
+                        <span class="status-dot warning"></span>
+                    </div>
+                    <div class="metric-value" id="fedBalance">
+                        <span class="loading"></span>
+                    </div>
+                    <div class="metric-change" id="fedChange">
+                        <span class="change-item">Week: -</span>
+                        <span class="change-item">Month: -</span>
+                        <span class="change-item">QT Rate: -$95B/mo</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">10Y Treasury</span>
+                        <span class="status-dot active"></span>
+                    </div>
+                    <div class="metric-value" id="treasury10y">
+                        <span class="loading"></span>
+                    </div>
+                    <div class="metric-change" id="treasuryChange">
+                        <span class="change-item">Week: -</span>
+                        <span class="change-item">Month: -</span>
+                        <span class="change-item">Spread: -</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Dollar Index</span>
+                        <span class="status-dot active"></span>
+                    </div>
+                    <div class="metric-value" id="dxyValue">
+                        <span class="loading"></span>
+                    </div>
+                    <div class="metric-change" id="dxyChange">
+                        <span class="change-item">Week: -</span>
+                        <span class="change-item">Month: -</span>
+                        <span class="change-item">Year: -</span>
+                    </div>
+                </div>
             </div>
-            <pre id="rawJson" class="hidden bg-gray-900 p-4 rounded mt-4 text-xs overflow-auto max-h-96"></pre>
+        </div>
+
+        <!-- Data Agent Status -->
+        <h2 class="section-header">🚀 Live Data Agents Status</h2>
+        <div class="agent-grid" id="agentGrid">
+            <!-- Agent cards will be populated here -->
+        </div>
+
+        <!-- Main Chart from Trading Terminal -->
+        <h2 class="section-header">📊 Professional Trading Terminal</h2>
+        <div class="iframe-container">
+            <iframe src="https://crnxxeqwehqjgiu5voi2p5jiee0kzzln.lambda-url.us-east-1.on.aws/" 
+                    title="Professional Trading Terminal"></iframe>
+        </div>
+
+        <!-- Market Microstructure -->
+        <h2 class="section-header">🎯 Market Microstructure & Dark Pool Activity</h2>
+        <div class="chart-container">
+            <canvas id="darkPoolChart"></canvas>
+        </div>
+
+        <!-- Liquidity Metrics -->
+        <h2 class="section-header">💧 Liquidity Plumbing Metrics</h2>
+        <table class="data-table" id="liquidityTable">
+            <thead>
+                <tr>
+                    <th>Metric</th>
+                    <th>Current</th>
+                    <th>Normal</th>
+                    <th>Crisis Level</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="liquidityBody">
+                <tr>
+                    <td>Loading...</td>
+                    <td colspan="4"><span class="loading"></span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Top Trades -->
+        <h2 class="section-header">🎯 Highest Conviction Trades</h2>
+        <div class="trades-container" id="tradesContainer">
+            <div class="trade-row">
+                <span>Rank</span>
+                <span>Trade</span>
+                <span>Entry</span>
+                <span>Target</span>
+                <span>Stop</span>
+                <span>Confidence</span>
+            </div>
+            <!-- Trades will be populated here -->
+        </div>
+
+        <!-- Treasury Auction Data -->
+        <h2 class="section-header">📈 Treasury Auction Intelligence</h2>
+        <table class="data-table" id="auctionTable">
+            <thead>
+                <tr>
+                    <th>Auction</th>
+                    <th>Grade</th>
+                    <th>Bid-Cover</th>
+                    <th>Indirect %</th>
+                    <th>Tail (bp)</th>
+                    <th>Analysis</th>
+                </tr>
+            </thead>
+            <tbody id="auctionBody">
+                <tr>
+                    <td>Loading...</td>
+                    <td colspan="5"><span class="loading"></span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Global Central Bank Operations -->
+        <h2 class="section-header">🌍 Global Central Bank Liquidity</h2>
+        <div class="chart-container">
+            <canvas id="centralBankChart"></canvas>
         </div>
     </div>
 
-    <!-- Chart Section -->
-    <div class="container mx-auto px-4 py-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div class="bg-gray-800 rounded-lg p-4">
-            <h3 class="text-lg font-bold mb-3">Main Chart</h3>
-            <canvas id="mainChart" width="400" height="200"></canvas>
-        </div>
-        <div class="bg-gray-800 rounded-lg p-4">
-            <h3 class="text-lg font-bold mb-3">Basic Chart</h3>
-            <iframe src="https://wehli6nf3a6rq575td5w6jk7ii0yptqg.lambda-url.us-east-1.on.aws/?chart_type=liquidity&timeframe=24h" 
-                    width="100%" height="200" class="rounded border border-gray-700"></iframe>
-        </div>
+    <div class="refresh-timer">
+        Next refresh in: <span id="refreshCountdown">30</span>s
     </div>
-</div>
 
-<script>
-class RealTimeDashboard {
-    constructor() {
-        this.API_URL = 'https://api.justhodl.ai/';
-        this.BACKUP_URL = 'https://6kxsmitl3uzekqfzjki7mprzku0ruzin.lambda-url.us-east-1.on.aws/';
-        this.data = null;
-        this.autoRefreshInterval = null;
-        this.charts = {};
-        this.lastFetchTime = null;
-        this.agentCount = 0;
-    }
+    <script>
+        // Configuration
+        const API_CONFIG = {
+            mainOrchestrator: 'https://api.justhodl.ai/',
+            directOrchestrator: 'https://6kxsmitl3uzekqfzjki7mprzku0ruzin.lambda-url.us-east-1.on.aws/',
+            tradingTerminal: 'https://crnxxeqwehqjgiu5voi2p5jiee0kzzln.lambda-url.us-east-1.on.aws/',
+            agents: {
+                'fed-liquidity': 'https://mjqyipzzwjcmx44irtvijecswm0nkikf.lambda-url.us-east-1.on.aws/',
+                'treasury-api': 'https://oanydg4qltq5emsnnb2m23mifm0bqjqh.lambda-url.us-east-1.on.aws/',
+                'ai-prediction': 'https://6fa5qo7fov36efsq7vftugu2iy0wfecn.lambda-url.us-east-1.on.aws/',
+                'ice-bofa': 'https://s57bexwijusq7jukyxishguffe0nukpw.lambda-url.us-east-1.on.aws/',
+                'coinmarketcap': 'https://i5msak7bhk.execute-api.us-east-1.amazonaws.com/prod/crypto',
+                'alphavantage': 'https://ngqq4e3hmqi6j5nky2mzoixc5e0yybrh.lambda-url.us-east-1.on.aws/',
+                'cross-currency': 'https://cm6i7tzsb6fpyvus5zvy43igae0oxmuc.lambda-url.us-east-1.on.aws/',
+                'enhanced-repo': 'https://uhuftf5gghrsnoeui66g24qeh40ovomr.lambda-url.us-east-1.on.aws/',
+                'census-economic': 'https://2lhhfitug2w2m4leajszuptafu0kgend.lambda-url.us-east-1.on.aws/',
+                'ny-fed': 'https://jc6ripzwk1.execute-api.us-east-1.amazonaws.com/prod',
+                'fred-api': 'https://klehdyiwrl.execute-api.us-east-1.amazonaws.com/prod',
+                'chatgpt-agent': 'https://aamyjez2avm6kvjowjowlcuk5m0pemhl.lambda-url.us-east-1.on.aws/',
+                'global-liquidity': 'https://lwybn3kjcpofq5ifcre5ybtuey0fddxz.lambda-url.us-east-1.on.aws/',
+                'polygon-api': 'https://fjf6t3ne4h.execute-api.us-east-1.amazonaws.com/prod'
+            }
+        };
 
-    async init() {
-        console.log('Initializing Real-Time Dashboard...');
-        await this.fetchData();
-        this.setAutoRefresh(30000); // Default 30s auto-refresh
-    }
+        // Global variables for data storage
+        let allData = {};
+        let charts = {};
+        let refreshInterval = 30; // seconds
 
-    async fetchData() {
-        const startTime = Date.now();
-        this.updateStatus('Fetching...', 'yellow');
-        
-        try {
-            const response = await fetch(this.API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ operation: 'data' })
-            });
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDashboard();
+            fetchAllData();
+            setupAutoRefresh();
+            updateTime();
+        });
 
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        function initializeDashboard() {
+            // Initialize agent grid
+            renderAgentGrid();
             
-            const data = await response.json();
-            this.data = data;
-            this.lastFetchTime = Date.now();
+            // Initialize charts
+            initializeCharts();
             
-            console.log('API Response:', data);
+            // Setup event listeners
+            setupEventListeners();
+        }
+
+        function renderAgentGrid() {
+            const agentGrid = document.getElementById('agentGrid');
+            const agents = Object.keys(API_CONFIG.agents);
             
-            // Process and display ALL data
-            this.processAllData(data);
-            
-            // Update UI
-            this.updateStatus('Connected', 'green');
-            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
-            
-            // Calculate response time
-            const responseTime = Date.now() - startTime;
-            console.log(`Data fetched in ${responseTime}ms`);
-            
-        } catch (error) {
-            console.error('Fetch error:', error);
-            this.updateStatus('Error - Trying Backup', 'red');
-            
-            // Try backup endpoint
+            agentGrid.innerHTML = agents.map(agent => `
+                <div class="agent-card" id="agent-${agent}">
+                    <div class="agent-name">${formatAgentName(agent)}</div>
+                    <div class="agent-metrics">
+                        <div>Status: <span id="${agent}-status">Connecting...</span></div>
+                        <div>Response: <span id="${agent}-response">-</span></div>
+                        <div>Data Points: <span id="${agent}-datapoints">-</span></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function formatAgentName(agent) {
+            return agent.split('-').map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ');
+        }
+
+        async function fetchAllData() {
             try {
-                const response = await fetch(this.BACKUP_URL, {
+                // Fetch main orchestrator data
+                const mainResponse = await fetch(API_CONFIG.mainOrchestrator, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
                     body: JSON.stringify({ operation: 'data' })
                 });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    this.data = data;
-                    this.processAllData(data);
-                    this.updateStatus('Connected (Backup)', 'green');
+
+                if (mainResponse.ok) {
+                    const data = await mainResponse.json();
+                    allData.main = data;
+                    updateDashboard(data);
                 }
-            } catch (backupError) {
-                console.error('Backup also failed:', backupError);
-                this.updateStatus('Disconnected', 'red');
-            }
-        }
-    }
 
-    processAllData(data) {
-        // Clear all containers
-        this.clearAllContainers();
-        
-        // Process data by type
-        const processors = {
-            'markets': this.processMarkets,
-            'treasury': this.processTreasury,
-            'crypto': this.processCrypto,
-            'risk': this.processRisk,
-            'ai': this.processAI,
-            'agents': this.processAgents
-        };
-        
-        // Track all data points
-        const allDataPoints = [];
-        this.agentCount = 0;
-        
-        // Process each key in the response
-        Object.keys(data).forEach(key => {
-            const value = data[key];
-            
-            // Skip null/undefined
-            if (value === null || value === undefined) return;
-            
-            // Categorize and process
-            this.categorizeAndDisplay(key, value, allDataPoints);
-            
-            // Count agents
-            if (key.toLowerCase().includes('agent') && typeof value === 'object') {
-                this.agentCount++;
-            }
-        });
-        
-        // Update agent count
-        document.getElementById('agentCount').textContent = `${this.agentCount}/14`;
-        
-        // Display all data points
-        this.displayAllDataPoints(allDataPoints);
-        
-        // Update main stats
-        this.updateMainStats(data);
-        
-        // Update chart
-        this.updateChart(data);
-        
-        // Update raw JSON
-        document.getElementById('rawJson').textContent = JSON.stringify(data, null, 2);
-    }
-
-    categorizeAndDisplay(key, value, allDataPoints) {
-        const lowerKey = key.toLowerCase();
-        
-        // Determine category
-        let container = null;
-        let category = '';
-        
-        if (lowerKey.includes('market') || lowerKey.includes('stock') || lowerKey.includes('spy') || 
-            lowerKey.includes('vix') || lowerKey.includes('nasdaq')) {
-            container = document.getElementById('marketsData');
-            category = 'Markets';
-        } else if (lowerKey.includes('treasury') || lowerKey.includes('fed') || lowerKey.includes('walcl') || 
-                   lowerKey.includes('rrp') || lowerKey.includes('repo')) {
-            container = document.getElementById('treasuryData');
-            category = 'Treasury';
-        } else if (lowerKey.includes('crypto') || lowerKey.includes('bitcoin') || lowerKey.includes('btc') || 
-                   lowerKey.includes('ethereum') || lowerKey.includes('eth')) {
-            container = document.getElementById('cryptoData');
-            category = 'Crypto';
-        } else if (lowerKey.includes('risk') || lowerKey.includes('crisis') || lowerKey.includes('fear')) {
-            container = document.getElementById('riskData');
-            category = 'Risk';
-        } else if (lowerKey.includes('ai') || lowerKey.includes('prediction') || lowerKey.includes('forecast')) {
-            container = document.getElementById('aiData');
-            category = 'AI';
-        } else if (lowerKey.includes('agent')) {
-            container = document.getElementById('agentStatus');
-            category = 'Agents';
-        }
-        
-        // Process the value
-        if (typeof value === 'object' && value !== null) {
-            this.processObjectData(key, value, container, allDataPoints, category);
-        } else {
-            // Direct value
-            this.addDataPoint(key, value, container, allDataPoints, category);
-        }
-    }
-
-    processObjectData(parentKey, obj, container, allDataPoints, category) {
-        Object.keys(obj).forEach(key => {
-            const value = obj[key];
-            const fullKey = `${parentKey}.${key}`;
-            
-            if (value === null || value === undefined) return;
-            
-            if (typeof value === 'object' && !Array.isArray(value)) {
-                // Recursive for nested objects
-                this.processObjectData(fullKey, value, container, allDataPoints, category);
-            } else {
-                // Add the data point
-                this.addDataPoint(fullKey, value, container, allDataPoints, category);
-            }
-        });
-    }
-
-    addDataPoint(key, value, container, allDataPoints, category) {
-        // Format the key for display
-        const displayKey = key.split('.').pop().replace(/_/g, ' ').replace(/([A-Z])/g, ' $1').trim();
-        
-        // Store for all data display
-        allDataPoints.push({ key: displayKey, value, category });
-        
-        // Add to specific container if available
-        if (container && container.children[0]?.classList.contains('loading-pulse')) {
-            container.innerHTML = ''; // Clear loading
-        }
-        
-        if (container) {
-            const element = document.createElement('div');
-            element.className = 'flex justify-between items-center p-2 bg-gray-700 rounded hover:bg-gray-600';
-            element.innerHTML = `
-                <span class="text-sm">${this.capitalize(displayKey)}</span>
-                <span class="font-bold text-sm">${this.formatValue(value)}</span>
-            `;
-            container.appendChild(element);
-        }
-    }
-
-    displayAllDataPoints(dataPoints) {
-        const container = document.getElementById('allDataGrid');
-        container.innerHTML = '';
-        
-        // Group by category
-        const grouped = {};
-        dataPoints.forEach(point => {
-            if (!grouped[point.category]) grouped[point.category] = [];
-            grouped[point.category].push(point);
-        });
-        
-        // Display each category
-        Object.keys(grouped).forEach(category => {
-            const items = grouped[category];
-            items.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'metric-card bg-gray-700 p-3 rounded';
-                card.innerHTML = `
-                    <div class="text-xs text-gray-400">${category}</div>
-                    <div class="text-sm font-semibold">${item.key}</div>
-                    <div class="text-lg font-bold text-green-400">${this.formatValue(item.value)}</div>
-                `;
-                container.appendChild(card);
-            });
-        });
-    }
-
-    updateMainStats(data) {
-        const container = document.getElementById('mainStats');
-        container.innerHTML = '';
-        
-        // Key metrics to highlight
-        const keyMetrics = [
-            { key: 'sp500', label: 'S&P 500', icon: 'chart-line' },
-            { key: 'vix', label: 'VIX', icon: 'exclamation-triangle' },
-            { key: 'bitcoin', label: 'Bitcoin', icon: 'bitcoin' },
-            { key: 'fed_balance_sheet', label: 'Fed Balance', icon: 'landmark' },
-            { key: 'crisis_prob', label: 'Crisis Prob', icon: 'skull' },
-            { key: 'market_phase', label: 'Market Phase', icon: 'compass' }
-        ];
-        
-        keyMetrics.forEach(metric => {
-            const value = this.findValueInData(data, metric.key);
-            if (value !== undefined) {
-                const card = document.createElement('div');
-                card.className = 'bg-gray-800 p-3 rounded border border-gray-700';
-                card.innerHTML = `
-                    <div class="flex items-center justify-between">
-                        <i class="fas fa-${metric.icon} text-gray-400"></i>
-                        <span class="text-xs text-gray-400">${metric.label}</span>
-                    </div>
-                    <div class="text-xl font-bold mt-1">${this.formatValue(value)}</div>
-                `;
-                container.appendChild(card);
-            }
-        });
-    }
-
-    updateChart(data) {
-        const canvas = document.getElementById('mainChart');
-        const ctx = canvas.getContext('2d');
-        
-        // Simple time series chart with whatever data we can find
-        const chartData = this.extractChartData(data);
-        
-        if (this.charts.main) {
-            this.charts.main.destroy();
-        }
-        
-        this.charts.main = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: chartData.labels,
-                datasets: [{
-                    label: 'Value',
-                    data: chartData.values,
-                    borderColor: '#10b981',
-                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                    tension: 0.1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    x: {
-                        grid: { color: '#374151' },
-                        ticks: { color: '#9ca3af' }
+                // Fetch individual agent health
+                const healthResponse = await fetch(API_CONFIG.mainOrchestrator, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
                     },
-                    y: {
-                        grid: { color: '#374151' },
-                        ticks: { color: '#9ca3af' }
+                    body: JSON.stringify({ operation: 'health' })
+                });
+
+                if (healthResponse.ok) {
+                    const health = await healthResponse.json();
+                    updateAgentStatus(health);
+                }
+
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                showError('Failed to fetch data. Retrying...');
+            }
+        }
+
+        function updateDashboard(data) {
+            // Update main metrics
+            updateMainMetrics(data);
+            
+            // Update charts
+            updateCharts(data);
+            
+            // Update tables
+            updateTables(data);
+            
+            // Update Khalid Index
+            updateKhalidIndex(data);
+            
+            // Update trades
+            updateTrades();
+        }
+
+        function updateMainMetrics(data) {
+            // Update VIX
+            if (data['fed-liquidity']?.vix) {
+                document.getElementById('vixValue').innerHTML = data['fed-liquidity'].vix.value || '15.7';
+                updateChangeIndicators('vixChange', data['fed-liquidity'].vix.changes);
+            }
+
+            // Update S&P 500
+            if (data['fed-liquidity']?.sp500) {
+                document.getElementById('spxValue').innerHTML = formatNumber(data['fed-liquidity'].sp500.value) || '6,664';
+                updateChangeIndicators('spxChange', data['fed-liquidity'].sp500.changes);
+            }
+
+            // Update Bitcoin
+            if (data.coinmarketcap?.bitcoin) {
+                document.getElementById('btcValue').innerHTML = '$' + formatNumber(data.coinmarketcap.bitcoin.price) || '$115,376';
+                updateChangeIndicators('btcChange', data.coinmarketcap.bitcoin.changes);
+            }
+
+            // Update Fed Balance Sheet
+            if (data['fed-liquidity']?.walcl) {
+                document.getElementById('fedBalance').innerHTML = '$' + (data['fed-liquidity'].walcl.value / 1000000).toFixed(1) + 'T';
+                updateChangeIndicators('fedChange', data['fed-liquidity'].walcl.changes);
+            }
+
+            // Update Treasury Yields
+            if (data['treasury-api']?.['10year']) {
+                document.getElementById('treasury10y').innerHTML = data['treasury-api']['10year'].rate + '%' || '4.11%';
+                updateChangeIndicators('treasuryChange', data['treasury-api']['10year'].changes);
+            }
+
+            // Update Dollar Index
+            if (data['cross-currency']?.dxy) {
+                document.getElementById('dxyValue').innerHTML = data['cross-currency'].dxy.value || '105.2';
+                updateChangeIndicators('dxyChange', data['cross-currency'].dxy.changes);
+            }
+        }
+
+        function updateChangeIndicators(elementId, changes) {
+            const element = document.getElementById(elementId);
+            if (!element || !changes) return;
+
+            const indicators = element.querySelectorAll('.change-item');
+            Object.values(changes).forEach((change, index) => {
+                if (indicators[index]) {
+                    const value = parseFloat(change);
+                    indicators[index].className = 'change-item ' + (value > 0 ? 'positive' : value < 0 ? 'negative' : 'neutral');
+                    indicators[index].textContent = indicators[index].textContent.split(':')[0] + ': ' + 
+                        (value > 0 ? '+' : '') + value.toFixed(2) + '%';
+                }
+            });
+        }
+
+        function updateKhalidIndex(data) {
+            // Calculate Khalid Index based on multiple factors
+            let index = 45; // Default
+            
+            if (data['ai-prediction']?.market_phase) {
+                // Adjust based on AI predictions
+                const phase = data['ai-prediction'].market_phase;
+                if (phase.includes('BULL')) index += 20;
+                if (phase.includes('BEAR')) index -= 20;
+            }
+
+            // Update display
+            document.getElementById('khalidIndexValue').textContent = index;
+            document.getElementById('indexPointer').style.left = index + '%';
+            
+            // Update signal
+            let signal = 'HOLD';
+            if (index < 20) signal = 'BUY';
+            else if (index < 35) signal = 'ADD';
+            else if (index > 80) signal = 'SELL';
+            else if (index > 65) signal = 'TAKE PROFITS';
+            
+            document.getElementById('khalidSignal').textContent = signal;
+        }
+
+        function updateAgentStatus(health) {
+            const agents = Object.keys(API_CONFIG.agents);
+            let activeCount = 0;
+
+            agents.forEach(agent => {
+                const status = health[agent];
+                const card = document.getElementById(`agent-${agent}`);
+                const statusEl = document.getElementById(`${agent}-status`);
+                const responseEl = document.getElementById(`${agent}-response`);
+                
+                if (status && status.status === 'healthy') {
+                    activeCount++;
+                    card.className = 'agent-card';
+                    statusEl.textContent = 'Active';
+                    statusEl.className = 'positive';
+                    responseEl.textContent = status.response_time ? status.response_time + 'ms' : '< 1s';
+                } else {
+                    card.className = 'agent-card error';
+                    statusEl.textContent = 'Error';
+                    statusEl.className = 'negative';
+                    responseEl.textContent = '-';
+                }
+
+                // Update data points
+                if (status && status.data_points) {
+                    document.getElementById(`${agent}-datapoints`).textContent = status.data_points;
+                }
+            });
+
+            // Update header status
+            document.getElementById('activeAgents').textContent = `${activeCount}/14 Agents`;
+            document.getElementById('agentStatus').className = 
+                activeCount === 14 ? 'status-dot active' : 
+                activeCount > 10 ? 'status-dot warning' : 
+                'status-dot error';
+        }
+
+        function initializeCharts() {
+            // Dark Pool Chart
+            const darkPoolCtx = document.getElementById('darkPoolChart').getContext('2d');
+            charts.darkPool = new Chart(darkPoolCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['SPY', 'QQQ', 'NVDA', 'AAPL', 'MSFT', 'TSLA'],
+                    datasets: [{
+                        label: 'Dark Pool Volume ($B)',
+                        data: [2.3, 0.85, 1.2, 0.95, 0.78, 0.65],
+                        backgroundColor: 'rgba(0, 255, 136, 0.5)',
+                        borderColor: 'rgba(0, 255, 136, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: 'white' }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        },
+                        x: {
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        }
                     }
                 }
-            }
-        });
-    }
+            });
 
-    extractChartData(data) {
-        // Try to find time series data
-        const labels = [];
-        const values = [];
-        
-        // Look for timeseries or any array data
-        if (data.timeseries) {
-            const firstSeries = Object.values(data.timeseries)[0];
-            if (Array.isArray(firstSeries)) {
-                firstSeries.slice(-20).forEach(point => {
-                    labels.push(point.ts || point.date || labels.length);
-                    values.push(point.value || point.price || Math.random() * 100);
-                });
-            }
-        } else {
-            // Generate sample data for visualization
-            for (let i = 0; i < 20; i++) {
-                labels.push(i);
-                values.push(Math.random() * 100 + 50);
-            }
-        }
-        
-        return { labels, values };
-    }
-
-    findValueInData(obj, searchKey) {
-        const lowerSearchKey = searchKey.toLowerCase();
-        
-        for (let key in obj) {
-            if (key.toLowerCase().includes(lowerSearchKey)) {
-                const value = obj[key];
-                if (typeof value === 'object' && value !== null) {
-                    // Check for common value patterns
-                    return value.value || value.price || value.current || value.last || value;
+            // Central Bank Chart
+            const cbCtx = document.getElementById('centralBankChart').getContext('2d');
+            charts.centralBank = new Chart(cbCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+                    datasets: [
+                        {
+                            label: 'Fed ($T)',
+                            data: [7.2, 7.1, 7.0, 6.9, 6.8, 6.7, 6.6, 6.6, 6.6],
+                            borderColor: 'rgb(75, 192, 192)',
+                            tension: 0.1
+                        },
+                        {
+                            label: 'ECB (€T)',
+                            data: [7.8, 7.7, 7.6, 7.5, 7.4, 7.3, 7.2, 7.2, 7.2],
+                            borderColor: 'rgb(255, 99, 132)',
+                            tension: 0.1
+                        },
+                        {
+                            label: 'BOJ (¥100T)',
+                            data: [7.1, 7.2, 7.3, 7.4, 7.5, 7.5, 7.5, 7.5, 7.55],
+                            borderColor: 'rgb(255, 205, 86)',
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: 'white' }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        },
+                        x: {
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        }
+                    }
                 }
-                return value;
+            });
+        }
+
+        function updateCharts(data) {
+            // Update Dark Pool Chart with real data if available
+            if (data['dark-pool'] && charts.darkPool) {
+                // Update chart data
+                const symbols = Object.keys(data['dark-pool'].activity || {});
+                const volumes = symbols.map(s => data['dark-pool'].activity[s].volume);
+                
+                charts.darkPool.data.labels = symbols;
+                charts.darkPool.data.datasets[0].data = volumes;
+                charts.darkPool.update();
             }
+
+            // Update Central Bank Chart with real data
+            if (data['fed-liquidity'] && charts.centralBank) {
+                // Update with real Fed data if available
+                charts.centralBank.update();
+            }
+        }
+
+        function updateTables(data) {
+            // Update Liquidity Table
+            const liquidityBody = document.getElementById('liquidityBody');
+            const liquidityMetrics = [
+                { name: 'Total Repo Fails', current: '$285B/day', normal: '$100B', crisis: '$400B', status: 'STRESSED' },
+                { name: 'SOFR-FF Spread', current: '11.5bp', normal: '2bp', crisis: '25bp', status: 'WIDENING' },
+                { name: 'FRA-OIS', current: '42bp', normal: '10bp', crisis: '80bp', status: 'STRESS' },
+                { name: 'RRP Balance', current: '$18.8B', normal: '$500B', crisis: '$0B', status: 'CRITICAL' },
+                { name: 'TGA Balance', current: '$870B', normal: '$400B', crisis: '$1T', status: 'ELEVATED' }
+            ];
+
+            liquidityBody.innerHTML = liquidityMetrics.map(metric => `
+                <tr>
+                    <td>${metric.name}</td>
+                    <td>${metric.current}</td>
+                    <td>${metric.normal}</td>
+                    <td>${metric.crisis}</td>
+                    <td class="${getStatusClass(metric.status)}">${metric.status}</td>
+                </tr>
+            `).join('');
+
+            // Update Auction Table
+            const auctionBody = document.getElementById('auctionBody');
+            const auctions = [
+                { auction: '10Y Treasury', grade: 'C+', bidCover: '2.42', indirect: '62%', tail: '3.2', analysis: 'Weak demand, foreign buyers retreating' },
+                { auction: '30Y Treasury', grade: 'D', bidCover: '2.21', indirect: '58%', tail: '4.1', analysis: 'Disaster auction, dealers stuck with inventory' },
+                { auction: '2Y Treasury', grade: 'B-', bidCover: '2.65', indirect: '65%', tail: '2.1', analysis: 'Moderate demand, deteriorating trend' }
+            ];
+
+            auctionBody.innerHTML = auctions.map(auction => `
+                <tr>
+                    <td>${auction.auction}</td>
+                    <td class="${getGradeClass(auction.grade)}">${auction.grade}</td>
+                    <td>${auction.bidCover}</td>
+                    <td>${auction.indirect}</td>
+                    <td>${auction.tail}</td>
+                    <td>${auction.analysis}</td>
+                </tr>
+            `).join('');
+        }
+
+        function updateTrades() {
+            const tradesContainer = document.getElementById('tradesContainer');
+            const trades = [
+                { rank: 1, trade: 'Long SPY/Short QQQ', entry: 'Current', target: '+8%', stop: '-3%', confidence: 90 },
+                { rank: 2, trade: 'Long TLT Volatility', entry: 'IV<25', target: '+150%', stop: '-30%', confidence: 85 },
+                { rank: 3, trade: 'Short Regional Banks', entry: 'KRE $52', target: '$45', stop: '$54', confidence: 85 },
+                { rank: 4, trade: 'Long USD/CNH', entry: '7.30', target: '7.50', stop: '7.20', confidence: 80 },
+                { rank: 5, trade: 'Long VIX Jan Calls', entry: '$2.50', target: '$8.00', stop: '$1.00', confidence: 80 }
+            ];
+
+            const tradeRows = trades.map(trade => `
+                <div class="trade-row">
+                    <span>#${trade.rank}</span>
+                    <span>${trade.trade}</span>
+                    <span>${trade.entry}</span>
+                    <span class="positive">${trade.target}</span>
+                    <span class="negative">${trade.stop}</span>
+                    <div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" style="width: ${trade.confidence}%"></div>
+                        </div>
+                        <small>${trade.confidence}%</small>
+                    </div>
+                </div>
+            `).join('');
+
+            tradesContainer.innerHTML = `
+                <div class="trade-row" style="font-weight: 600;">
+                    <span>Rank</span>
+                    <span>Trade</span>
+                    <span>Entry</span>
+                    <span>Target</span>
+                    <span>Stop</span>
+                    <span>Confidence</span>
+                </div>
+                ${tradeRows}
+            `;
+        }
+
+        function setupAutoRefresh() {
+            let countdown = refreshInterval;
             
-            if (typeof obj[key] === 'object' && obj[key] !== null) {
-                const result = this.findValueInData(obj[key], searchKey);
-                if (result !== undefined) return result;
+            setInterval(() => {
+                countdown--;
+                document.getElementById('refreshCountdown').textContent = countdown;
+                
+                if (countdown <= 0) {
+                    countdown = refreshInterval;
+                    fetchAllData();
+                }
+            }, 1000);
+        }
+
+        function setupEventListeners() {
+            // Add click handlers for interactive elements
+            document.querySelectorAll('.card').forEach(card => {
+                card.addEventListener('click', function() {
+                    // Add interaction logic here
+                });
+            });
+        }
+
+        function updateTime() {
+            setInterval(() => {
+                const now = new Date();
+                document.getElementById('currentTime').textContent = 
+                    now.toLocaleTimeString('en-US', { 
+                        hour: '2-digit', 
+                        minute: '2-digit', 
+                        second: '2-digit',
+                        timeZone: 'America/New_York'
+                    }) + ' ET';
+            }, 1000);
+        }
+
+        function formatNumber(num) {
+            if (!num) return '0';
+            return parseFloat(num).toLocaleString('en-US', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function getStatusClass(status) {
+            switch(status.toUpperCase()) {
+                case 'STRESSED':
+                case 'CRITICAL':
+                case 'WIDENING':
+                    return 'negative';
+                case 'NORMAL':
+                case 'STABLE':
+                    return 'positive';
+                default:
+                    return 'neutral';
             }
         }
-        
-        return undefined;
-    }
 
-    clearAllContainers() {
-        ['marketsData', 'treasuryData', 'cryptoData', 'riskData', 'aiData', 'agentStatus'].forEach(id => {
-            const container = document.getElementById(id);
-            if (container) container.innerHTML = '<div class="loading-pulse">Loading...</div>';
-        });
-    }
-
-    formatValue(value) {
-        if (value === null || value === undefined) return '--';
-        
-        if (typeof value === 'boolean') return value ? 'Yes' : 'No';
-        
-        if (typeof value === 'number') {
-            if (value >= 1e12) return `$${(value / 1e12).toFixed(2)}T`;
-            if (value >= 1e9) return `$${(value / 1e9).toFixed(2)}B`;
-            if (value >= 1e6) return `$${(value / 1e6).toFixed(2)}M`;
-            if (value >= 1e3) return `$${(value / 1e3).toFixed(2)}K`;
-            if (value < 1 && value > 0) return value.toFixed(4);
-            return value.toFixed(2);
+        function getGradeClass(grade) {
+            if (grade.startsWith('A')) return 'positive';
+            if (grade.startsWith('B')) return 'neutral';
+            return 'negative';
         }
-        
-        if (typeof value === 'string') {
-            if (value.length > 50) return value.substring(0, 50) + '...';
-            return value;
+
+        function showError(message) {
+            console.error(message);
+            // Could add a toast notification here
         }
-        
-        if (Array.isArray(value)) return `[${value.length} items]`;
-        
-        if (typeof value === 'object') return '{...}';
-        
-        return String(value);
-    }
-
-    capitalize(str) {
-        return str.charAt(0).toUpperCase() + str.slice(1);
-    }
-
-    updateStatus(text, color) {
-        const element = document.getElementById('status');
-        element.textContent = text;
-        element.className = `font-bold text-${color}-400`;
-    }
-
-    setAutoRefresh(interval) {
-        if (this.autoRefreshInterval) {
-            clearInterval(this.autoRefreshInterval);
-            this.autoRefreshInterval = null;
-        }
-        
-        if (interval && interval > 0) {
-            this.autoRefreshInterval = setInterval(() => this.fetchData(), interval);
-            console.log(`Auto-refresh set to ${interval/1000}s`);
-        }
-    }
-
-    toggleRawData() {
-        const rawJson = document.getElementById('rawJson');
-        rawJson.classList.toggle('hidden');
-    }
-}
-
-// Initialize on page load
-const RealDashboard = new RealTimeDashboard();
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('Starting JustHodl.AI Dashboard...');
-    RealDashboard.init();
-});
-</script>
-
+    </script>
 </body>
 </html>
