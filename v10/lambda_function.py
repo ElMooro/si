@@ -36,6 +36,7 @@ FRED_SERIES = {
     'DEXJPUS':('dxy','JPY/USD'), 'DEXUSUK':('dxy','USD/GBP'), 'DEXSZUS':('dxy','CHF/USD'),
     'DEXCAUS':('dxy','CAD/USD'), 'DEXMXUS':('dxy','MXN/USD'), 'DEXCHUS':('dxy','CNY/USD'),
     'DEXKOUS':('dxy','KRW/USD'), 'DEXBZUS':('dxy','BRL/USD'), 'DEXINUS':('dxy','INR/USD'),
+    'DEXSFEVS':('dxy','Swiss Franc/Euro'),
     'RTWEXBGS':('dxy','Real Trade Weighted USD'), 'TWEXBGSMTH':('dxy','USD Broad Monthly'),
 
     # ── ICE BofA CREDIT (Daily) ──
@@ -44,7 +45,8 @@ FRED_SERIES = {
     'BAMLH0A3HYC':('ice_bofa','CCC OAS'), 'BAMLC0A1CAAA':('ice_bofa','AAA OAS'),
     'BAMLC0A2CAA':('ice_bofa','AA OAS'), 'BAMLC0A3CA':('ice_bofa','A OAS'),
     'BAMLC0A4CBBB':('ice_bofa','BBB OAS'), 'BAMLEMCBPIOAS':('ice_bofa','EM Corp OAS'),
-    'BAMLEMHBHYCRPIOAS':('ice_bofa','EM HY OAS'), 'BAMLHE00EHYIOAS':('ice_bofa','Euro HY OAS'),
+    'BAMLEMHBHYCRPIOAS':('ice_bofa','EM HY OAS'), 'BAMLEMRECRPIOAS':('ice_bofa','EM Real Corp OAS'),
+    'BAMLHE00EHYIOAS':('ice_bofa','Euro HY OAS'),
     'BAMLC0A0CMEY':('ice_bofa','IG Eff Yield'), 'BAMLH0A0HYM2EY':('ice_bofa','HY Eff Yield'),
     'BAMLC0A1CAAAEY':('ice_bofa','AAA Eff Yield'), 'BAMLC0A4CBBBEY':('ice_bofa','BBB Eff Yield'),
     'BAMLC1A0C13YEY':('ice_bofa','Corp 1-3Y'), 'BAMLC2A0C35YEY':('ice_bofa','Corp 3-5Y'),
@@ -60,15 +62,21 @@ FRED_SERIES = {
     'MORTGAGE15US':('risk','15Y Mortgage'),
     'STLFSI4':('risk','StL Financial Stress'), 'NFCI':('risk','Chicago NFCI'),
     'ANFCI':('risk','Adjusted NFCI'), 'KCFSI':('risk','KC Financial Stress'),
+    'CLVMNFCI':('risk','NFCI Leverage'),
 
     # ── LIQUIDITY (Weekly + Monthly) ──
     'WALCL':('liquidity','Fed Total Assets'), 'WTREGEN':('liquidity','Treasury General Acct'),
     'RRPONTSYD':('liquidity','Overnight RRP'), 'RPONTSYD':('liquidity','Overnight Repo'),
-    'TOTRESNS':('liquidity','Total Reserves'), 'WLCFLPCL':('liquidity','Fed Loans to Banks'),
+    'TOTRESNS':('liquidity','Total Reserves'), 'EXCSRESNS':('liquidity','Excess Reserves'),
+    'WLCFLPCL':('liquidity','Fed Loans to Banks'),
     'WSHOSHO':('liquidity','Fed Treasury Holdings'), 'WSHOMCB':('liquidity','Fed MBS Holdings'),
     'DFF':('liquidity','Eff Fed Funds Rate'), 'SOFR':('liquidity','SOFR'),
-    'M2SL':('liquidity','M2 Money Supply'), 'BOGMBASE':('liquidity','Monetary Base'),
-    'M2V':('liquidity','M2 Velocity'), 'EFFR':('liquidity','EFFR'),
+    'M2SL':('liquidity','M2 Money Supply'), 'M1SL':('liquidity','M1 Money Supply'),
+    'BOGMBASE':('liquidity','Monetary Base'), 'MULT':('liquidity','Money Multiplier'),
+    'M2V':('liquidity','M2 Velocity'), 'EFFR':('liquidity','EFFR'), 'IORB':('liquidity','Interest on Reserves'),
+    'H41RESPPALDKNWW':('liquidity','Fed Loans H.4.1'), 'RESPPLLOPNWW':('liquidity','Fed Primary Loans'),
+    'WM2NS':('liquidity','M2 Not Seasonally Adj'), 'WORAL':('liquidity','Other Reserve Assets'),
+    'TERMT':('liquidity','Term Lending Facility'), 'HQLA':('liquidity','High Quality Liquid Assets'),
 
     # ── MACRO ECONOMY (Monthly/Quarterly) ──
     'GDP':('macro','Nominal GDP'), 'GDPC1':('macro','Real GDP'),
@@ -105,21 +113,29 @@ FRED_SERIES = {
     'CORCCACBS':('credit','CC Charge-Off'), 'CORCBS':('credit','C&I Charge-Off'),
     'CRELACBS':('credit','RE Charge-Off'), 'DRTSCILM':('credit','Lending Std C&I Large'),
     'DRTSCIS':('credit','Lending Std C&I Small'), 'TOTCI':('credit','Total C&I Loans'),
-    'SLOAS':('credit','Student Loans'),
+    'SLOAS':('credit','Student Loans'), 'CHARGE':('credit','Charge-Off All Banks'),
+    'DRTSSP':('credit','Lending Std Consumer'), 'CCLACBM027NBOG':('credit','CC Loans Outstanding'),
+    'MVLOAS':('credit','Motor Vehicle Loans'),
 
     # ── GLOBAL CYCLE / PMI (Monthly) ──
-    'MANEMP':('global_cycle','ISM Mfg Employment'), 'NAPMPRI':('global_cycle','ISM Prices'),
+    'NAPM':('global_cycle','ISM Manufacturing PMI'), 'NAPMNOI':('global_cycle','ISM New Orders'),
+    'NAPMPI':('global_cycle','ISM Prices'), 'NAPMPRI':('global_cycle','ISM Prices Paid'),
+    'NAPMSDI':('global_cycle','ISM Supplier Deliveries'), 'NAPMII':('global_cycle','ISM Inventories'),
+    'NAPMEI':('global_cycle','ISM Employment'), 'NMFBAI':('global_cycle','ISM Non-Mfg Activity'),
+    'MANEMP':('global_cycle','ISM Mfg Employment V2'), 'MPMICTMN':('global_cycle','OECD Mfg PMI'),
     'IPMAN':('global_cycle','IP Manufacturing'), 'MCUMFN':('global_cycle','Mfg Capacity Util'),
     'ACDGNO':('global_cycle','Core Cap Goods Orders'), 'AMTMTI':('global_cycle','Mfg Trade Inventories'),
     'IPMANSICS':('global_cycle','IP Mfg SIC'), 'MNFCTIRSA':('global_cycle','Mfg Inventories'),
 
     # ── PMI WORLD / OECD CLI (Monthly) ──
+    'CSCICP03USM665S':('pmi_world','OECD US Consumer Survey'), 'BSCICP03USM665S':('pmi_world','OECD US Business Survey'),
     'USALOLITONOSTSAM':('pmi_world','US CLI'), 'CHNLOLITONOSTSAM':('pmi_world','China CLI'),
     'BRALOLITONOSTSAM':('pmi_world','Brazil CLI'), 'INDLOLITONOSTSAM':('pmi_world','India CLI'),
     'FRALOLITONOSTSAM':('pmi_world','France CLI'), 'CANLOLITONOSTSAM':('pmi_world','Canada CLI'),
     'MEXLOLITONOSTSAM':('pmi_world','Mexico CLI'), 'KORLOLITONOSTSAM':('pmi_world','Korea CLI'),
     'JPLOLITONOSTSAM':('pmi_world','Japan CLI'), 'DEULOLIT02IXOBSAM':('pmi_world','Germany CLI'),
-    'GBRLOLIT02IXOBSAM':('pmi_world','UK CLI'),
+    'GBRLOLIT02IXOBSAM':('pmi_world','UK CLI'), 'ITALOLIT02IXOBSAM':('pmi_world','Italy CLI'),
+    'LORSGPNOSTSAM':('pmi_world','OECD Leading Indicator'),
 
     # ── ECB / EUROPE (Monthly) ──
     'ECBASSETSW':('ecb','ECB Total Assets'), 'ECBDFR':('ecb','ECB Deposit Rate'),
@@ -127,13 +143,15 @@ FRED_SERIES = {
     'CLVMNACSCAB1GQEA19':('ecb','Euro Real GDP'), 'EA19CPALTT01GYM':('ecb','Euro CPI YoY'),
     'LRHUTTTTEZM156S':('ecb','Euro Unemployment'), 'IR3TIB01EZM156N':('ecb','Euro 3M Interbank'),
     'IRLTLT01EZM156N':('ecb','Euro LT Govt Bond'), 'CP0000EZ19M086NEST':('ecb','Euro HICP'),
-    'MABMM301EZM189S':('ecb','Euro M3 Money'),
+    'MABMM301EZM189S':('ecb','Euro M3 Money'), 'IRSTCB01EZM156N':('ecb','ECB Central Bank Rate'),
+    'CPALTT01EZM659N':('ecb','Euro CPI Growth'), 'MANMM101EZM189S':('ecb','Euro Mfg Output'),
+    'OABOREGM665S':('ecb','Oregon Business Activity'),
 
     # ── GLOBAL LIQUIDITY (Monthly/Quarterly) ──
     'JPNASSETS':('global_liquidity','BOJ Assets'), 'GFDEBTN':('global_liquidity','Federal Debt'),
     'GFDEGDQ188S':('global_liquidity','Debt to GDP'), 'FDHBFRBN':('global_liquidity','Fed Tsy Holdings'),
     'FDHBFIN':('global_liquidity','Foreign Tsy Holdings'), 'BOGZ1FL893020005Q':('global_liquidity','Unidentified Financial'),
-    'MTSDS133FMS':('global_liquidity','Monthly Tsy Statement'),
+    'MTSDS133FMS':('global_liquidity','Monthly Tsy Statement'), 'FYGFDPUN':('global_liquidity','Federal Debt Outstanding'),
 
     # ── COMMODITIES (Daily + Monthly) ──
     'DCOILWTICO':('commodities','WTI Crude'), 'DCOILBRENTEU':('commodities','Brent Crude'),
@@ -141,7 +159,9 @@ FRED_SERIES = {
     'GASREGW':('commodities','Gasoline'), 'PCU2122212122210':('commodities','Copper Index'),
     'PMAIZMTUSDM':('commodities','Corn Global'), 'PWHEAMTUSDM':('commodities','Wheat Global'),
     'PSOYBUSDM':('commodities','Soybean Global'), 'PNRGINDEXM':('commodities','Energy Index'),
-    'PALLFNFINDEXM':('commodities','All Commodities'),
+    'PALLFNFINDEXM':('commodities','All Commodities'), 'PALLFNFINDEXQ':('commodities','All Commodities Q'),
+    'PCOTTINDUSDM':('commodities','Cotton Global'), 'WPU0561':('commodities','PPI Industrial Chemicals'),
+    'DEXSFEVS':('commodities','Swiss Franc/Euro'),
 
     # ── SYSTEMIC RISK (cross-reference) ──
     'SP500':('systemic_risk','S&P 500 FRED'),
@@ -272,7 +292,9 @@ def fetch_ecb_ciss():
     results = {}
     for series_key, (cat, name) in ECB_CISS_SERIES.items():
         try:
-            url = f"https://data-api.ecb.europa.eu/service/data/CISS/{series_key}?lastNObservations=60&format=csvdata"
+            # Key format: CISS.D.U2... -> URL needs just D.U2... after /CISS/
+            url_key = series_key[5:] if series_key.startswith('CISS.') else series_key
+            url = f"https://data-api.ecb.europa.eu/service/data/CISS/{url_key}?lastNObservations=60&format=csvdata"
             req = urllib.request.Request(url, headers={'User-Agent': 'JustHodl/10.0', 'Accept': 'text/csv'})
             with urllib.request.urlopen(req, timeout=15) as resp:
                 lines = resp.read().decode('utf-8').strip().split('\n')
@@ -299,6 +321,52 @@ def fetch_ecb_ciss():
         except Exception as e:
             print(f"  ECB CISS error {series_key}: {e}")
     return results
+
+def fetch_financial_news():
+    """Fetch critical financial news from multiple RSS feeds"""
+    import xml.etree.ElementTree as ET
+    news = []
+    feeds = [
+        ('https://news.google.com/rss/search?q=federal+reserve+interest+rates+economy&hl=en-US&gl=US&ceid=US:en', 'Fed/Economy'),
+        ('https://news.google.com/rss/search?q=stock+market+wall+street+SP500&hl=en-US&gl=US&ceid=US:en', 'Markets'),
+        ('https://news.google.com/rss/search?q=treasury+yields+bonds+credit&hl=en-US&gl=US&ceid=US:en', 'Bonds/Credit'),
+        ('https://news.google.com/rss/search?q=inflation+CPI+jobs+employment+data&hl=en-US&gl=US&ceid=US:en', 'Macro Data'),
+        ('https://news.google.com/rss/search?q=bitcoin+crypto+cryptocurrency+market&hl=en-US&gl=US&ceid=US:en', 'Crypto'),
+        ('https://news.google.com/rss/search?q=oil+gold+commodities+prices&hl=en-US&gl=US&ceid=US:en', 'Commodities'),
+        ('https://news.google.com/rss/search?q=ECB+european+central+bank+euro&hl=en-US&gl=US&ceid=US:en', 'ECB/Europe'),
+        ('https://news.google.com/rss/search?q=geopolitical+risk+tariffs+trade+war&hl=en-US&gl=US&ceid=US:en', 'Geopolitical'),
+    ]
+    seen_titles = set()
+    for feed_url, category in feeds:
+        try:
+            req = urllib.request.Request(feed_url, headers={'User-Agent': 'JustHodl/10.0'})
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                root = ET.fromstring(resp.read())
+                items = root.findall('.//item')[:5]
+                for item in items:
+                    title = item.findtext('title','').strip()
+                    if not title or title in seen_titles: continue
+                    seen_titles.add(title)
+                    # Clean title (remove " - Source" suffix)
+                    clean = title.rsplit(' - ', 1)[0] if ' - ' in title else title
+                    source = title.rsplit(' - ', 1)[1] if ' - ' in title else ''
+                    pub = item.findtext('pubDate','')
+                    link = item.findtext('link','')
+                    # Classify importance
+                    importance = 'normal'
+                    critical_kw = ['crash','crisis','emergency','recession','default','collapse','war','tariff','rate cut','rate hike',
+                                   'fed decision','fomc','inflation surge','bank fail','systemic','black swan','circuit breaker',
+                                   'bear market','bull market','all-time high','record','plunge','surge','soar','tank','spike']
+                    title_lower = title.lower()
+                    if any(k in title_lower for k in critical_kw): importance = 'critical'
+                    elif any(k in title_lower for k in ['data','report','gdp','cpi','jobs','payroll','pmi','ism','earnings']): importance = 'high'
+                    news.append({'title':clean,'source':source,'category':category,'pub':pub,'link':link,'importance':importance})
+        except Exception as e:
+            print(f"  News error {category}: {e}")
+    # Sort: critical first, then high, then normal; within same importance by recency
+    rank = {'critical':0,'high':1,'normal':2}
+    news.sort(key=lambda x: (rank.get(x['importance'],2), x.get('pub','')), reverse=False)
+    return news[:40]
 
 # ============================================================
 # COMPUTE FUNCTIONS
@@ -612,6 +680,90 @@ def ai_analysis(fd, sd, crypto, ki, risk, nl, ecb_ciss=None):
 
     a['sections']['ecb_systemic'] = {'title':'ECB Systemic Stress (CISS)','signals':ess}
 
+    # ── CREDIT MARKETS DEEP DIVE ──
+    crs = []
+    ig = gv('ice_bofa','BAMLC0A0CM'); bb = gv('ice_bofa','BAMLH0A1HYBB'); ccc = gv('ice_bofa','BAMLH0A3HYC')
+    em_oas = gv('ice_bofa','BAMLEMCBPIOAS')
+    if ig: crs.append(f"IG Corp OAS at {ig:.0f}bps - {'tight, complacent' if ig<80 else 'normal' if ig<150 else 'wide, stress building'}.")
+    if bb: crs.append(f"BB-rated spread at {bb:.0f}bps. {'Low default expectations.' if bb<200 else 'Moderate stress.' if bb<400 else 'High stress, defaults rising.'}")
+    if ccc: crs.append(f"CCC spread at {ccc:.0f}bps - {'distressed territory' if ccc>1000 else 'elevated risk' if ccc>600 else 'risk appetite strong'}.")
+    if hy and ig: crs.append(f"HY-IG gap: {(hy-ig*0.01)*100:.0f}bps. {'Compression = risk-on' if hy<4 else 'Widening = credit stress'}.")
+    if em_oas: crs.append(f"EM Corp spread at {em_oas:.0f}bps - {'stable' if em_oas<300 else 'elevated' if em_oas<500 else 'EM credit stress'}.")
+    cc_del = gv('credit','DRCCLACBS'); auto_del = gv('credit','DRALACBS'); mort_del = gv('credit','DRSFRMACBS')
+    if cc_del: crs.append(f"Credit card delinquency at {cc_del:.2f}% - {'concerning rise' if cc_del>3 else 'normal'}. Consumer credit stress {'building' if cc_del>2.5 else 'contained'}.")
+    if auto_del: crs.append(f"Auto loan delinquency at {auto_del:.2f}%.")
+    if mort_del: crs.append(f"Mortgage delinquency at {mort_del:.2f}%.")
+    a['sections']['credit_deep'] = {'title':'Credit Markets Deep Dive','signals':crs,
+        'outlook':'STRESSED' if (hy or 3)>5 or (ccc or 500)>1000 else 'TIGHT' if (hy or 3)<3 else 'NORMAL'}
+
+    # ── HOUSING MARKET ──
+    hs = []
+    starts = gv('macro','HOUST'); permits = gv('macro','PERMIT'); nsales = gv('macro','HSN1F')
+    esales = gv('macro','EXHOSLUSM495S')
+    if starts: hs.append(f"Housing starts at {starts:.0f}K annual - {'strong construction' if starts>1500 else 'moderate' if starts>1200 else 'weak construction activity'}.")
+    if permits: hs.append(f"Building permits at {permits:.0f}K - {'pipeline healthy' if permits>1400 else 'slowing pipeline' if permits>1100 else 'construction slowdown'}.")
+    if nsales: hs.append(f"New home sales at {nsales:.0f}K annual.")
+    if esales: hs.append(f"Existing home sales at {esales:.2f}M annual.")
+    if mort: hs.append(f"Mortgage rates at {mort:.2f}% {'severely constraining demand.' if mort>7 else 'weighing on affordability.' if mort>6 else 'becoming supportive.'}")
+    shelter_cpi = gv('inflation','CUSR0000SAH1')
+    if shelter_cpi: hs.append(f"Shelter CPI index at {shelter_cpi:.1f} - housing costs {'still elevated' if shelter_cpi>330 else 'stabilizing'}.")
+    a['sections']['housing'] = {'title':'Housing Market','signals':hs}
+
+    # ── EMPLOYMENT DEEP DIVE ──
+    emps = []
+    payrolls = gv('macro','PAYEMS'); u6 = gv('macro','U6RATE'); civpart = gv('macro','CIVPART')
+    jolts = gv('macro','JTSJOL'); quits = gv('macro','JTSQUR'); wages = gv('macro','CES0500000003')
+    if payrolls: emps.append(f"Nonfarm payrolls at {payrolls/1000:.1f}M. Labor market {'robust' if payrolls>155000 else 'stable' if payrolls>150000 else 'softening'}.")
+    if unemp and u6: emps.append(f"U-3 at {unemp:.1f}%, U-6 (broad) at {u6:.1f}%. Gap of {u6-unemp:.1f}pp {'widening = hidden slack' if u6-unemp>3.5 else 'normal'}.")
+    if civpart: emps.append(f"Labor participation at {civpart:.1f}% - {'below pre-COVID' if civpart<63.3 else 'near pre-COVID levels'}.")
+    if jolts: emps.append(f"Job openings at {jolts/1000:.1f}M - {'labor shortage' if jolts>10000 else 'cooling' if jolts>7000 else 'weak demand'}.")
+    if quits: emps.append(f"Quits rate at {quits:.1f}% - {'workers confident' if quits>2.3 else 'caution building' if quits>1.8 else 'fear of job loss'}.")
+    if wages: emps.append(f"Avg hourly earnings ${wages:.2f} - {'strong wage growth' if wages>35 else 'moderate growth'}.")
+    if claims: emps.append(f"Weekly claims at {claims:.0f}K. {'Healthy' if claims<220 else 'Normal' if claims<260 else 'Rising layoffs' if claims<350 else 'Recessionary surge'}.")
+    a['sections']['employment'] = {'title':'Employment Deep Dive','signals':emps}
+
+    # ── ISM / MANUFACTURING ──
+    ism_s = []
+    ism_mfg = gv('global_cycle','NAPM'); ism_svc = gv('global_cycle','NMFBAI')
+    ism_orders = gv('global_cycle','NAPMNOI'); ism_prices = gv('global_cycle','NAPMPI')
+    ism_emp = gv('global_cycle','NAPMEI'); ism_inv = gv('global_cycle','NAPMII')
+    oecd_pmi = gv('global_cycle','MPMICTMN')
+    if ism_mfg: ism_s.append(f"ISM Manufacturing PMI at {ism_mfg:.1f} - {'expansion (>50)' if ism_mfg>50 else 'CONTRACTION (<50)'}. {'Robust' if ism_mfg>55 else 'Moderate' if ism_mfg>50 else 'Mild contraction' if ism_mfg>45 else 'Deep contraction'}.")
+    if ism_svc: ism_s.append(f"ISM Services PMI at {ism_svc:.1f} - {'expansion' if ism_svc>50 else 'contraction'}. Services = 70% of GDP.")
+    if ism_orders: ism_s.append(f"ISM New Orders at {ism_orders:.1f} - {'strong pipeline' if ism_orders>55 else 'moderate' if ism_orders>50 else 'declining orders'}.")
+    if ism_prices: ism_s.append(f"ISM Prices at {ism_prices:.1f} - {'inflationary pressure' if ism_prices>60 else 'moderate costs' if ism_prices>50 else 'deflationary signal'}.")
+    if ism_emp: ism_s.append(f"ISM Employment at {ism_emp:.1f} - {'hiring' if ism_emp>50 else 'cutting'}.")
+    if oecd_pmi: ism_s.append(f"OECD Global Manufacturing PMI at {oecd_pmi:.1f}.")
+    ip = gv('global_cycle','IPMAN'); caputil = gv('global_cycle','MCUMFN')
+    if ip: ism_s.append(f"Industrial production manufacturing index at {ip:.1f}.")
+    if caputil: ism_s.append(f"Manufacturing capacity utilization at {caputil:.1f}% - {'tight' if caputil>78 else 'normal' if caputil>73 else 'slack'}.")
+    a['sections']['manufacturing'] = {'title':'ISM & Manufacturing','signals':ism_s,
+        'outlook':'EXPANDING' if (ism_mfg or 50)>52 else 'CONTRACTING' if (ism_mfg or 50)<48 else 'FLAT'}
+
+    # ── GLOBAL ECONOMIC MONITOR ──
+    gs = []
+    us_cli = gv('pmi_world','USALOLITONOSTSAM'); cn_cli = gv('pmi_world','CHNLOLITONOSTSAM')
+    de_cli = gv('pmi_world','DEULOLIT02IXOBSAM'); uk_cli = gv('pmi_world','GBRLOLIT02IXOBSAM')
+    jp_cli = gv('pmi_world','JPLOLITONOSTSAM'); br_cli = gv('pmi_world','BRALOLITONOSTSAM')
+    in_cli = gv('pmi_world','INDLOLITONOSTSAM')
+    if us_cli: gs.append(f"US Leading Indicator at {us_cli:.2f} - {'above trend (>100)' if us_cli>100 else 'below trend, slowdown'}.")
+    if cn_cli: gs.append(f"China CLI at {cn_cli:.2f} - {'expanding' if cn_cli>100 else 'slowing'}. {'Key driver of global demand.' if cn_cli>100 else 'Global headwind.'}")
+    if de_cli: gs.append(f"Germany CLI at {de_cli:.2f} - {'Europe engine healthy' if de_cli>100 else 'European weakness'}.")
+    if jp_cli: gs.append(f"Japan CLI at {jp_cli:.2f}.")
+    if uk_cli: gs.append(f"UK CLI at {uk_cli:.2f}.")
+    if br_cli: gs.append(f"Brazil CLI at {br_cli:.2f}.")
+    if in_cli: gs.append(f"India CLI at {in_cli:.2f} - {'emerging market strength' if in_cli>100 else 'EM softening'}.")
+    euro_unemp = gv('ecb','LRHUTTTTEZM156S'); euro_cpi = gv('ecb','EA19CPALTT01GYM')
+    ecb_rate = gv('ecb','ECBDFR')
+    if euro_unemp: gs.append(f"Euro unemployment at {euro_unemp:.1f}%.")
+    if euro_cpi: gs.append(f"Euro CPI YoY at {euro_cpi:.1f}%.")
+    if ecb_rate: gs.append(f"ECB deposit rate at {ecb_rate:.2f}%.")
+    boj = gv('global_liquidity','JPNASSETS')
+    if boj: gs.append(f"BOJ assets at ¥{boj/1e6:.1f}T.")
+    debt_gdp = gv('global_liquidity','GFDEGDQ188S')
+    if debt_gdp: gs.append(f"US Debt/GDP at {debt_gdp:.1f}%. {'Fiscal sustainability concern.' if debt_gdp>120 else ''}")
+    a['sections']['global'] = {'title':'Global Economic Monitor','signals':gs}
+
     # ── PORTFOLIO SUGGESTIONS ──
     port = {}
 
@@ -768,6 +920,11 @@ def lambda_handler(event, context):
     ecb_ciss = fetch_ecb_ciss()
     print(f"[V10] ECB CISS: {len(ecb_ciss)} series")
 
+    # ── PHASE 3.6: FINANCIAL NEWS ──
+    print("[V10] Financial News...")
+    news = fetch_financial_news()
+    print(f"[V10] News: {len(news)} headlines")
+
     # ── PHASE 4: ANALYTICS ──
     ki = compute_ki(fd, sd)
     risk = compute_risk(fd)
@@ -800,6 +957,7 @@ def lambda_handler(event, context):
         'sectors':sectors,'signals':sigs,
         'fred':fd,'stocks':sd,'crypto':crypto,'crypto_global':crypto_g,
         'ecb_ciss':ecb_ciss,
+        'news':news,
         'ai_analysis':ai,
         'stats':{'fred':len(fred_raw),'stocks':len(sd),'crypto':len(crypto),'ecb_ciss':len(ecb_ciss),
                  'data_points':sum(len(v) for v in fred_raw.values())+sum(len(s.get('history',[])) for s in sd.values())}

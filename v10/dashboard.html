@@ -66,6 +66,16 @@ td{padding:4px 6px;font-size:11px;border-bottom:1px solid rgba(255,255,255,.03)}
 .ciss-meter{height:12px;background:#1a1a2e;border-radius:6px;overflow:hidden;margin:4px 0}
 .ciss-fill{height:100%;border-radius:6px;transition:width .5s}
 .loading{text-align:center;padding:40px;color:var(--dim);font-size:14px}
+.news-item{display:flex;gap:10px;padding:10px;border-bottom:1px solid var(--border);align-items:flex-start}
+.news-item:hover{background:rgba(255,255,255,.02)}
+.news-badge{font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;white-space:nowrap;min-width:70px;text-align:center}
+.news-critical{background:rgba(255,23,68,.2);color:var(--red);border:1px solid rgba(255,23,68,.4)}
+.news-high{background:rgba(255,152,0,.2);color:var(--orange);border:1px solid rgba(255,152,0,.4)}
+.news-normal{background:rgba(100,100,100,.2);color:var(--dim);border:1px solid rgba(100,100,100,.4)}
+.news-cat{font-size:9px;color:var(--cyan);background:rgba(0,188,212,.1);padding:2px 6px;border-radius:3px;white-space:nowrap}
+.news-title{font-size:12px;line-height:1.4;flex:1}
+.news-source{font-size:10px;color:var(--dim)}
+.news-time{font-size:10px;color:var(--dim);white-space:nowrap}
 .status-bar{background:#0d0d14;border-top:1px solid var(--border);padding:4px 16px;font-size:10px;color:var(--dim);display:flex;justify-content:space-between;position:fixed;bottom:0;left:0;right:0;z-index:100}
 @media(max-width:768px){.g2,.g3,.g4{grid-template-columns:1fr}.header-stats{display:none}.tabs{flex-wrap:nowrap}}
 </style>
@@ -83,6 +93,7 @@ td{padding:4px 6px;font-size:11px;border-bottom:1px solid rgba(255,255,255,.03)}
 const DATA_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/data/report.json';
 const TABS = [
   {id:'overview',label:'Overview',icon:'◉'},
+  {id:'news',label:'Breaking News',icon:'📰'},
   {id:'ai',label:'AI Intelligence',icon:'🧠'},
   {id:'portfolio',label:'Portfolio',icon:'💼'},
   {id:'treasury',label:'Treasury',icon:'📊'},
@@ -123,7 +134,7 @@ async function loadData() {
     renderAll();
     document.getElementById('statusBar').innerHTML =
       `<span>V${D.version} | Generated: ${new Date(D.generated_at).toLocaleString()} | ${D.fetch_time_seconds}s fetch</span>
-       <span>FRED: ${D.stats?.fred||0} | Stocks: ${D.stats?.stocks||0} | Crypto: ${D.stats?.crypto||0} | ECB CISS: ${D.stats?.ecb_ciss||0}</span>`;
+       <span>FRED: ${D.stats?.fred||0} | Stocks: ${D.stats?.stocks||0} | Crypto: ${D.stats?.crypto||0} | ECB CISS: ${D.stats?.ecb_ciss||0} | News: ${(D.news||[]).length}</span>`;
   } catch(e) { document.getElementById('content').innerHTML = `<div class="loading">Error: ${e.message}. Retrying...</div>`; setTimeout(loadData, 5000); }
 }
 
@@ -160,6 +171,7 @@ function fredTable(cat, title) {
 function renderAll() {
   if(!D) return;
   renderOverview();
+  renderNews();
   renderAI();
   renderPortfolio();
   renderTreasury();
@@ -198,7 +210,18 @@ function renderHeader() {
 function renderOverview() {
   const ki = D.khalid_index, r = D.risk_dashboard, nl = D.net_liquidity;
   const el = document.getElementById('tab-overview');
+  const critical_news = (D.news||[]).filter(n=>n.importance==='critical').slice(0,5);
+  const high_news = (D.news||[]).filter(n=>n.importance==='high').slice(0,5);
+  const top_news = critical_news.concat(high_news).slice(0,6);
   el.innerHTML = `
+  ${top_news.length ? `<div class="card" style="border-left:3px solid var(--red);margin-bottom:10px;padding:8px 12px">
+    <h3 style="color:var(--red);font-size:11px;margin-bottom:6px">🔴 BREAKING / MARKET-MOVING NEWS</h3>
+    ${top_news.map(n=>`<div style="font-size:11px;padding:3px 0;color:#ccc;border-bottom:1px solid rgba(255,255,255,.03)">
+      <span style="color:${n.importance==='critical'?'var(--red)':'var(--orange)'};font-weight:700;font-size:9px">${n.importance.toUpperCase()}</span>
+      <span style="color:var(--cyan);font-size:9px">[${n.category}]</span> ${n.title}
+      <span style="color:var(--dim);font-size:10px">— ${n.source}</span>
+    </div>`).join('')}
+  </div>` : ''}
   <div class="grid g4" style="margin-bottom:10px">
     <div class="card" style="text-align:center">
       <div class="metric-label">Khalid Index</div>
@@ -261,6 +284,59 @@ function renderOverview() {
       <h4 style="margin-top:10px">Warnings (> -3% Today)</h4>
       <div>${(D.signals?.warnings||[]).map(t=>`<span class="signal-tag signal-warn">${t}</span>`).join('')||'<span style="color:var(--dim)">None</span>'}</div>
     </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════
+// TAB: BREAKING NEWS
+// ═══════════════════════════════════════
+function renderNews() {
+  const news = D.news || [];
+  const el = document.getElementById('tab-news');
+  if(!news.length) { el.innerHTML = '<div class="card"><h3>Financial News</h3><p style="color:var(--dim)">No news data available</p></div>'; return; }
+
+  function timeAgo(pub) {
+    if(!pub) return '';
+    const d = new Date(pub);
+    const now = new Date();
+    const diff = Math.floor((now - d) / 60000);
+    if(diff < 60) return diff + 'm ago';
+    if(diff < 1440) return Math.floor(diff/60) + 'h ago';
+    return Math.floor(diff/1440) + 'd ago';
+  }
+
+  const critical = news.filter(n=>n.importance==='critical');
+  const high = news.filter(n=>n.importance==='high');
+  const normal = news.filter(n=>n.importance==='normal');
+
+  el.innerHTML = `
+  <div style="font-size:11px;color:var(--dim);margin-bottom:10px">Live financial news from multiple sources • Critical market-moving events highlighted • Updated with each Lambda run</div>
+  ${critical.length ? `<div class="card" style="border-left:3px solid var(--red)">
+    <h3 style="color:var(--red)">🚨 CRITICAL / MARKET-MOVING</h3>
+    ${critical.map(n=>`<div class="news-item">
+      <span class="news-badge news-critical">${n.importance.toUpperCase()}</span>
+      <span class="news-cat">${n.category}</span>
+      <div class="news-title">${n.title} <span class="news-source">— ${n.source}</span></div>
+      <span class="news-time">${timeAgo(n.pub)}</span>
+    </div>`).join('')}
+  </div>` : ''}
+  ${high.length ? `<div class="card" style="border-left:3px solid var(--orange);margin-top:10px">
+    <h3 style="color:var(--orange)">📊 HIGH IMPORTANCE — Data & Economic</h3>
+    ${high.map(n=>`<div class="news-item">
+      <span class="news-badge news-high">${n.importance.toUpperCase()}</span>
+      <span class="news-cat">${n.category}</span>
+      <div class="news-title">${n.title} <span class="news-source">— ${n.source}</span></div>
+      <span class="news-time">${timeAgo(n.pub)}</span>
+    </div>`).join('')}
+  </div>` : ''}
+  <div class="card" style="margin-top:10px">
+    <h3>📰 ALL FINANCIAL NEWS</h3>
+    ${normal.concat(high).concat(critical).map(n=>`<div class="news-item">
+      <span class="news-badge ${n.importance==='critical'?'news-critical':n.importance==='high'?'news-high':'news-normal'}">${n.importance.toUpperCase()}</span>
+      <span class="news-cat">${n.category}</span>
+      <div class="news-title">${n.title} <span class="news-source">— ${n.source}</span></div>
+      <span class="news-time">${timeAgo(n.pub)}</span>
+    </div>`).join('')}
   </div>`;
 }
 
@@ -338,7 +414,7 @@ function renderPortfolio() {
 function renderTreasury() { document.getElementById('tab-treasury').innerHTML = fredTable('treasury','Treasury Yields & Spreads'); }
 function renderDXY() { document.getElementById('tab-dxy').innerHTML = `<div class="grid g2">${fredTable('dxy','Dollar Index & FX Rates')}</div>`; }
 function renderCredit() { document.getElementById('tab-credit').innerHTML = `<div class="grid g2">${fredTable('ice_bofa','ICE BofA Credit Spreads')}${fredTable('credit','Credit & Lending')}</div>`; }
-function renderMacro() { document.getElementById('tab-macro').innerHTML = fredTable('macro','Macro Economy'); }
+function renderMacro() { document.getElementById('tab-macro').innerHTML = `${fredTable('macro','Macro Economy')}<div class="grid g2" style="margin-top:10px">${fredTable('global_cycle','ISM & Manufacturing')}${fredTable('pmi_world','OECD Leading Indicators')}</div>`; }
 function renderInflation() { document.getElementById('tab-inflation').innerHTML = fredTable('inflation','Inflation Indicators'); }
 function renderCommodities() { document.getElementById('tab-commodities').innerHTML = fredTable('commodities','Commodities'); }
 function renderECB() { document.getElementById('tab-ecb').innerHTML = `<div class="grid g2">${fredTable('ecb','ECB & European Data')}${fredTable('global_liquidity','Global Liquidity')}</div>`; }
