@@ -162,7 +162,7 @@ async function loadData() {
     renderAll();
     document.getElementById('statusBar').innerHTML =
       `<span>V${D.version} | Generated: ${new Date(D.generated_at).toLocaleString()} | ${D.fetch_time_seconds}s fetch</span>
-       <span>FRED: ${D.stats?.fred||0} | Stocks: ${D.stats?.stocks||0} | Crypto: ${D.stats?.crypto||0} | ECB CISS: ${D.stats?.ecb_ciss||0} | News: ${(D.news||[]).length} | Tabs: 18</span>`;
+       <span>FRED: ${D.stats?.fred||0} | Stocks: ${D.stats?.stocks||0} | Crypto: ${D.stats?.crypto||0} | ECB CISS: ${D.stats?.ecb_ciss||0} | News: ${(D.news||[]).length} | Tabs: ${TABS.length}</span>`;
   } catch(e) { document.getElementById('content').innerHTML = `<div class="loading">Error: ${e.message}. Retrying...</div>`; setTimeout(loadData, 5000); }
 }
 
@@ -206,8 +206,8 @@ function renderAll() {
 }
 
 function renderHeader() {
-  const ki = D.khalid_index;
-  const bg = kiColor(ki.score);
+  const ki = D.khalid_index||{score:50,regime:'LOADING',signals:[]};
+  const bg = kiColor(ki.score||50);
   document.getElementById('headerStats').innerHTML = `
     <div class="stat"><span class="ki-badge" style="background:${bg};color:#000">KI ${ki.score} ${ki.regime}</span></div>
     <div class="stat"><span class="label">DXY</span> ${v(gv('dxy','DTWEXBGS'),1)}</div>
@@ -224,7 +224,7 @@ function renderHeader() {
 // TAB: OVERVIEW
 // ═══════════════════════════════════════
 function renderOverview() {
-  const ki = D.khalid_index, r = D.risk_dashboard, nl = D.net_liquidity;
+  const ki = D.khalid_index||{score:50,regime:'LOADING',signals:[]}, r = D.risk_dashboard||{composite:50}, nl = D.net_liquidity||{};
   const el = document.getElementById('tab-overview');
   const critical_news = (D.news||[]).filter(n=>n.importance==='critical').slice(0,5);
   const high_news = (D.news||[]).filter(n=>n.importance==='high').slice(0,5);
@@ -361,7 +361,7 @@ function renderNews() {
 // ═══════════════════════════════════════
 function renderAI() {
   const ai = D.ai_analysis;
-  if(!ai) return;
+  if(!ai){document.getElementById('tab-ai').innerHTML='<div class="card"><h3>AI Intelligence</h3><p style="color:var(--dim)">Waiting for AI analysis data...</p></div>';return;}
   const el = document.getElementById('tab-ai');
   const sections = ai.sections || {};
   function outlookBadge(o) {
@@ -384,7 +384,7 @@ function renderAI() {
 // ═══════════════════════════════════════
 function renderPortfolio() {
   const p = D.ai_analysis?.portfolio;
-  if(!p) return;
+  if(!p){document.getElementById('tab-portfolio').innerHTML='<div class="card"><h3>AI Advisor</h3><p style="color:var(--dim)">Waiting for portfolio analysis...</p></div>';return;}
   const el = document.getElementById('tab-portfolio');
   const con = p.construction||{};
   const alloc = con.alloc||{};
