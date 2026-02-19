@@ -567,7 +567,7 @@ const TABS = {
   for (const sid of Object.keys(DATA.fred.systemic_risk||{})) html += fredCard('systemic_risk',sid);
   html += '</div>';
   
-  html += '<div class="section-header" style="margin-top:16px"><span class="icon">📊</span> MOODY'S SPREADS</div>';
+  html += '<div class="section-header" style="margin-top:16px"><span class="icon">📊</span> MOODYS SPREADS</div>';
   html += '<div class="grid grid-4">';
   for (const sid of ['AAA','BAA','AAA10Y','BAA10Y']) html += fredCard('risk',sid,{suffix:'%'});
   html += '</div>';
