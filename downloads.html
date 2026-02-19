@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Downloads - JustHodl.AI Bloomberg Terminal</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #0a0a0f 0%, #0e1117 50%, #161b22 100%);
+            color: #e6edf3;
+            min-height: 100vh;
+        }
+
+        /* ===== NAVBAR (matches justhodl.ai) ===== */
+        .navbar {
+            background: rgba(13, 17, 23, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid #21262d;
+            padding: 0 24px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+        .nav-logo {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, #ff9500, #e08600);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; font-weight: 900; color: #0a0a0f;
+            font-family: 'Courier New', monospace;
+        }
+        .nav-title {
+            font-size: 20px; font-weight: 700;
+            background: linear-gradient(135deg, #ff9500, #ffb347);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            letter-spacing: 2px;
+        }
+        .nav-links {
+            display: flex; align-items: center; gap: 8px;
+        }
+        .nav-links a {
+            color: #8b949e; text-decoration: none; font-size: 14px;
+            padding: 8px 16px; border-radius: 8px; transition: all 0.2s;
+        }
+        .nav-links a:hover { color: #e6edf3; background: rgba(255,255,255,0.06); }
+        .nav-links a.active { color: #ff9500; background: rgba(255,149,0,0.1); }
+        .nav-badge {
+            background: linear-gradient(135deg, #ff9500, #e08600);
+            color: #0a0a0f; font-size: 11px; font-weight: 700;
+            padding: 2px 8px; border-radius: 10px; margin-left: 4px;
+        }
+        .nav-version {
+            color: #484f58; font-size: 12px; font-family: 'Courier New', monospace;
+        }
+
+        /* ===== HERO ===== */
+        .hero {
+            text-align: center;
+            padding: 80px 24px 60px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(255,149,0,0.1); border: 1px solid rgba(255,149,0,0.2);
+            border-radius: 20px; padding: 6px 18px; font-size: 13px;
+            color: #ff9500; margin-bottom: 28px;
+        }
+        .hero-badge .pulse {
+            width: 8px; height: 8px; background: #26a641;
+            border-radius: 50%; animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(38,166,65,0.6); }
+            70% { box-shadow: 0 0 0 8px rgba(38,166,65,0); }
+            100% { box-shadow: 0 0 0 0 rgba(38,166,65,0); }
+        }
+        .hero h1 {
+            font-size: 48px; font-weight: 800; line-height: 1.1; margin-bottom: 20px;
+        }
+        .hero h1 span {
+            background: linear-gradient(135deg, #ff9500, #ffb347);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .hero p {
+            color: #8b949e; font-size: 18px; line-height: 1.7;
+            max-width: 640px; margin: 0 auto 40px;
+        }
+
+        /* ===== DOWNLOAD CARDS ===== */
+        .dl-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 24px; max-width: 900px; margin: 0 auto 60px; padding: 0 24px;
+        }
+        .dl-card {
+            background: #0e1117;
+            border: 1px solid #21262d;
+            border-radius: 16px;
+            padding: 36px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .dl-card:hover { border-color: #ff9500; transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+        .dl-card.primary { border-color: rgba(255,149,0,0.3); }
+        .dl-card.primary::before {
+            content: 'RECOMMENDED';
+            position: absolute; top: 16px; right: -28px;
+            background: linear-gradient(135deg, #ff9500, #e08600);
+            color: #0a0a0f; font-size: 10px; font-weight: 800;
+            padding: 4px 36px; transform: rotate(45deg); letter-spacing: 1px;
+        }
+        .dl-card-icon {
+            width: 56px; height: 56px;
+            background: rgba(255,149,0,0.1);
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 28px; margin-bottom: 20px;
+        }
+        .dl-card h3 {
+            font-size: 20px; font-weight: 700; margin-bottom: 8px; color: #e6edf3;
+        }
+        .dl-card .subtitle {
+            color: #8b949e; font-size: 14px; margin-bottom: 20px; line-height: 1.5;
+        }
+        .dl-card .meta {
+            display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap;
+        }
+        .dl-card .meta span {
+            color: #484f58; font-size: 12px;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .dl-card .meta span strong { color: #8b949e; }
+        .dl-btn {
+            display: inline-flex; align-items: center; gap: 10px;
+            padding: 14px 32px; border-radius: 10px; font-size: 15px;
+            font-weight: 700; text-decoration: none; transition: all 0.3s;
+            border: none; cursor: pointer; width: 100%; justify-content: center;
+        }
+        .dl-btn.primary {
+            background: linear-gradient(135deg, #ff9500, #e08600);
+            color: #0a0a0f;
+            box-shadow: 0 4px 16px rgba(255,149,0,0.25);
+        }
+        .dl-btn.primary:hover {
+            box-shadow: 0 6px 24px rgba(255,149,0,0.4);
+            transform: translateY(-1px);
+        }
+        .dl-btn.secondary {
+            background: transparent;
+            border: 1px solid #30363d;
+            color: #e6edf3;
+        }
+        .dl-btn.secondary:hover {
+            border-color: #58a6ff;
+            background: rgba(88,166,255,0.06);
+        }
+        .dl-btn svg { width: 18px; height: 18px; fill: currentColor; }
+
+        /* ===== PREVIEW ===== */
+        .preview-section {
+            max-width: 960px; margin: 0 auto 60px; padding: 0 24px;
+        }
+        .preview-header {
+            text-align: center; margin-bottom: 24px;
+        }
+        .preview-header h2 {
+            font-size: 24px; font-weight: 700; margin-bottom: 8px;
+        }
+        .preview-header p { color: #8b949e; font-size: 14px; }
+        .preview-frame {
+            background: #0e1117;
+            border: 1px solid #21262d;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        .preview-toolbar {
+            background: #161b22;
+            border-bottom: 1px solid #21262d;
+            padding: 10px 16px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .preview-dot {
+            width: 12px; height: 12px; border-radius: 50%;
+        }
+        .preview-dot.r { background: #f85149; }
+        .preview-dot.y { background: #d29922; }
+        .preview-dot.g { background: #3fb950; }
+        .preview-url {
+            flex: 1; text-align: center; color: #484f58; font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+        .preview-frame iframe {
+            width: 100%; height: 480px; border: none;
+        }
+
+        /* ===== STATS ===== */
+        .stats-bar {
+            display: grid; grid-template-columns: repeat(5, 1fr);
+            gap: 1px; background: #21262d;
+            max-width: 900px; margin: 0 auto 60px;
+            border-radius: 12px; overflow: hidden;
+        }
+        .stat-item {
+            background: #0e1117; padding: 24px; text-align: center;
+        }
+        .stat-item:first-child { border-radius: 12px 0 0 12px; }
+        .stat-item:last-child { border-radius: 0 12px 12px 0; }
+        .stat-num {
+            font-size: 28px; font-weight: 800;
+            background: linear-gradient(135deg, #ff9500, #ffb347);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .stat-label {
+            color: #484f58; font-size: 11px; text-transform: uppercase;
+            letter-spacing: 1px; margin-top: 4px;
+        }
+
+        /* ===== FEATURES ===== */
+        .features-section {
+            max-width: 900px; margin: 0 auto 60px; padding: 0 24px;
+        }
+        .features-section h2 {
+            font-size: 24px; font-weight: 700; text-align: center; margin-bottom: 32px;
+        }
+        .feat-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+        }
+        .feat-item {
+            background: #0e1117; border: 1px solid #21262d;
+            border-radius: 12px; padding: 24px; transition: border-color 0.3s;
+        }
+        .feat-item:hover { border-color: #30363d; }
+        .feat-item .icon { font-size: 22px; margin-bottom: 12px; }
+        .feat-item h4 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+        .feat-item p { color: #8b949e; font-size: 13px; line-height: 1.5; }
+
+        /* ===== REQUIREMENTS ===== */
+        .req-section {
+            max-width: 600px; margin: 0 auto 60px; padding: 0 24px;
+        }
+        .req-section h3 {
+            font-size: 18px; font-weight: 600; margin-bottom: 16px; text-align: center;
+        }
+        .req-list {
+            background: #0e1117; border: 1px solid #21262d;
+            border-radius: 12px; padding: 24px;
+        }
+        .req-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid #21262d;
+        }
+        .req-item:last-child { border-bottom: none; }
+        .req-check { color: #3fb950; font-size: 16px; }
+        .req-text { color: #8b949e; font-size: 14px; }
+        .req-text strong { color: #e6edf3; }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            text-align: center; padding: 32px 24px;
+            border-top: 1px solid #21262d;
+            color: #484f58; font-size: 12px;
+        }
+        .footer a { color: #58a6ff; text-decoration: none; }
+        .footer a:hover { text-decoration: underline; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 32px; }
+            .dl-grid { grid-template-columns: 1fr; padding: 0 16px; }
+            .stats-bar { grid-template-columns: repeat(3, 1fr); }
+            .nav-links { display: none; }
+            .nav-version { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+    <a href="index.html" class="nav-brand">
+        <div class="nav-logo">JH</div>
+        <div class="nav-title">JUSTHODL</div>
+    </a>
+    <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="macroeconomic-platform.html">📈 Dashboard</a>
+        <a href="ml-predictions.html">🤖 ML</a>
+        <a href="trading-signals.html">📡 Signals</a>
+        <a href="downloads.html" class="active">⬇ Downloads <span class="nav-badge">NEW</span></a>
+    </div>
+    <span class="nav-version">v8.0</span>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+    <div class="hero-badge">
+        <span class="pulse"></span>
+        Live Data • Auto-refreshing every 5 minutes
+    </div>
+    <h1>Download <span>Bloomberg Terminal</span></h1>
+    <p>Professional financial intelligence on your desktop. Real-time data from 80+ FRED series, 40+ stocks, 20 crypto assets, and the proprietary Khalid Index™ — all powered by AWS.</p>
+</div>
+
+<!-- DOWNLOAD CARDS -->
+<div class="dl-grid">
+    <!-- DESKTOP APP -->
+    <div class="dl-card primary">
+        <div class="dl-card-icon">🖥️</div>
+        <h3>Desktop App</h3>
+        <div class="subtitle">Native desktop experience with Edge/Chrome app mode. No address bar, no tabs — just your terminal full screen.</div>
+        <div class="meta">
+            <span>📦 Size: <strong>2 KB</strong></span>
+            <span>💻 Platform: <strong>Windows 10/11</strong></span>
+            <span>🔧 Install: <strong>None required</strong></span>
+        </div>
+        <a href="https://justhodl-bloomberg-terminal.s3.amazonaws.com/downloads/JustHodl-Terminal-v8.zip" class="dl-btn primary">
+            <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+            Download for Windows
+        </a>
+    </div>
+
+    <!-- WEB VERSION -->
+    <div class="dl-card">
+        <div class="dl-card-icon">🌐</div>
+        <h3>Web Version</h3>
+        <div class="subtitle">Access from any browser, any device, anywhere. No download needed — opens instantly with real-time data.</div>
+        <div class="meta">
+            <span>📦 Size: <strong>0 KB</strong></span>
+            <span>💻 Platform: <strong>Any browser</strong></span>
+            <span>🔧 Install: <strong>None</strong></span>
+        </div>
+        <a href="http://justhodl-bloomberg-terminal.s3-website-us-east-1.amazonaws.com" target="_blank" class="dl-btn secondary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            Open in Browser
+        </a>
+    </div>
+</div>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+    <div class="stat-item"><div class="stat-num">80+</div><div class="stat-label">FRED Series</div></div>
+    <div class="stat-item"><div class="stat-num">40+</div><div class="stat-label">Stocks & ETFs</div></div>
+    <div class="stat-item"><div class="stat-num">20</div><div class="stat-label">Crypto Assets</div></div>
+    <div class="stat-item"><div class="stat-num">15</div><div class="stat-label">Tabs</div></div>
+    <div class="stat-item"><div class="stat-num">5m</div><div class="stat-label">Refresh</div></div>
+</div>
+
+<!-- LIVE PREVIEW -->
+<div class="preview-section">
+    <div class="preview-header">
+        <h2>Live Preview</h2>
+        <p>This is the actual terminal running live with real market data</p>
+    </div>
+    <div class="preview-frame">
+        <div class="preview-toolbar">
+            <div class="preview-dot r"></div>
+            <div class="preview-dot y"></div>
+            <div class="preview-dot g"></div>
+            <div class="preview-url">justhodl-bloomberg-terminal.s3-website-us-east-1.amazonaws.com</div>
+        </div>
+        <iframe src="http://justhodl-bloomberg-terminal.s3-website-us-east-1.amazonaws.com" loading="lazy"></iframe>
+    </div>
+</div>
+
+<!-- FEATURES -->
+<div class="features-section">
+    <h2>What's Included</h2>
+    <div class="feat-grid">
+        <div class="feat-item">
+            <div class="icon">📊</div>
+            <h4>Full Yield Curve</h4>
+            <p>11-point Treasury curve from 1M to 30Y, real-time from FRED with spread calculations.</p>
+        </div>
+        <div class="feat-item">
+            <div class="icon">📈</div>
+            <h4>Sector Rotation</h4>
+            <p>Momentum scoring, heatmaps, phase detection — LEADING, IMPROVING, WEAKENING, LAGGING.</p>
+        </div>
+        <div class="feat-item">
+            <div class="icon">🎯</div>
+            <h4>Khalid Index™</h4>
+            <p>Proprietary 0-100 score with 9 weighted components. Extreme Fear to Extreme Greed classification.</p>
+        </div>
+        <div class="feat-item">
+            <div class="icon">💧</div>
+            <h4>Net Liquidity</h4>
+            <p>Fed balance sheet minus TGA minus reverse repo. Money velocity and M2 tracking.</p>
+        </div>
+        <div class="feat-item">
+            <div class="icon">📉</div>
+            <h4>Inflation Monitor</h4>
+            <p>CPI, PCE, Core PCE, breakevens, real rates with inflation regime detection.</p>
+        </div>
+        <div class="feat-item">
+            <div class="icon">⚡</div>
+            <h4>Cross-Asset Signals</h4>
+            <p>Stocks vs bonds, gold vs dollar, oil vs stocks — intermarket analysis in real-time.</p>
+        </div>
+        <div class="feat-item">
+            <div class="icon">🏦</div>
+            <h4>Credit & Lending</h4>
+            <p>Bank loans, consumer credit, delinquency rates, and Financial Stress Index.</p>
+        </div>
+        <div class="feat-item">
+            <div class="icon">₿</div>
+            <h4>Crypto Dashboard</h4>
+            <p>Top 20 by market cap with 24h changes, volume, and Bitcoin dominance tracking.</p>
+        </div>
+        <div class="feat-item">
+            <div class="icon">🌍</div>
+            <h4>Global FX</h4>
+            <p>8 major currency pairs with DXY index, weekly and monthly momentum analysis.</p>
+        </div>
+    </div>
+</div>
+
+<!-- REQUIREMENTS -->
+<div class="req-section">
+    <h3>System Requirements</h3>
+    <div class="req-list">
+        <div class="req-item">
+            <span class="req-check">✅</span>
+            <span class="req-text"><strong>OS:</strong> Windows 10 or 11 (desktop app) or any OS (web version)</span>
+        </div>
+        <div class="req-item">
+            <span class="req-check">✅</span>
+            <span class="req-text"><strong>Browser:</strong> Microsoft Edge or Google Chrome (desktop app uses app mode)</span>
+        </div>
+        <div class="req-item">
+            <span class="req-check">✅</span>
+            <span class="req-text"><strong>Internet:</strong> Active connection required (data streams from AWS)</span>
+        </div>
+        <div class="req-item">
+            <span class="req-check">✅</span>
+            <span class="req-text"><strong>Installation:</strong> None — portable, just unzip and run</span>
+        </div>
+        <div class="req-item">
+            <span class="req-check">✅</span>
+            <span class="req-text"><strong>Cost:</strong> Free — all data sources included</span>
+        </div>
+    </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+    © 2025 <a href="https://justhodl.ai">JustHodl.AI</a> — Built by Khalid &nbsp;•&nbsp; 
+    Powered by AWS Lambda, S3, EventBridge &nbsp;•&nbsp; 
+    All data is real-time &nbsp;•&nbsp;
+    <a href="index.html">Home</a> &nbsp;•&nbsp;
+    <a href="macroeconomic-platform.html">Dashboard</a>
+</div>
+
+</body>
+</html>
