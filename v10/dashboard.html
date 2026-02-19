@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JustHodl Bloomberg Terminal V10</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--panel:#12121a;--border:#1e1e2e;--text:#e0e0e0;--dim:#666;--green:#00c853;--red:#ff1744;--amber:#ffd600;--blue:#2196f3;--cyan:#00bcd4;--purple:#bb86fc;--gold:#ffd700;--orange:#ff9800}
+body{font-family:'SF Mono',Consolas,'Courier New',monospace;background:var(--bg);color:var(--text);font-size:12px;overflow-x:hidden}
+.header{background:linear-gradient(135deg,#0d1117,#161b22);border-bottom:1px solid var(--border);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{font-size:16px;font-weight:700;color:var(--gold)}
+.logo span{color:var(--cyan);font-size:11px;margin-left:8px}
+.header-stats{display:flex;gap:16px;font-size:11px}
+.header-stats .stat{display:flex;gap:4px;align-items:center}
+.header-stats .label{color:var(--dim)}
+.ki-badge{padding:3px 10px;border-radius:4px;font-weight:700;font-size:12px}
+.tabs{display:flex;gap:0;background:#0d0d14;border-bottom:1px solid var(--border);overflow-x:auto;position:sticky;top:37px;z-index:99}
+.tab{padding:8px 14px;cursor:pointer;color:var(--dim);font-size:11px;white-space:nowrap;border-bottom:2px solid transparent;transition:all .2s}
+.tab:hover{color:var(--text);background:rgba(255,255,255,.03)}
+.tab.active{color:var(--cyan);border-bottom-color:var(--cyan);background:rgba(0,188,212,.05)}
+.content{padding:12px;min-height:calc(100vh - 80px)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.grid{display:grid;gap:10px}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:1fr 1fr 1fr}
+.g4{grid-template-columns:1fr 1fr 1fr 1fr}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:12px}
+.card h3{color:var(--cyan);font-size:12px;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+.card h4{color:var(--dim);font-size:10px;margin-bottom:6px;text-transform:uppercase}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;color:var(--dim);font-size:10px;padding:4px 6px;border-bottom:1px solid var(--border);text-transform:uppercase}
+td{padding:4px 6px;font-size:11px;border-bottom:1px solid rgba(255,255,255,.03)}
+.up{color:var(--green)}.down{color:var(--red)}.flat{color:var(--dim)}
+.gauge{width:100%;height:8px;background:#1a1a2e;border-radius:4px;overflow:hidden;margin:4px 0}
+.gauge-fill{height:100%;border-radius:4px;transition:width .5s}
+.metric-big{font-size:28px;font-weight:700}
+.metric-label{font-size:10px;color:var(--dim);text-transform:uppercase}
+.signal-tag{display:inline-block;padding:2px 8px;border-radius:3px;font-size:10px;margin:2px;font-weight:600}
+.signal-buy{background:rgba(0,200,83,.15);color:var(--green);border:1px solid rgba(0,200,83,.3)}
+.signal-sell{background:rgba(255,23,68,.15);color:var(--red);border:1px solid rgba(255,23,68,.3)}
+.signal-warn{background:rgba(255,214,0,.15);color:var(--amber);border:1px solid rgba(255,214,0,.3)}
+.ai-text{font-size:12px;line-height:1.6;color:#ccc;padding:6px 0;border-bottom:1px solid var(--border)}
+.ai-text:last-child{border-bottom:none}
+.ai-section{margin-bottom:16px}
+.ai-section h3{font-size:13px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.ai-badge{font-size:10px;padding:2px 8px;border-radius:3px;font-weight:600}
+.outlook-bull{background:rgba(0,200,83,.15);color:var(--green)}
+.outlook-bear{background:rgba(255,23,68,.15);color:var(--red)}
+.outlook-neutral{background:rgba(255,214,0,.15);color:var(--amber)}
+.move-card{display:flex;align-items:center;gap:10px;padding:8px;background:rgba(255,255,255,.02);border-radius:4px;margin:4px 0}
+.move-action{font-weight:700;font-size:11px;padding:3px 8px;border-radius:3px;min-width:80px;text-align:center}
+.move-buy{background:rgba(0,200,83,.2);color:var(--green)}
+.move-sell{background:rgba(255,23,68,.2);color:var(--red)}
+.move-rotate{background:rgba(33,150,243,.2);color:var(--blue)}
+.move-hold{background:rgba(255,214,0,.2);color:var(--amber)}
+.alloc-bar{display:flex;height:24px;border-radius:4px;overflow:hidden;margin:8px 0}
+.alloc-segment{display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#000;min-width:20px}
+.crypto-row{display:flex;align-items:center;gap:8px;padding:6px;border-bottom:1px solid var(--border)}
+.crypto-row img{width:20px;height:20px;border-radius:50%}
+.sparkline{display:inline-block;height:20px;vertical-align:middle}
+.risk-gauge-container{text-align:center;padding:8px}
+.risk-gauge-value{font-size:32px;font-weight:700}
+.risk-gauge-label{font-size:10px;color:var(--dim);text-transform:uppercase;margin-top:4px}
+.ciss-meter{height:12px;background:#1a1a2e;border-radius:6px;overflow:hidden;margin:4px 0}
+.ciss-fill{height:100%;border-radius:6px;transition:width .5s}
+.loading{text-align:center;padding:40px;color:var(--dim);font-size:14px}
+.status-bar{background:#0d0d14;border-top:1px solid var(--border);padding:4px 16px;font-size:10px;color:var(--dim);display:flex;justify-content:space-between;position:fixed;bottom:0;left:0;right:0;z-index:100}
+@media(max-width:768px){.g2,.g3,.g4{grid-template-columns:1fr}.header-stats{display:none}.tabs{flex-wrap:nowrap}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="logo">JUSTHODL.AI <span>BLOOMBERG TERMINAL V10</span></div>
+  <div class="header-stats" id="headerStats"></div>
+</div>
+<div class="tabs" id="tabBar"></div>
+<div class="content" id="content"><div class="loading">Loading V10 Bloomberg Terminal...</div></div>
+<div class="status-bar" id="statusBar">Connecting...</div>
+
+<script>
+const DATA_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/data/report.json';
+const TABS = [
+  {id:'overview',label:'Overview',icon:'◉'},
+  {id:'ai',label:'AI Intelligence',icon:'🧠'},
+  {id:'portfolio',label:'Portfolio',icon:'💼'},
+  {id:'treasury',label:'Treasury',icon:'📊'},
+  {id:'dxy',label:'Dollar/FX',icon:'💱'},
+  {id:'credit',label:'Credit',icon:'📋'},
+  {id:'liquidity',label:'Liquidity',icon:'💧'},
+  {id:'macro',label:'Macro',icon:'🏛'},
+  {id:'inflation',label:'Inflation',icon:'📈'},
+  {id:'risk',label:'Risk',icon:'⚠'},
+  {id:'ciss',label:'ECB CISS',icon:'🇪🇺'},
+  {id:'equities',label:'Equities',icon:'📉'},
+  {id:'crypto',label:'Crypto',icon:'₿'},
+  {id:'ecb',label:'ECB/Europe',icon:'🏦'},
+  {id:'commodities',label:'Commodities',icon:'🛢'},
+];
+let D = null, activeTab = 'overview';
+
+function init() {
+  document.getElementById('tabBar').innerHTML = TABS.map(t =>
+    `<div class="tab ${t.id===activeTab?'active':''}" onclick="switchTab('${t.id}')">${t.icon} ${t.label}</div>`
+  ).join('');
+  document.getElementById('content').innerHTML = TABS.map(t =>
+    `<div class="tab-content ${t.id===activeTab?'active':''}" id="tab-${t.id}"></div>`
+  ).join('');
+  loadData();
+}
+
+function switchTab(id) {
+  activeTab = id;
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', TABS[i].id===id));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.toggle('active', t.id==='tab-'+id));
+}
+
+async function loadData() {
+  try {
+    const r = await fetch(DATA_URL + '?t=' + Date.now());
+    D = await r.json();
+    renderAll();
+    document.getElementById('statusBar').innerHTML =
+      `<span>V${D.version} | Generated: ${new Date(D.generated_at).toLocaleString()} | ${D.fetch_time_seconds}s fetch</span>
+       <span>FRED: ${D.stats?.fred||0} | Stocks: ${D.stats?.stocks||0} | Crypto: ${D.stats?.crypto||0} | ECB CISS: ${D.stats?.ecb_ciss||0}</span>`;
+  } catch(e) { document.getElementById('content').innerHTML = `<div class="loading">Error: ${e.message}. Retrying...</div>`; setTimeout(loadData, 5000); }
+}
+
+function v(val, dec=2) { return val!=null ? Number(val).toFixed(dec) : '—'; }
+function pct(val) { return val!=null ? `<span class="${val>0?'up':val<0?'down':'flat'}">${val>0?'+':''}${Number(val).toFixed(2)}%</span>` : '—'; }
+function clr(val) { return val>0?'var(--green)':val<0?'var(--red)':'var(--dim)'; }
+function kiColor(s) { return s>=75?'var(--green)':s>=60?'#66bb6a':s>=45?'var(--amber)':s>=30?'var(--orange)':'var(--red)'; }
+function riskColor(s) { return s>=70?'var(--green)':s>=50?'var(--amber)':'var(--red)'; }
+function cissColor(v) { return v>0.5?'var(--red)':v>0.3?'var(--orange)':v>0.15?'var(--amber)':'var(--green)'; }
+function gv(cat,sid) { return D?.fred?.[cat]?.[sid]?.current; }
+function gs(cat,sid) { return D?.fred?.[cat]?.[sid] || {}; }
+function sparkSVG(pts, w=80, h=20) {
+  if(!pts||pts.length<2) return '';
+  const vals = pts.map(p=>typeof p==='number'?p:p.value||p.c||0).filter(v=>v);
+  if(vals.length<2) return '';
+  const mn=Math.min(...vals),mx=Math.max(...vals),rng=mx-mn||1;
+  const points = vals.map((v,i)=>`${(i/(vals.length-1))*w},${h-((v-mn)/rng)*h}`).join(' ');
+  const c = vals[0]>=vals[vals.length-1]?'var(--green)':'var(--red)';
+  return `<svg width="${w}" height="${h}" class="sparkline"><polyline points="${points}" fill="none" stroke="${c}" stroke-width="1.2"/></svg>`;
+}
+
+function fredTable(cat, title) {
+  const series = D?.fred?.[cat];
+  if(!series) return `<div class="card"><h3>${title}</h3><p style="color:var(--dim)">No data</p></div>`;
+  const rows = Object.entries(series).filter(([,v])=>v.current!=null)
+    .map(([sid,s])=>`<tr><td>${s.name||sid}</td><td style="text-align:right">${v(s.current,s.current>100?0:s.current>10?2:4)}</td>
+    <td style="text-align:right">${pct(s.pct_change)}</td><td style="text-align:right">${pct(s.week_pct)}</td>
+    <td style="text-align:right">${pct(s.month_pct)}</td><td>${sparkSVG(s.history)}</td></tr>`).join('');
+  const has = Object.values(series).filter(s=>s.current!=null).length;
+  return `<div class="card"><h3>${title} <span style="color:var(--dim);font-size:10px">(${has}/${Object.keys(series).length})</span></h3>
+    <table><tr><th>Series</th><th style="text-align:right">Value</th><th style="text-align:right">Chg</th><th style="text-align:right">1W</th><th style="text-align:right">1M</th><th>Trend</th></tr>${rows}</table></div>`;
+}
+
+function renderAll() {
+  if(!D) return;
+  renderOverview();
+  renderAI();
+  renderPortfolio();
+  renderTreasury();
+  renderDXY();
+  renderCredit();
+  renderLiquidity();
+  renderMacro();
+  renderInflation();
+  renderRisk();
+  renderCISS();
+  renderEquities();
+  renderCrypto();
+  renderECB();
+  renderCommodities();
+  renderHeader();
+}
+
+function renderHeader() {
+  const ki = D.khalid_index;
+  const bg = kiColor(ki.score);
+  document.getElementById('headerStats').innerHTML = `
+    <div class="stat"><span class="ki-badge" style="background:${bg};color:#000">KI ${ki.score} ${ki.regime}</span></div>
+    <div class="stat"><span class="label">DXY</span> ${v(gv('dxy','DTWEXBGS'),1)}</div>
+    <div class="stat"><span class="label">VIX</span> ${v(gv('risk','VIXCLS'),1)}</div>
+    <div class="stat"><span class="label">HY</span> ${v(gv('ice_bofa','BAMLH0A0HYM2'))}%</div>
+    <div class="stat"><span class="label">10Y</span> ${v(gv('treasury','DGS10'))}%</div>
+    <div class="stat"><span class="label">SPY</span> $${v(D.stocks?.SPY?.price,0)}</div>
+    <div class="stat"><span class="label">BTC</span> $${D.crypto?.BTC?.price?Number(D.crypto.BTC.price).toLocaleString():'—'}</div>
+    <div class="stat"><span class="label">Risk</span> ${D.risk_dashboard?.composite||'—'}</div>
+  `;
+}
+
+// ═══════════════════════════════════════
+// TAB: OVERVIEW
+// ═══════════════════════════════════════
+function renderOverview() {
+  const ki = D.khalid_index, r = D.risk_dashboard, nl = D.net_liquidity;
+  const el = document.getElementById('tab-overview');
+  el.innerHTML = `
+  <div class="grid g4" style="margin-bottom:10px">
+    <div class="card" style="text-align:center">
+      <div class="metric-label">Khalid Index</div>
+      <div class="metric-big" style="color:${kiColor(ki.score)}">${ki.score}</div>
+      <div style="font-size:14px;font-weight:700;color:${kiColor(ki.score)}">${ki.regime}</div>
+      <div class="gauge"><div class="gauge-fill" style="width:${ki.score}%;background:${kiColor(ki.score)}"></div></div>
+    </div>
+    <div class="card" style="text-align:center">
+      <div class="metric-label">Risk Composite</div>
+      <div class="metric-big" style="color:${riskColor(r.composite)}">${r.composite}</div>
+      <div style="font-size:11px;color:${riskColor(r.composite)}">${r.composite>=70?'LOW RISK':r.composite>=50?'MODERATE':'HIGH RISK'}</div>
+      <div class="gauge"><div class="gauge-fill" style="width:${r.composite}%;background:${riskColor(r.composite)}"></div></div>
+    </div>
+    <div class="card" style="text-align:center">
+      <div class="metric-label">Net Liquidity</div>
+      <div class="metric-big" style="color:var(--cyan)">${nl?.net?'$'+(nl.net/1e6).toFixed(2)+'T':'—'}</div>
+      <div style="font-size:11px;color:var(--dim)">Fed ${nl?.fed?(nl.fed/1e6).toFixed(2)+'T':'—'} - TGA - RRP</div>
+    </div>
+    <div class="card" style="text-align:center">
+      <div class="metric-label">ECB CISS (Euro)</div>
+      ${(()=>{
+        const c = D.ecb_ciss?.['CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX'];
+        if(!c?.current) return '<div class="metric-big" style="color:var(--dim)">—</div>';
+        return `<div class="metric-big" style="color:${cissColor(c.current)}">${c.current.toFixed(3)}</div>
+        <div style="font-size:11px;color:${cissColor(c.current)}">${c.current>0.5?'CRISIS':c.current>0.3?'ELEVATED':c.current>0.15?'MODERATE':'CALM'}</div>
+        <div class="ciss-meter"><div class="ciss-fill" style="width:${Math.min(c.current*200,100)}%;background:${cissColor(c.current)}"></div></div>`;
+      })()}
+    </div>
+  </div>
+  <div class="grid g2">
+    <div class="card">
+      <h3>KI Signal Components</h3>
+      <table><tr><th>Factor</th><th style="text-align:right">Impact</th><th style="text-align:right">Value</th></tr>
+      ${(ki.signals||[]).map(s=>`<tr><td>${s[0]}</td><td style="text-align:right;color:${s[1]>0?'var(--green)':'var(--red)'}">${s[1]>0?'+':''}${s[1]}</td><td style="text-align:right">${s[2]}</td></tr>`).join('')}
+      </table>
+    </div>
+    <div class="card">
+      <h3>Risk Dashboard</h3>
+      ${['credit','liquidity','market','recession','systemic','inflation'].map(k=>{
+        const val = r[k]||50;
+        return `<div style="margin:6px 0"><div style="display:flex;justify-content:space-between"><span style="text-transform:capitalize">${k}</span><span style="color:${riskColor(val)}">${val}/100</span></div>
+        <div class="gauge"><div class="gauge-fill" style="width:${val}%;background:${riskColor(val)}"></div></div></div>`;
+      }).join('')}
+    </div>
+  </div>
+  <div class="grid g2" style="margin-top:10px">
+    <div class="card">
+      <h3>Sector Performance</h3>
+      <table><tr><th>Sector</th><th style="text-align:right">Price</th><th style="text-align:right">Day</th><th style="text-align:right">Week</th><th style="text-align:right">Month</th></tr>
+      ${Object.entries(D.sectors||{}).sort((a,b)=>(b[1].month_pct||0)-(a[1].month_pct||0)).map(([k,s])=>
+        `<tr><td>${s.name}</td><td style="text-align:right">$${v(s.price,2)}</td><td style="text-align:right">${pct(s.day_pct)}</td><td style="text-align:right">${pct(s.week_pct)}</td><td style="text-align:right">${pct(s.month_pct)}</td></tr>`
+      ).join('')}</table>
+    </div>
+    <div class="card">
+      <h3>Signals</h3>
+      <h4>Bullish Trend (Price > SMA50 > SMA200)</h4>
+      <div>${(D.signals?.buys||[]).map(t=>`<span class="signal-tag signal-buy">${t}</span>`).join('')||'<span style="color:var(--dim)">None</span>'}</div>
+      <h4 style="margin-top:10px">Bearish Trend (Price < SMA50 < SMA200)</h4>
+      <div>${(D.signals?.sells||[]).map(t=>`<span class="signal-tag signal-sell">${t}</span>`).join('')||'<span style="color:var(--dim)">None</span>'}</div>
+      <h4 style="margin-top:10px">Warnings (> -3% Today)</h4>
+      <div>${(D.signals?.warnings||[]).map(t=>`<span class="signal-tag signal-warn">${t}</span>`).join('')||'<span style="color:var(--dim)">None</span>'}</div>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════
+// TAB: AI INTELLIGENCE
+// ═══════════════════════════════════════
+function renderAI() {
+  const ai = D.ai_analysis;
+  if(!ai) return;
+  const el = document.getElementById('tab-ai');
+  const sections = ai.sections || {};
+  function outlookBadge(o) {
+    if(!o) return '';
+    const cls = /BULL|EXPAN|EASING|LOW/i.test(o)?'outlook-bull':/BEAR|CONTRACT|TIGHT|HIGH/i.test(o)?'outlook-bear':'outlook-neutral';
+    return `<span class="ai-badge ${cls}">${o}</span>`;
+  }
+  el.innerHTML = `
+  <div style="margin-bottom:10px;font-size:11px;color:var(--dim)">AI-generated analysis based on ${D.stats?.fred||0} FRED series, ${D.stats?.stocks||0} stocks, ${D.stats?.crypto||0} crypto, ${D.stats?.ecb_ciss||0} ECB CISS indicators | ${new Date(ai.generated_at).toLocaleString()}</div>
+  ${Object.entries(sections).map(([key,sec])=>`
+    <div class="ai-section">
+      <h3 style="color:var(--cyan)">${sec.title||key} ${outlookBadge(sec.outlook)}</h3>
+      ${(sec.signals||[]).map(s=>`<div class="ai-text">• ${s}</div>`).join('')}
+    </div>
+  `).join('')}`;
+}
+
+// ═══════════════════════════════════════
+// TAB: PORTFOLIO
+// ═══════════════════════════════════════
+function renderPortfolio() {
+  const p = D.ai_analysis?.portfolio;
+  if(!p) return;
+  const el = document.getElementById('tab-portfolio');
+  const con = p.construction||{};
+  const alloc = con.alloc||{};
+  const colors = {'US Equities':'#2196f3','Intl Equities':'#42a5f5','Bonds':'#66bb6a','Gold':'#ffd700','Crypto':'#ff9800','Cash':'#9e9e9e','Commodities':'#8d6e63'};
+  const total = Object.values(alloc).reduce((a,b)=>a+b,0)||1;
+
+  el.innerHTML = `
+  <div class="grid g2">
+    <div class="card">
+      <h3>Portfolio Construction — ${con.regime||'—'}</h3>
+      <p style="color:#aaa;font-size:12px;margin-bottom:10px">${con.rationale||''}</p>
+      <div class="alloc-bar">
+        ${Object.entries(alloc).map(([k,v])=>`<div class="alloc-segment" style="width:${v/total*100}%;background:${colors[k]||'#555'}" title="${k}: ${v}%">${v>4?v+'%':''}</div>`).join('')}
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">
+        ${Object.entries(alloc).map(([k,v])=>`<div style="display:flex;align-items:center;gap:4px;font-size:10px"><div style="width:10px;height:10px;border-radius:2px;background:${colors[k]||'#555'}"></div>${k}: ${v}%</div>`).join('')}
+      </div>
+    </div>
+    <div class="card">
+      <h3>Recommended Moves</h3>
+      ${(con.moves||[]).map(m=>{
+        const cls = /BUY|ADD|OVERWEIGHT/.test(m.act)?'move-buy':/SELL|REDUCE|UNDERWEIGHT/.test(m.act)?'move-sell':m.act==='ROTATE'?'move-rotate':'move-hold';
+        return `<div class="move-card"><div class="move-action ${cls}">${m.act}</div><div><div style="font-weight:600">${m.asset}</div><div style="font-size:10px;color:var(--dim)">${m.why}</div></div></div>`;
+      }).join('')}
+    </div>
+  </div>
+  <div class="grid g4" style="margin-top:10px">
+    ${['gold','crypto','stocks','bonds'].map(k=>{
+      const s = p[k]||{};
+      const ac = s.action||'HOLD';
+      const cls = /OVER/.test(ac)?'outlook-bull':/UNDER/.test(ac)?'outlook-bear':'outlook-neutral';
+      return `<div class="card"><h3>${k.toUpperCase()} <span class="ai-badge ${cls}">${ac}</span></h3>
+        ${(s.reasons||[]).map(r=>`<div style="font-size:11px;color:#bbb;margin:4px 0">• ${r}</div>`).join('')}
+        ${s.vehicles?`<div style="margin-top:8px;font-size:10px;color:var(--dim)">Vehicles: ${Array.isArray(s.vehicles)?s.vehicles.join(', '):typeof s.vehicles==='object'?Object.entries(s.vehicles).map(([k,v])=>`${k}: ${v}`).join(' | '):s.vehicles}</div>`:''}
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+// ═══════════════════════════════════════
+// FRED CATEGORY TABS
+// ═══════════════════════════════════════
+function renderTreasury() { document.getElementById('tab-treasury').innerHTML = fredTable('treasury','Treasury Yields & Spreads'); }
+function renderDXY() { document.getElementById('tab-dxy').innerHTML = `<div class="grid g2">${fredTable('dxy','Dollar Index & FX Rates')}</div>`; }
+function renderCredit() { document.getElementById('tab-credit').innerHTML = `<div class="grid g2">${fredTable('ice_bofa','ICE BofA Credit Spreads')}${fredTable('credit','Credit & Lending')}</div>`; }
+function renderMacro() { document.getElementById('tab-macro').innerHTML = fredTable('macro','Macro Economy'); }
+function renderInflation() { document.getElementById('tab-inflation').innerHTML = fredTable('inflation','Inflation Indicators'); }
+function renderCommodities() { document.getElementById('tab-commodities').innerHTML = fredTable('commodities','Commodities'); }
+function renderECB() { document.getElementById('tab-ecb').innerHTML = `<div class="grid g2">${fredTable('ecb','ECB & European Data')}${fredTable('global_liquidity','Global Liquidity')}</div>`; }
+
+function renderLiquidity() {
+  const nl = D.net_liquidity||{};
+  document.getElementById('tab-liquidity').innerHTML = `
+  <div class="grid g4" style="margin-bottom:10px">
+    <div class="card" style="text-align:center"><div class="metric-label">Net Liquidity</div><div class="metric-big" style="color:var(--cyan)">${nl.net?'$'+(nl.net/1e6).toFixed(2)+'T':'—'}</div></div>
+    <div class="card" style="text-align:center"><div class="metric-label">Fed Assets</div><div class="metric-big" style="color:var(--blue)">${nl.fed?'$'+(nl.fed/1e6).toFixed(2)+'T':'—'}</div></div>
+    <div class="card" style="text-align:center"><div class="metric-label">TGA</div><div class="metric-big" style="color:var(--amber)">${nl.tga?'$'+(nl.tga/1e6).toFixed(2)+'T':'—'}</div></div>
+    <div class="card" style="text-align:center"><div class="metric-label">RRP</div><div class="metric-big" style="color:var(--orange)">${nl.rrp?'$'+nl.rrp.toFixed(0)+'B':'—'}</div></div>
+  </div>
+  ${fredTable('liquidity','Liquidity & Money Supply')}`;
+}
+
+function renderRisk() {
+  const r = D.risk_dashboard||{};
+  document.getElementById('tab-risk').innerHTML = `
+  <div class="grid g3" style="margin-bottom:10px">
+    ${['credit','liquidity','market','recession','systemic','inflation'].map(k=>{
+      const val = r[k]||50;
+      return `<div class="card risk-gauge-container">
+        <div class="risk-gauge-label">${k} Risk</div>
+        <div class="risk-gauge-value" style="color:${riskColor(val)}">${val}</div>
+        <div class="gauge"><div class="gauge-fill" style="width:${val}%;background:${riskColor(val)}"></div></div>
+        <div style="font-size:10px;color:${riskColor(val)}">${val>=70?'LOW RISK':val>=50?'MODERATE':'HIGH RISK'}</div>
+      </div>`;
+    }).join('')}
+  </div>
+  ${fredTable('risk','Risk Indicators')}`;
+}
+
+// ═══════════════════════════════════════
+// TAB: ECB CISS
+// ═══════════════════════════════════════
+function renderCISS() {
+  const ciss = D.ecb_ciss||{};
+  const el = document.getElementById('tab-ciss');
+  if(!Object.keys(ciss).length) { el.innerHTML = '<div class="card"><h3>ECB CISS</h3><p style="color:var(--dim)">No ECB CISS data available</p></div>'; return; }
+
+  // Main CISS indices
+  const mainKeys = [
+    ['CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX','Euro Area'],
+    ['CISS.D.US.Z0Z.4F.EC.SS_CIN.IDX','United States'],
+    ['CISS.D.GB.Z0Z.4F.EC.SS_CIN.IDX','United Kingdom'],
+    ['CISS.D.CN.Z0Z.4F.EC.SS_CIN.IDX','China'],
+  ];
+  const subKeys = [
+    ['CISS.D.U2.Z0Z.4F.EC.SS_BM.CON','Bond Market'],
+    ['CISS.D.U2.Z0Z.4F.EC.SS_EM.CON','Equity Market'],
+    ['CISS.D.U2.Z0Z.4F.EC.SS_MM.CON','Money Market'],
+    ['CISS.D.U2.Z0Z.4F.EC.SS_FX.CON','FX Market'],
+    ['CISS.D.U2.Z0Z.4F.EC.SS_FI.CON','Financial Intermediaries'],
+    ['CISS.D.U2.Z0Z.4F.EC.SS_CO.CON','Cross-Correlation (Contagion)'],
+  ];
+  const sovKeys = [
+    ['CISS.M.U2.Z0Z.4F.EC.SOV_CI.IDX','Sovereign Stress Composite'],
+    ['CISS.M.U2.Z0Z.4F.EC.SOV_GDPW.IDX','Sovereign Stress GDP-Weighted'],
+  ];
+
+  function cissCard(key, label) {
+    const d = ciss[key];
+    if(!d?.current) return `<div class="card"><h3>${label}</h3><p style="color:var(--dim)">No data</p></div>`;
+    const c = cissColor(d.current);
+    const level = d.current>0.5?'CRISIS':d.current>0.3?'ELEVATED':d.current>0.15?'MODERATE':'CALM';
+    return `<div class="card" style="text-align:center">
+      <h3>${label}</h3>
+      <div class="metric-big" style="color:${c}">${d.current.toFixed(4)}</div>
+      <div style="color:${c};font-weight:700;font-size:12px">${level}</div>
+      <div class="ciss-meter"><div class="ciss-fill" style="width:${Math.min(d.current*200,100)}%;background:${c}"></div></div>
+      <div style="font-size:10px;color:var(--dim);margin-top:4px">Chg: ${pct(d.pct_change)} | Date: ${d.date||'—'}</div>
+      <div style="margin-top:4px">${sparkSVG(d.history,120,30)}</div>
+    </div>`;
+  }
+
+  el.innerHTML = `
+  <div style="margin-bottom:8px;font-size:11px;color:var(--dim)">ECB Composite Indicator of Systemic Stress — measures financial stress across bond, equity, money, FX markets and financial intermediaries. Scale: 0 (calm) to 1 (crisis). Values > 0.3 = elevated stress, > 0.5 = crisis level.</div>
+  <div class="grid g4" style="margin-bottom:10px">${mainKeys.map(([k,l])=>cissCard(k,l)).join('')}</div>
+  <div class="grid g3" style="margin-bottom:10px">${subKeys.map(([k,l])=>cissCard(k,l)).join('')}</div>
+  <div class="grid g2">${sovKeys.map(([k,l])=>cissCard(k,l)).join('')}</div>`;
+}
+
+// ═══════════════════════════════════════
+// TAB: EQUITIES
+// ═══════════════════════════════════════
+function renderEquities() {
+  const stocks = D.stocks||{};
+  const groups = {
+    'Indices':['SPY','QQQ','DIA','IWM','VTI','VOO','RSP','MDY'],
+    'Mega Caps':['AAPL','MSFT','GOOGL','AMZN','NVDA','META','TSLA','BRK.B','JPM','V','UNH','JNJ','WMT','MA','PG','HD','BAC','XOM','CVX','COST','ABBV','MRK','AVGO','LLY','CRM','AMD','NFLX','INTC','DIS','CSCO'],
+    'Bond ETFs':['TLT','IEF','SHY','HYG','LQD','JNK','AGG','BND','GOVT','MBB','VCSH','VCLT','EMB','BWX','TIP','VTIP','BIL','FLOT'],
+    'Commodities':['GLD','SLV','USO','UNG','DBA','PDBC','DBC','IAU','PPLT','COPX'],
+    'FX ETFs':['UUP','FXE','FXY','FXB','FXA','FXC'],
+    'International':['EEM','VWO','EFA','VEA','IEMG','INDA','FXI','EWJ','EWZ','EWG'],
+    'Leveraged':['TQQQ','SOXL','UPRO','UDOW','NUGT','JNUG','UCO'],
+  };
+  function stockTable(tickers, title) {
+    const rows = tickers.filter(t=>stocks[t]).map(t=>{
+      const s=stocks[t];
+      return `<tr><td style="font-weight:600">${t}</td><td style="text-align:right">$${v(s.price,2)}</td>
+      <td style="text-align:right">${pct(s.day_pct)}</td><td style="text-align:right">${pct(s.week_pct)}</td>
+      <td style="text-align:right">${pct(s.month_pct)}</td><td style="text-align:right">${pct(s.ytd_pct)}</td>
+      <td style="text-align:right;font-size:10px">${s.sma50?'$'+v(s.sma50,0):'—'}</td>
+      <td style="text-align:right;font-size:10px">${s.rsi14?v(s.rsi14,0):'—'}</td>
+      <td>${sparkSVG((s.history||[]).map(h=>h.c))}</td></tr>`;
+    }).join('');
+    return `<div class="card"><h3>${title}</h3>
+    <table><tr><th>Ticker</th><th style="text-align:right">Price</th><th style="text-align:right">Day</th><th style="text-align:right">Week</th><th style="text-align:right">Month</th><th style="text-align:right">YTD</th><th style="text-align:right">SMA50</th><th style="text-align:right">RSI</th><th>Trend</th></tr>${rows}</table></div>`;
+  }
+  document.getElementById('tab-equities').innerHTML = Object.entries(groups).map(([title,tickers])=>stockTable(tickers,title)).join('');
+}
+
+// ═══════════════════════════════════════
+// TAB: CRYPTO
+// ═══════════════════════════════════════
+function renderCrypto() {
+  const crypto = D.crypto||{};
+  const cg = D.crypto_global||{};
+  const el = document.getElementById('tab-crypto');
+  const sorted = Object.entries(crypto).sort((a,b)=>(a[1].rank||999)-(b[1].rank||999));
+
+  el.innerHTML = `
+  <div class="grid g4" style="margin-bottom:10px">
+    <div class="card" style="text-align:center"><div class="metric-label">Total Market Cap</div><div class="metric-big" style="color:var(--cyan)">${cg.total_mcap?'$'+(cg.total_mcap/1e12).toFixed(2)+'T':'—'}</div>${pct(cg.mcap_change_24h)}</div>
+    <div class="card" style="text-align:center"><div class="metric-label">24h Volume</div><div class="metric-big" style="color:var(--blue)">${cg.total_vol?'$'+(cg.total_vol/1e9).toFixed(0)+'B':'—'}</div></div>
+    <div class="card" style="text-align:center"><div class="metric-label">BTC Dominance</div><div class="metric-big" style="color:var(--orange)">${cg.btc_dom?cg.btc_dom.toFixed(1)+'%':'—'}</div></div>
+    <div class="card" style="text-align:center"><div class="metric-label">ETH Dominance</div><div class="metric-big" style="color:var(--purple)">${cg.eth_dom?cg.eth_dom.toFixed(1)+'%':'—'}</div></div>
+  </div>
+  <div class="card">
+    <h3>Top ${sorted.length} Cryptocurrencies</h3>
+    <table>
+    <tr><th>#</th><th>Coin</th><th style="text-align:right">Price</th><th style="text-align:right">1h</th><th style="text-align:right">24h</th><th style="text-align:right">7d</th><th style="text-align:right">30d</th><th style="text-align:right">Market Cap</th><th style="text-align:right">Volume 24h</th><th>7d Chart</th></tr>
+    ${sorted.map(([sym,c])=>`<tr>
+      <td>${c.rank||'—'}</td>
+      <td style="font-weight:600">${c.image?`<img src="${c.image}" width="16" height="16" style="vertical-align:middle;margin-right:4px;border-radius:50%">`:''}${sym} <span style="color:var(--dim);font-size:10px">${c.name||''}</span></td>
+      <td style="text-align:right;font-weight:600">$${c.price>=1?c.price.toLocaleString(undefined,{maximumFractionDigits:2}):c.price.toFixed(6)}</td>
+      <td style="text-align:right">${pct(c.change_1h)}</td>
+      <td style="text-align:right">${pct(c.change_24h)}</td>
+      <td style="text-align:right">${pct(c.change_7d)}</td>
+      <td style="text-align:right">${pct(c.change_30d)}</td>
+      <td style="text-align:right">${c.market_cap?'$'+(c.market_cap/1e9).toFixed(1)+'B':'—'}</td>
+      <td style="text-align:right">${c.volume_24h?'$'+(c.volume_24h/1e9).toFixed(1)+'B':'—'}</td>
+      <td>${sparkSVG(c.sparkline,80,20)}</td>
+    </tr>`).join('')}
+    </table>
+  </div>`;
+}
+
+init();
+setInterval(loadData, 300000); // 5 min refresh
+</script>
+</body>
+</html>
