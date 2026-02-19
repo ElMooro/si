@@ -147,6 +147,22 @@ FRED_SERIES = {
     'SP500':('systemic_risk','S&P 500 FRED'),
 }
 
+# ── ECB CISS SERIES (no API key needed) ──
+ECB_CISS_SERIES = {
+    'CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX': ('ecb_ciss', 'Euro Area CISS (New)'),
+    'CISS.D.US.Z0Z.4F.EC.SS_CIN.IDX': ('ecb_ciss', 'US CISS (New)'),
+    'CISS.D.GB.Z0Z.4F.EC.SS_CIN.IDX': ('ecb_ciss', 'UK CISS (New)'),
+    'CISS.D.CN.Z0Z.4F.EC.SS_CIN.IDX': ('ecb_ciss', 'China CISS (New)'),
+    'CISS.D.U2.Z0Z.4F.EC.SS_BM.CON': ('ecb_ciss', 'Bond Market Stress'),
+    'CISS.D.U2.Z0Z.4F.EC.SS_EM.CON': ('ecb_ciss', 'Equity Market Stress'),
+    'CISS.D.U2.Z0Z.4F.EC.SS_MM.CON': ('ecb_ciss', 'Money Market Stress'),
+    'CISS.D.U2.Z0Z.4F.EC.SS_FX.CON': ('ecb_ciss', 'FX Market Stress'),
+    'CISS.D.U2.Z0Z.4F.EC.SS_FI.CON': ('ecb_ciss', 'Financial Intermediaries Stress'),
+    'CISS.D.U2.Z0Z.4F.EC.SS_CO.CON': ('ecb_ciss', 'Cross-Correlation (Contagion)'),
+    'CISS.M.U2.Z0Z.4F.EC.SOV_CI.IDX': ('ecb_ciss', 'Sovereign Stress Composite'),
+    'CISS.M.U2.Z0Z.4F.EC.SOV_GDPW.IDX': ('ecb_ciss', 'Sovereign Stress GDP-Weighted'),
+}
+
 # ── STOCK/ETF TICKERS (80+) ──
 STOCK_TICKERS = [
     # Major Indices
@@ -250,6 +266,39 @@ def fetch_crypto_global():
                     'active_coins': d.get('active_cryptocurrencies'),
                     'mcap_change_24h': d.get('market_cap_change_percentage_24h_usd')}
     except: return {}
+
+def fetch_ecb_ciss():
+    """Fetch all ECB CISS systemic stress indicators"""
+    results = {}
+    for series_key, (cat, name) in ECB_CISS_SERIES.items():
+        try:
+            url = f"https://data-api.ecb.europa.eu/service/data/CISS/{series_key}?lastNObservations=60&format=csvdata"
+            req = urllib.request.Request(url, headers={'User-Agent': 'JustHodl/10.0', 'Accept': 'text/csv'})
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                lines = resp.read().decode('utf-8').strip().split('\n')
+                if len(lines) < 2: continue
+                header = lines[0].split(',')
+                time_idx = next((i for i,h in enumerate(header) if 'TIME_PERIOD' in h), None)
+                val_idx = next((i for i,h in enumerate(header) if 'OBS_VALUE' in h), None)
+                if time_idx is None or val_idx is None: continue
+                pts = []
+                for line in lines[1:]:
+                    cols = line.split(',')
+                    if len(cols) > max(time_idx, val_idx):
+                        try:
+                            pts.append({'date': cols[time_idx], 'value': float(cols[val_idx])})
+                        except: pass
+                pts.sort(key=lambda x: x['date'], reverse=True)
+                if pts:
+                    m = compute_changes(pts)
+                    m['name'] = name
+                    m['series_key'] = series_key
+                    m['history'] = pts[:60]
+                    results[series_key] = m
+            time.sleep(0.3)
+        except Exception as e:
+            print(f"  ECB CISS error {series_key}: {e}")
+    return results
 
 # ============================================================
 # COMPUTE FUNCTIONS
@@ -427,7 +476,7 @@ def compute_net_liq(fd):
 # ============================================================
 # AI ANALYSIS ENGINE
 # ============================================================
-def ai_analysis(fd, sd, crypto, ki, risk, nl):
+def ai_analysis(fd, sd, crypto, ki, risk, nl, ecb_ciss=None):
     a = {'generated_at': datetime.utcnow().isoformat()+'Z', 'sections': {}}
     def gv(cat,sid): return fd.get(cat,{}).get(sid,{}).get('current')
 
@@ -514,6 +563,54 @@ def ai_analysis(fd, sd, crypto, ki, risk, nl):
     elif (fed_chg or 0)<-1: cs.append("Fed tightening is headwind for speculative assets including crypto.")
     if vix and vix>30: cs.append("High VIX: risk-off. Crypto correlates with equities in stress.")
     a['sections']['crypto'] = {'title':'Crypto Analysis','signals':cs}
+
+    # ── ECB SYSTEMIC STRESS ──
+    ess = []
+    if ecb_ciss:
+        eu_ciss = ecb_ciss.get('CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX',{})
+        us_ciss = ecb_ciss.get('CISS.D.US.Z0Z.4F.EC.SS_CIN.IDX',{})
+        uk_ciss = ecb_ciss.get('CISS.D.GB.Z0Z.4F.EC.SS_CIN.IDX',{})
+        cn_ciss = ecb_ciss.get('CISS.D.CN.Z0Z.4F.EC.SS_CIN.IDX',{})
+        bm = ecb_ciss.get('CISS.D.U2.Z0Z.4F.EC.SS_BM.CON',{})
+        em = ecb_ciss.get('CISS.D.U2.Z0Z.4F.EC.SS_EM.CON',{})
+        mm = ecb_ciss.get('CISS.D.U2.Z0Z.4F.EC.SS_MM.CON',{})
+        fi = ecb_ciss.get('CISS.D.U2.Z0Z.4F.EC.SS_FI.CON',{})
+        co = ecb_ciss.get('CISS.D.U2.Z0Z.4F.EC.SS_CO.CON',{})
+        sov = ecb_ciss.get('CISS.M.U2.Z0Z.4F.EC.SOV_CI.IDX',{})
+
+        if eu_ciss.get('current') is not None:
+            v = eu_ciss['current']
+            if v > 0.5: ess.append(f"Euro Area CISS at {v:.3f}: CRISIS LEVEL. Systemic stress comparable to 2008/2011. Maximum caution.")
+            elif v > 0.3: ess.append(f"Euro Area CISS at {v:.3f}: ELEVATED stress. Financial contagion risk rising across Euro markets.")
+            elif v > 0.15: ess.append(f"Euro Area CISS at {v:.3f}: MODERATE stress. Monitor for escalation.")
+            else: ess.append(f"Euro Area CISS at {v:.3f}: LOW stress. European financial system stable.")
+
+        if us_ciss.get('current') is not None:
+            v = us_ciss['current']
+            ess.append(f"US CISS at {v:.3f}: {'HIGH' if v>0.3 else 'MODERATE' if v>0.15 else 'LOW'} systemic stress.")
+
+        if uk_ciss.get('current') is not None:
+            ess.append(f"UK CISS at {uk_ciss['current']:.3f}.")
+        if cn_ciss.get('current') is not None:
+            ess.append(f"China CISS at {cn_ciss['current']:.3f}.")
+
+        # Sub-indices
+        stress_parts = []
+        if bm.get('current') is not None: stress_parts.append(f"Bond: {bm['current']:.3f}")
+        if em.get('current') is not None: stress_parts.append(f"Equity: {em['current']:.3f}")
+        if mm.get('current') is not None: stress_parts.append(f"Money Mkt: {mm['current']:.3f}")
+        if fi.get('current') is not None: stress_parts.append(f"Banks: {fi['current']:.3f}")
+        if stress_parts: ess.append(f"Euro stress sub-indices: {', '.join(stress_parts)}.")
+
+        if co.get('current') is not None:
+            v = co['current']
+            if v > 0.3: ess.append(f"Cross-correlation (contagion) at {v:.3f}: HIGH - stress spreading across market segments simultaneously.")
+            else: ess.append(f"Cross-correlation at {v:.3f}: {'moderate' if v>0.15 else 'low'} contagion risk.")
+
+        if sov.get('current') is not None:
+            ess.append(f"Sovereign stress composite at {sov['current']:.3f} - {'elevated sovereign risk' if sov['current']>0.2 else 'sovereign conditions stable'}.")
+
+    a['sections']['ecb_systemic'] = {'title':'ECB Systemic Stress (CISS)','signals':ess}
 
     # ── PORTFOLIO SUGGESTIONS ──
     port = {}
@@ -666,6 +763,11 @@ def lambda_handler(event, context):
     crypto_g = fetch_crypto_global()
     print(f"[V10] Crypto: {len(crypto)} coins")
 
+    # ── PHASE 3.5: ECB CISS ──
+    print("[V10] ECB CISS...")
+    ecb_ciss = fetch_ecb_ciss()
+    print(f"[V10] ECB CISS: {len(ecb_ciss)} series")
+
     # ── PHASE 4: ANALYTICS ──
     ki = compute_ki(fd, sd)
     risk = compute_risk(fd)
@@ -688,7 +790,7 @@ def lambda_handler(event, context):
 
     # ── PHASE 5: AI ANALYSIS ──
     print("[V10] AI Analysis...")
-    ai = ai_analysis(fd, sd, crypto, ki, risk, nl)
+    ai = ai_analysis(fd, sd, crypto, ki, risk, nl, ecb_ciss)
 
     # ── PHASE 6: PUBLISH ──
     report = {
@@ -697,8 +799,9 @@ def lambda_handler(event, context):
         'khalid_index':ki,'risk_dashboard':risk,'net_liquidity':nl,
         'sectors':sectors,'signals':sigs,
         'fred':fd,'stocks':sd,'crypto':crypto,'crypto_global':crypto_g,
+        'ecb_ciss':ecb_ciss,
         'ai_analysis':ai,
-        'stats':{'fred':len(fred_raw),'stocks':len(sd),'crypto':len(crypto),
+        'stats':{'fred':len(fred_raw),'stocks':len(sd),'crypto':len(crypto),'ecb_ciss':len(ecb_ciss),
                  'data_points':sum(len(v) for v in fred_raw.values())+sum(len(s.get('history',[])) for s in sd.values())}
     }
 
@@ -710,7 +813,7 @@ def lambda_handler(event, context):
 
         elapsed = round(time.time()-t0,1)
         summary = {'status':'published','ki':ki['score'],'regime':ki['regime'],
-                    'fred':len(fred_raw),'stocks':len(sd),'crypto':len(crypto),
+                    'fred':len(fred_raw),'stocks':len(sd),'crypto':len(crypto),'ecb_ciss':len(ecb_ciss),
                     'risk_composite':risk.get('composite',0),'fetch_time':elapsed,
                     'dxy':fd.get('dxy',{}).get('DTWEXBGS',{}).get('current'),
                     'hy_spread':fd.get('ice_bofa',{}).get('BAMLH0A0HYM2',{}).get('current'),
