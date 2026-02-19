@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JustHodl Bloomberg Terminal V9</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0e17;--surface:#111827;--card:#1a2332;--border:#1e3a5f;--text:#e2e8f0;--muted:#8899aa;--green:#00d4aa;--red:#ff4757;--blue:#3b82f6;--yellow:#f59e0b;--purple:#a855f7;--orange:#f97316;--cyan:#22d3ee;--gold:#fbbf24}
+body{font-family:'SF Mono','Cascadia Code','Fira Code',monospace;background:var(--bg);color:var(--text);overflow-x:hidden;min-height:100vh}
+/* Top Bar */
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:6px 16px;background:#060a12;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.top-bar .brand{display:flex;align-items:center;gap:10px}
+.top-bar .brand h1{font-size:14px;color:var(--green);letter-spacing:1px}
+.top-bar .brand .version{font-size:10px;color:var(--muted);background:#1a2332;padding:2px 6px;border-radius:3px}
+.top-bar .status{display:flex;align-items:center;gap:15px;font-size:11px;color:var(--muted)}
+.top-bar .status .live{color:var(--green);animation:pulse 2s infinite}
+.top-bar .ki-badge{padding:4px 12px;border-radius:4px;font-weight:700;font-size:13px}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+/* Tab Bar */
+.tab-bar{display:flex;flex-wrap:wrap;background:#0d1117;border-bottom:1px solid var(--border);padding:0 8px;position:sticky;top:35px;z-index:99;gap:0}
+.tab{padding:7px 12px;font-size:10px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:.2s;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.tab:hover{color:var(--text);background:rgba(59,130,246,.1)}
+.tab.active{color:var(--green);border-bottom-color:var(--green);background:rgba(0,212,170,.05)}
+/* Content */
+.content{padding:12px}
+.panel{display:none}
+.panel.active{display:block}
+/* Grid */
+.grid{display:grid;gap:10px}
+.grid-2{grid-template-columns:repeat(2,1fr)}
+.grid-3{grid-template-columns:repeat(3,1fr)}
+.grid-4{grid-template-columns:repeat(4,1fr)}
+.grid-5{grid-template-columns:repeat(5,1fr)}
+.grid-6{grid-template-columns:repeat(6,1fr)}
+@media(max-width:1200px){.grid-4,.grid-5,.grid-6{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:768px){.grid-2,.grid-3,.grid-4,.grid-5,.grid-6{grid-template-columns:repeat(2,1fr)}}
+/* Cards */
+.card{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:12px;transition:.2s}
+.card:hover{border-color:var(--blue);transform:translateY(-1px)}
+.card .label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .value{font-size:18px;font-weight:700;margin-bottom:2px}
+.card .change{font-size:11px}
+.card .meta{font-size:9px;color:var(--muted);margin-top:4px}
+.up{color:var(--green)}.down{color:var(--red)}.flat{color:var(--muted)}
+/* Section Headers */
+.section-header{font-size:12px;color:var(--blue);text-transform:uppercase;letter-spacing:1px;padding:12px 0 8px;border-bottom:1px solid var(--border);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.section-header .icon{font-size:14px}
+/* Table */
+.data-table{width:100%;border-collapse:collapse;font-size:11px}
+.data-table th{text-align:left;padding:6px 8px;color:var(--muted);font-size:9px;text-transform:uppercase;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card)}
+.data-table td{padding:5px 8px;border-bottom:1px solid rgba(30,58,95,.3)}
+.data-table tr:hover{background:rgba(59,130,246,.05)}
+/* Risk Gauge */
+.gauge{width:100%;height:8px;background:#1a2332;border-radius:4px;overflow:hidden;margin:4px 0}
+.gauge-fill{height:100%;border-radius:4px;transition:.5s}
+/* Chart placeholder */
+.mini-chart{height:50px;display:flex;align-items:flex-end;gap:1px;margin-top:6px}
+.mini-chart .bar{flex:1;background:var(--blue);border-radius:1px 1px 0 0;min-width:2px;transition:.3s}
+.mini-chart .bar.up{background:var(--green)}.mini-chart .bar.down{background:var(--red)}
+/* Liquidity Flow */
+.flow-diagram{display:flex;align-items:center;justify-content:space-between;padding:16px;gap:8px}
+.flow-box{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center;flex:1}
+.flow-box .flow-label{font-size:9px;color:var(--muted);text-transform:uppercase}
+.flow-box .flow-value{font-size:16px;font-weight:700;margin-top:4px}
+.flow-arrow{color:var(--muted);font-size:18px}
+/* Risk Matrix */
+.risk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.risk-cell{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center}
+.risk-cell .risk-label{font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:6px}
+.risk-cell .risk-score{font-size:28px;font-weight:800;margin-bottom:4px}
+.risk-cell .risk-desc{font-size:9px;color:var(--muted)}
+/* KI Display */
+.ki-display{background:linear-gradient(135deg,#0f1923,#162033);border:1px solid var(--border);border-radius:12px;padding:24px;text-align:center;margin-bottom:16px}
+.ki-display .ki-score{font-size:64px;font-weight:900;margin-bottom:4px}
+.ki-display .ki-regime{font-size:18px;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px}
+.ki-display .ki-desc{font-size:11px;color:var(--muted)}
+/* Signal Badges */
+.signal-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.signal-badge{padding:3px 8px;border-radius:4px;font-size:10px;font-weight:600}
+.signal-buy{background:rgba(0,212,170,.15);color:var(--green);border:1px solid rgba(0,212,170,.3)}
+.signal-sell{background:rgba(255,71,87,.15);color:var(--red);border:1px solid rgba(255,71,87,.3)}
+.signal-warn{background:rgba(245,158,11,.15);color:var(--yellow);border:1px solid rgba(245,158,11,.3)}
+/* Yield Curve */
+.yield-curve{height:200px;display:flex;align-items:flex-end;justify-content:space-around;padding:20px;background:var(--card);border-radius:8px;border:1px solid var(--border);position:relative}
+.yield-bar{display:flex;flex-direction:column;align-items:center;gap:4px}
+.yield-bar .yield-level{background:var(--blue);width:24px;border-radius:3px 3px 0 0;transition:.5s}
+.yield-bar .yield-label{font-size:8px;color:var(--muted)}
+.yield-bar .yield-val{font-size:9px;font-weight:600}
+/* ECB section */
+.central-bank-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.cb-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px}
+.cb-card .cb-name{font-size:11px;color:var(--blue);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+/* Loading */
+.loading{text-align:center;padding:60px;color:var(--muted)}
+.loading .spinner{display:inline-block;width:40px;height:40px;border:3px solid var(--border);border-top:3px solid var(--green);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* Footer */
+.footer{text-align:center;padding:12px;font-size:9px;color:var(--muted);border-top:1px solid var(--border);margin-top:20px}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div class="brand">
+    <h1>JUSTHODL TERMINAL</h1>
+    <span class="version">V9 MEGA</span>
+    <span id="ki-top" class="ki-badge" style="background:rgba(0,212,170,.2);color:var(--green)">KI: --</span>
+  </div>
+  <div class="status">
+    <span id="stats-top">Loading...</span>
+    <span class="live">● LIVE</span>
+    <span id="refresh-time">--</span>
+  </div>
+</div>
+
+<!-- TAB BAR -->
+<div class="tab-bar" id="tab-bar">
+  <div class="tab active" data-tab="overview">Overview</div>
+  <div class="tab" data-tab="khalid-index">Khalid Index™</div>
+  <div class="tab" data-tab="risk">Risk Dashboard</div>
+  <div class="tab" data-tab="liquidity">Liquidity</div>
+  <div class="tab" data-tab="net-liquidity">Net Liquidity</div>
+  <div class="tab" data-tab="dxy">DXY Dollar</div>
+  <div class="tab" data-tab="treasury">Treasury & Yields</div>
+  <div class="tab" data-tab="ice-bofa">ICE BofA Credit</div>
+  <div class="tab" data-tab="credit">Credit & Lending</div>
+  <div class="tab" data-tab="macro">Macro Economy</div>
+  <div class="tab" data-tab="inflation">Inflation Monitor</div>
+  <div class="tab" data-tab="pmi">PMI & Manufacturing</div>
+  <div class="tab" data-tab="global-cycle">Global Business Cycle</div>
+  <div class="tab" data-tab="ecb">ECB & Europe</div>
+  <div class="tab" data-tab="global-liquidity">Global Liquidity</div>
+  <div class="tab" data-tab="systemic">Systemic Risk</div>
+  <div class="tab" data-tab="sectors">Sectors</div>
+  <div class="tab" data-tab="stocks">Stocks & ETFs</div>
+  <div class="tab" data-tab="bonds-etf">Bond ETFs</div>
+  <div class="tab" data-tab="commodities">Commodities</div>
+  <div class="tab" data-tab="fx">Global FX</div>
+  <div class="tab" data-tab="signals">Signals</div>
+  <div class="tab" data-tab="employment">Employment</div>
+  <div class="tab" data-tab="housing">Housing</div>
+  <div class="tab" data-tab="consumer">Consumer</div>
+  <div class="tab" data-tab="all-fred">All FRED Data</div>
+</div>
+
+<!-- CONTENT -->
+<div class="content" id="content">
+  <div class="loading"><div class="spinner"></div><p style="margin-top:12px">Loading 200+ indicators...</p></div>
+</div>
+
+<div class="footer">
+  JustHodl Bloomberg Terminal V9 | 200+ FRED Series | 40+ Stocks/ETFs | 26 Tabs | Auto-Refresh 5min | Khalid Index™
+</div>
+
+<script>
+// ============================================================
+// DATA ENGINE
+// ============================================================
+const DATA_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/data/report.json';
+let DATA = null;
+let currentTab = 'overview';
+
+async function loadData() {
+  try {
+    const r = await fetch(DATA_URL + '?t=' + Date.now());
+    DATA = await r.json();
+    document.getElementById('refresh-time').textContent = new Date().toLocaleTimeString();
+    renderCurrentTab();
+    updateTopBar();
+  } catch(e) {
+    console.error('Load error:', e);
+    document.getElementById('content').innerHTML = '<div class="loading"><p style="color:var(--red)">Error loading data. Retrying...</p></div>';
+    setTimeout(loadData, 5000);
+  }
+}
+
+function updateTopBar() {
+  if (!DATA) return;
+  const ki = DATA.khalid_index;
+  const el = document.getElementById('ki-top');
+  el.textContent = 'KI: ' + ki.score + ' ' + ki.regime;
+  const colors = {STRONG_BULL:'var(--green)',BULL:'var(--green)',NEUTRAL:'var(--yellow)',BEAR:'var(--red)',CRISIS:'var(--red)'};
+  el.style.color = colors[ki.regime] || 'var(--muted)';
+  el.style.background = (colors[ki.regime]||'var(--muted)').replace(')',',0.15)').replace('var(','rgba(');
+  
+  const s = DATA.stats;
+  document.getElementById('stats-top').textContent = s.fred_series + ' FRED | ' + s.stock_tickers + ' Stocks | ' + s.total_data_points + ' pts';
+}
+
+// ============================================================
+// HELPER FUNCTIONS
+// ============================================================
+function fmt(v, decimals=2) { return v != null ? Number(v).toFixed(decimals) : '--'; }
+function fmtB(v) { if (!v) return '--'; if (Math.abs(v) >= 1e6) return (v/1e6).toFixed(2)+'T'; if (Math.abs(v) >= 1e3) return (v/1e3).toFixed(1)+'B'; return v.toFixed(1)+'M'; }
+function chgClass(v) { return v > 0 ? 'up' : v < 0 ? 'down' : 'flat'; }
+function chgArrow(v) { return v > 0 ? '▲' : v < 0 ? '▼' : '─'; }
+
+function fredCard(cat, sid, opts={}) {
+  const d = DATA?.fred?.[cat]?.[sid];
+  if (!d || d.current == null) return '<div class="card"><div class="label">' + (opts.label||sid) + '</div><div class="value" style="color:var(--muted)">N/A</div></div>';
+  const dec = opts.dec ?? 2;
+  const suffix = opts.suffix || '';
+  const prefix = opts.prefix || '';
+  return '<div class="card"><div class="label">' + (d.name||sid) + '</div>' +
+    '<div class="value">' + prefix + fmt(d.current, dec) + suffix + '</div>' +
+    '<div class="change ' + chgClass(d.change) + '">' + chgArrow(d.change) + ' ' + fmt(d.change, dec) + ' (' + fmt(d.pct_change,1) + '%)</div>' +
+    (d.week_pct != null ? '<div class="meta">1W: <span class="'+chgClass(d.week_pct)+'">'+fmt(d.week_pct,1)+'%</span> | 1M: <span class="'+chgClass(d.month_pct)+'">'+fmt(d.month_pct||0,1)+'%</span></div>' : '') +
+    miniChart(d.history) +
+    '</div>';
+}
+
+function stockCard(ticker) {
+  const s = DATA?.stocks?.[ticker];
+  if (!s) return '<div class="card"><div class="label">'+ticker+'</div><div class="value" style="color:var(--muted)">N/A</div></div>';
+  return '<div class="card"><div class="label">'+ticker+'</div>' +
+    '<div class="value">$'+fmt(s.price,2)+'</div>' +
+    '<div class="change '+chgClass(s.day_pct)+'">'+chgArrow(s.day_pct)+' '+fmt(s.day_change,2)+' ('+fmt(s.day_pct,1)+'%)</div>' +
+    '<div class="meta">W: <span class="'+chgClass(s.week_pct)+'">'+fmt(s.week_pct||0,1)+'%</span> M: <span class="'+chgClass(s.month_pct)+'">'+fmt(s.month_pct||0,1)+'%</span>'+(s.ytd_pct!=null?' YTD: <span class="'+chgClass(s.ytd_pct)+'">'+fmt(s.ytd_pct,1)+'%</span>':'')+'</div>' +
+    miniChart(s.history?.map(h=>({value:h.close}))) +
+    '</div>';
+}
+
+function miniChart(data) {
+  if (!data || data.length < 5) return '';
+  const vals = data.slice(0,40).reverse().map(d => d.value ?? d.close ?? 0);
+  const mn = Math.min(...vals), mx = Math.max(...vals);
+  const range = mx - mn || 1;
+  let bars = '';
+  for (let i=0; i<vals.length; i++) {
+    const h = Math.max(3, ((vals[i]-mn)/range)*40);
+    const cls = i > 0 ? (vals[i] >= vals[i-1] ? 'up' : 'down') : 'up';
+    bars += '<div class="bar '+cls+'" style="height:'+h+'px"></div>';
+  }
+  return '<div class="mini-chart">'+bars+'</div>';
+}
+
+function riskGauge(score, label) {
+  const color = score >= 70 ? 'var(--green)' : score >= 40 ? 'var(--yellow)' : 'var(--red)';
+  return '<div class="risk-cell"><div class="risk-label">'+label+'</div>' +
+    '<div class="risk-score" style="color:'+color+'">'+score+'</div>' +
+    '<div class="gauge"><div class="gauge-fill" style="width:'+score+'%;background:'+color+'"></div></div>' +
+    '<div class="risk-desc">'+(score>=70?'Healthy':score>=40?'Caution':'Warning')+'</div></div>';
+}
+
+function fredTable(cat, series_list) {
+  let rows = '';
+  for (const sid of series_list) {
+    const d = DATA?.fred?.[cat]?.[sid];
+    if (!d || d.current == null) continue;
+    rows += '<tr><td style="color:var(--blue)">'+sid+'</td><td>'+d.name+'</td><td style="font-weight:700">'+fmt(d.current)+'</td>' +
+      '<td class="'+chgClass(d.change)+'">'+fmt(d.change)+'</td>' +
+      '<td class="'+chgClass(d.pct_change)+'">'+fmt(d.pct_change,1)+'%</td>' +
+      '<td class="'+chgClass(d.week_pct)+'">'+fmt(d.week_pct||0,1)+'%</td>' +
+      '<td class="'+chgClass(d.month_pct)+'">'+fmt(d.month_pct||0,1)+'%</td>' +
+      '<td>'+fmt(d.high)+'</td><td>'+fmt(d.low)+'</td>' +
+      '<td style="color:var(--muted)">'+(d.date||'--')+'</td></tr>';
+  }
+  return '<table class="data-table"><thead><tr><th>Series</th><th>Name</th><th>Current</th><th>Change</th><th>%Chg</th><th>1W%</th><th>1M%</th><th>High</th><th>Low</th><th>Date</th></tr></thead><tbody>'+rows+'</tbody></table>';
+}
+
+// ============================================================
+// TAB RENDERERS
+// ============================================================
+const TABS = {
+
+// ── OVERVIEW ──
+'overview': () => {
+  if (!DATA) return '<div class="loading"><div class="spinner"></div></div>';
+  const ki = DATA.khalid_index;
+  const r = DATA.risk_dashboard;
+  const nl = DATA.net_liquidity;
+  const colors = {STRONG_BULL:'var(--green)',BULL:'var(--green)',NEUTRAL:'var(--yellow)',BEAR:'var(--red)',CRISIS:'var(--red)'};
+  
+  let html = '<div class="grid grid-4" style="margin-bottom:12px">';
+  // KI Card
+  html += '<div class="card" style="grid-column:span 1;text-align:center;border-color:'+colors[ki.regime]+'"><div class="label">Khalid Index™</div><div class="value" style="font-size:36px;color:'+colors[ki.regime]+'">'+ki.score+'</div><div style="color:'+colors[ki.regime]+';font-size:12px;font-weight:700">'+ki.regime+'</div></div>';
+  // Risk Composite
+  const rc = r.composite||50;
+  const rcCol = rc>=70?'var(--green)':rc>=40?'var(--yellow)':'var(--red)';
+  html += '<div class="card" style="text-align:center"><div class="label">Risk Composite</div><div class="value" style="font-size:36px;color:'+rcCol+'">'+rc+'</div><div class="gauge"><div class="gauge-fill" style="width:'+rc+'%;background:'+rcCol+'"></div></div></div>';
+  // Net Liquidity
+  html += '<div class="card" style="text-align:center"><div class="label">Fed Net Liquidity</div><div class="value" style="font-size:24px">'+fmtB(nl.net_liquidity)+'</div><div class="meta">Fed: '+fmtB(nl.fed_assets)+' | TGA: '+fmtB(nl.tga)+'</div></div>';
+  // Market Snapshot
+  html += '<div class="card" style="text-align:center"><div class="label">Data Coverage</div><div class="value" style="font-size:24px;color:var(--cyan)">'+DATA.stats.fred_series+'</div><div class="meta">FRED Series | '+DATA.stats.stock_tickers+' Stocks | '+DATA.stats.total_data_points+' pts</div></div>';
+  html += '</div>';
+  
+  // Key Metrics Row
+  html += '<div class="section-header"><span class="icon">📊</span> KEY METRICS</div>';
+  html += '<div class="grid grid-6">';
+  const keyMetrics = [
+    ['dxy','DTWEXBGS',{dec:2}], ['risk','VIXCLS',{dec:1}], ['ice_bofa','BAMLH0A0HYM2',{dec:2,suffix:'%'}],
+    ['treasury','DGS10',{dec:2,suffix:'%'}], ['treasury','T10Y2Y',{dec:2,suffix:'%'}], ['liquidity','FEDFUNDS',{dec:2,suffix:'%'}],
+  ];
+  for (const [cat,sid,opts] of keyMetrics) html += fredCard(cat,sid,opts);
+  html += '</div>';
+  
+  // Market Indices
+  html += '<div class="section-header" style="margin-top:16px"><span class="icon">📈</span> MARKET INDICES</div>';
+  html += '<div class="grid grid-6">';
+  for (const t of ['SPY','QQQ','DIA','IWM','TLT','GLD']) html += stockCard(t);
+  html += '</div>';
+  
+  // Sectors Heatmap
+  html += '<div class="section-header" style="margin-top:16px"><span class="icon">🏭</span> SECTOR HEATMAP</div>';
+  html += '<div class="grid grid-6">';
+  if (DATA.sectors) {
+    for (const [etf,s] of Object.entries(DATA.sectors)) {
+      const col = s.day_pct > 0 ? 'var(--green)' : 'var(--red)';
+      html += '<div class="card" style="text-align:center;border-left:3px solid '+col+'"><div class="label">'+s.name+'</div><div class="value" style="font-size:14px">$'+fmt(s.price,2)+'</div><div class="change '+chgClass(s.day_pct)+'">'+fmt(s.day_pct,1)+'%</div></div>';
+    }
+  }
+  html += '</div>';
+  
+  // Signals
+  if (DATA.signals) {
+    html += '<div class="section-header" style="margin-top:16px"><span class="icon">⚡</span> SIGNALS</div>';
+    html += '<div class="signal-list">';
+    for (const t of (DATA.signals.buys||[])) html += '<span class="signal-badge signal-buy">BUY '+t+'</span>';
+    for (const t of (DATA.signals.sells||[])) html += '<span class="signal-badge signal-sell">SELL '+t+'</span>';
+    for (const t of (DATA.signals.warnings||[])) html += '<span class="signal-badge signal-warn">⚠ '+t+'</span>';
+    html += '</div>';
+  }
+  
+  return html;
+},
+
+// ── KHALID INDEX ──
+'khalid-index': () => {
+  const ki = DATA.khalid_index;
+  const colors = {STRONG_BULL:'var(--green)',BULL:'var(--green)',NEUTRAL:'var(--yellow)',BEAR:'var(--red)',CRISIS:'var(--red)'};
+  let html = '<div class="ki-display"><div class="ki-score" style="color:'+colors[ki.regime]+'">'+ki.score+'</div>';
+  html += '<div class="ki-regime" style="color:'+colors[ki.regime]+'">'+ki.regime+'</div>';
+  html += '<div class="ki-desc">Proprietary composite score: DXY + Credit Spreads + Yield Curve + VIX + Financial Stress + Fed Balance Sheet + Unemployment + PMI + Liquidity + Market Trend</div></div>';
+  
+  html += '<div class="section-header"><span class="icon">📡</span> SIGNAL DECOMPOSITION</div>';
+  html += '<table class="data-table"><thead><tr><th>Signal</th><th>Impact</th><th>Value</th></tr></thead><tbody>';
+  for (const [name, impact, val] of (ki.signals||[])) {
+    const cls = impact > 0 ? 'up' : impact < 0 ? 'down' : 'flat';
+    html += '<tr><td>'+name+'</td><td class="'+cls+'" style="font-weight:700">'+(impact>0?'+':'')+impact+'</td><td>'+val+'</td></tr>';
+  }
+  html += '</tbody></table>';
+  return html;
+},
+
+// ── RISK DASHBOARD ──
+'risk': () => {
+  const r = DATA.risk_dashboard;
+  let html = '<div class="section-header"><span class="icon">🛡️</span> RISK SCOREBOARD (0=DANGER → 100=SAFE)</div>';
+  html += '<div class="risk-grid">';
+  html += riskGauge(r.composite||50, 'Composite');
+  html += riskGauge(r.credit_risk||50, 'Credit Risk');
+  html += riskGauge(r.market_risk||50, 'Market Risk');
+  html += riskGauge(r.liquidity_risk||50, 'Liquidity Risk');
+  html += riskGauge(r.recession_risk||50, 'Recession Risk');
+  html += riskGauge(r.systemic_risk||50, 'Systemic Risk');
+  html += riskGauge(r.inflation_risk||50, 'Inflation Risk');
+  html += '</div>';
+  
+  // Financial Stress Indices
+  html += '<div class="section-header" style="margin-top:16px"><span class="icon">📉</span> FINANCIAL STRESS INDICES</div>';
+  html += '<div class="grid grid-4">';
+  for (const sid of ['STLFSI2','NFCI','ANFCI','KCFSI','TEDRATE','VIXCLS']) html += fredCard('risk',sid);
+  html += '</div>';
+  return html;
+},
+
+// ── LIQUIDITY ──
+'liquidity': () => {
+  let html = '<div class="section-header"><span class="icon">💧</span> FED LIQUIDITY COMPONENTS</div>';
+  html += '<div class="grid grid-4">';
+  const liqSeries = ['WALCL','WTREGEN','RRPONTSYD','RPONTSYD','TOTRESNS','WSHOSHO','WSHOMCB','M2SL','WM2NS','M1SL','BOGMBASE','FEDFUNDS','DFF','SOFR','EFFR','IORB'];
+  for (const sid of liqSeries) html += fredCard('liquidity',sid);
+  html += '</div>';
+  
+  html += '<div class="section-header" style="margin-top:16px"><span class="icon">📊</span> FULL LIQUIDITY TABLE</div>';
+  html += fredTable('liquidity', Object.keys(DATA.fred.liquidity||{}));
+  return html;
+},
+
+// ── NET LIQUIDITY ──
+'net-liquidity': () => {
+  const nl = DATA.net_liquidity;
+  let html = '<div class="section-header"><span class="icon">🌊</span> FED NET LIQUIDITY = Fed Assets − TGA − RRP</div>';
+  html += '<div class="flow-diagram">';
+  html += '<div class="flow-box"><div class="flow-label">Fed Total Assets</div><div class="flow-value" style="color:var(--blue)">'+fmtB(nl.fed_assets)+'</div></div>';
+  html += '<div class="flow-arrow">−</div>';
+  html += '<div class="flow-box"><div class="flow-label">TGA (Treasury)</div><div class="flow-value" style="color:var(--yellow)">'+fmtB(nl.tga)+'</div></div>';
+  html += '<div class="flow-arrow">−</div>';
+  html += '<div class="flow-box"><div class="flow-label">Reverse Repo</div><div class="flow-value" style="color:var(--orange)">'+fmtB(nl.rrp)+'</div></div>';
+  html += '<div class="flow-arrow">=</div>';
+  html += '<div class="flow-box" style="border-color:var(--green)"><div class="flow-label">Net Liquidity</div><div class="flow-value" style="color:var(--green)">'+fmtB(nl.net_liquidity)+'</div></div>';
+  html += '</div>';
+  
+  html += '<div class="grid grid-3" style="margin-top:16px">';
+  html += fredCard('liquidity','WALCL');
+  html += fredCard('liquidity','WTREGEN');
+  html += fredCard('liquidity','RRPONTSYD');
+  html += '</div>';
+  return html;
+},
+
+// ── DXY DOLLAR ──
+'dxy': () => {
+  let html = '<div class="section-header"><span class="icon">💵</span> US DOLLAR INDEX & EXCHANGE RATES</div>';
+  html += '<div class="grid grid-4">';
+  for (const sid of Object.keys(DATA.fred.dxy||{})) html += fredCard('dxy',sid);
+  html += '</div>';
+  html += '<div class="section-header" style="margin-top:16px"><span class="icon">📊</span> DXY TABLE</div>';
+  html += fredTable('dxy', Object.keys(DATA.fred.dxy||{}));
+  return html;
+},
+
+// ── TREASURY & YIELDS ──
+'treasury': () => {
+  // Yield Curve Visual
+  const maturities = ['DGS1MO','DGS3MO','DGS6MO','DGS1','DGS2','DGS3','DGS5','DGS7','DGS10','DGS20','DGS30'];
+  const labels = ['1M','3M','6M','1Y','2Y','3Y','5Y','7Y','10Y','20Y','30Y'];
+  let html = '<div class="section-header"><span class="icon">📐</span> YIELD CURVE</div>';
+  html += '<div class="yield-curve">';
+  for (let i=0; i<maturities.length; i++) {
+    const d = DATA?.fred?.treasury?.[maturities[i]];
+    const val = d?.current || 0;
+    const h = Math.max(10, val * 35);
+    html += '<div class="yield-bar"><div class="yield-val">'+fmt(val,2)+'%</div><div class="yield-level" style="height:'+h+'px"></div><div class="yield-label">'+labels[i]+'</div></div>';
+  }
+  html += '</div>';
+  
+  html += '<div class="section-header" style="margin-top:16px"><span class="icon">📊</span> SPREADS & BREAKEVENS</div>';
+  html += '<div class="grid grid-4">';
+  for (const sid of ['T10Y2Y','T10Y3M','T10YFF','T5YFF','T10YIE','T5YIE','T5YIFR','DFII10','DFII5','DFII30']) html += fredCard('treasury',sid,{suffix:'%'});
+  html += '</div>';
+  
+  html += '<div class="section-header" style="margin-top:16px"><span class="icon">📊</span> FULL TABLE</div>';
+  html += fredTable('treasury', Object.keys(DATA.fred.treasury||{}));
+  return html;
+},
+
+// ── ICE BofA CREDIT ──
+'ice-bofa': () => {
+  let html = '<div class="section-header"><span class="icon">🏦</span> ICE BofA CREDIT SPREADS (OAS)</div>';
+  html += '<div class="grid grid-4">';
+  const spreads = ['BAMLH0A0HYM2','BAMLC0A0CM','BAMLH0A1HYBB','BAMLH0A2HYBEY','BAMLH0A3HYC','BAMLC0A1CAAA','BAMLC0A2CAA','BAMLC0A3CA','BAMLC0A4CBBB','BAMLEMCBPIOAS','BAMLEMHBHYCRPIOAS','BAMLHE00EHYIOAS'];
+  for (const sid of spreads) html += fredCard('ice_bofa',sid,{suffix:'%'});
+  html += '</div>';
+  
+  html += '<div class="section-header" style="margin-top:16px"><span class="icon">💰</span> EFFECTIVE YIELDS</div>';
+  html += '<div class="grid grid-4">';
+  const yields = ['BAMLC0A0CMEY','BAMLH0A0HYM2EY','BAMLC0A1CAAAEY','BAMLC0A4CBBBEY','BAMLC1A0C13YEY','BAMLC2A0C35YEY','BAMLC3A0C57YEY','BAMLC4A0C710YEY'];
+  for (const sid of yields) html += fredCard('ice_bofa',sid,{suffix:'%'});
+  html += '</div>';
+  
+  html += '<div class="section-header" style="margin-top:16px"><span class="icon">📊</span> FULL TABLE</div>';
+  html += fredTable('ice_bofa', Object.keys(DATA.fred.ice_bofa||{}));
+  return html;
+},
+
+// ── CREDIT & LENDING ──
+'credit': () => {
+  let html = '<div class="section-header"><span class="icon">💳</span> CREDIT OUTSTANDING</div>';
+  html += '<div class="grid grid-4">';
+  for (const sid of ['TOTALSL','REVOLSL','NONREVSL','BUSLOANS','REALLN','CONSUMER','TOTCI','CCLACBM027NBOG','MVLOAS','SLOAS']) html += fredCard('credit',sid);
+  html += '</div>';
+  
+  html += '<div class="section-header" style="margin-top:16px"><span class="icon">⚠️</span> DELINQUENCY RATES</div>';
+  html += '<div class="grid grid-4">';
+  for (const sid of ['DRCCLACBS','DRSFRMACBS','DRALACBS','DRCLACBS']) html += fredCard('credit',sid,{suffix:'%'});
+  html += '</div>';
+  
+  html += '<div class="section-header" style="margin-top:16px"><span class="icon">🔥</span> CHARGE-OFF RATES</div>';
+  html += '<div class="grid grid-4">';
+  for (const sid of ['CHARGE','CORCBS','CRELACBS','CORCCACBS']) html += fredCard('credit',sid,{suffix:'%'});
+  html += '</div>';
+  
+  html += '<div class="section-header" style="margin-top:16px"><span class="icon">📊</span> LENDING STANDARDS</div>';
+  html += '<div class="grid grid-3">';
+  for (const sid of ['DRTSCILM','DRTSCIS','DRTSSP']) html += fredCard('credit',sid);
+  html += '</div>';
+  return html;
+},
+
+// ── MACRO ECONOMY ──
+'macro': () => {
+  let html = '<div class="section-header"><span class="icon">🏛️</span> GDP & OUTPUT</div>';
+  html += '<div class="grid grid-4">';
+  for (const sid of ['GDP','GDPC1','A191RL1Q225SBEA','INDPRO','TCU','DGORDER','NEWORDER']) html += fredCard('macro',sid);
+  html += '</div>';
+  
+  html += '<div class="section-header" style="margin-top:16px"><span class="icon">👷</span> LABOR MARKET</div>';
+  html += '<div class="grid grid-4">';
+  for (const sid of ['PAYEMS','UNRATE','U6RATE','CIVPART','ICSA','CCSA','JTSJOL','JTSHIR','JTSQUR','CES0500000003','AWHMAN']) html += fredCard('macro',sid);
+  html += '</div>';
+  
+  html += '<div class="section-header" style="margin-top:16px"><span class="icon">🛒</span> CONSUMER & SPENDING</div>';
+  html += '<div class="grid grid-4">';
+  for (const sid of ['UMCSENT','RSAFS','PI','PCE']) html += fredCard('macro',sid);
+  html += '</div>';
+  
+  html += '<div class="section-header" style="margin-top:16px"><span class="icon">📊</span> FULL TABLE</div>';
+  html += fredTable('macro', Object.keys(DATA.fred.macro||{}));
+  return html;
+},
+
+// ── INFLATION ──
+'inflation': () => {
+  let html = '<div class="section-header"><span class="icon">🔥</span> INFLATION MEASURES</div>';
+  html += '<div class="grid grid-4">';
+  for (const sid of Object.keys(DATA.fred.inflation||{})) html += fredCard('inflation',sid);
+  html += '</div>';
+  html += '<div class="section-header" style="margin-top:16px"><span class="icon">📊</span> FULL TABLE</div>';
+  html += fredTable('inflation', Object.keys(DATA.fred.inflation||{}));
+  return html;
+},
+
+// ── PMI & MANUFACTURING ──
+'pmi': () => {
+  let html = '<div class="section-header"><span class="icon">🏭</span> ISM PURCHASING MANAGERS</div>';
+  html += '<div class="grid grid-4">';
+  for (const sid of ['NAPM','NAPMNOI','NAPMPI','NAPMPRI','NAPMSDI','NAPMII','NAPMEI','NMFBAI']) html += fredCard('global_cycle',sid);
+  html += '</div>';
+  
+  html += '<div class="section-header" style="margin-top:16px"><span class="icon">🌍</span> WORLD PMI / CLI (OECD)</div>';
+  html += '<div class="grid grid-4">';
+  for (const sid of Object.keys(DATA.fred.pmi_world||{})) html += fredCard('pmi_world',sid);
+  html += '</div>';
+  return html;
+},
+
+// ── GLOBAL BUSINESS CYCLE ──
+'global-cycle': () => {
+  let html = '<div class="section-header"><span class="icon">🌐</span> GLOBAL BUSINESS CYCLE</div>';
+  html += '<div class="grid grid-4">';
+  for (const sid of Object.keys(DATA.fred.global_cycle||{})) html += fredCard('global_cycle',sid);
+  html += '</div>';
+  html += '<div class="section-header" style="margin-top:16px"><span class="icon">📊</span> FULL TABLE</div>';
+  html += fredTable('global_cycle', Object.keys(DATA.fred.global_cycle||{}));
+  return html;
+},
+
+// ── ECB & EUROPE ──
+'ecb': () => {
+  let html = '<div class="section-header"><span class="icon">🇪🇺</span> ECB & EURO AREA</div>';
+  html += '<div class="grid grid-4">';
+  for (const sid of Object.keys(DATA.fred.ecb||{})) html += fredCard('ecb',sid);
+  html += '</div>';
+  html += '<div class="section-header" style="margin-top:16px"><span class="icon">📊</span> FULL TABLE</div>';
+  html += fredTable('ecb', Object.keys(DATA.fred.ecb||{}));
+  return html;
+},
+
+// ── GLOBAL LIQUIDITY ──
+'global-liquidity': () => {
+  let html = '<div class="section-header"><span class="icon">🌊</span> GLOBAL CENTRAL BANK LIQUIDITY</div>';
+  html += '<div class="grid grid-4">';
+  for (const sid of Object.keys(DATA.fred.global_liquidity||{})) html += fredCard('global_liquidity',sid);
+  html += '</div>';
+  html += '<div class="section-header" style="margin-top:16px"><span class="icon">📊</span> FULL TABLE</div>';
+  html += fredTable('global_liquidity', Object.keys(DATA.fred.global_liquidity||{}));
+  return html;
+},
+
+// ── SYSTEMIC RISK ──
+'systemic': () => {
+  let html = '<div class="section-header"><span class="icon">☢️</span> SYSTEMIC RISK INDICATORS</div>';
+  html += '<div class="grid grid-4">';
+  for (const sid of Object.keys(DATA.fred.systemic_risk||{})) html += fredCard('systemic_risk',sid);
+  html += '</div>';
+  
+  html += '<div class="section-header" style="margin-top:16px"><span class="icon">📊</span> MOODY'S SPREADS</div>';
+  html += '<div class="grid grid-4">';
+  for (const sid of ['AAA','BAA','AAA10Y','BAA10Y']) html += fredCard('risk',sid,{suffix:'%'});
+  html += '</div>';
+  return html;
+},
+
+// ── SECTORS ──
+'sectors': () => {
+  let html = '<div class="section-header"><span class="icon">🏭</span> S&P 500 SECTOR ETFs</div>';
+  html += '<div class="grid grid-4">';
+  for (const t of ['XLF','XLE','XLK','XLV','XLI','XLU','XLP','XLY','XLB','XLC','XLRE']) html += stockCard(t);
+  html += '</div>';
+  return html;
+},
+
+// ── STOCKS & ETFs ──
+'stocks': () => {
+  let html = '<div class="section-header"><span class="icon">📈</span> MAJOR INDICES</div>';
+  html += '<div class="grid grid-5">';
+  for (const t of ['SPY','QQQ','DIA','IWM','VTI']) html += stockCard(t);
+  html += '</div>';
+  
+  html += '<div class="section-header" style="margin-top:16px"><span class="icon">🏢</span> MEGA CAPS</div>';
+  html += '<div class="grid grid-4">';
+  for (const t of ['AAPL','MSFT','GOOGL','AMZN','NVDA','META','TSLA']) html += stockCard(t);
+  html += '</div>';
+  
+  html += '<div class="section-header" style="margin-top:16px"><span class="icon">🌍</span> INTERNATIONAL</div>';
+  html += '<div class="grid grid-4">';
+  for (const t of ['EEM','VWO','EFA','VEA']) html += stockCard(t);
+  html += '</div>';
+  return html;
+},
+
+// ── BOND ETFs ──
+'bonds-etf': () => {
+  let html = '<div class="section-header"><span class="icon">🏦</span> BOND ETFs</div>';
+  html += '<div class="grid grid-4">';
+  for (const t of ['TLT','IEF','SHY','HYG','LQD','JNK','AGG','BND']) html += stockCard(t);
+  html += '</div>';
+  return html;
+},
+
+// ── COMMODITIES ──
+'commodities': () => {
+  let html = '<div class="section-header"><span class="icon">🛢️</span> COMMODITY PRICES (FRED)</div>';
+  html += '<div class="grid grid-4">';
+  for (const sid of Object.keys(DATA.fred.commodities||{})) html += fredCard('commodities',sid);
+  html += '</div>';
+  
+  html += '<div class="section-header" style="margin-top:16px"><span class="icon">📦</span> COMMODITY ETFs</div>';
+  html += '<div class="grid grid-5">';
+  for (const t of ['GLD','SLV','USO','UNG','DBA']) html += stockCard(t);
+  html += '</div>';
+  return html;
+},
+
+// ── GLOBAL FX ──
+'fx': () => {
+  let html = '<div class="section-header"><span class="icon">💱</span> CURRENCY EXCHANGE RATES</div>';
+  html += '<div class="grid grid-4">';
+  for (const sid of Object.keys(DATA.fred.dxy||{})) html += fredCard('dxy',sid);
+  html += '</div>';
+  
+  html += '<div class="section-header" style="margin-top:16px"><span class="icon">📊</span> CURRENCY ETFs</div>';
+  html += '<div class="grid grid-4">';
+  for (const t of ['UUP','FXE','FXY','FXB']) html += stockCard(t);
+  html += '</div>';
+  return html;
+},
+
+// ── SIGNALS ──
+'signals': () => {
+  const sig = DATA.signals;
+  let html = '<div class="section-header"><span class="icon">⚡</span> TRADING SIGNALS (SMA50/SMA200 Based)</div>';
+  
+  html += '<div class="grid grid-2">';
+  html += '<div class="card" style="border-left:3px solid var(--green)"><div class="label">BUY SIGNALS (Price > SMA50 > SMA200)</div><div class="signal-list">';
+  for (const t of (sig.buys||[])) html += '<span class="signal-badge signal-buy">'+t+'</span>';
+  if (!(sig.buys||[]).length) html += '<span style="color:var(--muted)">No buy signals</span>';
+  html += '</div></div>';
+  
+  html += '<div class="card" style="border-left:3px solid var(--red)"><div class="label">SELL SIGNALS (Price < SMA50 < SMA200)</div><div class="signal-list">';
+  for (const t of (sig.sells||[])) html += '<span class="signal-badge signal-sell">'+t+'</span>';
+  if (!(sig.sells||[]).length) html += '<span style="color:var(--muted)">No sell signals</span>';
+  html += '</div></div>';
+  html += '</div>';
+  
+  html += '<div class="grid grid-2" style="margin-top:10px">';
+  html += '<div class="card" style="border-left:3px solid var(--yellow)"><div class="label">⚠️ WARNINGS</div><div class="signal-list">';
+  for (const t of (sig.warnings||[])) html += '<span class="signal-badge signal-warn">'+t+'</span>';
+  html += '</div></div>';
+  html += '<div class="card" style="border-left:3px solid var(--purple)"><div class="label">AT RISK (SMA50 ≈ SMA200 Crossover)</div><div class="signal-list">';
+  for (const t of (sig.at_risk||[])) html += '<span class="signal-badge" style="background:rgba(168,85,247,.15);color:var(--purple);border:1px solid rgba(168,85,247,.3)">'+t+'</span>';
+  html += '</div></div>';
+  html += '</div>';
+  return html;
+},
+
+// ── EMPLOYMENT ──
+'employment': () => {
+  let html = '<div class="section-header"><span class="icon">👷</span> EMPLOYMENT DATA</div>';
+  html += '<div class="grid grid-4">';
+  for (const sid of ['PAYEMS','UNRATE','U6RATE','CIVPART','ICSA','CCSA','JTSJOL','JTSHIR','JTSQUR','CES0500000003','AWHMAN']) html += fredCard('macro',sid);
+  html += '</div>';
+  return html;
+},
+
+// ── HOUSING ──
+'housing': () => {
+  let html = '<div class="section-header"><span class="icon">🏠</span> HOUSING MARKET</div>';
+  html += '<div class="grid grid-4">';
+  for (const sid of ['HOUST','PERMIT','HSN1F','EXHOSLUSM495S','MORTGAGE30US','MORTGAGE15US']) {
+    const cat = ['MORTGAGE30US','MORTGAGE15US'].includes(sid) ? 'risk' : 'macro';
+    html += fredCard(cat,sid);
+  }
+  html += '</div>';
+  html += '<div class="grid grid-2" style="margin-top:12px">';
+  html += stockCard('VNQ'); html += stockCard('VNQI');
+  html += '</div>';
+  return html;
+},
+
+// ── CONSUMER ──
+'consumer': () => {
+  let html = '<div class="section-header"><span class="icon">🛒</span> CONSUMER DATA</div>';
+  html += '<div class="grid grid-4">';
+  for (const sid of ['UMCSENT','RSAFS','PI','PCE','TOTALSL','REVOLSL','NONREVSL']) {
+    const cat = ['TOTALSL','REVOLSL','NONREVSL'].includes(sid) ? 'credit' : 'macro';
+    html += fredCard(cat,sid);
+  }
+  html += '</div>';
+  return html;
+},
+
+// ── ALL FRED DATA ──
+'all-fred': () => {
+  let html = '<div class="section-header"><span class="icon">📚</span> ALL FRED SERIES (' + DATA.stats.fred_series + ' Total)</div>';
+  for (const [cat, series] of Object.entries(DATA.fred||{})) {
+    const keys = Object.keys(series);
+    if (!keys.length) continue;
+    html += '<div class="section-header" style="margin-top:12px"><span class="icon">📊</span> ' + cat.toUpperCase().replace('_',' ') + ' (' + keys.length + ')</div>';
+    html += fredTable(cat, keys);
+  }
+  return html;
+},
+
+}; // end TABS
+
+// ============================================================
+// RENDER ENGINE
+// ============================================================
+function renderCurrentTab() {
+  if (!DATA) return;
+  const renderer = TABS[currentTab];
+  if (renderer) {
+    document.getElementById('content').innerHTML = '<div class="panel active">' + renderer() + '</div>';
+  }
+}
+
+// Tab switching
+document.getElementById('tab-bar').addEventListener('click', e => {
+  const tab = e.target.dataset.tab;
+  if (!tab) return;
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  renderCurrentTab();
+});
+
+// ============================================================
+// INIT & AUTO-REFRESH
+// ============================================================
+loadData();
+setInterval(loadData, 300000); // 5 minutes
+</script>
+</body>
+</html>
