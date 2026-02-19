@@ -854,20 +854,28 @@ def lambda_handler(event, context):
     print(f"[V9] Fetching {len(all_series)} unique FRED series...")
     
     fred_raw = {}
-    with ThreadPoolExecutor(max_workers=25) as executor:
-        future_map = {}
-        for cat, sid, name in all_series:
-            f = executor.submit(fetch_fred, sid)
-            future_map[f] = (cat, sid, name)
-        
-        for future in as_completed(future_map):
-            cat, sid, name = future_map[future]
-            try:
-                data = future.result()
-                if data:
-                    fred_raw[sid] = data
-            except Exception as e:
-                print(f"  Error fetching {sid}: {e}")
+    # Batch FRED requests to avoid rate limiting (120 req/min)
+    batch_size = 15
+    for i in range(0, len(all_series), batch_size):
+        batch = all_series[i:i+batch_size]
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            future_map = {}
+            for cat, sid, name in batch:
+                f = executor.submit(fetch_fred, sid)
+                future_map[f] = (cat, sid, name)
+            
+            for future in as_completed(future_map):
+                cat, sid, name = future_map[future]
+                try:
+                    data = future.result()
+                    if data:
+                        fred_raw[sid] = data
+                except Exception as e:
+                    print(f"  Error fetching {sid}: {e}")
+        # Rate limit pause between batches
+        if i + batch_size < len(all_series):
+            time.sleep(1.5)
+        print(f"  Batch {i//batch_size+1}: {len(fred_raw)} series so far")
     
     print(f"[V9] Got {len(fred_raw)} FRED series in {time.time()-start_time:.1f}s")
     
