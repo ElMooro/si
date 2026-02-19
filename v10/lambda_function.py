@@ -305,18 +305,32 @@ def fetch_fred(sid):
     return []
 
 def fetch_polygon(ticker):
-    try:
-        today = datetime.utcnow()
-        start = (today - timedelta(days=400)).strftime('%Y-%m-%d')
-        end = today.strftime('%Y-%m-%d')
-        url = f"https://api.polygon.io/v2/aggs/ticker/{ticker}/range/1/day/{start}/{end}?adjusted=true&sort=desc&limit=250&apiKey={POLY_KEY}"
-        req = urllib.request.Request(url, headers={'User-Agent': 'JustHodl/10.0'})
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            results = json.loads(resp.read()).get('results', [])
-            if not results: return None
-            return [{'date': datetime.utcfromtimestamp(r['t']/1000).strftime('%Y-%m-%d'),
-                     'o':r['o'],'h':r['h'],'l':r['l'],'c':r['c'],'v':r.get('v',0)} for r in results]
-    except: return None
+    for attempt in range(3):
+        try:
+            today = datetime.utcnow()
+            start = (today - timedelta(days=400)).strftime('%Y-%m-%d')
+            end = today.strftime('%Y-%m-%d')
+            url = f"https://api.polygon.io/v2/aggs/ticker/{ticker}/range/1/day/{start}/{end}?adjusted=true&sort=desc&limit=250&apiKey={POLY_KEY}"
+            req = urllib.request.Request(url, headers={'User-Agent': 'JustHodl/10.3'})
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                data = json.loads(resp.read())
+                if data.get('status') == 'ERROR':
+                    print(f"  Polygon error {ticker}: {data.get('error','unknown')}")
+                    return None
+                results = data.get('results', [])
+                if not results: return None
+                return [{'date': datetime.utcfromtimestamp(r['t']/1000).strftime('%Y-%m-%d'),
+                         'o':r['o'],'h':r['h'],'l':r['l'],'c':r['c'],'v':r.get('v',0)} for r in results]
+        except urllib.error.HTTPError as e:
+            if e.code == 429:
+                print(f"  Polygon 429 {ticker}, retry {attempt+1}")
+                time.sleep(3 * (attempt + 1))
+                continue
+            return None
+        except Exception as e:
+            if attempt < 2: time.sleep(1)
+            else: return None
+    return None
 
 def fetch_crypto():
     try:
@@ -493,8 +507,8 @@ def compute_stock(bars):
         r['rsi14'] = round(100 - (100/(1+ag/al)),1) if al else 100
 
     # ── MACD (12,26,9) ──
-    if len(closes) >= 35:
-        # Calculate EMA from oldest to newest (reverse closes)
+    try:
+      if len(closes) >= 35:
         rev = list(reversed(closes[:min(200,len(closes))]))
         def ema(data, period):
             m = 2/(period+1)
@@ -510,16 +524,16 @@ def compute_stock(bars):
             r['macd'] = round(macd_line[-1],3)
             r['macd_signal'] = round(signal_line[-1],3)
             r['macd_hist'] = round(macd_line[-1]-signal_line[-1],3)
-            # MACD crossover: current vs yesterday
             if len(macd_line)>=2 and len(signal_line)>=2:
                 r['macd_cross'] = 'BULLISH' if macd_line[-1]>signal_line[-1] and macd_line[-2]<=signal_line[-2] else \
                                   'BEARISH' if macd_line[-1]<signal_line[-1] and macd_line[-2]>=signal_line[-2] else \
                                   'BULL' if macd_line[-1]>signal_line[-1] else 'BEAR'
+    except: pass
 
     # ── Golden Cross / Death Cross ──
-    if r.get('sma50') and r.get('sma200'):
+    try:
+      if r.get('sma50') and r.get('sma200'):
         r['cross'] = 'GOLDEN' if r['sma50']>r['sma200'] else 'DEATH'
-        # Check if recent crossover (within last 10 days)
         if len(closes)>=210:
             sma50_prev = sum(closes[10:60])/50
             sma200_prev = sum(closes[10:210])/200
@@ -527,9 +541,11 @@ def compute_stock(bars):
                 r['cross']='GOLDEN_NEW'
             elif r['sma50']<r['sma200'] and sma50_prev>=sma200_prev:
                 r['cross']='DEATH_NEW'
+    except: pass
 
     # ── Accumulation / Distribution ──
-    if len(bars)>=20:
+    try:
+      if len(bars)>=20:
         ad = 0
         for b in bars[:20]:
             hl = b['h']-b['l']
@@ -538,17 +554,15 @@ def compute_stock(bars):
                 ad += clv * b['v']
         r['ad_signal'] = 'ACCUMULATION' if ad>0 else 'DISTRIBUTION'
         r['ad_value'] = round(ad,0)
+    except: pass
 
     # ── Support / Resistance / Risk-Reward ──
-    if len(bars)>=60:
+    try:
+      if len(bars)>=60:
         lows_20 = [b['l'] for b in bars[:20]]
         highs_20 = [b['h'] for b in bars[:20]]
-        lows_60 = [b['l'] for b in bars[:60]]
-        highs_60 = [b['h'] for b in bars[:60]]
         support = min(lows_20)
         resistance = max(highs_20)
-        strong_support = min(lows_60)
-        strong_resistance = max(highs_60)
         price = c['c']
         upside = ((resistance - price)/price*100) if price>0 else 0
         downside = ((price - support)/price*100) if price>0 else 0
@@ -557,67 +571,65 @@ def compute_stock(bars):
         r['risk_reward'] = round(upside/downside,2) if downside>0 else 99
         r['upside_pct'] = round(upside,2)
         r['downside_pct'] = round(downside,2)
+    except: pass
 
     # ── BOTTOM / TOP detection ──
-    price = c['c']
-    w52h = r.get('w52_high',price)
-    w52l = r.get('w52_low',price)
-    w52_range = w52h-w52l if w52h!=w52l else 1
-    w52_pos = (price-w52l)/w52_range*100
-    r['w52_position'] = round(w52_pos,1)
-    if w52_pos < 10: r['formation'] = 'NEAR_BOTTOM'
-    elif w52_pos < 25: r['formation'] = 'BOTTOM_ZONE'
-    elif w52_pos > 90: r['formation'] = 'NEAR_TOP'
-    elif w52_pos > 75: r['formation'] = 'TOP_ZONE'
-    else: r['formation'] = 'MID_RANGE'
+    try:
+      price = c['c']
+      w52h = r.get('w52_high',price)
+      w52l = r.get('w52_low',price)
+      w52_range = w52h-w52l if w52h!=w52l else 1
+      w52_pos = (price-w52l)/w52_range*100
+      r['w52_position'] = round(w52_pos,1)
+      if w52_pos < 10: r['formation'] = 'NEAR_BOTTOM'
+      elif w52_pos < 25: r['formation'] = 'BOTTOM_ZONE'
+      elif w52_pos > 90: r['formation'] = 'NEAR_TOP'
+      elif w52_pos > 75: r['formation'] = 'TOP_ZONE'
+      else: r['formation'] = 'MID_RANGE'
+    except: r['formation'] = 'UNKNOWN'; w52_pos = 50
 
     # ── MASTER SCORE (0-100) ──
-    score = 50
-    rsi = r.get('rsi14',50)
-    # RSI scoring
-    if rsi<30: score+=12   # Oversold = bullish potential
-    elif rsi<40: score+=6
-    elif rsi>70: score-=12  # Overbought = bearish risk
-    elif rsi>60: score-=4
-    # SMA alignment
-    if r.get('sma50') and r.get('sma200'):
-        if price>r['sma50']>r['sma200']: score+=15  # Bull alignment
-        elif price<r['sma50']<r['sma200']: score-=15 # Bear alignment
+    try:
+      score = 50
+      rsi = r.get('rsi14',50)
+      if rsi<30: score+=12
+      elif rsi<40: score+=6
+      elif rsi>70: score-=12
+      elif rsi>60: score-=4
+      price = c['c']
+      if r.get('sma50') and r.get('sma200'):
+        if price>r['sma50']>r['sma200']: score+=15
+        elif price<r['sma50']<r['sma200']: score-=15
         elif price>r['sma50']: score+=5
         elif price<r['sma200']: score-=8
-    # MACD
-    if r.get('macd_cross')=='BULLISH': score+=10
-    elif r.get('macd_cross')=='BEARISH': score-=10
-    elif r.get('macd_hist',0)>0: score+=3
-    elif r.get('macd_hist',0)<0: score-=3
-    # Cross
-    if r.get('cross')=='GOLDEN_NEW': score+=12
-    elif r.get('cross')=='DEATH_NEW': score-=12
-    elif r.get('cross')=='GOLDEN': score+=4
-    elif r.get('cross')=='DEATH': score-=4
-    # Accumulation
-    if r.get('ad_signal')=='ACCUMULATION': score+=5
-    else: score-=5
-    # Momentum
-    mp = r.get('month_pct',0)
-    if mp>10: score+=5
-    elif mp<-10: score-=5
-    # 52-week position bonus
-    if w52_pos<15: score+=8  # Near bottom = potential bounce
-    elif w52_pos>85: score-=5  # Near top = stretched
-    # Risk-reward
-    rr = r.get('risk_reward',1)
-    if rr>3: score+=8
-    elif rr>2: score+=4
-    elif rr<0.5: score-=8
-    elif rr<1: score-=4
-    r['score'] = max(0,min(100,score))
-    # Grade
-    if r['score']>=80: r['grade']='STRONG_BUY'
-    elif r['score']>=65: r['grade']='BUY'
-    elif r['score']>=50: r['grade']='HOLD'
-    elif r['score']>=35: r['grade']='SELL'
-    else: r['grade']='STRONG_SELL'
+      if r.get('macd_cross')=='BULLISH': score+=10
+      elif r.get('macd_cross')=='BEARISH': score-=10
+      elif r.get('macd_hist',0)>0: score+=3
+      elif r.get('macd_hist',0)<0: score-=3
+      if r.get('cross')=='GOLDEN_NEW': score+=12
+      elif r.get('cross')=='DEATH_NEW': score-=12
+      elif r.get('cross')=='GOLDEN': score+=4
+      elif r.get('cross')=='DEATH': score-=4
+      if r.get('ad_signal')=='ACCUMULATION': score+=5
+      elif r.get('ad_signal')=='DISTRIBUTION': score-=5
+      mp = r.get('month_pct',0)
+      if mp>10: score+=5
+      elif mp<-10: score-=5
+      w52_pos = r.get('w52_position',50)
+      if w52_pos<15: score+=8
+      elif w52_pos>85: score-=5
+      rr = r.get('risk_reward',1)
+      if rr>3: score+=8
+      elif rr>2: score+=4
+      elif rr<0.5: score-=8
+      elif rr<1: score-=4
+      r['score'] = max(0,min(100,score))
+      if r['score']>=80: r['grade']='STRONG_BUY'
+      elif r['score']>=65: r['grade']='BUY'
+      elif r['score']>=50: r['grade']='HOLD'
+      elif r['score']>=35: r['grade']='SELL'
+      else: r['grade']='STRONG_SELL'
+    except: r['score']=50; r['grade']='HOLD'
     # Sparkline data
     r['sparkline'] = [b['c'] for b in bars[:30]][::-1]
     return r
@@ -1163,12 +1175,13 @@ def lambda_handler(event, context):
         m['name'] = name; m['series_id'] = sid; m['history'] = raw[:60]
         fd[cat][sid] = m
 
-    # ── PHASE 2: STOCKS (batched) ──
+    # ── PHASE 2: STOCKS (batched with rate limiting) ──
     print(f"[V10] Fetching {len(STOCK_TICKERS)} stocks...")
     sd = {}
-    for i in range(0, len(STOCK_TICKERS), 10):
-        batch = STOCK_TICKERS[i:i+10]
-        with ThreadPoolExecutor(max_workers=5) as ex:
+    batch_size = 5  # smaller batches for rate limit safety
+    for i in range(0, len(STOCK_TICKERS), batch_size):
+        batch = STOCK_TICKERS[i:i+batch_size]
+        with ThreadPoolExecutor(max_workers=3) as ex:
             fm = {ex.submit(fetch_polygon, t): t for t in batch}
             for f in as_completed(fm):
                 t = fm[f]
@@ -1180,9 +1193,12 @@ def lambda_handler(event, context):
                             m['name'] = TICKER_NAMES.get(t, t)
                             m['history'] = [{'d':b['date'],'c':b['c']} for b in bars[:120]]
                             sd[t] = m
-                except: pass
-        time.sleep(0.3)
-    print(f"[V10] Stocks: {len(sd)}")
+                except Exception as e:
+                    print(f"  Stock error {t}: {e}")
+        time.sleep(1.0)  # 1s between batches for Polygon rate limit
+        if (i // batch_size) % 10 == 0:
+            print(f"  Stocks batch {i//batch_size+1}: {len(sd)}/{i+len(batch)}")
+    print(f"[V10] Stocks: {len(sd)}/{len(STOCK_TICKERS)}")
 
     # ── PHASE 3: CRYPTO ──
     print("[V10] Crypto...")

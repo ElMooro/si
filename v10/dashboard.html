@@ -708,7 +708,7 @@ function renderEquities() {
       <td style="text-align:right;font-size:10px">${s.sma200?'$'+v(s.sma200,0):'—'}</td>
       <td style="text-align:center;font-size:10px">${macdBadge(s.macd_cross)}</td>
       <td style="text-align:center;font-size:10px">${crossBadge(s.cross)}</td>
-      <td style="text-align:center;font-size:10px">${s.ad_signal==='ACCUMULATION'?'<span class="accum">ACCUM</span>':'<span class="distrib">DISTRIB</span>'}</td>
+      <td style="text-align:center;font-size:10px">${s.ad_signal==='ACCUMULATION'?'<span class="accum">ACCUM</span>':s.ad_signal==='DISTRIBUTION'?'<span class="distrib">DISTRIB</span>':'—'}</td>
       <td style="text-align:center;font-size:10px;color:${s.formation?.includes('BOTTOM')?'var(--green)':s.formation?.includes('TOP')?'var(--red)':'var(--dim)'}">${s.formation?.replace('NEAR_','↓ ').replace('_ZONE','').replace('_',' ')||'—'}</td>
       <td style="text-align:right;font-size:10px;color:${(s.risk_reward||0)>2?'var(--green)':'var(--dim)'}">${s.risk_reward?s.risk_reward.toFixed(1)+'x':'—'}</td>
       <td style="text-align:center"><span class="score-badge ${scoreClass(s.grade||'HOLD')}">${s.score||'—'}</span></td>
