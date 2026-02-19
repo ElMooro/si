@@ -67,6 +67,32 @@ td{padding:4px 6px;font-size:11px;border-bottom:1px solid rgba(255,255,255,.03)}
 .ciss-fill{height:100%;border-radius:6px;transition:width .5s}
 .loading{text-align:center;padding:40px;color:var(--dim);font-size:14px}
 .news-item{display:flex;gap:10px;padding:10px;border-bottom:1px solid var(--border);align-items:flex-start}
+.score-badge{display:inline-block;padding:2px 8px;border-radius:3px;font-size:10px;font-weight:700;min-width:70px;text-align:center}
+.score-strong-buy{background:rgba(0,200,83,.25);color:#00e676;border:1px solid rgba(0,200,83,.5);animation:flashGreen 2s infinite}
+.score-buy{background:rgba(0,200,83,.15);color:var(--green)}
+.score-hold{background:rgba(255,214,0,.15);color:var(--amber)}
+.score-sell{background:rgba(255,23,68,.15);color:var(--red)}
+.score-strong-sell{background:rgba(255,23,68,.25);color:#ff5252;border:1px solid rgba(255,23,68,.5);animation:flashRed 2s infinite}
+@keyframes flashGreen{0%,100%{box-shadow:0 0 4px rgba(0,200,83,.3)}50%{box-shadow:0 0 12px rgba(0,200,83,.7)}}
+@keyframes flashRed{0%,100%{box-shadow:0 0 4px rgba(255,23,68,.3)}50%{box-shadow:0 0 12px rgba(255,23,68,.7)}}
+.row-strong-buy{background:rgba(0,200,83,.06)!important}
+.row-strong-sell{background:rgba(255,23,68,.06)!important}
+.cross-golden{color:#ffd700;font-weight:700}.cross-death{color:var(--red);font-weight:700}
+.accum{color:var(--green);font-size:10px}.distrib{color:var(--red);font-size:10px}
+.plays-card{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:16px;margin-bottom:10px}
+.plays-card h3{color:var(--cyan);font-size:13px;margin-bottom:10px}
+.play-row{display:flex;align-items:center;gap:10px;padding:8px;border-bottom:1px solid rgba(255,255,255,.04)}
+.play-row:hover{background:rgba(255,255,255,.02)}
+.play-ticker{font-weight:700;font-size:13px;min-width:55px}
+.play-name{color:var(--dim);font-size:10px;min-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.play-reasons{display:flex;gap:4px;flex-wrap:wrap;flex:1}
+.play-reason{font-size:9px;padding:2px 6px;border-radius:3px;background:rgba(255,255,255,.05);color:#aaa}
+.pf-input{background:#1a1a2e;border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:4px;font-family:inherit;font-size:12px}
+.pf-input:focus{border-color:var(--cyan);outline:none}
+.pf-btn{background:linear-gradient(135deg,var(--cyan),var(--blue));color:#000;border:none;padding:6px 16px;border-radius:4px;cursor:pointer;font-weight:700;font-size:12px}
+.pf-btn:hover{opacity:.9}
+.pf-del{background:rgba(255,23,68,.2);color:var(--red);border:1px solid rgba(255,23,68,.4);padding:4px 8px;border-radius:3px;cursor:pointer;font-size:10px}
+.pf-del:hover{background:rgba(255,23,68,.4)}
 .news-item:hover{background:rgba(255,255,255,.02)}
 .news-badge{font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;white-space:nowrap;min-width:70px;text-align:center}
 .news-critical{background:rgba(255,23,68,.2);color:var(--red);border:1px solid rgba(255,23,68,.4)}
@@ -82,7 +108,7 @@ td{padding:4px 6px;font-size:11px;border-bottom:1px solid rgba(255,255,255,.03)}
 </head>
 <body>
 <div class="header">
-  <div class="logo">JUSTHODL.AI <span>BLOOMBERG TERMINAL V10</span></div>
+  <div class="logo">JUSTHODL.AI <span>BLOOMBERG TERMINAL V10.3</span></div>
   <div class="header-stats" id="headerStats"></div>
 </div>
 <div class="tabs" id="tabBar"></div>
@@ -93,9 +119,11 @@ td{padding:4px 6px;font-size:11px;border-bottom:1px solid rgba(255,255,255,.03)}
 const DATA_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/data/report.json';
 const TABS = [
   {id:'overview',label:'Overview',icon:'◉'},
+  {id:'bestplays',label:'Best Plays',icon:'🎯'},
+  {id:'myportfolio',label:'My Portfolio',icon:'💰'},
   {id:'news',label:'Breaking News',icon:'📰'},
   {id:'ai',label:'AI Intelligence',icon:'🧠'},
-  {id:'portfolio',label:'Portfolio',icon:'💼'},
+  {id:'portfolio',label:'AI Advisor',icon:'💼'},
   {id:'treasury',label:'Treasury',icon:'📊'},
   {id:'dxy',label:'Dollar/FX',icon:'💱'},
   {id:'credit',label:'Credit',icon:'📋'},
@@ -134,7 +162,7 @@ async function loadData() {
     renderAll();
     document.getElementById('statusBar').innerHTML =
       `<span>V${D.version} | Generated: ${new Date(D.generated_at).toLocaleString()} | ${D.fetch_time_seconds}s fetch</span>
-       <span>FRED: ${D.stats?.fred||0} | Stocks: ${D.stats?.stocks||0} | Crypto: ${D.stats?.crypto||0} | ECB CISS: ${D.stats?.ecb_ciss||0} | News: ${(D.news||[]).length}</span>`;
+       <span>FRED: ${D.stats?.fred||0} | Stocks: ${D.stats?.stocks||0} | Crypto: ${D.stats?.crypto||0} | ECB CISS: ${D.stats?.ecb_ciss||0} | News: ${(D.news||[]).length} | Tabs: 18</span>`;
   } catch(e) { document.getElementById('content').innerHTML = `<div class="loading">Error: ${e.message}. Retrying...</div>`; setTimeout(loadData, 5000); }
 }
 
@@ -171,6 +199,8 @@ function fredTable(cat, title) {
 function renderAll() {
   if(!D) return;
   renderOverview();
+  renderBestPlays();
+  renderMyPortfolio();
   renderNews();
   renderAI();
   renderPortfolio();
@@ -501,29 +531,192 @@ function renderCISS() {
 // ═══════════════════════════════════════
 // TAB: EQUITIES
 // ═══════════════════════════════════════
+// ═══════════════════════════════════════
+// TAB: BEST PLAYS (AI Daily Picks)
+// ═══════════════════════════════════════
+function renderBestPlays() {
+  const bp = D.ai_analysis?.best_plays || {};
+  const el = document.getElementById('tab-bestplays');
+  function scoreClass(g){return g==='STRONG_BUY'?'score-strong-buy':g==='BUY'?'score-buy':g==='HOLD'?'score-hold':g==='SELL'?'score-sell':'score-strong-sell';}
+  function playSection(title,items,icon,bullish){
+    if(!items||!items.length) return '';
+    return `<div class="plays-card"><h3>${icon} ${title}</h3>
+    ${items.map(p=>`<div class="play-row ${p.grade==='STRONG_BUY'?'row-strong-buy':p.grade==='STRONG_SELL'?'row-strong-sell':''}">
+      <div class="play-ticker" style="color:${bullish?'var(--green)':'var(--red)'}">${p.ticker}</div>
+      <div class="play-name">${p.name||''}</div>
+      <div style="text-align:right;min-width:65px;font-weight:600">$${p.price?Number(p.price).toLocaleString(undefined,{maximumFractionDigits:2}):'—'}</div>
+      <div class="score-badge ${scoreClass(p.grade)}">${p.score} ${p.grade?.replace('_',' ')}</div>
+      <div style="min-width:50px;text-align:right;font-size:11px;color:${(p.risk_reward||0)>2?'var(--green)':'var(--dim)'}">R:R ${p.risk_reward?p.risk_reward.toFixed(1):'—'}</div>
+      <div class="play-reasons">${(p.reasons||[]).map(r=>`<span class="play-reason">${r}</span>`).join('')}</div>
+    </div>`).join('')}</div>`;
+  }
+  el.innerHTML = `
+    <div style="margin-bottom:12px;padding:12px;background:var(--panel);border:1px solid var(--border);border-radius:6px;border-left:3px solid var(--cyan)">
+      <div style="font-size:13px;font-weight:700;color:var(--cyan)">🎯 AI DAILY BEST PLAYS — ${new Date(D.generated_at).toLocaleDateString()}</div>
+      <div style="font-size:11px;color:var(--dim);margin-top:4px">Scored on RSI, MACD, Golden/Death Cross, Accumulation/Distribution, 52-Week Position, Risk:Reward ratio. Updated at 8AM & 6PM ET.</div>
+    </div>
+    <div class="grid g2">
+      <div>${playSection('🟢 TOP STOCK PICKS (Highest Upside)',bp.top_stocks,'📈',true)}</div>
+      <div>${playSection('🔴 WORST STOCKS (Highest Downside)',bp.bottom_stocks,'📉',false)}</div>
+    </div>
+    <div class="grid g2" style="margin-top:10px">
+      <div>${playSection('🟢 TOP ETFs',bp.top_etfs,'🏛',true)}</div>
+      <div>${playSection('🟢 TOP BONDS',bp.top_bonds,'📊',true)}</div>
+    </div>
+    <div class="grid g2" style="margin-top:10px">
+      <div>${playSection('🟢 TOP COMMODITIES (Gold/Metals/Oil)',bp.top_commodities,'🥇',true)}</div>
+      <div>${playSection('🟢 TOP CRYPTO',bp.top_crypto,'₿',true)}</div>
+    </div>
+    ${bp.bottom_crypto?`<div style="margin-top:10px">${playSection('🔴 WORST CRYPTO',bp.bottom_crypto,'⚠',false)}</div>`:''}
+  `;
+}
+
+// ═══════════════════════════════════════
+// TAB: MY PORTFOLIO TRACKER
+// ═══════════════════════════════════════
+function getPortfolioHoldings(){try{return JSON.parse(localStorage.getItem('jh_portfolio')||'[]');}catch{return [];}}
+function savePortfolioHoldings(h){localStorage.setItem('jh_portfolio',JSON.stringify(h));}
+
+function renderMyPortfolio() {
+  const el = document.getElementById('tab-myportfolio');
+  const holdings = getPortfolioHoldings();
+  const stocks = D.stocks||{};
+  const crypto = D.crypto||{};
+  // Calculate values
+  let totalValue=0, totalCost=0;
+  const rows = holdings.map((h,idx)=>{
+    let price=null,name=h.ticker,dayPct=0;
+    const sym = h.ticker.toUpperCase();
+    if(stocks[sym]){price=stocks[sym].price;name=stocks[sym].name||sym;dayPct=stocks[sym].day_pct||0;}
+    else if(crypto[sym]){price=crypto[sym].price;name=crypto[sym].name||sym;dayPct=crypto[sym].change_24h||0;}
+    else{
+      // Try ticker_names
+      name = D.ticker_names?.[sym]||sym;
+    }
+    const qty = parseFloat(h.shares)||0;
+    const cost = parseFloat(h.cost_basis)||0;
+    const value = price?(qty*price):0;
+    const costTotal = cost*qty;
+    const pnl = cost>0?(value-costTotal):0;
+    const pnlPct = costTotal>0?((value-costTotal)/costTotal*100):0;
+    totalValue += value;
+    totalCost += costTotal;
+    return {sym,name,qty,price,cost,value,pnl,pnlPct,dayPct,idx};
+  });
+  const totalPnl = totalCost>0?(totalValue-totalCost):0;
+  const totalPnlPct = totalCost>0?((totalValue-totalCost)/totalCost*100):0;
+
+  el.innerHTML = `
+  <div class="card" style="margin-bottom:10px;border-left:3px solid var(--gold)">
+    <h3 style="color:var(--gold)">💰 MY PORTFOLIO TRACKER</h3>
+    <div class="grid g4" style="margin:10px 0">
+      <div style="text-align:center"><div class="metric-label">Total Value</div><div class="metric-big" style="color:var(--green);font-size:24px">$${totalValue.toLocaleString(undefined,{maximumFractionDigits:2})}</div></div>
+      <div style="text-align:center"><div class="metric-label">Total Cost</div><div class="metric-big" style="color:var(--dim);font-size:24px">$${totalCost.toLocaleString(undefined,{maximumFractionDigits:2})}</div></div>
+      <div style="text-align:center"><div class="metric-label">P&L</div><div class="metric-big" style="color:${totalPnl>=0?'var(--green)':'var(--red)'};font-size:24px">${totalPnl>=0?'+':''}$${totalPnl.toLocaleString(undefined,{maximumFractionDigits:2})}</div></div>
+      <div style="text-align:center"><div class="metric-label">P&L %</div><div class="metric-big" style="color:${totalPnlPct>=0?'var(--green)':'var(--red)'};font-size:24px">${totalPnlPct>=0?'+':''}${totalPnlPct.toFixed(2)}%</div></div>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:10px">
+    <h3>Add Holding</h3>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <input type="text" id="pf-ticker" class="pf-input" placeholder="Ticker (e.g. AAPL, BTC, ETH)" style="width:140px">
+      <input type="number" id="pf-shares" class="pf-input" placeholder="Shares/Units" style="width:120px" step="any">
+      <input type="number" id="pf-cost" class="pf-input" placeholder="Avg Cost/Share" style="width:130px" step="any">
+      <button class="pf-btn" onclick="addHolding()">+ Add</button>
+      <span style="color:var(--dim);font-size:10px;margin-left:8px">Stocks: AAPL, MSFT, SPY, etc. • Crypto: BTC, ETH, DOGE, MATIC, PEPE</span>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Holdings (${holdings.length})</h3>
+    <table>
+      <tr><th>Ticker</th><th>Name</th><th style="text-align:right">Shares</th><th style="text-align:right">Price</th><th style="text-align:right">Value</th><th style="text-align:right">Cost</th><th style="text-align:right">P&L</th><th style="text-align:right">P&L%</th><th style="text-align:right">Day</th><th></th></tr>
+      ${rows.map(r=>`<tr style="background:${r.pnl>0?'rgba(0,200,83,.04)':r.pnl<0?'rgba(255,23,68,.04)':''}">
+        <td style="font-weight:700">${r.sym}</td>
+        <td style="color:var(--dim);font-size:10px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.name}</td>
+        <td style="text-align:right">${r.qty}</td>
+        <td style="text-align:right">${r.price?'$'+Number(r.price).toLocaleString(undefined,{maximumFractionDigits:r.price<1?6:2}):'N/A'}</td>
+        <td style="text-align:right;font-weight:600">$${r.value.toLocaleString(undefined,{maximumFractionDigits:2})}</td>
+        <td style="text-align:right;color:var(--dim)">$${(r.cost*r.qty).toLocaleString(undefined,{maximumFractionDigits:2})}</td>
+        <td style="text-align:right;color:${r.pnl>=0?'var(--green)':'var(--red)'}">${r.pnl>=0?'+':''}$${r.pnl.toLocaleString(undefined,{maximumFractionDigits:2})}</td>
+        <td style="text-align:right;color:${r.pnlPct>=0?'var(--green)':'var(--red)'}">${r.pnlPct>=0?'+':''}${r.pnlPct.toFixed(2)}%</td>
+        <td style="text-align:right">${pct(r.dayPct)}</td>
+        <td><button class="pf-del" onclick="removeHolding(${r.idx})">✕</button></td>
+      </tr>`).join('')}
+      ${rows.length===0?'<tr><td colspan="10" style="text-align:center;color:var(--dim);padding:20px">No holdings yet. Add your first ticker above!</td></tr>':''}
+    </table>
+  </div>`;
+}
+function addHolding(){
+  const t=document.getElementById('pf-ticker').value.trim().toUpperCase();
+  const s=document.getElementById('pf-shares').value;
+  const c=document.getElementById('pf-cost').value;
+  if(!t||!s){alert('Enter ticker and shares');return;}
+  const h=getPortfolioHoldings();
+  h.push({ticker:t,shares:s,cost_basis:c||'0'});
+  savePortfolioHoldings(h);
+  renderMyPortfolio();
+}
+function removeHolding(idx){
+  const h=getPortfolioHoldings();
+  h.splice(idx,1);
+  savePortfolioHoldings(h);
+  renderMyPortfolio();
+}
+
+// ═══════════════════════════════════════
+// TAB: EQUITIES (Full Technical Analysis)
+// ═══════════════════════════════════════
 function renderEquities() {
   const stocks = D.stocks||{};
+  const names = D.ticker_names||{};
   const groups = {
     'Indices':['SPY','QQQ','DIA','IWM','VTI','VOO','RSP','MDY'],
-    'Mega Caps':['AAPL','MSFT','GOOGL','AMZN','NVDA','META','TSLA','BRK.B','JPM','V','UNH','JNJ','WMT','MA','PG','HD','BAC','XOM','CVX','COST','ABBV','MRK','AVGO','LLY','CRM','AMD','NFLX','INTC','DIS','CSCO'],
+    'Tech':['AAPL','MSFT','GOOGL','AMZN','NVDA','META','TSLA','AVGO','CRM','AMD','NFLX','INTC','CSCO','ORCL','ADBE','QCOM','TXN','NOW','SHOP','UBER','PLTR','MU','AMAT','LRCX','KLAC','SNPS','CDNS','PANW','CRWD','ZS'],
+    'Finance':['JPM','V','MA','BAC','WFC','GS','MS','BLK','SCHW','C','AXP','BX','KKR','COF','USB'],
+    'Healthcare':['UNH','JNJ','LLY','ABBV','MRK','PFE','TMO','ABT','ISRG','AMGN','GILD','MDT','ELV','BMY'],
+    'Consumer':['WMT','PG','COST','HD','MCD','NKE','SBUX','LOW','TJX','TGT','LULU','BKNG','MAR','RCL'],
+    'Energy & Materials':['XOM','CVX','COP','SLB','EOG','MPC','PSX','OXY','FCX','NEM','DOW','LIN','APD','DD'],
+    'Industrials':['CAT','DE','HON','UNP','RTX','LMT','GE','BA','MMM','ITW','FDX','UPS'],
+    'Telecom/Media':['DIS','CMCSA','T','VZ','TMUS','CHTR'],
     'Bond ETFs':['TLT','IEF','SHY','HYG','LQD','JNK','AGG','BND','GOVT','MBB','VCSH','VCLT','EMB','BWX','TIP','VTIP','BIL','FLOT'],
     'Commodities':['GLD','SLV','USO','UNG','DBA','PDBC','DBC','IAU','PPLT','COPX'],
     'FX ETFs':['UUP','FXE','FXY','FXB','FXA','FXC'],
     'International':['EEM','VWO','EFA','VEA','IEMG','INDA','FXI','EWJ','EWZ','EWG'],
+    'REITs':['VNQ','VNQI','IYR'],
     'Leveraged':['TQQQ','SOXL','UPRO','UDOW','NUGT','JNUG','UCO'],
+    'High-Growth/Popular':['COIN','MARA','RIOT','SQ','PYPL','SOFI','HOOD','RBLX','SNOW','DKNG'],
   };
+  function scoreClass(g){return g==='STRONG_BUY'?'score-strong-buy':g==='BUY'?'score-buy':g==='HOLD'?'score-hold':g==='SELL'?'score-sell':'score-strong-sell';}
+  function crossBadge(c){if(!c) return '—';if(c==='GOLDEN_NEW') return '<span class="cross-golden">★ GOLDEN</span>';if(c==='GOLDEN') return '<span class="cross-golden">GOLDEN</span>';if(c==='DEATH_NEW') return '<span class="cross-death">★ DEATH</span>';return '<span class="cross-death">DEATH</span>';}
+  function macdBadge(m){if(!m) return '—';const c=m==='BULLISH'?'var(--green)':m==='BEARISH'?'var(--red)':m==='BULL'?'#66bb6a':'#ff8a80';return `<span style="color:${c};font-size:10px;font-weight:600">${m}</span>`;}
   function stockTable(tickers, title) {
-    const rows = tickers.filter(t=>stocks[t]).map(t=>{
+    const avail = tickers.filter(t=>stocks[t]);
+    if(!avail.length) return '';
+    const rows = avail.map(t=>{
       const s=stocks[t];
-      return `<tr><td style="font-weight:600">${t}</td><td style="text-align:right">$${v(s.price,2)}</td>
-      <td style="text-align:right">${pct(s.day_pct)}</td><td style="text-align:right">${pct(s.week_pct)}</td>
-      <td style="text-align:right">${pct(s.month_pct)}</td><td style="text-align:right">${pct(s.ytd_pct)}</td>
+      const rowCls = s.grade==='STRONG_BUY'?'row-strong-buy':s.grade==='STRONG_SELL'?'row-strong-sell':'';
+      return `<tr class="${rowCls}">
+      <td style="font-weight:700">${t}</td>
+      <td style="color:var(--dim);font-size:10px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.name||names[t]||''}</td>
+      <td style="text-align:right;font-weight:600">$${v(s.price,2)}</td>
+      <td style="text-align:right">${pct(s.day_pct)}</td>
+      <td style="text-align:right">${pct(s.week_pct)}</td>
+      <td style="text-align:right">${pct(s.month_pct)}</td>
+      <td style="text-align:right">${pct(s.ytd_pct)}</td>
+      <td style="text-align:right;font-size:10px;color:${(s.rsi14||50)<30?'var(--green)':(s.rsi14||50)>70?'var(--red)':'var(--dim)'}">${s.rsi14?v(s.rsi14,0):'—'}</td>
       <td style="text-align:right;font-size:10px">${s.sma50?'$'+v(s.sma50,0):'—'}</td>
-      <td style="text-align:right;font-size:10px">${s.rsi14?v(s.rsi14,0):'—'}</td>
-      <td>${sparkSVG((s.history||[]).map(h=>h.c))}</td></tr>`;
+      <td style="text-align:right;font-size:10px">${s.sma200?'$'+v(s.sma200,0):'—'}</td>
+      <td style="text-align:center;font-size:10px">${macdBadge(s.macd_cross)}</td>
+      <td style="text-align:center;font-size:10px">${crossBadge(s.cross)}</td>
+      <td style="text-align:center;font-size:10px">${s.ad_signal==='ACCUMULATION'?'<span class="accum">ACCUM</span>':'<span class="distrib">DISTRIB</span>'}</td>
+      <td style="text-align:center;font-size:10px;color:${s.formation?.includes('BOTTOM')?'var(--green)':s.formation?.includes('TOP')?'var(--red)':'var(--dim)'}">${s.formation?.replace('NEAR_','↓ ').replace('_ZONE','').replace('_',' ')||'—'}</td>
+      <td style="text-align:right;font-size:10px;color:${(s.risk_reward||0)>2?'var(--green)':'var(--dim)'}">${s.risk_reward?s.risk_reward.toFixed(1)+'x':'—'}</td>
+      <td style="text-align:center"><span class="score-badge ${scoreClass(s.grade||'HOLD')}">${s.score||'—'}</span></td>
+      <td>${sparkSVG((s.sparkline||s.history?.map(h=>h.c)||[]),60,16)}</td>
+      </tr>`;
     }).join('');
-    return `<div class="card"><h3>${title}</h3>
-    <table><tr><th>Ticker</th><th style="text-align:right">Price</th><th style="text-align:right">Day</th><th style="text-align:right">Week</th><th style="text-align:right">Month</th><th style="text-align:right">YTD</th><th style="text-align:right">SMA50</th><th style="text-align:right">RSI</th><th>Trend</th></tr>${rows}</table></div>`;
+    return `<div class="card" style="overflow-x:auto"><h3>${title} <span style="color:var(--dim);font-size:10px">(${avail.length})</span></h3>
+    <table style="min-width:1200px"><tr><th>Tkr</th><th>Name</th><th style="text-align:right">Price</th><th style="text-align:right">Day</th><th style="text-align:right">1W</th><th style="text-align:right">1M</th><th style="text-align:right">YTD</th><th style="text-align:right">RSI</th><th style="text-align:right">SMA50</th><th style="text-align:right">SMA200</th><th style="text-align:center">MACD</th><th style="text-align:center">Cross</th><th style="text-align:center">A/D</th><th style="text-align:center">Form</th><th style="text-align:right">R:R</th><th style="text-align:center">Score</th><th>Trend</th></tr>${rows}</table></div>`;
   }
   document.getElementById('tab-equities').innerHTML = Object.entries(groups).map(([title,tickers])=>stockTable(tickers,title)).join('');
 }

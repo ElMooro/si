@@ -189,10 +189,22 @@ STOCK_TICKERS = [
     'SPY','QQQ','DIA','IWM','VTI','VOO','RSP','MDY',
     # Sectors
     'XLF','XLE','XLK','XLV','XLI','XLU','XLP','XLY','XLB','XLC','XLRE',
-    # Mega Caps
-    'AAPL','MSFT','GOOGL','AMZN','NVDA','META','TSLA','BRK.B','JPM','V',
-    'UNH','JNJ','WMT','MA','PG','HD','BAC','XOM','CVX','COST',
-    'ABBV','MRK','AVGO','LLY','CRM','AMD','NFLX','INTC','DIS','CSCO',
+    # Mega Caps - Tech
+    'AAPL','MSFT','GOOGL','AMZN','NVDA','META','TSLA','AVGO','CRM','AMD',
+    'NFLX','INTC','CSCO','ORCL','ADBE','QCOM','TXN','NOW','SHOP','UBER',
+    'PLTR','MU','AMAT','LRCX','KLAC','SNPS','CDNS','PANW','CRWD','ZS',
+    # Mega Caps - Finance
+    'JPM','V','MA','BAC','WFC','GS','MS','BLK','SCHW','C','AXP','BX','KKR','COF','USB',
+    # Mega Caps - Healthcare
+    'UNH','JNJ','LLY','ABBV','MRK','PFE','TMO','ABT','ISRG','AMGN','GILD','MDT','ELV','BMY',
+    # Mega Caps - Consumer
+    'WMT','PG','COST','HD','MCD','NKE','SBUX','LOW','TJX','TGT','LULU','BKNG','MAR','RCL',
+    # Energy / Materials
+    'XOM','CVX','COP','SLB','EOG','MPC','PSX','OXY','FCX','NEM','DOW','LIN','APD','DD',
+    # Industrials / Defense
+    'CAT','DE','HON','UNP','RTX','LMT','GE','BA','MMM','ITW','FDX','UPS',
+    # Telecom / Media
+    'DIS','CMCSA','T','VZ','TMUS','CHTR',
     # Bond ETFs
     'TLT','IEF','SHY','HYG','LQD','JNK','AGG','BND','GOVT','MBB',
     'VCSH','VCLT','EMB','BWX','TIP','VTIP','BIL','FLOT',
@@ -206,7 +218,65 @@ STOCK_TICKERS = [
     'VNQ','VNQI','IYR',
     # Leveraged (Khalid interest)
     'TQQQ','SOXL','UPRO','UDOW','NUGT','JNUG','UCO',
+    # High-Growth / Meme / Popular
+    'COIN','MARA','RIOT','SQ','PYPL','SOFI','HOOD','RBLX','SNOW','DKNG',
 ]
+
+TICKER_NAMES = {
+    'SPY':'S&P 500 ETF','QQQ':'NASDAQ 100 ETF','DIA':'Dow Jones ETF','IWM':'Russell 2000 ETF',
+    'VTI':'Total Stock Market','VOO':'Vanguard S&P 500','RSP':'Equal Weight S&P','MDY':'S&P MidCap 400',
+    'XLF':'Financial Sector','XLE':'Energy Sector','XLK':'Technology Sector','XLV':'Healthcare Sector',
+    'XLI':'Industrial Sector','XLU':'Utilities Sector','XLP':'Consumer Staples','XLY':'Consumer Discretionary',
+    'XLB':'Materials Sector','XLC':'Communication Svc','XLRE':'Real Estate Sector',
+    'AAPL':'Apple Inc','MSFT':'Microsoft Corp','GOOGL':'Alphabet (Google)','AMZN':'Amazon.com',
+    'NVDA':'NVIDIA Corp','META':'Meta Platforms','TSLA':'Tesla Inc','AVGO':'Broadcom Inc',
+    'CRM':'Salesforce Inc','AMD':'Advanced Micro Devices','NFLX':'Netflix Inc','INTC':'Intel Corp',
+    'CSCO':'Cisco Systems','ORCL':'Oracle Corp','ADBE':'Adobe Inc','QCOM':'Qualcomm Inc',
+    'TXN':'Texas Instruments','NOW':'ServiceNow Inc','SHOP':'Shopify Inc','UBER':'Uber Technologies',
+    'PLTR':'Palantir Technologies','MU':'Micron Technology','AMAT':'Applied Materials','LRCX':'Lam Research',
+    'KLAC':'KLA Corp','SNPS':'Synopsys Inc','CDNS':'Cadence Design','PANW':'Palo Alto Networks',
+    'CRWD':'CrowdStrike Holdings','ZS':'Zscaler Inc',
+    'JPM':'JPMorgan Chase','V':'Visa Inc','MA':'Mastercard Inc','BAC':'Bank of America',
+    'WFC':'Wells Fargo','GS':'Goldman Sachs','MS':'Morgan Stanley','BLK':'BlackRock Inc',
+    'SCHW':'Charles Schwab','C':'Citigroup Inc','AXP':'American Express','BX':'Blackstone Inc',
+    'KKR':'KKR & Co','COF':'Capital One Financial','USB':'U.S. Bancorp',
+    'UNH':'UnitedHealth Group','JNJ':'Johnson & Johnson','LLY':'Eli Lilly','ABBV':'AbbVie Inc',
+    'MRK':'Merck & Co','PFE':'Pfizer Inc','TMO':'Thermo Fisher Scientific','ABT':'Abbott Laboratories',
+    'ISRG':'Intuitive Surgical','AMGN':'Amgen Inc','GILD':'Gilead Sciences','MDT':'Medtronic plc',
+    'ELV':'Elevance Health','BMY':'Bristol-Myers Squibb',
+    'WMT':'Walmart Inc','PG':'Procter & Gamble','COST':'Costco Wholesale','HD':'Home Depot',
+    'MCD':"McDonald's Corp",'NKE':'Nike Inc','SBUX':'Starbucks Corp','LOW':"Lowe's Companies",
+    'TJX':'TJX Companies','TGT':'Target Corp','LULU':'Lululemon Athletica','BKNG':'Booking Holdings',
+    'MAR':'Marriott International','RCL':'Royal Caribbean',
+    'XOM':'Exxon Mobil','CVX':'Chevron Corp','COP':'ConocoPhillips','SLB':'Schlumberger',
+    'EOG':'EOG Resources','MPC':'Marathon Petroleum','PSX':'Phillips 66','OXY':'Occidental Petroleum',
+    'FCX':'Freeport-McMoRan','NEM':'Newmont Mining','DOW':'Dow Inc','LIN':'Linde plc',
+    'APD':'Air Products','DD':'DuPont de Nemours',
+    'CAT':'Caterpillar Inc','DE':'Deere & Company','HON':'Honeywell International','UNP':'Union Pacific',
+    'RTX':'RTX Corp (Raytheon)','LMT':'Lockheed Martin','GE':'GE Aerospace','BA':'Boeing Co',
+    'MMM':'3M Company','ITW':'Illinois Tool Works','FDX':'FedEx Corp','UPS':'United Parcel Service',
+    'DIS':'Walt Disney','CMCSA':'Comcast Corp','T':'AT&T Inc','VZ':'Verizon Communications',
+    'TMUS':'T-Mobile US','CHTR':'Charter Communications',
+    'TLT':'20+ Year Treasury','IEF':'7-10 Year Treasury','SHY':'1-3 Year Treasury',
+    'HYG':'High Yield Corp Bond','LQD':'IG Corp Bond','JNK':'High Yield Bond','AGG':'US Agg Bond',
+    'BND':'Total Bond Market','GOVT':'US Treasury Bond','MBB':'Mortgage-Backed','VCSH':'Short-Term Corp',
+    'VCLT':'Long-Term Corp','EMB':'EM Bond','BWX':'Intl Treasury','TIP':'TIPS Bond',
+    'VTIP':'Short TIPS','BIL':'1-3 Month T-Bill','FLOT':'Floating Rate',
+    'GLD':'SPDR Gold Trust','SLV':'iShares Silver','USO':'US Oil Fund','UNG':'US Natural Gas',
+    'DBA':'Agriculture Fund','PDBC':'Optimum Yield Commodity','DBC':'Commodity Index',
+    'IAU':'iShares Gold','PPLT':'Physical Platinum','COPX':'Global Copper Miners',
+    'UUP':'US Dollar Bullish','FXE':'Euro Trust','FXY':'Japanese Yen','FXB':'British Pound',
+    'FXA':'Australian Dollar','FXC':'Canadian Dollar',
+    'EEM':'EM Markets ETF','VWO':'Vanguard EM','EFA':'EAFE Developed','VEA':'Vanguard Developed',
+    'IEMG':'iShares Core EM','INDA':'India ETF','FXI':'China Large Cap','EWJ':'Japan ETF',
+    'EWZ':'Brazil ETF','EWG':'Germany ETF',
+    'VNQ':'US Real Estate','VNQI':'Intl Real Estate','IYR':'US Real Estate',
+    'TQQQ':'3x NASDAQ Bull','SOXL':'3x Semiconductor Bull','UPRO':'3x S&P Bull',
+    'UDOW':'3x Dow Bull','NUGT':'2x Gold Miners Bull','JNUG':'2x Junior Gold Bull','UCO':'2x Crude Oil Bull',
+    'BRK.B':'Berkshire Hathaway','COIN':'Coinbase Global','MARA':'Marathon Digital',
+    'RIOT':'Riot Platforms','SQ':'Block Inc','PYPL':'PayPal Holdings','SOFI':'SoFi Technologies',
+    'HOOD':'Robinhood Markets','RBLX':'Roblox Corp','SNOW':'Snowflake Inc','DKNG':'DraftKings Inc',
+}
 
 # ============================================================
 # DATA FETCH FUNCTIONS
@@ -410,8 +480,8 @@ def compute_stock(bars):
     if len(closes)>=20: r['sma20']=round(sum(closes[:20])/20,2)
     if len(closes)>=50: r['sma50']=round(sum(closes[:50])/50,2)
     if len(closes)>=200: r['sma200']=round(sum(closes[:200])/200,2)
-    r['w52_high']=max(b['h'] for b in bars[:250])
-    r['w52_low']=min(b['l'] for b in bars[:250])
+    r['w52_high']=max(b['h'] for b in bars[:min(252,len(bars))])
+    r['w52_low']=min(b['l'] for b in bars[:min(252,len(bars))])
     # RSI 14
     if len(closes) >= 15:
         gains, losses = [], []
@@ -421,6 +491,135 @@ def compute_stock(bars):
             else: gains.append(0); losses.append(abs(d))
         ag = sum(gains)/14; al = sum(losses)/14
         r['rsi14'] = round(100 - (100/(1+ag/al)),1) if al else 100
+
+    # ── MACD (12,26,9) ──
+    if len(closes) >= 35:
+        # Calculate EMA from oldest to newest (reverse closes)
+        rev = list(reversed(closes[:min(200,len(closes))]))
+        def ema(data, period):
+            m = 2/(period+1)
+            e = [data[0]]
+            for i in range(1,len(data)):
+                e.append(data[i]*m + e[-1]*(1-m))
+            return e
+        ema12 = ema(rev, 12)
+        ema26 = ema(rev, 26)
+        macd_line = [ema12[i]-ema26[i] for i in range(len(ema26))]
+        if len(macd_line)>=9:
+            signal_line = ema(macd_line, 9)
+            r['macd'] = round(macd_line[-1],3)
+            r['macd_signal'] = round(signal_line[-1],3)
+            r['macd_hist'] = round(macd_line[-1]-signal_line[-1],3)
+            # MACD crossover: current vs yesterday
+            if len(macd_line)>=2 and len(signal_line)>=2:
+                r['macd_cross'] = 'BULLISH' if macd_line[-1]>signal_line[-1] and macd_line[-2]<=signal_line[-2] else \
+                                  'BEARISH' if macd_line[-1]<signal_line[-1] and macd_line[-2]>=signal_line[-2] else \
+                                  'BULL' if macd_line[-1]>signal_line[-1] else 'BEAR'
+
+    # ── Golden Cross / Death Cross ──
+    if r.get('sma50') and r.get('sma200'):
+        r['cross'] = 'GOLDEN' if r['sma50']>r['sma200'] else 'DEATH'
+        # Check if recent crossover (within last 10 days)
+        if len(closes)>=210:
+            sma50_prev = sum(closes[10:60])/50
+            sma200_prev = sum(closes[10:210])/200
+            if r['sma50']>r['sma200'] and sma50_prev<=sma200_prev:
+                r['cross']='GOLDEN_NEW'
+            elif r['sma50']<r['sma200'] and sma50_prev>=sma200_prev:
+                r['cross']='DEATH_NEW'
+
+    # ── Accumulation / Distribution ──
+    if len(bars)>=20:
+        ad = 0
+        for b in bars[:20]:
+            hl = b['h']-b['l']
+            if hl>0:
+                clv = ((b['c']-b['l'])-(b['h']-b['c']))/hl
+                ad += clv * b['v']
+        r['ad_signal'] = 'ACCUMULATION' if ad>0 else 'DISTRIBUTION'
+        r['ad_value'] = round(ad,0)
+
+    # ── Support / Resistance / Risk-Reward ──
+    if len(bars)>=60:
+        lows_20 = [b['l'] for b in bars[:20]]
+        highs_20 = [b['h'] for b in bars[:20]]
+        lows_60 = [b['l'] for b in bars[:60]]
+        highs_60 = [b['h'] for b in bars[:60]]
+        support = min(lows_20)
+        resistance = max(highs_20)
+        strong_support = min(lows_60)
+        strong_resistance = max(highs_60)
+        price = c['c']
+        upside = ((resistance - price)/price*100) if price>0 else 0
+        downside = ((price - support)/price*100) if price>0 else 0
+        r['support'] = round(support,2)
+        r['resistance'] = round(resistance,2)
+        r['risk_reward'] = round(upside/downside,2) if downside>0 else 99
+        r['upside_pct'] = round(upside,2)
+        r['downside_pct'] = round(downside,2)
+
+    # ── BOTTOM / TOP detection ──
+    price = c['c']
+    w52h = r.get('w52_high',price)
+    w52l = r.get('w52_low',price)
+    w52_range = w52h-w52l if w52h!=w52l else 1
+    w52_pos = (price-w52l)/w52_range*100
+    r['w52_position'] = round(w52_pos,1)
+    if w52_pos < 10: r['formation'] = 'NEAR_BOTTOM'
+    elif w52_pos < 25: r['formation'] = 'BOTTOM_ZONE'
+    elif w52_pos > 90: r['formation'] = 'NEAR_TOP'
+    elif w52_pos > 75: r['formation'] = 'TOP_ZONE'
+    else: r['formation'] = 'MID_RANGE'
+
+    # ── MASTER SCORE (0-100) ──
+    score = 50
+    rsi = r.get('rsi14',50)
+    # RSI scoring
+    if rsi<30: score+=12   # Oversold = bullish potential
+    elif rsi<40: score+=6
+    elif rsi>70: score-=12  # Overbought = bearish risk
+    elif rsi>60: score-=4
+    # SMA alignment
+    if r.get('sma50') and r.get('sma200'):
+        if price>r['sma50']>r['sma200']: score+=15  # Bull alignment
+        elif price<r['sma50']<r['sma200']: score-=15 # Bear alignment
+        elif price>r['sma50']: score+=5
+        elif price<r['sma200']: score-=8
+    # MACD
+    if r.get('macd_cross')=='BULLISH': score+=10
+    elif r.get('macd_cross')=='BEARISH': score-=10
+    elif r.get('macd_hist',0)>0: score+=3
+    elif r.get('macd_hist',0)<0: score-=3
+    # Cross
+    if r.get('cross')=='GOLDEN_NEW': score+=12
+    elif r.get('cross')=='DEATH_NEW': score-=12
+    elif r.get('cross')=='GOLDEN': score+=4
+    elif r.get('cross')=='DEATH': score-=4
+    # Accumulation
+    if r.get('ad_signal')=='ACCUMULATION': score+=5
+    else: score-=5
+    # Momentum
+    mp = r.get('month_pct',0)
+    if mp>10: score+=5
+    elif mp<-10: score-=5
+    # 52-week position bonus
+    if w52_pos<15: score+=8  # Near bottom = potential bounce
+    elif w52_pos>85: score-=5  # Near top = stretched
+    # Risk-reward
+    rr = r.get('risk_reward',1)
+    if rr>3: score+=8
+    elif rr>2: score+=4
+    elif rr<0.5: score-=8
+    elif rr<1: score-=4
+    r['score'] = max(0,min(100,score))
+    # Grade
+    if r['score']>=80: r['grade']='STRONG_BUY'
+    elif r['score']>=65: r['grade']='BUY'
+    elif r['score']>=50: r['grade']='HOLD'
+    elif r['score']>=35: r['grade']='SELL'
+    else: r['grade']='STRONG_SELL'
+    # Sparkline data
+    r['sparkline'] = [b['c'] for b in bars[:30]][::-1]
     return r
 
 # ============================================================
@@ -850,6 +1049,81 @@ def ai_analysis(fd, sd, crypto, ki, risk, nl, ecb_ciss=None):
 
     port['construction'] = con
     a['portfolio'] = port
+
+    # ── AI BEST PLAYS (risk/reward daily picks) ──
+    best_plays = {'generated_at': datetime.utcnow().isoformat()+'Z'}
+    # Score all stocks
+    scored = []
+    for t, d in sd.items():
+        if d.get('score') is None: continue
+        scored.append({'ticker':t,'name':d.get('name',t),'price':d.get('price'),
+            'score':d['score'],'grade':d.get('grade','HOLD'),
+            'rsi':d.get('rsi14'),'macd_cross':d.get('macd_cross'),
+            'cross':d.get('cross'),'ad_signal':d.get('ad_signal'),
+            'formation':d.get('formation'),'risk_reward':d.get('risk_reward',1),
+            'upside_pct':d.get('upside_pct',0),'downside_pct':d.get('downside_pct',0),
+            'day_pct':d.get('day_pct',0),'week_pct':d.get('week_pct',0),
+            'month_pct':d.get('month_pct',0),
+            'sma50':d.get('sma50'),'sma200':d.get('sma200'),
+            'w52_position':d.get('w52_position'),
+        })
+    scored.sort(key=lambda x: x['score'], reverse=True)
+    # Filter categories
+    bond_tickers = {'TLT','IEF','SHY','HYG','LQD','JNK','AGG','BND','GOVT','MBB','VCSH','VCLT','EMB','BWX','TIP','VTIP','BIL','FLOT'}
+    commodity_tickers = {'GLD','SLV','USO','UNG','DBA','PDBC','DBC','IAU','PPLT','COPX'}
+    leveraged_tickers = {'TQQQ','SOXL','UPRO','UDOW','NUGT','JNUG','UCO'}
+    etf_tickers = bond_tickers | commodity_tickers | leveraged_tickers | {'SPY','QQQ','DIA','IWM','VTI','VOO','RSP','MDY','XLF','XLE','XLK','XLV','XLI','XLU','XLP','XLY','XLB','XLC','XLRE','EEM','VWO','EFA','VEA','IEMG','INDA','FXI','EWJ','EWZ','EWG','VNQ','VNQI','IYR','UUP','FXE','FXY','FXB','FXA','FXC'}
+    stocks_only = [s for s in scored if s['ticker'] not in etf_tickers]
+    bonds_only = [s for s in scored if s['ticker'] in bond_tickers]
+    commodity_only = [s for s in scored if s['ticker'] in commodity_tickers]
+    etfs_only = [s for s in scored if s['ticker'] in (etf_tickers - bond_tickers - commodity_tickers)]
+
+    # Generate reasons for top/bottom
+    def play_reason(p):
+        reasons = []
+        if p['grade'] in ('STRONG_BUY','BUY'):
+            if p.get('formation') in ('NEAR_BOTTOM','BOTTOM_ZONE'): reasons.append('Near 52-week low')
+            if p.get('macd_cross')=='BULLISH': reasons.append('Bullish MACD crossover')
+            if p.get('cross') in ('GOLDEN','GOLDEN_NEW'): reasons.append('Golden cross')
+            if p.get('ad_signal')=='ACCUMULATION': reasons.append('Smart money accumulating')
+            if (p.get('rsi') or 50)<35: reasons.append(f"Oversold RSI {p['rsi']:.0f}")
+            if p.get('risk_reward',1)>2: reasons.append(f"R:R {p['risk_reward']:.1f}x")
+        else:
+            if p.get('formation') in ('NEAR_TOP','TOP_ZONE'): reasons.append('Near 52-week high')
+            if p.get('macd_cross')=='BEARISH': reasons.append('Bearish MACD crossover')
+            if p.get('cross') in ('DEATH','DEATH_NEW'): reasons.append('Death cross')
+            if p.get('ad_signal')=='DISTRIBUTION': reasons.append('Smart money distributing')
+            if (p.get('rsi') or 50)>70: reasons.append(f"Overbought RSI {p['rsi']:.0f}")
+            if p.get('risk_reward',1)<0.5: reasons.append(f"Poor R:R {p['risk_reward']:.1f}x")
+        if not reasons: reasons.append(f"Score {p['score']}/100")
+        p['reasons'] = reasons
+        return p
+
+    best_plays['top_stocks'] = [play_reason(s) for s in stocks_only[:10]]
+    best_plays['bottom_stocks'] = [play_reason(s) for s in stocks_only[-10:][::-1]]
+    best_plays['top_etfs'] = [play_reason(s) for s in etfs_only[:5]]
+    best_plays['top_bonds'] = [play_reason(s) for s in bonds_only[:5]]
+    best_plays['top_commodities'] = [play_reason(s) for s in commodity_only[:5]]
+    # Crypto plays
+    crypto_scored = []
+    for sym, d in crypto.items():
+        cs = 50
+        c7 = d.get('change_7d',0) or 0; c30 = d.get('change_30d',0) or 0
+        if c7>10: cs+=10
+        elif c7<-10: cs-=10
+        if c30>20: cs+=8
+        elif c30<-20: cs-=8
+        ath_pct = abs(d.get('ath_pct',0) or 0)
+        if ath_pct>50: cs+=10  # Far from ATH = upside
+        elif ath_pct<10: cs-=5  # Near ATH = stretched
+        crypto_scored.append({'ticker':sym,'name':d.get('name',sym),'price':d.get('price'),
+            'score':max(0,min(100,cs)),'grade':'STRONG_BUY' if cs>=75 else 'BUY' if cs>=60 else 'HOLD' if cs>=40 else 'SELL',
+            'change_7d':c7,'change_30d':c30,'ath_pct':ath_pct,'reasons':[f"7d: {c7:+.1f}%",f"30d: {c30:+.1f}%",f"{ath_pct:.0f}% from ATH"]})
+    crypto_scored.sort(key=lambda x:x['score'],reverse=True)
+    best_plays['top_crypto'] = crypto_scored[:5]
+    best_plays['bottom_crypto'] = crypto_scored[-5:][::-1]
+    best_plays['all_scored'] = scored  # Full sorted list
+    a['best_plays'] = best_plays
     return a
 
 # ============================================================
@@ -903,6 +1177,7 @@ def lambda_handler(event, context):
                     if bars:
                         m = compute_stock(bars)
                         if m:
+                            m['name'] = TICKER_NAMES.get(t, t)
                             m['history'] = [{'d':b['date'],'c':b['c']} for b in bars[:120]]
                             sd[t] = m
                 except: pass
@@ -959,6 +1234,7 @@ def lambda_handler(event, context):
         'ecb_ciss':ecb_ciss,
         'news':news,
         'ai_analysis':ai,
+        'ticker_names':TICKER_NAMES,
         'stats':{'fred':len(fred_raw),'stocks':len(sd),'crypto':len(crypto),'ecb_ciss':len(ecb_ciss),
                  'data_points':sum(len(v) for v in fred_raw.values())+sum(len(s.get('history',[])) for s in sd.values())}
     }
