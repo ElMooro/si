@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JustHodl Bloomberg Terminal V10</title>
+<title>JustHodl Bloomberg Terminal V10.3</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#0a0a0f;--panel:#12121a;--border:#1e1e2e;--text:#e0e0e0;--dim:#666;--green:#00c853;--red:#ff1744;--amber:#ffd600;--blue:#2196f3;--cyan:#00bcd4;--purple:#bb86fc;--gold:#ffd700;--orange:#ff9800}
@@ -198,25 +198,11 @@ function fredTable(cat, title) {
 
 function renderAll() {
   if(!D) return;
-  renderOverview();
-  renderBestPlays();
-  renderMyPortfolio();
-  renderNews();
-  renderAI();
-  renderPortfolio();
-  renderTreasury();
-  renderDXY();
-  renderCredit();
-  renderLiquidity();
-  renderMacro();
-  renderInflation();
-  renderRisk();
-  renderCISS();
-  renderEquities();
-  renderCrypto();
-  renderECB();
-  renderCommodities();
-  renderHeader();
+  [renderHeader,renderOverview,renderBestPlays,renderMyPortfolio,renderNews,
+   renderAI,renderPortfolio,renderTreasury,renderDXY,renderCredit,
+   renderLiquidity,renderMacro,renderInflation,renderRisk,renderCISS,
+   renderEquities,renderCrypto,renderECB,renderCommodities
+  ].forEach(fn => { try { fn(); } catch(e) { console.error('RENDER ERROR:', fn.name, e); } });
 }
 
 function renderHeader() {
@@ -537,9 +523,10 @@ function renderCISS() {
 function renderBestPlays() {
   const bp = D.ai_analysis?.best_plays || {};
   const el = document.getElementById('tab-bestplays');
+  if(!el) return;
   function scoreClass(g){return g==='STRONG_BUY'?'score-strong-buy':g==='BUY'?'score-buy':g==='HOLD'?'score-hold':g==='SELL'?'score-sell':'score-strong-sell';}
   function playSection(title,items,icon,bullish){
-    if(!items||!items.length) return '';
+    if(!items||!items.length) return '<div class="plays-card"><h3>'+icon+' '+title+'</h3><p style="color:var(--dim)">Waiting for data...</p></div>';
     return `<div class="plays-card"><h3>${icon} ${title}</h3>
     ${items.map(p=>`<div class="play-row ${p.grade==='STRONG_BUY'?'row-strong-buy':p.grade==='STRONG_SELL'?'row-strong-sell':''}">
       <div class="play-ticker" style="color:${bullish?'var(--green)':'var(--red)'}">${p.ticker}</div>
@@ -586,7 +573,7 @@ function renderMyPortfolio() {
   let totalValue=0, totalCost=0;
   const rows = holdings.map((h,idx)=>{
     let price=null,name=h.ticker,dayPct=0;
-    const sym = h.ticker.toUpperCase();
+    const sym = (h.ticker||'').toUpperCase();
     if(stocks[sym]){price=stocks[sym].price;name=stocks[sym].name||sym;dayPct=stocks[sym].day_pct||0;}
     else if(crypto[sym]){price=crypto[sym].price;name=crypto[sym].name||sym;dayPct=crypto[sym].change_24h||0;}
     else{
