@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JustHodl Bloomberg Terminal V10.3</title>
+<title>JustHodl Bloomberg Terminal V10.4</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#0a0a0f;--panel:#12121a;--border:#1e1e2e;--text:#e0e0e0;--dim:#666;--green:#00c853;--red:#ff1744;--amber:#ffd600;--blue:#2196f3;--cyan:#00bcd4;--purple:#bb86fc;--gold:#ffd700;--orange:#ff9800}
@@ -104,11 +104,56 @@ td{padding:4px 6px;font-size:11px;border-bottom:1px solid rgba(255,255,255,.03)}
 .news-time{font-size:10px;color:var(--dim);white-space:nowrap}
 .status-bar{background:#0d0d14;border-top:1px solid var(--border);padding:4px 16px;font-size:10px;color:var(--dim);display:flex;justify-content:space-between;position:fixed;bottom:0;left:0;right:0;z-index:100}
 @media(max-width:768px){.g2,.g3,.g4{grid-template-columns:1fr}.header-stats{display:none}.tabs{flex-wrap:nowrap}}
+
+.chat-box{display:flex;flex-direction:column;height:70vh;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:rgba(0,0,0,.3)}
+.chat-messages{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.chat-msg{max-width:85%;padding:10px 14px;border-radius:12px;font-size:12px;line-height:1.5;white-space:pre-wrap;word-wrap:break-word}
+.chat-msg.user{align-self:flex-end;background:var(--cyan);color:#000;border-bottom-right-radius:4px}
+.chat-msg.ai{align-self:flex-start;background:rgba(255,255,255,.08);color:#ddd;border-bottom-left-radius:4px;border:1px solid var(--border)}
+.chat-msg.ai h1,.chat-msg.ai h2,.chat-msg.ai h3{color:var(--cyan);margin:8px 0 4px;font-size:13px}
+.chat-msg.ai strong{color:var(--green)}
+.chat-msg.ai code{background:rgba(0,0,0,.4);padding:2px 5px;border-radius:3px;font-size:11px}
+.chat-msg.ai pre{background:rgba(0,0,0,.4);padding:8px;border-radius:4px;overflow-x:auto;margin:6px 0}
+.chat-msg.ai table{width:100%;border-collapse:collapse;margin:6px 0;font-size:11px}
+.chat-msg.ai th,.chat-msg.ai td{border:1px solid var(--border);padding:4px 6px;text-align:left}
+.chat-msg.ai th{background:rgba(0,200,255,.1)}
+.chat-msg.system{align-self:center;color:var(--dim);font-size:10px;font-style:italic}
+.chat-msg .typing{display:inline-block;animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.chat-input-bar{display:flex;gap:8px;padding:10px;background:rgba(0,0,0,.4);border-top:1px solid var(--border)}
+.chat-input{flex:1;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:6px;padding:10px 14px;color:#fff;font-size:12px;outline:none;resize:none;font-family:inherit;min-height:20px;max-height:120px}
+.chat-input:focus{border-color:var(--cyan)}
+.chat-send{background:var(--cyan);color:#000;border:none;border-radius:6px;padding:10px 20px;font-weight:700;cursor:pointer;font-size:12px;white-space:nowrap}
+.chat-send:hover{background:#00e5ff}
+.chat-send:disabled{opacity:.4;cursor:not-allowed}
+.agent-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:16px}
+.agent-task{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:16px;cursor:pointer;transition:all .2s}
+.agent-task:hover{border-color:var(--cyan);background:rgba(0,200,255,.05);transform:translateY(-2px)}
+.agent-task h4{color:var(--cyan);margin:0 0 6px;font-size:13px}
+.agent-task p{color:var(--dim);font-size:11px;margin:0;line-height:1.4}
+.agent-task .agent-icon{font-size:24px;margin-bottom:8px}
+.agent-output{background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:8px;padding:16px;min-height:200px;max-height:60vh;overflow-y:auto;font-size:12px;line-height:1.6;color:#ddd;white-space:pre-wrap;word-wrap:break-word}
+.agent-output h1,.agent-output h2,.agent-output h3{color:var(--cyan);margin:10px 0 4px}
+.agent-output strong{color:var(--green)}
+.agent-output code{background:rgba(0,0,0,.4);padding:2px 5px;border-radius:3px}
+.agent-output table{width:100%;border-collapse:collapse;margin:8px 0;font-size:11px}
+.agent-output th,.agent-output td{border:1px solid var(--border);padding:4px 8px;text-align:left}
+.agent-output th{background:rgba(0,200,255,.1);color:var(--cyan)}
+.agent-status{display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:11px;color:var(--dim)}
+.agent-spinner{width:14px;height:14px;border:2px solid var(--border);border-top:2px solid var(--cyan);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ai-section{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:10px}
+.ai-section h3{margin:0 0 8px;font-size:13px}
+.ai-text{font-size:11px;color:#bbb;line-height:1.6;padding:3px 0}
+.ai-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;margin-left:8px}
+.outlook-bull{background:rgba(0,200,83,.15);color:var(--green)}
+.outlook-bear{background:rgba(255,23,68,.15);color:var(--red)}
+.outlook-neutral{background:rgba(255,183,77,.15);color:var(--amber)}
 </style>
 </head>
 <body>
 <div class="header">
-  <div class="logo">JUSTHODL.AI <span>BLOOMBERG TERMINAL V10.3</span></div>
+  <div class="logo">JUSTHODL.AI <span>BLOOMBERG TERMINAL V10.4</span></div>
   <div class="header-stats" id="headerStats"></div>
 </div>
 <div class="tabs" id="tabBar"></div>
@@ -136,7 +181,31 @@ const TABS = [
   {id:'crypto',label:'Crypto',icon:'₿'},
   {id:'ecb',label:'ECB/Europe',icon:'🏦'},
   {id:'commodities',label:'Commodities',icon:'🛢'},
+  {id:'chat',label:'AI Chat',icon:'💬'},
+  {id:'agent',label:'AI Agent',icon:'🤖'},
 ];
+const CHAT_API_URL = '';  // Will be set by deploy command
+let chatHistory = [];
+let agentBusy = false;
+function mdToHtml(md) {
+  if(!md) return '';
+  let h = md.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  h = h.replace(/```([\s\S]*?)```/g,'<pre><code>$1</code></pre>');
+  h = h.replace(/`([^`]+)`/g,'<code>$1</code>');
+  h = h.replace(/^### (.+)$/gm,'<h3>$1</h3>');
+  h = h.replace(/^## (.+)$/gm,'<h2>$1</h2>');
+  h = h.replace(/^# (.+)$/gm,'<h1>$1</h1>');
+  h = h.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
+  h = h.replace(/\*([^*]+)\*/g,'<em>$1</em>');
+  h = h.replace(/^- (.+)$/gm,'• $1');
+  h = h.replace(/^\d+\. (.+)$/gm,(_,t)=>'  '+t);
+  h = h.replace(/\|(.+)\|/g, (m)=>{
+    const cells=m.split('|').filter(c=>c.trim());
+    if(cells.every(c=>/^-+$/.test(c.trim()))) return '';
+    return '<tr>'+cells.map(c=>'<td>'+c.trim()+'</td>').join('')+'</tr>';
+  });
+  return h;
+}
 let D = null, activeTab = 'overview';
 
 function init() {
@@ -201,7 +270,7 @@ function renderAll() {
   [renderHeader,renderOverview,renderBestPlays,renderMyPortfolio,renderNews,
    renderAI,renderPortfolio,renderTreasury,renderDXY,renderCredit,
    renderLiquidity,renderMacro,renderInflation,renderRisk,renderCISS,
-   renderEquities,renderCrypto,renderECB,renderCommodities
+   renderEquities,renderCrypto,renderECB,renderCommodities,renderChat,renderAgent
   ].forEach(fn => { try { fn(); } catch(e) { console.error('RENDER ERROR:', fn.name, e); } });
 }
 
@@ -361,22 +430,32 @@ function renderNews() {
 // ═══════════════════════════════════════
 function renderAI() {
   const ai = D.ai_analysis;
-  if(!ai){document.getElementById('tab-ai').innerHTML='<div class="card"><h3>AI Intelligence</h3><p style="color:var(--dim)">Waiting for AI analysis data...</p></div>';return;}
   const el = document.getElementById('tab-ai');
-  const sections = ai.sections || {};
+  if(!ai || !ai.sections || Object.keys(ai.sections).length===0){
+    el.innerHTML='<div class="card"><h3>🧠 AI Intelligence</h3><p style="color:var(--dim)">Waiting for AI analysis data. Run Lambda to generate fresh analysis.</p></div>';
+    return;
+  }
+  const sections = ai.sections;
   function outlookBadge(o) {
     if(!o) return '';
     const cls = /BULL|EXPAN|EASING|LOW/i.test(o)?'outlook-bull':/BEAR|CONTRACT|TIGHT|HIGH/i.test(o)?'outlook-bear':'outlook-neutral';
     return `<span class="ai-badge ${cls}">${o}</span>`;
   }
+  function sectionIcon(key) {
+    const icons = {macro:'🏛',liquidity:'💧',risk:'⚠️',dollar:'💱',inflation:'📈',crypto:'₿',ecb_systemic:'🇪🇺',credit_deep:'📋',housing:'🏠',employment:'👔',manufacturing:'🏭',global:'🌍'};
+    return icons[key]||'📊';
+  }
   el.innerHTML = `
-  <div style="margin-bottom:10px;font-size:11px;color:var(--dim)">AI-generated analysis based on ${D.stats?.fred||0} FRED series, ${D.stats?.stocks||0} stocks, ${D.stats?.crypto||0} crypto, ${D.stats?.ecb_ciss||0} ECB CISS indicators | ${new Date(ai.generated_at).toLocaleString()}</div>
+  <div style="margin-bottom:10px;font-size:11px;color:var(--dim)">🧠 AI-generated analysis from ${D.stats?.fred||0} FRED series, ${D.stats?.stocks||0} stocks, ${D.stats?.crypto||0} crypto, ${D.stats?.ecb_ciss||0} ECB CISS | Generated: ${ai.generated_at ? new Date(ai.generated_at).toLocaleString() : 'unknown'}</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:10px">
   ${Object.entries(sections).map(([key,sec])=>`
     <div class="ai-section">
-      <h3 style="color:var(--cyan)">${sec.title||key} ${outlookBadge(sec.outlook)}</h3>
+      <h3 style="color:var(--cyan)">${sectionIcon(key)} ${sec.title||key} ${outlookBadge(sec.outlook)}</h3>
       ${(sec.signals||[]).map(s=>`<div class="ai-text">• ${s}</div>`).join('')}
+      ${sec.key_levels ? '<div style="margin-top:6px;font-size:10px;color:var(--dim)">Key Levels: '+JSON.stringify(sec.key_levels)+'</div>' : ''}
     </div>
-  `).join('')}`;
+  `).join('')}
+  </div>`;
 }
 
 // ═══════════════════════════════════════
@@ -746,6 +825,95 @@ function renderCrypto() {
 
 init();
 setInterval(loadData, 300000); // 5 min refresh
+
+function renderChat() {
+  document.getElementById('tab-chat').innerHTML = `
+  <div style="margin-bottom:10px;font-size:11px;color:var(--dim)">
+    Chat with AI powered by Claude • Has full access to all ${D?.stats?.stocks||0} stocks, ${D?.stats?.fred||0} FRED series, ${D?.stats?.crypto||0} crypto, and live market data
+    <span style="float:right;cursor:pointer;color:var(--cyan)" onclick="chatHistory=[];renderChat()">🗑 Clear Chat</span>
+  </div>
+  <div class="chat-box">
+    <div class="chat-messages" id="chatMessages">
+      <div class="chat-msg system">JustHodl AI is ready. Ask anything about markets, your portfolio, macro conditions, or specific tickers.</div>
+      ${chatHistory.map(m=>`<div class="chat-msg ${m.role==='user'?'user':'ai'}">${m.role==='user'?m.content:mdToHtml(m.content)}</div>`).join('')}
+    </div>
+    <div class="chat-input-bar">
+      <textarea class="chat-input" id="chatInput" placeholder="Ask about markets, tickers, macro conditions..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"></textarea>
+      <button class="chat-send" id="chatSendBtn" onclick="sendChat()">Send ▶</button>
+    </div>
+  </div>`;
+  const msgs = document.getElementById('chatMessages');
+  if(msgs) msgs.scrollTop = msgs.scrollHeight;
+}
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  const btn = document.getElementById('chatSendBtn');
+  const msg = input?.value?.trim();
+  if(!msg || !CHAT_API_URL) { if(!CHAT_API_URL) alert('Chat API not configured. Deploy chat Lambda first.'); return; }
+  input.value = '';
+  btn.disabled = true;
+  chatHistory.push({role:'user',content:msg});
+  chatHistory.push({role:'assistant',content:'<span class="typing">● ● ●</span>'});
+  renderChat();
+  try {
+    const messages = chatHistory.filter(m=>m.content!=='<span class="typing">● ● ●</span>').map(m=>({role:m.role==='ai'?'assistant':m.role,content:m.content}));
+    const resp = await fetch(CHAT_API_URL, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages,mode:'chat'})});
+    const data = await resp.json();
+    chatHistory[chatHistory.length-1] = {role:'assistant',content:data.reply||data.error||'No response'};
+  } catch(e) { chatHistory[chatHistory.length-1] = {role:'assistant',content:'Error: '+e.message}; }
+  btn.disabled = false;
+  renderChat();
+}
+
+function renderAgent() {
+  const tasks = [
+    {icon:'🔍',title:'Deep Market Scan',desc:'Scan all 188 stocks for best opportunities based on TA, fundamentals, and macro alignment',task:'Perform a comprehensive deep scan of all stocks in the system. Identify the top 10 best opportunities right now based on technical analysis (MACD crossovers, golden crosses, RSI oversold, accumulation, high risk/reward ratio), and also identify the top 10 riskiest positions. Present as a structured table with scores, grades, and specific entry/exit levels.'},
+    {icon:'📊',title:'Full Market Report',desc:'Generate Bloomberg-grade comprehensive market intelligence report',task:'Generate a comprehensive institutional-grade market intelligence report covering: 1) Macro outlook (GDP, employment, inflation), 2) Liquidity conditions (Fed, TGA, RRP), 3) Risk assessment (VIX, credit spreads, yield curve), 4) Sector rotation analysis, 5) Top opportunities, 6) Key risks and hedges, 7) Crypto outlook. Include specific numbers and actionable recommendations.'},
+    {icon:'⚠️',title:'Risk Alert Scan',desc:'Identify critical risks, anomalies, and warning signals across all markets',task:'Perform a critical risk assessment scan. Check: yield curve inversion signals, credit spread blowouts, VIX spikes, death crosses, distribution patterns, liquidity drains, CISS stress, and any anomalous readings across all data. Rate overall market risk 1-10 and list specific threats with probability and impact.'},
+    {icon:'💰',title:'Portfolio Optimizer',desc:'AI-optimized portfolio allocation based on current macro conditions',task:'Based on current Khalid Index, risk dashboard, and macro conditions, build an optimal portfolio allocation. Include: core positions (stocks/ETFs), fixed income allocation, commodity hedges, crypto allocation, and cash reserve. Provide specific ticker recommendations with position sizes and rationale for each. Factor in current sector rotation and risk levels.'},
+    {icon:'📈',title:'Trade Ideas',desc:'Generate 10 high-conviction trade ideas with entry, target, and stop levels',task:'Generate 10 high-conviction trade ideas based on current technical and macro data. For each trade: specify ticker, direction (long/short), entry price, target price, stop loss, risk/reward ratio, timeframe, and the specific technical/macro catalyst. Prioritize trades with golden crosses, MACD bullish crossovers, and strong accumulation in sectors aligned with the macro trend.'},
+    {icon:'🌐',title:'Macro Forecast',desc:'Multi-scenario macro forecast with probability weightings',task:'Build a multi-scenario macro forecast for the next 3-6 months. Create 3 scenarios (Bull, Base, Bear) with probability weightings. For each: describe the macro path (rates, inflation, growth), sector implications, specific trades, and portfolio positioning. Use current data (Khalid Index, yield curve, credit spreads, liquidity) to justify probabilities.'},
+    {icon:'₿',title:'Crypto Deep Dive',desc:'Comprehensive crypto analysis with on-chain context and correlation to macro',task:'Deep dive into the crypto market. Analyze BTC, ETH, SOL and all tracked crypto. Cover: correlation with macro liquidity, risk-on/risk-off positioning, technical levels, DXY impact on crypto, institutional flow signals. Provide specific price targets and portfolio allocation recommendations for crypto.'},
+    {icon:'🏛',title:'Fed Impact Analysis',desc:'Analyze Federal Reserve policy impact on all asset classes',task:'Analyze the current Federal Reserve policy stance and its impact across all asset classes. Cover: fed funds rate trajectory, QT impact on liquidity, yield curve implications, credit market stress, equity market multiple compression/expansion, dollar strength impact on EM and commodities. What is the Fed likely to do next and how should we position?'},
+  ];
+  document.getElementById('tab-agent').innerHTML = `
+  <div style="margin-bottom:12px;font-size:11px;color:var(--dim)">
+    AI Agent powered by Claude • Executes complex financial analysis tasks using all live data
+  </div>
+  <div class="agent-grid">
+    ${tasks.map((t,i)=>`<div class="agent-task" onclick="runAgent(${i})">
+      <div class="agent-icon">${t.icon}</div>
+      <h4>${t.title}</h4>
+      <p>${t.desc}</p>
+    </div>`).join('')}
+  </div>
+  <div id="agentStatus" class="agent-status" style="display:none"><div class="agent-spinner"></div><span id="agentStatusText">Running...</span></div>
+  <div id="agentOutput" class="agent-output" style="display:none"></div>`;
+  window._agentTasks = tasks;
+}
+async function runAgent(idx) {
+  if(agentBusy || !CHAT_API_URL) { if(!CHAT_API_URL) alert('Chat API not configured. Deploy chat Lambda first.'); return; }
+  const task = window._agentTasks[idx];
+  agentBusy = true;
+  const status = document.getElementById('agentStatus');
+  const statusText = document.getElementById('agentStatusText');
+  const output = document.getElementById('agentOutput');
+  status.style.display = 'flex';
+  statusText.textContent = 'Running: ' + task.title + '...';
+  output.style.display = 'block';
+  output.innerHTML = '<span class="typing">Analyzing live market data across all indicators...</span>';
+  try {
+    const resp = await fetch(CHAT_API_URL, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({task:task.task,mode:'agent'})});
+    const data = await resp.json();
+    output.innerHTML = mdToHtml(data.reply || data.error || 'No response');
+    statusText.textContent = '✅ ' + task.title + ' complete';
+  } catch(e) {
+    output.innerHTML = 'Error: ' + e.message;
+    statusText.textContent = '❌ Failed: ' + e.message;
+  }
+  agentBusy = false;
+  setTimeout(()=>{ status.style.display='none'; }, 5000);
+}
 </script>
 </body>
 </html>
