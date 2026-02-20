@@ -73,6 +73,20 @@ def build_system_prompt(report, mode='chat'):
     sol = crypto.get('SOL', {})
     crypto_text = f"BTC ${btc.get('price',0):,.0f} ({btc.get('change_24h',0):+.1f}% 24h) | ETH ${eth.get('price',0):,.0f} ({eth.get('change_24h',0):+.1f}%) | SOL ${sol.get('price',0):,.0f} ({sol.get('change_24h',0):+.1f}%)"
 
+    # Market flow summary
+    flow = report.get('market_flow', {})
+    flow_text = ''
+    if flow:
+        bought = flow.get('most_bought', [])[:10]
+        sold = flow.get('most_sold', [])[:10]
+        sec_buy = flow.get('sectors_buying', [])
+        sec_sell = flow.get('sectors_selling', [])
+        flow_text += f"\nBuying pressure: {flow.get('total_buying',0)} stocks | Selling pressure: {flow.get('total_selling',0)} stocks"
+        flow_text += f"\nSectors with inflows: {', '.join(sec_buy[:8])}"
+        flow_text += f"\nSectors with outflows: {', '.join(sec_sell[:8])}"
+        if bought: flow_text += "\nTop bought: " + ', '.join([f"{b['ticker']}(+{b['flow_score']})" for b in bought])
+        if sold: flow_text += "\nTop sold: " + ', '.join([f"{s['ticker']}({s['flow_score']})" for s in sold])
+
     ts = report.get('generated_at', 'unknown')
 
     base = f"""You are JustHodl AI, Khalid's elite financial intelligence assistant embedded in his Bloomberg Terminal V10.3.
@@ -128,6 +142,8 @@ Warnings: {', '.join(signals.get('warnings',[])[:10])}
 {news_text}
 
 === AI ANALYSIS SUMMARY ==={ai_text}
+
+=== MARKET FLOW ==={flow_text}
 
 === DATA COVERAGE ===
 {stats.get('fred',0)} FRED series | {stats.get('stocks',0)} stocks | {stats.get('crypto',0)} crypto | {stats.get('ecb_ciss',0)} ECB CISS | {len(news)} news articles

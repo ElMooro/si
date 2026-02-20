@@ -452,9 +452,142 @@ def fetch_financial_news():
     news.sort(key=lambda x: (rank.get(x['importance'],2), x.get('pub','')), reverse=False)
     return news[:40]
 
-# ============================================================
-# COMPUTE FUNCTIONS
-# ============================================================
+def fetch_newsapi_headlines():
+    """Fetch premium financial news from NewsAPI for real-time coverage"""
+    NEWSAPI_KEY = '17d36cdd13c44e139853b3a6876cf940'
+    news = []
+    seen = set()
+    queries = [
+        ('top-headlines?country=us&category=business', 'Business'),
+        ('everything?q=stock+market+OR+wall+street+OR+S%26P+500&sortBy=publishedAt&language=en&pageSize=15', 'Markets'),
+        ('everything?q=federal+reserve+OR+interest+rates+OR+inflation&sortBy=publishedAt&language=en&pageSize=10', 'Fed/Macro'),
+        ('everything?q=private+equity+OR+hedge+fund+OR+IPO+OR+acquisition&sortBy=publishedAt&language=en&pageSize=10', 'Deals/PE'),
+        ('everything?q=bitcoin+OR+ethereum+OR+crypto&sortBy=publishedAt&language=en&pageSize=8', 'Crypto'),
+        ('everything?q=commodities+OR+oil+OR+gold+prices&sortBy=publishedAt&language=en&pageSize=8', 'Commodities'),
+    ]
+    critical_kw = ['crash','crisis','emergency','recession','default','collapse','tariff','rate cut','rate hike',
+                   'fed decision','fomc','inflation surge','bank fail','systemic','plunge','surge','soar','halt',
+                   'redemption','suspend','freeze','liquidat','bankrupt','downgrade','margin call','circuit breaker']
+    high_kw = ['earnings','revenue','gdp','cpi','jobs','payroll','pmi','ism','ipo','merger','acquisition',
+               'dividend','buyback','guidance','forecast','outlook','upgrade','rating','bond','yield','spread']
+    for endpoint, category in queries:
+        try:
+            url = f'https://newsapi.org/v2/{endpoint}&apiKey={NEWSAPI_KEY}'
+            req = urllib.request.Request(url, headers={'User-Agent': 'JustHodl/10.3'})
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                data = json.loads(resp.read())
+                for a in data.get('articles', [])[:10]:
+                    t = (a.get('title') or '').strip()
+                    if not t or t in seen or '[Removed]' in t: continue
+                    seen.add(t)
+                    src = (a.get('source',{}).get('name') or '')
+                    desc = (a.get('description') or '')[:200]
+                    pub = a.get('publishedAt','')
+                    link = a.get('url','')
+                    tl = t.lower() + ' ' + desc.lower()
+                    importance = 'normal'
+                    if any(k in tl for k in critical_kw): importance = 'critical'
+                    elif any(k in tl for k in high_kw): importance = 'high'
+                    news.append({'title':t,'source':src,'category':category,'pub':pub,'link':link,
+                                 'importance':importance,'description':desc})
+        except Exception as e:
+            print(f"  NewsAPI error {category}: {e}")
+    rank = {'critical':0,'high':1,'normal':2}
+    news.sort(key=lambda x: (rank.get(x['importance'],2), x.get('pub','')), reverse=False)
+    return news[:60]
+
+def compute_market_flow(sd):
+    """Analyze buying/selling pressure across all stocks using volume, price action, and technicals"""
+    SECTOR_MAP = {
+        'AAPL':'Technology','MSFT':'Technology','NVDA':'Technology','GOOGL':'Technology','META':'Technology',
+        'AMZN':'Consumer Discretionary','TSLA':'Consumer Discretionary','NFLX':'Consumer Discretionary','HD':'Consumer Discretionary',
+        'JPM':'Financials','BAC':'Financials','GS':'Financials','MS':'Financials','WFC':'Financials','C':'Financials','BLK':'Financials','SCHW':'Financials',
+        'JNJ':'Healthcare','UNH':'Healthcare','PFE':'Healthcare','ABBV':'Healthcare','LLY':'Healthcare','MRK':'Healthcare',
+        'XOM':'Energy','CVX':'Energy','COP':'Energy','SLB':'Energy','OXY':'Energy',
+        'CAT':'Industrials','BA':'Industrials','UPS':'Industrials','GE':'Industrials','RTX':'Industrials','LMT':'Industrials','DE':'Industrials',
+        'PG':'Consumer Staples','KO':'Consumer Staples','PEP':'Consumer Staples','WMT':'Consumer Staples','COST':'Consumer Staples',
+        'NEE':'Utilities','DUK':'Utilities','SO':'Utilities',
+        'AMT':'Real Estate','PLD':'Real Estate','CCI':'Real Estate','O':'Real Estate',
+        'T':'Communications','VZ':'Communications','DIS':'Communications','CMCSA':'Communications',
+        'FCX':'Materials','NEM':'Materials','APD':'Materials',
+        'XLK':'Technology','XLF':'Financials','XLE':'Energy','XLV':'Healthcare','XLI':'Industrials',
+        'XLU':'Utilities','XLP':'Consumer Staples','XLY':'Consumer Discretionary','XLB':'Materials','XLC':'Communications','XLRE':'Real Estate',
+        'QQQ':'Technology','SPY':'Broad Market','DIA':'Broad Market','IWM':'Small Cap','VTI':'Broad Market',
+        'SOXX':'Semiconductors','SMH':'Semiconductors','AMD':'Semiconductors','INTC':'Semiconductors','AVGO':'Semiconductors','MU':'Semiconductors',
+        'GLD':'Gold','SLV':'Silver','USO':'Oil','UNG':'Natural Gas','GBTC':'Crypto','IBIT':'Crypto',
+        'TLT':'Bonds','IEF':'Bonds','SHY':'Bonds','HYG':'High Yield','LQD':'Investment Grade','JNK':'High Yield',
+        'EFA':'International','EEM':'Emerging Markets','FXI':'China','INDA':'India','EWJ':'Japan',
+        'TQQQ':'Leveraged Tech','SOXL':'Leveraged Semi','UPRO':'Leveraged S&P','SPXL':'Leveraged S&P',
+        'SQQQ':'Inverse Tech','SPXS':'Inverse S&P',
+        'V':'Financials','MA':'Financials','PYPL':'Financials','SQ':'Financials',
+        'CRM':'Technology','ADBE':'Technology','NOW':'Technology','PANW':'Technology','SNOW':'Technology',
+        'COIN':'Crypto','MSTR':'Crypto','MARA':'Crypto','RIOT':'Crypto',
+        'ARM':'Semiconductors','PLTR':'Technology','UBER':'Technology','ABNB':'Consumer Discretionary',
+    }
+    # Classify each stock
+    most_bought = []
+    most_sold = []
+    sector_flow = {}
+    for t, s in sd.items():
+        if not s.get('price') or not s.get('volume'): continue
+        dp = s.get('day_pct', 0)
+        wp = s.get('week_pct', 0)
+        vol = s.get('volume', 0)
+        score = s.get('score', 50)
+        ad = s.get('ad_signal', '')
+        cross = s.get('cross', '')
+        macd_x = s.get('macd_cross', '')
+        # Compute flow score: positive = buying, negative = selling
+        flow = 0
+        flow += dp * 2  # Day move weighted
+        flow += wp * 0.5  # Week trend
+        if ad == 'ACCUMULATION': flow += 8
+        elif ad == 'DISTRIBUTION': flow -= 8
+        if cross in ('GOLDEN', 'GOLDEN_NEW'): flow += 10
+        elif cross in ('DEATH', 'DEATH_NEW'): flow -= 10
+        if macd_x in ('BULLISH',): flow += 6
+        elif macd_x in ('BEARISH',): flow -= 6
+        if macd_x == 'BULL': flow += 2
+        elif macd_x == 'BEAR': flow -= 2
+        sector = SECTOR_MAP.get(t, 'Other')
+        entry = {'ticker': t, 'price': s['price'], 'day_pct': dp, 'week_pct': wp, 'volume': vol,
+                 'score': score, 'grade': s.get('grade',''), 'ad_signal': ad, 'cross': cross,
+                 'macd_cross': macd_x, 'flow_score': round(flow, 1), 'sector': sector,
+                 'rsi': s.get('rsi14', 0), 'month_pct': s.get('month_pct', 0)}
+        if flow > 0:
+            most_bought.append(entry)
+        else:
+            most_sold.append(entry)
+        # Sector aggregation
+        if sector not in sector_flow:
+            sector_flow[sector] = {'inflow': 0, 'outflow': 0, 'net': 0, 'count': 0, 'tickers': []}
+        if flow > 0:
+            sector_flow[sector]['inflow'] += flow
+        else:
+            sector_flow[sector]['outflow'] += flow
+        sector_flow[sector]['net'] += flow
+        sector_flow[sector]['count'] += 1
+        sector_flow[sector]['tickers'].append({'t': t, 'f': round(flow, 1), 'dp': dp})
+    most_bought.sort(key=lambda x: x['flow_score'], reverse=True)
+    most_sold.sort(key=lambda x: x['flow_score'])
+    # Sort sectors by net flow
+    sector_ranked = sorted(sector_flow.items(), key=lambda x: x[1]['net'], reverse=True)
+    # Top movers per sector
+    for sec, data in sector_flow.items():
+        data['tickers'].sort(key=lambda x: x['f'], reverse=True)
+        data['tickers'] = data['tickers'][:5]  # Top 5 per sector
+        data['inflow'] = round(data['inflow'], 1)
+        data['outflow'] = round(data['outflow'], 1)
+        data['net'] = round(data['net'], 1)
+    return {
+        'most_bought': most_bought[:25],
+        'most_sold': most_sold[:25],
+        'sector_flow': dict(sector_ranked),
+        'sectors_buying': [s for s, d in sector_ranked if d['net'] > 0],
+        'sectors_selling': [s for s, d in sector_ranked if d['net'] < 0],
+        'total_buying': len(most_bought),
+        'total_selling': len(most_sold),
+    }
 def compute_changes(pts):
     if not pts or len(pts) < 1:
         return {'current': None}
@@ -1211,10 +1344,23 @@ def lambda_handler(event, context):
     ecb_ciss = fetch_ecb_ciss()
     print(f"[V10] ECB CISS: {len(ecb_ciss)} series")
 
-    # ── PHASE 3.6: FINANCIAL NEWS ──
-    print("[V10] Financial News...")
-    news = fetch_financial_news()
-    print(f"[V10] News: {len(news)} headlines")
+    # ── PHASE 3.6: FINANCIAL NEWS (NewsAPI + RSS fallback) ──
+    print("[V10] Financial News (NewsAPI + RSS)...")
+    news = []
+    try:
+        news = fetch_newsapi_headlines()
+        print(f"[V10] NewsAPI: {len(news)} headlines")
+    except Exception as e:
+        print(f"[V10] NewsAPI failed: {e}")
+    if len(news) < 10:
+        rss_news = fetch_financial_news()
+        seen = {n['title'] for n in news}
+        for n in rss_news:
+            if n['title'] not in seen:
+                news.append(n)
+                seen.add(n['title'])
+        news.sort(key=lambda x: ({'critical':0,'high':1,'normal':2}.get(x.get('importance','normal'),2), x.get('pub','')))
+    print(f"[V10] News total: {len(news)} headlines")
 
     # ── PHASE 4: ANALYTICS ──
     ki = compute_ki(fd, sd)
@@ -1236,6 +1382,11 @@ def lambda_handler(event, context):
         elif s['price']<s['sma50']<s['sma200']: sigs['sells'].append(t)
         if s.get('day_pct',0)<-3: sigs['warnings'].append(f"{t} {s['day_pct']:.1f}%")
 
+    # ── PHASE 4.5: MARKET FLOW ANALYSIS ──
+    print("[V10] Computing market flow...")
+    market_flow = compute_market_flow(sd)
+    print(f"[V10] Flow: {market_flow['total_buying']} buying, {market_flow['total_selling']} selling, {len(market_flow['sectors_buying'])} sectors up")
+
     # ── PHASE 5: AI ANALYSIS ──
     print("[V10] AI Analysis...")
     ai = ai_analysis(fd, sd, crypto, ki, risk, nl, ecb_ciss)
@@ -1245,7 +1396,7 @@ def lambda_handler(event, context):
         'version':'V10','generated_at':datetime.utcnow().isoformat()+'Z',
         'fetch_time_seconds':round(time.time()-t0,1),
         'khalid_index':ki,'risk_dashboard':risk,'net_liquidity':nl,
-        'sectors':sectors,'signals':sigs,
+        'sectors':sectors,'signals':sigs,'market_flow':market_flow,
         'fred':fd,'stocks':sd,'crypto':crypto,'crypto_global':crypto_g,
         'ecb_ciss':ecb_ciss,
         'news':news,

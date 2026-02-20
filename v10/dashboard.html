@@ -181,10 +181,11 @@ const TABS = [
   {id:'crypto',label:'Crypto',icon:'₿'},
   {id:'ecb',label:'ECB/Europe',icon:'🏦'},
   {id:'commodities',label:'Commodities',icon:'🛢'},
+  {id:'flow',label:'Market Flow',icon:'🔄'},
   {id:'chat',label:'AI Chat',icon:'💬'},
   {id:'agent',label:'AI Agent',icon:'🤖'},
 ];
-const CHAT_API_URL = '';  // Will be set by deploy command
+const CHAT_API_URL = 'https://zh3c6izcbzcqwcia4m6dmjnupy0dbnns.lambda-url.us-east-1.on.aws/';
 let chatHistory = [];
 let agentBusy = false;
 function mdToHtml(md) {
@@ -270,7 +271,7 @@ function renderAll() {
   [renderHeader,renderOverview,renderBestPlays,renderMyPortfolio,renderNews,
    renderAI,renderPortfolio,renderTreasury,renderDXY,renderCredit,
    renderLiquidity,renderMacro,renderInflation,renderRisk,renderCISS,
-   renderEquities,renderCrypto,renderECB,renderCommodities,renderChat,renderAgent
+   renderEquities,renderCrypto,renderECB,renderCommodities,renderMarketFlow,renderChat,renderAgent
   ].forEach(fn => { try { fn(); } catch(e) { console.error('RENDER ERROR:', fn.name, e); } });
 }
 
@@ -394,35 +395,59 @@ function renderNews() {
   const high = news.filter(n=>n.importance==='high');
   const normal = news.filter(n=>n.importance==='normal');
 
+  function newsCard(n) {
+    const desc = n.description ? `<div style="font-size:11px;color:var(--dim);margin:3px 0 0 0;line-height:1.4">${n.description}</div>` : '';
+    const link = n.link ? `<a href="${n.link}" target="_blank" style="color:var(--cyan);font-size:10px;text-decoration:none;margin-left:4px">↗ Read</a>` : '';
+    return `<div class="news-item" style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <span class="news-badge ${n.importance==='critical'?'news-critical':n.importance==='high'?'news-high':'news-normal'}">${n.importance.toUpperCase()}</span>
+        <span class="news-cat">${n.category}</span>
+        <span class="news-time">${timeAgo(n.pub)}</span>
+      </div>
+      <div class="news-title" style="margin-top:4px">${n.title} <span class="news-source">— ${n.source}</span>${link}</div>
+      ${desc}
+    </div>`;
+  }
+
+  // Category filter buttons
+  const cats = [...new Set(news.map(n=>n.category))];
+  const catBtns = cats.map(c=>`<button onclick="filterNews('${c}')" style="background:var(--panel);border:1px solid var(--border);color:var(--dim);padding:3px 10px;border-radius:12px;cursor:pointer;font-size:10px">${c}</button>`).join('');
+
   el.innerHTML = `
-  <div style="font-size:11px;color:var(--dim);margin-bottom:10px">Live financial news from multiple sources • Critical market-moving events highlighted • Updated with each Lambda run</div>
+  <div style="font-size:11px;color:var(--dim);margin-bottom:8px">Live financial news via NewsAPI + RSS • ${news.length} headlines • Critical events highlighted
+    <div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap">
+      <button onclick="filterNews('all')" style="background:var(--cyan);border:none;color:#000;padding:3px 10px;border-radius:12px;cursor:pointer;font-size:10px;font-weight:bold">All (${news.length})</button>
+      ${catBtns}
+    </div>
+  </div>
   ${critical.length ? `<div class="card" style="border-left:3px solid var(--red)">
-    <h3 style="color:var(--red)">🚨 CRITICAL / MARKET-MOVING</h3>
-    ${critical.map(n=>`<div class="news-item">
-      <span class="news-badge news-critical">${n.importance.toUpperCase()}</span>
-      <span class="news-cat">${n.category}</span>
-      <div class="news-title">${n.title} <span class="news-source">— ${n.source}</span></div>
-      <span class="news-time">${timeAgo(n.pub)}</span>
-    </div>`).join('')}
+    <h3 style="color:var(--red)">🚨 CRITICAL / MARKET-MOVING (${critical.length})</h3>
+    ${critical.map(newsCard).join('')}
   </div>` : ''}
   ${high.length ? `<div class="card" style="border-left:3px solid var(--orange);margin-top:10px">
-    <h3 style="color:var(--orange)">📊 HIGH IMPORTANCE — Data & Economic</h3>
-    ${high.map(n=>`<div class="news-item">
-      <span class="news-badge news-high">${n.importance.toUpperCase()}</span>
-      <span class="news-cat">${n.category}</span>
-      <div class="news-title">${n.title} <span class="news-source">— ${n.source}</span></div>
-      <span class="news-time">${timeAgo(n.pub)}</span>
-    </div>`).join('')}
+    <h3 style="color:var(--orange)">📊 HIGH IMPORTANCE (${high.length})</h3>
+    ${high.map(newsCard).join('')}
   </div>` : ''}
-  <div class="card" style="margin-top:10px">
-    <h3>📰 ALL FINANCIAL NEWS</h3>
-    ${normal.concat(high).concat(critical).map(n=>`<div class="news-item">
-      <span class="news-badge ${n.importance==='critical'?'news-critical':n.importance==='high'?'news-high':'news-normal'}">${n.importance.toUpperCase()}</span>
-      <span class="news-cat">${n.category}</span>
-      <div class="news-title">${n.title} <span class="news-source">— ${n.source}</span></div>
-      <span class="news-time">${timeAgo(n.pub)}</span>
-    </div>`).join('')}
+  <div class="card" style="margin-top:10px" id="newsAll">
+    <h3>📰 ALL HEADLINES (${news.length})</h3>
+    ${news.map(newsCard).join('')}
   </div>`;
+}
+function filterNews(cat) {
+  const news = D.news || [];
+  const filtered = cat==='all' ? news : news.filter(n=>n.category===cat);
+  const el = document.getElementById('newsAll');
+  if(!el) return;
+  function timeAgo(pub) { if(!pub)return''; const d=new Date(pub),now=new Date(),diff=Math.floor((now-d)/60000); return diff<60?diff+'m ago':diff<1440?Math.floor(diff/60)+'h ago':Math.floor(diff/1440)+'d ago'; }
+  el.innerHTML = `<h3>📰 ${cat==='all'?'ALL':cat.toUpperCase()} HEADLINES (${filtered.length})</h3>` +
+    filtered.map(n=>{
+      const desc = n.description ? `<div style="font-size:11px;color:var(--dim);margin:3px 0 0 0">${n.description}</div>` : '';
+      const link = n.link ? `<a href="${n.link}" target="_blank" style="color:var(--cyan);font-size:10px;text-decoration:none;margin-left:4px">↗</a>` : '';
+      return `<div class="news-item" style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+        <div style="display:flex;align-items:center;gap:6px"><span class="news-badge ${n.importance==='critical'?'news-critical':n.importance==='high'?'news-high':'news-normal'}">${n.importance.toUpperCase()}</span><span class="news-cat">${n.category}</span><span class="news-time">${timeAgo(n.pub)}</span></div>
+        <div class="news-title" style="margin-top:4px">${n.title} <span class="news-source">— ${n.source}</span>${link}</div>${desc}
+      </div>`;
+    }).join('');
 }
 
 // ═══════════════════════════════════════
@@ -825,6 +850,115 @@ function renderCrypto() {
 
 init();
 setInterval(loadData, 300000); // 5 min refresh
+
+function renderMarketFlow() {
+  const flow = D.market_flow;
+  const el = document.getElementById('tab-flow');
+  if(!flow) { el.innerHTML = '<div class="card"><h3>🔄 Market Flow</h3><p style="color:var(--dim)">Waiting for market flow data. Run Lambda to generate.</p></div>'; return; }
+
+  const bought = flow.most_bought || [];
+  const sold = flow.most_sold || [];
+  const sf = flow.sector_flow || {};
+  const secBuying = flow.sectors_buying || [];
+  const secSelling = flow.sectors_selling || [];
+
+  function flowBar(val, max) {
+    const pct = Math.min(Math.abs(val) / (max||1) * 100, 100);
+    const color = val > 0 ? 'var(--green)' : 'var(--red)';
+    return `<div style="width:60px;height:6px;background:rgba(255,255,255,0.1);border-radius:3px;display:inline-block;vertical-align:middle">
+      <div style="width:${pct}%;height:100%;background:${color};border-radius:3px"></div></div>`;
+  }
+
+  const maxFlow = Math.max(...bought.map(b=>Math.abs(b.flow_score||0)), ...sold.map(s=>Math.abs(s.flow_score||0)), 1);
+  const maxSec = Math.max(...Object.values(sf).map(s=>Math.abs(s.net||0)), 1);
+
+  el.innerHTML = `
+  <div style="font-size:11px;color:var(--dim);margin-bottom:10px">
+    Real-time buying & selling pressure across ${flow.total_buying+flow.total_selling} instruments •
+    <span style="color:var(--green)">●</span> ${flow.total_buying} with buying pressure
+    <span style="color:var(--red);margin-left:8px">●</span> ${flow.total_selling} with selling pressure
+  </div>
+
+  <!-- SECTOR FLOW HEATMAP -->
+  <div class="card" style="margin-bottom:10px">
+    <h3>📊 Sector Money Flow</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-top:8px">
+      ${Object.entries(sf).map(([sec,d])=>{
+        const color = d.net > 5 ? 'var(--green)' : d.net < -5 ? 'var(--red)' : 'var(--amber)';
+        const arrow = d.net > 0 ? '▲' : d.net < 0 ? '▼' : '▬';
+        const bg = d.net > 10 ? 'rgba(0,200,83,0.08)' : d.net < -10 ? 'rgba(255,23,68,0.08)' : 'rgba(255,255,255,0.02)';
+        const topTickers = (d.tickers||[]).slice(0,3).map(t=>`<span style="color:${t.f>0?'var(--green)':'var(--red)'};font-size:10px">${t.t} ${t.dp>0?'+':''}${t.dp}%</span>`).join(', ');
+        return `<div style="background:${bg};border:1px solid var(--border);border-radius:6px;padding:8px">
+          <div style="font-weight:bold;color:${color};font-size:13px">${arrow} ${sec}</div>
+          <div style="font-size:20px;font-weight:900;color:${color};margin:4px 0">${d.net>0?'+':''}${d.net}</div>
+          <div style="font-size:10px;color:var(--dim)">${d.count} instruments</div>
+          <div style="font-size:10px;margin-top:4px">${topTickers}</div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <!-- MOST BOUGHT -->
+    <div class="card">
+      <h3 style="color:var(--green)">🟢 Most Bought — Strongest Inflows (${bought.length})</h3>
+      <div style="font-size:10px;color:var(--dim);margin-bottom:6px">Ranked by composite flow score (price action + volume + MACD + Cross + A/D)</div>
+      <table style="width:100%;font-size:11px">
+        <tr style="color:var(--dim)"><th style="text-align:left">Ticker</th><th>Sector</th><th>Price</th><th>Day</th><th>Week</th><th>Flow</th><th>Signal</th><th>Score</th></tr>
+        ${bought.slice(0,20).map((s,i)=>`<tr style="border-bottom:1px solid rgba(255,255,255,0.03)">
+          <td style="font-weight:bold;color:var(--green)">${i<3?'🏆':''}${s.ticker}</td>
+          <td style="color:var(--dim);font-size:10px">${s.sector}</td>
+          <td>$${s.price.toLocaleString()}</td>
+          <td style="color:${s.day_pct>=0?'var(--green)':'var(--red)'}">${s.day_pct>=0?'+':''}${s.day_pct}%</td>
+          <td style="color:${s.week_pct>=0?'var(--green)':'var(--red)'}">${s.week_pct>=0?'+':''}${s.week_pct}%</td>
+          <td style="color:var(--green);font-weight:bold">+${s.flow_score}</td>
+          <td style="font-size:10px">${s.cross&&s.cross!='NONE'?'⭐'+s.cross:''}${s.macd_cross=='BULLISH'?' 📈MACD':''}</td>
+          <td><span style="background:${s.score>=70?'var(--green)':s.score>=50?'var(--amber)':'var(--red)'};color:#000;padding:1px 5px;border-radius:3px;font-size:10px;font-weight:bold">${s.score} ${s.grade}</span></td>
+        </tr>`).join('')}
+      </table>
+    </div>
+
+    <!-- MOST SOLD -->
+    <div class="card">
+      <h3 style="color:var(--red)">🔴 Most Sold — Strongest Outflows (${sold.length})</h3>
+      <div style="font-size:10px;color:var(--dim);margin-bottom:6px">Stocks/ETFs under heaviest selling pressure</div>
+      <table style="width:100%;font-size:11px">
+        <tr style="color:var(--dim)"><th style="text-align:left">Ticker</th><th>Sector</th><th>Price</th><th>Day</th><th>Week</th><th>Flow</th><th>Signal</th><th>Score</th></tr>
+        ${sold.slice(0,20).map((s,i)=>`<tr style="border-bottom:1px solid rgba(255,255,255,0.03)">
+          <td style="font-weight:bold;color:var(--red)">${i<3?'⚠️':''}${s.ticker}</td>
+          <td style="color:var(--dim);font-size:10px">${s.sector}</td>
+          <td>$${s.price.toLocaleString()}</td>
+          <td style="color:${s.day_pct>=0?'var(--green)':'var(--red)'}">${s.day_pct>=0?'+':''}${s.day_pct}%</td>
+          <td style="color:${s.week_pct>=0?'var(--green)':'var(--red)'}">${s.week_pct>=0?'+':''}${s.week_pct}%</td>
+          <td style="color:var(--red);font-weight:bold">${s.flow_score}</td>
+          <td style="font-size:10px">${s.cross&&s.cross!='NONE'?'💀'+s.cross:''}${s.macd_cross=='BEARISH'?' 📉MACD':''}</td>
+          <td><span style="background:${s.score>=70?'var(--green)':s.score>=50?'var(--amber)':'var(--red)'};color:#000;padding:1px 5px;border-radius:3px;font-size:10px;font-weight:bold">${s.score} ${s.grade}</span></td>
+        </tr>`).join('')}
+      </table>
+    </div>
+  </div>
+
+  <!-- SECTOR SUMMARY -->
+  <div class="card" style="margin-top:10px">
+    <h3>🏦 Sector Summary</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:8px">
+      <div>
+        <h4 style="color:var(--green);font-size:12px;margin-bottom:6px">▲ SECTORS WITH NET BUYING (${secBuying.length})</h4>
+        ${secBuying.map(s=>`<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.03)">
+          <span style="color:var(--green)">${s}</span>
+          <span style="color:var(--green);font-weight:bold">+${sf[s]?.net||0} ${flowBar(sf[s]?.net||0, maxSec)}</span>
+        </div>`).join('')}
+      </div>
+      <div>
+        <h4 style="color:var(--red);font-size:12px;margin-bottom:6px">▼ SECTORS WITH NET SELLING (${secSelling.length})</h4>
+        ${secSelling.map(s=>`<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.03)">
+          <span style="color:var(--red)">${s}</span>
+          <span style="color:var(--red);font-weight:bold">${sf[s]?.net||0} ${flowBar(sf[s]?.net||0, maxSec)}</span>
+        </div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
 
 function renderChat() {
   document.getElementById('tab-chat').innerHTML = `
