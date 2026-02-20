@@ -1,10 +1,9 @@
-import json, urllib.request, ssl, os, time, traceback
+import json, urllib.request, urllib.error, ssl, os, time, traceback
 
 ANTHROPIC_KEY = os.environ.get('ANTHROPIC_API_KEY','')
 S3_BUCKET = os.environ.get('S3_BUCKET','justhodl-dashboard-live')
 
 def get_report_data():
-    """Fetch latest report.json from S3 for context"""
     try:
         import boto3
         s3 = boto3.client('s3', region_name='us-east-1')
@@ -15,178 +14,111 @@ def get_report_data():
         return None
 
 def build_system_prompt(report, mode='chat'):
-    """Build context-rich system prompt from live market data"""
+    """Build COMPACT system prompt — keep under 15K chars to avoid 529"""
     if not report:
-        return "You are JustHodl AI, a professional financial analyst. No live data currently available."
+        return "You are JustHodl AI, Khalid's financial intelligence assistant. No live data loaded."
 
     ki = report.get('khalid_index', {})
     risk = report.get('risk_dashboard', {})
     nl = report.get('net_liquidity', {})
-    stats = report.get('stats', {})
-    signals = report.get('signals', {})
-    sectors = report.get('sectors', {})
-    ai = report.get('ai_analysis', {})
     stocks = report.get('stocks', {})
     crypto = report.get('crypto', {})
+    signals = report.get('signals', {})
     news = report.get('news', [])
-    fred = report.get('fred', {})
+    ai = report.get('ai_analysis', {})
+    flow = report.get('market_flow', {})
+    ts = report.get('generated_at', 'unknown')
+    stats = report.get('stats', {})
 
-    # Top movers
-    stock_list = [(t, s) for t, s in stocks.items() if s.get('price')]
-    top_gainers = sorted(stock_list, key=lambda x: x[1].get('day_pct', 0), reverse=True)[:10]
-    top_losers = sorted(stock_list, key=lambda x: x[1].get('day_pct', 0))[:10]
-    strong_buys = [(t, s) for t, s in stock_list if s.get('grade') == 'STRONG_BUY']
-    strong_sells = [(t, s) for t, s in stock_list if s.get('grade') == 'STRONG_SELL']
-    golden_crosses = [(t, s) for t, s in stock_list if s.get('cross') == 'GOLDEN_NEW']
-    death_crosses = [(t, s) for t, s in stock_list if s.get('cross') == 'DEATH_NEW']
+    # COMPACT STOCKS: top/bottom scored + day movers
+    scored = [(t, s) for t, s in stocks.items() if s.get('score')]
+    scored.sort(key=lambda x: x[1].get('score', 50), reverse=True)
+    top10 = scored[:10]
+    bot10 = scored[-10:] if len(scored) > 10 else []
+    day_sorted = sorted(stocks.items(), key=lambda x: x[1].get('day_pct', 0), reverse=True)
+    top_gain = day_sorted[:8]
+    top_loss = day_sorted[-8:] if len(day_sorted) > 8 else []
 
-    # Key FRED values
-    def gv(cat, sid):
-        return fred.get(cat, {}).get(sid, {}).get('current')
+    def sl(t, s):
+        return f"{t} ${s.get('price',0):.2f} d:{s.get('day_pct',0):+.1f}% w:{s.get('week_pct',0):+.1f}% RSI:{s.get('rsi14','-')} MACD:{s.get('macd_cross','-')} Score:{s.get('score','-')}{s.get('grade','')}"
 
-    # Breaking news
-    critical_news = [n for n in news if n.get('importance') == 'critical'][:5]
-    high_news = [n for n in news if n.get('importance') == 'high'][:5]
-    news_text = '\n'.join([f"  [{n['importance'].upper()}] {n['title']} ({n.get('source','')})" for n in (critical_news + high_news)[:10]])
+    stock_text = "TOP:\n" + "\n".join([sl(t,s) for t,s in top10])
+    stock_text += "\nBOTTOM:\n" + "\n".join([sl(t,s) for t,s in bot10])
+    stock_text += "\nGAINERS:\n" + "\n".join([sl(t,s) for t,s in top_gain])
+    stock_text += "\nLOSERS:\n" + "\n".join([sl(t,s) for t,s in top_loss])
 
-    # Sector performance
-    sector_text = '\n'.join([f"  {s['name']}: Day {s.get('day_pct',0):+.1f}% | Week {s.get('week_pct',0):+.1f}% | Month {s.get('month_pct',0):+.1f}%" for _, s in sorted(sectors.items(), key=lambda x: x[1].get('day_pct', 0), reverse=True)])
+    # All stocks compact reference
+    all_ref = ",".join([f"{t}:{s.get('price',0):.0f}/{s.get('day_pct',0):+.1f}/{s.get('score','')}" for t,s in sorted(stocks.items())])
 
-    # AI sections summary
+    # Crypto
+    crypto_text = "|".join([f"{t} ${c.get('price',0):,.0f} {c.get('change_24h',0):+.1f}%" for t,c in list(crypto.items())[:10]])
+
+    # News (compact)
+    imp_news = [n for n in news if n.get('importance') in ('critical','high')][:10]
+    news_text = "\n".join([f"[{n['importance'][:4].upper()}] {n['title'][:80]}" for n in imp_news])
+
+    # AI analysis (compact)
     ai_text = ''
-    for key, sec in ai.get('sections', {}).items():
-        outlook = sec.get('outlook', '')
-        sigs = sec.get('signals', [])[:3]
-        ai_text += f"\n  {sec.get('title', key)} [{outlook}]: {'; '.join(sigs)}"
+    for key, sec in (ai.get('sections', {}) or {}).items():
+        ai_text += f"\n{key}: {sec.get('outlook','')} — {'; '.join(sec.get('signals',[])[:2])}"
+
+    # Flow
+    flow_text = ''
+    if flow:
+        flow_text = f"\nBuying:{flow.get('total_buying',0)} Selling:{flow.get('total_selling',0)}"
+        flow_text += f"\nIn:{','.join(flow.get('sectors_buying',[])[:6])}"
+        flow_text += f"\nOut:{','.join(flow.get('sectors_selling',[])[:6])}"
+
+    # Sectors
+    sectors = report.get('sectors', {})
+    sec_text = "|".join([f"{v.get('name',k)} d:{v.get('day_pct',0):+.1f}% m:{v.get('month_pct',0):+.1f}%" for k,v in sectors.items()])
 
     # Best plays
     bp = ai.get('best_plays', {})
     bp_text = ''
-    for cat in ['top_stocks', 'top_etfs', 'top_bonds', 'top_commodities', 'top_crypto']:
-        items = bp.get(cat, [])[:5]
-        if items:
-            bp_text += f"\n  {cat.replace('_',' ').title()}: " + ', '.join([f"{i['ticker']} (Score:{i.get('score','?')} {i.get('grade','')})" for i in items])
+    for cat, items in (bp or {}).items():
+        if items: bp_text += f"\n{cat}: " + ",".join([f"{i['ticker']}({i.get('score','?')})" for i in items[:5]])
 
-    # Crypto summary
-    btc = crypto.get('BTC', {})
-    eth = crypto.get('ETH', {})
-    sol = crypto.get('SOL', {})
-    crypto_text = f"BTC ${btc.get('price',0):,.0f} ({btc.get('change_24h',0):+.1f}% 24h) | ETH ${eth.get('price',0):,.0f} ({eth.get('change_24h',0):+.1f}%) | SOL ${sol.get('price',0):,.0f} ({sol.get('change_24h',0):+.1f}%)"
+    base = f"""You are JustHodl AI in Khalid's Bloomberg Terminal V10.4.
+LIVE DATA {ts}. {stats.get('stocks',0)} stocks, {stats.get('fred',0)} FRED, {stats.get('crypto',0)} crypto.
 
-    # Market flow summary
-    flow = report.get('market_flow', {})
-    flow_text = ''
-    if flow:
-        bought = flow.get('most_bought', [])[:10]
-        sold = flow.get('most_sold', [])[:10]
-        sec_buy = flow.get('sectors_buying', [])
-        sec_sell = flow.get('sectors_selling', [])
-        flow_text += f"\nBuying pressure: {flow.get('total_buying',0)} stocks | Selling pressure: {flow.get('total_selling',0)} stocks"
-        flow_text += f"\nSectors with inflows: {', '.join(sec_buy[:8])}"
-        flow_text += f"\nSectors with outflows: {', '.join(sec_sell[:8])}"
-        if bought: flow_text += "\nTop bought: " + ', '.join([f"{b['ticker']}(+{b['flow_score']})" for b in bought])
-        if sold: flow_text += "\nTop sold: " + ', '.join([f"{s['ticker']}({s['flow_score']})" for s in sold])
+KI:{ki.get('score','?')}/100 Regime:{ki.get('regime','')}
+Risk:{risk.get('composite',{}).get('score','?')}/100 {risk.get('composite',{}).get('level','')}
+NetLiq:${nl.get('net_liquidity',0)/1e12:.2f}T
 
-    ts = report.get('generated_at', 'unknown')
+SECTORS: {sec_text}
+SIGNALS: Buys:{','.join(signals.get('buys',[])[:10])} Sells:{','.join(signals.get('sells',[])[:10])}
 
-    base = f"""You are JustHodl AI, Khalid's elite financial intelligence assistant embedded in his Bloomberg Terminal V10.3.
-You have access to LIVE market data updated at {ts}.
+{stock_text}
 
-=== KHALID INDEX ===
-Score: {ki.get('score','?')}/100 | Regime: {ki.get('regime','?')}
-Components: {', '.join([f"{s[0]}: {s[1]:+d} ({s[2]})" for s in ki.get('signals',[])])}
+ALL({len(stocks)}):{all_ref}
 
-=== RISK DASHBOARD ===
-Composite: {risk.get('composite','?')}/100 | Credit: {risk.get('credit','?')} | Liquidity: {risk.get('liquidity','?')} | Market: {risk.get('market','?')} | Recession: {risk.get('recession','?')} | Systemic: {risk.get('systemic','?')} | Inflation: {risk.get('inflation','?')}
+CRYPTO:{crypto_text}
 
-=== NET LIQUIDITY ===
-Net: ${nl.get('net',0)/1e6:.2f}T | Fed: ${nl.get('fed',0)/1e6:.2f}T | TGA: ${nl.get('tga',0)/1e6:.2f}T | RRP: ${nl.get('rrp',0):.0f}B
-
-=== KEY RATES ===
-VIX: {gv('risk','VIXCLS')} | 10Y: {gv('treasury','DGS10')} | 2Y: {gv('treasury','DGS2')} | FFR: {gv('treasury','DFF')} | DXY: {gv('dxy','DTWEXBGS')} | HY Spread: {gv('ice_bofa','BAMLH0A0HYM2')}
-Curve 10Y-2Y: {gv('treasury','T10Y2Y')} | 10Y-3M: {gv('treasury','T10Y3M')} | 30Y Mort: {gv('risk','MORTGAGE30US')}
-CPI: {gv('inflation','CPALTT01USM657N')} | Unemp: {gv('macro','UNRATE')} | GDP: {gv('macro','A191RL1Q225SBEA')}
-
-=== SECTORS ===
-{sector_text}
-
-=== SIGNALS ===
-Bullish ({len(signals.get('buys',[]))}): {', '.join(signals.get('buys',[])[:15])}
-Bearish ({len(signals.get('sells',[]))}): {', '.join(signals.get('sells',[])[:15])}
-Warnings: {', '.join(signals.get('warnings',[])[:10])}
-
-=== TOP GAINERS ===
-{', '.join([f"{t} {s.get('day_pct',0):+.1f}%" for t,s in top_gainers])}
-
-=== TOP LOSERS ===
-{', '.join([f"{t} {s.get('day_pct',0):+.1f}%" for t,s in top_losers])}
-
-=== STRONG BUY SIGNALS ({len(strong_buys)}) ===
-{', '.join([f"{t}(Score:{s.get('score','?')})" for t,s in strong_buys[:15]])}
-
-=== STRONG SELL SIGNALS ({len(strong_sells)}) ===
-{', '.join([f"{t}(Score:{s.get('score','?')})" for t,s in strong_sells[:15]])}
-
-=== NEW GOLDEN CROSSES ===
-{', '.join([t for t,_ in golden_crosses]) or 'None today'}
-
-=== NEW DEATH CROSSES ===
-{', '.join([t for t,_ in death_crosses]) or 'None today'}
-
-=== BEST PLAYS ==={bp_text}
-
-=== CRYPTO ===
-{crypto_text}
-
-=== BREAKING NEWS ===
+NEWS:
 {news_text}
 
-=== AI ANALYSIS SUMMARY ==={ai_text}
-
-=== MARKET FLOW ==={flow_text}
-
-=== DATA COVERAGE ===
-{stats.get('fred',0)} FRED series | {stats.get('stocks',0)} stocks | {stats.get('crypto',0)} crypto | {stats.get('ecb_ciss',0)} ECB CISS | {len(news)} news articles
+AI:{ai_text}
+PLAYS:{bp_text}
+FLOW:{flow_text}
 """
 
-    if mode == 'chat':
-        base += """
-INSTRUCTIONS:
-- Answer questions about markets using the LIVE data above
-- Be direct, data-driven, cite specific numbers
-- Give actionable insights when asked
-- If asked about a specific ticker, provide its full stats
-- Format with markdown for readability
-- You ARE the terminal's AI brain — speak with authority"""
-    elif mode == 'agent':
-        base += """
-INSTRUCTIONS — AGENT MODE:
-You are an autonomous financial agent. When given a task, execute it thoroughly using all data above.
-Available tasks:
-1. SCAN: Deep scan for opportunities across all 188 stocks, bonds, commodities, crypto
-2. ANALYZE: Deep analysis of any ticker, sector, or macro theme
-3. REPORT: Generate comprehensive market intelligence report
-4. ALERT: Identify critical market conditions, anomalies, or risks
-5. STRATEGY: Build investment strategies based on current conditions
-6. COMPARE: Cross-asset or cross-sector comparison
-7. FORECAST: Probability-weighted scenario analysis
-8. PORTFOLIO: Analyze portfolio positioning vs current macro
-
-For each task, be exhaustive and professional. Include specific data points.
-Format with clear sections using markdown headers and tables where helpful.
-Always conclude with actionable next steps."""
+    if mode == 'agent':
+        base += "\nAGENT: Execute thoroughly. Cite exact numbers. Use markdown tables. Be exhaustive."
+    else:
+        base += "\nBe direct, cite numbers, use markdown. You ARE the terminal AI."
 
     return base
 
+
 def call_claude(system, messages, max_tokens=4000):
-    """Call Anthropic API with retry on 429/529"""
     data = json.dumps({
         "model": "claude-sonnet-4-20250514",
         "max_tokens": max_tokens,
         "system": system,
         "messages": messages
     }).encode()
-    
+
     for attempt in range(3):
         try:
             req = urllib.request.Request(
@@ -204,15 +136,16 @@ def call_claude(system, messages, max_tokens=4000):
             return resp.get('content', [{}])[0].get('text', 'No response')
         except urllib.error.HTTPError as e:
             code = e.code
-            print(f"[CHAT] Anthropic HTTP {code} attempt {attempt+1}/3")
+            body = ''
+            try: body = e.read().decode()[:300]
+            except: pass
+            print(f"[CHAT] HTTP {code} attempt {attempt+1}/3: {body}")
             if code in (429, 529) and attempt < 2:
-                wait = (attempt + 1) * 5
-                print(f"[CHAT] Retrying in {wait}s...")
-                time.sleep(wait)
+                time.sleep((attempt + 1) * 8)
                 continue
-            body = e.read().decode() if hasattr(e, 'read') else ''
-            raise Exception(f"Anthropic API error {code}: {body[:200]}")
-    raise Exception("Anthropic API failed after 3 retries")
+            raise Exception(f"Anthropic {code}: {body[:200]}")
+    raise Exception("Anthropic failed after 3 retries")
+
 
 def lambda_handler(event, context):
     headers = {
@@ -222,7 +155,6 @@ def lambda_handler(event, context):
         'Access-Control-Allow-Methods': 'POST,OPTIONS'
     }
 
-    # Handle CORS
     method = event.get('httpMethod') or event.get('requestContext', {}).get('http', {}).get('method', '')
     if method == 'OPTIONS':
         return {'statusCode': 200, 'headers': headers, 'body': '{}'}
@@ -230,22 +162,29 @@ def lambda_handler(event, context):
     try:
         body = json.loads(event.get('body', '{}')) if isinstance(event.get('body'), str) else event
         messages = body.get('messages', [])
-        mode = body.get('mode', 'chat')  # 'chat' or 'agent'
-        task = body.get('task', '')  # For agent mode preset tasks
+        mode = body.get('mode', 'chat')
+        task = body.get('task', '')
 
         if not messages and not task:
-            return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'No message provided'})}
+            return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'No message'})}
 
-        # Get live market data for context
+        t0 = time.time()
         report = get_report_data()
-        system = build_system_prompt(report, mode)
+        load_time = round(time.time() - t0, 1)
 
-        # For agent mode with preset task
+        system = build_system_prompt(report, mode)
+        print(f"[CHAT] Prompt: {len(system)} chars, report: {'yes' if report else 'no'}")
+
         if mode == 'agent' and task and not messages:
             messages = [{'role': 'user', 'content': task}]
 
         reply = call_claude(system, messages)
-        return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'reply': reply, 'mode': mode, 'data_available': report is not None})}
+        return {'statusCode': 200, 'headers': headers, 'body': json.dumps({
+            'reply': reply, 'mode': mode,
+            'data_available': report is not None,
+            'prompt_chars': len(system),
+            'load_time': load_time
+        })}
 
     except Exception as e:
         print(f"[CHAT] Error: {traceback.format_exc()}")
