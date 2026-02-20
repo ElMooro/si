@@ -179,26 +179,40 @@ Always conclude with actionable next steps."""
     return base
 
 def call_claude(system, messages, max_tokens=4000):
-    """Call Anthropic API"""
+    """Call Anthropic API with retry on 429/529"""
     data = json.dumps({
         "model": "claude-sonnet-4-20250514",
         "max_tokens": max_tokens,
         "system": system,
         "messages": messages
     }).encode()
-    req = urllib.request.Request(
-        'https://api.anthropic.com/v1/messages',
-        data=data,
-        headers={
-            'Content-Type': 'application/json',
-            'x-api-key': ANTHROPIC_KEY,
-            'anthropic-version': '2023-06-01'
-        }
-    )
-    ctx = ssl.create_default_context()
-    with urllib.request.urlopen(req, timeout=60, context=ctx) as r:
-        resp = json.loads(r.read())
-    return resp.get('content', [{}])[0].get('text', 'No response')
+    
+    for attempt in range(3):
+        try:
+            req = urllib.request.Request(
+                'https://api.anthropic.com/v1/messages',
+                data=data,
+                headers={
+                    'Content-Type': 'application/json',
+                    'x-api-key': ANTHROPIC_KEY,
+                    'anthropic-version': '2023-06-01'
+                }
+            )
+            ctx = ssl.create_default_context()
+            with urllib.request.urlopen(req, timeout=80, context=ctx) as r:
+                resp = json.loads(r.read())
+            return resp.get('content', [{}])[0].get('text', 'No response')
+        except urllib.error.HTTPError as e:
+            code = e.code
+            print(f"[CHAT] Anthropic HTTP {code} attempt {attempt+1}/3")
+            if code in (429, 529) and attempt < 2:
+                wait = (attempt + 1) * 5
+                print(f"[CHAT] Retrying in {wait}s...")
+                time.sleep(wait)
+                continue
+            body = e.read().decode() if hasattr(e, 'read') else ''
+            raise Exception(f"Anthropic API error {code}: {body[:200]}")
+    raise Exception("Anthropic API failed after 3 retries")
 
 def lambda_handler(event, context):
     headers = {
