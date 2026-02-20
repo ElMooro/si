@@ -30,11 +30,10 @@ header{background:linear-gradient(135deg,#0d1117,#161b22);border-bottom:1px soli
 .sec{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:20px}
 .st{font-size:16px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
 .g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
 .g5{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
 .m{background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:8px;padding:14px}
-.ml{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
+.ml2{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
 .mv{font-size:20px;font-weight:600;font-family:JetBrains Mono,monospace;margin-top:4px}
 .ms .mv{font-size:16px}
 .pr{display:flex;gap:12px;margin-top:12px}
@@ -50,9 +49,9 @@ td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.03)}
 tr:hover td{background:rgba(255,255,255,.02)}
 .sig{padding:3px 8px;border-radius:4px;font-size:11px;font-weight:600;font-family:JetBrains Mono,monospace}
 .sig.sb2{background:rgba(63,185,80,.25);color:#56d364}
-.sig.b{background:rgba(63,185,80,.15);color:var(--green)}
-.sig.n{background:rgba(210,153,34,.15);color:var(--yellow)}
-.sig.br{background:rgba(248,81,73,.15);color:var(--red)}
+.sig.bu{background:rgba(63,185,80,.15);color:var(--green)}
+.sig.ne{background:rgba(210,153,34,.15);color:var(--yellow)}
+.sig.be{background:rgba(248,81,73,.15);color:var(--red)}
 .sig.sbr{background:rgba(248,81,73,.25);color:#ff7b72}
 .rg{width:100%;height:24px;background:linear-gradient(90deg,var(--green) 0%,var(--yellow) 40%,var(--orange) 65%,var(--red) 100%);border-radius:12px;position:relative;margin:12px 0}
 .rn{position:absolute;top:-4px;width:4px;height:32px;background:#fff;border-radius:2px;transition:left .8s}
@@ -61,119 +60,162 @@ tr:hover td{background:rgba(255,255,255,.02)}
 .tn{font-size:14px;font-weight:600;margin-bottom:6px;font-family:JetBrains Mono,monospace}
 .tt{font-size:12px;color:var(--dim);line-height:1.5;margin-bottom:8px}
 .tm{display:flex;gap:8px;flex-wrap:wrap}
-.tg2{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:500}
-.tg2.h{background:rgba(63,185,80,.15);color:var(--green)}
-.tg2.md{background:rgba(210,153,34,.15);color:var(--yellow)}
-.tg2.l{background:rgba(248,81,73,.15);color:var(--red)}
-.tg2.t{background:rgba(88,166,255,.1);color:var(--cyan)}
+.tag{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:500}
+.tag.hi{background:rgba(63,185,80,.15);color:var(--green)}
+.tag.md{background:rgba(210,153,34,.15);color:var(--yellow)}
+.tag.lo{background:rgba(248,81,73,.15);color:var(--red)}
+.tag.ti{background:rgba(88,166,255,.1);color:var(--cyan)}
 .rc{background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}
 .rcn{font-size:13px;font-weight:600;margin-bottom:8px}
 .rcs{font-size:28px;font-weight:700;font-family:JetBrains Mono,monospace}
 .rco{font-size:11px;font-weight:600;margin-top:4px;padding:2px 8px;border-radius:4px;display:inline-block}
 .rco.ow{background:rgba(63,185,80,.15);color:var(--green)}
 .rco.uw{background:rgba(248,81,73,.15);color:var(--red)}
-.rco.ne{background:rgba(210,153,34,.15);color:var(--yellow)}
+.rco.nu{background:rgba(210,153,34,.15);color:var(--yellow)}
 .fl{list-style:none;padding:0}
 .fl li{padding:6px 0;border-bottom:1px solid rgba(255,255,255,.03);font-size:13px;color:var(--dim)}
-.fl li::before{content:">";margin-right:8px;color:var(--cyan)}
 .cr{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03)}
-.cn{width:120px;font-size:12px;color:var(--dim);text-transform:uppercase}
+.cn2{width:120px;font-size:12px;color:var(--dim);text-transform:uppercase}
 .cbw{flex:1;height:8px;background:rgba(255,255,255,.05);border-radius:4px;overflow:hidden}
-.cb{height:100%;border-radius:4px;transition:width .8s}
-.cv{width:50px;text-align:right;font-size:13px;font-family:JetBrains Mono,monospace;font-weight:600}
+.cb2{height:100%;border-radius:4px;transition:width .8s}
+.cv2{width:50px;text-align:right;font-size:13px;font-family:JetBrains Mono,monospace;font-weight:600}
 .ld{text-align:center;padding:60px;color:var(--dim)}
 .sp{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--cyan);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .nb{color:var(--cyan);text-decoration:none;font-size:13px}
 footer{text-align:center;padding:32px;color:var(--dim);font-size:12px;border-top:1px solid var(--border);margin-top:20px}
-@media(max-width:900px){.ban,.g2,.g3,.g4,.g5,.tg{grid-template-columns:1fr}.ctr{padding:16px}}
+@media(max-width:900px){.ban,.g2,.g4,.g5,.tg{grid-template-columns:1fr}.ctr{padding:16px}}
 </style>
 </head>
 <body>
 <header>
 <div class="logo"><a href="/" class="nb">Back</a><h1>ML Predictions Engine</h1><span>v2.0</span></div>
-<div class="hmeta"><span><span class="dot"></span><span id="as">Loading...</span></span><span id="lu">-</span></div>
+<div class="hmeta"><span><span class="dot"></span><span id="as">Loading...</span></span><span id="lu"></span></div>
 </header>
-<div class="ctr" id="app"><div class="ld" id="loader"><div class="sp"></div>Loading predictions from 19+ agents...</div></div>
+<div class="ctr" id="app"><div class="ld"><div class="sp"></div>Loading predictions from 19+ agents...</div></div>
 <footer>JustHodl.AI ML Predictions Engine | 23 agents | 650+ indicators | Auto-refreshes every 5 min</footer>
 <script>
-const S3="https://justhodl-dashboard-live.s3.amazonaws.com/predictions.json";
+var DATA_URL="https://justhodl-dashboard-live.s3.amazonaws.com/predictions.json";
 function cc(s){return s>=75?"#56d364":s>=60?"#3fb950":s>=45?"#d29922":s>=30?"#f85149":"#ff7b72"}
-function sc(s){return s>=75?"sb2":s>=60?"b":s>=45?"n":s>=30?"br":"sbr"}
+function sc(s){return s>=75?"sb2":s>=60?"bu":s>=45?"ne":s>=30?"be":"sbr"}
+function fmt(n){if(!n||n===0)return"-";if(Math.abs(n)>=1e6)return(n/1e6).toFixed(1)+"M";if(Math.abs(n)>=1e3)return(n/1e3).toFixed(1)+"K";return typeof n==="number"?n.toFixed(2):n}
+
 function render(d){
-const app=document.getElementById("app"),es=d.executive_summary||{},liq=d.liquidity||{},risk=d.risk||{},carry=d.carry_trade||{},sec=d.sector_rotation||{},us=d.us_equities||{},gm=d.global_markets||{},trades=d.trade_recommendations||[],snap=d.market_snapshot||{};
+var app=document.getElementById("app");
+var es=d.executive_summary||{};
+var liq=d.liquidity||{};
+var risk=d.risk||{};
+var carry=d.carry_trade||{};
+var sec=d.sector_rotation||{};
+var us=d.us_equities||{};
+var gm=d.global_markets||{};
+var trades=d.trade_recommendations||[];
+var snap=d.market_snapshot||{};
+
 document.getElementById("as").textContent=d.agents_online+"/"+d.total_agents+" agents";
-document.getElementById("lu").textContent="Updated: "+(d.generated_at_et||new Date(d.generated_at).toLocaleString());
-let h="<div class=ban>";
-h+="<div class=bc><div class=bl>Market Regime</div><div class=bv style=color:var(--cyan)>"+(es.market_regime||"-").replace(/_/g," ")+"</div><div class=bs>"+(es.regime_description||"")+"</div></div>";
-h+="<div class=bc><div class=bl>Composite Risk</div><div class=bv style=color:"+cc(100-(es.risk_score||0))+">"+(es.overall_risk||"-")+"</div><div class=bs>Score: "+(es.risk_score||0)+"</div></div>";
-h+="<div class=bc><div class=bl>Liquidity</div><div class=bv style=color:"+cc(es.liquidity_score||50)+">"+(es.liquidity_trend||"-")+"</div><div class=bs>Score: "+(es.liquidity_score||0)+"</div></div>";
-h+="<div class=bc><div class=bl>US Outlook</div><div class=bv style=color:"+cc(us.score||50)+">"+(es.us_outlook||"-").replace(/_/g," ")+"</div><div class=bs>S&P 500: "+fmt(snap.sp500)+"</div></div>";
+document.getElementById("lu").textContent="Updated: "+(d.generated_at_et||"");
+
+var h="";
+
+h+="<div class='ban'>";
+h+="<div class='bc'><div class='bl'>Market Regime</div><div class='bv' style='color:var(--cyan)'>"+(es.market_regime||"-").replace(/_/g," ")+"</div><div class='bs'>"+(es.regime_description||"")+"</div></div>";
+h+="<div class='bc'><div class='bl'>Composite Risk</div><div class='bv' style='color:"+cc(100-(es.risk_score||0))+"'>"+(es.overall_risk||"-")+"</div><div class='bs'>Score: "+(es.risk_score||0)+"</div></div>";
+h+="<div class='bc'><div class='bl'>Liquidity</div><div class='bv' style='color:"+cc(es.liquidity_score||50)+"'>"+(es.liquidity_trend||"-")+"</div><div class='bs'>Score: "+(es.liquidity_score||0)+"</div></div>";
+h+="<div class='bc'><div class='bl'>US Outlook</div><div class='bv' style='color:"+cc(us.score||50)+"'>"+(es.us_outlook||"-").replace(/_/g," ")+"</div><div class='bs'>S&amp;P 500: "+fmt(snap.sp500)+"</div></div>";
 h+="</div>";
+
 var lp=liq.predictions||{};
-h+="<div class=sec><div class=st>Liquidity Analysis</div><div class=g4>";
-h+="<div class=m><div class=ml>Score</div><div class=mv style=color:"+cc(liq.score||0)+">"+(liq.score||0)+"</div><div class=sb><div class=sf style=width:"+(liq.score||0)+"%;background:"+cc(liq.score||0)+"></div></div></div>";
-h+="<div class=m><div class=ml>Net Liquidity</div><div class=mv>"+fmt(liq.net_liquidity)+"</div></div>";
-h+="<div class=m><div class=ml>Fed Balance Sheet</div><div class=mv>"+fmt(liq.fed_balance_sheet)+"</div></div>";
-h+="<div class=m><div class=ml>Reverse Repo</div><div class=mv>"+fmt(liq.reverse_repo)+"</div></div></div>";
-h+="<div class=g4 style=margin-top:12px>";
-h+="<div class='m ms'><div class=ml>TGA</div><div class=mv>"+fmt(liq.tga)+"</div></div>";
-h+="<div class='m ms'><div class=ml>Global Score</div><div class=mv>"+fmt(liq.global_score)+"</div></div>";
-h+="<div class='m ms'><div class=ml>SOFR</div><div class=mv>"+fmt(liq.sofr)+"%</div></div>";
-h+="<div class='m ms'><div class=ml>EFFR</div><div class=mv>"+fmt(liq.effr)+"%</div></div></div>";
-h+="<div class=pr>";["1_week","1_month","3_month"].forEach(function(k){var p=lp[k]||{};h+="<div class=pc><div class=pl>"+k.replace("_"," ")+"</div><div class=pd style=color:"+cc(p.confidence||50)+">"+(p.direction||"-")+"</div><div class=pcf>Confidence: "+(p.confidence||0)+"%</div></div>"});
+h+="<div class='sec'><div class='st'>Liquidity Analysis</div><div class='g4'>";
+h+="<div class='m'><div class='ml2'>Score</div><div class='mv' style='color:"+cc(liq.score||0)+"'>"+(liq.score||0)+"</div><div class='sb'><div class='sf' style='width:"+(liq.score||0)+"%;background:"+cc(liq.score||0)+"'></div></div></div>";
+h+="<div class='m'><div class='ml2'>Net Liquidity</div><div class='mv'>"+fmt(liq.net_liquidity)+"</div></div>";
+h+="<div class='m'><div class='ml2'>Fed Balance Sheet</div><div class='mv'>"+fmt(liq.fed_balance_sheet)+"</div></div>";
+h+="<div class='m'><div class='ml2'>Reverse Repo</div><div class='mv'>"+fmt(liq.reverse_repo)+"</div></div>";
+h+="</div><div class='g4' style='margin-top:12px'>";
+h+="<div class='m ms'><div class='ml2'>TGA</div><div class='mv'>"+fmt(liq.tga)+"</div></div>";
+h+="<div class='m ms'><div class='ml2'>Global Score</div><div class='mv'>"+fmt(liq.global_score)+"</div></div>";
+h+="<div class='m ms'><div class='ml2'>SOFR</div><div class='mv'>"+fmt(liq.sofr)+"%</div></div>";
+h+="<div class='m ms'><div class='ml2'>EFFR</div><div class='mv'>"+fmt(liq.effr)+"%</div></div>";
+h+="</div><div class='pr'>";
+var pkeys=["1_week","1_month","3_month"];
+for(var i=0;i<pkeys.length;i++){var p=lp[pkeys[i]]||{};h+="<div class='pc'><div class='pl'>"+pkeys[i].replace("_"," ")+"</div><div class='pd' style='color:"+cc(p.confidence||50)+"'>"+(p.direction||"-")+"</div><div class='pcf'>Confidence: "+(p.confidence||0)+"%</div></div>";}
 h+="</div></div>";
+
 var rc=risk.components||{};
-h+="<div class=sec><div class=st>Risk Assessment</div><div class=g2><div>";
-h+="<div class=m style=margin-bottom:16px><div class=ml>Composite Risk</div><div class=mv style=font-size:32px;color:"+cc(100-(risk.composite_score||0))+">"+(risk.composite_score||0)+" <span style=font-size:16px>"+(risk.level||"")+"</span></div></div>";
-h+="<div class=rg><div class=rn style=left:"+Math.min(98,Math.max(2,risk.composite_score||0))+"%></div></div>";
-h+="<div style=display:flex;justify-content:space-between;font-size:10px;color:var(--dim);margin-top:4px><span>LOW</span><span>MODERATE</span><span>ELEVATED</span><span>HIGH</span><span>EXTREME</span></div>";
+h+="<div class='sec'><div class='st'>Risk Assessment</div><div class='g2'><div>";
+h+="<div class='m' style='margin-bottom:16px'><div class='ml2'>Composite Risk</div><div class='mv' style='font-size:32px;color:"+cc(100-(risk.composite_score||0))+"'>"+(risk.composite_score||0)+" <span style='font-size:16px'>"+(risk.level||"")+"</span></div></div>";
+h+="<div class='rg'><div class='rn' style='left:"+Math.min(98,Math.max(2,risk.composite_score||0))+"%'></div></div>";
+h+="<div style='display:flex;justify-content:space-between;font-size:10px;color:var(--dim);margin-top:4px'><span>LOW</span><span>MODERATE</span><span>ELEVATED</span><span>HIGH</span><span>EXTREME</span></div>";
 h+="</div><div>";
-["volatility","credit","yield_curve","dollar_strength","crisis"].forEach(function(k){var c=rc[k];if(cd /c/Users/soule && git clone https://github.com/ElMooro/si.git si-repo && cd si-repo && ls *.html 2>/dev/null && git remote -v)return;h+="<div class=cr><div class=cn>"+k.replace(/_/g," ")+"</div><div class=cbw><div class=cb style=width:"+c.score+"%;background:"+cc(100-c.score)+"></div></div><div class=cv style=color:"+cc(100-c.score)+">"+c.score+"</div></div>"});
+var rkeys=["volatility","credit","yield_curve","dollar_strength","crisis"];
+for(var i=0;i<rkeys.length;i++){var c=rc[rkeys[i]];if(!c)continue;h+="<div class='cr'><div class='cn2'>"+rkeys[i].replace(/_/g," ")+"</div><div class='cbw'><div class='cb2' style='width:"+c.score+"%;background:"+cc(100-c.score)+"'></div></div><div class='cv2' style='color:"+cc(100-c.score)+"'>"+c.score+"</div></div>";}
 h+="</div></div></div>";
-h+="<div class=sec><div class=st>Carry Trade Analysis</div><div class=g4>";
-h+="<div class=m><div class=ml>Unwind Risk</div><div class=mv style=color:"+cc(100-(carry.risk_score||0))+">"+(carry.risk_score||0)+"</div><div class=sb><div class=sf style=width:"+(carry.risk_score||0)+"%;background:"+cc(100-(carry.risk_score||0))+"></div></div></div>";
-h+="<div class=m><div class=ml>USD/JPY</div><div class=mv>"+fmt(carry.usdjpy)+"</div></div>";
-h+="<div class=m><div class=ml>DXY</div><div class=mv>"+fmt(carry.dxy)+"</div></div>";
-h+="<div class=m><div class=ml>US 10Y</div><div class=mv>"+fmt(carry.us_10y)+"%</div></div></div>";
-if(carry.factors&&carry.factors.length){h+="<ul class=fl style=margin-top:12px>";carry.factors.forEach(function(f){h+="<li>"+f+"</li>"});h+="</ul>"}
-if(carry.opportunities&&carry.opportunities.length){h+="<div class=tg style=margin-top:12px>";carry.opportunities.forEach(function(o){h+="<div class=tc><div class=tn>"+o.trade+"</div><div class=tt>"+o.rationale+"</div><div class=tm><span class='tg2 "+(o.risk==="HIGH"?"l":o.risk==="MODERATE"?"md":"h")+"'>"+o.risk+"</span><span class='tg2 t'>"+(o.expected_return||"")+"</span></div></div>"});h+="</div>"}
+
+h+="<div class='sec'><div class='st'>Carry Trade Analysis</div><div class='g4'>";
+h+="<div class='m'><div class='ml2'>Unwind Risk</div><div class='mv' style='color:"+cc(100-(carry.risk_score||0))+"'>"+(carry.risk_score||0)+"</div><div class='sb'><div class='sf' style='width:"+(carry.risk_score||0)+"%;background:"+cc(100-(carry.risk_score||0))+"'></div></div></div>";
+h+="<div class='m'><div class='ml2'>USD/JPY</div><div class='mv'>"+fmt(carry.usdjpy)+"</div></div>";
+h+="<div class='m'><div class='ml2'>DXY</div><div class='mv'>"+fmt(carry.dxy)+"</div></div>";
+h+="<div class='m'><div class='ml2'>US 10Y</div><div class='mv'>"+fmt(carry.us_10y)+"%</div></div>";
 h+="</div>";
+var cf=carry.factors||[];
+if(cf.length){h+="<ul class='fl' style='margin-top:12px'>";for(var i=0;i<cf.length;i++){h+="<li>"+cf[i]+"</li>";}h+="</ul>";}
+var co=carry.opportunities||[];
+if(co.length){h+="<div class='tg' style='margin-top:12px'>";for(var i=0;i<co.length;i++){var o=co[i];h+="<div class='tc'><div class='tn'>"+o.trade+"</div><div class='tt'>"+o.rationale+"</div><div class='tm'><span class='tag "+(o.risk==="HIGH"?"lo":o.risk==="MODERATE"?"md":"hi")+"'>"+o.risk+"</span><span class='tag ti'>"+(o.expected_return||"")+"</span></div></div>";}h+="</div>";}
+h+="</div>";
+
 var secs=sec.sectors||[];
-h+="<div class=sec><div class=st>Sector Rotation - "+(sec.macro_regime||"").replace(/_/g," ")+"</div>";
+h+="<div class='sec'><div class='st'>Sector Rotation - "+(sec.macro_regime||"").replace(/_/g," ")+"</div>";
 h+="<table><thead><tr><th>#</th><th>Sector</th><th>ETF</th><th>Score</th><th>Signal</th><th>Strength</th><th>Top Stocks</th></tr></thead><tbody>";
-secs.forEach(function(s,i){
-h+="<tr><td style=color:var(--dim)>"+(i+1)+"</td><td style=font-weight:500>"+s.sector+"</td>";
-h+="<td class=mono>"+s.etf+"</td>";
-h+="<td class=mono style=color:"+cc(s.score)+">"+s.score+"</td>";
+for(var i=0;i<secs.length;i++){var s=secs[i];
+h+="<tr><td style='color:var(--dim)'>"+(i+1)+"</td><td style='font-weight:500'>"+s.sector+"</td>";
+h+="<td class='mono'>"+s.etf+"</td>";
+h+="<td class='mono' style='color:"+cc(s.score)+"'>"+s.score+"</td>";
 h+="<td><span class='sig "+sc(s.score)+"'>"+(s.signal||"").replace(/_/g," ")+"</span></td>";
-h+="<td><div class=sb style=width:120px;display:inline-block;vertical-align:middle><div class=sf style=width:"+s.score+"%;background:"+cc(s.score)+"></div></div></td>";
-h+="<td style=font-size:11px;color:var(--dim)>"+(s.top_stocks||[]).join(", ")+"</td></tr>"});
+h+="<td><div class='sb' style='width:120px;display:inline-block;vertical-align:middle'><div class='sf' style='width:"+s.score+"%;background:"+cc(s.score)+"'></div></div></td>";
+h+="<td style='font-size:11px;color:var(--dim)'>"+(s.top_stocks||[]).join(", ")+"</td></tr>";}
 h+="</tbody></table></div>";
+
 var up=us.predictions||{};
-h+="<div class=sec><div class=st>US Equities</div><div class=g4>";
-h+="<div class=m><div class=ml>S&P 500</div><div class=mv>"+fmt(us.sp500_current)+"</div></div>";
-h+="<div class=m><div class=ml>Score</div><div class=mv style=color:"+cc(us.score||50)+">"+(us.score||0)+"</div></div>";
-h+="<div class=m><div class=ml>VIX</div><div class=mv>"+fmt(us.vix)+"</div></div>";
-h+="<div class=m><div class=ml>DXY</div><div class=mv>"+fmt(us.dxy)+"</div></div></div>";
-h+="<div class=g2 style=margin-top:12px><div><div class=st style=font-size:13px;color:var(--green)>Bullish Factors</div><ul class=fl>";
-(us.bullish_factors||[]).forEach(function(f){h+="<li style=color:var(--green)>"+f+"</li>"});
-h+="</ul></div><div><div class=st style=font-size:13px;color:var(--red)>Bearish Factors</div><ul class=fl>";
-(us.bearish_factors||[]).forEach(function(f){h+="<li style=color:var(--red)>"+f+"</li>"});
-h+="</ul></div></div>";
-h+="<div class=pr>";["1_week","1_month","3_month"].forEach(function(k){var p=up[k]||{};h+="<div class=pc><div class=pl>"+k.replace("_"," ")+"</div><div class=pd style=color:"+cc(p.confidence||50)+">"+(p.direction||"-")+"</div><div class=mono style=font-size:16px;margin:4px>$"+fmt(p.target)+"</div><div class=pcf>Confidence: "+(p.confidence||0)+"%</div></div>"});
+h+="<div class='sec'><div class='st'>US Equities</div><div class='g4'>";
+h+="<div class='m'><div class='ml2'>S&amp;P 500</div><div class='mv'>"+fmt(us.sp500_current)+"</div></div>";
+h+="<div class='m'><div class='ml2'>Score</div><div class='mv' style='color:"+cc(us.score||50)+"'>"+(us.score||0)+"</div></div>";
+h+="<div class='m'><div class='ml2'>VIX</div><div class='mv'>"+fmt(us.vix)+"</div></div>";
+h+="<div class='m'><div class='ml2'>DXY</div><div class='mv'>"+fmt(us.dxy)+"</div></div>";
+h+="</div><div class='g2' style='margin-top:12px'><div><div class='st' style='font-size:13px;color:var(--green)'>Bullish Factors</div><ul class='fl'>";
+var bf=us.bullish_factors||[];
+if(bf.length){for(var i=0;i<bf.length;i++){h+="<li style='color:var(--green)'>"+bf[i]+"</li>";}}else{h+="<li>None detected</li>";}
+h+="</ul></div><div><div class='st' style='font-size:13px;color:var(--red)'>Bearish Factors</div><ul class='fl'>";
+var brf=us.bearish_factors||[];
+if(brf.length){for(var i=0;i<brf.length;i++){h+="<li style='color:var(--red)'>"+brf[i]+"</li>";}}else{h+="<li>None detected</li>";}
+h+="</ul></div></div><div class='pr'>";
+for(var i=0;i<pkeys.length;i++){var p=up[pkeys[i]]||{};h+="<div class='pc'><div class='pl'>"+pkeys[i].replace("_"," ")+"</div><div class='pd' style='color:"+cc(p.confidence||50)+"'>"+(p.direction||"-")+"</div><div class='mono' style='font-size:16px;margin:4px 0'>$"+fmt(p.target)+"</div><div class='pcf'>Confidence: "+(p.confidence||0)+"%</div></div>";}
 h+="</div></div>";
+
 var regs=gm.regions||{};
-h+="<div class=sec><div class=st>Global Markets</div><div class=g5>";
-Object.keys(regs).forEach(function(k){var v=regs[k];var oc=v.outlook==="OVERWEIGHT"?"ow":v.outlook==="UNDERWEIGHT"?"uw":"ne";
-h+="<div class=rc><div class=rcn>"+k+"</div><div class=rcs style=color:"+cc(v.score)+">"+v.score+"</div><div class='rco "+oc+"'>"+v.outlook+"</div><div style=margin-top:8px;font-size:10px;color:var(--dim)>"+(v.drivers||[]).join(" | ")+"</div></div>"});
+var regkeys=Object.keys(regs);
+h+="<div class='sec'><div class='st'>Global Markets</div><div class='g5'>";
+for(var i=0;i<regkeys.length;i++){var k=regkeys[i];var v=regs[k];var oc=v.outlook==="OVERWEIGHT"?"ow":v.outlook==="UNDERWEIGHT"?"uw":"nu";
+h+="<div class='rc'><div class='rcn'>"+k+"</div><div class='rcs' style='color:"+cc(v.score)+"'>"+v.score+"</div><div class='rco "+oc+"'>"+v.outlook+"</div><div style='margin-top:8px;font-size:10px;color:var(--dim)'>"+(v.drivers||[]).join(" | ")+"</div></div>";}
 h+="</div></div>";
-h+="<div class=sec><div class=st>Trade Recommendations</div><div class=tg>";
-trades.forEach(function(t){var cv=t.conviction==="HIGH"?"h":t.conviction==="MEDIUM"?"md":"l";
-h+="<div class=tc><div class=tn>"+t.trade+"</div><div class=tt>"+t.thesis+"</div><div class=tm><span class='tg2 "+cv+"'>"+t.conviction+"</span><span class='tg2 t'>"+t.timeframe+"</span></div><div style=font-size:11px;color:var(--dim);margin-top:6px>"+t.risk+"</div></div>"});
+
+h+="<div class='sec'><div class='st'>Trade Recommendations</div><div class='tg'>";
+for(var i=0;i<trades.length;i++){var t=trades[i];var cv=t.conviction==="HIGH"?"hi":t.conviction==="MEDIUM"?"md":"lo";
+h+="<div class='tc'><div class='tn'>"+t.trade+"</div><div class='tt'>"+t.thesis+"</div><div class='tm'><span class='tag "+cv+"'>"+t.conviction+"</span><span class='tag ti'>"+t.timeframe+"</span></div><div style='font-size:11px;color:var(--dim);margin-top:6px'>"+t.risk+"</div></div>";}
 h+="</div></div>";
-app.innerHTML=h}
-load();setInterval(load,300000);
+
+app.innerHTML=h;
+}
+
+function loadData(){
+fetch(DATA_URL+"?t="+Date.now())
+.then(function(r){if(!r.ok)throw new Error("fail");return r.json();})
+.then(function(d){render(d);})
+.catch(function(e){
+document.getElementById("app").innerHTML="<div class='ld' style='color:var(--red)'>Failed to load. Retrying in 5s...</div>";
+setTimeout(loadData,5000);
+});
+}
+loadData();
+setInterval(loadData,300000);
 </script>
 </body>
 </html>
