@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reports & Analysis | JustHodl.AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#06080f;--card:#0d1117;--border:#1b2332;--text:#e6edf3;--dim:#7d8590;--cyan:#58a6ff;--green:#3fb950;--red:#f85149;--yellow:#d29922;--purple:#bc8cff;--orange:#f0883e;--blue:#1f6feb}
+body{font-family:Outfit,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.mono{font-family:JetBrains Mono,monospace}
+header{background:linear-gradient(135deg,#0d1117,#161b22);border-bottom:1px solid var(--border);padding:20px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(20px)}
+.logo{display:flex;align-items:center;gap:12px}
+.logo h1{font-size:20px;font-weight:600;background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo span{font-size:11px;background:var(--blue);color:#fff;padding:2px 8px;border-radius:4px}
+.nb{color:var(--cyan);text-decoration:none;font-size:13px}
+.ctr{max-width:1440px;margin:0 auto;padding:24px 32px}
+.hmeta{display:flex;align-items:center;gap:16px;font-size:12px;color:var(--dim)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px;background:var(--green);box-shadow:0 0 8px var(--green)}
+.ban{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+.bc{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;position:relative;overflow:hidden}
+.bc::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--cyan),var(--purple))}
+.bl{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.bv{font-size:22px;font-weight:700;font-family:JetBrains Mono,monospace}
+.bs{font-size:11px;color:var(--dim);margin-top:2px}
+.sec{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:20px}
+.st{font-size:16px;font-weight:600;margin-bottom:16px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.rp{background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:12px}
+.rp h3{font-size:14px;font-weight:600;margin-bottom:8px}
+.rp p{font-size:13px;color:var(--dim);line-height:1.6;margin-bottom:8px}
+.ri{font-size:12px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.03);color:var(--dim)}
+.ri b{color:var(--text)}
+.tag{font-size:10px;padding:3px 8px;border-radius:4px;font-weight:600;display:inline-block;margin-right:4px}
+.tag.g{background:rgba(63,185,80,.15);color:var(--green)}
+.tag.r{background:rgba(248,81,73,.15);color:var(--red)}
+.tag.y{background:rgba(210,153,34,.15);color:var(--yellow)}
+.tag.c{background:rgba(88,166,255,.1);color:var(--cyan)}
+.tag.p{background:rgba(188,140,255,.1);color:var(--purple)}
+.fc{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.ld{text-align:center;padding:60px;color:var(--dim)}
+.sp{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--cyan);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+footer{text-align:center;padding:32px;color:var(--dim);font-size:12px;border-top:1px solid var(--border);margin-top:20px}
+@media(max-width:900px){.ban{grid-template-columns:repeat(2,1fr)}.g2{grid-template-columns:1fr}.ctr{padding:16px}}
+</style>
+</head>
+<body>
+<header>
+<div class="logo"><a href="/" class="nb">&#8592; Home</a><h1>Reports & Analysis</h1><span>v2.1</span></div>
+<div class="hmeta"><span><span class="dot"></span><span id="as">Loading...</span></span><span id="lu"></span></div>
+</header>
+<div class="ctr" id="app"><div class="ld"><div class="sp"></div>Generating reports...</div></div>
+<footer>JustHodl.AI Reports | Powered by 23 agents | 650+ indicators | Auto-refreshes every 5 min</footer>
+<script>
+var S3="https://justhodl-dashboard-live.s3.amazonaws.com/predictions.json";
+function cc(s){return s>=75?"#56d364":s>=60?"#3fb950":s>=45?"#d29922":s>=30?"#f85149":"#ff7b72"}
+function fmt(n){if(!n||n===0)return"-";return typeof n==="number"?(Math.abs(n)>=1e6?(n/1e6).toFixed(1)+"M":Math.abs(n)>=1e3?(n/1e3).toFixed(1)+"K":n.toFixed(2)):n}
+
+function render(d){
+var app=document.getElementById("app");
+var es=d.executive_summary||{};var snap=d.market_snapshot||{};var liq=d.liquidity||{};var risk=d.risk||{};var carry=d.carry_trade||{};var sec=d.sector_rotation||{};var us=d.us_equities||{};var gm=d.global_markets||{};var trades=d.trade_recommendations||[];
+document.getElementById("as").textContent=d.agents_online+"/"+d.total_agents+" agents";
+document.getElementById("lu").textContent="Updated: "+(d.generated_at_et||"");
+
+var h="";
+h+="<div class='ban'>";
+h+="<div class='bc'><div class='bl'>Market Regime</div><div class='bv' style='color:var(--cyan);font-size:17px'>"+(es.market_regime||"-").replace(/_/g," ")+"</div><div class='bs'>"+(es.regime_description||"")+"</div></div>";
+h+="<div class='bc'><div class='bl'>Risk Level</div><div class='bv' style='color:"+cc(100-(es.risk_score||0))+"'>"+(es.overall_risk||"-")+"</div><div class='bs'>Score: "+(es.risk_score||0)+"/100</div></div>";
+h+="<div class='bc'><div class='bl'>Liquidity</div><div class='bv' style='color:"+cc(es.liquidity_score||50)+"'>"+(es.liquidity_trend||"-")+"</div><div class='bs'>Score: "+(es.liquidity_score||0)+"/100</div></div>";
+h+="<div class='bc'><div class='bl'>Top Sector</div><div class='bv' style='color:var(--green);font-size:14px'>"+(es.top_sector||"-")+"</div><div class='bs'>Worst: "+(es.worst_sector||"-")+"</div></div>";
+h+="</div>";
+
+h+="<div class='sec'><div class='st'>&#128203; Executive Summary</div><div class='rp'>";
+h+="<p>The market is currently in a <b>"+(es.market_regime||"").replace(/_/g," ")+"</b> regime. "+(es.regime_description||"")+". ";
+h+="Composite risk is <b>"+(es.overall_risk||"")+"</b> (score: "+(es.risk_score||0)+"/100). ";
+h+="Liquidity conditions are <b>"+(es.liquidity_trend||"")+"</b> (score: "+(es.liquidity_score||0)+"/100). ";
+h+="Carry trade risk is <b>"+(es.carry_risk||"")+"</b>. ";
+h+="US equity outlook is <b>"+(es.us_outlook||"").replace(/_/g," ")+"</b>. ";
+h+="Best performing region: <b>"+(es.best_region||"")+"</b>.</p>";
+h+="<div class='fc'><span class='tag c'>S&P 500: "+fmt(snap.sp500)+"</span><span class='tag c'>VIX: "+fmt(snap.vix)+"</span><span class='tag c'>DXY: "+fmt(snap.dxy)+"</span><span class='tag c'>10Y: "+fmt(snap.us_10y)+"%</span></div>";
+h+="</div></div>";
+
+h+="<div class='g2'>";
+
+h+="<div class='sec'><div class='st'>&#128200; Liquidity Report</div>";
+h+="<div class='ri'><b>Liquidity Score:</b> "+liq.score+"</div>";
+h+="<div class='ri'><b>Trend:</b> "+liq.trend+"</div>";
+h+="<div class='ri'><b>Fed Balance Sheet:</b> $"+fmt(liq.fed_balance_sheet)+"</div>";
+h+="<div class='ri'><b>Reverse Repo:</b> $"+fmt(liq.reverse_repo)+"</div>";
+h+="<div class='ri'><b>Net Liquidity:</b> $"+fmt(liq.net_liquidity)+"</div>";
+h+="<div class='ri'><b>M2 Money Supply:</b> $"+fmt(liq.m2)+"</div>";
+h+="<div class='ri'><b>Global Liquidity Score:</b> "+liq.global_score+"</div>";
+h+="<div class='ri'><b>SOFR:</b> "+fmt(liq.sofr)+"%</div>";
+h+="<div class='ri'><b>EFFR:</b> "+fmt(liq.effr)+"%</div>";
+var lp=liq.predictions||{};
+h+="<div style='margin-top:12px'><b style='font-size:12px'>Predictions</b></div>";
+var pk=["1_week","1_month","3_month"];
+for(var i=0;i<pk.length;i++){var p=lp[pk[i]]||{};h+="<div class='ri'><b>"+pk[i].replace("_"," ")+":</b> "+p.direction+" ("+p.confidence+"% conf)</div>";}
+h+="</div>";
+
+h+="<div class='sec'><div class='st'>&#9888;&#65039; Risk Report</div>";
+h+="<div class='ri'><b>Composite Score:</b> <span style='color:"+cc(100-(risk.composite_score||0))+"'>"+(risk.composite_score||0)+"</span> ("+risk.level+")</div>";
+var comps=risk.components||{};var rk=Object.keys(comps);
+for(var i=0;i<rk.length;i++){var c=comps[rk[i]];
+h+="<div class='ri'><b>"+rk[i].replace(/_/g," ")+":</b> <span style='color:"+cc(100-c.score)+"'>"+c.score+"</span> — "+c.level+"</div>";}
+h+="</div>";
+
+h+="</div>";
+
+h+="<div class='g2'>";
+
+h+="<div class='sec'><div class='st'>&#128177; Carry Trade Report</div>";
+h+="<div class='ri'><b>Unwind Risk:</b> <span style='color:"+cc(100-(carry.risk_score||0))+"'>"+(carry.risk_score||0)+"</span> ("+carry.risk_level+")</div>";
+h+="<div class='ri'><b>USD/JPY:</b> "+fmt(carry.usdjpy)+"</div>";
+h+="<div class='ri'><b>DXY:</b> "+fmt(carry.dxy)+"</div>";
+h+="<div class='ri'><b>US 10Y:</b> "+fmt(carry.us_10y)+"%</div>";
+var cf=carry.factors||[];
+for(var i=0;i<cf.length;i++){h+="<div class='ri'>"+cf[i]+"</div>";}
+h+="</div>";
+
+h+="<div class='sec'><div class='st'>&#127758; Global Markets Report</div>";
+var regs=(gm.regions||{});var rgk=Object.keys(regs);
+for(var i=0;i<rgk.length;i++){var k=rgk[i];var v=regs[k];
+var oc=v.outlook==="OVERWEIGHT"?"g":v.outlook==="UNDERWEIGHT"?"r":"y";
+h+="<div class='ri'><b>"+k+":</b> <span style='color:"+cc(v.score)+"'>"+v.score+"</span> <span class='tag "+oc+"'>"+v.outlook+"</span> — "+(v.drivers||[]).join(", ")+"</div>";}
+h+="</div>";
+
+h+="</div>";
+
+h+="<div class='sec'><div class='st'>&#128640; US Equities Report</div><div class='g2'>";
+h+="<div>";
+h+="<div class='ri'><b>S&P 500:</b> "+fmt(us.sp500_current)+"</div>";
+h+="<div class='ri'><b>Score:</b> <span style='color:"+cc(us.score||50)+"'>"+(us.score||0)+"</span> ("+us.signal+")</div>";
+h+="<div class='ri'><b>VIX:</b> "+fmt(us.vix)+"</div>";
+h+="<div class='ri'><b>DXY:</b> "+fmt(us.dxy)+"</div>";
+var up=us.predictions||{};
+for(var i=0;i<pk.length;i++){var p=up[pk[i]]||{};h+="<div class='ri'><b>"+pk[i].replace("_"," ")+":</b> "+p.direction+" $"+fmt(p.target)+" ("+p.confidence+"%)</div>";}
+h+="</div><div>";
+h+="<div style='margin-bottom:8px'><b style='font-size:12px;color:var(--green)'>Bullish</b></div>";
+var bf=us.bullish_factors||[];for(var i=0;i<bf.length;i++){h+="<div class='ri' style='color:var(--green)'>"+bf[i]+"</div>";}
+h+="<div style='margin:8px 0'><b style='font-size:12px;color:var(--red)'>Bearish</b></div>";
+var brf=us.bearish_factors||[];for(var i=0;i<brf.length;i++){h+="<div class='ri' style='color:var(--red)'>"+brf[i]+"</div>";}
+if(!brf.length){h+="<div class='ri' style='color:var(--dim)'>None detected</div>";}
+h+="</div></div></div>";
+
+h+="<div class='sec'><div class='st'>&#127919; Trade Recommendations ("+trades.length+")</div>";
+for(var i=0;i<trades.length;i++){var t=trades[i];
+var cv=t.conviction==="HIGH"?"g":t.conviction==="MEDIUM"?"y":"r";
+h+="<div class='rp'><h3>"+t.trade+"</h3><p>"+t.thesis+"</p>";
+h+="<div class='fc'><span class='tag "+cv+"'>"+t.conviction+"</span><span class='tag c'>"+t.timeframe+"</span><span class='tag p'>Risk: "+t.risk+"</span></div></div>";}
+h+="</div>";
+
+app.innerHTML=h;
+}
+
+function load(){fetch(S3+"?t="+Date.now()).then(function(r){return r.json()}).then(render).catch(function(){document.getElementById("app").innerHTML="<div class='ld' style='color:var(--red)'>Failed to load. Retrying...</div>";setTimeout(load,5000)});}
+load();setInterval(load,300000);
+</script>
+</body>
+</html>

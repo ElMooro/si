@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trading Signals | JustHodl.AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#06080f;--card:#0d1117;--border:#1b2332;--text:#e6edf3;--dim:#7d8590;--cyan:#58a6ff;--green:#3fb950;--red:#f85149;--yellow:#d29922;--purple:#bc8cff;--orange:#f0883e;--blue:#1f6feb}
+body{font-family:Outfit,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.mono{font-family:JetBrains Mono,monospace}
+header{background:linear-gradient(135deg,#0d1117,#161b22);border-bottom:1px solid var(--border);padding:20px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(20px)}
+.logo{display:flex;align-items:center;gap:12px}
+.logo h1{font-size:20px;font-weight:600;background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo span{font-size:11px;background:var(--green);color:#000;padding:2px 8px;border-radius:4px;font-weight:600}
+.hmeta{display:flex;align-items:center;gap:16px;font-size:12px;color:var(--dim)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px;background:var(--green);box-shadow:0 0 8px var(--green)}
+.nb{color:var(--cyan);text-decoration:none;font-size:13px}
+.ctr{max-width:1440px;margin:0 auto;padding:24px 32px}
+.ban{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:24px}
+.bc{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;position:relative;overflow:hidden}
+.bc::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--cyan),var(--purple))}
+.bl{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.bv{font-size:20px;font-weight:700;font-family:JetBrains Mono,monospace}
+.bs{font-size:11px;color:var(--dim);margin-top:2px}
+.sec{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:20px}
+.st{font-size:16px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.tg{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.tc{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px;padding:20px;transition:border-color .3s}
+.tc:hover{border-color:var(--cyan)}
+.tc.long{border-left:3px solid var(--green)}
+.tc.short{border-left:3px solid var(--red)}
+.tc.hedge{border-left:3px solid var(--yellow)}
+.th{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.tn{font-size:16px;font-weight:600;font-family:JetBrains Mono,monospace}
+.dir{font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px}
+.dir.long{background:rgba(63,185,80,.2);color:var(--green)}
+.dir.short{background:rgba(248,81,73,.2);color:var(--red)}
+.dir.hedge{background:rgba(210,153,34,.2);color:var(--yellow)}
+.tt{font-size:13px;color:var(--dim);line-height:1.6;margin-bottom:12px}
+.tm{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.tag{font-size:10px;padding:3px 8px;border-radius:4px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.tag.hi{background:rgba(63,185,80,.15);color:var(--green)}
+.tag.md{background:rgba(210,153,34,.15);color:var(--yellow)}
+.tag.lo{background:rgba(248,81,73,.15);color:var(--red)}
+.tag.ti{background:rgba(88,166,255,.1);color:var(--cyan)}
+.tag.et{background:rgba(188,140,255,.1);color:var(--purple)}
+.trisk{font-size:11px;color:var(--dim);padding-top:8px;border-top:1px solid var(--border)}
+.trisk b{color:var(--orange)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:10px 12px;border-bottom:1px solid var(--border);color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:500}
+td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.03)}
+tr:hover td{background:rgba(255,255,255,.02)}
+.sig{padding:3px 8px;border-radius:4px;font-size:11px;font-weight:600;font-family:JetBrains Mono,monospace}
+.sig.sb2{background:rgba(63,185,80,.25);color:#56d364}
+.sig.bu{background:rgba(63,185,80,.15);color:var(--green)}
+.sig.ne{background:rgba(210,153,34,.15);color:var(--yellow)}
+.sig.be{background:rgba(248,81,73,.15);color:var(--red)}
+.sig.sbr{background:rgba(248,81,73,.25);color:#ff7b72}
+.sb{height:6px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;width:100px;display:inline-block;vertical-align:middle}
+.sf{height:100%;border-radius:3px}
+.ld{text-align:center;padding:60px;color:var(--dim)}
+.sp{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--cyan);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+footer{text-align:center;padding:32px;color:var(--dim);font-size:12px;border-top:1px solid var(--border);margin-top:20px}
+@media(max-width:900px){.ban{grid-template-columns:repeat(2,1fr)}.tg{grid-template-columns:1fr}.ctr{padding:16px}}
+</style>
+</head>
+<body>
+<header>
+<div class="logo"><a href="/" class="nb">&#8592; Home</a><h1>Trading Signals</h1><span>LIVE</span></div>
+<div class="hmeta"><span><span class="dot"></span><span id="as">Loading...</span></span><span id="lu"></span></div>
+</header>
+<div class="ctr" id="app"><div class="ld"><div class="sp"></div>Loading trading signals...</div></div>
+<footer>JustHodl.AI Trading Signals | Powered by ML Predictions Engine v2.1 | Auto-refreshes every 5 min</footer>
+<script>
+var S3="https://justhodl-dashboard-live.s3.amazonaws.com/predictions.json";
+function cc(s){return s>=75?"#56d364":s>=60?"#3fb950":s>=45?"#d29922":s>=30?"#f85149":"#ff7b72"}
+function sc(s){return s>=75?"sb2":s>=60?"bu":s>=45?"ne":s>=30?"be":"sbr"}
+function fmt(n){if(!n||n===0)return"-";return typeof n==="number"?(Math.abs(n)>=1e6?(n/1e6).toFixed(1)+"M":Math.abs(n)>=1e3?(n/1e3).toFixed(1)+"K":n.toFixed(2)):n}
+
+function render(d){
+var app=document.getElementById("app");
+var es=d.executive_summary||{};
+var snap=d.market_snapshot||{};
+var trades=d.trade_recommendations||[];
+var sec=d.sector_rotation||{};
+var secs=sec.sectors||[];
+var risk=d.risk||{};
+var liq=d.liquidity||{};
+var carry=d.carry_trade||{};
+var us=d.us_equities||{};
+
+document.getElementById("as").textContent=d.agents_online+"/"+d.total_agents+" agents";
+document.getElementById("lu").textContent="Updated: "+(d.generated_at_et||"");
+
+var h="";
+h+="<div class='ban'>";
+h+="<div class='bc'><div class='bl'>S&P 500</div><div class='bv'>"+fmt(snap.sp500)+"</div><div class='bs'>"+(us.signal||"")+"</div></div>";
+h+="<div class='bc'><div class='bl'>VIX</div><div class='bv' style='color:"+cc(100-Math.min(100,(snap.vix||0)/40*100))+"'>"+fmt(snap.vix)+"</div><div class='bs'>"+(risk.level||"")+" risk</div></div>";
+h+="<div class='bc'><div class='bl'>DXY</div><div class='bv'>"+fmt(snap.dxy)+"</div><div class='bs'>Dollar Index</div></div>";
+h+="<div class='bc'><div class='bl'>US 10Y</div><div class='bv'>"+fmt(snap.us_10y)+"%</div><div class='bs'>Treasury Yield</div></div>";
+h+="<div class='bc'><div class='bl'>Regime</div><div class='bv' style='color:var(--cyan);font-size:15px'>"+(es.market_regime||"-").replace(/_/g," ")+"</div><div class='bs'>"+(es.regime_description||"")+"</div></div>";
+h+="</div>";
+
+h+="<div class='sec'><div class='st'>&#128640; Active Trade Signals ("+trades.length+")</div><div class='tg'>";
+for(var i=0;i<trades.length;i++){
+var t=trades[i];
+var isLong=t.trade.indexOf("LONG")===0;
+var isShort=t.trade.indexOf("SHORT")===0||t.trade.indexOf("REDUCE")===0;
+var cls=isLong?"long":isShort?"short":"hedge";
+var cv=t.conviction==="HIGH"?"hi":t.conviction==="MEDIUM"?"md":"lo";
+h+="<div class='tc "+cls+"'>";
+h+="<div class='th'><div class='tn'>"+t.trade+"</div><span class='dir "+cls+"'>"+(isLong?"LONG":isShort?"SHORT":"HEDGE")+"</span></div>";
+h+="<div class='tt'>"+t.thesis+"</div>";
+h+="<div class='tm'><span class='tag "+cv+"'>"+t.conviction+" conviction</span><span class='tag ti'>"+t.timeframe+"</span></div>";
+h+="<div class='trisk'><b>Risk:</b> "+t.risk+"</div>";
+h+="</div>";
+}
+h+="</div></div>";
+
+h+="<div class='sec'><div class='st'>&#128200; Sector Signals — "+(sec.macro_regime||"").replace(/_/g," ")+"</div>";
+h+="<table><thead><tr><th>#</th><th>Sector</th><th>ETF</th><th>Score</th><th>Signal</th><th>Strength</th><th>Top Stocks</th></tr></thead><tbody>";
+for(var i=0;i<secs.length;i++){var s=secs[i];
+h+="<tr><td style='color:var(--dim)'>"+(i+1)+"</td><td style='font-weight:500'>"+s.sector+"</td>";
+h+="<td class='mono'>"+s.etf+"</td>";
+h+="<td class='mono' style='color:"+cc(s.score)+"'>"+s.score+"</td>";
+h+="<td><span class='sig "+sc(s.score)+"'>"+(s.signal||"").replace(/_/g," ")+"</span></td>";
+h+="<td><div class='sb'><div class='sf' style='width:"+s.score+"%;background:"+cc(s.score)+"'></div></div></td>";
+h+="<td style='font-size:11px;color:var(--dim)'>"+(s.top_stocks||[]).join(", ")+"</td></tr>";}
+h+="</tbody></table></div>";
+
+var comps=risk.components||{};
+h+="<div class='sec'><div class='st'>&#9888;&#65039; Risk Dashboard</div><div style='display:grid;grid-template-columns:repeat(5,1fr);gap:12px'>";
+var rkeys=["volatility","credit","yield_curve","dollar_strength","crisis"];
+var rnames=["Volatility","Credit Spreads","Yield Curve","Dollar Strength","Crisis Prob"];
+for(var i=0;i<rkeys.length;i++){var c=comps[rkeys[i]];if(!c)continue;
+h+="<div style='background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center'>";
+h+="<div style='font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px'>"+rnames[i]+"</div>";
+h+="<div class='mono' style='font-size:28px;font-weight:700;color:"+cc(100-c.score)+";margin:8px 0'>"+c.score+"</div>";
+h+="<div style='font-size:11px;color:"+cc(100-c.score)+"'>"+c.level+"</div></div>";}
+h+="</div></div>";
+
+var co=carry.opportunities||[];
+if(co.length){
+h+="<div class='sec'><div class='st'>&#128177; Carry Trade Opportunities</div><div class='tg'>";
+for(var i=0;i<co.length;i++){var o=co[i];
+h+="<div class='tc'><div class='th'><div class='tn'>"+o.trade+"</div><span class='tag "+(o.risk==="HIGH"?"lo":o.risk==="MODERATE"?"md":"hi")+"'>"+o.risk+"</span></div>";
+h+="<div class='tt'>"+o.rationale+"</div>";
+if(o.expected_return){h+="<div class='tm'><span class='tag et'>"+o.expected_return+"</span></div>";}
+h+="</div>";}
+h+="</div></div>";}
+
+app.innerHTML=h;
+}
+
+function load(){fetch(S3+"?t="+Date.now()).then(function(r){return r.json()}).then(render).catch(function(){document.getElementById("app").innerHTML="<div class='ld' style='color:var(--red)'>Failed to load. Retrying...</div>";setTimeout(load,5000)});}
+load();setInterval(load,300000);
+</script>
+</body>
+</html>
