@@ -130,7 +130,7 @@
 </div>
 <script>
 var ECB_PROXY='https://zzmoq2mq4vtphjyhm4i7hqpzvm0hkwsj.lambda-url.us-east-1.on.aws/';
-var FRED_PROXY='https://4dgpa7mv5dfipsh3gi2xim6uja0igozb.lambda-url.us-east-1.on.aws/';
+var FRED_PROXY=ECB_PROXY;
 var FRED_KEY='2f057499936072679d8843d7fce99989';
 var ecbData={},fredData={};
 var FRED_SERIES={
@@ -162,10 +162,10 @@ async function loadAll(){
   for(var i=0;i<fredKeys.length;i++){
     var fk=fredKeys[i];
     try{
-      var url=FRED_PROXY+'?series_id='+fk+'&api_key='+FRED_KEY+'&sort_order=desc&limit=250&file_type=json';
+      var url=ECB_PROXY+'?action=fred&series_id='+fk+'&n=250';
       var r2=await fetch(url);var j2=await r2.json();
       if(j2.observations){
-        fredData[fk]=j2.observations.filter(function(o){return o.value!=='.'&&o.value!==null;}).map(function(o){return{d:o.date,v:parseFloat(o.value)};}).reverse();
+        fredData[fk]=j2.observations;
       }
     }catch(e){console.error('FRED '+fk+':',e);}
     f.style.width=(50+((i+1)/fredKeys.length)*45)+'%';
