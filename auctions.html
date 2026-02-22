@@ -210,7 +210,7 @@ function renderTable(){
   filtered.forEach(function(a){
     var dt=a.auction_date||'--';var tp=a.security_type||'--';var tm=a.security_term||a.original_security_term||'--';
     var cusip=a.cusip||'--';var sz=a._offering_b!=null?'$'+a._offering_b.toFixed(1)+'B':'--';
-    var hy=a.high_yield||a.high_discount_rate||'--';if(hy!=='--')hy=parseFloat(hy).toFixed(3)+'%';
+    var hy=a.high_yield||a.high_discnt_rate||'--';if(hy!=='--')hy=parseFloat(hy).toFixed(3)+'%';
     var tail=a._tail_bps!=null?((a._tail_bps>0?'+':'')+a._tail_bps.toFixed(1)):'--';
     var tailC=a._tail_bps!=null?(a._tail_bps<=0?'pos':a._tail_bps<=2?'flat':'neg'):'flat';
     var btc=a._btc!=null?a._btc.toFixed(2)+'x':'--';
