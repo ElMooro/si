@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JustHodl.AI | Systemic Risk Monitor</title>
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg0:#060a12;--bg1:#0b0f1a;--bg2:#111827;--bg3:#1a2035;--bg4:#232b42;--brd:#1e2a45;--brd2:#2d3a5c;--t1:#e2e8f0;--t2:#94a3b8;--t3:#64748b;--green:#10b981;--red:#ef4444;--blue:#3b82f6;--yellow:#f59e0b;--orange:#f97316;--purple:#a78bfa;--cyan:#22d3ee;--pink:#ec4899;--gold:#fbbf24;--teal:#14b8a6}
+*{margin:0;padding:0;box-sizing:border-box}body{background:var(--bg0);color:var(--t1);font-family:'DM Sans',sans-serif;min-height:100vh;padding-bottom:40px}.mono{font-family:'JetBrains Mono',monospace}a{color:var(--cyan);text-decoration:none}
+.topbar{background:linear-gradient(180deg,var(--bg1) 0%,rgba(11,15,26,.95) 100%);border-bottom:1px solid var(--brd);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
+.logo{font-size:18px;font-weight:700;letter-spacing:-0.5px}.logo .hl{color:var(--red)}.logo sub{color:var(--t3);font-weight:400;font-size:11px;margin-left:8px;letter-spacing:1.5px;text-transform:uppercase}
+.topbar-r{display:flex;align-items:center;gap:16px;font-size:11px;color:var(--t3)}
+.live{display:flex;align-items:center;gap:5px;color:var(--green)}.dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 2s infinite}@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.nav-link{color:var(--t3);font-size:11px;text-decoration:none;padding:4px 10px;border:1px solid var(--brd);border-radius:5px;transition:all .15s}.nav-link:hover{color:var(--cyan);border-color:var(--cyan)}
+.hero{padding:16px 24px;display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+.hc{background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--brd);border-radius:10px;padding:14px;position:relative;overflow:hidden}
+.hc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.hc.g::before{background:linear-gradient(90deg,var(--green),transparent)}.hc.r::before{background:linear-gradient(90deg,var(--red),transparent)}.hc.y::before{background:linear-gradient(90deg,var(--yellow),transparent)}
+.hc-lbl{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px}.hc-val{font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace}.hc-sub{font-size:9px;color:var(--t3);margin-top:3px}
+.hc-val.green{color:var(--green)}.hc-val.red{color:var(--red)}.hc-val.yellow{color:var(--yellow)}.hc-val.cyan{color:var(--cyan)}
+.section{padding:0 24px 16px}
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-top:8px;border-top:1px solid var(--brd)}
+.st{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+.badge{font-size:9px;padding:2px 8px;border-radius:10px;font-weight:600;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.5px}
+.b-gold{background:rgba(251,191,36,.12);color:var(--gold);border:1px solid rgba(251,191,36,.2)}
+.b-info{background:rgba(59,130,246,.12);color:var(--blue);border:1px solid rgba(59,130,246,.2)}
+.b-red{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.2)}
+.b-purple{background:rgba(167,139,250,.12);color:var(--purple);border:1px solid rgba(167,139,250,.2)}
+.b-ecb{background:rgba(20,184,166,.12);color:var(--teal);border:1px solid rgba(20,184,166,.2)}
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.chart-box{background:var(--bg2);border:1px solid var(--brd);border-radius:8px;padding:14px}
+.chart-box h4{font-size:11px;color:var(--t2);margin-bottom:6px;font-weight:500}
+.chart-box.full{grid-column:1/-1}
+.analysis{background:var(--bg2);border:1px solid var(--brd);border-radius:8px;padding:16px;margin-bottom:10px;line-height:1.7;font-size:12px;color:var(--t2)}
+.analysis h4{color:var(--t1);font-size:13px;margin-bottom:6px}
+.analysis .key{color:var(--cyan);font-weight:600}.analysis .warn{color:var(--yellow);font-weight:600}.analysis .danger{color:var(--red);font-weight:600}.analysis .good{color:var(--green);font-weight:600}
+.stress-gauge{display:flex;align-items:center;gap:12px;margin:8px 0}
+.gauge-bar{flex:1;height:16px;background:linear-gradient(90deg,#10b981 0%,#22d3ee 20%,#f59e0b 45%,#f97316 65%,#ef4444 85%,#dc2626 100%);border-radius:8px;position:relative}
+.gauge-ptr{position:absolute;top:-3px;width:4px;height:22px;background:#fff;border-radius:2px;box-shadow:0 0 6px rgba(255,255,255,.5);transition:left .8s}
+.gauge-label{font-size:10px;width:90px;text-align:right;font-family:'JetBrains Mono',monospace;font-weight:600}
+.crisis-labels{display:flex;justify-content:space-between;font-size:8px;color:var(--t3);margin-top:2px;padding:0 90px 0 0}
+.at-wrap{overflow-x:auto;margin-top:8px}
+.at{width:100%;border-collapse:separate;border-spacing:0 3px}
+.at th{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;padding:5px 10px;text-align:left;font-weight:500;background:var(--bg0)}
+.at td{padding:8px 10px;font-size:11px;background:var(--bg2);border-top:1px solid var(--brd);border-bottom:1px solid var(--brd)}
+.at tr td:first-child{border-left:1px solid var(--brd);border-radius:6px 0 0 6px}
+.at tr td:last-child{border-right:1px solid var(--brd);border-radius:0 6px 6px 0}
+.at tbody tr:hover td{background:var(--bg3)}
+.regime-chip{display:inline-block;font-size:9px;padding:2px 8px;border-radius:10px;font-weight:600;font-family:'JetBrains Mono',monospace}
+.regime-low{background:rgba(16,185,129,.15);color:var(--green);border:1px solid rgba(16,185,129,.3)}
+.regime-normal{background:rgba(59,130,246,.15);color:var(--blue);border:1px solid rgba(59,130,246,.3)}
+.regime-elevated{background:rgba(245,158,11,.15);color:var(--yellow);border:1px solid rgba(245,158,11,.3)}
+.regime-high{background:rgba(249,115,22,.15);color:var(--orange);border:1px solid rgba(249,115,22,.3)}
+.regime-crisis{background:rgba(239,68,68,.2);color:var(--red);border:1px solid rgba(239,68,68,.4)}
+.status-bar{position:fixed;bottom:0;left:0;right:0;background:var(--bg1);border-top:1px solid var(--brd);padding:5px 24px;font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;display:flex;justify-content:space-between;z-index:100}
+.prog{width:180px;height:3px;background:var(--bg3);border-radius:2px;overflow:hidden;display:none}
+.prog-fill{height:100%;background:var(--red);border-radius:2px;transition:width .3s}
+.pos{color:var(--green)}.neg{color:var(--red)}.flat{color:var(--t3)}
+@media(max-width:1200px){.hero{grid-template-columns:repeat(3,1fr)}.chart-row{grid-template-columns:1fr}}
+@media(max-width:768px){.hero{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="logo"><span class="hl">SYSTEMIC</span>RISK<sub>Global Financial Stress Monitor v1.0</sub></div>
+  <div class="topbar-r">
+    <a href="index.html" class="nav-link">Terminal</a>
+    <a href="fred.html" class="nav-link">FRED</a>
+    <a href="carry.html" class="nav-link">Carry</a>
+    <a href="auctions.html" class="nav-link">Auctions</a>
+    <div class="live"><div class="dot"></div> LIVE</div>
+    <span id="clock" class="mono"></span>
+  </div>
+</div>
+<div class="hero" id="heroSection">
+  <div class="hc" id="hUS"><div class="hc-lbl">US CISS (ECB)</div><div class="hc-val" id="vUS">--</div><div class="hc-sub" id="sUS">Systemic stress</div></div>
+  <div class="hc" id="hEU"><div class="hc-lbl">Euro Area CISS</div><div class="hc-val" id="vEU">--</div><div class="hc-sub" id="sEU">EU systemic stress</div></div>
+  <div class="hc" id="hCN"><div class="hc-lbl">China CISS</div><div class="hc-val" id="vCN">--</div><div class="hc-sub" id="sCN">China stress</div></div>
+  <div class="hc" id="hSTL"><div class="hc-lbl">StL Fed FSI</div><div class="hc-val" id="vSTL">--</div><div class="hc-sub" id="sSTL">US financial stress</div></div>
+  <div class="hc" id="hNFCI"><div class="hc-lbl">Chicago NFCI</div><div class="hc-val" id="vNFCI">--</div><div class="hc-sub" id="sNFCI">Financial conditions</div></div>
+  <div class="hc" id="hHY"><div class="hc-lbl">HY Spread</div><div class="hc-val" id="vHY">--</div><div class="hc-sub" id="sHY">Credit risk</div></div>
+</div>
+<div class="section">
+  <div class="sh"><div class="st">Composite Systemic Stress Gauge <span class="badge b-red">MULTI-SOURCE</span></div></div>
+  <div class="analysis" id="gaugeBox"><h4>Loading systemic risk data from ECB & FRED...</h4></div>
+</div>
+<div class="section">
+  <div class="sh"><div class="st">ECB CISS — Global Systemic Stress <span class="badge b-ecb">ECB DATA</span></div></div>
+  <div class="chart-row"><div class="chart-box full"><h4>CISS: US vs Euro Area vs China vs UK (Daily)</h4><div id="chCISS" style="height:320px"></div></div></div>
+  <div class="chart-row">
+    <div class="chart-box"><h4>Euro Area CISS Subindices</h4><div id="chEUSub" style="height:280px"></div></div>
+    <div class="chart-box"><h4>US CISS Subindices</h4><div id="chUSSub" style="height:280px"></div></div>
+  </div>
+  <div class="chart-row">
+    <div class="chart-box"><h4>Euro Area Sovereign Stress (SovCISS)</h4><div id="chSov" style="height:260px"></div></div>
+    <div class="chart-box"><h4>European Country CISS Comparison</h4><div id="chEUCountry" style="height:260px"></div></div>
+  </div>
+</div>
+<div class="section">
+  <div class="sh"><div class="st">US Financial Stress Indices <span class="badge b-info">FRED</span></div></div>
+  <div class="chart-row"><div class="chart-box full"><h4>US Financial Stress: StL Fed FSI vs Chicago NFCI vs KC Fed FSI</h4><div id="chFredStress" style="height:300px"></div></div></div>
+</div>
+<div class="section">
+  <div class="sh"><div class="st">Credit Spreads & Volatility <span class="badge b-gold">MARKET SIGNALS</span></div></div>
+  <div class="chart-row">
+    <div class="chart-box"><h4>High Yield OAS & BBB Spread</h4><div id="chCredit" style="height:280px"></div></div>
+    <div class="chart-box"><h4>VIX & TED Spread</h4><div id="chVol" style="height:280px"></div></div>
+  </div>
+  <div class="chart-row">
+    <div class="chart-box"><h4>Treasury Yield Curve: 10Y-2Y & 10Y-3M</h4><div id="chCurve" style="height:280px"></div></div>
+    <div class="chart-box"><h4>Economic Policy Uncertainty Index</h4><div id="chEPU" style="height:280px"></div></div>
+  </div>
+</div>
+<div class="section">
+  <div class="sh"><div class="st">Stress Regime Detection <span class="badge b-purple">ALL INDICATORS</span></div></div>
+  <div class="at-wrap"><table class="at">
+    <thead><tr><th>Indicator</th><th>Source</th><th>Latest</th><th>Date</th><th>1W Chg</th><th>1M Chg</th><th>Regime</th><th>Percentile</th><th>Signal</th></tr></thead>
+    <tbody id="regimeBody"></tbody>
+  </table></div>
+</div>
+<div class="section">
+  <div class="sh"><div class="st">Systemic Risk Assessment <span class="badge b-red">AI</span></div></div>
+  <div class="analysis" id="analysisBox"><h4>Loading multi-source data...</h4></div>
+</div>
+<div class="status-bar">
+  <span id="sMsg">Initializing systemic risk monitor...</span>
+  <div class="prog" id="prog"><div class="prog-fill" id="pFill"></div></div>
+</div>
+<script>
+var ECB_PROXY='https://zzmoq2mq4vtphjyhm4i7hqpzvm0hkwsj.lambda-url.us-east-1.on.aws/';
+var FRED_PROXY='https://4dgpa7mv5dfipsh3gi2xim6uja0igozb.lambda-url.us-east-1.on.aws/';
+var FRED_KEY='2f057499936072679d8843d7fce99989';
+var ecbData={},fredData={};
+var FRED_SERIES={
+  STLFSI4:{label:'StL Fed Financial Stress',unit:'Index',zero:0,crisis:5.257,color:'#3b82f6'},
+  NFCI:{label:'Chicago NFCI',unit:'Index',zero:0,crisis:3.28,color:'#22d3ee'},
+  ANFCI:{label:'Chicago Adjusted NFCI',unit:'Index',zero:0,crisis:null,color:'#06b6d4'},
+  KCFSI:{label:'KC Fed Financial Stress',unit:'Index',zero:0,crisis:5.4,color:'#a78bfa'},
+  VIXCLS:{label:'VIX Volatility',unit:'%',zero:20,crisis:82.69,color:'#ef4444'},
+  TEDRATE:{label:'TED Spread',unit:'%',zero:0.5,crisis:4.58,color:'#f59e0b'},
+  BAMLH0A0HYM2:{label:'HY Bond OAS',unit:'bps',zero:400,crisis:2141,color:'#f97316'},
+  BAMLC0A4CBBB:{label:'BBB Corporate OAS',unit:'bps',zero:200,crisis:616,color:'#ec4899'},
+  T10Y2Y:{label:'10Y-2Y Spread',unit:'%',zero:0,crisis:null,color:'#10b981',invert:true},
+  T10Y3M:{label:'10Y-3M Spread',unit:'%',zero:0,crisis:null,color:'#14b8a6',invert:true},
+  USEPUINDXD:{label:'Policy Uncertainty',unit:'Index',zero:100,crisis:719.15,color:'#fbbf24'}
+};
+var CISS_THRESHOLDS={low:0.15,normal:0.25,elevated:0.40,high:0.60,crisis:0.75};
+
+async function loadAll(){
+  var p=document.getElementById('prog'),f=document.getElementById('pFill');
+  p.style.display='block';f.style.width='10%';setS('Fetching ECB CISS data...');
+  try{
+    var r=await fetch(ECB_PROXY+'?action=dashboard&n=500');
+    var j=await r.json();
+    if(j.series)ecbData=j.series;
+    f.style.width='40%';setS('ECB: '+Object.keys(ecbData).length+' CISS series loaded');
+  }catch(e){setS('ECB error: '+e.message);console.error('ECB:',e);}
+  f.style.width='50%';setS('Fetching FRED stress indices...');
+  var fredKeys=Object.keys(FRED_SERIES);
+  for(var i=0;i<fredKeys.length;i++){
+    var fk=fredKeys[i];
+    try{
+      var url=FRED_PROXY+'?series_id='+fk+'&api_key='+FRED_KEY+'&sort_order=desc&limit=250&file_type=json';
+      var r2=await fetch(url);var j2=await r2.json();
+      if(j2.observations){
+        fredData[fk]=j2.observations.filter(function(o){return o.value!=='.'&&o.value!==null;}).map(function(o){return{d:o.date,v:parseFloat(o.value)};}).reverse();
+      }
+    }catch(e){console.error('FRED '+fk+':',e);}
+    f.style.width=(50+((i+1)/fredKeys.length)*45)+'%';
+  }
+  f.style.width='100%';setS('All data loaded. Rendering...');
+  renderAll();p.style.display='none';
+  setS('Systemic Risk Monitor | ECB: '+Object.keys(ecbData).length+' CISS series | FRED: '+Object.keys(fredData).length+' indices | Auto-refresh 15min');
+}
+function renderAll(){renderHero();renderGauge();renderCISSCharts();renderFredCharts();renderCreditCharts();renderRegimeTable();renderAnalysis();}
+
+function renderHero(){
+  var us=last(ecbData,'us_ciss');if(us){document.getElementById('vUS').textContent=us.v.toFixed(4);document.getElementById('vUS').className='hc-val '+(us.v<=0.25?'green':us.v<=0.50?'yellow':'red');document.getElementById('sUS').textContent=us.d;document.getElementById('hUS').className='hc '+(us.v<=0.25?'g':us.v<=0.50?'y':'r');}
+  var eu=last(ecbData,'eu_ciss');if(eu){document.getElementById('vEU').textContent=eu.v.toFixed(4);document.getElementById('vEU').className='hc-val '+(eu.v<=0.25?'green':eu.v<=0.50?'yellow':'red');document.getElementById('sEU').textContent=eu.d;document.getElementById('hEU').className='hc '+(eu.v<=0.25?'g':eu.v<=0.50?'y':'r');}
+  var cn=last(ecbData,'cn_ciss');if(cn){document.getElementById('vCN').textContent=cn.v.toFixed(4);document.getElementById('vCN').className='hc-val '+(cn.v<=0.25?'green':cn.v<=0.50?'yellow':'red');document.getElementById('sCN').textContent=cn.d;document.getElementById('hCN').className='hc '+(cn.v<=0.25?'g':cn.v<=0.50?'y':'r');}
+  var stl=lastFred('STLFSI4');if(stl){document.getElementById('vSTL').textContent=stl.v.toFixed(3);document.getElementById('vSTL').className='hc-val '+(stl.v<=0?'green':stl.v<=1?'yellow':'red');document.getElementById('sSTL').textContent=stl.d;document.getElementById('hSTL').className='hc '+(stl.v<=0?'g':stl.v<=1?'y':'r');}
+  var nfci=lastFred('NFCI');if(nfci){document.getElementById('vNFCI').textContent=nfci.v.toFixed(3);document.getElementById('vNFCI').className='hc-val '+(nfci.v<=0?'green':nfci.v<=1?'yellow':'red');document.getElementById('sNFCI').textContent=nfci.d;document.getElementById('hNFCI').className='hc '+(nfci.v<=0?'g':nfci.v<=1?'y':'r');}
+  var hy=lastFred('BAMLH0A0HYM2');if(hy){document.getElementById('vHY').textContent=hy.v.toFixed(0)+'bp';document.getElementById('vHY').className='hc-val '+(hy.v<=300?'green':hy.v<=500?'yellow':'red');document.getElementById('sHY').textContent=hy.d;document.getElementById('hHY').className='hc '+(hy.v<=300?'g':hy.v<=500?'y':'r');}
+}
+
+function renderGauge(){
+  var box=document.getElementById('gaugeBox');var scores=[];
+  var us=last(ecbData,'us_ciss');if(us)scores.push({name:'US CISS',val:us.v,pct:Math.min(100,us.v/0.8*100)});
+  var eu=last(ecbData,'eu_ciss');if(eu)scores.push({name:'EU CISS',val:eu.v,pct:Math.min(100,eu.v/0.8*100)});
+  var cn=last(ecbData,'cn_ciss');if(cn)scores.push({name:'CN CISS',val:cn.v,pct:Math.min(100,cn.v/0.8*100)});
+  var stl=lastFred('STLFSI4');if(stl)scores.push({name:'StL FSI',val:stl.v,pct:Math.min(100,Math.max(0,(stl.v+1.5)/6.5*100))});
+  var nfci=lastFred('NFCI');if(nfci)scores.push({name:'NFCI',val:nfci.v,pct:Math.min(100,Math.max(0,(nfci.v+0.5)/3.5*100))});
+  var vix=lastFred('VIXCLS');if(vix)scores.push({name:'VIX',val:vix.v,pct:Math.min(100,vix.v/80*100)});
+  var hy=lastFred('BAMLH0A0HYM2');if(hy)scores.push({name:'HY OAS',val:hy.v,pct:Math.min(100,hy.v/2000*100)});
+  var composite=scores.length>0?scores.reduce(function(s,x){return s+x.pct;},0)/scores.length:0;
+  var cc=composite<=20?'var(--green)':composite<=40?'var(--cyan)':composite<=60?'var(--yellow)':composite<=80?'var(--orange)':'var(--red)';
+  var h='<h4>Global Systemic Stress Composite: <span style="color:'+cc+'">'+composite.toFixed(1)+'/100</span></h4>';
+  h+='<div class="stress-gauge"><div class="gauge-label" style="color:'+cc+'">'+composite.toFixed(1)+'</div>';
+  h+='<div class="gauge-bar"><div class="gauge-ptr" style="left:'+Math.min(97,composite)+'%"></div></div></div>';
+  h+='<div class="crisis-labels"><span>Low Stress</span><span>Normal</span><span>Elevated</span><span>High</span><span>Crisis</span></div>';
+  h+='<div style="margin-top:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:6px">';
+  scores.forEach(function(s){var col=s.pct<=20?'var(--green)':s.pct<=40?'var(--cyan)':s.pct<=60?'var(--yellow)':s.pct<=80?'var(--orange)':'var(--red)';h+='<div class="stress-gauge" style="margin:0"><div class="gauge-label" style="font-size:9px;color:'+col+'">'+s.name+'</div><div class="gauge-bar" style="height:8px"><div class="gauge-ptr" style="left:'+Math.min(97,s.pct)+'%;height:14px;top:-3px;width:3px"></div></div></div>';});
+  h+='</div><p style="margin-top:12px">';
+  if(composite<=15)h+='<span class="good">LOW STRESS REGIME.</span> All major indicators signal calm financial conditions. Systemic risk well below historical averages.';
+  else if(composite<=30)h+='<span class="good">NORMAL CONDITIONS.</span> Financial stress at or below average levels. No systemic concerns detected.';
+  else if(composite<=50)h+='<span class="warn">ELEVATED STRESS.</span> Multiple indicators showing above-normal stress. Watch for cross-market contagion.';
+  else if(composite<=70)h+='<span class="danger">HIGH STRESS — PRE-CRISIS.</span> Approaching levels seen during Taper Tantrum, China Deval, or Repo Crisis.';
+  else h+='<span class="danger">CRISIS-LEVEL SYSTEMIC STRESS.</span> Only seen during GFC 2008, EU Debt Crisis peak, or COVID March 2020.';
+  h+='</p>';box.innerHTML=h;
+}
+function renderCISSCharts(){
+  var lo={paper_bgcolor:'#111827',plot_bgcolor:'#111827',font:{color:'#64748b',family:'JetBrains Mono',size:9},margin:{l:50,r:15,t:10,b:40},hovermode:'x unified',showlegend:true,legend:{font:{size:9},orientation:'h',y:1.12},xaxis:{gridcolor:'#1e2a45'},yaxis:{gridcolor:'#1e2a45'}};
+  var cfg={responsive:true};
+  var traces=[];
+  var map={us_ciss:['US','#ef4444'],eu_ciss:['Euro Area','#3b82f6'],cn_ciss:['China','#f59e0b'],gb_ciss:['UK','#a78bfa']};
+  Object.keys(map).forEach(function(k){var d=ecbData[k];if(!d||!d.data)return;traces.push({x:d.data.map(function(p){return p.d;}),y:d.data.map(function(p){return p.v;}),name:map[k][0],type:'scatter',mode:'lines',line:{color:map[k][1],width:1.5}});});
+  if(traces.length>0){Plotly.newPlot('chCISS',traces,Object.assign({},lo,{shapes:[{type:'line',y0:0.375,y1:0.375,x0:0,x1:1,xref:'paper',line:{color:'#f59e0b',width:1,dash:'dot'}},{type:'line',y0:0.60,y1:0.60,x0:0,x1:1,xref:'paper',line:{color:'#ef4444',width:1,dash:'dot'}}],annotations:[{text:'Elevated',x:1,xref:'paper',y:0.375,showarrow:false,font:{size:8,color:'#f59e0b'}},{text:'Crisis',x:1,xref:'paper',y:0.60,showarrow:false,font:{size:8,color:'#ef4444'}}],yaxis:{gridcolor:'#1e2a45',title:'CISS (0=calm, 1=crisis)'}}),cfg);}
+  var euSubs={eu_equity:['Equity','#ef4444'],eu_bond:['Bond','#3b82f6'],eu_money:['Money Mkt','#f59e0b'],eu_fx:['FX','#10b981'],eu_fin:['Financials','#a78bfa']};
+  var euT=[];Object.keys(euSubs).forEach(function(k){var d=ecbData[k];if(!d||!d.data)return;euT.push({x:d.data.map(function(p){return p.d;}),y:d.data.map(function(p){return p.v;}),name:euSubs[k][0],type:'scatter',mode:'lines',line:{color:euSubs[k][1],width:1.2}});});
+  if(euT.length>0)Plotly.newPlot('chEUSub',euT,Object.assign({},lo,{yaxis:{gridcolor:'#1e2a45',title:'Subindex'}}),cfg);
+  var usSubs={us_equity:['Equity','#ef4444'],us_bond:['Bond','#3b82f6'],us_money:['Money Mkt','#f59e0b'],us_fx:['FX','#10b981'],us_fin:['Financials','#a78bfa']};
+  var usT=[];Object.keys(usSubs).forEach(function(k){var d=ecbData[k];if(!d||!d.data)return;usT.push({x:d.data.map(function(p){return p.d;}),y:d.data.map(function(p){return p.v;}),name:usSubs[k][0],type:'scatter',mode:'lines',line:{color:usSubs[k][1],width:1.2}});});
+  if(usT.length>0)Plotly.newPlot('chUSSub',usT,Object.assign({},lo,{yaxis:{gridcolor:'#1e2a45',title:'Subindex'}}),cfg);
+  var sov=ecbData['eu_sovciss'];if(sov&&sov.data){Plotly.newPlot('chSov',[{x:sov.data.map(function(p){return p.d;}),y:sov.data.map(function(p){return p.v;}),type:'scatter',mode:'lines',fill:'tozeroy',fillcolor:'rgba(239,68,68,0.1)',line:{color:'#ef4444',width:1.5},name:'SovCISS'}],Object.assign({},lo,{yaxis:{gridcolor:'#1e2a45',title:'SovCISS'}}),cfg);}
+  var ctry={de_ciss:['Germany','#3b82f6'],fr_ciss:['France','#22d3ee'],it_ciss:['Italy','#10b981'],es_ciss:['Spain','#f59e0b']};
+  var cT=[];Object.keys(ctry).forEach(function(k){var d=ecbData[k];if(!d||!d.data)return;cT.push({x:d.data.map(function(p){return p.d;}),y:d.data.map(function(p){return p.v;}),name:ctry[k][0],type:'scatter',mode:'lines',line:{color:ctry[k][1],width:1.2}});});
+  if(cT.length>0)Plotly.newPlot('chEUCountry',cT,Object.assign({},lo,{yaxis:{gridcolor:'#1e2a45',title:'Country CISS'}}),cfg);
+}
+function renderFredCharts(){
+  var lo={paper_bgcolor:'#111827',plot_bgcolor:'#111827',font:{color:'#64748b',family:'JetBrains Mono',size:9},margin:{l:50,r:15,t:10,b:40},hovermode:'x unified',showlegend:true,legend:{font:{size:9},orientation:'h',y:1.12},xaxis:{gridcolor:'#1e2a45'},yaxis:{gridcolor:'#1e2a45'}};
+  var cfg={responsive:true};var sT=[];
+  ['STLFSI4','NFCI','KCFSI'].forEach(function(k){var d=fredData[k];if(!d||d.length===0)return;var info=FRED_SERIES[k];sT.push({x:d.map(function(p){return p.d;}),y:d.map(function(p){return p.v;}),name:info.label,type:'scatter',mode:'lines',line:{color:info.color,width:1.5}});});
+  if(sT.length>0)Plotly.newPlot('chFredStress',sT,Object.assign({},lo,{shapes:[{type:'line',y0:0,y1:0,x0:0,x1:1,xref:'paper',line:{color:'#64748b',width:1,dash:'dash'}}],yaxis:{gridcolor:'#1e2a45',title:'Standard Deviations',zeroline:true,zerolinecolor:'#64748b'},annotations:[{text:'Zero = Normal',x:0.02,xref:'paper',y:0,showarrow:false,font:{size:8,color:'#64748b'}}]}),cfg);
+}
+function renderCreditCharts(){
+  var lo={paper_bgcolor:'#111827',plot_bgcolor:'#111827',font:{color:'#64748b',family:'JetBrains Mono',size:9},margin:{l:50,r:15,t:10,b:40},hovermode:'x unified',showlegend:true,legend:{font:{size:9},orientation:'h',y:1.12},xaxis:{gridcolor:'#1e2a45'},yaxis:{gridcolor:'#1e2a45'}};
+  var cfg={responsive:true};var cT=[];
+  ['BAMLH0A0HYM2','BAMLC0A4CBBB'].forEach(function(k){var d=fredData[k];if(!d)return;var info=FRED_SERIES[k];cT.push({x:d.map(function(p){return p.d;}),y:d.map(function(p){return p.v;}),name:info.label,type:'scatter',mode:'lines',fill:'tozeroy',line:{color:info.color,width:1.5}});});
+  if(cT.length>0)Plotly.newPlot('chCredit',cT,Object.assign({},lo,{yaxis:{gridcolor:'#1e2a45',title:'bps (OAS)'}}),cfg);
+  var vT=[];var vix=fredData['VIXCLS'];if(vix)vT.push({x:vix.map(function(p){return p.d;}),y:vix.map(function(p){return p.v;}),name:'VIX',type:'scatter',mode:'lines',line:{color:'#ef4444',width:1.5},yaxis:'y'});
+  var ted=fredData['TEDRATE'];if(ted)vT.push({x:ted.map(function(p){return p.d;}),y:ted.map(function(p){return p.v;}),name:'TED Spread',type:'scatter',mode:'lines',line:{color:'#f59e0b',width:1.5},yaxis:'y2'});
+  if(vT.length>0)Plotly.newPlot('chVol',vT,Object.assign({},lo,{yaxis:{gridcolor:'#1e2a45',title:'VIX',side:'left'},yaxis2:{overlaying:'y',side:'right',title:'TED %',gridcolor:'transparent'}}),cfg);
+  var cuT=[];['T10Y2Y','T10Y3M'].forEach(function(k){var d=fredData[k];if(!d)return;var info=FRED_SERIES[k];cuT.push({x:d.map(function(p){return p.d;}),y:d.map(function(p){return p.v;}),name:info.label,type:'scatter',mode:'lines',line:{color:info.color,width:1.5}});});
+  if(cuT.length>0)Plotly.newPlot('chCurve',cuT,Object.assign({},lo,{shapes:[{type:'line',y0:0,y1:0,x0:0,x1:1,xref:'paper',line:{color:'#ef4444',width:1,dash:'dash'}}],yaxis:{gridcolor:'#1e2a45',title:'%'},annotations:[{text:'Inversion (Recession Signal)',x:0.5,xref:'paper',y:0,showarrow:false,font:{size:8,color:'#ef4444'}}]}),cfg);
+  var epu=fredData['USEPUINDXD'];if(epu)Plotly.newPlot('chEPU',[{x:epu.map(function(p){return p.d;}),y:epu.map(function(p){return p.v;}),type:'scatter',mode:'lines',fill:'tozeroy',fillcolor:'rgba(251,191,36,0.08)',line:{color:'#fbbf24',width:1.5},name:'EPU Index'}],Object.assign({},lo,{yaxis:{gridcolor:'#1e2a45',title:'EPU Index'},shapes:[{type:'line',y0:200,y1:200,x0:0,x1:1,xref:'paper',line:{color:'#f59e0b',width:1,dash:'dot'}}]}),cfg);
+}
+
+function renderRegimeTable(){
+  var tb=document.getElementById('regimeBody');var html='';
+  var cissKeys=[{k:'us_ciss',name:'US CISS',src:'ECB'},{k:'eu_ciss',name:'Euro Area CISS',src:'ECB'},{k:'cn_ciss',name:'China CISS',src:'ECB'},{k:'gb_ciss',name:'UK CISS',src:'ECB'},{k:'eu_sovciss',name:'EU Sovereign CISS',src:'ECB'},{k:'eu_equity',name:'EU Equity Stress',src:'ECB'},{k:'eu_bond',name:'EU Bond Stress',src:'ECB'},{k:'eu_money',name:'EU Money Mkt Stress',src:'ECB'},{k:'eu_fin',name:'EU Financial Stress',src:'ECB'}];
+  cissKeys.forEach(function(item){var d=ecbData[item.k];if(!d||!d.data||d.data.length===0)return;var data=d.data;var lat=data[data.length-1];var w1=data.length>5?data[data.length-6]:null;var m1=data.length>22?data[data.length-23]:null;var wC=w1?lat.v-w1.v:null;var mC=m1?lat.v-m1.v:null;var reg=cissRegime(lat.v);var pct=cissPercentile(data,lat.v);var sig=wC!=null?(wC>0.02?'Deteriorating':wC<-0.02?'Improving':'Stable'):'--';html+=regRow(item.name,item.src,lat.v.toFixed(4),lat.d,wC,mC,reg,pct,sig,4);});
+  Object.keys(FRED_SERIES).forEach(function(k){var d=fredData[k];if(!d||d.length===0)return;var info=FRED_SERIES[k];var lat=d[d.length-1];var w1=d.length>5?d[d.length-6]:null;var m1=d.length>22?d[d.length-23]:null;var wC=w1?lat.v-w1.v:null;var mC=m1?lat.v-m1.v:null;var reg=fredRegime(k,lat.v);var pct=fredPercentile(d,lat.v,info.invert);var sig=wC!=null?((info.invert?-wC:wC)>0.05?'Deteriorating':(info.invert?-wC:wC)<-0.05?'Improving':'Stable'):'--';var dp=k==='VIXCLS'||k==='USEPUINDXD'?2:k.startsWith('BAML')?0:3;html+=regRow(info.label,'FRED',lat.v.toFixed(dp)+(info.unit==='bps'?'bp':info.unit==='%'?'%':''),lat.d,wC,mC,reg,pct,sig,dp);});
+  tb.innerHTML=html;
+}
+function regRow(name,src,val,date,wC,mC,reg,pct,sig,dp){var rc='regime-'+reg.toLowerCase();var wS=wC!=null?((wC>=0?'+':'')+wC.toFixed(dp||3)):'--';var mS=mC!=null?((mC>=0?'+':'')+mC.toFixed(dp||3)):'--';var wCl=wC!=null?(wC>0?'neg':wC<0?'pos':'flat'):'flat';var mCl=mC!=null?(mC>0?'neg':mC<0?'pos':'flat'):'flat';var sCl=sig==='Deteriorating'?'neg':sig==='Improving'?'pos':'flat';return '<tr><td style="font-weight:600">'+name+'</td><td class="mono" style="font-size:10px">'+src+'</td><td class="mono">'+val+'</td><td class="mono" style="font-size:10px">'+date+'</td><td class="mono '+wCl+'">'+wS+'</td><td class="mono '+mCl+'">'+mS+'</td><td><span class="regime-chip '+rc+'">'+reg+'</span></td><td class="mono">'+pct+'%</td><td class="'+sCl+'">'+sig+'</td></tr>';}
+function cissRegime(v){return v<=0.15?'Low':v<=0.25?'Normal':v<=0.40?'Elevated':v<=0.60?'High':'Crisis';}
+function cissPercentile(d,v){var s=d.map(function(p){return p.v;}).sort(function(a,b){return a-b;});var i=s.findIndex(function(x){return x>=v;});return Math.round(i/s.length*100);}
+function fredRegime(k,v){if(k==='VIXCLS')return v<=15?'Low':v<=20?'Normal':v<=30?'Elevated':v<=40?'High':'Crisis';if(k==='TEDRATE')return v<=0.25?'Low':v<=0.5?'Normal':v<=1.0?'Elevated':v<=2.0?'High':'Crisis';if(k.startsWith('BAML')){if(k==='BAMLH0A0HYM2')return v<=300?'Low':v<=400?'Normal':v<=600?'Elevated':v<=1000?'High':'Crisis';return v<=150?'Low':v<=200?'Normal':v<=300?'Elevated':v<=500?'High':'Crisis';}if(k==='USEPUINDXD')return v<=100?'Low':v<=150?'Normal':v<=250?'Elevated':v<=400?'High':'Crisis';if(k==='T10Y2Y'||k==='T10Y3M')return v>=1.5?'Low':v>=0.5?'Normal':v>=0?'Elevated':v>=-0.5?'High':'Crisis';return v<=-0.5?'Low':v<=0?'Normal':v<=1?'Elevated':v<=2.5?'High':'Crisis';}
+function fredPercentile(d,v,inv){var s=d.map(function(p){return p.v;}).sort(function(a,b){return a-b;});var i=s.findIndex(function(x){return x>=v;});var p=Math.round(i/s.length*100);return inv?(100-p):p;}
+
+function renderAnalysis(){
+  var box=document.getElementById('analysisBox');var h='<h4>Multi-Source Systemic Risk Assessment</h4>';
+  var us=last(ecbData,'us_ciss');var eu=last(ecbData,'eu_ciss');var cn=last(ecbData,'cn_ciss');
+  if(us){h+='<p><span class="key">US Systemic Stress (CISS: '+us.v.toFixed(4)+')</span> — ';if(us.v<=0.15)h+='Low stress. Financial markets operating normally. Well below the 0.375 elevated threshold.';else if(us.v<=0.375)h+='Normal range. Some sectors showing mild stress. During 2008 GFC, US CISS hit 0.75+.';else if(us.v<=0.60)h+='<span class="warn">ELEVATED — multiple market segments under stress.</span> This level seen during Taper Tantrum and China deval.';else h+='<span class="danger">CRISIS-LEVEL US systemic stress.</span> Only occurred during GFC 2008-09 and COVID March 2020.';h+='</p>';}
+  if(eu){h+='<p><span class="key">Euro Area Systemic Stress (CISS: '+eu.v.toFixed(4)+')</span> — ';if(eu.v<=0.20)h+='Low stress across the eurozone. All market segments operating normally.';else if(eu.v<=0.40)h+='Moderate stress. EU CISS hit 0.82 during GFC, 0.65 during sovereign crisis, 0.55 during COVID.';else h+='<span class="warn">Significant eurozone stress.</span> Watch SovCISS for sovereign contagion.';h+='</p>';}
+  if(cn){h+='<p><span class="key">China Systemic Stress (CISS: '+cn.v.toFixed(4)+')</span> — ';if(cn.v<=0.20)h+='Chinese financial system showing low stress.';else if(cn.v<=0.40)h+='Elevated China stress. Property sector or capital outflows likely contributing.';else h+='<span class="danger">High China stress.</span> During 2015 deval, China CISS spiked above 0.50.';h+='</p>';}
+  var stl=lastFred('STLFSI4');var nfci=lastFred('NFCI');var vix=lastFred('VIXCLS');
+  if(stl&&nfci){h+='<h4 style="margin-top:12px">US Financial Conditions</h4><p>StL Fed FSI ('+stl.v.toFixed(3)+') and Chicago NFCI ('+nfci.v.toFixed(3)+') ';if(stl.v<=0&&nfci.v<=0)h+='both signal below-average financial stress. Conditions are accommodative.';else h+='<span class="warn">show above-average stress.</span> During 2008, STLFSI peaked at +5.257 and NFCI at +3.28.';h+='</p>';}
+  if(vix){h+='<p>VIX at '+vix.v.toFixed(1)+' — ';if(vix.v<=15)h+='indicates complacency. Extended low VIX preceded Volmageddon (Feb 2018).';else if(vix.v<=25)h+='normal range. Moderate uncertainty priced in.';else if(vix.v<=40)h+='<span class="warn">significant fear.</span> VIX above 30 has coincided with 10%+ equity drawdowns.';else h+='<span class="danger">extreme panic.</span> VIX above 40 only sustained during GFC and COVID.';h+='</p>';}
+  var t2y=lastFred('T10Y2Y');if(t2y){h+='<p>10Y-2Y spread at '+(t2y.v>=0?'+':'')+t2y.v.toFixed(2)+'% — ';if(t2y.v<0)h+='<span class="danger">INVERTED.</span> Yield curve inversion preceded every US recession since 1955.';else if(t2y.v<0.5)h+='<span class="warn">flat/barely positive.</span> Most dangerous period is re-steepening after inversion.';else h+='positive and healthy. No recession signal from this indicator.';h+='</p>';}
+  box.innerHTML=h;
+}
+
+function last(data,key){var d=data[key];if(!d||!d.data||d.data.length===0)return null;return d.data[d.data.length-1];}
+function lastFred(key){var d=fredData[key];if(!d||d.length===0)return null;return d[d.length-1];}
+function setS(m){document.getElementById('sMsg').textContent=m;}
+function updClk(){document.getElementById('clock').textContent=new Date().toLocaleTimeString('en-US',{hour12:false});}
+setInterval(updClk,1000);updClk();
+setInterval(function(){loadAll();},15*60*1000);
+loadAll();
+</script>
+</body>
+</html>
