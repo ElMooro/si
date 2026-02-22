@@ -9,10 +9,8 @@
 <style>
 :root{--bg0:#080c14;--bg1:#0d1117;--bg2:#161b22;--bg3:#1c2333;--bg4:#21283b;--brd:#30363d;--brd2:#484f58;--t1:#e6edf3;--t2:#8b949e;--t3:#6e7681;--green:#3fb950;--red:#f85149;--blue:#58a6ff;--yellow:#d29922;--orange:#db6d28;--purple:#bc8cff;--cyan:#39d2c0;--teal:#2ea043}
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg0);color:var(--t1);font-family:'DM Sans',sans-serif;min-height:100vh}
-.mono{font-family:'JetBrains Mono',monospace}
-
-/* Top Bar */
+body{background:var(--bg0);color:var(--t1);font-family:DM Sans,sans-serif;min-height:100vh}
+.mono{font-family:JetBrains Mono,monospace}
 .topbar{background:var(--bg1);border-bottom:1px solid var(--brd);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
 .topbar-left{display:flex;align-items:center;gap:14px}
 .logo{font-size:18px;font-weight:700;color:var(--blue)}
@@ -22,862 +20,124 @@ body{background:var(--bg0);color:var(--t1);font-family:'DM Sans',sans-serif;min-
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 .rate-bar{width:120px;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
 .rate-fill{height:100%;background:var(--green);border-radius:3px;transition:width .3s}
-
-/* Stats Bar */
-.stats-bar{background:var(--bg1);border-bottom:1px solid var(--brd);padding:8px 20px;display:flex;gap:24px;font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace}
+.stats-bar{background:var(--bg1);border-bottom:1px solid var(--brd);padding:8px 20px;display:flex;gap:24px;font-size:11px;color:var(--t3);font-family:JetBrains Mono,monospace}
 .stat{display:flex;align-items:center;gap:6px}
 .stat b{color:var(--t2)}
-
-/* Category Tabs */
 .tabs{background:var(--bg1);border-bottom:1px solid var(--brd);padding:6px 20px;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
 .tab{padding:7px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;color:var(--t3);white-space:nowrap;transition:all .15s;border:1px solid transparent}
 .tab:hover{color:var(--t2);background:var(--bg3)}
 .tab.active{color:var(--blue);background:rgba(88,166,255,.1);border-color:rgba(88,166,255,.2)}
 .tab .count{font-size:10px;color:var(--t3);margin-left:4px}
-
-/* Controls */
 .controls{padding:10px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .search{background:var(--bg2);border:1px solid var(--brd);color:var(--t1);padding:7px 12px;border-radius:6px;font-size:13px;width:280px;outline:none}
 .search:focus{border-color:var(--blue)}
-.btn{padding:7px 14px;border-radius:6px;border:1px solid var(--brd);background:var(--bg2);color:var(--t2);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s}
+.btn{padding:7px 14px;border-radius:6px;border:1px solid var(--brd);background:var(--bg2);color:var(--t2);font-size:12px;cursor:pointer;font-family:DM Sans,sans-serif;transition:all .15s}
 .btn:hover{background:var(--bg3);color:var(--t1);border-color:var(--brd2)}
 .btn.primary{background:rgba(88,166,255,.15);color:var(--blue);border-color:rgba(88,166,255,.3)}
 .btn.primary:hover{background:rgba(88,166,255,.25)}
 .btn.danger{color:var(--red);border-color:rgba(248,81,73,.3)}
-
-/* Grid */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px;padding:12px 20px}
-
-/* Card */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px;padding:12px 20px;padding-bottom:50px}
 .card{background:var(--bg2);border:1px solid var(--brd);border-radius:8px;padding:14px;transition:all .15s;cursor:pointer;position:relative}
 .card:hover{border-color:var(--brd2);background:var(--bg3)}
 .card-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
 .card-name{font-size:12px;color:var(--t2);font-weight:500;line-height:1.3;max-width:70%}
-.card-id{font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace}
-.card-value{font-size:24px;font-weight:700;font-family:'JetBrains Mono',monospace;margin:6px 0}
-.card-meta{display:flex;gap:12px;flex-wrap:wrap}
-.change{font-size:11px;font-family:'JetBrains Mono',monospace;padding:2px 6px;border-radius:3px}
+.card-id{font-size:10px;color:var(--t3);font-family:JetBrains Mono,monospace}
+.card-value{font-size:24px;font-weight:700;font-family:JetBrains Mono,monospace;margin:6px 0}
+.card-meta{display:flex;gap:8px;flex-wrap:wrap}
+.change{font-size:11px;font-family:JetBrains Mono,monospace;padding:2px 6px;border-radius:3px}
 .change.up{color:var(--green);background:rgba(63,185,80,.1)}
 .change.down{color:var(--red);background:rgba(248,81,73,.1)}
 .change.flat{color:var(--t3)}
 .card-date{font-size:10px;color:var(--t3);margin-top:6px}
-.card-freq{position:absolute;top:10px;right:10px;font-size:9px;padding:2px 6px;border-radius:3px;font-family:'JetBrains Mono',monospace}
+.card-freq{position:absolute;top:10px;right:10px;font-size:9px;padding:2px 6px;border-radius:3px;font-family:JetBrains Mono,monospace}
 .freq-D{color:var(--cyan);background:rgba(57,210,192,.1)}
 .freq-W{color:var(--blue);background:rgba(88,166,255,.1)}
 .freq-M{color:var(--purple);background:rgba(188,140,255,.1)}
 .freq-Q{color:var(--orange);background:rgba(219,109,40,.1)}
-.card.loading{opacity:.5}
-.card.loading .card-value::after{content:'...';animation:dots 1.5s infinite}
-@keyframes dots{0%{content:'...'}33%{content:'..'}66%{content:'.'}}
 .card.stale{border-left:3px solid var(--yellow)}
-.card.error{border-left:3px solid var(--red)}
-
-/* Chart Modal */
 .modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center}
 .modal-overlay.show{display:flex}
 .modal{background:var(--bg1);border:1px solid var(--brd);border-radius:12px;width:90%;max-width:900px;max-height:85vh;overflow:auto;padding:20px}
 .modal h3{font-size:16px;margin-bottom:4px}
 .modal .sub{color:var(--t3);font-size:12px;margin-bottom:14px}
 .modal-close{position:absolute;top:12px;right:16px;font-size:20px;color:var(--t3);cursor:pointer;background:none;border:none}
-
-/* Status Bar */
-.status-bar{position:fixed;bottom:0;left:0;right:0;background:var(--bg1);border-top:1px solid var(--brd);padding:6px 20px;font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;display:flex;justify-content:space-between;z-index:100}
-.status-msg{color:var(--t2)}
+.status-bar{position:fixed;bottom:0;left:0;right:0;background:var(--bg1);border-top:1px solid var(--brd);padding:6px 20px;font-size:11px;color:var(--t3);font-family:JetBrains Mono,monospace;display:flex;justify-content:space-between;z-index:100}
 .progress-bar{width:200px;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;display:none}
 .progress-fill{height:100%;background:var(--blue);border-radius:2px;transition:width .2s}
-
-/* Empty state */
 .empty{text-align:center;padding:60px 20px;color:var(--t3)}
 .empty h3{font-size:16px;color:var(--t2);margin-bottom:8px}
-
-/* Responsive */
 @media(max-width:768px){.grid{grid-template-columns:1fr}.search{width:100%}.controls{padding:10px}}
 </style>
 </head>
 <body>
-
-<div class="topbar">
-  <div class="topbar-left">
-    <div class="logo">JUSTHODL.AI <span>FRED Terminal</span></div>
-  </div>
-  <div class="topbar-right">
-    <span><span class="live-dot"></span> LIVE</span>
-    <span id="rateText" class="mono">120/120</span>
-    <div class="rate-bar"><div class="rate-fill" id="rateFill" style="width:100%"></div></div>
-    <span id="clock" class="mono"></span>
-  </div>
-</div>
-
-<div class="stats-bar">
-  <div class="stat"><b id="totalCount">0</b> Series</div>
-  <div class="stat"><b id="loadedCount">0</b> Loaded</div>
-  <div class="stat"><b id="cachedCount">0</b> Cached</div>
-  <div class="stat"><b id="staleCount">0</b> Stale</div>
-  <div class="stat">Updated: <b id="lastUpdate">--</b></div>
-  <div class="stat" style="margin-left:auto">FRED Key: <b style="color:var(--green)">Active</b></div>
-</div>
-
+<div class="topbar"><div class="topbar-left"><div class="logo">JUSTHODL.AI <span>FRED Terminal</span></div></div><div class="topbar-right"><span><span class="live-dot"></span> LIVE</span><span id="rateText" class="mono">0 loaded</span><div class="rate-bar"><div class="rate-fill" id="rateFill" style="width:0%"></div></div><span id="clock" class="mono"></span></div></div>
+<div class="stats-bar"><div class="stat"><b id="totalCount">0</b> Series</div><div class="stat"><b id="loadedCount">0</b> Loaded</div><div class="stat"><b id="cachedCount">0</b> Cached</div><div class="stat"><b id="staleCount">0</b> Stale</div><div class="stat">Updated: <b id="lastUpdate">--</b></div><div class="stat" style="margin-left:auto">Proxy: <b id="proxyStatus" style="color:var(--green)">...</b></div></div>
 <div class="tabs" id="tabBar"></div>
-
-<div class="controls">
-  <input class="search" id="search" placeholder="Search series ID or name..." oninput="render()">
-  <button class="btn primary" onclick="loadTab()">📥 Load Tab</button>
-  <button class="btn primary" onclick="loadAll()">📥 Load All</button>
-  <button class="btn" onclick="refreshStale()">🔄 Refresh Stale</button>
-  <button class="btn danger" onclick="clearCache()">🗑️ Clear Cache</button>
-  <button class="btn" onclick="exportCSV()">💾 CSV</button>
-  <select id="sortSelect" class="btn" onchange="render()">
-    <option value="name">Sort: Name</option>
-    <option value="value">Sort: Value</option>
-    <option value="chg1d">Sort: 1D %</option>
-    <option value="chg1w">Sort: 1W %</option>
-    <option value="chg1m">Sort: 1M %</option>
-    <option value="chg1y">Sort: 1Y %</option>
-  </select>
-</div>
-
+<div class="controls"><input class="search" id="search" placeholder="Search series ID or name..." oninput="render()"><button class="btn primary" onclick="loadTab()">Load Tab</button><button class="btn primary" onclick="loadAll()">Load All</button><button class="btn" onclick="refreshStale()">Refresh Stale</button><button class="btn danger" onclick="clearCache()">Clear Cache</button><button class="btn" onclick="exportCSV()">CSV</button><select id="sortSelect" class="btn" onchange="render()"><option value="name">Sort: Name</option><option value="value">Sort: Value</option><option value="chg1d">Sort: 1D</option><option value="chg1w">Sort: 1W</option><option value="chg1m">Sort: 1M</option><option value="chg1y">Sort: 1Y</option></select></div>
 <div class="grid" id="grid"></div>
-
-<div class="modal-overlay" id="chartModal" onclick="if(event.target===this)closeChart()">
-  <div class="modal" style="position:relative">
-    <button class="modal-close" onclick="closeChart()">✕</button>
-    <h3 id="chartTitle"></h3>
-    <div class="sub" id="chartSub"></div>
-    <div id="chartDiv" style="width:100%;height:400px"></div>
-  </div>
-</div>
-
-<div class="status-bar">
-  <span class="status-msg" id="statusMsg">Ready</span>
-  <div>
-    <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
-    <span id="queueInfo"></span>
-  </div>
-</div>
-
+<div class="modal-overlay" id="chartModal" onclick="if(event.target===this)closeChart()"><div class="modal" style="position:relative"><button class="modal-close" onclick="closeChart()">X</button><h3 id="chartTitle"></h3><div class="sub" id="chartSub"></div><div id="chartDiv" style="width:100%;height:400px"></div></div></div>
+<div class="status-bar"><span id="statusMsg">Ready</span><div><div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div></div></div>
 <script>
-// ═══════════════════════════════════════════════════════════
-//  FRED API CONFIGURATION
-// ═══════════════════════════════════════════════════════════
-const FRED_KEY = '2f057499936072679d8843d7fce99989';
-const FRED_BASE = 'https://api.stlouisfed.org/fred/series/observations';
-const RATE_LIMIT = 120;
-const RATE_WINDOW = 60000;
-const OBS_LIMIT = 365; // ~1 year of daily data for changes
-
-// Update frequency constants
-const D = 'D', W = 'W', M = 'M', Q = 'Q';
-
-// Cache durations by frequency (ms)
-const CACHE_TTL = {
-  D: 6 * 3600000,    // 6 hours for daily data
-  W: 3 * 86400000,   // 3 days for weekly
-  M: 7 * 86400000,   // 7 days for monthly
-  Q: 30 * 86400000   // 30 days for quarterly
+const PROXY_URL='https://4dgpa7mv5dfipsh3gi2xim6uja0igozb.lambda-url.us-east-1.on.aws/';
+const OBS_LIMIT=365,BATCH_SIZE=15;
+const D='D',W='W',M='M',Q='Q';
+const CACHE_TTL={D:6*3600000,W:3*86400000,M:7*86400000,Q:30*86400000};
+const SERIES={
+'DFF':['Fed Funds Rate','rates',D],'DFEDTARU':['Fed Funds Target Upper','rates',D],'DFEDTARL':['Fed Funds Target Lower','rates',D],'FEDFUNDS':['Effective Fed Funds Rate','rates',M],'IORB':['Interest on Reserve Balances','rates',D],'SOFR':['SOFR','rates',D],'SOFR30DAYAVG':['30-Day Avg SOFR','rates',D],'SOFR90DAYAVG':['90-Day Avg SOFR','rates',D],'SOFR180DAYAVG':['180-Day Avg SOFR','rates',D],'AMERIBOR':['AMERIBOR','rates',D],'DPRIME':['Prime Rate','rates',D],'DPCREDIT':['Discount Window Primary Credit','rates',D],'OBFR':['Overnight Bank Funding Rate','rates',D],
+'DGS1MO':['1-Month Treasury','yields',D],'DGS3MO':['3-Month Treasury','yields',D],'DGS6MO':['6-Month Treasury','yields',D],'DGS1':['1-Year Treasury','yields',D],'DGS2':['2-Year Treasury','yields',D],'DGS3':['3-Year Treasury','yields',D],'DGS5':['5-Year Treasury','yields',D],'DGS7':['7-Year Treasury','yields',D],'DGS10':['10-Year Treasury','yields',D],'DGS20':['20-Year Treasury','yields',D],'DGS30':['30-Year Treasury','yields',D],'DFII5':['5-Year TIPS','yields',D],'DFII10':['10-Year TIPS','yields',D],'DFII20':['20-Year TIPS','yields',D],'DFII30':['30-Year TIPS','yields',D],
+'T10Y2Y':['10Y-2Y Spread','spreads',D],'T10Y3M':['10Y-3M Spread','spreads',D],'T10YFF':['10Y-Fed Funds Spread','spreads',D],'T5YFF':['5Y-Fed Funds Spread','spreads',D],'T10YIE':['10Y Breakeven Inflation','spreads',D],'T5YIE':['5Y Breakeven Inflation','spreads',D],'T5YIFR':['5Y5Y Forward Inflation','spreads',D],
+'WALCL':['Fed Total Assets','fed_bs',W],'WTREGEN':['Fed Treasury Holdings','fed_bs',W],'WSHOMCB':['Fed MBS Holdings','fed_bs',W],'WSHOSHO':['Securities Held Outright','fed_bs',W],'WSHOTSL':['Fed Treasury Securities','fed_bs',W],'WSHOBL':['Fed Treasury Bills','fed_bs',W],'WDTGAL':['Fed Total Liabilities','fed_bs',W],'WRESBAL':['Reserve Balances','fed_bs',W],'RRPONTSYD':['Overnight Reverse Repo','fed_bs',D],'RPONTSYD':['Overnight Repo','fed_bs',D],'H41RESPPALDKNWW':['Discount Window Loans','fed_bs',W],'WLCFLPCL':['Fed Loans','fed_bs',W],'SWPT':['CB Liquidity Swaps','fed_bs',W],'WORAL':['Fed Other Assets','fed_bs',W],
+'M1SL':['M1 Money Supply','money',M],'M2SL':['M2 Money Supply','money',M],'BOGMBASE':['Monetary Base','money',M],'MBCURRCIR':['Currency in Circulation','money',M],'TOTRESNS':['Total Reserves','money',M],'NONBORRES':['Non-Borrowed Reserves','money',M],'M2V':['M2 Velocity','money',Q],
+'DTWEXBGS':['Trade Weighted USD Broad','dxy',D],'DTWEXAFEGS':['Trade Weighted USD AFE','dxy',D],'DTWEXEMEGS':['Trade Weighted USD EM','dxy',D],'DEXJPUS':['USD/JPY','dxy',D],'DEXUSEU':['EUR/USD','dxy',D],'DEXUSUK':['GBP/USD','dxy',D],'DEXCAUS':['USD/CAD','dxy',D],'DEXCHUS':['USD/CNY','dxy',D],'DEXMXUS':['USD/MXN','dxy',D],'DEXSZUS':['USD/CHF','dxy',D],'DEXKOUS':['USD/KRW','dxy',D],
+'BAMLC0A0CMEY':['US Corp Yield','icebofa',D],'BAMLC0A0CM':['US Corp Total Return','icebofa',D],'BAMLC0A1CAAAEY':['AAA Corp Yield','icebofa',D],'BAMLC0A2CAAEY':['AA Corp Yield','icebofa',D],'BAMLC0A3CAEY':['A Corp Yield','icebofa',D],'BAMLC0A4CBBBEY':['BBB Corp Yield','icebofa',D],'BAMLC0A0CMOAS':['US Corp OAS','icebofa',D],'BAMLC0A1CAAAOAS':['AAA Corp OAS','icebofa',D],'BAMLC0A4CBBBOAS':['BBB Corp OAS','icebofa',D],
+'BAMLH0A0HYM2EY':['US HY Yield','hy',D],'BAMLH0A0HYM2':['US HY Total Return','hy',D],'BAMLH0A1HYBBEY':['BB HY Yield','hy',D],'BAMLH0A2HYBEY':['B HY Yield','hy',D],'BAMLH0A3HYCEY':['CCC HY Yield','hy',D],'BAMLH0A0HYM2OAS':['US HY OAS','hy',D],'BAMLH0A1HYBBOAS':['BB HY OAS','hy',D],'BAMLH0A2HYBOAS':['B HY OAS','hy',D],'BAMLH0A3HYCOAS':['CCC HY OAS','hy',D],
+'BAMLEMCBPIEY':['EM Corp Yield','em_bonds',D],'BAMLEMCLLCRPIEY':['EM Liquid Corp Yield','em_bonds',D],'BAMLEMHBHYCRPIEY':['EM HY Corp Yield','em_bonds',D],'BAMLEMCBPIOAS':['EM Corp OAS','em_bonds',D],'BAMLEMHBHYCRPIOAS':['EM HY Corp OAS','em_bonds',D],'BAMLEMRECRPIEY':['EM Corp Real Yield','em_bonds',D],
+'VIXCLS':['VIX','volatility',D],'VXNCLS':['VXN Nasdaq Vol','volatility',D],'OVXCLS':['OVX Oil Vol','volatility',D],'GVZCLS':['GVZ Gold Vol','volatility',D],'EVZCLS':['EVZ Euro Vol','volatility',D],'TEDRATE':['TED Spread','volatility',D],'STLFSI4':['StL Fin Stress','volatility',W],'NFCI':['Chicago NFCI','volatility',W],'ANFCI':['Adjusted NFCI','volatility',W],'KCFSI':['KC Fed Stress','volatility',M],
+'DRTSCILM':['Loan Tightening C&I','credit',Q],'DRTSCLCC':['Loan Tightening Cards','credit',Q],'TOTCI':['C&I Loans','credit',W],'BUSLOANS':['Business Loans','credit',M],'REALLN':['RE Loans','credit',M],'CONSUMER':['Consumer Loans','credit',M],'REVOLSL':['Revolving Credit','credit',M],'NONREVSL':['Nonrevolving Credit','credit',M],'TOTALSL':['Total Consumer Credit','credit',M],'DRISCFLM':['Delinquency C&I','credit',Q],'DRCCLACBS':['Delinquency Cards','credit',Q],
+'DCOILWTICO':['WTI Crude','commodities',D],'DCOILBRENTEU':['Brent Crude','commodities',D],'DHHNGSP':['Henry Hub NatGas','commodities',D],'GOLDAMGBD228NLBM':['Gold London','commodities',D],'DEXSILV':['Silver','commodities',D],'PCOPPUSDM':['Copper','commodities',M],'PALLFNFINDEXM':['All Commodity Index','commodities',M],'PFOODINDEXM':['Food Price Index','commodities',M],'PMETAINDEXM':['Metals Index','commodities',M],
+'CPIAUCSL':['CPI All Items','inflation',M],'CPILFESL':['Core CPI','inflation',M],'MEDCPIM158SFRBCLE':['Median CPI','inflation',M],'TRMMEANCPIM158SFRBCLE':['Trimmed Mean CPI','inflation',M],'STICKCPIM157SFRBATL':['Sticky CPI','inflation',M],'PCEPI':['PCE Price Index','inflation',M],'PCEPILFE':['Core PCE','inflation',M],'PPIFIS':['PPI Final Demand','inflation',M],'MICH':['Michigan Inflation Exp','inflation',M],
+'UNRATE':['Unemployment Rate','labor',M],'U6RATE':['U-6 Rate','labor',M],'PAYEMS':['Nonfarm Payrolls','labor',M],'MANEMP':['Mfg Employment','labor',M],'CES0500000003':['Avg Hourly Earnings','labor',M],'ICSA':['Initial Claims','labor',W],'CCSA':['Continuing Claims','labor',W],'JTSJOL':['JOLTS Openings','labor',M],'JTSQUL':['JOLTS Quits','labor',M],'CIVPART':['Labor Participation','labor',M],
+'GDP':['GDP','gdp',Q],'GDPC1':['Real GDP','gdp',Q],'A191RL1Q225SBEA':['Real GDP Growth','gdp',Q],'GDPDEF':['GDP Deflator','gdp',Q],'PCEC96':['Real Consumption','gdp',Q],'PNFI':['Nonres Investment','gdp',Q],'PRFI':['Residential Investment','gdp',Q],'NETEXP':['Net Exports','gdp',Q],
+'INDPRO':['Industrial Production','industrial',M],'IPGMFN':['IP Manufacturing','industrial',M],'IPDMAN':['IP Durable Mfg','industrial',M],'TCU':['Capacity Utilization','industrial',M],'MCUMFN':['Mfg Capacity Util','industrial',M],'DGORDER':['Durable Goods Orders','industrial',M],'NEWORDER':['Mfg New Orders','industrial',M],'ISRATIO':['Inventory Sales Ratio','industrial',M],
+'HOUST':['Housing Starts','housing',M],'PERMIT':['Building Permits','housing',M],'HSN1F':['New Home Sales','housing',M],'EXHOSLUSM495S':['Existing Home Sales','housing',M],'MSPUS':['Median Home Price','housing',Q],'CSUSHPISA':['Case-Shiller Home Price','housing',M],'MORTGAGE30US':['30Y Mortgage Rate','housing',W],'MORTGAGE15US':['15Y Mortgage Rate','housing',W],
+'RSAFS':['Retail Sales','consumer',M],'RSXFS':['Retail ex Food Svc','consumer',M],'UMCSENT':['Michigan Sentiment','consumer',M],'PCE':['Personal Consumption','consumer',M],'PI':['Personal Income','consumer',M],'PSAVERT':['Saving Rate','consumer',M],'DSPIC96':['Real Disposable Income','consumer',M],
+'NAPM':['ISM Mfg PMI','surveys',M],'NAPMNOI':['ISM Mfg New Orders','surveys',M],'NAPMPI':['ISM Mfg Prices','surveys',M],'NMFCI':['ISM Non-Mfg','surveys',M],'BSCICP02USM460S':['OECD Biz Confidence US','surveys',M],'BSCICP02EZM460S':['OECD Biz Confidence Euro','surveys',M],
+'ECBASSETSW':['ECB Total Assets','global',W],'ECBDFR':['ECB Deposit Rate','global',D],'JPNASSETS':['BoJ Total Assets','global',M],'BSOBLV02EZM460S':['Biz Survey Euro','global',M],'BSOBLV02USM460S':['Biz Survey US','global',M],'BSOBLV02DEM460S':['Biz Survey Germany','global',M],'G7LOLITOAASTSAM':['G7 Leading Indicator','global',M],
+'SBCACBW027SBOG':['Securities Bank Credit','bank_credit',W],'TASACBW027SBOG':['Treasury Agency Banks','bank_credit',W],'USGSEC':['Treasury Agency Monthly','bank_credit',M],'HTRUCKSSA':['Heavy Truck Sales','bank_credit',M],
+'TLAACBW027SBOG':['Total Loans All Banks','liquidity',W],'DTBSPCKFM':['3M T-Bill Rate','liquidity',D],
+'BOPGSTB':['Trade Balance','trade',M],'IR':['Import Price Index','trade',M],'IQ':['Export Price Index','trade',M],
+'GFDEBTN':['Federal Debt Total','govt',Q],'GFDEGDQ188S':['Debt to GDP','govt',Q],'FYFSD':['Surplus Deficit','govt',Q],'A091RC1Q027SBEA':['Fed Interest Payments','govt',Q]
 };
-
-// ═══════════════════════════════════════════════════════════
-//  COMPLETE INDICATOR CATALOG — 500+ FRED SERIES
-//  Each: [Name, Category, UpdateFrequency]
-// ═══════════════════════════════════════════════════════════
-const SERIES = {
-  // ──── INTEREST RATES & FED POLICY ────
-  'DFF':['Fed Funds Rate','rates',D],
-  'DFEDTARU':['Fed Funds Target Upper','rates',D],
-  'DFEDTARL':['Fed Funds Target Lower','rates',D],
-  'FEDFUNDS':['Effective Fed Funds Rate','rates',M],
-  'IORB':['Interest on Reserve Balances','rates',D],
-  'SOFR':['Secured Overnight Financing Rate','rates',D],
-  'SOFR30DAYAVG':['30-Day Avg SOFR','rates',D],
-  'SOFR90DAYAVG':['90-Day Avg SOFR','rates',D],
-  'SOFR180DAYAVG':['180-Day Avg SOFR','rates',D],
-  'AMERIBOR':['AMERIBOR Overnight Rate','rates',D],
-  'DPRIME':['Prime Rate','rates',D],
-  'DPCREDIT':['Discount Window Primary Credit','rates',D],
-  'OBFR':['Overnight Bank Funding Rate','rates',D],
-
-  // ──── TREASURY YIELDS ────
-  'DGS1MO':['1-Month Treasury','yields',D],
-  'DGS3MO':['3-Month Treasury','yields',D],
-  'DGS6MO':['6-Month Treasury','yields',D],
-  'DGS1':['1-Year Treasury','yields',D],
-  'DGS2':['2-Year Treasury','yields',D],
-  'DGS3':['3-Year Treasury','yields',D],
-  'DGS5':['5-Year Treasury','yields',D],
-  'DGS7':['7-Year Treasury','yields',D],
-  'DGS10':['10-Year Treasury','yields',D],
-  'DGS20':['20-Year Treasury','yields',D],
-  'DGS30':['30-Year Treasury','yields',D],
-  'DFII5':['5-Year TIPS','yields',D],
-  'DFII10':['10-Year TIPS','yields',D],
-  'DFII20':['20-Year TIPS','yields',D],
-  'DFII30':['30-Year TIPS','yields',D],
-
-  // ──── YIELD SPREADS ────
-  'T10Y2Y':['10Y-2Y Spread','spreads',D],
-  'T10Y3M':['10Y-3M Spread','spreads',D],
-  'T10YFF':['10Y-Fed Funds Spread','spreads',D],
-  'T5YFF':['5Y-Fed Funds Spread','spreads',D],
-  'T10YIE':['10Y Breakeven Inflation','spreads',D],
-  'T5YIE':['5Y Breakeven Inflation','spreads',D],
-  'T5YIFR':['5Y5Y Forward Inflation','spreads',D],
-
-  // ──── FED BALANCE SHEET ────
-  'WALCL':['Fed Total Assets','fed_bs',W],
-  'WTREGEN':['Fed Treasury Holdings','fed_bs',W],
-  'WSHOMCB':['Fed MBS Holdings','fed_bs',W],
-  'WSHOSHO':['Fed Securities Held Outright','fed_bs',W],
-  'WSHOTSL':['Fed Treasury Securities','fed_bs',W],
-  'WSHOBL':['Fed Treasury Bills','fed_bs',W],
-  'WDTGAL':['Fed Total Liabilities','fed_bs',W],
-  'WRESBAL':['Reserve Balances at Fed','fed_bs',W],
-  'RRPONTSYD':['Overnight Reverse Repo','fed_bs',D],
-  'RPONTSYD':['Overnight Repo','fed_bs',D],
-  'H41RESPPALDKNWW':['Fed Discount Window Loans','fed_bs',W],
-  'WLCFLPCL':['Fed Loans','fed_bs',W],
-  'SWPT':['Central Bank Liquidity Swaps','fed_bs',W],
-  'WORAL':['Fed Other Assets','fed_bs',W],
-  'TERMT':['Fed Term Facility','fed_bs',W],
-
-  // ──── MONEY SUPPLY ────
-  'M1SL':['M1 Money Supply','money',M],
-  'M2SL':['M2 Money Supply','money',M],
-  'BOGMBASE':['Monetary Base','money',M],
-  'MBCURRCIR':['Currency in Circulation','money',M],
-  'TOTRESNS':['Total Reserves','money',M],
-  'NONBORRES':['Non-Borrowed Reserves','money',M],
-  'EXCSRESNS':['Excess Reserves','money',M],
-  'REQRESNS':['Required Reserves','money',M],
-  'M2V':['M2 Velocity','money',Q],
-
-  // ──── DXY & CURRENCIES ────
-  'DTWEXBGS':['Trade Weighted USD Broad','dxy',D],
-  'DTWEXAFEGS':['Trade Weighted USD AFE','dxy',D],
-  'DTWEXEMEGS':['Trade Weighted USD EM','dxy',D],
-  'DEXJPUS':['USD/JPY','dxy',D],
-  'DEXUSEU':['EUR/USD','dxy',D],
-  'DEXUSUK':['GBP/USD','dxy',D],
-  'DEXCAUS':['USD/CAD','dxy',D],
-  'DEXCHUS':['USD/CNY','dxy',D],
-  'DEXMXUS':['USD/MXN','dxy',D],
-  'DEXSZUS':['USD/CHF','dxy',D],
-  'DEXKOUS':['USD/KRW','dxy',D],
-
-  // ──── ICE BofA CORPORATE BONDS ────
-  'BAMLC0A0CMEY':['US Corp Index Yield','icebofa',D],
-  'BAMLC0A0CM':['US Corp Index Total Return','icebofa',D],
-  'BAMLC0A1CAAAEY':['AAA Corp Yield','icebofa',D],
-  'BAMLC0A2CAAEY':['AA Corp Yield','icebofa',D],
-  'BAMLC0A3CAEY':['A Corp Yield','icebofa',D],
-  'BAMLC0A4CBBBEY':['BBB Corp Yield','icebofa',D],
-  'BAMLC0A0CMOAS':['US Corp OAS','icebofa',D],
-  'BAMLC0A1CAAAOAS':['AAA Corp OAS','icebofa',D],
-  'BAMLC0A4CBBBOAS':['BBB Corp OAS','icebofa',D],
-
-  // ──── ICE BofA HIGH YIELD ────
-  'BAMLH0A0HYM2EY':['US High Yield Index Yield','hy',D],
-  'BAMLH0A0HYM2':['US High Yield Index Total Return','hy',D],
-  'BAMLH0A1HYBBEY':['BB High Yield Yield','hy',D],
-  'BAMLH0A2HYBEY':['B High Yield Yield','hy',D],
-  'BAMLH0A3HYCEY':['CCC & Lower HY Yield','hy',D],
-  'BAMLH0A0HYM2OAS':['US HY OAS','hy',D],
-  'BAMLH0A1HYBBOAS':['BB HY OAS','hy',D],
-  'BAMLH0A2HYBOAS':['B HY OAS','hy',D],
-  'BAMLH0A3HYCOAS':['CCC HY OAS','hy',D],
-
-  // ──── ICE BofA EMERGING MARKETS ────
-  'BAMLEMCBPIEY':['EM Corp Yield','em_bonds',D],
-  'BAMLEMCLLCRPIEY':['EM Liquid Corp Yield','em_bonds',D],
-  'BAMLEMHBHYCRPIEY':['EM HY Corp Yield','em_bonds',D],
-  'BAMLEMCBPIOAS':['EM Corp OAS','em_bonds',D],
-  'BAMLEMHBHYCRPIOAS':['EM HY Corp OAS','em_bonds',D],
-  'BAMLEMRECRPIEY':['EM Corp Real Yield','em_bonds',D],
-
-  // ──── VOLATILITY & RISK ────
-  'VIXCLS':['VIX','volatility',D],
-  'VXNCLS':['VXN (Nasdaq Vol)','volatility',D],
-  'OVXCLS':['OVX (Oil Vol)','volatility',D],
-  'GVZCLS':['GVZ (Gold Vol)','volatility',D],
-  'EVZCLS':['EVZ (Euro Vol)','volatility',D],
-  'TEDRATE':['TED Spread','volatility',D],
-  'STLFSI4':['St. Louis Fin Stress','volatility',W],
-  'NFCI':['Chicago Fed NFCI','volatility',W],
-  'ANFCI':['Adjusted NFCI','volatility',W],
-  'CLNFCI':['NFCI Leverage Subindex','volatility',W],
-  'KCFSI':['KC Fed Fin Stress','volatility',M],
-
-  // ──── CREDIT CONDITIONS ────
-  'DRTSCILM':['Loan Officer Tightening: C&I Large','credit',Q],
-  'DRTSCLCC':['Loan Officer Tightening: Credit Card','credit',Q],
-  'DRTSCIS':['Loan Officer Tightening: C&I Small','credit',Q],
-  'TOTCI':['Commercial & Industrial Loans','credit',W],
-  'BUSLOANS':['Business Loans, All Banks','credit',M],
-  'REALLN':['Real Estate Loans','credit',M],
-  'CONSUMER':['Consumer Loans','credit',M],
-  'REVOLSL':['Revolving Consumer Credit','credit',M],
-  'NONREVSL':['Nonrevolving Consumer Credit','credit',M],
-  'TOTALSL':['Total Consumer Credit','credit',M],
-  'DRISCFLM':['Delinquency Rate: C&I Loans','credit',Q],
-  'DRSFRMACBS':['Delinquency Rate: RE Loans','credit',Q],
-  'DRCCLACBS':['Delinquency Rate: Credit Cards','credit',Q],
-
-  // ──── COMMODITIES ────
-  'DCOILWTICO':['WTI Crude Oil','commodities',D],
-  'DCOILBRENTEU':['Brent Crude Oil','commodities',D],
-  'DHHNGSP':['Henry Hub Natural Gas','commodities',D],
-  'GOLDAMGBD228NLBM':['Gold Price London','commodities',D],
-  'DEXSILV':['Silver Fixing Price','commodities',D],
-  'PCOPPUSDM':['Copper Price','commodities',M],
-  'PNRGINDEXM':['Global Energy Price Index','commodities',M],
-  'PALLFNFINDEXM':['All Commodity Index','commodities',M],
-  'PFOODINDEXM':['Food Price Index','commodities',M],
-  'PMETAINDEXM':['Metals Price Index','commodities',M],
-
-  // ──── INFLATION ────
-  'CPIAUCSL':['CPI All Items','inflation',M],
-  'CPILFESL':['Core CPI (ex Food Energy)','inflation',M],
-  'CPIUFDSL':['CPI Food','inflation',M],
-  'CPIENGSL':['CPI Energy','inflation',M],
-  'MEDCPIM158SFRBCLE':['Median CPI','inflation',M],
-  'TRMMEANCPIM158SFRBCLE':['16% Trimmed Mean CPI','inflation',M],
-  'STICKCPIM157SFRBATL':['Sticky CPI','inflation',M],
-  'PCEPI':['PCE Price Index','inflation',M],
-  'PCEPILFE':['Core PCE Price Index','inflation',M],
-  'PPIFIS':['PPI Final Demand','inflation',M],
-  'PPIFGS':['PPI Finished Goods','inflation',M],
-  'MICH':['U of Michigan Inflation Expect','inflation',M],
-
-  // ──── EMPLOYMENT & LABOR ────
-  'UNRATE':['Unemployment Rate','labor',M],
-  'U6RATE':['U-6 Unemployment Rate','labor',M],
-  'PAYEMS':['Total Nonfarm Payrolls','labor',M],
-  'MANEMP':['Manufacturing Employment','labor',M],
-  'USFIRE':['Financial Services Employment','labor',M],
-  'USPRIV':['Private Employment','labor',M],
-  'CES0500000003':['Avg Hourly Earnings','labor',M],
-  'AWHAETP':['Avg Weekly Hours','labor',M],
-  'ICSA':['Initial Jobless Claims','labor',W],
-  'CCSA':['Continuing Claims','labor',W],
-  'JTSJOL':['Job Openings (JOLTS)','labor',M],
-  'JTSQUL':['Quits Rate (JOLTS)','labor',M],
-  'CIVPART':['Labor Force Participation','labor',M],
-
-  // ──── GDP & ECONOMIC OUTPUT ────
-  'GDP':['Gross Domestic Product','gdp',Q],
-  'GDPC1':['Real GDP','gdp',Q],
-  'A191RL1Q225SBEA':['Real GDP Growth Rate','gdp',Q],
-  'GDPDEF':['GDP Deflator','gdp',Q],
-  'PCEC96':['Real Personal Consumption','gdp',Q],
-  'PNFI':['Private Nonresidential Fixed Invest','gdp',Q],
-  'PRFI':['Private Residential Fixed Invest','gdp',Q],
-  'NETEXP':['Net Exports','gdp',Q],
-  'GCEC1':['Real Govt Consumption','gdp',Q],
-
-  // ──── INDUSTRIAL PRODUCTION ────
-  'INDPRO':['Industrial Production Index','industrial',M],
-  'IPGMFN':['IP: Manufacturing','industrial',M],
-  'IPDMAN':['IP: Durable Manufacturing','industrial',M],
-  'IPNMAN':['IP: Nondurable Manufacturing','industrial',M],
-  'TCU':['Capacity Utilization','industrial',M],
-  'MCUMFN':['Manufacturing Capacity Util','industrial',M],
-  'DGORDER':['Durable Goods Orders','industrial',M],
-  'NEWORDER':['Manufacturers New Orders','industrial',M],
-  'AMTMNO':['Manufacturing Orders Total','industrial',M],
-  'ISRATIO':['Inventory/Sales Ratio','industrial',M],
-
-  // ──── HOUSING ────
-  'HOUST':['Housing Starts','housing',M],
-  'PERMIT':['Building Permits','housing',M],
-  'HSN1F':['New Home Sales','housing',M],
-  'EXHOSLUSM495S':['Existing Home Sales','housing',M],
-  'MSPUS':['Median Home Price','housing',Q],
-  'CSUSHPISA':['Case-Shiller Home Price','housing',M],
-  'MORTGAGE30US':['30-Year Mortgage Rate','housing',W],
-  'MORTGAGE15US':['15-Year Mortgage Rate','housing',W],
-  'MSACSR':['Months Supply of Houses','housing',M],
-
-  // ──── CONSUMER & RETAIL ────
-  'RSAFS':['Retail Sales Total','consumer',M],
-  'RSXFS':['Retail Sales ex Food Svc','consumer',M],
-  'UMCSENT':['U of Michigan Sentiment','consumer',M],
-  'PCE':['Personal Consumption Expenditures','consumer',M],
-  'PI':['Personal Income','consumer',M],
-  'PSAVERT':['Personal Saving Rate','consumer',M],
-  'DSPIC96':['Real Disposable Income','consumer',M],
-
-  // ──── MANUFACTURING PMI & SURVEYS ────
-  'NAPM':['ISM Manufacturing PMI','surveys',M],
-  'NAPMNOI':['ISM Manufacturing New Orders','surveys',M],
-  'NAPMPI':['ISM Manufacturing Prices','surveys',M],
-  'NAPMII':['ISM Manufacturing Inventories','surveys',M],
-  'NMFCI':['ISM Non-Manufacturing Composite','surveys',M],
-  'BSCICP02USM460S':['OECD Business Confidence: US','surveys',M],
-  'BSCICP02EZM460S':['OECD Business Confidence: Euro','surveys',M],
-  'BSCICP02MXM460S':['OECD Business Confidence: Mexico','surveys',M],
-  'BSCICP02JPM460S':['OECD Business Confidence: Japan','surveys',M],
-  'CSCICP03USM665S':['OECD Consumer Confidence: US','surveys',M],
-
-  // ──── GLOBAL / ECB / BUSINESS SURVEYS ────
-  'ECBASSETSW':['ECB Total Assets','global',W],
-  'ECBDFR':['ECB Deposit Facility Rate','global',D],
-  'IRSTCB01EZM156N':['Euro Short-Term Rate','global',M],
-  'JPNASSETS':['Bank of Japan Total Assets','global',M],
-  'BSOBLV02EZM460S':['Business Survey Orders: Euro','global',M],
-  'BSOBLV02USM460S':['Business Survey Orders: US','global',M],
-  'BSOBLV02DEM460S':['Business Survey Orders: Germany','global',M],
-  'BSOBLV02FRM460S':['Business Survey Orders: France','global',M],
-  'BSOBLV02ITM460S':['Business Survey Orders: Italy','global',M],
-  'EA19PRINTO01IXOBSAM':['Euro IP Total','global',M],
-  'G7LOLITOAASTSAM':['G7 Leading Indicator','global',M],
-  'BSFGLV02EZM460S':['Euro Financial Survey','global',M],
-
-  // ──── BANK CREDIT & SECURITIES ────
-  'SBCACBW027SBOG':['Securities in Bank Credit','bank_credit',W],
-  'TASACBW027SBOG':['Treasury & Agency: All Banks','bank_credit',W],
-  'TMBACBW027SBOG':['Treasury & Agency MBS: Weekly','bank_credit',W],
-  'USGSEC':['Treasury & Agency Monthly SA','bank_credit',M],
-  'HTRUCKSSA':['Heavy Truck Sales','bank_credit',M],
-
-  // ──── LIQUIDITY (unique only — others in Fed BS / Money) ────
-  'TLAACBW027SBOG':['Total Loans & Leases: All Banks','liquidity',W],
-  'LLACBW027SBOG':['Loans & Leases in Bank Credit','liquidity',W],
-  'DTBSPCKFM':['3-Month T-Bill Secondary Market','liquidity',D],
-  'DTBSPCK1M':['1-Month T-Bill Secondary Market','liquidity',D],
-
-  // ──── TRADE ────
-  'BOPGSTB':['Trade Balance Goods & Services','trade',M],
-  'BOPGTB':['Trade Balance Goods','trade',M],
-  'BOPSTB':['Trade Balance Services','trade',M],
-  'EXPGS':['Exports','trade',Q],
-  'IMPGS':['Imports','trade',Q],
-  'IR':['Import Price Index','trade',M],
-  'IQ':['Export Price Index','trade',M],
-
-  // ──── GOVERNMENT ────
-  'GFDEBTN':['Federal Debt Total','govt',Q],
-  'GFDEGDQ188S':['Federal Debt as % GDP','govt',Q],
-  'FYFSD':['Federal Surplus/Deficit','govt',Q],
-  'FGEXPND':['Federal Spending','govt',Q],
-  'FGRECPT':['Federal Receipts','govt',Q],
-  'A091RC1Q027SBEA':['Federal Interest Payments','govt',Q]
-};
-
-// ═══════════════════════════════════════════════════════════
-//  CATEGORY CONFIG
-// ═══════════════════════════════════════════════════════════
-const CATEGORIES = {
-  all:       {name:'All',icon:'📊'},
-  rates:     {name:'Interest Rates',icon:'🏛️'},
-  yields:    {name:'Treasury Yields',icon:'📈'},
-  spreads:   {name:'Yield Spreads',icon:'📐'},
-  fed_bs:    {name:'Fed Balance Sheet',icon:'🏦'},
-  money:     {name:'Money Supply',icon:'💵'},
-  dxy:       {name:'Dollar & FX',icon:'💱'},
-  icebofa:   {name:'ICE BofA Corp',icon:'🏢'},
-  hy:        {name:'High Yield',icon:'⚡'},
-  em_bonds:  {name:'EM Bonds',icon:'🌍'},
-  volatility:{name:'Volatility & Risk',icon:'🌊'},
-  credit:    {name:'Credit',icon:'💳'},
-  commodities:{name:'Commodities',icon:'🛢️'},
-  inflation: {name:'Inflation',icon:'🔥'},
-  labor:     {name:'Employment',icon:'👷'},
-  gdp:       {name:'GDP & Output',icon:'📦'},
-  industrial:{name:'Industrial',icon:'🏭'},
-  housing:   {name:'Housing',icon:'🏠'},
-  consumer:  {name:'Consumer',icon:'🛒'},
-  surveys:   {name:'PMI & Surveys',icon:'📋'},
-  global:    {name:'Global & ECB',icon:'🌐'},
-  bank_credit:{name:'Bank Credit',icon:'🏧'},
-  liquidity: {name:'Liquidity',icon:'💧'},
-  trade:     {name:'Trade',icon:'🚢'},
-  govt:      {name:'Government',icon:'🏛️'}
-};
-
-// ═══════════════════════════════════════════════════════════
-//  STATE
-// ═══════════════════════════════════════════════════════════
-let currentTab = 'all';
-let data = {};        // seriesId -> {value, date, obs[], changes, ts}
-let queue = [];
-let reqTimes = [];
-let processing = false;
-let loadedCount = 0;
-
-// ═══════════════════════════════════════════════════════════
-//  INITIALIZATION
-// ═══════════════════════════════════════════════════════════
-function init() {
-  buildTabs();
-  loadCache();
-  render();
-  setInterval(updateClock, 1000);
-  setInterval(updateRateDisplay, 500);
-  updateClock();
-  status('Ready — ' + Object.keys(SERIES).length + ' series available');
-}
-
-function buildTabs() {
-  const bar = document.getElementById('tabBar');
-  bar.innerHTML = '';
-  for (const [id, cfg] of Object.entries(CATEGORIES)) {
-    const count = id === 'all' ? Object.keys(SERIES).length :
-      Object.entries(SERIES).filter(([,v]) => v[1] === id).length;
-    if (count === 0 && id !== 'all') continue;
-    const t = document.createElement('div');
-    t.className = 'tab' + (id === currentTab ? ' active' : '');
-    t.innerHTML = `${cfg.icon} ${cfg.name} <span class="count">${count}</span>`;
-    t.onclick = () => { currentTab = id; buildTabs(); render(); };
-    bar.appendChild(t);
-  }
-}
-
-// ═══════════════════════════════════════════════════════════
-//  CACHE MANAGEMENT
-// ═══════════════════════════════════════════════════════════
-function cacheKey(id) { return 'jh_fred_' + id; }
-
-function saveToCache(id, obj) {
-  try { localStorage.setItem(cacheKey(id), JSON.stringify(obj)); } catch(e) {}
-}
-
-function loadCache() {
-  let loaded = 0, stale = 0;
-  for (const id of Object.keys(SERIES)) {
-    try {
-      const raw = localStorage.getItem(cacheKey(id));
-      if (!raw) continue;
-      const obj = JSON.parse(raw);
-      if (!obj || !obj.ts) continue;
-      const freq = SERIES[id][2];
-      const ttl = CACHE_TTL[freq] || CACHE_TTL.D;
-      data[id] = obj;
-      loaded++;
-      if (Date.now() - obj.ts > ttl) stale++;
-    } catch(e) {}
-  }
-  loadedCount = loaded;
-  document.getElementById('loadedCount').textContent = loaded;
-  document.getElementById('cachedCount').textContent = loaded;
-  document.getElementById('staleCount').textContent = stale;
-  document.getElementById('totalCount').textContent = Object.keys(SERIES).length;
-  if (loaded > 0) status(`Loaded ${loaded} from cache (${stale} stale)`);
-}
-
-function clearCache() {
-  if (!confirm('Clear all cached data?')) return;
-  for (const id of Object.keys(SERIES)) localStorage.removeItem(cacheKey(id));
-  data = {};
-  loadedCount = 0;
-  render();
-  loadCache();
-  status('Cache cleared');
-}
-
-function isStale(id) {
-  const d = data[id];
-  if (!d || !d.ts) return true;
-  const freq = SERIES[id] ? SERIES[id][2] : D;
-  return (Date.now() - d.ts) > (CACHE_TTL[freq] || CACHE_TTL.D);
-}
-
-// ═══════════════════════════════════════════════════════════
-//  FRED API — RATE LIMITED QUEUE
-// ═══════════════════════════════════════════════════════════
-function availableReqs() {
-  const now = Date.now();
-  reqTimes = reqTimes.filter(t => now - t < RATE_WINDOW);
-  return RATE_LIMIT - reqTimes.length;
-}
-
-function updateRateDisplay() {
-  const avail = availableReqs();
-  document.getElementById('rateText').textContent = `${avail}/${RATE_LIMIT}`;
-  document.getElementById('rateFill').style.width = `${(avail/RATE_LIMIT)*100}%`;
-  document.getElementById('rateFill').style.background = avail < 20 ? 'var(--red)' : avail < 50 ? 'var(--yellow)' : 'var(--green)';
-}
-
-async function fetchSeries(id) {
-  const url = `${FRED_BASE}?series_id=${id}&api_key=${FRED_KEY}&file_type=json&limit=${OBS_LIMIT}&sort_order=desc`;
-  reqTimes.push(Date.now());
-  const r = await fetch(url);
-  if (!r.ok) throw new Error(`HTTP ${r.status}`);
-  const j = await r.json();
-  if (!j.observations || j.observations.length === 0) throw new Error('No data');
-
-  const obs = j.observations.filter(o => o.value !== '.').map(o => ({
-    date: o.date, value: parseFloat(o.value)
-  }));
-
-  if (obs.length === 0) throw new Error('No valid observations');
-
-  const latest = obs[0];
-  const changes = calcChanges(obs);
-
-  const result = {
-    value: latest.value,
-    date: latest.date,
-    obs: obs.slice(0, 60), // Keep last 60 for charting
-    changes,
-    ts: Date.now()
-  };
-
-  data[id] = result;
-  saveToCache(id, result);
-  return result;
-}
-
-function calcChanges(obs) {
-  if (!obs || obs.length < 2) return {};
-  const now = obs[0].value;
-  const c = {};
-  // Find obs closest to 1d, 1w, 1m, 3m, 1y ago
-  const targets = {chg1d:1, chg1w:7, chg1m:30, chg3m:90, chg1y:365};
-  const d0 = new Date(obs[0].date);
-  for (const [key, days] of Object.entries(targets)) {
-    const target = new Date(d0); target.setDate(target.getDate() - days);
-    let closest = null, minDiff = Infinity;
-    for (const o of obs) {
-      const diff = Math.abs(new Date(o.date) - target);
-      if (diff < minDiff) { minDiff = diff; closest = o; }
-    }
-    if (closest && closest.value !== 0 && minDiff < days * 86400000 * 0.5) {
-      c[key] = ((now - closest.value) / Math.abs(closest.value)) * 100;
-    }
-  }
-  return c;
-}
-
-async function processQueue() {
-  if (processing || queue.length === 0) return;
-  processing = true;
-  const prog = document.getElementById('progressBar');
-  const fill = document.getElementById('progressFill');
-  prog.style.display = 'block';
-  const total = queue.length;
-  let done = 0;
-
-  while (queue.length > 0) {
-    if (availableReqs() <= 2) {
-      status(`Rate limit — waiting... (${queue.length} remaining)`);
-      await sleep(2000);
-      continue;
-    }
-    const id = queue.shift();
-    try {
-      await fetchSeries(id);
-      done++;
-      fill.style.width = `${(done/total)*100}%`;
-      status(`Fetching ${id}... (${queue.length} remaining)`);
-      loadedCount++;
-      updateCardUI(id);
-    } catch(e) {
-      console.warn(`Failed ${id}:`, e.message);
-    }
-    // Small delay to avoid burst
-    await sleep(300);
-  }
-
-  prog.style.display = 'none';
-  processing = false;
-  document.getElementById('loadedCount').textContent = Object.keys(data).length;
-  document.getElementById('cachedCount').textContent = Object.keys(data).length;
-  const stale = Object.keys(SERIES).filter(id => isStale(id)).length;
-  document.getElementById('staleCount').textContent = stale;
-  status(`Done — ${Object.keys(data).length} series loaded`);
-  render();
-}
-
-// ═══════════════════════════════════════════════════════════
-//  LOAD ACTIONS
-// ═══════════════════════════════════════════════════════════
-function getTabSeries() {
-  return Object.keys(SERIES).filter(id =>
-    currentTab === 'all' || SERIES[id][1] === currentTab
-  );
-}
-
-function loadTab() {
-  const ids = getTabSeries().filter(id => isStale(id));
-  if (ids.length === 0) { status('All data is fresh'); return; }
-  queue.push(...ids);
-  status(`Queued ${ids.length} series...`);
-  processQueue();
-}
-
-function loadAll() {
-  const ids = Object.keys(SERIES).filter(id => isStale(id));
-  if (ids.length === 0) { status('All data is fresh'); return; }
-  if (ids.length > 100 && !confirm(`This will fetch ${ids.length} series. Continue?`)) return;
-  queue.push(...ids);
-  status(`Queued ${ids.length} series...`);
-  processQueue();
-}
-
-function refreshStale() {
-  const ids = Object.keys(SERIES).filter(id => isStale(id));
-  if (ids.length === 0) { status('Nothing stale'); return; }
-  queue.push(...ids);
-  status(`Refreshing ${ids.length} stale series...`);
-  processQueue();
-}
-
-// ═══════════════════════════════════════════════════════════
-//  RENDERING
-// ═══════════════════════════════════════════════════════════
-function render() {
-  const grid = document.getElementById('grid');
-  const search = document.getElementById('search').value.toLowerCase();
-  const sort = document.getElementById('sortSelect').value;
-
-  let ids = getTabSeries();
-
-  // Filter by search
-  if (search) {
-    ids = ids.filter(id => {
-      const s = SERIES[id];
-      return id.toLowerCase().includes(search) || s[0].toLowerCase().includes(search);
-    });
-  }
-
-  // Sort
-  ids.sort((a, b) => {
-    const da = data[a], db = data[b];
-    if (sort === 'name') return SERIES[a][0].localeCompare(SERIES[b][0]);
-    if (sort === 'value') return (db?.value||0) - (da?.value||0);
-    const key = sort; // chg1d, chg1w, etc.
-    return (db?.changes?.[key]||0) - (da?.changes?.[key]||0);
-  });
-
-  if (ids.length === 0) {
-    grid.innerHTML = '<div class="empty"><h3>No series found</h3><p>Try a different search or category</p></div>';
-    return;
-  }
-
-  grid.innerHTML = ids.map(id => cardHTML(id)).join('');
-}
-
-function cardHTML(id) {
-  const [name, cat, freq] = SERIES[id];
-  const d = data[id];
-  const stale = isStale(id);
-  const cls = d ? (stale ? 'card stale' : 'card') : 'card';
-
-  let valueStr = '--';
-  let dateStr = '';
-  let changesStr = '';
-
-  if (d) {
-    valueStr = formatValue(d.value);
-    dateStr = d.date;
-    const labels = {chg1d:'1D',chg1w:'1W',chg1m:'1M',chg3m:'3M',chg1y:'1Y'};
-    changesStr = Object.entries(labels).map(([k,label]) => {
-      const v = d.changes?.[k];
-      if (v === undefined || v === null) return '';
-      const cls = v > 0 ? 'up' : v < 0 ? 'down' : 'flat';
-      return `<span class="change ${cls}">${label} ${v>0?'+':''}${v.toFixed(2)}%</span>`;
-    }).filter(Boolean).join('');
-  }
-
-  return `<div class="${cls}" data-id="${id}" onclick="showChart('${id}')">
-    <div class="card-head">
-      <div class="card-name">${name}</div>
-      <div class="card-id">${id}</div>
-    </div>
-    <span class="card-freq freq-${freq}">${freq}</span>
-    <div class="card-value mono">${valueStr}</div>
-    <div class="card-meta">${changesStr}</div>
-    ${dateStr ? `<div class="card-date">Last: ${dateStr}</div>` : ''}
-  </div>`;
-}
-
-function updateCardUI(id) {
-  const el = document.querySelector(`[data-id="${id}"]`);
-  if (el) el.outerHTML = cardHTML(id);
-}
-
-function formatValue(v) {
-  if (v === null || v === undefined) return '--';
-  if (Math.abs(v) >= 1e12) return (v/1e12).toFixed(2) + 'T';
-  if (Math.abs(v) >= 1e9) return (v/1e9).toFixed(2) + 'B';
-  if (Math.abs(v) >= 1e6) return (v/1e6).toFixed(2) + 'M';
-  if (Math.abs(v) >= 1e3) return v.toLocaleString(undefined, {maximumFractionDigits:2});
-  if (Math.abs(v) < 0.01) return v.toFixed(4);
-  return v.toFixed(2);
-}
-
-// ═══════════════════════════════════════════════════════════
-//  CHARTING
-// ═══════════════════════════════════════════════════════════
-function showChart(id) {
-  const d = data[id];
-  if (!d || !d.obs || d.obs.length < 2) {
-    status(`No chart data for ${id} — load data first`);
-    return;
-  }
-  document.getElementById('chartTitle').textContent = SERIES[id][0];
-  document.getElementById('chartSub').textContent = `${id} | Last: ${d.date} | Value: ${formatValue(d.value)}`;
-  document.getElementById('chartModal').classList.add('show');
-
-  const obs = [...d.obs].reverse();
-  Plotly.newPlot('chartDiv', [{
-    x: obs.map(o => o.date),
-    y: obs.map(o => o.value),
-    type: 'scatter',
-    mode: 'lines',
-    fill: 'tozeroy',
-    fillcolor: 'rgba(88,166,255,0.08)',
-    line: {color: '#58a6ff', width: 2},
-    hovertemplate: '%{x}<br>%{y:.4f}<extra></extra>'
-  }], {
-    paper_bgcolor: '#0d1117',
-    plot_bgcolor: '#0d1117',
-    font: {color: '#8b949e', family: 'JetBrains Mono'},
-    margin: {l:60,r:20,t:10,b:40},
-    xaxis: {gridcolor:'#21283b', linecolor:'#30363d'},
-    yaxis: {gridcolor:'#21283b', linecolor:'#30363d', title: SERIES[id][0]},
-    hovermode: 'x unified'
-  }, {responsive: true});
-}
-
-function closeChart() {
-  document.getElementById('chartModal').classList.remove('show');
-}
-
-// ═══════════════════════════════════════════════════════════
-//  EXPORT
-// ═══════════════════════════════════════════════════════════
-function exportCSV() {
-  let csv = 'Series ID,Name,Category,Frequency,Value,Date,1D%,1W%,1M%,3M%,1Y%\n';
-  for (const [id, [name, cat, freq]] of Object.entries(SERIES)) {
-    const d = data[id];
-    if (!d) continue;
-    const c = d.changes || {};
-    csv += `${id},"${name}",${cat},${freq},${d.value},${d.date},${c.chg1d?.toFixed(2)||''},${c.chg1w?.toFixed(2)||''},${c.chg1m?.toFixed(2)||''},${c.chg3m?.toFixed(2)||''},${c.chg1y?.toFixed(2)||''}\n`;
-  }
-  const blob = new Blob([csv], {type:'text/csv'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `fred_data_${new Date().toISOString().slice(0,10)}.csv`;
-  a.click();
-  status('CSV exported');
-}
-
-// ═══════════════════════════════════════════════════════════
-//  UTILITIES
-// ═══════════════════════════════════════════════════════════
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-function status(msg) { document.getElementById('statusMsg').textContent = msg; }
-function updateClock() {
-  const now = new Date();
-  document.getElementById('clock').textContent = now.toLocaleTimeString('en-US', {hour12:false});
-  document.getElementById('lastUpdate').textContent = now.toLocaleDateString();
-}
-
-// ESC to close chart
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeChart(); });
-
-// Start
+const CATEGORIES={all:{name:'All',icon:'[ALL]'},rates:{name:'Interest Rates',icon:'[RT]'},yields:{name:'Treasury Yields',icon:'[YD]'},spreads:{name:'Yield Spreads',icon:'[SP]'},fed_bs:{name:'Fed Balance Sheet',icon:'[FB]'},money:{name:'Money Supply',icon:'[MS]'},dxy:{name:'Dollar & FX',icon:'[FX]'},icebofa:{name:'ICE BofA Corp',icon:'[IG]'},hy:{name:'High Yield',icon:'[HY]'},em_bonds:{name:'EM Bonds',icon:'[EM]'},volatility:{name:'Volatility',icon:'[VX]'},credit:{name:'Credit',icon:'[CR]'},commodities:{name:'Commodities',icon:'[CM]'},inflation:{name:'Inflation',icon:'[IF]'},labor:{name:'Employment',icon:'[LB]'},gdp:{name:'GDP & Output',icon:'[GP]'},industrial:{name:'Industrial',icon:'[IN]'},housing:{name:'Housing',icon:'[HS]'},consumer:{name:'Consumer',icon:'[CN]'},surveys:{name:'PMI & Surveys',icon:'[PM]'},global:{name:'Global & ECB',icon:'[GL]'},bank_credit:{name:'Bank Credit',icon:'[BC]'},liquidity:{name:'Liquidity',icon:'[LQ]'},trade:{name:'Trade',icon:'[TR]'},govt:{name:'Government',icon:'[GV]'}};
+let currentTab='all',data={},queue=[],processing=false,loadedCount=0;
+function init(){buildTabs();loadCache();render();setInterval(updateClock,1000);setInterval(updateRateDisplay,1000);updateClock();fetch(PROXY_URL).then(r=>r.json()).then(()=>{document.getElementById('proxyStatus').textContent='Active';document.getElementById('proxyStatus').style.color='var(--green)';let s=Object.keys(SERIES).filter(id=>isStale(id));if(s.length>0&&Object.keys(data).length===0){status('Auto-loading '+s.length+' series...');queue.push(...s);processQueue();}else if(s.length>0){status(Object.keys(data).length+' cached, '+s.length+' stale');}else{status('All '+Object.keys(data).length+' fresh');}}).catch(()=>{document.getElementById('proxyStatus').textContent='Err';document.getElementById('proxyStatus').style.color='var(--red)';status('Proxy error');});}
+function updateRateDisplay(){let l=Object.keys(data).length;document.getElementById('rateText').textContent=processing?queue.length+' left':l+' loaded';let p=Math.min(100,(l/Object.keys(SERIES).length)*100);document.getElementById('rateFill').style.width=p+'%';document.getElementById('rateFill').style.background=p>=90?'var(--green)':p>=50?'var(--blue)':'var(--yellow)';}
+function buildTabs(){let bar=document.getElementById('tabBar');bar.innerHTML='';for(let[id,cfg]of Object.entries(CATEGORIES)){let c=id==='all'?Object.keys(SERIES).length:Object.entries(SERIES).filter(([,v])=>v[1]===id).length;if(c===0&&id!=='all')continue;let t=document.createElement('div');t.className='tab'+(id===currentTab?' active':'');t.innerHTML=cfg.icon+' '+cfg.name+' <span class="count">'+c+'</span>';t.onclick=function(){currentTab=id;buildTabs();render();};bar.appendChild(t);}}
+function cacheKey(id){return 'jf_'+id;}
+function saveToCache(id,obj){try{localStorage.setItem(cacheKey(id),JSON.stringify(obj));}catch(e){}}
+function loadCache(){let ld=0,st=0;for(let id of Object.keys(SERIES)){try{let raw=localStorage.getItem(cacheKey(id));if(raw===null)continue;let obj=JSON.parse(raw);if(obj===null||obj.ts===undefined)continue;data[id]=obj;ld++;if(Date.now()-obj.ts>(CACHE_TTL[SERIES[id][2]]||CACHE_TTL.D))st++;}catch(e){}}loadedCount=ld;document.getElementById('loadedCount').textContent=ld;document.getElementById('cachedCount').textContent=ld;document.getElementById('staleCount').textContent=st;document.getElementById('totalCount').textContent=Object.keys(SERIES).length;if(ld>0)status('Loaded '+ld+' from cache ('+st+' stale)');}
+function clearCache(){for(let id of Object.keys(SERIES))localStorage.removeItem(cacheKey(id));data={};loadedCount=0;render();loadCache();status('Cache cleared');}
+function isStale(id){let d=data[id];if(d===undefined||d===null||d.ts===undefined)return true;return(Date.now()-d.ts)>(CACHE_TTL[SERIES[id]?SERIES[id][2]:D]||CACHE_TTL.D);}
+async function fetchBatch(ids){let url=PROXY_URL+'?series='+ids.join(',')+'&limit='+OBS_LIMIT;let r=await fetch(url);if(r.ok===false)throw new Error('HTTP '+r.status);let j=await r.json();if(j.batch&&j.data){for(let[sid,d]of Object.entries(j.data)){if(d.error)continue;processFetchResult(sid,d);}}else if(j.series_id&&j.error===undefined){processFetchResult(j.series_id,j);}}
+function processFetchResult(sid,d){let obs=(d.observations||[]).map(function(o){return{date:o.date,value:o.value};});if(obs.length===0)return;let changes=calcChanges(obs);let result={value:d.value||obs[0].value,date:d.date||obs[0].date,obs:obs.slice(0,60),changes:changes,ts:Date.now()};data[sid]=result;saveToCache(sid,result);}
+function calcChanges(obs){if(obs===null||obs===undefined||obs.length<2)return{};let now=obs[0].value,c={},targets={chg1d:1,chg1w:7,chg1m:30,chg3m:90,chg1y:365},d0=new Date(obs[0].date);for(let[key,days]of Object.entries(targets)){let target=new Date(d0);target.setDate(target.getDate()-days);let closest=null,minDiff=Infinity;for(let o of obs){let diff=Math.abs(new Date(o.date)-target);if(diff<minDiff){minDiff=diff;closest=o;}}if(closest&&closest.value!==0&&minDiff<days*86400000*0.5){c[key]=((now-closest.value)/Math.abs(closest.value))*100;}}return c;}
+async function processQueue(){if(processing||queue.length===0)return;processing=true;let prog=document.getElementById('progressBar'),fill=document.getElementById('progressFill');prog.style.display='block';let total=queue.length,done=0;while(queue.length>0){let batch=queue.splice(0,BATCH_SIZE);try{status('Fetching '+batch.length+' series... ('+queue.length+' left)');await fetchBatch(batch);done+=batch.length;fill.style.width=(done/total)*100+'%';batch.forEach(function(id){updateCardUI(id);});loadedCount=Object.keys(data).length;}catch(e){console.warn('Batch fail:',e.message);}if(queue.length>0)await sleep(800);}prog.style.display='none';processing=false;document.getElementById('loadedCount').textContent=Object.keys(data).length;document.getElementById('cachedCount').textContent=Object.keys(data).length;document.getElementById('staleCount').textContent=Object.keys(SERIES).filter(function(id){return isStale(id);}).length;status('Done - '+Object.keys(data).length+' loaded');render();}
+function getTabSeries(){return Object.keys(SERIES).filter(function(id){return currentTab==='all'||SERIES[id][1]===currentTab;});}
+function loadTab(){let ids=getTabSeries().filter(function(id){return isStale(id);});if(ids.length===0){status('All fresh');return;}queue.push(...ids);status('Queued '+ids.length);processQueue();}
+function loadAll(){let ids=Object.keys(SERIES).filter(function(id){return isStale(id);});if(ids.length===0){status('All fresh');return;}queue.push(...ids);status('Queued '+ids.length);processQueue();}
+function refreshStale(){loadAll();}
+function render(){let grid=document.getElementById('grid'),search=document.getElementById('search').value.toLowerCase(),sort=document.getElementById('sortSelect').value,ids=getTabSeries();if(search)ids=ids.filter(function(id){return id.toLowerCase().indexOf(search)>=0||SERIES[id][0].toLowerCase().indexOf(search)>=0;});ids.sort(function(a,b){let da=data[a],db=data[b];if(sort==='name')return SERIES[a][0].localeCompare(SERIES[b][0]);if(sort==='value')return((db?db.value:0)||0)-((da?da.value:0)||0);let ka=da?da.changes:null,kb=db?db.changes:null;return((kb?kb[sort]:0)||0)-((ka?ka[sort]:0)||0);});if(ids.length===0){grid.innerHTML='<div class="empty"><h3>No series found</h3></div>';return;}grid.innerHTML=ids.map(function(id){return cardHTML(id);}).join('');}
+function cardHTML(id){let s=SERIES[id],name=s[0],freq=s[2],d=data[id],cls=d?(isStale(id)?'card stale':'card'):'card',val='--',dt='',chg='';if(d){val=formatValue(d.value);dt=d.date;var labels={chg1d:'1D',chg1w:'1W',chg1m:'1M',chg3m:'3M',chg1y:'1Y'};var parts=[];for(var k in labels){var v=d.changes?d.changes[k]:null;if(v===undefined||v===null)continue;var c=v>0?'up':v<0?'down':'flat';parts.push('<span class="change '+c+'">'+labels[k]+' '+(v>0?'+':'')+v.toFixed(2)+'%</span>');}chg=parts.join('');}return '<div class="'+cls+'" data-id="'+id+'" onclick="showChart(\''+id+'\')"><div class="card-head"><div class="card-name">'+name+'</div><div class="card-id">'+id+'</div></div><span class="card-freq freq-'+freq+'">'+freq+'</span><div class="card-value mono">'+val+'</div><div class="card-meta">'+chg+'</div>'+(dt?'<div class="card-date">Last: '+dt+'</div>':'')+'</div>';}
+function updateCardUI(id){var el=document.querySelector('[data-id="'+id+'"]');if(el)el.outerHTML=cardHTML(id);}
+function formatValue(v){if(v===null||v===undefined)return '--';if(Math.abs(v)>=1e12)return(v/1e12).toFixed(2)+'T';if(Math.abs(v)>=1e9)return(v/1e9).toFixed(2)+'B';if(Math.abs(v)>=1e6)return(v/1e6).toFixed(2)+'M';if(Math.abs(v)>=1e3)return v.toLocaleString(undefined,{maximumFractionDigits:2});if(Math.abs(v)<0.01)return v.toFixed(4);return v.toFixed(2);}
+function showChart(id){var d=data[id];if(d===undefined||d===null||d.obs===undefined||d.obs.length<2){status('No chart data for '+id);return;}document.getElementById('chartTitle').textContent=SERIES[id][0];document.getElementById('chartSub').textContent=id+' | '+d.date+' | '+formatValue(d.value);document.getElementById('chartModal').classList.add('show');var obs=d.obs.slice().reverse();Plotly.newPlot('chartDiv',[{x:obs.map(function(o){return o.date;}),y:obs.map(function(o){return o.value;}),type:'scatter',mode:'lines',fill:'tozeroy',fillcolor:'rgba(88,166,255,0.08)',line:{color:'#58a6ff',width:2}}],{paper_bgcolor:'#0d1117',plot_bgcolor:'#0d1117',font:{color:'#8b949e',family:'JetBrains Mono'},margin:{l:60,r:20,t:10,b:40},xaxis:{gridcolor:'#21283b'},yaxis:{gridcolor:'#21283b'},hovermode:'x unified'},{responsive:true});}
+function closeChart(){document.getElementById('chartModal').classList.remove('show');}
+function exportCSV(){var csv='ID,Name,Cat,Freq,Value,Date,1D,1W,1M,1Y\n';for(var id in SERIES){var d=data[id];if(d===undefined)continue;var c=d.changes||{};csv+=id+',"'+SERIES[id][0]+'",'+SERIES[id][1]+','+SERIES[id][2]+','+d.value+','+d.date+','+(c.chg1d?c.chg1d.toFixed(2):'')+','+(c.chg1w?c.chg1w.toFixed(2):'')+','+(c.chg1m?c.chg1m.toFixed(2):'')+','+(c.chg1y?c.chg1y.toFixed(2):'')+'\n';}var blob=new Blob([csv],{type:'text/csv'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='fred.csv';a.click();}
+function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
+function status(msg){document.getElementById('statusMsg').textContent=msg;}
+function updateClock(){var n=new Date();document.getElementById('clock').textContent=n.toLocaleTimeString('en-US',{hour12:false});document.getElementById('lastUpdate').textContent=n.toLocaleDateString();}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeChart();});
 init();
 </script>
 </body>
