@@ -532,14 +532,42 @@ button{cursor:pointer;font-family:'Inter',sans-serif}
     <!-- Timeframes -->
     <div class="tf-group" id="tfGroup">
       <button class="tf-btn" data-m="1" data-t="minute">1m</button>
+      <button class="tf-btn" data-m="2" data-t="minute">2m</button>
+      <button class="tf-btn" data-m="3" data-t="minute">3m</button>
       <button class="tf-btn" data-m="5" data-t="minute">5m</button>
+      <button class="tf-btn" data-m="10" data-t="minute">10m</button>
       <button class="tf-btn" data-m="15" data-t="minute">15m</button>
       <button class="tf-btn" data-m="30" data-t="minute">30m</button>
       <button class="tf-btn" data-m="1" data-t="hour">1H</button>
+      <button class="tf-btn" data-m="2" data-t="hour">2H</button>
       <button class="tf-btn" data-m="4" data-t="hour">4H</button>
       <button class="tf-btn active" data-m="1" data-t="day">1D</button>
+      <button class="tf-btn" data-m="3" data-t="day">3D</button>
       <button class="tf-btn" data-m="1" data-t="week">1W</button>
       <button class="tf-btn" data-m="1" data-t="month">1M</button>
+      <button class="tf-btn" data-m="3" data-t="month">3M</button>
+      <button class="tf-btn" data-m="1" data-t="quarter">Q</button>
+      <button class="tf-btn" data-m="1" data-t="year">1Y</button>
+    </div>
+    <!-- Date Range -->
+    <div class="sep"></div>
+    <div style="display:flex;align-items:center;gap:4px">
+      <select id="histRange" onchange="setHistoryRange(this.value)" style="background:var(--bg3);border:1px solid var(--brd);color:var(--t2);padding:3px 6px;border-radius:3px;font-size:11px;cursor:pointer">
+        <option value="auto">Auto Range</option>
+        <option value="1d">1 Day</option>
+        <option value="5d">5 Days</option>
+        <option value="1m">1 Month</option>
+        <option value="3m">3 Months</option>
+        <option value="6m">6 Months</option>
+        <option value="ytd">YTD</option>
+        <option value="1y">1 Year</option>
+        <option value="2y">2 Years</option>
+        <option value="5y" selected>5 Years</option>
+        <option value="10y">10 Years</option>
+        <option value="20y">20 Years</option>
+        <option value="max">Max (All History)</option>
+        <option value="custom">Custom Range...</option>
+      </select>
     </div>
     <div class="sep"></div>
 
@@ -593,7 +621,10 @@ button{cursor:pointer;font-family:'Inter',sans-serif}
       <button class="icon-btn" id="panelScreener" onclick="togglePanel('screener')" title="Screener">🔍</button>
       <button class="icon-btn" id="panelNews" onclick="togglePanel('news')" title="News">📰</button>
       <button class="icon-btn" id="panelDetails" onclick="togglePanel('details')" title="Details">ℹ</button>
+      <button class="icon-btn" id="panelFinancials" onclick="togglePanel('financials')" title="Financials">💰</button>
+      <button class="icon-btn" id="panelDividends" onclick="togglePanel('dividends')" title="Dividends & Splits">💵</button>
       <button class="icon-btn" id="panelTA" onclick="togglePanel('ta')" title="Tech Analysis">📐</button>
+      <button class="icon-btn" id="panelHeatmap" onclick="togglePanel('heatmap')" title="Sector Heatmap">🗺</button>
       <button class="icon-btn" id="panelNotes" onclick="togglePanel('notes')" title="Notes">📝</button>
       <button class="icon-btn" id="panelHotkeys" onclick="togglePanel('hotkeys')" title="Hotkeys">⌨</button>
       <div class="sep"></div>
@@ -1201,31 +1232,350 @@ function rebuildAllCharts() {
 }
 
 // ==========================================
-// DATA FETCHING
+// DATA FETCHING - ENTERPRISE GRADE
 // ==========================================
-async function fetchBars(symbol, multiplier, timespan, days) {
-  const to = new Date();
+const HISTORY_RANGES = {
+  '1d': { days: 1 },
+  '5d': { days: 5 },
+  '1m': { months: 1 },
+  '3m': { months: 3 },
+  '6m': { months: 6 },
+  'ytd': { ytd: true },
+  '1y': { years: 1 },
+  '2y': { years: 2 },
+  '5y': { years: 5 },
+  '10y': { years: 10 },
+  '20y': { years: 20 },
+  'max': { years: 50 },
+};
+let selectedRange = '5y';
+let customDateFrom = null, customDateTo = null;
+
+function setHistoryRange(range) {
+  if (range === 'custom') {
+    const fromStr = prompt('From date (YYYY-MM-DD):', '2000-01-01');
+    const toStr = prompt('To date (YYYY-MM-DD):', new Date().toISOString().split('T')[0]);
+    if (fromStr && toStr) { customDateFrom = fromStr; customDateTo = toStr; selectedRange = 'custom'; }
+    else { document.getElementById('histRange').value = selectedRange; return; }
+  } else {
+    selectedRange = range;
+    customDateFrom = null; customDateTo = null;
+  }
+  loadSymbol(STATE.symbol, STATE.activeCell);
+}
+
+function getDateRange(timespan) {
+  const to = customDateTo ? new Date(customDateTo + 'T23:59:59') : new Date();
   const from = new Date();
-  if (timespan === 'minute') from.setDate(from.getDate() - Math.min(days || 7, 7));
-  else if (timespan === 'hour') from.setDate(from.getDate() - (days || 60));
-  else if (timespan === 'day') from.setFullYear(from.getFullYear() - (days || 5));
-  else if (timespan === 'week') from.setFullYear(from.getFullYear() - (days || 10));
-  else from.setFullYear(from.getFullYear() - (days || 20));
 
+  if (customDateFrom) {
+    return { from: new Date(customDateFrom), to };
+  }
+
+  if (selectedRange === 'auto') {
+    // Auto-determine range based on timeframe
+    if (timespan === 'minute') from.setDate(to.getDate() - 7);
+    else if (timespan === 'hour') from.setMonth(to.getMonth() - 3);
+    else if (timespan === 'day') from.setFullYear(to.getFullYear() - 5);
+    else if (timespan === 'week') from.setFullYear(to.getFullYear() - 15);
+    else if (timespan === 'month' || timespan === 'quarter' || timespan === 'year') from.setFullYear(to.getFullYear() - 30);
+    else from.setFullYear(to.getFullYear() - 5);
+    return { from, to };
+  }
+
+  const r = HISTORY_RANGES[selectedRange];
+  if (!r) { from.setFullYear(to.getFullYear() - 5); return { from, to }; }
+
+  if (r.ytd) { from.setMonth(0); from.setDate(1); from.setHours(0,0,0,0); }
+  else {
+    if (r.days) from.setDate(to.getDate() - r.days);
+    if (r.months) from.setMonth(to.getMonth() - r.months);
+    if (r.years) from.setFullYear(to.getFullYear() - r.years);
+  }
+  return { from, to };
+}
+
+// Paginated fetch - gets ALL data by chaining requests
+async function fetchBars(symbol, multiplier, timespan) {
+  const range = getDateRange(timespan);
   const fmtDate = d => d.toISOString().split('T')[0];
-  const url = `${API_BASE}/v2/aggs/ticker/${symbol}/range/${multiplier}/${timespan}/${fmtDate(from)}/${fmtDate(to)}?adjusted=true&sort=asc&limit=50000&apiKey=${POLYGON_KEY}`;
 
+  // For quarter/year timeframes, fetch daily and resample
+  let actualTimespan = timespan;
+  let actualMultiplier = multiplier;
+  let needsResample = false;
+  if (timespan === 'quarter') { actualTimespan = 'day'; actualMultiplier = 1; needsResample = true; }
+  if (timespan === 'year') { actualTimespan = 'week'; actualMultiplier = 1; needsResample = true; }
+
+  let allResults = [];
+  let currentFrom = new Date(range.from);
+  let attempts = 0;
+  const maxAttempts = 20; // Safety limit - up to 1M bars
+
+  // Paginated fetching loop
+  while (attempts < maxAttempts) {
+    attempts++;
+    const url = `${API_BASE}/v2/aggs/ticker/${symbol}/range/${actualMultiplier}/${actualTimespan}/${fmtDate(currentFrom)}/${fmtDate(range.to)}?adjusted=true&sort=asc&limit=50000&apiKey=${POLYGON_KEY}`;
+
+    try {
+      const resp = await fetch(url);
+      if (!resp.ok) { console.warn(`API ${resp.status} for ${symbol}`); break; }
+      const json = await resp.json();
+
+      if (!json.results || json.results.length === 0) break;
+
+      allResults = allResults.concat(json.results);
+
+      // Check if we got all data or need another page
+      if (json.results.length < 50000 || !json.next_url) break;
+
+      // Move from date forward past last result
+      const lastTimestamp = json.results[json.results.length - 1].t;
+      currentFrom = new Date(lastTimestamp + 1);
+
+      // Throttle to avoid rate limits
+      await new Promise(r => setTimeout(r, 250));
+    } catch (e) {
+      console.error('Fetch error:', e);
+      break;
+    }
+  }
+
+  if (!allResults.length) return [];
+
+  // Deduplicate by timestamp
+  const seen = new Set();
+  let bars = allResults.filter(bar => {
+    const key = bar.t;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).map(bar => ({
+    time: Math.floor(bar.t / 1000),
+    open: bar.o, high: bar.h, low: bar.l, close: bar.c,
+    volume: bar.v || 0, vwap: bar.vw || 0, trades: bar.n || 0
+  }));
+
+  // Resample if needed (quarter/year)
+  if (needsResample && timespan === 'quarter') bars = resampleBars(bars, 'quarter');
+  if (needsResample && timespan === 'year') bars = resampleBars(bars, 'year');
+
+  console.log(`📊 ${symbol}: ${bars.length} bars loaded (${attempts} request${attempts>1?'s':''})`);
+  return bars;
+}
+
+function resampleBars(bars, period) {
+  if (!bars.length) return [];
+  const groups = {};
+  bars.forEach(bar => {
+    const d = new Date(bar.time * 1000);
+    let key;
+    if (period === 'quarter') {
+      const q = Math.floor(d.getMonth() / 3);
+      key = `${d.getFullYear()}-Q${q}`;
+    } else if (period === 'year') {
+      key = `${d.getFullYear()}`;
+    }
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(bar);
+  });
+
+  return Object.values(groups).map(group => ({
+    time: group[0].time,
+    open: group[0].open,
+    high: Math.max(...group.map(b => b.high)),
+    low: Math.min(...group.map(b => b.low)),
+    close: group[group.length - 1].close,
+    volume: group.reduce((s, b) => s + b.volume, 0)
+  }));
+}
+
+// Fetch previous day data for watchlist
+async function fetchPrevDay(symbol) {
   try {
+    const url = `${API_BASE}/v2/aggs/ticker/${symbol}/prev?adjusted=true&apiKey=${POLYGON_KEY}`;
     const resp = await fetch(url);
     const json = await resp.json();
-    if (json.results && json.results.length) {
-      return json.results.map(bar => ({
-        time: Math.floor(bar.t / 1000),
-        open: bar.o, high: bar.h, low: bar.l, close: bar.c, volume: bar.v || 0
-      }));
-    }
-  } catch (e) { console.error('Fetch error:', e); }
-  return [];
+    return json.results?.[0] || null;
+  } catch(e) { return null; }
+}
+
+// Fetch snapshot for real-time price
+async function fetchSnapshot(symbol) {
+  try {
+    const url = `${API_BASE}/v2/snapshot/locale/us/markets/stocks/tickers/${symbol}?apiKey=${POLYGON_KEY}`;
+    const resp = await fetch(url);
+    const json = await resp.json();
+    return json.ticker || null;
+  } catch(e) { return null; }
+}
+
+// Fetch ticker financials (income, balance sheet, cash flow)
+async function fetchFinancials(symbol) {
+  try {
+    const url = `${API_BASE}/vX/reference/financials?ticker=${symbol}&limit=20&sort=filing_date&order=desc&apiKey=${POLYGON_KEY}`;
+    const resp = await fetch(url);
+    const json = await resp.json();
+    return json.results || [];
+  } catch(e) { return []; }
+}
+
+// Fetch dividends
+async function fetchDividends(symbol) {
+  try {
+    const url = `${API_BASE}/v3/reference/dividends?ticker=${symbol}&limit=50&order=desc&sort=pay_date&apiKey=${POLYGON_KEY}`;
+    const resp = await fetch(url);
+    const json = await resp.json();
+    return json.results || [];
+  } catch(e) { return []; }
+}
+
+// Fetch stock splits
+async function fetchSplits(symbol) {
+  try {
+    const url = `${API_BASE}/v3/reference/splits?ticker=${symbol}&limit=20&order=desc&apiKey=${POLYGON_KEY}`;
+    const resp = await fetch(url);
+    const json = await resp.json();
+    return json.results || [];
+  } catch(e) { return []; }
+}
+
+// Fetch related companies
+async function fetchRelated(symbol) {
+  try {
+    const url = `${API_BASE}/v1/related-companies/${symbol}?apiKey=${POLYGON_KEY}`;
+    const resp = await fetch(url);
+    const json = await resp.json();
+    return json.results || [];
+  } catch(e) { return []; }
+}
+
+// Fetch insider transactions
+async function fetchInsiderTx(symbol) {
+  try {
+    const url = `${API_BASE}/v2/reference/news?ticker=${symbol}&limit=50&apiKey=${POLYGON_KEY}`;
+    const resp = await fetch(url);
+    const json = await resp.json();
+    return json.results || [];
+  } catch(e) { return []; }
+}
+
+// Fetch market movers
+async function fetchMovers(direction) {
+  try {
+    const url = `${API_BASE}/v2/snapshot/locale/us/markets/stocks/${direction}?apiKey=${POLYGON_KEY}`;
+    const resp = await fetch(url);
+    const json = await resp.json();
+    return json.tickers || [];
+  } catch(e) { return []; }
+}
+
+// Fetch all snapshots for sector heatmap
+async function fetchAllSnapshots() {
+  try {
+    const url = `${API_BASE}/v2/snapshot/locale/us/markets/stocks/tickers?apiKey=${POLYGON_KEY}`;
+    const resp = await fetch(url);
+    const json = await resp.json();
+    return json.tickers || [];
+  } catch(e) { return []; }
+}
+
+// Fetch crypto snapshot
+async function fetchCryptoSnapshot(symbol) {
+  try {
+    const url = `${API_BASE}/v2/snapshot/locale/global/markets/crypto/tickers/${symbol}?apiKey=${POLYGON_KEY}`;
+    const resp = await fetch(url);
+    const json = await resp.json();
+    return json.ticker || null;
+  } catch(e) { return null; }
+}
+
+// Fetch SMA from Polygon technical indicators API
+async function fetchPolygonSMA(symbol, period, timespan) {
+  try {
+    const url = `${API_BASE}/v1/indicators/sma/${symbol}?timespan=${timespan || 'day'}&window=${period}&limit=1000&apiKey=${POLYGON_KEY}`;
+    const resp = await fetch(url);
+    const json = await resp.json();
+    return json.results?.values || [];
+  } catch(e) { return []; }
+}
+
+// Fetch EMA from Polygon technical indicators API
+async function fetchPolygonEMA(symbol, period, timespan) {
+  try {
+    const url = `${API_BASE}/v1/indicators/ema/${symbol}?timespan=${timespan || 'day'}&window=${period}&limit=1000&apiKey=${POLYGON_KEY}`;
+    const resp = await fetch(url);
+    const json = await resp.json();
+    return json.results?.values || [];
+  } catch(e) { return []; }
+}
+
+// Fetch MACD from Polygon
+async function fetchPolygonMACD(symbol, timespan) {
+  try {
+    const url = `${API_BASE}/v1/indicators/macd/${symbol}?timespan=${timespan || 'day'}&short_window=12&long_window=26&signal_window=9&limit=1000&apiKey=${POLYGON_KEY}`;
+    const resp = await fetch(url);
+    const json = await resp.json();
+    return json.results?.values || [];
+  } catch(e) { return []; }
+}
+
+// Fetch RSI from Polygon
+async function fetchPolygonRSI(symbol, timespan) {
+  try {
+    const url = `${API_BASE}/v1/indicators/rsi/${symbol}?timespan=${timespan || 'day'}&window=14&limit=1000&apiKey=${POLYGON_KEY}`;
+    const resp = await fetch(url);
+    const json = await resp.json();
+    return json.results?.values || [];
+  } catch(e) { return []; }
+}
+
+// Fetch ticker details v3
+async function fetchTickerDetails(symbol) {
+  try {
+    const url = `${API_BASE}/v3/reference/tickers/${symbol}?apiKey=${POLYGON_KEY}`;
+    const resp = await fetch(url);
+    const json = await resp.json();
+    return json.results || null;
+  } catch(e) { return null; }
+}
+
+// Fetch exchanges
+async function fetchExchanges() {
+  try {
+    const url = `${API_BASE}/v3/reference/exchanges?asset_class=stocks&apiKey=${POLYGON_KEY}`;
+    const resp = await fetch(url);
+    const json = await resp.json();
+    return json.results || [];
+  } catch(e) { return []; }
+}
+
+// Fetch market holidays
+async function fetchMarketHolidays() {
+  try {
+    const url = `${API_BASE}/v1/marketstatus/upcoming?apiKey=${POLYGON_KEY}`;
+    const resp = await fetch(url);
+    return await resp.json() || [];
+  } catch(e) { return []; }
+}
+
+// Fetch daily open/close (exact OHLCV for any specific day)
+async function fetchDailyOC(symbol, date) {
+  try {
+    const url = `${API_BASE}/v1/open-close/${symbol}/${date}?adjusted=true&apiKey=${POLYGON_KEY}`;
+    const resp = await fetch(url);
+    return await resp.json();
+  } catch(e) { return null; }
+}
+
+// Fetch grouped daily bars (all tickers for a date)
+async function fetchGroupedDaily(date) {
+  try {
+    const url = `${API_BASE}/v2/aggs/grouped/locale/us/market/stocks/${date}?adjusted=true&apiKey=${POLYGON_KEY}`;
+    const resp = await fetch(url);
+    const json = await resp.json();
+    return json.results || [];
+  } catch(e) { return []; }
 }
 
 async function loadSymbol(symbol, cellIdx) {
@@ -1258,9 +1608,43 @@ async function loadSymbol(symbol, cellIdx) {
     applyIndicators(cellIdx);
     loadCompareOverlays(cellIdx);
     checkAlerts(data);
+    addEarningsMarkers(cellIdx, data);
+
+    // Show data stats
+    const first = new Date(data[0].time * 1000).toLocaleDateString();
+    const last = new Date(data[data.length-1].time * 1000).toLocaleDateString();
+    toast(`${symbol}: ${data.length.toLocaleString()} bars loaded (${first} → ${last})`, 'info');
   } else {
     toast(`No data for ${symbol}`, 'error');
   }
+}
+
+// Add earnings date markers on chart
+async function addEarningsMarkers(cellIdx, data) {
+  const cell = STATE.cells[cellIdx];
+  if (!cell.chart || !cell.series) return;
+  // Fetch financials to get earnings dates
+  try {
+    const financials = await fetchFinancials(STATE.cells[cellIdx].symbol);
+    if (!financials.length) return;
+    const markers = [];
+    financials.forEach(f => {
+      if (!f.filing_date) return;
+      const t = Math.floor(new Date(f.filing_date).getTime() / 1000);
+      // Find closest bar
+      const bar = data.find(d => Math.abs(d.time - t) < 86400 * 3);
+      if (bar) {
+        markers.push({
+          time: bar.time,
+          position: 'belowBar',
+          color: '#f7a21b',
+          shape: 'square',
+          text: 'E'
+        });
+      }
+    });
+    if (markers.length) cell.series.setMarkers(markers.sort((a,b) => a.time - b.time));
+  } catch(e) {}
 }
 
 function setChartData(cellIdx, data) {
@@ -2305,15 +2689,12 @@ async function refreshWatchlist() {
 
   const rows = await Promise.all(syms.map(async sym => {
     try {
-      const url = `${API_BASE}/v2/aggs/ticker/${sym}/prev?adjusted=true&apiKey=${POLYGON_KEY}`;
-      const resp = await fetch(url);
-      const json = await resp.json();
-      const r = json.results?.[0];
+      const r = await fetchPrevDay(sym);
       if (r) {
         const chg = ((r.c - r.o) / r.o * 100).toFixed(2);
         return `<div class="wl-row" onclick="selectSymbol('${sym}')">
           <span class="sym">${sym.replace('X:','').replace('C:','')}</span>
-          <span class="name">-</span>
+          <span class="name" style="font-size:10px;color:var(--t3)">${formatVol(r.v || 0)}</span>
           <span class="prc">$${r.c?.toFixed(2) || '-'}</span>
           <span class="chg ${chg >= 0 ? 'up' : 'dn'}">${chg >= 0 ? '+' : ''}${chg}%<span class="remove-sym" onclick="event.stopPropagation();removeFromWatchlist('${sym}')">✕</span></span>
         </div>`;
@@ -2408,12 +2789,9 @@ async function loadScreener(type, btn) {
   if (btn) { document.querySelectorAll('.screener-tab').forEach(t => t.classList.remove('active')); btn.classList.add('active'); }
   const dir = type === 'losers' ? 'losers' : 'gainers';
   try {
-    const url = `${API_BASE}/v2/snapshot/locale/us/markets/stocks/${dir}?apiKey=${POLYGON_KEY}`;
-    const resp = await fetch(url);
-    const json = await resp.json();
-    let tickers = json.tickers || [];
+    let tickers = await fetchMovers(dir);
     if (type === 'active') tickers.sort((a, b) => (b.day?.v || 0) - (a.day?.v || 0));
-    tickers = tickers.slice(0, 25);
+    tickers = tickers.slice(0, 30);
 
     document.getElementById('screenerRows').innerHTML = tickers.map(t => {
       const chg = t.todaysChangePerc?.toFixed(2) || '0';
@@ -2464,35 +2842,121 @@ function renderDetailsPanel() {
 
 async function loadDetails() {
   try {
-    const url = `${API_BASE}/v3/reference/tickers/${STATE.symbol}?apiKey=${POLYGON_KEY}`;
-    const resp = await fetch(url);
-    const json = await resp.json();
-    const r = json.results;
-    if (!r) return;
+    const details = await fetchTickerDetails(STATE.symbol);
+    if (!details) { document.getElementById('detailsGrid').innerHTML = '<div style="padding:20px;text-align:center;color:var(--t3)">No details available</div>'; return; }
 
     const data = STATE.cells[STATE.activeCell].data;
     const last = data.length ? data[data.length - 1] : null;
 
-    document.getElementById('detailsGrid').innerHTML = [
-      ['Name', r.name || '-'],
-      ['Exchange', r.primary_exchange || '-'],
-      ['Type', r.type || '-'],
-      ['Market Cap', r.market_cap ? '$' + formatNum(r.market_cap) : '-'],
-      ['Shares Out', r.share_class_shares_outstanding ? formatNum(r.share_class_shares_outstanding) : '-'],
-      ['Description', r.description?.substring(0, 200) + '...' || '-'],
-      ['SIC Code', r.sic_code || '-'],
-      ['SIC Desc', r.sic_description || '-'],
-      ['Homepage', r.homepage_url ? `<a href="${r.homepage_url}" target="_blank" style="color:var(--blue)">${r.homepage_url}</a>` : '-'],
-      ['List Date', r.list_date || '-'],
-      ['Locale', r.locale || '-'],
-      ['Currency', r.currency_name || '-'],
-      ['High (Session)', last ? '$' + last.high.toFixed(2) : '-'],
-      ['Low (Session)', last ? '$' + last.low.toFixed(2) : '-'],
-      ['Volume', last ? formatVol(last.volume) : '-'],
-      ['52W High', '-'],
-      ['52W Low', '-'],
-    ].map(([label, val]) => `<div class="detail-cell"><div class="dl">${label}</div><div class="dv">${val}</div></div>`).join('');
-  } catch(e) {}
+    // Calculate 52-week high/low from data
+    const oneYearAgo = last ? last.time - 365 * 86400 : 0;
+    const yearData = data.filter(d => d.time >= oneYearAgo);
+    const high52w = yearData.length ? Math.max(...yearData.map(b => b.high)) : 0;
+    const low52w = yearData.length ? Math.min(...yearData.map(b => b.low)) : 0;
+
+    // Calculate moving averages from actual data
+    const sma20v = data.length >= 20 ? data.slice(-20).reduce((s,b) => s + b.close, 0) / 20 : 0;
+    const sma50v = data.length >= 50 ? data.slice(-50).reduce((s,b) => s + b.close, 0) / 50 : 0;
+    const sma200v = data.length >= 200 ? data.slice(-200).reduce((s,b) => s + b.close, 0) / 200 : 0;
+
+    // Average volume
+    const avgVol30 = data.length >= 30 ? data.slice(-30).reduce((s,b) => s + b.volume, 0) / 30 : 0;
+    const avgVol10 = data.length >= 10 ? data.slice(-10).reduce((s,b) => s + b.volume, 0) / 10 : 0;
+
+    // Relative volume
+    const relVol = avgVol30 > 0 && last ? (last.volume / avgVol30).toFixed(2) : '-';
+
+    // Beta calculation (simplified)
+    const volatility = yearData.length >= 20 ? Math.sqrt(yearData.slice(-20).reduce((s, b, i, arr) => {
+      if (i === 0) return 0;
+      const ret = Math.log(b.close / arr[i-1].close);
+      return s + ret * ret;
+    }, 0) / 19) * Math.sqrt(252) * 100 : 0;
+
+    // All-time high/low from loaded data
+    const allHigh = data.length ? Math.max(...data.map(b => b.high)) : 0;
+    const allLow = data.length ? Math.min(...data.map(b => b.low)) : 0;
+
+    // % from 52W high
+    const pctFrom52wHigh = high52w && last ? ((last.close - high52w) / high52w * 100).toFixed(2) : '-';
+    const pctFrom52wLow = low52w && last ? ((last.close - low52w) / low52w * 100).toFixed(2) : '-';
+
+    // Performance calculations
+    const calc_perf = (days) => {
+      if (data.length <= days) return '-';
+      const old = data[data.length - 1 - days].close;
+      return ((last.close - old) / old * 100).toFixed(2);
+    };
+    const perf1d = calc_perf(1), perf5d = calc_perf(5), perf1m = calc_perf(22), perf3m = calc_perf(66);
+    const perf6m = calc_perf(132), perf1y = calc_perf(252), perfYTD = '-';
+
+    // Total data range
+    const dataFrom = data.length ? new Date(data[0].time * 1000).toLocaleDateString() : '-';
+    const dataTo = data.length ? new Date(data[data.length-1].time * 1000).toLocaleDateString() : '-';
+
+    const rows = [
+      ['Company', details.name || '-'],
+      ['Ticker', details.ticker || STATE.symbol],
+      ['Exchange', details.primary_exchange || '-'],
+      ['Type', details.type || '-'],
+      ['Currency', details.currency_name?.toUpperCase() || 'USD'],
+      ['Locale', details.locale || '-'],
+      ['Market Cap', details.market_cap ? '$' + formatNum(details.market_cap) : '-'],
+      ['Shares Out', details.share_class_shares_outstanding ? formatNum(details.share_class_shares_outstanding) : '-'],
+      ['Float Shares', details.weighted_shares_outstanding ? formatNum(details.weighted_shares_outstanding) : '-'],
+      ['List Date', details.list_date || '-'],
+      ['SIC Code', details.sic_code || '-'],
+      ['SIC Industry', details.sic_description || '-'],
+      ['<b style="color:var(--blue)">── Price ──</b>', ''],
+      ['Last Price', last ? '$' + last.close.toFixed(2) : '-'],
+      ['Session High', last ? '$' + last.high.toFixed(2) : '-'],
+      ['Session Low', last ? '$' + last.low.toFixed(2) : '-'],
+      ['Session Volume', last ? formatVol(last.volume) : '-'],
+      ['VWAP', last && last.vwap ? '$' + last.vwap.toFixed(2) : '-'],
+      ['Trades', last && last.trades ? formatNum(last.trades) : '-'],
+      ['<b style="color:var(--blue)">── 52 Week ──</b>', ''],
+      ['52W High', high52w ? '$' + high52w.toFixed(2) : '-'],
+      ['52W Low', low52w ? '$' + low52w.toFixed(2) : '-'],
+      ['% from 52W High', pctFrom52wHigh !== '-' ? pctFrom52wHigh + '%' : '-'],
+      ['% from 52W Low', pctFrom52wLow !== '-' ? '+' + pctFrom52wLow + '%' : '-'],
+      ['<b style="color:var(--blue)">── All-Time ──</b>', ''],
+      ['All-Time High', allHigh ? '$' + allHigh.toFixed(2) : '-'],
+      ['All-Time Low', allLow ? '$' + allLow.toFixed(2) : '-'],
+      ['<b style="color:var(--blue)">── Averages ──</b>', ''],
+      ['SMA 20', sma20v ? '$' + sma20v.toFixed(2) : '-'],
+      ['SMA 50', sma50v ? '$' + sma50v.toFixed(2) : '-'],
+      ['SMA 200', sma200v ? '$' + sma200v.toFixed(2) : '-'],
+      ['Avg Vol (10D)', formatVol(avgVol10)],
+      ['Avg Vol (30D)', formatVol(avgVol30)],
+      ['Relative Volume', relVol + 'x'],
+      ['Volatility (Ann.)', volatility ? volatility.toFixed(1) + '%' : '-'],
+      ['<b style="color:var(--blue)">── Performance ──</b>', ''],
+      ['1 Day', perf1d !== '-' ? `<span class="${perf1d>=0?'up':'dn'}" style="color:var(--${perf1d>=0?'green':'red'})">${perf1d>=0?'+':''}${perf1d}%</span>` : '-'],
+      ['5 Days', perf5d !== '-' ? `<span style="color:var(--${perf5d>=0?'green':'red'})">${perf5d>=0?'+':''}${perf5d}%</span>` : '-'],
+      ['1 Month', perf1m !== '-' ? `<span style="color:var(--${perf1m>=0?'green':'red'})">${perf1m>=0?'+':''}${perf1m}%</span>` : '-'],
+      ['3 Months', perf3m !== '-' ? `<span style="color:var(--${perf3m>=0?'green':'red'})">${perf3m>=0?'+':''}${perf3m}%</span>` : '-'],
+      ['6 Months', perf6m !== '-' ? `<span style="color:var(--${perf6m>=0?'green':'red'})">${perf6m>=0?'+':''}${perf6m}%</span>` : '-'],
+      ['1 Year', perf1y !== '-' ? `<span style="color:var(--${perf1y>=0?'green':'red'})">${perf1y>=0?'+':''}${perf1y}%</span>` : '-'],
+      ['<b style="color:var(--blue)">── Data ──</b>', ''],
+      ['Total Bars', data.length.toLocaleString()],
+      ['Data From', dataFrom],
+      ['Data To', dataTo],
+    ];
+
+    if (details.homepage_url) {
+      rows.push(['Website', `<a href="${details.homepage_url}" target="_blank" style="color:var(--blue);font-size:11px">${details.homepage_url}</a>`]);
+    }
+
+    if (details.description) {
+      rows.push(['<b style="color:var(--blue)">── Description ──</b>', '']);
+      rows.push([details.description.substring(0, 500) + (details.description.length > 500 ? '...' : ''), '']);
+    }
+
+    document.getElementById('detailsGrid').innerHTML = rows.map(([label, val]) => {
+      if (!val && val !== 0) return `<div class="detail-cell" style="grid-column:1/3"><div class="dl">${label}</div></div>`;
+      return `<div class="detail-cell"><div class="dl">${label}</div><div class="dv">${val}</div></div>`;
+    }).join('');
+  } catch(e) { console.error('Details error:', e); }
 }
 
 // ==========================================
@@ -2652,7 +3116,7 @@ function togglePanel(panel) {
   if (activePanel === panel) { rp.classList.remove('open', 'wide'); activePanel = null; return; }
   activePanel = panel;
   rp.classList.add('open');
-  rp.classList.toggle('wide', panel === 'details' || panel === 'ta');
+  rp.classList.toggle('wide', panel === 'details' || panel === 'ta' || panel === 'financials' || panel === 'heatmap');
 
   // Highlight button
   document.querySelectorAll('.topbar-right .icon-btn').forEach(b => b.classList.remove('active'));
@@ -2666,10 +3130,228 @@ function togglePanel(panel) {
     case 'screener': content.innerHTML = renderScreenerPanel(); loadScreener('gainers'); break;
     case 'news': content.innerHTML = renderNewsPanel(); loadNews(); break;
     case 'details': content.innerHTML = renderDetailsPanel(); loadDetails(); break;
+    case 'financials': content.innerHTML = renderFinancialsPanel(); loadFinancialsPanel(); break;
+    case 'dividends': content.innerHTML = renderDividendsPanel(); loadDividendsPanel(); break;
     case 'ta': content.innerHTML = renderTAPanel(); calcTechnicalAnalysis(); break;
+    case 'heatmap': content.innerHTML = renderHeatmapPanel(); loadHeatmapPanel(); break;
     case 'notes': content.innerHTML = renderNotesPanel(); break;
     case 'hotkeys': content.innerHTML = renderHotkeysPanel(); break;
   }
+}
+
+// ==========================================
+// FINANCIALS PANEL
+// ==========================================
+function renderFinancialsPanel() {
+  return `
+    <div class="screener-tabs">
+      <button class="screener-tab active" onclick="loadFinancialsPanel('income',this)">Income</button>
+      <button class="screener-tab" onclick="loadFinancialsPanel('balance',this)">Balance Sheet</button>
+      <button class="screener-tab" onclick="loadFinancialsPanel('cash',this)">Cash Flow</button>
+    </div>
+    <div id="financialsRows" style="padding:8px"><div style="padding:20px;text-align:center;color:var(--t3)">Loading financials...</div></div>
+  `;
+}
+
+async function loadFinancialsPanel(tab, btn) {
+  if (btn) { document.querySelectorAll('.screener-tab').forEach(t => t.classList.remove('active')); btn.classList.add('active'); }
+  tab = tab || 'income';
+  const financials = await fetchFinancials(STATE.symbol);
+  const container = document.getElementById('financialsRows');
+  if (!financials.length) { container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--t3)">No financial data available</div>'; return; }
+
+  let html = '<div style="overflow-x:auto">';
+
+  // Get the relevant financial statement
+  const statements = financials.map(f => {
+    const period = f.fiscal_period + ' ' + f.fiscal_year;
+    const filingDate = f.filing_date || '-';
+    let data = {};
+
+    if (tab === 'income' && f.financials?.income_statement) {
+      const is = f.financials.income_statement;
+      data = {
+        'Revenue': is.revenues?.value,
+        'Cost of Revenue': is.cost_of_revenue?.value,
+        'Gross Profit': is.gross_profit?.value,
+        'Operating Expenses': is.operating_expenses?.value,
+        'Operating Income': is.operating_income_loss?.value,
+        'Net Income': is.net_income_loss?.value,
+        'EPS (Basic)': is.basic_earnings_per_share?.value,
+        'EPS (Diluted)': is.diluted_earnings_per_share?.value,
+      };
+    } else if (tab === 'balance' && f.financials?.balance_sheet) {
+      const bs = f.financials.balance_sheet;
+      data = {
+        'Total Assets': bs.assets?.value,
+        'Current Assets': bs.current_assets?.value,
+        'Total Liabilities': bs.liabilities?.value,
+        'Current Liabilities': bs.current_liabilities?.value,
+        'Equity': bs.equity?.value,
+        'Stockholders Equity': bs.equity_attributable_to_parent?.value,
+      };
+    } else if (tab === 'cash' && f.financials?.cash_flow_statement) {
+      const cf = f.financials.cash_flow_statement;
+      data = {
+        'Operating Cash Flow': cf.net_cash_flow_from_operating_activities?.value,
+        'Investing Cash Flow': cf.net_cash_flow_from_investing_activities?.value,
+        'Financing Cash Flow': cf.net_cash_flow_from_financing_activities?.value,
+        'Net Cash Flow': cf.net_cash_flow?.value,
+      };
+    }
+    return { period, filingDate, data };
+  }).filter(s => Object.keys(s.data).length > 0).slice(0, 8);
+
+  if (!statements.length) { container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--t3)">No data for this statement</div>'; return; }
+
+  // Build table
+  const metrics = Object.keys(statements[0].data);
+  html += '<table style="width:100%;border-collapse:collapse;font-size:11px">';
+  html += '<tr style="border-bottom:1px solid var(--brd)"><td style="padding:6px 8px;color:var(--t3);font-weight:600;position:sticky;left:0;background:var(--bg2)">Period</td>';
+  statements.forEach(s => { html += `<td style="padding:6px 8px;text-align:right;color:var(--t1);font-weight:600;white-space:nowrap">${s.period}</td>`; });
+  html += '</tr>';
+
+  metrics.forEach(metric => {
+    html += `<tr style="border-bottom:1px solid rgba(42,46,57,.3)">`;
+    html += `<td style="padding:6px 8px;color:var(--t2);position:sticky;left:0;background:var(--bg2);white-space:nowrap">${metric}</td>`;
+    statements.forEach(s => {
+      const val = s.data[metric];
+      const formatted = val !== undefined && val !== null ? (Math.abs(val) >= 1e9 ? '$' + (val/1e9).toFixed(2) + 'B' : Math.abs(val) >= 1e6 ? '$' + (val/1e6).toFixed(1) + 'M' : typeof val === 'number' ? val.toFixed(2) : val) : '-';
+      const color = typeof val === 'number' && val < 0 ? 'var(--red)' : 'var(--t1)';
+      html += `<td style="padding:6px 8px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:10px;color:${color}">${formatted}</td>`;
+    });
+    html += '</tr>';
+  });
+
+  html += '</table></div>';
+  container.innerHTML = html;
+}
+
+// ==========================================
+// DIVIDENDS & SPLITS PANEL
+// ==========================================
+function renderDividendsPanel() {
+  return `
+    <div class="screener-tabs">
+      <button class="screener-tab active" onclick="loadDividendsPanel('dividends',this)">Dividends</button>
+      <button class="screener-tab" onclick="loadDividendsPanel('splits',this)">Stock Splits</button>
+    </div>
+    <div id="dividendsRows" style="padding:8px"><div style="padding:20px;text-align:center;color:var(--t3)">Loading...</div></div>
+  `;
+}
+
+async function loadDividendsPanel(tab, btn) {
+  if (btn) { document.querySelectorAll('.screener-tab').forEach(t => t.classList.remove('active')); btn.classList.add('active'); }
+  tab = tab || 'dividends';
+  const container = document.getElementById('dividendsRows');
+
+  if (tab === 'dividends') {
+    const divs = await fetchDividends(STATE.symbol);
+    if (!divs.length) { container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--t3)">No dividend history</div>'; return; }
+
+    // Summary
+    const annualYield = divs.length >= 4 ? divs.slice(0, 4).reduce((s, d) => s + (d.cash_amount || 0), 0) : 0;
+    const lastPrice = STATE.cells[STATE.activeCell].data;
+    const price = lastPrice.length ? lastPrice[lastPrice.length - 1].close : 1;
+    const yieldPct = annualYield > 0 ? (annualYield / price * 100).toFixed(2) : '0';
+
+    let html = `
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;margin-bottom:8px">
+        <div class="detail-cell"><div class="dl">Annual Div</div><div class="dv" style="color:var(--green)">$${annualYield.toFixed(2)}</div></div>
+        <div class="detail-cell"><div class="dl">Yield</div><div class="dv" style="color:var(--green)">${yieldPct}%</div></div>
+        <div class="detail-cell"><div class="dl">Frequency</div><div class="dv">${divs[0].frequency === 4 ? 'Quarterly' : divs[0].frequency === 12 ? 'Monthly' : divs[0].frequency === 2 ? 'Semi-Annual' : 'Annual'}</div></div>
+      </div>
+    `;
+
+    html += divs.map(d => `
+      <div style="display:grid;grid-template-columns:1fr 80px 80px;padding:6px 8px;border-bottom:1px solid rgba(42,46,57,.3);font-size:12px">
+        <span style="color:var(--t2)">${d.pay_date || d.ex_dividend_date || '-'}</span>
+        <span style="text-align:right;font-family:'JetBrains Mono',monospace;color:var(--green)">$${d.cash_amount?.toFixed(4) || '-'}</span>
+        <span style="text-align:right;color:var(--t3);font-size:10px">${d.declaration_date ? 'Ex: ' + d.ex_dividend_date : ''}</span>
+      </div>
+    `).join('');
+    container.innerHTML = html;
+  } else {
+    const splits = await fetchSplits(STATE.symbol);
+    if (!splits.length) { container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--t3)">No split history</div>'; return; }
+
+    container.innerHTML = splits.map(s => `
+      <div style="display:grid;grid-template-columns:1fr 1fr;padding:10px 12px;border-bottom:1px solid rgba(42,46,57,.3);font-size:12px">
+        <div>
+          <div style="font-weight:600;color:var(--t1)">${s.split_from}:${s.split_to} Split</div>
+          <div style="color:var(--t3);font-size:11px">${s.execution_date || '-'}</div>
+        </div>
+        <div style="text-align:right;font-family:'JetBrains Mono',monospace;color:var(--blue)">
+          ${(s.split_to / s.split_from).toFixed(1)}x
+        </div>
+      </div>
+    `).join('');
+  }
+}
+
+// ==========================================
+// SECTOR HEATMAP PANEL
+// ==========================================
+function renderHeatmapPanel() {
+  return `
+    <div class="screener-tabs">
+      <button class="screener-tab active" onclick="loadHeatmapPanel('sp500',this)">S&P 500</button>
+      <button class="screener-tab" onclick="loadHeatmapPanel('sectors',this)">Sectors</button>
+      <button class="screener-tab" onclick="loadHeatmapPanel('crypto',this)">Crypto</button>
+    </div>
+    <div id="heatmapRows" style="padding:8px"><div style="padding:20px;text-align:center;color:var(--t3)">Loading heatmap...</div></div>
+  `;
+}
+
+async function loadHeatmapPanel(tab, btn) {
+  if (btn) { document.querySelectorAll('.screener-tab').forEach(t => t.classList.remove('active')); btn.classList.add('active'); }
+  tab = tab || 'sp500';
+  const container = document.getElementById('heatmapRows');
+
+  const sectorETFs = {
+    'Technology': 'XLK', 'Healthcare': 'XLV', 'Financials': 'XLF', 'Energy': 'XLE',
+    'Consumer Disc.': 'XLY', 'Consumer Staples': 'XLP', 'Industrials': 'XLI',
+    'Materials': 'XLB', 'Utilities': 'XLU', 'Real Estate': 'XLRE', 'Communication': 'XLC'
+  };
+
+  const majorStocks = ['AAPL','MSFT','GOOGL','AMZN','NVDA','META','TSLA','BRK.B','JPM','V','JNJ','UNH','XOM','PG','MA','HD','CVX','MRK','ABBV','PEP','COST','KO','AVGO','LLY','WMT','ADBE','CRM','TMO','MCD','CSCO','ACN','ABT','DHR','CMCSA','NEE','TXN','PM','UPS','RTX','INTC'];
+  const cryptos = ['X:BTCUSD','X:ETHUSD','X:SOLUSD','X:ADAUSD','X:DOGEUSD','X:AVAXUSD','X:DOTUSD','X:LINKUSD','X:MATICUSD','X:UNIUSD'];
+
+  let symbols;
+  if (tab === 'sp500') symbols = majorStocks;
+  else if (tab === 'sectors') symbols = Object.values(sectorETFs);
+  else symbols = cryptos;
+
+  const labels = tab === 'sectors' ? Object.keys(sectorETFs) : null;
+
+  // Fetch prev day data for all
+  const results = await Promise.all(symbols.map(async (sym, i) => {
+    const data = await fetchPrevDay(sym);
+    if (!data) return null;
+    const chg = ((data.c - data.o) / data.o * 100).toFixed(2);
+    return { sym: labels ? labels[i] : sym.replace('X:', ''), price: data.c, chg: parseFloat(chg), vol: data.v };
+  }));
+
+  const valid = results.filter(Boolean).sort((a, b) => b.chg - a.chg);
+
+  container.innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:3px">` +
+    valid.map(r => {
+      const intensity = Math.min(Math.abs(r.chg) / 3, 1);
+      const bg = r.chg >= 0
+        ? `rgba(38,166,154,${0.1 + intensity * 0.5})`
+        : `rgba(239,83,80,${0.1 + intensity * 0.5})`;
+      const size = tab === 'sp500' ? 'width:72px;height:48px' : 'width:90px;height:56px';
+      return `
+        <div onclick="selectSymbol('${r.sym.includes(':') ? r.sym : r.sym}')" style="
+          background:${bg};border-radius:4px;padding:4px 6px;cursor:pointer;
+          display:flex;flex-direction:column;align-items:center;justify-content:center;
+          ${size};border:1px solid rgba(255,255,255,.05);
+        ">
+          <div style="font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace">${r.sym}</div>
+          <div style="font-size:10px;font-family:'JetBrains Mono',monospace;color:${r.chg >= 0 ? 'var(--green)' : 'var(--red)'}">${r.chg >= 0 ? '+' : ''}${r.chg}%</div>
+        </div>
+      `;
+    }).join('') + '</div>';
 }
 
 // ==========================================
