@@ -1228,6 +1228,18 @@
         </div>
     </div>
     
+        <!-- Fund Flows Tab -->
+        <div class="tab-content" id="fundflows">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+                <h2 style="background:linear-gradient(135deg,#f59e0b,#d97706);-webkit-background-clip:text;-webkit-text-fill-color:transparent">💰 ETF Fund Flows — Real-Time (Polygon ETF Global)</h2>
+                <div id="ffLastUpdate" style="font-size:12px;color:#888">Loading...</div>
+            </div>
+            <div id="ffSummaryCards" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px"></div>
+            <div id="ffRiskAppetite" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px"></div>
+            <div id="ffFlowChart" style="background:#14182b;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:16px;margin-bottom:20px"></div>
+            <div id="ffTable" style="background:#14182b;border:1px solid rgba(255,255,255,0.1);border-radius:10px;overflow:hidden"></div>
+        </div>
+    </div>
     <!-- Historical Data Modal -->
     <div class="modal" id="historicalModal">
         <div class="modal-content">
@@ -2799,6 +2811,181 @@
         
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', initializePlatform);
+
+        // ═══ FUND FLOWS ENGINE ═══
+        const FF_LAMBDA = 'https://g65enkjk3uu4woaoy764ow3q340sppvg.lambda-url.us-east-1.on.aws/';
+        const FF_S3 = 'https://justhodl-dashboard-live.s3.amazonaws.com/flow-data.json';
+        let ffData = null;
+
+        async function loadFundFlows() {
+            const el = document.getElementById('fundflows');
+            if (!el) return;
+            try {
+                const ctrl = new AbortController();
+                const tid = setTimeout(() => ctrl.abort(), 60000);
+                const r = await fetch(FF_LAMBDA, {signal: ctrl.signal});
+                clearTimeout(tid);
+                ffData = await r.json();
+            } catch(e) {
+                try { const r = await fetch(FF_S3); ffData = await r.json(); } catch(e2) { return; }
+            }
+            if (ffData && ffData.success) renderFundFlows(ffData.data);
+        }
+
+        function ffFmtM(n) {
+            if (!n && n !== 0) return '—';
+            const a = Math.abs(n);
+            const s = n < 0 ? '-' : '+';
+            if (a >= 1e9) return s + '$' + (a/1e9).toFixed(1) + 'B';
+            if (a >= 1e6) return s + '$' + (a/1e6).toFixed(1) + 'M';
+            if (a >= 1e3) return s + '$' + (a/1e3).toFixed(0) + 'K';
+            return s + '$' + a.toFixed(0);
+        }
+
+        function ffColor(v) { return v > 0 ? '#00ff88' : v < 0 ? '#ff4444' : '#888'; }
+
+        function renderFundFlows(d) {
+            const ff = d.fund_flows || {};
+            const etfs = ff.etf_flows || [];
+            const ra = ff.risk_appetite || {};
+            const sr = ff.sector_rotation || {};
+            const rs = sr.rotation_signal || {};
+            const mf = ff.market_flow || {};
+            const pc = d.put_call || {};
+            const sent = d.sentiment?.composite || {};
+            const sigs = d.trading_signals || [];
+
+            // Summary cards
+            document.getElementById('ffSummaryCards').innerHTML = `
+                <div style="background:#14182b;border:1px solid rgba(0,255,136,0.2);border-radius:10px;padding:16px;text-align:center">
+                    <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px">5D Net Flow</div>
+                    <div style="font-size:28px;font-weight:700;color:${ffColor(mf.net_5d)};margin:6px 0">${ffFmtM(mf.net_5d)}</div>
+                    <div style="font-size:11px;color:#666">In: ${ffFmtM(mf.total_inflow_5d)} | Out: ${ffFmtM(mf.total_outflow_5d)}</div>
+                </div>
+                <div style="background:#14182b;border:1px solid ${ra.regime==='RISK_ON'?'rgba(0,255,136,0.3)':'rgba(255,68,68,0.3)'};border-radius:10px;padding:16px;text-align:center">
+                    <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px">Risk Appetite</div>
+                    <div style="font-size:24px;font-weight:700;color:${ra.regime==='RISK_ON'?'#00ff88':'#ff4444'};margin:6px 0">${ra.regime || '—'}</div>
+                    <div style="font-size:11px;color:#666">Net: ${ffFmtM(ra.net_flow)}</div>
+                </div>
+                <div style="background:#14182b;border:1px solid rgba(168,85,247,0.3);border-radius:10px;padding:16px;text-align:center">
+                    <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px">Cycle Phase</div>
+                    <div style="font-size:20px;font-weight:700;color:#a78bfa;margin:6px 0">${rs.phase || '—'}</div>
+                    <div style="font-size:11px;color:#666">${rs.description ? rs.description.substring(0,40) : ''}</div>
+                </div>
+                <div style="background:#14182b;border:1px solid rgba(245,158,11,0.3);border-radius:10px;padding:16px;text-align:center">
+                    <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px">Sentiment</div>
+                    <div style="font-size:28px;font-weight:700;color:${sent.color||'#f59e0b'};margin:6px 0">${sent.score ? Math.round(sent.score) : '—'}</div>
+                    <div style="font-size:11px;color:#666">${sent.label || '—'}</div>
+                </div>`;
+
+            // Risk appetite detail
+            document.getElementById('ffRiskAppetite').innerHTML = `
+                <div style="background:#14182b;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:16px">
+                    <h3 style="font-size:14px;color:#f59e0b;margin-bottom:12px">📊 Sector Rotation</h3>
+                    ${sr.top_inflow ? `<div style="padding:8px;background:rgba(0,255,136,0.08);border-radius:6px;margin-bottom:6px">
+                        <span style="color:#00ff88;font-weight:600">↑ ${sr.top_inflow} (${sr.top_inflow_name})</span>: <span style="color:#00ff88">${ffFmtM(sr.top_inflow_flow)}</span>
+                    </div>` : ''}
+                    ${sr.top_outflow ? `<div style="padding:8px;background:rgba(255,68,68,0.08);border-radius:6px;margin-bottom:6px">
+                        <span style="color:#ff4444;font-weight:600">↓ ${sr.top_outflow} (${sr.top_outflow_name})</span>: <span style="color:#ff4444">${ffFmtM(sr.top_outflow_flow)}</span>
+                    </div>` : ''}
+                    ${rs.scores ? Object.entries(rs.scores).map(([k,v]) => `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+                        <span style="color:#aaa;font-size:12px">${k.replace(/_/g,' ')}</span>
+                        <span style="color:${v>0?'#00ff88':'#ff4444'};font-weight:600;font-size:12px">${v>0?'+':''}${v}M</span>
+                    </div>`).join('') : ''}
+                </div>
+                <div style="background:#14182b;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:16px">
+                    <h3 style="font-size:14px;color:#00ccff;margin-bottom:12px">⚡ Active Signals (${sigs.length})</h3>
+                    ${sigs.slice(0,4).map(s => `<div style="padding:8px;margin-bottom:6px;border-radius:6px;border-left:3px solid ${s.type.includes('BUY')?'#00ff88':s.type.includes('SELL')?'#ff4444':'#f59e0b'};background:rgba(255,255,255,0.03)">
+                        <div style="font-size:11px;font-weight:600;color:${s.type.includes('BUY')?'#00ff88':s.type.includes('SELL')?'#ff4444':'#f59e0b'}">${s.type} — ${s.source}</div>
+                        <div style="font-size:12px;color:#999;margin-top:2px">${s.message}</div>
+                    </div>`).join('') || '<div style="color:#666;font-size:12px">No active signals</div>'}
+                    <div style="margin-top:10px;text-align:center"><a href="flow.html" style="color:#f59e0b;font-size:12px;text-decoration:none;border:1px solid rgba(245,158,11,0.3);padding:6px 16px;border-radius:6px">Open Full Options Flow Dashboard →</a></div>
+                </div>`;
+
+            // Flow chart (top 10 by absolute 5d flow)
+            const sorted = [...etfs].sort((a,b) => Math.abs(b.flow_5d) - Math.abs(a.flow_5d)).slice(0, 14);
+            const chartDiv = document.getElementById('ffFlowChart');
+            if (typeof Plotly !== 'undefined') {
+                Plotly.newPlot(chartDiv, [{
+                    x: sorted.map(e => e.ticker),
+                    y: sorted.map(e => e.flow_5d / 1e6),
+                    type: 'bar',
+                    marker: { color: sorted.map(e => e.flow_5d >= 0 ? '#00ff88' : '#ff4444'), opacity: 0.85 },
+                    text: sorted.map(e => ffFmtM(e.flow_5d)),
+                    textposition: 'outside',
+                    textfont: { color: '#ccc', size: 11 }
+                }], {
+                    title: { text: '5-Day ETF Fund Flows (Real Data — ETF Global)', font: { color: '#f59e0b', size: 14 } },
+                    plot_bgcolor: 'rgba(0,0,0,0)', paper_bgcolor: 'rgba(0,0,0,0)',
+                    xaxis: { color: '#888', gridcolor: 'rgba(255,255,255,0.05)' },
+                    yaxis: { title: 'Flow ($M)', color: '#888', gridcolor: 'rgba(255,255,255,0.05)', zeroline: true, zerolinecolor: 'rgba(255,255,255,0.2)' },
+                    margin: { t: 40, r: 20, b: 40, l: 60 }, height: 350
+                }, { responsive: true, displayModeBar: false });
+            }
+
+            // Full table
+            const cats = ['US Large Cap','US Tech','US Small Cap','US Blue Chip','Sector','Fixed Income','Commodities','International','Volatility'];
+            let tableHtml = `<table style="width:100%;border-collapse:collapse;font-size:12px">
+                <thead><tr style="background:rgba(245,158,11,0.1)">
+                    <th style="padding:10px;text-align:left;color:#f59e0b;border-bottom:1px solid rgba(255,255,255,0.1)">ETF</th>
+                    <th style="padding:10px;text-align:left;color:#f59e0b;border-bottom:1px solid rgba(255,255,255,0.1)">Name</th>
+                    <th style="padding:10px;text-align:right;color:#f59e0b;border-bottom:1px solid rgba(255,255,255,0.1)">Price</th>
+                    <th style="padding:10px;text-align:right;color:#f59e0b;border-bottom:1px solid rgba(255,255,255,0.1)">1D Chg</th>
+                    <th style="padding:10px;text-align:right;color:#f59e0b;border-bottom:1px solid rgba(255,255,255,0.1)">5D Chg</th>
+                    <th style="padding:10px;text-align:right;color:#f59e0b;border-bottom:1px solid rgba(255,255,255,0.1)">1D Flow</th>
+                    <th style="padding:10px;text-align:right;color:#f59e0b;border-bottom:1px solid rgba(255,255,255,0.1);font-weight:700">5D Flow</th>
+                    <th style="padding:10px;text-align:right;color:#f59e0b;border-bottom:1px solid rgba(255,255,255,0.1)">20D Flow</th>
+                    <th style="padding:10px;text-align:right;color:#f59e0b;border-bottom:1px solid rgba(255,255,255,0.1)">Rel Vol</th>
+                    <th style="padding:10px;text-align:center;color:#f59e0b;border-bottom:1px solid rgba(255,255,255,0.1)">Direction</th>
+                </tr></thead><tbody>`;
+            
+            cats.forEach(cat => {
+                const items = etfs.filter(e => e.category === cat);
+                if (!items.length) return;
+                tableHtml += `<tr><td colspan="10" style="padding:8px 10px;font-weight:700;color:#00ccff;background:rgba(0,204,255,0.05);border-bottom:1px solid rgba(255,255,255,0.1)">${cat}</td></tr>`;
+                items.forEach(e => {
+                    const dirColor = e.flow_direction === 'INFLOW' ? '#00ff88' : e.flow_direction === 'OUTFLOW' ? '#ff4444' : '#888';
+                    tableHtml += `<tr style="border-bottom:1px solid rgba(255,255,255,0.03)">
+                        <td style="padding:7px 10px;font-weight:600">${e.ticker}</td>
+                        <td style="padding:7px 10px;color:#888">${e.name}</td>
+                        <td style="padding:7px 10px;text-align:right">$${e.price.toFixed(2)}</td>
+                        <td style="padding:7px 10px;text-align:right;color:${ffColor(e.change_1d)}">${e.change_1d > 0?'+':''}${e.change_1d.toFixed(2)}%</td>
+                        <td style="padding:7px 10px;text-align:right;color:${ffColor(e.change_5d)}">${e.change_5d > 0?'+':''}${e.change_5d.toFixed(2)}%</td>
+                        <td style="padding:7px 10px;text-align:right;color:${ffColor(e.flow_1d)}">${ffFmtM(e.flow_1d)}</td>
+                        <td style="padding:7px 10px;text-align:right;font-weight:700;color:${ffColor(e.flow_5d)}">${ffFmtM(e.flow_5d)}</td>
+                        <td style="padding:7px 10px;text-align:right;color:${ffColor(e.flow_20d)}">${ffFmtM(e.flow_20d)}</td>
+                        <td style="padding:7px 10px;text-align:right">${e.relative_volume.toFixed(1)}x</td>
+                        <td style="padding:7px 10px;text-align:center"><span style="background:${dirColor}22;color:${dirColor};padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600">${e.flow_direction}</span></td>
+                    </tr>`;
+                });
+            });
+            tableHtml += '</tbody></table>';
+            document.getElementById('ffTable').innerHTML = tableHtml;
+            document.getElementById('ffLastUpdate').textContent = new Date().toLocaleTimeString() + ' — ' + etfs.length + ' ETFs tracked';
+        }
+
+        // Hook into existing tab system
+        const origSetup = setupEventListeners;
+        const origLoad = typeof loadAllData === 'function' ? loadAllData : null;
+        
+        // Load fund flows when tab is clicked
+        const ffObserver = new MutationObserver(() => {
+            const ffTab = document.getElementById('fundflows');
+            if (ffTab && ffTab.classList.contains('active') && !ffData) {
+                loadFundFlows();
+            }
+        });
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            // Watch for tab changes
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (btn.dataset.tab === 'fundflows') loadFundFlows();
+                });
+            });
+            // Preload after 3 seconds
+            setTimeout(loadFundFlows, 3000);
+        });
     </script>
 </body>
 </html>
