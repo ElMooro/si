@@ -159,14 +159,14 @@
         
         /* Tabs Navigation */
         .tabs-nav {
-            flex-wrap: wrap;
             display: flex;
             gap: 0.5rem;
             margin-bottom: 2rem;
             background: rgba(255, 255, 255, 0.05);
             border-radius: 12px;
             padding: 0.5rem;
-            overflow-x: auto;
+            overflow-x: visible;
+            flex-wrap: wrap;
         }
         
         .tab-btn {
@@ -956,8 +956,8 @@
             }
             
             .tabs-nav {
+                overflow-x: visible;
             flex-wrap: wrap;
-                overflow-x: auto;
             }
         }
     </style>
