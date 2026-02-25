@@ -362,8 +362,8 @@ function render(){if(!DATA)return;const d=DATA.data||{};const fn=renderers[activ
 
 document.querySelectorAll('.tab').forEach(t=>{t.addEventListener('click',()=>{$$('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');activeTab=t.dataset.tab;render()})});
 
-async function loadData(){
-try{const r=await fetch(LAMBDA,{signal:AbortSignal.timeout(300000)});DATA=await r.json();
+async function loadData(){const ctrl=new AbortController();const tid=setTimeout(()=>ctrl.abort(),60000);
+try{const r=await fetch(LAMBDA,{signal:ctrl.signal});clearTimeout(tid);DATA=await r.json();
 $('#lastUpdate').textContent=new Date().toLocaleTimeString()+' (Live)';render()}
 catch(e){try{const r=await fetch(S3);DATA=await r.json();$('#lastUpdate').textContent='Cached (S3)';render()}
 catch(e2){$('#mainContent').innerHTML='<div class="loading" style="color:#ef4444">Failed to load data</div>'}}}
