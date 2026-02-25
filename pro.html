@@ -236,8 +236,6 @@ irx+='</div>';
 var rk=document.getElementById('p-risk');
 if(rk){rk.innerHTML+=irx;}
 }
-
-}
 function rn(){let n=D.news||[];document.getElementById('p-news').innerHTML=`<div class="ct" style="margin-bottom:12px">NEWS (${n.length})</div>${n.map(x=>`<div class="c" style="margin-bottom:8px"><a href="${x.url}" target="_blank" style="color:var(--tx);text-decoration:none;font-weight:600">${x.title}</a><div style="font-size:11px;color:var(--dm);margin-top:4px">${x.source} | ${x.published?new Date(x.published).toLocaleString():''}</div></div>`).join('')}`}
 function rw(){document.getElementById('p-raw').innerHTML=`<div class="c"><pre class="mo" style="font-size:11px;overflow:auto;max-height:800px;white-space:pre-wrap">${JSON.stringify(D,null,2)}</pre></div>`}
 async function load(){try{let r=await fetch(DU+'?t='+Date.now());D=await r.json();ro();rt();rs();rm();ry();rcr();rl();rv();rse();rim();rp();rst();rf();rrk();rn();rw()}catch(e){document.getElementById('p-overview').innerHTML=`<div class="c" style="padding:40px;text-align:center;color:var(--rd)">Error: ${e.message}<br><span style="color:var(--dm);font-size:12px">Run Lambda first to generate pro-data.json</span></div>`}}
