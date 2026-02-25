@@ -194,7 +194,7 @@ function rrk(){let g=D.gauges||{};document.getElementById('p-risk').innerHTML=`<
 
 
 
-function rg(){
+function rg(){try{
 var ir=D&&D.inflation_regime||{};
 var el=document.getElementById('p-regime');
 if(!el)return;
@@ -237,7 +237,7 @@ var aa=ir.all_assets||[];
 for(var ai=0;ai<aa.length;ai++){var ac=aa[ai];var aclr=ac.score>=70?"gn":ac.score>=45?"yl":ac.score>=25?"or":"rd";h+='<div style="background:var(--card);border-left:3px solid var(--'+aclr+');padding:10px 12px;border-radius:4px"><div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-weight:600;font-size:14px;color:var(--fg)">'+ac.etf+'</div><div style="font-size:10px;color:var(--muted,#888)">'+ac.name.split("(")[0]+'</div></div><div style="font-size:20px;font-weight:700;color:var(--'+aclr+')">'+ac.score+'</div></div></div>';}
 h+='</div></div></div>';
 el.innerHTML=h;
-}
+}catch(e){console.error('rg() error:',e);document.getElementById('p-regime').innerHTML='<div style="padding:20px;color:red">ERROR: '+e.message+'</div>';}}
 
 function rn(){let n=D.news||[];document.getElementById('p-news').innerHTML=`<div class="ct" style="margin-bottom:12px">NEWS (${n.length})</div>${n.map(x=>`<div class="c" style="margin-bottom:8px"><a href="${x.url}" target="_blank" style="color:var(--tx);text-decoration:none;font-weight:600">${x.title}</a><div style="font-size:11px;color:var(--dm);margin-top:4px">${x.source} | ${x.published?new Date(x.published).toLocaleString():''}</div></div>`).join('')}`}
 function rw(){document.getElementById('p-raw').innerHTML=`<div class="c"><pre class="mo" style="font-size:11px;overflow:auto;max-height:800px;white-space:pre-wrap">${JSON.stringify(D,null,2)}</pre></div>`}
