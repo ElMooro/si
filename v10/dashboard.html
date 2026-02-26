@@ -182,7 +182,7 @@ const TABS = [
   {id:'ecb',label:'ECB/Europe',icon:'🏦'},
   {id:'commodities',label:'Commodities',icon:'🛢'},
   {id:'flow',label:'Market Flow',icon:'🔄'},
-  {id:'ath',label:'ATH Tracker',icon:'🏆'},
+  {id:'ath',label:'ATH Tracker',icon:'🏆',href:'ath.html'},
   {id:'chat',label:'AI Chat',icon:'💬'},
   {id:'agent',label:'AI Agent',icon:'🤖'},
 ];
@@ -212,9 +212,10 @@ let D = null, activeTab = 'overview';
 
 function init() {
   document.getElementById('tabBar').innerHTML = TABS.map(t =>
+    t.href ? `<div class="tab" onclick="window.open('${t.href}','_blank')" style="color:var(--gold)">${t.icon} ${t.label} ↗</div>` :
     `<div class="tab ${t.id===activeTab?'active':''}" onclick="switchTab('${t.id}')">${t.icon} ${t.label}</div>`
   ).join('');
-  document.getElementById('content').innerHTML = TABS.map(t =>
+  document.getElementById('content').innerHTML = TABS.filter(t=>!t.href).map(t =>
     `<div class="tab-content ${t.id===activeTab?'active':''}" id="tab-${t.id}"></div>`
   ).join('');
   loadData();
@@ -222,7 +223,11 @@ function init() {
 
 function switchTab(id) {
   activeTab = id;
-  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', TABS[i].id===id));
+  document.querySelectorAll('.tab').forEach(t => {
+    const label = t.textContent.trim();
+    const tab = TABS.find(tb => (tb.icon+' '+tb.label) === label || label.startsWith(tb.icon));
+    t.classList.toggle('active', tab && tab.id===id);
+  });
   document.querySelectorAll('.tab-content').forEach(t => t.classList.toggle('active', t.id==='tab-'+id));
 }
 
@@ -272,7 +277,7 @@ function renderAll() {
   [renderHeader,renderOverview,renderBestPlays,renderMyPortfolio,renderNews,
    renderAI,renderPortfolio,renderTreasury,renderDXY,renderCredit,
    renderLiquidity,renderMacro,renderInflation,renderRisk,renderCISS,
-   renderEquities,renderCrypto,renderECB,renderCommodities,renderMarketFlow,renderATH,renderChat,renderAgent
+   renderEquities,renderCrypto,renderECB,renderCommodities,renderMarketFlow,renderChat,renderAgent
   ].forEach(fn => { try { fn(); } catch(e) { console.error('RENDER ERROR:', fn.name, e); } });
 }
 

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JustHodl ATH Tracker — All-Time High Monitor</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--panel:#12121a;--border:#1e1e2e;--text:#e0e0e0;--dim:#666;--green:#00c853;--red:#ff1744;--amber:#ffd600;--blue:#2196f3;--cyan:#00bcd4;--purple:#bb86fc;--gold:#ffd700;--orange:#ff9800}
+body{font-family:'SF Mono',Consolas,'Courier New',monospace;background:var(--bg);color:var(--text);font-size:12px}
+.header{background:linear-gradient(135deg,#0d1117,#161b22);border-bottom:2px solid var(--gold);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{font-size:18px;font-weight:700;color:var(--gold)}
+.logo span{color:var(--cyan);font-size:11px;margin-left:8px}
+.back-btn{color:var(--cyan);text-decoration:none;font-size:11px;padding:6px 14px;border:1px solid var(--cyan);border-radius:4px;transition:all .2s}
+.back-btn:hover{background:var(--cyan);color:#000}
+.stats-bar{display:flex;gap:20px;background:#0d0d14;border-bottom:1px solid var(--border);padding:10px 20px;font-size:12px}
+.stat-box{text-align:center;padding:8px 16px;border-radius:6px;min-width:120px}
+.stat-box .val{font-size:28px;font-weight:700}
+.stat-box .lbl{font-size:10px;color:var(--dim);text-transform:uppercase;margin-top:2px}
+.content{padding:16px;max-width:1600px;margin:0 auto}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:12px}
+.card h2{color:var(--gold);font-size:14px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.card h3{color:var(--cyan);font-size:12px;margin-bottom:8px}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;color:var(--dim);font-size:10px;padding:6px 8px;border-bottom:1px solid var(--border);text-transform:uppercase;position:sticky;top:0;background:var(--panel)}
+td{padding:6px 8px;font-size:11px;border-bottom:1px solid rgba(255,255,255,.03)}
+tr:hover{background:rgba(255,255,255,.02)}
+.grid{display:grid;gap:12px}
+.g4{grid-template-columns:repeat(4,1fr)}
+.g2{grid-template-columns:1fr 1fr}
+.badge{padding:2px 8px;border-radius:3px;font-size:10px;font-weight:600;display:inline-block}
+.ticker-gold{color:var(--gold);font-weight:700;font-size:13px}
+.ticker-amber{color:var(--amber);font-weight:700}
+.pct-green{color:var(--green);font-weight:700}
+.pct-red{color:var(--red);font-weight:700}
+.score-badge{color:#000;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:700}
+.pulse{animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.filter-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.filter-btn{padding:4px 12px;border-radius:4px;font-size:10px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--dim);transition:all .2s}
+.filter-btn:hover,.filter-btn.active{color:var(--gold);border-color:var(--gold);background:rgba(255,215,0,.08)}
+.search-box{background:var(--panel);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:4px;font-size:11px;font-family:inherit;width:200px}
+.search-box:focus{outline:none;border-color:var(--gold)}
+.empty-state{text-align:center;padding:40px;color:var(--dim)}
+.empty-state .icon{font-size:48px;margin-bottom:12px}
+.updated{color:var(--dim);font-size:10px}
+.sector-tag{font-size:9px;color:var(--dim);background:rgba(255,255,255,.05);padding:1px 6px;border-radius:3px}
+@media(max-width:900px){.g4{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr}.stats-bar{flex-wrap:wrap;gap:10px}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="logo">🏆 JustHodl ATH Tracker <span>All-Time High Monitor</span></div>
+  <div style="display:flex;align-items:center;gap:12px">
+    <span class="updated" id="updatedAt">Loading...</span>
+    <a href="http://justhodl-dashboard-live.s3-website-us-east-1.amazonaws.com" class="back-btn">← Back to Terminal</a>
+  </div>
+</div>
+
+<div class="stats-bar" id="statsBar">
+  <div class="stat-box" style="border:1px solid var(--gold)">
+    <div class="val" style="color:var(--gold)" id="countBreakouts">—</div>
+    <div class="lbl">New ATH Today</div>
+  </div>
+  <div class="stat-box" style="border:1px solid var(--amber)">
+    <div class="val" style="color:var(--amber)" id="countNear">—</div>
+    <div class="lbl">Near ATH (≤2%)</div>
+  </div>
+  <div class="stat-box" style="border:1px solid var(--cyan)">
+    <div class="val" style="color:var(--cyan)" id="countTracked">—</div>
+    <div class="lbl">Tickers Tracked</div>
+  </div>
+  <div class="stat-box" style="border:1px solid ${getStrengthColor()}">
+    <div class="val" id="marketStrength" style="color:var(--green)">—</div>
+    <div class="lbl">Market Breadth</div>
+  </div>
+</div>
+
+<div class="content" id="main">
+  <div class="empty-state"><div class="icon">⏳</div><div>Loading ATH data...</div></div>
+</div>
+
+<script>
+let D = null;
+const SECTOR_MAP = {
+  'AAPL':'Technology','MSFT':'Technology','NVDA':'Technology','GOOGL':'Technology','META':'Technology',
+  'AMZN':'Consumer Disc','TSLA':'Consumer Disc','NFLX':'Consumer Disc','HD':'Consumer Disc',
+  'JPM':'Financials','BAC':'Financials','GS':'Financials','MS':'Financials','WFC':'Financials','C':'Financials','BLK':'Financials','SCHW':'Financials',
+  'JNJ':'Healthcare','UNH':'Healthcare','PFE':'Healthcare','ABBV':'Healthcare','LLY':'Healthcare','MRK':'Healthcare',
+  'XOM':'Energy','CVX':'Energy','COP':'Energy','SLB':'Energy','OXY':'Energy',
+  'CAT':'Industrials','BA':'Industrials','UPS':'Industrials','GE':'Industrials','RTX':'Industrials','LMT':'Industrials','DE':'Industrials',
+  'XLK':'Technology','XLF':'Financials','XLE':'Energy','XLV':'Healthcare','XLI':'Industrials',
+  'XLU':'Utilities','XLP':'Staples','XLY':'Consumer Disc','XLB':'Materials','XLC':'Comms','XLRE':'Real Estate',
+  'SPY':'Broad Market','QQQ':'Technology','DIA':'Broad Market','IWM':'Small Cap','VTI':'Broad Market',
+  'SOXX':'Semis','SMH':'Semis','AMD':'Semis','INTC':'Semis','AVGO':'Semis','MU':'Semis',
+  'GLD':'Gold','SLV':'Silver','USO':'Oil','UNG':'Nat Gas','GBTC':'Crypto','IBIT':'Crypto',
+  'TLT':'Bonds','IEF':'Bonds','SHY':'Bonds','HYG':'High Yield','LQD':'Inv Grade','JNK':'High Yield',
+  'EFA':'International','EEM':'Emerging','FXI':'China','INDA':'India','EWJ':'Japan',
+  'TQQQ':'Leveraged','SOXL':'Leveraged','UPRO':'Leveraged','SPXL':'Leveraged',
+  'V':'Financials','MA':'Financials','CRM':'Technology','ADBE':'Technology','COIN':'Crypto','PLTR':'Technology','ARM':'Semis',
+};
+let currentFilter = 'all';
+
+function getStrengthColor() { return 'var(--green)'; }
+
+function scoreColor(s) { return s >= 70 ? 'var(--green)' : s >= 50 ? 'var(--amber)' : 'var(--red)'; }
+
+function render() {
+  if (!D) return;
+  const ath = D.ath_breakouts || {};
+  const bk = ath.breakouts || [];
+  const near = ath.near_ath || [];
+  const total = bk.length + near.length;
+
+  document.getElementById('countBreakouts').textContent = bk.length;
+  document.getElementById('countNear').textContent = near.length;
+  document.getElementById('countTracked').textContent = ath.ath_coverage || '—';
+  const strength = document.getElementById('marketStrength');
+  strength.textContent = total > 30 ? 'VERY STRONG' : total > 20 ? 'STRONG' : total > 10 ? 'MODERATE' : total > 3 ? 'WEAK' : 'VERY WEAK';
+  strength.style.color = total > 20 ? 'var(--green)' : total > 10 ? 'var(--amber)' : 'var(--red)';
+  document.getElementById('updatedAt').textContent = 'Updated: ' + (D.generated_at || '—').replace('T',' ').slice(0,19) + ' UTC';
+
+  // Collect all sectors for filters
+  const allSectors = new Set();
+  bk.forEach(b => { const s = SECTOR_MAP[b.ticker]; if(s) allSectors.add(s); });
+  near.forEach(n => { const s = SECTOR_MAP[n.ticker]; if(s) allSectors.add(s); });
+
+  let html = '';
+
+  // Filter bar
+  html += '<div class="filter-bar">';
+  html += '<input type="text" class="search-box" id="searchTicker" placeholder="Search ticker..." oninput="filterTable()">';
+  html += '<button class="filter-btn' + (currentFilter==='all'?' active':'') + '" onclick="setFilter(\'all\')">All</button>';
+  [...allSectors].sort().forEach(s => {
+    html += '<button class="filter-btn' + (currentFilter===s?' active':'') + '" onclick="setFilter(\'' + s + '\')">' + s + '</button>';
+  });
+  html += '</div>';
+
+  // ── NEW ATH BREAKOUTS ──
+  if (bk.length) {
+    html += '<div class="card" style="border-left:3px solid var(--gold)">';
+    html += '<h2>🔥 NEW ALL-TIME HIGHS — ' + bk.length + ' Breakout' + (bk.length>1?'s':'') + ' Today</h2>';
+    html += '<div style="font-size:10px;color:var(--dim);margin-bottom:8px">Stocks and ETFs that exceeded their previous all-time high price in today\'s session</div>';
+    html += '<table id="tblBreakouts"><tr><th>#</th><th>Ticker</th><th>Sector</th><th>New ATH</th><th>Previous ATH</th><th>Prev Date</th><th>% Above ATH</th><th>Day Change</th><th>Volume</th><th>Score</th></tr>';
+    bk.forEach((b, i) => {
+      const sector = SECTOR_MAP[b.ticker] || 'Other';
+      html += '<tr data-ticker="' + b.ticker + '" data-sector="' + sector + '"' + (i < 3 ? ' style="background:rgba(255,215,0,0.06)"' : '') + '>';
+      html += '<td style="color:var(--gold)">' + (i+1) + '</td>';
+      html += '<td class="ticker-gold">' + (i===0?'🥇 ':i===1?'🥈 ':i===2?'🥉 ':'') + b.ticker + '</td>';
+      html += '<td><span class="sector-tag">' + sector + '</span></td>';
+      html += '<td style="color:var(--green);font-weight:700;font-size:13px">$' + b.new_ath + '</td>';
+      html += '<td style="color:var(--dim)">$' + b.prev_ath + '</td>';
+      html += '<td style="color:var(--dim);font-size:10px">' + b.prev_ath_date + '</td>';
+      html += '<td class="pct-green">+' + b.pct_above + '%</td>';
+      html += '<td style="color:' + (b.day_pct>=0?'var(--green)':'var(--red)') + '">' + (b.day_pct>=0?'+':'') + b.day_pct + '%</td>';
+      html += '<td style="font-size:10px">' + (b.volume ? (b.volume/1e6).toFixed(1)+'M' : '—') + '</td>';
+      html += '<td><span class="score-badge" style="background:' + scoreColor(b.score) + '">' + b.score + ' ' + b.grade + '</span></td>';
+      html += '</tr>';
+    });
+    html += '</table></div>';
+  } else {
+    html += '<div class="card" style="border-left:3px solid var(--border)">';
+    html += '<div class="empty-state"><div class="icon">📊</div>';
+    html += '<div style="font-size:14px;color:var(--text);margin-bottom:6px">No New All-Time Highs Today</div>';
+    html += '<div style="font-size:11px">None of the ' + (ath.ath_coverage||188) + ' tracked stocks/ETFs broke their all-time high in today\'s session. Check the Near ATH watchlist below for potential breakout candidates.</div>';
+    html += '</div></div>';
+  }
+
+  // ── NEAR ATH WATCHLIST ──
+  if (near.length) {
+    html += '<div class="card" style="border-left:3px solid var(--amber)">';
+    html += '<h2 style="color:var(--amber)">👀 APPROACHING ALL-TIME HIGH — ' + near.length + ' Within 2%</h2>';
+    html += '<div style="font-size:10px;color:var(--dim);margin-bottom:8px">Watchlist: stocks and ETFs within striking distance of their all-time high — potential breakout candidates</div>';
+    html += '<table id="tblNear"><tr><th>#</th><th>Ticker</th><th>Sector</th><th>Price</th><th>All-Time High</th><th>ATH Date</th><th>Gap to ATH</th><th>Day Change</th><th>Score</th></tr>';
+    near.forEach((n, i) => {
+      const sector = SECTOR_MAP[n.ticker] || 'Other';
+      const gapPct = n.pct_from_ath;
+      const gapColor = gapPct < 0.5 ? 'var(--green)' : gapPct < 1.0 ? 'var(--amber)' : 'var(--orange)';
+      html += '<tr data-ticker="' + n.ticker + '" data-sector="' + sector + '">';
+      html += '<td style="color:var(--amber)">' + (i+1) + '</td>';
+      html += '<td class="ticker-amber">⚡ ' + n.ticker + '</td>';
+      html += '<td><span class="sector-tag">' + sector + '</span></td>';
+      html += '<td style="color:var(--cyan);font-weight:700">$' + n.price + '</td>';
+      html += '<td style="color:var(--dim)">$' + n.ath + '</td>';
+      html += '<td style="color:var(--dim);font-size:10px">' + n.ath_date + '</td>';
+      html += '<td style="color:' + gapColor + ';font-weight:700">-' + gapPct + '%</td>';
+      html += '<td style="color:' + (n.day_pct>=0?'var(--green)':'var(--red)') + '">' + (n.day_pct>=0?'+':'') + n.day_pct + '%</td>';
+      html += '<td><span class="score-badge" style="background:' + scoreColor(n.score) + '">' + n.score + ' ' + n.grade + '</span></td>';
+      html += '</tr>';
+    });
+    html += '</table></div>';
+  }
+
+  // ── SECTOR BREAKDOWN ──
+  const sectorCounts = {};
+  bk.forEach(b => { const s = SECTOR_MAP[b.ticker]||'Other'; sectorCounts[s] = sectorCounts[s]||{ath:0,near:0}; sectorCounts[s].ath++; });
+  near.forEach(n => { const s = SECTOR_MAP[n.ticker]||'Other'; sectorCounts[s] = sectorCounts[s]||{ath:0,near:0}; sectorCounts[s].near++; });
+  const sectorEntries = Object.entries(sectorCounts).sort((a,b) => (b[1].ath+b[1].near) - (a[1].ath+a[1].near));
+
+  if (sectorEntries.length) {
+    html += '<div class="card">';
+    html += '<h2 style="color:var(--cyan)">🏦 ATH by Sector</h2>';
+    html += '<div class="grid g4" style="margin-top:8px">';
+    sectorEntries.forEach(([sec, counts]) => {
+      const total = counts.ath + counts.near;
+      html += '<div style="background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center">';
+      html += '<div style="font-weight:700;color:var(--cyan);font-size:12px">' + sec + '</div>';
+      if (counts.ath) html += '<div style="color:var(--gold);font-size:18px;font-weight:700">' + counts.ath + ' ATH</div>';
+      html += '<div style="color:var(--amber);font-size:14px">' + counts.near + ' near</div>';
+      html += '</div>';
+    });
+    html += '</div></div>';
+  }
+
+  // ── INFO ──
+  html += '<div class="card" style="font-size:10px;color:var(--dim)">';
+  html += '<b>How ATH Tracking Works:</b> All-time high data is bootstrapped from Polygon\'s full monthly bar history (back to 1990) and stored in S3. ';
+  html += 'On every Lambda invocation (every 5 min), the current day-high for each ticker is compared against the stored ATH. ';
+  html += 'New breakouts are flagged instantly and the stored ATH is updated. "Near ATH" means the current price is within 2% of the all-time high. ';
+  html += 'Currently tracking ' + (ath.ath_coverage||0) + ' tickers across stocks, ETFs, leveraged products, bonds, commodities, and crypto funds.';
+  html += '</div>';
+
+  document.getElementById('main').innerHTML = html;
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.textContent === f || (f==='all' && b.textContent==='All')));
+  filterTable();
+}
+
+function filterTable() {
+  const search = (document.getElementById('searchTicker')?.value || '').toUpperCase();
+  document.querySelectorAll('#tblBreakouts tr, #tblNear tr').forEach(row => {
+    if (!row.dataset.ticker) return; // skip header
+    const matchTicker = !search || row.dataset.ticker.includes(search);
+    const matchSector = currentFilter === 'all' || row.dataset.sector === currentFilter;
+    row.style.display = (matchTicker && matchSector) ? '' : 'none';
+  });
+}
+
+async function load() {
+  try {
+    const resp = await fetch('data/report.json?t=' + Date.now());
+    D = await resp.json();
+    render();
+  } catch(e) {
+    document.getElementById('main').innerHTML = '<div class="empty-state"><div class="icon">❌</div><div>Error loading data: ' + e.message + '</div></div>';
+  }
+}
+
+load();
+setInterval(load, 300000); // Auto-refresh every 5 min
+</script>
+</body>
+</html>
