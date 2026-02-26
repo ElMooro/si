@@ -182,6 +182,7 @@ const TABS = [
   {id:'ecb',label:'ECB/Europe',icon:'🏦'},
   {id:'commodities',label:'Commodities',icon:'🛢'},
   {id:'flow',label:'Market Flow',icon:'🔄'},
+  {id:'ath',label:'ATH Tracker',icon:'🏆'},
   {id:'chat',label:'AI Chat',icon:'💬'},
   {id:'agent',label:'AI Agent',icon:'🤖'},
 ];
@@ -271,7 +272,7 @@ function renderAll() {
   [renderHeader,renderOverview,renderBestPlays,renderMyPortfolio,renderNews,
    renderAI,renderPortfolio,renderTreasury,renderDXY,renderCredit,
    renderLiquidity,renderMacro,renderInflation,renderRisk,renderCISS,
-   renderEquities,renderCrypto,renderECB,renderCommodities,renderMarketFlow,renderChat,renderAgent
+   renderEquities,renderCrypto,renderECB,renderCommodities,renderMarketFlow,renderATH,renderChat,renderAgent
   ].forEach(fn => { try { fn(); } catch(e) { console.error('RENDER ERROR:', fn.name, e); } });
 }
 
@@ -308,6 +309,22 @@ function renderOverview() {
       <span style="color:var(--dim);font-size:10px">— ${n.source}</span>
     </div>`).join('')}
   </div>` : ''}
+  ${(()=>{
+    const ath = D.ath_breakouts||{};
+    const bk = (ath.breakouts||[]).slice(0,8);
+    const near = (ath.near_ath||[]).slice(0,6);
+    if(!bk.length && !near.length) return '';
+    return '<div class="card" style="border-left:3px solid #FFD700;margin-bottom:10px;padding:8px 12px">'+
+      '<h3 style="color:#FFD700;font-size:11px;margin-bottom:6px">🏆 ALL-TIME HIGH BREAKOUTS'+(bk.length?' — '+bk.length+' NEW ATH TODAY':'')+'</h3>'+
+      bk.map(b=>'<div style="font-size:11px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.03)">'+
+        '<span style="color:#FFD700;font-weight:700">🔥 '+b.ticker+'</span> '+
+        '<span style="color:var(--green);font-weight:700">$'+b.new_ath+'</span> '+
+        '<span style="color:var(--green);font-size:10px">+'+b.pct_above+'% above prev ATH ($'+b.prev_ath+')</span> '+
+        '<span style="color:var(--dim);font-size:10px">Day: '+(b.day_pct>=0?'+':'')+b.day_pct+'%</span>'+
+      '</div>').join('')+
+      (near.length?'<div style="margin-top:6px;font-size:10px;color:var(--amber)">👀 Near ATH: '+near.map(n=>'<span style="color:var(--cyan)">'+n.ticker+'</span>('+n.pct_from_ath+'% away)').join(', ')+'</div>':'')+
+    '</div>';
+  })()}
   <div class="grid g4" style="margin-bottom:10px">
     <div class="card" style="text-align:center">
       <div class="metric-label">Khalid Index</div>
@@ -957,6 +974,85 @@ function renderMarketFlow() {
         </div>`).join('')}
       </div>
     </div>
+  </div>`;
+}
+
+function renderATH() {
+  const el = document.getElementById('tab-ath');
+  const ath = D.ath_breakouts||{};
+  const bk = ath.breakouts||[];
+  const near = ath.near_ath||[];
+  const coverage = ath.ath_coverage||0;
+
+  el.innerHTML = `
+  <div class="card" style="margin-bottom:10px">
+    <h3 style="color:#FFD700">🏆 All-Time High Tracker</h3>
+    <div style="font-size:11px;color:var(--dim);margin-bottom:8px">
+      Monitors all ${Object.keys(D.stocks||{}).length} stocks/ETFs against their true all-time highs from full Polygon history.
+      ${coverage} tickers tracked. Updated every Lambda invocation.
+    </div>
+    <div class="grid g4">
+      <div class="card" style="text-align:center;border:1px solid ${bk.length?'#FFD700':'var(--border)'}">
+        <div class="metric-label">New ATH Today</div>
+        <div class="metric-big" style="color:${bk.length?'#FFD700':'var(--dim)'}">${bk.length}</div>
+      </div>
+      <div class="card" style="text-align:center">
+        <div class="metric-label">Near ATH (≤2%)</div>
+        <div class="metric-big" style="color:var(--amber)">${near.length}</div>
+      </div>
+      <div class="card" style="text-align:center">
+        <div class="metric-label">ATH Tracked</div>
+        <div class="metric-big" style="color:var(--cyan)">${coverage}</div>
+      </div>
+      <div class="card" style="text-align:center">
+        <div class="metric-label">Market Strength</div>
+        <div class="metric-big" style="color:${(bk.length+near.length)>20?'var(--green)':(bk.length+near.length)>5?'var(--amber)':'var(--red)'}">${bk.length+near.length>20?'STRONG':bk.length+near.length>5?'MODERATE':'WEAK'}</div>
+      </div>
+    </div>
+  </div>
+
+  ${bk.length?`<div class="card" style="margin-bottom:10px;border-left:3px solid #FFD700">
+    <h3 style="color:#FFD700">🔥 NEW ALL-TIME HIGHS — Breakouts Today (${bk.length})</h3>
+    <div style="font-size:10px;color:var(--dim);margin-bottom:6px">Stocks/ETFs that exceeded their previous all-time high price today</div>
+    <table style="width:100%;font-size:11px">
+      <tr style="color:var(--dim)"><th style="text-align:left">Ticker</th><th>New ATH</th><th>Prev ATH</th><th>Prev Date</th><th>% Above</th><th>Day %</th><th>Volume</th><th>Score</th></tr>
+      ${bk.map((b,i)=>'<tr style="border-bottom:1px solid rgba(255,255,255,0.03)'+
+        (i<3?';background:rgba(255,215,0,0.05)':'')+'">'+
+        '<td style="font-weight:bold;color:#FFD700">'+(i<3?'🥇🥈🥉'.charAt(i)+' ':'')+b.ticker+'</td>'+
+        '<td style="color:var(--green);font-weight:bold">$'+b.new_ath+'</td>'+
+        '<td style="color:var(--dim)">$'+b.prev_ath+'</td>'+
+        '<td style="color:var(--dim);font-size:10px">'+b.prev_ath_date+'</td>'+
+        '<td style="color:var(--green);font-weight:bold">+'+b.pct_above+'%</td>'+
+        '<td style="color:'+(b.day_pct>=0?'var(--green)':'var(--red)')+'">'+(b.day_pct>=0?'+':'')+b.day_pct+'%</td>'+
+        '<td style="font-size:10px">'+(b.volume?(b.volume/1e6).toFixed(1)+'M':'—')+'</td>'+
+        '<td><span style="background:'+(b.score>=70?'var(--green)':b.score>=50?'var(--amber)':'var(--red)')+
+        ';color:#000;padding:1px 5px;border-radius:3px;font-size:10px;font-weight:bold">'+b.score+' '+b.grade+'</span></td>'+
+      '</tr>').join('')}
+    </table>
+  </div>`:'<div class="card" style="margin-bottom:10px"><h3 style="color:var(--dim)">No New All-Time Highs Today</h3><div style="font-size:11px;color:var(--dim)">No stocks/ETFs broke their all-time high in today\'s session.</div></div>'}
+
+  ${near.length?`<div class="card" style="margin-bottom:10px;border-left:3px solid var(--amber)">
+    <h3 style="color:var(--amber)">👀 APPROACHING ALL-TIME HIGH — Within 2% (${near.length})</h3>
+    <div style="font-size:10px;color:var(--dim);margin-bottom:6px">Watch list: stocks within striking distance of their all-time high</div>
+    <table style="width:100%;font-size:11px">
+      <tr style="color:var(--dim)"><th style="text-align:left">Ticker</th><th>Price</th><th>ATH</th><th>ATH Date</th><th>Gap</th><th>Day %</th><th>Score</th></tr>
+      ${near.map(n=>'<tr style="border-bottom:1px solid rgba(255,255,255,0.03)">'+
+        '<td style="font-weight:bold;color:var(--amber)">⚡ '+n.ticker+'</td>'+
+        '<td style="color:var(--cyan)">$'+n.price+'</td>'+
+        '<td style="color:var(--dim)">$'+n.ath+'</td>'+
+        '<td style="color:var(--dim);font-size:10px">'+n.ath_date+'</td>'+
+        '<td style="color:var(--amber);font-weight:bold">-'+n.pct_from_ath+'%</td>'+
+        '<td style="color:'+(n.day_pct>=0?'var(--green)':'var(--red)')+'">'+(n.day_pct>=0?'+':'')+n.day_pct+'%</td>'+
+        '<td><span style="background:'+(n.score>=70?'var(--green)':n.score>=50?'var(--amber)':'var(--red)')+
+        ';color:#000;padding:1px 5px;border-radius:3px;font-size:10px;font-weight:bold">'+n.score+' '+n.grade+'</span></td>'+
+      '</tr>').join('')}
+    </table>
+  </div>`:''}
+
+  <div class="card" style="font-size:10px;color:var(--dim)">
+    <b>How ATH Tracking Works:</b> On first run, Lambda fetches full monthly history from Polygon (back to 1990) for all tickers and stores
+    all-time high prices in S3. On every subsequent run, current day-high is compared against stored ATH. New breakouts are flagged instantly.
+    To re-initialize full history: invoke Lambda with <code>{"action":"init_ath"}</code>.
   </div>`;
 }
 

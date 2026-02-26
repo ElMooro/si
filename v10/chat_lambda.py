@@ -69,6 +69,17 @@ def build_system_prompt(report, mode='chat'):
         flow_text += f"\nIn:{','.join(flow.get('sectors_buying',[])[:6])}"
         flow_text += f"\nOut:{','.join(flow.get('sectors_selling',[])[:6])}"
 
+    # ATH breakouts
+    ath = report.get('ath_breakouts', {})
+    ath_text = ''
+    if ath:
+        bkouts = ath.get('breakouts', [])
+        near = ath.get('near_ath', [])
+        if bkouts:
+            ath_text = f"\nNEW ALL-TIME HIGHS ({len(bkouts)}): " + ", ".join([f"{b['ticker']} ${b['new_ath']}(+{b['pct_above']}% above prev ATH)" for b in bkouts[:10]])
+        if near:
+            ath_text += f"\nNEAR ATH ({len(near)}): " + ", ".join([f"{n['ticker']}({n['pct_from_ath']:.1f}% away)" for n in near[:10]])
+
     # Sectors
     sectors = report.get('sectors', {})
     sec_text = "|".join([f"{v.get('name',k)} d:{v.get('day_pct',0):+.1f}% m:{v.get('month_pct',0):+.1f}%" for k,v in sectors.items()])
@@ -101,6 +112,7 @@ NEWS:
 AI:{ai_text}
 PLAYS:{bp_text}
 FLOW:{flow_text}
+ATH:{ath_text}
 """
 
     if mode == 'agent':

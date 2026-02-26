@@ -588,6 +588,131 @@ def compute_market_flow(sd):
         'total_buying': len(most_bought),
         'total_selling': len(most_sold),
     }
+def load_ath_data():
+    """Load stored all-time high data from S3"""
+    try:
+        resp = s3.get_object(Bucket=S3_BUCKET, Key='data/ath.json')
+        return json.loads(resp['Body'].read())
+    except:
+        print("[ATH] No existing ATH data found, will initialize")
+        return {}
+
+def save_ath_data(ath):
+    """Save all-time high data to S3"""
+    try:
+        s3.put_object(Bucket=S3_BUCKET, Key='data/ath.json',
+                      Body=json.dumps(ath, default=str),
+                      ContentType='application/json', CacheControl='max-age=60')
+        print(f"[ATH] Saved ATH data for {len(ath)} tickers")
+    except Exception as e:
+        print(f"[ATH] Error saving: {e}")
+
+def fetch_true_ath(ticker):
+    """Fetch maximum historical data from Polygon to find true all-time high"""
+    for attempt in range(3):
+        try:
+            url = f"https://api.polygon.io/v2/aggs/ticker/{ticker}/range/1/month/1990-01-01/2026-12-31?adjusted=true&sort=desc&limit=5000&apiKey={POLY_KEY}"
+            req = urllib.request.Request(url, headers={'User-Agent': 'JustHodl/10.4'})
+            with urllib.request.urlopen(req, timeout=20) as resp:
+                data = json.loads(resp.read())
+                results = data.get('results', [])
+                if not results: return None
+                ath_bar = max(results, key=lambda r: r.get('h', 0))
+                ath_price = ath_bar['h']
+                ath_date = datetime.utcfromtimestamp(ath_bar['t']/1000).strftime('%Y-%m-%d')
+                return {'ath_price': round(ath_price, 2), 'ath_date': ath_date,
+                        'source': 'polygon_monthly', 'bars_checked': len(results)}
+        except urllib.error.HTTPError as e:
+            if e.code == 429:
+                time.sleep(3 * (attempt + 1))
+                continue
+            return None
+        except:
+            if attempt < 2: time.sleep(1)
+            else: return None
+    return None
+
+def init_all_ath(tickers):
+    """Bootstrap ATH data for all tickers — run once or periodically"""
+    print(f"[ATH] Initializing ATH for {len(tickers)} tickers...")
+    ath_data = load_ath_data()
+    updated = 0
+    for i, ticker in enumerate(tickers):
+        if i > 0 and i % 5 == 0:
+            time.sleep(1)  # Rate limit: ~5/sec for monthly bars
+        if i % 25 == 0:
+            print(f"[ATH] Progress: {i}/{len(tickers)} ({updated} updated)")
+        result = fetch_true_ath(ticker)
+        if result:
+            existing = ath_data.get(ticker, {})
+            if result['ath_price'] >= existing.get('ath_price', 0):
+                ath_data[ticker] = result
+                updated += 1
+    save_ath_data(ath_data)
+    print(f"[ATH] Init complete: {updated}/{len(tickers)} updated")
+    return ath_data
+
+def compute_ath_breakouts(sd, ath_data):
+    """Compare current prices against stored ATH, detect breakouts"""
+    breakouts = []       # New ATH today
+    near_ath = []        # Within 2% of ATH
+    ath_updated = False
+
+    for ticker, stock in sd.items():
+        price = stock.get('price')
+        day_high = stock.get('high', price)
+        if not price: continue
+
+        stored = ath_data.get(ticker, {})
+        stored_ath = stored.get('ath_price', 0)
+
+        # If no stored ATH, use w52_high as baseline
+        if not stored_ath:
+            stored_ath = stock.get('w52_high', price)
+            if stored_ath:
+                ath_data[ticker] = {'ath_price': round(stored_ath, 2), 'ath_date': 'estimated', 'source': 'w52_baseline'}
+
+        if stored_ath <= 0: continue
+
+        # Check for new ATH
+        if day_high > stored_ath:
+            pct_above = round((day_high - stored_ath) / stored_ath * 100, 2)
+            breakouts.append({
+                'ticker': ticker, 'price': price, 'new_ath': round(day_high, 2),
+                'prev_ath': stored_ath, 'prev_ath_date': stored.get('ath_date', '?'),
+                'pct_above': pct_above, 'day_pct': stock.get('day_pct', 0),
+                'volume': stock.get('volume', 0), 'score': stock.get('score', 50),
+                'grade': stock.get('grade', '')
+            })
+            # Update stored ATH
+            ath_data[ticker] = {'ath_price': round(day_high, 2),
+                                'ath_date': stock.get('date', datetime.utcnow().strftime('%Y-%m-%d')),
+                                'source': 'live_breakout'}
+            ath_updated = True
+        elif price >= stored_ath * 0.98:
+            # Within 2% of ATH
+            pct_from = round((stored_ath - price) / stored_ath * 100, 2)
+            near_ath.append({
+                'ticker': ticker, 'price': price, 'ath': stored_ath,
+                'ath_date': stored.get('ath_date', '?'), 'pct_from_ath': pct_from,
+                'day_pct': stock.get('day_pct', 0), 'score': stock.get('score', 50),
+                'grade': stock.get('grade', '')
+            })
+
+    breakouts.sort(key=lambda x: x['pct_above'], reverse=True)
+    near_ath.sort(key=lambda x: x['pct_from_ath'])
+
+    if ath_updated:
+        save_ath_data(ath_data)
+
+    return {
+        'breakouts': breakouts,
+        'near_ath': near_ath[:20],
+        'total_at_ath': len(breakouts),
+        'total_near_ath': len(near_ath),
+        'ath_coverage': len(ath_data)
+    }
+
 def compute_changes(pts):
     if not pts or len(pts) < 1:
         return {'current': None}
@@ -1276,6 +1401,12 @@ def ai_analysis(fd, sd, crypto, ki, risk, nl, ecb_ciss=None):
 # ============================================================
 def lambda_handler(event, context):
     t0 = time.time()
+    # ── ATH INIT MODE ──
+    payload = event if isinstance(event, dict) else {}
+    if payload.get('action') == 'init_ath':
+        print("[V10] ATH INITIALIZATION MODE")
+        ath = init_all_ath(STOCK_TICKERS)
+        return {'statusCode':200,'body':json.dumps({'action':'init_ath','tickers':len(ath),'status':'complete'})}
     print(f"[V10] Start {datetime.utcnow().isoformat()}")
 
     # ── PHASE 1: FRED (batched 8 at a time, 5 workers, 2.5s gap, retry on 429) ──
@@ -1387,6 +1518,12 @@ def lambda_handler(event, context):
     market_flow = compute_market_flow(sd)
     print(f"[V10] Flow: {market_flow['total_buying']} buying, {market_flow['total_selling']} selling, {len(market_flow['sectors_buying'])} sectors up")
 
+    # ── PHASE 4.6: ATH TRACKER ──
+    print("[V10] ATH tracking...")
+    ath_data = load_ath_data()
+    ath_breakouts = compute_ath_breakouts(sd, ath_data)
+    print(f"[V10] ATH: {ath_breakouts['total_at_ath']} new ATH, {ath_breakouts['total_near_ath']} near ATH, {ath_breakouts['ath_coverage']} tracked")
+
     # ── PHASE 5: AI ANALYSIS ──
     print("[V10] AI Analysis...")
     ai = ai_analysis(fd, sd, crypto, ki, risk, nl, ecb_ciss)
@@ -1396,7 +1533,7 @@ def lambda_handler(event, context):
         'version':'V10','generated_at':datetime.utcnow().isoformat()+'Z',
         'fetch_time_seconds':round(time.time()-t0,1),
         'khalid_index':ki,'risk_dashboard':risk,'net_liquidity':nl,
-        'sectors':sectors,'signals':sigs,'market_flow':market_flow,
+        'sectors':sectors,'signals':sigs,'market_flow':market_flow,'ath_breakouts':ath_breakouts,
         'fred':fd,'stocks':sd,'crypto':crypto,'crypto_global':crypto_g,
         'ecb_ciss':ecb_ciss,
         'news':news,
@@ -1418,7 +1555,8 @@ def lambda_handler(event, context):
                     'risk_composite':risk.get('composite',0),'fetch_time':elapsed,
                     'dxy':fd.get('dxy',{}).get('DTWEXBGS',{}).get('current'),
                     'hy_spread':fd.get('ice_bofa',{}).get('BAMLH0A0HYM2',{}).get('current'),
-                    'vix':fd.get('risk',{}).get('VIXCLS',{}).get('current')}
+                    'vix':fd.get('risk',{}).get('VIXCLS',{}).get('current'),
+                    'ath_new':ath_breakouts['total_at_ath'],'ath_near':ath_breakouts['total_near_ath']}
         print(f"[V10] DONE {elapsed}s: {json.dumps(summary)}")
         return {'statusCode':200,'body':json.dumps(summary)}
     except Exception as e:
