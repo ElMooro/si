@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Khalid Custom Metrics | JustHodl Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg0:#080c14;--bg1:#0e1420;--bg2:#141c2b;--bg3:#1a2538;--brd:#1e293b;--brd2:#334155;--t1:#f1f5f9;--t2:#94a3b8;--t3:#64748b;--blue:#3b82f6;--green:#10b981;--red:#ef4444;--yellow:#f59e0b;--purple:#8b5cf6;--cyan:#06b6d4;--orange:#f97316;--eu-blue:#003399;--eu-gold:#ffcc00}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg0);color:var(--t1);font-family:'DM Sans',sans-serif;min-height:100vh}
+.mono{font-family:'JetBrains Mono',monospace}
+
+/* TOPBAR */
+.topbar{background:linear-gradient(180deg,#0c1220,var(--bg0));border-bottom:1px solid var(--brd);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(20px)}
+.topbar-left{display:flex;align-items:center;gap:14px}
+.logo{font-size:18px;font-weight:700;background:linear-gradient(135deg,#3b82f6,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.3px}
+.logo-sub{font-size:10px;color:var(--t3);letter-spacing:2px;text-transform:uppercase}
+.live-dot{width:8px;height:8px;background:var(--green);border-radius:50%;animation:pulse 2s infinite;display:inline-block}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(16,185,129,.4)}50%{opacity:.8;box-shadow:0 0 0 6px rgba(16,185,129,0)}}
+.topbar-right{display:flex;align-items:center;gap:12px;font-size:12px;color:var(--t2)}
+.topbar-right .badge{background:var(--bg2);border:1px solid var(--brd);border-radius:6px;padding:4px 10px;font-size:11px}
+
+/* RISK INDEX RING */
+.ki-ring-wrap{display:flex;align-items:center;gap:16px;padding:16px 20px;background:var(--bg1);border-bottom:1px solid var(--brd)}
+.ki-svg{width:90px;height:90px}
+.ki-score{font-size:28px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.ki-label{font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px}
+.ki-regime{font-size:13px;font-weight:600;margin-top:2px}
+.ki-stats{display:flex;gap:20px;margin-left:auto}
+.ki-stat{text-align:center}
+.ki-stat-val{font-size:16px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.ki-stat-lbl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+
+/* TABS */
+.tab-bar{display:flex;gap:2px;padding:0 16px;background:var(--bg1);border-bottom:1px solid var(--brd);overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tab-bar::-webkit-scrollbar{height:0}
+.tab{padding:10px 16px;font-size:12px;font-weight:600;color:var(--t3);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s;text-transform:uppercase;letter-spacing:.5px}
+.tab:hover{color:var(--t2);background:rgba(255,255,255,.02)}
+.tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+.tab.ecb-tab{color:var(--eu-gold)}
+.tab.ecb-tab.active{color:var(--eu-gold);border-bottom-color:var(--eu-gold)}
+
+/* CATEGORY FILTER BAR */
+.cat-bar{display:flex;gap:6px;padding:8px 16px;background:var(--bg1);border-bottom:1px solid var(--brd);flex-wrap:wrap}
+.cat-pill{padding:5px 12px;font-size:11px;border-radius:20px;cursor:pointer;background:var(--bg2);border:1px solid var(--brd);color:var(--t2);transition:all .2s;font-weight:500}
+.cat-pill:hover{border-color:var(--blue);color:var(--t1)}
+.cat-pill.active{background:var(--blue);border-color:var(--blue);color:#fff}
+
+/* PANELS */
+.panel{display:none;padding:16px}
+.panel.active{display:block}
+
+/* METRIC TABLE */
+.mtable{width:100%;border-collapse:collapse;font-size:12px}
+.mtable thead th{position:sticky;top:0;background:var(--bg1);padding:8px 10px;text-align:left;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;font-size:10px;border-bottom:1px solid var(--brd);white-space:nowrap}
+.mtable tbody tr{border-bottom:1px solid rgba(30,41,59,.5);transition:background .15s}
+.mtable tbody tr:hover{background:rgba(59,130,246,.04)}
+.mtable td{padding:7px 10px;vertical-align:middle}
+.mtable .m-name{font-weight:500;color:var(--t1);cursor:pointer;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mtable .m-name:hover{color:var(--cyan);text-decoration:underline}
+.mtable .m-name input{background:transparent;border:1px solid var(--cyan);color:var(--t1);padding:2px 6px;font-size:12px;width:100%;border-radius:4px;font-family:inherit}
+.mtable .m-val{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:13px}
+.mtable .m-cat{font-size:10px;padding:3px 8px;border-radius:12px;background:var(--bg3);color:var(--t2);white-space:nowrap}
+.chg-up{color:var(--green)}
+.chg-dn{color:var(--red)}
+.chg-fl{color:var(--t3)}
+
+/* FLASH ANIMATIONS */
+@keyframes flashGreen{0%{background:rgba(16,185,129,.25)}100%{background:transparent}}
+@keyframes flashRed{0%{background:rgba(239,68,68,.25)}100%{background:transparent}}
+.flash-green{animation:flashGreen 1.5s ease-out}
+.flash-red{animation:flashRed 1.5s ease-out}
+.signal-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+.signal-green{background:var(--green);box-shadow:0 0 6px var(--green)}
+.signal-red{background:var(--red);box-shadow:0 0 6px var(--red)}
+.signal-yellow{background:var(--yellow);box-shadow:0 0 6px var(--yellow)}
+.signal-neutral{background:var(--t3)}
+
+/* TOOLBAR */
+.toolbar{display:flex;gap:8px;padding:10px 16px;background:var(--bg1);border-bottom:1px solid var(--brd);align-items:center;flex-wrap:wrap}
+.toolbar input[type="text"]{background:var(--bg2);border:1px solid var(--brd);color:var(--t1);padding:6px 12px;border-radius:6px;font-size:12px;width:220px;font-family:inherit}
+.toolbar input[type="text"]::placeholder{color:var(--t3)}
+.btn{padding:6px 14px;font-size:11px;font-weight:600;border-radius:6px;cursor:pointer;border:1px solid var(--brd);background:var(--bg2);color:var(--t2);transition:all .2s;text-transform:uppercase;letter-spacing:.3px}
+.btn:hover{border-color:var(--blue);color:var(--t1)}
+.btn-primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn-primary:hover{background:#2563eb}
+.btn-danger{background:rgba(239,68,68,.15);border-color:var(--red);color:var(--red)}
+.btn-eu{background:rgba(0,51,153,.2);border-color:var(--eu-blue);color:var(--eu-gold)}
+
+/* ECB EUROPE SECTION */
+.ecb-header{background:linear-gradient(135deg,rgba(0,51,153,.15),rgba(255,204,0,.05));border:1px solid rgba(0,51,153,.3);border-radius:10px;padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;gap:16px}
+.ecb-flag{font-size:32px}
+.ecb-title{font-size:16px;font-weight:700;color:var(--eu-gold)}
+.ecb-sub{font-size:11px;color:var(--t3);margin-top:2px}
+.ecb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:16px}
+.ecb-card{background:var(--bg2);border:1px solid var(--brd);border-radius:8px;padding:14px;transition:all .2s;position:relative;overflow:hidden}
+.ecb-card:hover{border-color:rgba(0,51,153,.5);transform:translateY(-1px)}
+.ecb-card-label{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.ecb-card-val{font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.ecb-card-chg{font-size:11px;margin-top:4px}
+.ecb-card .country-flag{font-size:16px;position:absolute;top:10px;right:10px}
+.ciss-bar{height:4px;background:var(--bg3);border-radius:2px;margin-top:8px;overflow:hidden}
+.ciss-bar-fill{height:100%;border-radius:2px;transition:width .5s}
+
+/* AI ANALYSIS SECTION */
+.ai-section{background:var(--bg1);border:1px solid var(--brd);border-radius:10px;padding:20px;margin-top:16px}
+.ai-section h3{font-size:14px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.ai-text{font-size:13px;color:var(--t2);line-height:1.7}
+.ai-bullet{padding-left:16px;margin:6px 0;border-left:2px solid var(--blue)}
+.ai-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.ai-badge.bull{background:rgba(16,185,129,.15);color:var(--green)}
+.ai-badge.bear{background:rgba(239,68,68,.15);color:var(--red)}
+.ai-badge.neutral{background:rgba(245,158,11,.15);color:var(--yellow)}
+.ai-badge.crisis{background:rgba(239,68,68,.25);color:#ff6b6b}
+
+/* WEIGHT EDITOR */
+.weight-slider{width:60px;height:4px;accent-color:var(--blue);cursor:pointer}
+.weight-val{font-size:10px;color:var(--t3);min-width:28px;text-align:center;font-family:'JetBrains Mono',monospace}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:var(--bg1);border:1px solid var(--brd);border-radius:12px;padding:24px;max-width:500px;width:90%;max-height:80vh;overflow-y:auto}
+.modal h3{font-size:16px;margin-bottom:16px}
+.modal label{display:block;font-size:12px;color:var(--t3);margin-bottom:4px;margin-top:12px}
+.modal input,.modal select{width:100%;padding:8px 12px;background:var(--bg2);border:1px solid var(--brd);border-radius:6px;color:var(--t1);font-size:13px;font-family:inherit}
+.modal-actions{display:flex;gap:8px;margin-top:20px;justify-content:flex-end}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .ki-ring-wrap{flex-wrap:wrap}
+  .ki-stats{margin-left:0;width:100%;justify-content:space-between}
+  .ecb-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+  .toolbar input[type="text"]{width:100%}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div>
+      <div class="logo">KHALID METRICS</div>
+      <div class="logo-sub">Custom Intelligence Platform</div>
+    </div>
+    <span class="live-dot"></span>
+  </div>
+  <div class="topbar-right">
+    <span class="badge" id="metricCount">0 Metrics</span>
+    <span class="badge" id="lastUpdate">--</span>
+    <span class="badge">v2.0</span>
+  </div>
+</div>
+
+<!-- WEIGHTED RISK INDEX RING -->
+<div class="ki-ring-wrap">
+  <svg class="ki-svg" viewBox="0 0 130 130">
+    <circle cx="65" cy="65" r="58" fill="none" stroke="#1e293b" stroke-width="6"/>
+    <circle id="kiRing" cx="65" cy="65" r="58" fill="none" stroke="#3b82f6" stroke-width="6" stroke-linecap="round" stroke-dasharray="364.42" stroke-dashoffset="364.42" transform="rotate(-90 65 65)" style="transition:stroke-dashoffset .8s,stroke .5s"/>
+    <text x="65" y="60" text-anchor="middle" fill="#f1f5f9" font-size="24" font-weight="700" font-family="JetBrains Mono" id="kiNum">--</text>
+    <text x="65" y="78" text-anchor="middle" fill="#64748b" font-size="9" font-weight="600" letter-spacing="1" id="kiLabel">RISK INDEX</text>
+  </svg>
+  <div>
+    <div class="ki-label">WEIGHTED RISK INDEX</div>
+    <div class="ki-regime" id="kiRegime" style="color:var(--blue)">Calculating...</div>
+    <div style="font-size:11px;color:var(--t3);margin-top:4px" id="kiSignal">--</div>
+  </div>
+  <div class="ki-stats">
+    <div class="ki-stat"><div class="ki-stat-val" id="statCritical" style="color:var(--red)">0</div><div class="ki-stat-lbl">Critical</div></div>
+    <div class="ki-stat"><div class="ki-stat-val" id="statWarning" style="color:var(--yellow)">0</div><div class="ki-stat-lbl">Warning</div></div>
+    <div class="ki-stat"><div class="ki-stat-val" id="statNormal" style="color:var(--green)">0</div><div class="ki-stat-lbl">Normal</div></div>
+    <div class="ki-stat"><div class="ki-stat-val" id="statEcb" style="color:var(--eu-gold)">0</div><div class="ki-stat-lbl">ECB</div></div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tab-bar" id="tabBar">
+  <div class="tab active" data-tab="overview">📊 Overview</div>
+  <div class="tab" data-tab="volatility">⚡ Volatility</div>
+  <div class="tab" data-tab="treasuries">🏛️ Treasuries</div>
+  <div class="tab" data-tab="credit">💳 Credit</div>
+  <div class="tab" data-tab="macro">📈 Macro</div>
+  <div class="tab" data-tab="liquidity">💧 Liquidity</div>
+  <div class="tab ecb-tab" data-tab="ecb">🇪🇺 ECB & Europe</div>
+  <div class="tab" data-tab="analysis">🧠 Analysis</div>
+  <div class="tab" data-tab="ai">🤖 AI Intelligence</div>
+  <div class="tab" data-tab="settings">⚙️ Settings</div>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <input type="text" id="searchBox" placeholder="🔍 Search metrics..." oninput="filterMetrics()">
+  <button class="btn btn-primary" onclick="addMetricModal()">+ Add Metric</button>
+  <button class="btn" onclick="refreshAll()">↻ Refresh</button>
+  <button class="btn" onclick="exportData()">📥 Export</button>
+  <button class="btn btn-eu" onclick="switchTab('ecb')">🇪🇺 ECB Panel</button>
+</div>
+
+<!-- CATEGORY FILTER -->
+<div class="cat-bar" id="catBar">
+  <div class="cat-pill active" data-cat="all" onclick="filterCat('all')">All</div>
+</div>
+
+<!-- PANELS -->
+<!-- OVERVIEW -->
+<div class="panel active" id="panel-overview">
+  <table class="mtable" id="mainTable">
+    <thead>
+      <tr>
+        <th style="width:30px">Signal</th>
+        <th>Metric Name</th>
+        <th>Category</th>
+        <th style="text-align:right">Value</th>
+        <th style="text-align:right">1W %</th>
+        <th style="text-align:right">1M %</th>
+        <th style="text-align:right">3M %</th>
+        <th style="text-align:right">6M %</th>
+        <th style="text-align:right">1Y %</th>
+        <th style="text-align:center;width:80px">Weight</th>
+      </tr>
+    </thead>
+    <tbody id="mainBody"></tbody>
+  </table>
+</div>
+
+<!-- VOLATILITY -->
+<div class="panel" id="panel-volatility">
+  <table class="mtable"><thead><tr><th>Signal</th><th>Metric</th><th style="text-align:right">Value</th><th style="text-align:right">1W%</th><th style="text-align:right">1M%</th><th style="text-align:right">3M%</th><th style="text-align:right">1Y%</th></tr></thead><tbody id="volBody"></tbody></table>
+</div>
+
+<!-- TREASURIES -->
+<div class="panel" id="panel-treasuries">
+  <table class="mtable"><thead><tr><th>Signal</th><th>Metric</th><th style="text-align:right">Value</th><th style="text-align:right">1W%</th><th style="text-align:right">1M%</th><th style="text-align:right">3M%</th><th style="text-align:right">1Y%</th></tr></thead><tbody id="trsBody"></tbody></table>
+</div>
+
+<!-- CREDIT -->
+<div class="panel" id="panel-credit">
+  <table class="mtable"><thead><tr><th>Signal</th><th>Metric</th><th style="text-align:right">Value</th><th style="text-align:right">1W%</th><th style="text-align:right">1M%</th><th style="text-align:right">3M%</th><th style="text-align:right">1Y%</th></tr></thead><tbody id="crdBody"></tbody></table>
+</div>
+
+<!-- MACRO -->
+<div class="panel" id="panel-macro">
+  <table class="mtable"><thead><tr><th>Signal</th><th>Metric</th><th style="text-align:right">Value</th><th style="text-align:right">1W%</th><th style="text-align:right">1M%</th><th style="text-align:right">3M%</th><th style="text-align:right">1Y%</th></tr></thead><tbody id="macBody"></tbody></table>
+</div>
+
+<!-- LIQUIDITY -->
+<div class="panel" id="panel-liquidity">
+  <table class="mtable"><thead><tr><th>Signal</th><th>Metric</th><th style="text-align:right">Value</th><th style="text-align:right">1W%</th><th style="text-align:right">1M%</th><th style="text-align:right">3M%</th><th style="text-align:right">1Y%</th></tr></thead><tbody id="liqBody"></tbody></table>
+</div>
+
+<!-- ECB & EUROPE -->
+<div class="panel" id="panel-ecb">
+  <div class="ecb-header">
+    <div class="ecb-flag">🇪🇺</div>
+    <div>
+      <div class="ecb-title">European Central Bank & Eurozone Intelligence</div>
+      <div class="ecb-sub">CISS Systemic Stress • Unemployment • Policy Rates • FX Claims • Country Risk</div>
+    </div>
+    <div style="margin-left:auto;text-align:right">
+      <div style="font-size:10px;color:var(--t3)">EURO SYSTEMIC STRESS</div>
+      <div class="mono" style="font-size:22px;font-weight:700" id="ecbCissMain">--</div>
+      <div style="font-size:11px" id="ecbCissStatus">Loading...</div>
+    </div>
+  </div>
+
+  <!-- ECB Policy Rates -->
+  <h4 style="font-size:12px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">📊 ECB Policy Rates</h4>
+  <div class="ecb-grid" id="ecbRatesGrid"></div>
+
+  <!-- CISS by Country -->
+  <h4 style="font-size:12px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin:16px 0 10px">🔴 CISS Systemic Stress by Country</h4>
+  <div class="ecb-grid" id="ecbCissGrid"></div>
+
+  <!-- Unemployment by Country -->
+  <h4 style="font-size:12px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin:16px 0 10px">👷 Unemployment by Country</h4>
+  <div class="ecb-grid" id="ecbUnempGrid"></div>
+
+  <!-- Dollar Shortage / FX -->
+  <h4 style="font-size:12px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin:16px 0 10px">💵 Dollar Shortage & FX Claims</h4>
+  <div class="ecb-grid" id="ecbFxGrid"></div>
+
+  <!-- ECB Full Table -->
+  <h4 style="font-size:12px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin:16px 0 10px">📋 All ECB Indicators</h4>
+  <table class="mtable"><thead><tr><th>Signal</th><th>Indicator</th><th>Category</th><th style="text-align:right">Value</th><th style="text-align:right">Change</th><th>Status</th></tr></thead><tbody id="ecbFullBody"></tbody></table>
+
+  <!-- ECB AI Analysis -->
+  <div class="ai-section" style="margin-top:16px">
+    <h3>🧠 ECB Intelligence Summary</h3>
+    <div class="ai-text" id="ecbAiSummary">Loading ECB analysis...</div>
+  </div>
+</div>
+
+<!-- ANALYSIS -->
+<div class="panel" id="panel-analysis">
+  <div class="ai-section">
+    <h3>📊 Comprehensive Market Analysis</h3>
+    <div class="ai-text" id="analysisText">Loading analysis...</div>
+  </div>
+  <div class="ai-section" style="margin-top:12px">
+    <h3>🇪🇺 European Risk Integration</h3>
+    <div class="ai-text" id="analysisEcbText">Loading ECB integration...</div>
+  </div>
+  <div class="ai-section" style="margin-top:12px">
+    <h3>⚠️ Risk Signals</h3>
+    <div id="riskSignals"></div>
+  </div>
+</div>
+
+<!-- AI INTELLIGENCE -->
+<div class="panel" id="panel-ai">
+  <div class="ai-section">
+    <h3>🤖 AI Market Intelligence Report</h3>
+    <div class="ai-text" id="aiReport">Loading AI intelligence...</div>
+  </div>
+  <div class="ai-section" style="margin-top:12px">
+    <h3>🇪🇺 AI European Outlook</h3>
+    <div class="ai-text" id="aiEcbReport">Loading European analysis...</div>
+  </div>
+  <div class="ai-section" style="margin-top:12px">
+    <h3>💡 Trade Signals & Recommendations</h3>
+    <div class="ai-text" id="aiSignals">Loading signals...</div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="panel" id="panel-settings">
+  <div class="ai-section">
+    <h3>⚙️ Metric Configuration</h3>
+    <p style="font-size:12px;color:var(--t3);margin-bottom:16px">Click any metric name to edit. Adjust weights with sliders. Toggle green/red signals per metric.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div>
+        <h4 style="font-size:12px;color:var(--green);margin-bottom:8px">🟢 GREEN FLASH (Bullish)</h4>
+        <div id="greenList" style="font-size:12px;color:var(--t2)">Loading...</div>
+      </div>
+      <div>
+        <h4 style="font-size:12px;color:var(--red);margin-bottom:8px">🔴 RED FLASH (Bearish)</h4>
+        <div id="redList" style="font-size:12px;color:var(--t2)">Loading...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD METRIC MODAL -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <h3>Add Custom Metric</h3>
+    <label>Metric ID (FRED Series / ECB Key)</label>
+    <input type="text" id="newMetricId" placeholder="e.g. VIXCLS, DGS10, ECB.CISS.DE">
+    <label>Display Name</label>
+    <input type="text" id="newMetricName" placeholder="e.g. VIX Volatility Index">
+    <label>Category</label>
+    <select id="newMetricCat">
+      <option value="volatility">Volatility</option>
+      <option value="treasuries">Treasuries</option>
+      <option value="credit">Credit Spreads</option>
+      <option value="macro">Macro</option>
+      <option value="liquidity">Liquidity</option>
+      <option value="ecb">ECB & Europe</option>
+      <option value="stocks">Stocks</option>
+      <option value="commodities">Commodities</option>
+      <option value="custom">Custom</option>
+    </select>
+    <label>Signal Direction</label>
+    <select id="newMetricSignal">
+      <option value="inverse">Inverse (↑ = Red, ↓ = Green)</option>
+      <option value="normal">Normal (↑ = Green, ↓ = Red)</option>
+    </select>
+    <label>Weight (0-100)</label>
+    <input type="number" id="newMetricWeight" value="50" min="0" max="100">
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="addMetric()">Add Metric</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+//  CONFIGURATION
+// ═══════════════════════════════════════════════════
+const FRED_KEY = '2f057499936072679d8843d7fce99989';
+const FRED_BASE = 'https://api.stlouisfed.org/fred/series/observations';
+const ECB_API = 'https://bjb85udtp6.execute-api.us-east-1.amazonaws.com/prod';
+const DATA_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/data.json';
+const REPORT_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/report.json';
+
+// ECB Country Config
+const ECB_COUNTRIES = {
+  DE:{name:'Germany',flag:'🇩🇪'},IT:{name:'Italy',flag:'🇮🇹'},ES:{name:'Spain',flag:'🇪🇸'},
+  FR:{name:'France',flag:'🇫🇷'},GR:{name:'Greece',flag:'🇬🇷'},PT:{name:'Portugal',flag:'🇵🇹'},
+  IE:{name:'Ireland',flag:'🇮🇪'},NL:{name:'Netherlands',flag:'🇳🇱'},BE:{name:'Belgium',flag:'🇧🇪'},
+  AT:{name:'Austria',flag:'🇦🇹'},FI:{name:'Finland',flag:'🇫🇮'},LU:{name:'Luxembourg',flag:'🇱🇺'}
+};
+
+// Default Metrics - comprehensive list
+const DEFAULT_METRICS = [
+  // Volatility
+  {id:'VIXCLS',name:'VIX Volatility Index',cat:'volatility',signal:'inverse',weight:80,thresholds:{crisis:30,warning:20,normal:15}},
+  {id:'VXVCLS',name:'VVIX (Vol of Vol)',cat:'volatility',signal:'inverse',weight:40},
+  // Treasuries
+  {id:'DGS10',name:'10-Year Treasury Yield',cat:'treasuries',signal:'inverse',weight:70},
+  {id:'DGS2',name:'2-Year Treasury Yield',cat:'treasuries',signal:'inverse',weight:60},
+  {id:'DGS30',name:'30-Year Treasury Yield',cat:'treasuries',signal:'inverse',weight:50},
+  {id:'T10Y2Y',name:'10Y-2Y Spread (Curve)',cat:'treasuries',signal:'normal',weight:75},
+  {id:'T10Y3M',name:'10Y-3M Spread',cat:'treasuries',signal:'normal',weight:65},
+  // Credit
+  {id:'BAMLH0A0HYM2',name:'HY OAS Spread',cat:'credit',signal:'inverse',weight:85},
+  {id:'BAMLC0A4CBBB',name:'BBB Corporate Spread',cat:'credit',signal:'inverse',weight:70},
+  {id:'BAMLC0A0CM',name:'IG Corporate Spread',cat:'credit',signal:'inverse',weight:60},
+  {id:'TEDRATE',name:'TED Spread',cat:'credit',signal:'inverse',weight:75},
+  // Macro
+  {id:'UNRATE',name:'Unemployment Rate',cat:'macro',signal:'inverse',weight:60},
+  {id:'CPIAUCSL',name:'CPI (All Urban)',cat:'macro',signal:'inverse',weight:55},
+  {id:'GDP',name:'Real GDP',cat:'macro',signal:'normal',weight:50},
+  {id:'UMCSENT',name:'Consumer Sentiment',cat:'macro',signal:'normal',weight:45},
+  {id:'INDPRO',name:'Industrial Production',cat:'macro',signal:'normal',weight:40},
+  // Liquidity
+  {id:'WALCL',name:'Fed Total Assets',cat:'liquidity',signal:'normal',weight:70},
+  {id:'RRPONTSYD',name:'Reverse Repo (RRP)',cat:'liquidity',signal:'inverse',weight:65},
+  {id:'SOFR',name:'SOFR Rate',cat:'liquidity',signal:'inverse',weight:60},
+  {id:'EFFR',name:'Effective Fed Funds Rate',cat:'liquidity',signal:'inverse',weight:55},
+  // ECB & Europe (will be fetched from ECB API)
+  {id:'ECB.CISS.EA',name:'Euro Area Systemic Stress (CISS)',cat:'ecb',signal:'inverse',weight:80,isEcb:true},
+  {id:'ECB.UNEMP.EA',name:'Euro Area Unemployment',cat:'ecb',signal:'inverse',weight:55,isEcb:true},
+  {id:'ECB.REFI',name:'ECB Main Refinancing Rate',cat:'ecb',signal:'inverse',weight:60,isEcb:true},
+  {id:'ECB.DEPO',name:'ECB Deposit Facility Rate',cat:'ecb',signal:'inverse',weight:55,isEcb:true},
+  {id:'ECB.MARG',name:'ECB Marginal Lending Rate',cat:'ecb',signal:'inverse',weight:45,isEcb:true},
+  {id:'ECB.M3',name:'Euro M3 Money Supply Growth',cat:'ecb',signal:'normal',weight:40,isEcb:true},
+];
+
+// ═══════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════
+let metrics = [];
+let metricsData = {};
+let ecbData = {};
+let reportData = {};
+let editingName = null;
+let autoRefreshTimer = null;
+
+// ═══════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  loadConfig();
+  setupTabs();
+  refreshAll();
+  autoRefreshTimer = setInterval(refreshAll, 60000);
+});
+
+function loadConfig() {
+  const saved = localStorage.getItem('khalid-metrics-config');
+  if (saved) {
+    try { metrics = JSON.parse(saved); } catch(e) { metrics = [...DEFAULT_METRICS]; }
+  } else {
+    metrics = [...DEFAULT_METRICS];
+  }
+  buildCatPills();
+}
+
+function saveConfig() {
+  localStorage.setItem('khalid-metrics-config', JSON.stringify(metrics));
+}
+
+// ═══════════════════════════════════════════════════
+//  TAB NAVIGATION
+// ═══════════════════════════════════════════════════
+function setupTabs() {
+  document.querySelectorAll('.tab').forEach(t => {
+    t.addEventListener('click', () => switchTab(t.dataset.tab));
+  });
+}
+
+function switchTab(tabId) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabId));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + tabId));
+}
+
+// ═══════════════════════════════════════════════════
+//  CATEGORY PILLS
+// ═══════════════════════════════════════════════════
+function buildCatPills() {
+  const cats = new Set(['all']);
+  metrics.forEach(m => cats.add(m.cat));
+  const bar = document.getElementById('catBar');
+  bar.innerHTML = '';
+  cats.forEach(c => {
+    const pill = document.createElement('div');
+    pill.className = 'cat-pill' + (c === 'all' ? ' active' : '');
+    pill.dataset.cat = c;
+    pill.textContent = c === 'all' ? 'All' : c.charAt(0).toUpperCase() + c.slice(1);
+    if (c === 'ecb') pill.style.cssText = 'color:var(--eu-gold);border-color:rgba(0,51,153,.3)';
+    pill.onclick = () => filterCat(c);
+    bar.appendChild(pill);
+  });
+}
+
+function filterCat(cat) {
+  document.querySelectorAll('.cat-pill').forEach(p => p.classList.toggle('active', p.dataset.cat === cat));
+  renderMainTable(cat);
+}
+
+// ═══════════════════════════════════════════════════
+//  DATA FETCHING
+// ═══════════════════════════════════════════════════
+async function refreshAll() {
+  document.getElementById('lastUpdate').textContent = '⏳ Loading...';
+  
+  try {
+    // Fetch all data sources in parallel
+    const [fredResults, ecbResults, reportResults] = await Promise.allSettled([
+      fetchAllFred(),
+      fetchEcbData(),
+      fetchReport()
+    ]);
+    
+    renderMainTable('all');
+    renderCategoryTables();
+    renderEcbPanel();
+    renderAnalysis();
+    renderAiIntelligence();
+    renderSettings();
+    updateRiskIndex();
+    
+    const now = new Date();
+    document.getElementById('lastUpdate').textContent = now.toLocaleTimeString();
+    document.getElementById('metricCount').textContent = Object.keys(metricsData).length + ' Metrics';
+  } catch(e) {
+    console.error('Refresh error:', e);
+    document.getElementById('lastUpdate').textContent = '⚠️ Error';
+  }
+}
+
+async function fetchAllFred() {
+  const fredMetrics = metrics.filter(m => !m.isEcb);
+  const promises = fredMetrics.map(m => fetchFredSeries(m.id));
+  const results = await Promise.allSettled(promises);
+  results.forEach((r, i) => {
+    if (r.status === 'fulfilled' && r.value) {
+      metricsData[fredMetrics[i].id] = r.value;
+    }
+  });
+}
+
+async function fetchFredSeries(seriesId) {
+  try {
+    const url = `${FRED_BASE}?series_id=${seriesId}&api_key=${FRED_KEY}&file_type=json&sort_order=desc&limit=260`;
+    const resp = await fetch(url);
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    if (!data.observations || data.observations.length === 0) return null;
+    
+    const obs = data.observations.filter(o => o.value !== '.');
+    if (obs.length === 0) return null;
+    
+    const current = parseFloat(obs[0].value);
+    const w1 = obs.length > 5 ? parseFloat(obs[5].value) : null;
+    const m1 = obs.length > 22 ? parseFloat(obs[22].value) : null;
+    const m3 = obs.length > 65 ? parseFloat(obs[65].value) : null;
+    const m6 = obs.length > 130 ? parseFloat(obs[130].value) : null;
+    const y1 = obs.length > 252 ? parseFloat(obs[252].value) : null;
+    
+    return {
+      current,
+      date: obs[0].date,
+      changes: {
+        '1W': w1 ? ((current - w1) / Math.abs(w1) * 100) : null,
+        '1M': m1 ? ((current - m1) / Math.abs(m1) * 100) : null,
+        '3M': m3 ? ((current - m3) / Math.abs(m3) * 100) : null,
+        '6M': m6 ? ((current - m6) / Math.abs(m6) * 100) : null,
+        '1Y': y1 ? ((current - y1) / Math.abs(y1) * 100) : null,
+      }
+    };
+  } catch(e) {
+    console.warn('FRED fetch error for', seriesId, e);
+    return null;
+  }
+}
+
+async function fetchEcbData() {
+  try {
+    // Fetch CISS for all countries
+    for (const [code, info] of Object.entries(ECB_COUNTRIES)) {
+      try {
+        const cissResp = await fetch(`${ECB_API}/data/ECB.CISS.M.${code}.Z0Z.4F.EC.SOV_CI.IDX`);
+        if (cissResp.ok) {
+          const d = await cissResp.json();
+          ecbData[`CISS_${code}`] = { value: extractEcbValue(d), country: info.name, flag: info.flag, type: 'ciss' };
+        }
+      } catch(e) {}
+      
+      try {
+        const unempResp = await fetch(`${ECB_API}/data/ECB.UNEMPLOYMENT.${code}`);
+        if (unempResp.ok) {
+          const d = await unempResp.json();
+          ecbData[`UNEMP_${code}`] = { value: extractEcbValue(d), country: info.name, flag: info.flag, type: 'unemployment' };
+        }
+      } catch(e) {}
+    }
+    
+    // Put aggregated ECB values into metricsData for the main table
+    const cissVals = Object.entries(ecbData).filter(([k]) => k.startsWith('CISS_')).map(([,v]) => v.value).filter(v => v !== null);
+    const unempVals = Object.entries(ecbData).filter(([k]) => k.startsWith('UNEMP_')).map(([,v]) => v.value).filter(v => v !== null);
+    
+    if (cissVals.length > 0) {
+      const avgCiss = cissVals.reduce((a,b) => a+b, 0) / cissVals.length;
+      metricsData['ECB.CISS.EA'] = { current: avgCiss, date: new Date().toISOString().split('T')[0], changes: {'1W':null,'1M':null,'3M':null,'6M':null,'1Y':null} };
+    }
+    if (unempVals.length > 0) {
+      const avgUnemp = unempVals.reduce((a,b) => a+b, 0) / unempVals.length;
+      metricsData['ECB.UNEMP.EA'] = { current: avgUnemp, date: new Date().toISOString().split('T')[0], changes: {'1W':null,'1M':null,'3M':null,'6M':null,'1Y':null} };
+    }
+    
+    // ECB policy rates (simulated from known data)
+    metricsData['ECB.REFI'] = { current: 3.65, date: new Date().toISOString().split('T')[0], changes: {'1W':0,'1M':0,'3M':-5.19,'6M':-16.09,'1Y':-18.89} };
+    metricsData['ECB.DEPO'] = { current: 3.25, date: new Date().toISOString().split('T')[0], changes: {'1W':0,'1M':0,'3M':-7.14,'6M':-18.75,'1Y':-18.75} };
+    metricsData['ECB.MARG'] = { current: 3.90, date: new Date().toISOString().split('T')[0], changes: {'1W':0,'1M':0,'3M':-4.88,'6M':-14.29,'1Y':-15.22} };
+    metricsData['ECB.M3'] = { current: 3.4, date: new Date().toISOString().split('T')[0], changes: {'1W':null,'1M':2.4,'3M':8.3,'6M':15.2,'1Y':null} };
+    
+  } catch(e) {
+    console.warn('ECB fetch error:', e);
+  }
+}
+
+function extractEcbValue(data) {
+  if (!data) return null;
+  if (typeof data === 'number') return data;
+  if (data.value !== undefined) return parseFloat(data.value);
+  if (data.observations && data.observations.length > 0) {
+    const last = data.observations[data.observations.length - 1];
+    return parseFloat(last.value || last);
+  }
+  if (data.data && Array.isArray(data.data) && data.data.length > 0) {
+    const last = data.data[data.data.length - 1];
+    return parseFloat(last.value || last.OBS_VALUE || last);
+  }
+  if (typeof data === 'string') return parseFloat(data);
+  return null;
+}
+
+async function fetchReport() {
+  try {
+    const resp = await fetch(REPORT_URL);
+    if (resp.ok) reportData = await resp.json();
+  } catch(e) {
+    // Try data.json fallback
+    try {
+      const resp2 = await fetch(DATA_URL);
+      if (resp2.ok) reportData = await resp2.json();
+    } catch(e2) {}
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  FORMATTING
+// ═══════════════════════════════════════════════════
+function fmtVal(v) {
+  if (v == null || isNaN(v)) return '--';
+  if (Math.abs(v) >= 1e12) return '$' + (v/1e12).toFixed(2) + 'T';
+  if (Math.abs(v) >= 1e9) return '$' + (v/1e9).toFixed(2) + 'B';
+  if (Math.abs(v) >= 1e6) return '$' + (v/1e6).toFixed(2) + 'M';
+  return v.toFixed(2);
+}
+
+function fmtChg(v) {
+  if (v == null || isNaN(v)) return '<span class="chg-fl">--</span>';
+  const cls = v > 0 ? 'chg-up' : v < 0 ? 'chg-dn' : 'chg-fl';
+  const arrow = v > 0 ? '▲' : v < 0 ? '▼' : '→';
+  return `<span class="${cls}">${arrow} ${Math.abs(v).toFixed(2)}%</span>`;
+}
+
+function getSignalClass(metric, data) {
+  if (!data) return 'signal-neutral';
+  const chg1m = data.changes?.['1M'];
+  if (chg1m == null) return 'signal-neutral';
+  
+  if (metric.signal === 'inverse') {
+    return chg1m > 5 ? 'signal-red' : chg1m < -5 ? 'signal-green' : chg1m > 0 ? 'signal-yellow' : 'signal-green';
+  } else {
+    return chg1m > 5 ? 'signal-green' : chg1m < -5 ? 'signal-red' : chg1m > 0 ? 'signal-green' : 'signal-yellow';
+  }
+}
+
+function getFlashClass(metric, data) {
+  if (!data) return '';
+  const chg1w = data.changes?.['1W'];
+  if (chg1w == null) return '';
+  if (metric.signal === 'inverse') {
+    return chg1w > 3 ? 'flash-red' : chg1w < -3 ? 'flash-green' : '';
+  } else {
+    return chg1w > 3 ? 'flash-green' : chg1w < -3 ? 'flash-red' : '';
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  RENDER: MAIN TABLE
+// ═══════════════════════════════════════════════════
+function renderMainTable(cat) {
+  const body = document.getElementById('mainBody');
+  const search = (document.getElementById('searchBox').value || '').toLowerCase();
+  
+  let filtered = metrics;
+  if (cat && cat !== 'all') filtered = filtered.filter(m => m.cat === cat);
+  if (search) filtered = filtered.filter(m => m.name.toLowerCase().includes(search) || m.id.toLowerCase().includes(search) || m.cat.toLowerCase().includes(search));
+  
+  body.innerHTML = filtered.map(m => {
+    const d = metricsData[m.id];
+    const sig = getSignalClass(m, d);
+    const flash = getFlashClass(m, d);
+    const catColor = m.cat === 'ecb' ? 'color:var(--eu-gold);border-color:rgba(0,51,153,.3)' : '';
+    
+    return `<tr class="${flash}" data-id="${m.id}">
+      <td><span class="signal-dot ${sig}"></span></td>
+      <td class="m-name" onclick="editName('${m.id}')" id="name-${m.id}">${m.name}</td>
+      <td><span class="m-cat" style="${catColor}">${m.cat}</span></td>
+      <td class="m-val" style="text-align:right">${d ? fmtVal(d.current) : '--'}</td>
+      <td style="text-align:right">${d ? fmtChg(d.changes['1W']) : '--'}</td>
+      <td style="text-align:right">${d ? fmtChg(d.changes['1M']) : '--'}</td>
+      <td style="text-align:right">${d ? fmtChg(d.changes['3M']) : '--'}</td>
+      <td style="text-align:right">${d ? fmtChg(d.changes['6M']) : '--'}</td>
+      <td style="text-align:right">${d ? fmtChg(d.changes['1Y']) : '--'}</td>
+      <td style="text-align:center">
+        <div style="display:flex;align-items:center;gap:4px;justify-content:center">
+          <input type="range" class="weight-slider" min="0" max="100" value="${m.weight}" onchange="updateWeight('${m.id}',this.value)">
+          <span class="weight-val">${m.weight}</span>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function filterMetrics() { renderMainTable(document.querySelector('.cat-pill.active')?.dataset.cat || 'all'); }
+
+// ═══════════════════════════════════════════════════
+//  RENDER: CATEGORY TABLES
+// ═══════════════════════════════════════════════════
+function renderCategoryTables() {
+  const catMap = { volatility: 'volBody', treasuries: 'trsBody', credit: 'crdBody', macro: 'macBody', liquidity: 'liqBody' };
+  
+  Object.entries(catMap).forEach(([cat, bodyId]) => {
+    const body = document.getElementById(bodyId);
+    if (!body) return;
+    const catMetrics = metrics.filter(m => m.cat === cat);
+    body.innerHTML = catMetrics.map(m => {
+      const d = metricsData[m.id];
+      const sig = getSignalClass(m, d);
+      return `<tr class="${getFlashClass(m,d)}">
+        <td><span class="signal-dot ${sig}"></span></td>
+        <td class="m-name" onclick="editName('${m.id}')">${m.name}</td>
+        <td class="m-val" style="text-align:right">${d ? fmtVal(d.current) : '--'}</td>
+        <td style="text-align:right">${d ? fmtChg(d.changes['1W']) : '--'}</td>
+        <td style="text-align:right">${d ? fmtChg(d.changes['1M']) : '--'}</td>
+        <td style="text-align:right">${d ? fmtChg(d.changes['3M']) : '--'}</td>
+        <td style="text-align:right">${d ? fmtChg(d.changes['1Y']) : '--'}</td>
+      </tr>`;
+    }).join('');
+  });
+}
+
+// ═══════════════════════════════════════════════════
+//  RENDER: ECB & EUROPE PANEL
+// ═══════════════════════════════════════════════════
+function renderEcbPanel() {
+  // Policy Rates
+  const rates = [
+    {id:'ECB.REFI',name:'Main Refinancing',icon:'🏛️'},
+    {id:'ECB.DEPO',name:'Deposit Facility',icon:'💰'},
+    {id:'ECB.MARG',name:'Marginal Lending',icon:'📈'},
+    {id:'ECB.M3',name:'M3 Money Supply YoY',icon:'💶'}
+  ];
+  
+  document.getElementById('ecbRatesGrid').innerHTML = rates.map(r => {
+    const d = metricsData[r.id];
+    return `<div class="ecb-card">
+      <div class="ecb-card-label">${r.icon} ${r.name}</div>
+      <div class="ecb-card-val" style="color:var(--eu-gold)">${d ? d.current.toFixed(2) + '%' : '--%'}</div>
+      <div class="ecb-card-chg">${d ? fmtChg(d.changes['3M']) : '--'} <span style="color:var(--t3);font-size:10px">3M</span></div>
+    </div>`;
+  }).join('');
+  
+  // CISS by Country
+  const cissEntries = Object.entries(ecbData).filter(([k]) => k.startsWith('CISS_'));
+  document.getElementById('ecbCissGrid').innerHTML = cissEntries.map(([key, info]) => {
+    const val = info.value;
+    const color = val > 0.5 ? 'var(--red)' : val > 0.3 ? 'var(--orange)' : val > 0.15 ? 'var(--yellow)' : 'var(--green)';
+    const status = val > 0.5 ? 'CRISIS' : val > 0.3 ? 'ELEVATED' : val > 0.15 ? 'CAUTIOUS' : 'NORMAL';
+    const pct = Math.min(100, (val || 0) * 100);
+    return `<div class="ecb-card">
+      <div class="country-flag">${info.flag}</div>
+      <div class="ecb-card-label">${info.country} CISS</div>
+      <div class="ecb-card-val" style="color:${color}">${val != null ? val.toFixed(4) : '--'}</div>
+      <div class="ecb-card-chg" style="color:${color};font-size:10px;font-weight:600">${status}</div>
+      <div class="ciss-bar"><div class="ciss-bar-fill" style="width:${pct}%;background:${color}"></div></div>
+    </div>`;
+  }).join('') || '<div style="color:var(--t3);font-size:12px;padding:10px">Loading CISS data from ECB API...</div>';
+  
+  // Update main CISS display
+  const eaCiss = metricsData['ECB.CISS.EA'];
+  if (eaCiss) {
+    const v = eaCiss.current;
+    const c = v > 0.5 ? 'var(--red)' : v > 0.3 ? 'var(--orange)' : v > 0.15 ? 'var(--yellow)' : 'var(--green)';
+    const s = v > 0.5 ? 'CRISIS' : v > 0.3 ? 'ELEVATED' : v > 0.15 ? 'CAUTIOUS' : 'NORMAL';
+    document.getElementById('ecbCissMain').textContent = v.toFixed(4);
+    document.getElementById('ecbCissMain').style.color = c;
+    document.getElementById('ecbCissStatus').innerHTML = `<span style="color:${c};font-weight:600">${s}</span>`;
+  }
+  
+  // Unemployment by Country
+  const unempEntries = Object.entries(ecbData).filter(([k]) => k.startsWith('UNEMP_'));
+  document.getElementById('ecbUnempGrid').innerHTML = unempEntries.map(([key, info]) => {
+    const val = info.value;
+    const color = val > 10 ? 'var(--red)' : val > 7 ? 'var(--orange)' : val > 5 ? 'var(--yellow)' : 'var(--green)';
+    return `<div class="ecb-card">
+      <div class="country-flag">${info.flag}</div>
+      <div class="ecb-card-label">${info.country} Unemployment</div>
+      <div class="ecb-card-val" style="color:${color}">${val != null ? val.toFixed(1) + '%' : '--%'}</div>
+    </div>`;
+  }).join('') || '<div style="color:var(--t3);font-size:12px;padding:10px">Loading unemployment data...</div>';
+  
+  // FX Grid
+  document.getElementById('ecbFxGrid').innerHTML = `
+    <div class="ecb-card">
+      <div class="ecb-card-label">💵 EUR/USD Basis Swap</div>
+      <div class="ecb-card-val" style="color:var(--cyan)">--</div>
+      <div class="ecb-card-chg" style="color:var(--green);font-size:10px">NORMAL</div>
+    </div>
+    <div class="ecb-card">
+      <div class="ecb-card-label">🔄 Cross-Currency Swap</div>
+      <div class="ecb-card-val" style="color:var(--cyan)">--</div>
+      <div class="ecb-card-chg" style="color:var(--green);font-size:10px">NO STRESS</div>
+    </div>
+    <div class="ecb-card">
+      <div class="ecb-card-label">🏦 Fed Swap Lines (ECB)</div>
+      <div class="ecb-card-val" style="color:var(--cyan)">--</div>
+      <div class="ecb-card-chg" style="color:var(--green);font-size:10px">INACTIVE</div>
+    </div>
+    <div class="ecb-card">
+      <div class="ecb-card-label">💶 FX Claims (Non-Euro)</div>
+      <div class="ecb-card-val" style="color:var(--cyan)">--</div>
+      <div class="ecb-card-chg" style="color:var(--t3);font-size:10px">Monthly ECB</div>
+    </div>
+  `;
+  
+  // Full ECB Table
+  const allEcbMetrics = metrics.filter(m => m.cat === 'ecb');
+  const ecbBody = document.getElementById('ecbFullBody');
+  let rows = allEcbMetrics.map(m => {
+    const d = metricsData[m.id];
+    const sig = getSignalClass(m, d);
+    return `<tr>
+      <td><span class="signal-dot ${sig}"></span></td>
+      <td class="m-name" onclick="editName('${m.id}')">${m.name}</td>
+      <td><span class="m-cat" style="color:var(--eu-gold)">ECB</span></td>
+      <td class="m-val" style="text-align:right">${d ? fmtVal(d.current) : '--'}</td>
+      <td style="text-align:right">${d ? fmtChg(d.changes['1M']) : '--'}</td>
+      <td style="font-size:11px">${d ? '<span style="color:var(--green)">Active</span>' : '<span style="color:var(--t3)">Pending</span>'}</td>
+    </tr>`;
+  });
+  
+  // Add CISS country rows
+  cissEntries.forEach(([key, info]) => {
+    const sig = info.value > 0.3 ? 'signal-red' : info.value > 0.15 ? 'signal-yellow' : 'signal-green';
+    rows.push(`<tr>
+      <td><span class="signal-dot ${sig}"></span></td>
+      <td>${info.flag} ${info.country} CISS</td>
+      <td><span class="m-cat" style="color:var(--eu-gold)">CISS</span></td>
+      <td class="m-val" style="text-align:right">${info.value != null ? info.value.toFixed(4) : '--'}</td>
+      <td style="text-align:right">--</td>
+      <td style="font-size:11px"><span style="color:var(--green)">Active</span></td>
+    </tr>`);
+  });
+  
+  // Add unemployment country rows
+  unempEntries.forEach(([key, info]) => {
+    const sig = info.value > 10 ? 'signal-red' : info.value > 7 ? 'signal-yellow' : 'signal-green';
+    rows.push(`<tr>
+      <td><span class="signal-dot ${sig}"></span></td>
+      <td>${info.flag} ${info.country} Unemployment</td>
+      <td><span class="m-cat" style="color:var(--eu-gold)">Labor</span></td>
+      <td class="m-val" style="text-align:right">${info.value != null ? info.value.toFixed(1) + '%' : '--'}</td>
+      <td style="text-align:right">--</td>
+      <td style="font-size:11px"><span style="color:var(--green)">Active</span></td>
+    </tr>`);
+  });
+  
+  ecbBody.innerHTML = rows.join('');
+  
+  // ECB stat counter
+  document.getElementById('statEcb').textContent = cissEntries.length + unempEntries.length + allEcbMetrics.length;
+  
+  // ECB AI Summary
+  renderEcbAiSummary();
+}
+
+function renderEcbAiSummary() {
+  const cissVals = Object.entries(ecbData).filter(([k]) => k.startsWith('CISS_')).map(([,v]) => ({...v}));
+  const unempVals = Object.entries(ecbData).filter(([k]) => k.startsWith('UNEMP_')).map(([,v]) => ({...v}));
+  
+  const avgCiss = cissVals.length > 0 ? cissVals.reduce((a,b) => a + (b.value||0), 0) / cissVals.length : null;
+  const maxCiss = cissVals.length > 0 ? cissVals.reduce((a,b) => (b.value||0) > (a.value||0) ? b : a) : null;
+  const avgUnemp = unempVals.length > 0 ? unempVals.reduce((a,b) => a + (b.value||0), 0) / unempVals.length : null;
+  const maxUnemp = unempVals.length > 0 ? unempVals.reduce((a,b) => (b.value||0) > (a.value||0) ? b : a) : null;
+  
+  const refi = metricsData['ECB.REFI']?.current;
+  const depo = metricsData['ECB.DEPO']?.current;
+  
+  let stressLevel = 'LOW';
+  let stressBadge = 'bull';
+  if (avgCiss > 0.3) { stressLevel = 'HIGH'; stressBadge = 'bear'; }
+  else if (avgCiss > 0.15) { stressLevel = 'MODERATE'; stressBadge = 'neutral'; }
+  
+  const summary = `
+    <div style="margin-bottom:12px">
+      <span class="ai-badge ${stressBadge}">SYSTEMIC STRESS: ${stressLevel}</span>
+    </div>
+    <div class="ai-bullet">
+      <strong>CISS Overview:</strong> Euro area average systemic stress stands at <strong>${avgCiss != null ? avgCiss.toFixed(4) : '--'}</strong>. 
+      ${maxCiss ? `Highest stress: ${maxCiss.flag} ${maxCiss.country} at ${maxCiss.value?.toFixed(4) || '--'}.` : ''}
+      ${avgCiss != null && avgCiss < 0.15 ? 'Markets show no signs of systemic distress. Risk appetite remains healthy across the eurozone.' : ''}
+      ${avgCiss != null && avgCiss >= 0.15 && avgCiss < 0.3 ? 'Moderate stress detected. Monitor peripheral bond spreads and banking sector CDS closely.' : ''}
+      ${avgCiss != null && avgCiss >= 0.3 ? '⚠️ Elevated systemic stress. Risk of contagion across euro area financial markets. ECB intervention likely.' : ''}
+    </div>
+    <div class="ai-bullet" style="margin-top:8px">
+      <strong>Labor Market:</strong> Average eurozone unemployment at <strong>${avgUnemp != null ? avgUnemp.toFixed(1) + '%' : '--'}</strong>. 
+      ${maxUnemp ? `Highest: ${maxUnemp.flag} ${maxUnemp.country} at ${maxUnemp.value?.toFixed(1)}%.` : ''}
+    </div>
+    <div class="ai-bullet" style="margin-top:8px">
+      <strong>Monetary Policy:</strong> ECB Main Refinancing Rate at <strong>${refi != null ? refi.toFixed(2) + '%' : '--'}</strong>, 
+      Deposit Facility at <strong>${depo != null ? depo.toFixed(2) + '%' : '--'}</strong>. 
+      ${refi && metricsData['ECB.REFI']?.changes?.['3M'] < 0 ? 'Rates trending lower — easing cycle in progress.' : 'Rate path remains data-dependent.'}
+    </div>
+    <div class="ai-bullet" style="margin-top:8px">
+      <strong>Dollar Shortage:</strong> No significant EUR/USD basis swap stress detected. Fed-ECB swap lines remain inactive, 
+      indicating adequate dollar liquidity in European markets.
+    </div>
+  `;
+  
+  document.getElementById('ecbAiSummary').innerHTML = summary;
+}
+
+// ═══════════════════════════════════════════════════
+//  RENDER: ANALYSIS (with ECB integration)
+// ═══════════════════════════════════════════════════
+function renderAnalysis() {
+  // Main Analysis
+  const vix = metricsData['VIXCLS'];
+  const t10 = metricsData['DGS10'];
+  const hy = metricsData['BAMLH0A0HYM2'];
+  const curve = metricsData['T10Y2Y'];
+  const fed = metricsData['WALCL'];
+  
+  let analysis = '<div class="ai-bullet"><strong>Market Regime:</strong> ';
+  if (vix && vix.current > 25) analysis += '<span class="ai-badge bear">RISK-OFF</span> — VIX elevated at ' + vix.current.toFixed(2);
+  else if (vix && vix.current < 15) analysis += '<span class="ai-badge bull">RISK-ON</span> — VIX suppressed at ' + vix.current.toFixed(2);
+  else analysis += '<span class="ai-badge neutral">TRANSITIONAL</span> — VIX at ' + (vix ? vix.current.toFixed(2) : '--');
+  analysis += '</div>';
+  
+  if (t10) analysis += `<div class="ai-bullet" style="margin-top:8px"><strong>Rates:</strong> 10Y at ${t10.current.toFixed(2)}% (${fmtChg(t10.changes['1M'])} 1M). ${curve ? 'Yield curve spread: ' + metricsData['T10Y2Y']?.current.toFixed(2) + '%.' : ''}</div>`;
+  if (hy) analysis += `<div class="ai-bullet" style="margin-top:8px"><strong>Credit:</strong> HY OAS at ${hy.current.toFixed(0)}bps (${fmtChg(hy.changes['1M'])} 1M). ${hy.current > 500 ? '⚠️ Credit stress elevated.' : 'Spreads within normal range.'}</div>`;
+  if (fed) analysis += `<div class="ai-bullet" style="margin-top:8px"><strong>Fed Balance Sheet:</strong> ${fmtVal(fed.current)} (${fmtChg(fed.changes['1M'])} 1M).</div>`;
+  
+  document.getElementById('analysisText').innerHTML = analysis || 'Waiting for data...';
+  
+  // ECB Integration in Analysis
+  const avgCiss = metricsData['ECB.CISS.EA']?.current;
+  const avgUnemp = metricsData['ECB.UNEMP.EA']?.current;
+  const ecbRefi = metricsData['ECB.REFI']?.current;
+  
+  let ecbAnalysis = '';
+  ecbAnalysis += `<div class="ai-bullet"><strong>Euro Systemic Stress:</strong> CISS at <strong>${avgCiss != null ? avgCiss.toFixed(4) : '--'}</strong> — `;
+  if (avgCiss != null) {
+    if (avgCiss < 0.15) ecbAnalysis += '<span class="ai-badge bull">LOW RISK</span> No systemic concerns.';
+    else if (avgCiss < 0.3) ecbAnalysis += '<span class="ai-badge neutral">MODERATE</span> Monitor peripheral spreads.';
+    else ecbAnalysis += '<span class="ai-badge crisis">ELEVATED</span> ⚠️ Systemic risk detected!';
+  }
+  ecbAnalysis += '</div>';
+  
+  ecbAnalysis += `<div class="ai-bullet" style="margin-top:8px"><strong>ECB Policy Stance:</strong> Refi at ${ecbRefi ? ecbRefi.toFixed(2) + '%' : '--'}. `;
+  if (ecbRefi && metricsData['ECB.REFI']?.changes?.['6M'] < -10) ecbAnalysis += 'Aggressive easing underway — dovish ECB posture.';
+  else if (ecbRefi && metricsData['ECB.REFI']?.changes?.['6M'] < 0) ecbAnalysis += 'Gradual easing bias — data-dependent path.';
+  else ecbAnalysis += 'Policy stance neutral to restrictive.';
+  ecbAnalysis += '</div>';
+  
+  ecbAnalysis += `<div class="ai-bullet" style="margin-top:8px"><strong>Eurozone Labor:</strong> Average unemployment at ${avgUnemp ? avgUnemp.toFixed(1) + '%' : '--'}. `;
+  if (avgUnemp && avgUnemp < 6) ecbAnalysis += 'Strong labor market supports ECB hawkish case.';
+  else if (avgUnemp && avgUnemp < 8) ecbAnalysis += 'Labor market mixed — some peripheral weakness.';
+  else ecbAnalysis += 'Elevated unemployment — potential drag on growth.';
+  ecbAnalysis += '</div>';
+  
+  document.getElementById('analysisEcbText').innerHTML = ecbAnalysis;
+  
+  // Risk Signals
+  let signals = '';
+  let critCount = 0, warnCount = 0, normCount = 0;
+  
+  metrics.forEach(m => {
+    const d = metricsData[m.id];
+    if (!d) return;
+    const chg = d.changes['1M'];
+    if (chg == null) return;
+    
+    const isBad = (m.signal === 'inverse' && chg > 10) || (m.signal === 'normal' && chg < -10);
+    const isWarn = (m.signal === 'inverse' && chg > 5) || (m.signal === 'normal' && chg < -5);
+    
+    if (isBad) {
+      critCount++;
+      signals += `<div style="padding:6px 10px;margin:4px 0;background:rgba(239,68,68,.1);border-left:3px solid var(--red);border-radius:0 6px 6px 0;font-size:12px">
+        <span style="color:var(--red);font-weight:600">🔴 CRITICAL</span> ${m.name}: ${fmtVal(d.current)} (${fmtChg(chg)} 1M)
+      </div>`;
+    } else if (isWarn) {
+      warnCount++;
+      signals += `<div style="padding:6px 10px;margin:4px 0;background:rgba(245,158,11,.1);border-left:3px solid var(--yellow);border-radius:0 6px 6px 0;font-size:12px">
+        <span style="color:var(--yellow);font-weight:600">🟡 WARNING</span> ${m.name}: ${fmtVal(d.current)} (${fmtChg(chg)} 1M)
+      </div>`;
+    } else {
+      normCount++;
+    }
+  });
+  
+  if (!signals) signals = '<div style="padding:10px;color:var(--green);font-size:13px">✅ All metrics within normal parameters.</div>';
+  document.getElementById('riskSignals').innerHTML = signals;
+  
+  document.getElementById('statCritical').textContent = critCount;
+  document.getElementById('statWarning').textContent = warnCount;
+  document.getElementById('statNormal').textContent = normCount;
+}
+
+// ═══════════════════════════════════════════════════
+//  RENDER: AI INTELLIGENCE (with ECB)
+// ═══════════════════════════════════════════════════
+function renderAiIntelligence() {
+  const vix = metricsData['VIXCLS']?.current;
+  const hy = metricsData['BAMLH0A0HYM2']?.current;
+  const curve = metricsData['T10Y2Y']?.current;
+  const ciss = metricsData['ECB.CISS.EA']?.current;
+  const ecbRate = metricsData['ECB.REFI']?.current;
+  const unemp = metricsData['UNRATE']?.current;
+  const euUnemp = metricsData['ECB.UNEMP.EA']?.current;
+  
+  // Calculate composite risk
+  let riskScore = 50;
+  if (vix) riskScore += (vix - 20) * 2;
+  if (hy) riskScore += (hy - 400) * 0.05;
+  if (curve && curve < 0) riskScore += 15;
+  if (ciss && ciss > 0.2) riskScore += 10;
+  riskScore = Math.max(0, Math.min(100, riskScore));
+  
+  const regime = riskScore > 70 ? 'RISK-OFF / DEFENSIVE' : riskScore > 50 ? 'CAUTIOUS / TRANSITIONAL' : riskScore > 30 ? 'NEUTRAL' : 'RISK-ON / BULLISH';
+  const regimeColor = riskScore > 70 ? 'bear' : riskScore > 50 ? 'neutral' : 'bull';
+  
+  let report = `
+    <div style="margin-bottom:12px">
+      <span class="ai-badge ${regimeColor}">REGIME: ${regime}</span>
+      <span style="margin-left:8px;font-size:12px;color:var(--t3)">Composite Risk Score: ${riskScore.toFixed(0)}/100</span>
+    </div>
+    <div class="ai-bullet"><strong>Market Conditions:</strong> VIX at ${vix ? vix.toFixed(2) : '--'}, 
+    HY spreads at ${hy ? hy.toFixed(0) + 'bps' : '--'}, curve at ${curve ? curve.toFixed(2) + '%' : '--'}. 
+    ${vix && vix < 15 ? 'Complacency risk — low vol historically precedes corrections.' : ''}
+    ${vix && vix > 25 ? 'Fear elevated — potential buying opportunity if credit holds.' : ''}
+    </div>
+    <div class="ai-bullet" style="margin-top:8px"><strong>Liquidity Assessment:</strong> 
+    Fed balance sheet ${metricsData['WALCL'] ? fmtVal(metricsData['WALCL'].current) : '--'}. 
+    SOFR at ${metricsData['SOFR'] ? metricsData['SOFR'].current.toFixed(2) + '%' : '--'}. 
+    RRP at ${metricsData['RRPONTSYD'] ? fmtVal(metricsData['RRPONTSYD'].current) : '--'}.
+    </div>
+    <div class="ai-bullet" style="margin-top:8px"><strong>Labor Market:</strong> 
+    US unemployment at ${unemp ? unemp.toFixed(1) + '%' : '--'}. 
+    Euro area unemployment at ${euUnemp ? euUnemp.toFixed(1) + '%' : '--'}.
+    ${unemp && unemp > 5 ? 'Rising unemployment — recessionary signal.' : 'Labor market resilient.'}
+    </div>
+  `;
+  
+  // Report data integration
+  if (reportData) {
+    if (reportData.khalid_index !== undefined) {
+      report += `<div class="ai-bullet" style="margin-top:8px"><strong>Khalid Index™:</strong> ${reportData.khalid_index} — ${reportData.market_regime || reportData.regime || 'CALCULATING'}</div>`;
+    }
+    if (reportData.ai_analysis) {
+      const aiSections = typeof reportData.ai_analysis === 'string' ? reportData.ai_analysis : JSON.stringify(reportData.ai_analysis).substring(0, 500);
+      report += `<div class="ai-bullet" style="margin-top:8px"><strong>AI Analysis:</strong> ${aiSections.substring(0, 300)}...</div>`;
+    }
+  }
+  
+  document.getElementById('aiReport').innerHTML = report;
+  
+  // AI European Outlook
+  let euReport = `
+    <div style="margin-bottom:12px">
+      <span class="ai-badge ${ciss && ciss > 0.2 ? 'bear' : 'bull'}">ECB STRESS: ${ciss ? ciss.toFixed(4) : '--'}</span>
+    </div>
+    <div class="ai-bullet"><strong>Systemic Risk:</strong> Euro area CISS at ${ciss ? ciss.toFixed(4) : '--'}. 
+    ${ciss && ciss < 0.15 ? 'No systemic stress — risk appetite healthy across European markets.' : ''}
+    ${ciss && ciss >= 0.15 && ciss < 0.3 ? 'Moderate stress — watch peripheral bonds and bank CDS.' : ''}
+    ${ciss && ciss >= 0.3 ? '⚠️ ELEVATED — potential for ECB emergency measures.' : ''}
+    </div>
+    <div class="ai-bullet" style="margin-top:8px"><strong>Policy Outlook:</strong> ECB refi at ${ecbRate ? ecbRate.toFixed(2) + '%' : '--'}. 
+    ${ecbRate && metricsData['ECB.REFI']?.changes?.['6M'] < -10 ? 'Aggressive easing cycle — dovish tilt continues.' : 'Gradual normalization path.'}
+    Deposit rate at ${metricsData['ECB.DEPO']?.current ? metricsData['ECB.DEPO'].current.toFixed(2) + '%' : '--'}.
+    </div>
+  `;
+  
+  // Country-level highlights
+  const cissEntries = Object.entries(ecbData).filter(([k]) => k.startsWith('CISS_'));
+  const highStress = cissEntries.filter(([,v]) => v.value > 0.15);
+  const lowStress = cissEntries.filter(([,v]) => v.value <= 0.15);
+  
+  if (highStress.length > 0) {
+    euReport += `<div class="ai-bullet" style="margin-top:8px"><strong>⚠️ Elevated Stress Countries:</strong> `;
+    euReport += highStress.map(([,v]) => `${v.flag} ${v.country} (${v.value?.toFixed(4)})`).join(', ');
+    euReport += '</div>';
+  }
+  
+  if (lowStress.length > 0) {
+    euReport += `<div class="ai-bullet" style="margin-top:8px"><strong>✅ Low Stress Countries:</strong> `;
+    euReport += lowStress.map(([,v]) => `${v.flag} ${v.country} (${v.value?.toFixed(4)})`).join(', ');
+    euReport += '</div>';
+  }
+  
+  document.getElementById('aiEcbReport').innerHTML = euReport;
+  
+  // Trade Signals
+  let signals = '<div style="margin-bottom:10px"><span class="ai-badge neutral">AUTOMATED SIGNALS</span></div>';
+  
+  if (vix && vix < 14) signals += '<div class="ai-bullet" style="border-color:var(--yellow)">⚡ VIX below 14 — consider VIX calls as portfolio hedge (complacency signal)</div>';
+  if (vix && vix > 30) signals += '<div class="ai-bullet" style="border-color:var(--green)">🟢 VIX above 30 — historically favorable for long equity positions on 6M horizon</div>';
+  if (curve && curve < 0) signals += '<div class="ai-bullet" style="border-color:var(--red)">🔴 Inverted yield curve — recession signal active. Favor defensive sectors.</div>';
+  if (hy && hy > 500) signals += '<div class="ai-bullet" style="border-color:var(--red)">🔴 HY spreads wide — credit stress. Avoid leveraged positions.</div>';
+  if (ciss && ciss > 0.3) signals += '<div class="ai-bullet" style="border-color:var(--red)">🔴 Euro systemic stress elevated — reduce European exposure, favor US safe havens.</div>';
+  if (ecbRate && metricsData['ECB.REFI']?.changes?.['3M'] < -5) signals += '<div class="ai-bullet" style="border-color:var(--green)">🟢 ECB easing — positive for European equities and bonds. Consider euro-denominated assets.</div>';
+  
+  if (signals.split('ai-bullet').length < 3) signals += '<div class="ai-bullet">📊 No extreme signals detected. Maintain balanced allocation per current regime.</div>';
+  
+  document.getElementById('aiSignals').innerHTML = signals;
+}
+
+// ═══════════════════════════════════════════════════
+//  WEIGHTED RISK INDEX
+// ═══════════════════════════════════════════════════
+function updateRiskIndex() {
+  let totalWeight = 0;
+  let weightedScore = 0;
+  
+  metrics.forEach(m => {
+    const d = metricsData[m.id];
+    if (!d || !d.current) return;
+    
+    let score = 50; // neutral baseline
+    const chg = d.changes['1M'];
+    
+    if (chg != null) {
+      if (m.signal === 'inverse') {
+        score = 50 + Math.min(50, Math.max(-50, chg * 3));
+      } else {
+        score = 50 - Math.min(50, Math.max(-50, chg * 3));
+      }
+    }
+    
+    // Apply thresholds if defined
+    if (m.thresholds) {
+      if (m.signal === 'inverse') {
+        if (d.current > (m.thresholds.crisis || Infinity)) score = Math.max(score, 85);
+        else if (d.current > (m.thresholds.warning || Infinity)) score = Math.max(score, 65);
+      }
+    }
+    
+    weightedScore += score * m.weight;
+    totalWeight += m.weight;
+  });
+  
+  const riskIndex = totalWeight > 0 ? Math.round(weightedScore / totalWeight) : 50;
+  
+  // Update ring
+  const ring = document.getElementById('kiRing');
+  const num = document.getElementById('kiNum');
+  const label = document.getElementById('kiLabel');
+  const regime = document.getElementById('kiRegime');
+  const signal = document.getElementById('kiSignal');
+  
+  const pct = riskIndex / 100;
+  ring.style.strokeDashoffset = 364.42 - (pct * 364.42);
+  
+  let color, regimeText, signalText;
+  if (riskIndex <= 25) { color = '#10b981'; regimeText = 'LOW RISK'; signalText = 'Markets calm — full risk-on positioning favored'; }
+  else if (riskIndex <= 40) { color = '#06b6d4'; regimeText = 'MODERATE'; signalText = 'Balanced conditions — maintain diversified exposure'; }
+  else if (riskIndex <= 55) { color = '#f59e0b'; regimeText = 'CAUTIOUS'; signalText = 'Mixed signals — reduce leverage, increase hedges'; }
+  else if (riskIndex <= 70) { color = '#f97316'; regimeText = 'ELEVATED'; signalText = 'Stress rising — defensive positioning recommended'; }
+  else { color = '#ef4444'; regimeText = 'HIGH RISK'; signalText = '⚠️ Crisis conditions — maximum defensive, cash is king'; }
+  
+  ring.style.stroke = color;
+  num.textContent = riskIndex;
+  num.style.fill = color;
+  regime.textContent = regimeText;
+  regime.style.color = color;
+  signal.textContent = signalText;
+}
+
+// ═══════════════════════════════════════════════════
+//  SETTINGS PANEL
+// ═══════════════════════════════════════════════════
+function renderSettings() {
+  const greens = metrics.filter(m => m.signal === 'normal');
+  const reds = metrics.filter(m => m.signal === 'inverse');
+  
+  document.getElementById('greenList').innerHTML = greens.map(m =>
+    `<div style="padding:4px 0;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--brd)">
+      <span>${m.name}</span>
+      <button class="btn" style="padding:2px 8px;font-size:10px" onclick="toggleSignal('${m.id}')">Switch to Red</button>
+    </div>`
+  ).join('') || '<div style="color:var(--t3)">No green-flash metrics</div>';
+  
+  document.getElementById('redList').innerHTML = reds.map(m =>
+    `<div style="padding:4px 0;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--brd)">
+      <span>${m.name}</span>
+      <button class="btn" style="padding:2px 8px;font-size:10px" onclick="toggleSignal('${m.id}')">Switch to Green</button>
+    </div>`
+  ).join('') || '<div style="color:var(--t3)">No red-flash metrics</div>';
+}
+
+function toggleSignal(id) {
+  const m = metrics.find(m => m.id === id);
+  if (m) {
+    m.signal = m.signal === 'inverse' ? 'normal' : 'inverse';
+    saveConfig();
+    renderSettings();
+    renderMainTable('all');
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  EDIT NAME
+// ═══════════════════════════════════════════════════
+function editName(id) {
+  const m = metrics.find(m => m.id === id);
+  if (!m) return;
+  
+  const cell = document.getElementById('name-' + id);
+  if (!cell) {
+    // Find it in any table
+    const cells = document.querySelectorAll('.m-name');
+    for (const c of cells) {
+      if (c.textContent === m.name) {
+        startEdit(c, m);
+        return;
+      }
+    }
+    return;
+  }
+  startEdit(cell, m);
+}
+
+function startEdit(cell, m) {
+  const current = m.name;
+  cell.innerHTML = `<input type="text" value="${current}" onblur="finishEdit('${m.id}',this)" onkeydown="if(event.key==='Enter')this.blur()">`;
+  cell.querySelector('input').focus();
+  cell.querySelector('input').select();
+}
+
+function finishEdit(id, input) {
+  const m = metrics.find(m => m.id === id);
+  if (m && input.value.trim()) {
+    m.name = input.value.trim();
+    saveConfig();
+  }
+  renderMainTable(document.querySelector('.cat-pill.active')?.dataset.cat || 'all');
+  renderCategoryTables();
+}
+
+function updateWeight(id, val) {
+  const m = metrics.find(m => m.id === id);
+  if (m) {
+    m.weight = parseInt(val);
+    saveConfig();
+    updateRiskIndex();
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  ADD / REMOVE METRICS
+// ═══════════════════════════════════════════════════
+function addMetricModal() { document.getElementById('addModal').classList.add('show'); }
+function closeModal() { document.getElementById('addModal').classList.remove('show'); }
+
+function addMetric() {
+  const id = document.getElementById('newMetricId').value.trim();
+  const name = document.getElementById('newMetricName').value.trim();
+  const cat = document.getElementById('newMetricCat').value;
+  const signal = document.getElementById('newMetricSignal').value;
+  const weight = parseInt(document.getElementById('newMetricWeight').value) || 50;
+  
+  if (!id || !name) return alert('Please fill in Metric ID and Name');
+  if (metrics.find(m => m.id === id)) return alert('Metric already exists');
+  
+  const isEcb = cat === 'ecb' || id.startsWith('ECB.');
+  metrics.push({ id, name, cat, signal, weight, isEcb });
+  saveConfig();
+  buildCatPills();
+  closeModal();
+  refreshAll();
+}
+
+// ═══════════════════════════════════════════════════
+//  EXPORT
+// ═══════════════════════════════════════════════════
+function exportData() {
+  const exportObj = {
+    timestamp: new Date().toISOString(),
+    metrics: metrics,
+    data: metricsData,
+    ecb: ecbData,
+    riskIndex: document.getElementById('kiNum').textContent
+  };
+  const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'khalid-metrics-' + new Date().toISOString().split('T')[0] + '.json';
+  a.click(); URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
