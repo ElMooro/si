@@ -95,7 +95,7 @@ def calc_macd(closes, fast=12, slow=26, signal=9):
         else:
             macd_line.append(None)
     valid = [v for v in macd_line if v is not None]
-    if len(valid) < signal: return None, None, None
+    if len(valid) < signal: return None, None, None, 'NONE'
     sig_line = calc_ema(valid, signal)
     cur_macd = valid[-1]
     cur_sig = sig_line[-1] if sig_line else None
@@ -105,7 +105,7 @@ def calc_macd(closes, fast=12, slow=26, signal=9):
     return round(cur_macd, 6), round(cur_sig, 6) if cur_sig else None, histogram, cross if cross else 'NONE'
 
 def calc_bollinger(closes, period=20, std_mult=2):
-    if len(closes) < period: return None, None, None, None
+    if len(closes) < period: return None, None, None, None, None
     sma = sum(closes[-period:]) / period
     std = statistics.stdev(closes[-period:])
     upper = sma + std_mult * std
@@ -581,18 +581,57 @@ def generate_ai_intelligence(results, technicals):
     
     print("  🤖 Generating AI Intelligence via Claude...")
     
-    # Build comprehensive prompt with ALL data
+    # Pull from ENTIRE system — main terminal + repo + predictions
+    system_data = {}
+    for key, filename in [('terminal', 'data.json'), ('repo', 'repo-data.json'), ('predictions', 'predictions.json')]:
+        try:
+            obj = s3.get_object(Bucket=S3_BUCKET, Key=filename)
+            system_data[key] = json.loads(obj['Body'].read().decode())
+            print(f"    ✅ Loaded {filename}")
+        except:
+            print(f"    ⚠️ Could not load {filename}")
+    
+    # Extract key terminal data
+    term = system_data.get('terminal', {})
+    ki = term.get('khalid_index', term.get('ki', '?'))
+    regime = term.get('regime', '?')
+    dxy = term.get('dxy', '?')
+    vix = term.get('vix', term.get('stats', {}).get('vix', '?'))
+    hy_spread = term.get('hy_spread', '?')
+    risk_composite = term.get('risk_composite', '?')
+    
+    # Extract stock signals
+    stocks = term.get('stocks', {})
+    stock_summary = ""
+    if isinstance(stocks, dict):
+        buys = [s for s in stocks.values() if isinstance(s, dict) and s.get('signal') == 'BUY']
+        sells = [s for s in stocks.values() if isinstance(s, dict) and s.get('signal') == 'SELL']
+        stock_summary = f"Stock signals: {len(buys)} BUYs, {len(sells)} SELLs out of {len(stocks)} tracked"
+    
+    # Extract repo/plumbing data
+    repo = system_data.get('repo', {})
+    sofr = repo.get('metrics', {}).get('SOFR', {}).get('value', '?')
+    rrp = repo.get('metrics', {}).get('RRP', {}).get('value', '?')
+    plumbing_stress = repo.get('plumbing_score', repo.get('score', '?'))
+    
+    # Extract ML predictions
+    preds = system_data.get('predictions', {})
+    ml_regime = preds.get('macro_regime', preds.get('regime', '?'))
+    ml_risk = preds.get('risk_score', '?')
+    
+    # Build technical summary
     tech_summary = []
     coins_data = technicals.get('coins', {})
     for coin, data in coins_data.items():
-        line = f"\n=== {coin} (${data.get('price', 0):,.4f}) | Multi-TF Consensus: {data.get('consensus', '?')} ==="
+        line = f"\n=== {coin} (${data.get('price', 0):,.6f}) | Consensus: {data.get('consensus', '?')} ==="
         for tf_key, tf_data in data.get('timeframes', {}).items():
             if tf_data.get('status') != 'ok': continue
             ind = tf_data.get('indicators', {})
-            line += f"\n  [{tf_key}] RSI:{ind.get('rsi','?')} | MACD:{ind.get('macd',{}).get('cross','?')} | EMA:{ind.get('ema',{}).get('trend','?')} | SuperT:{ind.get('supertrend',{}).get('trend','?')} | BB%:{ind.get('bollinger',{}).get('position','?')} | Score:{tf_data.get('score','?')}/100 ({tf_data.get('bias','?')})"
+            line += f"\n  [{tf_key}] RSI:{ind.get('rsi','?')} MACD:{ind.get('macd',{}).get('cross','?')} EMA:{ind.get('ema',{}).get('trend','?')} SuperT:{ind.get('supertrend',{}).get('trend','?')} BB%:{ind.get('bollinger',{}).get('position','?')} Score:{tf_data.get('score','?')}/100"
+            if ind.get('ema',{}).get('cross_signal'): line += f" ⚡{ind['ema']['cross_signal']}"
             patterns = tf_data.get('patterns', [])
             if patterns:
-                line += f"\n  Patterns: {', '.join(p['type'] + '(' + p['bias'] + ')' for p in patterns)}"
+                line += f"\n  PATTERNS: {', '.join(p['type']+'('+p['bias']+','+p.get('confidence','?')+')' for p in patterns)}"
         tech_summary.append(line)
     
     risk = results.get('risk_score', {})
@@ -605,62 +644,88 @@ def generate_ai_intelligence(results, technicals):
     whales = results.get('whale_txs', {})
     eth_gas = results.get('eth_gas', {})
     
-    prompt = f"""You are an elite crypto quantitative analyst at a $10B hedge fund. Analyze this REAL-TIME data and produce an institutional-grade intelligence report.
+    prompt = f"""You are an elite crypto quantitative analyst at a $10B hedge fund with access to the COMPLETE JustHodl.AI terminal data. Analyze ALL data and produce an institutional-grade intelligence report with specific predictions.
 
-═══ MARKET STATE ═══
-Risk Score: {risk.get('score', '?')}/100 ({risk.get('regime', '?')})
-Fear & Greed: {fg.get('current', '?')} ({fg.get('label', '?')}) | 7D Avg: {fg.get('avg_7d', '?')} | 30D Avg: {fg.get('avg_30d', '?')}
+═══ MACRO SYSTEM (from main terminal) ═══
+Khalid Index: {ki}/100 | Regime: {regime}
+DXY (Dollar): {dxy} | VIX: {vix} | HY Spread: {hy_spread}
+Risk Composite: {risk_composite}
+{stock_summary}
+SOFR: {sofr}% | RRP: {rrp} | Plumbing Stress: {plumbing_stress}
+ML Regime: {ml_regime} | ML Risk: {ml_risk}
+
+═══ CRYPTO MARKET STATE ═══
+Crypto Risk Score: {risk.get('score', '?')}/100 ({risk.get('regime', '?')})
+Fear & Greed: {fg.get('current', '?')} ({fg.get('label', '?')}) | 7D: {fg.get('avg_7d', '?')} | 30D: {fg.get('avg_30d', '?')}
 Total Crypto MCap: {global_m.get('total_mcap_fmt', '?')} ({global_m.get('mcap_change_24h', '?')}% 24h)
 BTC Dominance: {global_m.get('btc_dominance', '?')}% | ETH: {global_m.get('eth_dominance', '?')}%
+DeFi TVL: {tvl.get('total_tvl_fmt', '?')}
+DeFi TVL 24h change: check protocol changes
 
 ═══ DERIVATIVES ═══
 Avg Funding: {funding.get('avg_funding', '?')}% | Sentiment: {funding.get('leverage_sentiment', '?')}
 Long/Short: {funding.get('positive_count', '?')}/{funding.get('negative_count', '?')}
 
 ═══ STABLECOINS ═══
-Total Supply: {stables.get('total_mcap_fmt', '?')} | Net Signal: {stables.get('net_signal', '?')}
+Total: {stables.get('total_mcap_fmt', '?')} | Flow: {stables.get('net_signal', '?')}
 Minting: {stables.get('minting_count', 0)} | Burning: {stables.get('burning_count', 0)}
 
-═══ DeFi ═══
-Total TVL: {tvl.get('total_tvl_fmt', '?')}
-
 ═══ ON-CHAIN ═══
-MVRV Approx: {onchain.get('mvrv_approx', '?')} ({onchain.get('signal', '?')}) | 30D Momentum: {onchain.get('momentum_30d', '?')}%
-Whale Transactions (100+ BTC): {whales.get('whale_count', '?')} | Total: {whales.get('total_whale_btc', '?')} BTC
-ETH Gas: Low {eth_gas.get('low', '?')} | Standard {eth_gas.get('standard', '?')} | Fast {eth_gas.get('fast', '?')} gwei
+MVRV: {onchain.get('mvrv_approx', '?')} ({onchain.get('signal', '?')}) | 30D Momentum: {onchain.get('momentum_30d', '?')}%
+Whale TXs (100+ BTC): {whales.get('whale_count', '?')} totaling {whales.get('total_whale_btc', '?')} BTC
+ETH Gas: {eth_gas.get('low', '?')}/{eth_gas.get('standard', '?')}/{eth_gas.get('fast', '?')} gwei
 
-═══ TECHNICAL ANALYSIS (Multi-Timeframe) ═══
+═══ TECHNICAL ANALYSIS ═══
 {''.join(tech_summary)}
 
-═══ YOUR ANALYSIS ═══
-Provide exactly this structure:
+═══ INSTRUCTIONS ═══
+Produce this EXACT structure:
 
-1. **MARKET REGIME** (1-2 sentences: what phase are we in?)
-2. **RISK ASSESSMENT** (score 1-10, key risks)
-3. **BTC OUTLOOK** (bullish/bearish case with price levels)
-4. **ETH OUTLOOK** (bullish/bearish case with price levels)
-5. **ALTCOIN PICKS** (which targets look best and why, with entry zones)
-6. **PATTERN ALERTS** (any detected patterns that demand attention)
-7. **WHALE & FLOW SIGNALS** (what smart money is doing)
-8. **TRADE SETUPS** (3 specific trades with entry, stop, target, R:R)
-9. **RISK WARNINGS** (what could go wrong in next 24-72h)
-10. **CONVICTION CALL** (your single highest-conviction view)
+**1. WYCKOFF PHASE ANALYSIS**
+For EACH coin (BTC, ETH, PEPE, DOGE, POL), identify current Wyckoff phase:
+- ACCUMULATION (smart money buying, price flat/bottoming)
+- MARKUP/EXPANSION (breakout, trending up)
+- DISTRIBUTION (smart money selling, price topping)
+- MARKDOWN/DECLINE (breakdown, trending down)
+State which phase with confidence % and what evidence supports it.
 
-Be specific with numbers. No hedging. Give actionable intelligence."""
+**2. MACRO → CRYPTO IMPACT**
+How does the Khalid Index at {ki}, DXY at {dxy}, VIX at {vix}, and current liquidity conditions specifically affect crypto? Give direction and magnitude.
+
+**3. PUMP OR DUMP PREDICTIONS**
+For each target coin, predict:
+- Direction: PUMP ↑ or DUMP ↓
+- Magnitude: expected % move in 24h, 7d, 30d
+- Probability: confidence level
+- Key levels: support and resistance
+
+**4. ACCUMULATION ZONES**
+Where should you BUY? Give exact price ranges for each coin.
+
+**5. RISK WARNINGS**
+Top 3 risks that could crash crypto in next 72h. Include probability.
+
+**6. HIGHEST CONVICTION TRADES**
+3 specific trades with EXACT entry, stop-loss, take-profit, R:R ratio.
+
+**7. PORTFOLIO ALLOCATION**
+Optimal allocation across BTC/ETH/PEPE/DOGE/POL/CASH right now with % weights.
+
+Be extremely specific. Use numbers. No hedging. This is a $10B fund — act like it."""
 
     resp = http_post("https://api.anthropic.com/v1/messages", {
         'model': 'claude-sonnet-4-20250514',
-        'max_tokens': 2000,
+        'max_tokens': 3000,
         'messages': [{'role': 'user', 'content': prompt}]
     }, {
         'Content-Type': 'application/json',
         'x-api-key': ANTHROPIC_API_KEY,
         'anthropic-version': '2023-06-01'
-    }, timeout=45)
+    }, timeout=60)
     
     if resp and 'content' in resp:
         text = resp['content'][0].get('text', '')
-        return {'status': 'ok', 'analysis': text, 'model': 'claude-sonnet-4-20250514', 'generated_at': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')}
+        return {'status': 'ok', 'analysis': text, 'model': 'claude-sonnet-4-20250514', 'generated_at': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'), 'system_sources': list(system_data.keys())}
     return {'status': 'error', 'error': 'Claude API failed'}
 
 # ════════════════════════════════════════════════════════════════
