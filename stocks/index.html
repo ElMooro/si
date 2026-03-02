@@ -33,6 +33,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--t1);min-h
 .section-title{display:flex;align-items:center;gap:10px;margin:24px 0 16px;padding-bottom:8px;border-bottom:1px solid var(--bdr)}
 .section-title h2{font-size:16px;font-weight:700}
 .section-title .count{font-size:11px;font-weight:600;background:var(--bdr);color:var(--t2);padding:2px 8px;border-radius:10px}
+.dcf-warn{font-size:11px;color:var(--org);margin-left:auto;font-style:italic}
 .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px}
 .stat-card{background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:16px 20px;transition:border-color .2s}
 .stat-card:hover{border-color:var(--bdr2)}
@@ -76,6 +77,7 @@ tbody td{padding:10px 14px;white-space:nowrap}
 .back-link:hover{color:var(--cyn)}
 .upside-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600}
 .u-hi{background:#00e67620;color:var(--grn)}.u-md{background:#ffd74020;color:var(--gld)}.u-lo{background:#ff525220;color:var(--red)}
+.u-cap{background:#ff910020;color:var(--org)}
 .error-state{text-align:center;padding:60px 20px;color:var(--t2)}.error-state h3{color:var(--red);margin-bottom:8px}
 ::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:0 0}::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:3px}
 @media(max-width:768px){.header{padding:16px}.nav-tabs,.main{padding-left:16px;padding-right:16px}.picks-grid{grid-template-columns:1fr}.stats-row{grid-template-columns:1fr 1fr}table{font-size:12px}tbody td,thead th{padding:8px 10px}}
@@ -99,7 +101,7 @@ tbody td{padding:10px 14px;white-space:nowrap}
 <div class="stats-row" id="overviewStats"></div>
 <div class="section-title"><h2>🏆 Top Composite Growth</h2><span class="count" id="cC">—</span></div>
 <div class="picks-grid" id="topCC"></div>
-<div class="section-title"><h2>💎 Most Undervalued (DCF)</h2><span class="count" id="uC">—</span></div>
+<div class="section-title"><h2>💎 Most Undervalued (DCF)</h2><span class="count" id="uC">—</span><span class="dcf-warn">DCF estimates capped at 300% — verify independently</span></div>
 <div class="picks-grid" id="topUC"></div>
 <div class="section-title"><h2>💰 Top Dividends</h2><span class="count" id="dC">—</span></div>
 <div class="picks-grid" id="topDC"></div>
@@ -117,7 +119,7 @@ tbody td{padding:10px 14px;white-space:nowrap}
 </div>
 <div class="tab-content" id="tab-valuations">
 <div class="stats-row" id="vStats"></div>
-<div class="section-title"><h2>🎯 Most Undervalued by DCF</h2><span class="count" id="vC">—</span></div>
+<div class="section-title"><h2>🎯 Most Undervalued by DCF</h2><span class="count" id="vC">—</span><span class="dcf-warn">DCF estimates from FMP model — verify independently</span></div>
 <div class="table-wrap"><div class="table-controls">
 <input type="text" id="vSearch" placeholder="Search..." oninput="filt('vT',this.value)">
 <select id="vSec" onchange="filtS('vT',this.value)"><option value="">All Sectors</option></select>
@@ -152,63 +154,65 @@ tbody td{padding:10px 14px;white-space:nowrap}
 <script>
 const DURL='https://justhodl-dashboard-live.s3.amazonaws.com/stock-picks-data.json';
 let D=null;
+const UPSIDE_CAP=300;
 function sc(s){if(!s)return's-def';const m={Technology:'s-tech','Financial Services':'s-fin',Healthcare:'s-health',Energy:'s-energy','Real Estate':'s-real',Utilities:'s-util','Consumer Cyclical':'s-cons','Consumer Defensive':'s-def',Industrials:'s-ind','Communication Services':'s-comm','Basic Materials':'s-basic'};return m[s]||'s-def'}
-function f(v,d=2){return v==null||isNaN(v)?'—':Number(v).toFixed(d)}
-function fp(v){if(v==null||isNaN(v))return'—';const n=Number(v);return`<span class="${n>=0?'positive':'negative'}">${n>=0?'+':''}${n.toFixed(1)}%</span>`}
+function f(v,d){if(d===undefined)d=2;return v==null||isNaN(v)?'—':Number(v).toFixed(d)}
+function fp(v){if(v==null||isNaN(v))return'—';var n=Number(v);return'<span class="'+(n>=0?'positive':'negative')+'">'+(n>=0?'+':'')+n.toFixed(1)+'%</span>'}
 function f$(v){return v?'$'+Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—'}
-function fsc(v){if(!v)return'—';const w=Math.min(Math.abs(Number(v))/30,80);return`<span class="mono">${f(v,1)}</span><span class="score-bar" style="width:${w}px"></span>`}
-function ub(v){if(!v||v<=0)return'<span class="upside-badge u-lo">'+f(v,1)+'%</span>';if(v>300)return'<span class="upside-badge u-hi" title="DCF model output - use caution">+300%+</span>';if(v>100)return'<span class="upside-badge u-hi">+'+f(v,1)+'%</span>';if(v>30)return'<span class="upside-badge u-md">+'+f(v,1)+'%</span>';return'<span class="upside-badge u-lo">+'+f(v,1)+'%</span>'}%</span>`;if(v>100)return`<span class="upside-badge u-hi">+${f(v,1)}%</span>`;if(v>30)return`<span class="upside-badge u-md">+${f(v,1)}%</span>`;return`<span class="upside-badge u-lo">+${f(v,1)}%</span>`}
-document.querySelectorAll('.nav-tab').forEach(t=>{t.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.tab-content').forEach(x=>x.classList.remove('active'));t.classList.add('active');document.getElementById('tab-'+t.dataset.tab).classList.add('active')})});
-async function loadData(){try{const r=await fetch(DURL+'?t='+Date.now());if(!r.ok)throw new Error('HTTP '+r.status);D=await r.json();renderAll()}catch(e){console.error(e);document.getElementById('loading').classList.add('hide');document.querySelector('.main').innerHTML=`<div class="error-state"><h3>Data Not Available</h3><p>${e.message}</p></div>`}}
-function card(s,i,metrics){return`<div class="pick-card"><div class="rank">#${i+1}</div><div class="pc-header"><div><div class="pc-sym">${s.symbol}</div><div class="pc-name">${s.name}</div><span class="sector-badge ${sc(s.sector)}">${s.sector||'—'}</span></div><div class="pc-price">${f$(s.price)}</div></div><div class="pc-metrics">${metrics}</div></div>`}
-function met(l,v,c){return`<div class="pc-metric"><div class="pc-metric-label">${l}</div><div class="pc-metric-val"${c?' style="color:var(--'+c+')"':''}>${v}</div></div>`}
+function fsc(v){if(!v)return'—';var w=Math.min(Math.abs(Number(v))/30,80);return'<span class="mono">'+f(v,1)+'</span><span class="score-bar" style="width:'+w+'px"></span>'}
+function capUp(v){if(v==null||isNaN(v))return null;return Math.min(Number(v),UPSIDE_CAP)}
+function ub(v){if(v==null||isNaN(v)||v<=0)return'<span class="upside-badge u-lo">'+f(v,1)+'%</span>';if(v>UPSIDE_CAP)return'<span class="upside-badge u-cap" title="FMP DCF model: actual '+f(v,0)+'% - capped for display">300%+</span>';if(v>100)return'<span class="upside-badge u-hi">+'+f(v,1)+'%</span>';if(v>30)return'<span class="upside-badge u-md">+'+f(v,1)+'%</span>';return'<span class="upside-badge u-lo">+'+f(v,1)+'%</span>'}
+document.querySelectorAll('.nav-tab').forEach(function(t){t.addEventListener('click',function(){document.querySelectorAll('.nav-tab').forEach(function(x){x.classList.remove('active')});document.querySelectorAll('.tab-content').forEach(function(x){x.classList.remove('active')});t.classList.add('active');document.getElementById('tab-'+t.dataset.tab).classList.add('active')})});
+async function loadData(){try{var r=await fetch(DURL+'?t='+Date.now());if(!r.ok)throw new Error('HTTP '+r.status);D=await r.json();renderAll()}catch(e){console.error(e);document.getElementById('loading').classList.add('hide');document.querySelector('.main').innerHTML='<div class="error-state"><h3>Data Not Available</h3><p>'+e.message+'</p></div>'}}
+function card(s,i,metrics){return'<div class="pick-card"><div class="rank">#'+(i+1)+'</div><div class="pc-header"><div><div class="pc-sym">'+s.symbol+'</div><div class="pc-name">'+s.name+'</div><span class="sector-badge '+sc(s.sector)+'">'+(s.sector||'—')+'</span></div><div class="pc-price">'+f$(s.price)+'</div></div><div class="pc-metrics">'+metrics+'</div></div>'}
+function met(l,v,c){return'<div class="pc-metric"><div class="pc-metric-label">'+l+'</div><div class="pc-metric-val"'+(c?' style="color:var(--'+c+')"':'')+ '>'+v+'</div></div>'}
 function renderAll(){
-const eg=D.earningsGrowth||{},val=D.valuations||{};
+var eg=D.earningsGrowth||{},val=D.valuations||{};
 document.getElementById('lastUpdated').textContent=D.generated?new Date(D.generated).toLocaleString():'—';
 document.getElementById('stockCount').textContent=(eg.totalScanned||0)+' stocks scanned';
-const posG=(eg.allGrowth||[]).filter(s=>s.revenueGrowth>0&&s.netIncomeGrowth>0).length;
-const totG=(eg.allGrowth||[]).length;
-const avgC=totG>0?((eg.allGrowth||[]).reduce((a,s)=>a+Math.abs(s.compositeScore||0),0)/totG).toFixed(1):'—';
-const topU=(val.mostUndervalued||[])[0];
-document.getElementById('overviewStats').innerHTML=`
-<div class="stat-card"><div class="stat-label">Stocks Scanned</div><div class="stat-value" style="color:var(--cyn)">${eg.totalScanned||0}</div><div class="stat-sub">${eg.totalWithGrowth||0} with growth data</div></div>
-<div class="stat-card"><div class="stat-label">Positive Growth</div><div class="stat-value" style="color:var(--grn)">${posG}</div><div class="stat-sub">Rev + NI both positive</div></div>
-<div class="stat-card"><div class="stat-label">Avg Composite</div><div class="stat-value mono">${avgC}</div><div class="stat-sub">Across all scanned</div></div>
-<div class="stat-card"><div class="stat-label">Top DCF Upside</div><div class="stat-value" style="color:var(--gld)">${topU?topU.symbol:'—'}</div><div class="stat-sub">${topU?'+'+f(topU.upside,1)+'% upside':''}</div></div>
-<div class="stat-card"><div class="stat-label">Valuations</div><div class="stat-value" style="color:var(--pur)">${val.totalScanned||0}</div><div class="stat-sub">DCF + multiples</div></div>
-<div class="stat-card"><div class="stat-label">Exec Time</div><div class="stat-value mono" style="font-size:18px">${D.executionTime||'—'}</div><div class="stat-sub">Full pipeline</div></div>`;
-const tc=(eg.topComposite||[]).filter(s=>s.revenueGrowth>0).slice(0,8);
+var posG=(eg.allGrowth||[]).filter(function(s){return s.revenueGrowth>0&&s.netIncomeGrowth>0}).length;
+var totG=(eg.allGrowth||[]).length;
+var avgC=totG>0?((eg.allGrowth||[]).reduce(function(a,s){return a+Math.abs(s.compositeScore||0)},0)/totG).toFixed(1):'—';
+var topU=(val.mostUndervalued||[])[0];
+var topULabel=topU?'+'+f(Math.min(topU.upside,UPSIDE_CAP),1)+(topU.upside>UPSIDE_CAP?'%+':'%'):'';
+document.getElementById('overviewStats').innerHTML=
+'<div class="stat-card"><div class="stat-label">Stocks Scanned</div><div class="stat-value" style="color:var(--cyn)">'+(eg.totalScanned||0)+'</div><div class="stat-sub">'+(eg.totalWithGrowth||0)+' with growth data</div></div>'+
+'<div class="stat-card"><div class="stat-label">Positive Growth</div><div class="stat-value" style="color:var(--grn)">'+posG+'</div><div class="stat-sub">Rev + NI both positive</div></div>'+
+'<div class="stat-card"><div class="stat-label">Avg Composite</div><div class="stat-value mono">'+avgC+'</div><div class="stat-sub">Across all scanned</div></div>'+
+'<div class="stat-card"><div class="stat-label">Top DCF Upside</div><div class="stat-value" style="color:var(--gld)">'+(topU?topU.symbol:'—')+'</div><div class="stat-sub">'+topULabel+'</div></div>'+
+'<div class="stat-card"><div class="stat-label">Valuations</div><div class="stat-value" style="color:var(--pur)">'+(val.totalScanned||0)+'</div><div class="stat-sub">DCF + multiples</div></div>'+
+'<div class="stat-card"><div class="stat-label">Exec Time</div><div class="stat-value mono" style="font-size:18px">'+(D.executionTime||'—')+'</div><div class="stat-sub">Full pipeline</div></div>';
+var tc=(eg.topComposite||[]).filter(function(s){return s.revenueGrowth>0}).slice(0,8);
 document.getElementById('cC').textContent=tc.length+' shown';
-document.getElementById('topCC').innerHTML=tc.map((s,i)=>card(s,i,met('Rev Growth','+'+f(s.revenueGrowth,1)+'%','grn')+met('NI Growth',(s.netIncomeGrowth>=0?'+':'')+f(s.netIncomeGrowth,1)+'%')+met('EPS Growth',(s.epsGrowth>=0?'+':'')+f(s.epsGrowth,1)+'%')+met('Composite',f(s.compositeScore,1),'gld'))).join('');
-const tu=(val.mostUndervalued||[]).filter(s=>s.upside>50).slice(0,6);
+document.getElementById('topCC').innerHTML=tc.map(function(s,i){return card(s,i,met('Rev Growth','+'+f(s.revenueGrowth,1)+'%','grn')+met('NI Growth',(s.netIncomeGrowth>=0?'+':'')+f(s.netIncomeGrowth,1)+'%')+met('EPS Growth',(s.epsGrowth>=0?'+':'')+f(s.epsGrowth,1)+'%')+met('Composite',f(s.compositeScore,1),'gld'))}).join('');
+var tu=(val.mostUndervalued||[]).filter(function(s){return s.upside>30}).slice(0,6);
 document.getElementById('uC').textContent=tu.length+' shown';
-document.getElementById('topUC').innerHTML=tu.map((s,i)=>card(s,i,met('DCF Value',f$(s.dcfValue),'gld')+met('Upside','+'+f(s.upside,1)+'%','grn')+met('Gross Margin',f(s.grossMargin,1)+'%')+met('Div Yield',s.dividendYield>0?f(s.dividendYield,2)+'%':'—','cyn'))).join('');
-const td=(val.dividendChampions||[]).slice(0,6);
+document.getElementById('topUC').innerHTML=tu.map(function(s,i){var up=Math.min(s.upside,UPSIDE_CAP);var upStr=s.upside>UPSIDE_CAP?'300%+':'+'+f(s.upside,1)+'%';return card(s,i,met('DCF Value',f$(s.dcfValue),'gld')+met('Upside',upStr,'grn')+met('Gross Margin',f(s.grossMargin,1)+'%')+met('Div Yield',s.dividendYield>0?f(s.dividendYield,2)+'%':'—','cyn'))}).join('');
+var td=(val.dividendChampions||[]).slice(0,6);
 document.getElementById('dC').textContent=td.length+' shown';
-document.getElementById('topDC').innerHTML=td.map((s,i)=>card(s,i,met('Div Yield',f(s.dividendYield,2)+'%','grn')+met('DCF Upside',(s.upside>0?'+':'')+f(s.upside,1)+'%')+met('Net Margin',f(s.netMargin,1)+'%')+met('P/B',f(s.pbRatio,2)))).join('');
-const gd=eg.topRevenueGrowers||[];document.getElementById('rC').textContent=gd.length;popSec('gSec',gd);
-const gt=(eg.topComposite||[])[0],gtr=(eg.topRevenueGrowers||[])[0];
-document.getElementById('gStats').innerHTML=`<div class="stat-card"><div class="stat-label">Top Composite</div><div class="stat-value" style="color:var(--gld)">${gt?gt.symbol:'—'}</div><div class="stat-sub">Score: ${gt?f(gt.compositeScore,1):'—'}</div></div><div class="stat-card"><div class="stat-label">Top Rev Growth</div><div class="stat-value" style="color:var(--grn)">${gtr?gtr.symbol:'—'}</div><div class="stat-sub">${gtr?'+'+f(gtr.revenueGrowth,1)+'%':'—'}</div></div><div class="stat-card"><div class="stat-label">With Growth</div><div class="stat-value mono">${eg.totalWithGrowth||0}</div><div class="stat-sub">of ${eg.totalScanned||0}</div></div>`;
+document.getElementById('topDC').innerHTML=td.map(function(s,i){return card(s,i,met('Div Yield',f(s.dividendYield,2)+'%','grn')+met('DCF Upside',ub(s.upside))+met('Net Margin',f(s.netMargin,1)+'%')+met('P/B',f(s.pbRatio,2)))}).join('');
+var gd=eg.topRevenueGrowers||[];document.getElementById('rC').textContent=gd.length;popSec('gSec',gd);
+var gt=(eg.topComposite||[])[0],gtr=(eg.topRevenueGrowers||[])[0];
+document.getElementById('gStats').innerHTML='<div class="stat-card"><div class="stat-label">Top Composite</div><div class="stat-value" style="color:var(--gld)">'+(gt?gt.symbol:'—')+'</div><div class="stat-sub">Score: '+(gt?f(gt.compositeScore,1):'—')+'</div></div><div class="stat-card"><div class="stat-label">Top Rev Growth</div><div class="stat-value" style="color:var(--grn)">'+(gtr?gtr.symbol:'—')+'</div><div class="stat-sub">'+(gtr?'+'+f(gtr.revenueGrowth,1)+'%':'—')+'</div></div><div class="stat-card"><div class="stat-label">With Growth</div><div class="stat-value mono">'+(eg.totalWithGrowth||0)+'</div><div class="stat-sub">of '+(eg.totalScanned||0)+'</div></div>';
 rGT(gd);
-const vd=val.mostUndervalued||[];document.getElementById('vC').textContent=vd.length;popSec('vSec',vd);
-const vt=(val.mostUndervalued||[])[0],vq=(val.highestQuality||[])[0];
-document.getElementById('vStats').innerHTML=`<div class="stat-card"><div class="stat-label">Most Undervalued</div><div class="stat-value" style="color:var(--grn)">${vt?vt.symbol:'—'}</div><div class="stat-sub">${vt?'+'+f(vt.upside,1)+'%':'—'}</div></div><div class="stat-card"><div class="stat-label">Highest Quality</div><div class="stat-value" style="color:var(--pur)">${vq?vq.symbol:'—'}</div><div class="stat-sub">${vq?f(vq.grossMargin,1)+'% margin':'—'}</div></div><div class="stat-card"><div class="stat-label">Models</div><div class="stat-value mono">${val.totalScanned||0}</div><div class="stat-sub">DCF + ratios</div></div>`;
+var vd=val.mostUndervalued||[];document.getElementById('vC').textContent=vd.length;popSec('vSec',vd);
+var vt=(val.mostUndervalued||[])[0],vq=(val.highestQuality||[])[0];
+document.getElementById('vStats').innerHTML='<div class="stat-card"><div class="stat-label">Most Undervalued</div><div class="stat-value" style="color:var(--grn)">'+(vt?vt.symbol:'—')+'</div><div class="stat-sub">'+(vt?ub(vt.upside):'—')+'</div></div><div class="stat-card"><div class="stat-label">Highest Quality</div><div class="stat-value" style="color:var(--pur)">'+(vq?vq.symbol:'—')+'</div><div class="stat-sub">'+(vq?f(vq.grossMargin,1)+'% margin':'—')+'</div></div><div class="stat-card"><div class="stat-label">Models</div><div class="stat-value mono">'+(val.totalScanned||0)+'</div><div class="stat-sub">DCF + ratios</div></div>';
 rVT(vd);
-const qd=val.highestQuality||[];document.getElementById('qC').textContent=qd.length;rQT(qd);
-const dd=val.dividendChampions||[];document.getElementById('dvC').textContent=dd.length;rDT(dd);
-const ag=eg.allGrowth||[];document.getElementById('sC').textContent=ag.length;popSec('sSec',ag);rST(ag);
+var qd=val.highestQuality||[];document.getElementById('qC').textContent=qd.length;rQT(qd);
+var dd=val.dividendChampions||[];document.getElementById('dvC').textContent=dd.length;rDT(dd);
+var ag=eg.allGrowth||[];document.getElementById('sC').textContent=ag.length;popSec('sSec',ag);rST(ag);
 document.getElementById('loading').classList.add('hide');
 }
-function tr(s,i,cells){return`<tr>${cells}</tr>`}
-function rGT(d){document.querySelector('#gT tbody').innerHTML=d.map((s,i)=>`<tr><td class="mono" style="color:var(--t3)">${i+1}</td><td><span class="sym">${s.symbol}</span></td><td><span class="company-name">${s.name}</span></td><td><span class="sector-badge ${sc(s.sector)}">${s.sector||'—'}</span></td><td class="mono">${f$(s.price)}</td><td>${fp(s.revenueGrowth)}</td><td>${fp(s.netIncomeGrowth)}</td><td>${fp(s.epsGrowth)}</td><td>${fp(s.operatingIncomeGrowth)}</td><td>${fsc(s.compositeScore)}</td></tr>`).join('')}
-function rVT(d){document.querySelector('#vT tbody').innerHTML=d.map((s,i)=>`<tr><td class="mono" style="color:var(--t3)">${i+1}</td><td><span class="sym">${s.symbol}</span></td><td><span class="company-name">${s.name}</span></td><td><span class="sector-badge ${sc(s.sector)}">${s.sector||'—'}</span></td><td class="mono">${f$(s.price)}</td><td class="mono">${f$(s.dcfValue)}</td><td>${ub(s.upside)}</td><td class="mono">${f(s.pbRatio)}</td><td class="mono">${f(s.psRatio)}</td><td class="mono">${f(s.grossMargin,1)}%</td><td class="mono">${f(s.netMargin,1)}%</td><td class="mono">${s.dividendYield>0?f(s.dividendYield,2)+'%':'—'}</td></tr>`).join('')}
-function rQT(d){document.querySelector('#qT tbody').innerHTML=d.map((s,i)=>`<tr><td class="mono" style="color:var(--t3)">${i+1}</td><td><span class="sym">${s.symbol}</span></td><td><span class="company-name">${s.name}</span></td><td><span class="sector-badge ${sc(s.sector)}">${s.sector||'—'}</span></td><td class="mono">${f$(s.price)}</td><td class="mono positive">${f(s.grossMargin,1)}%</td><td class="mono">${f(s.netMargin,1)}%</td><td class="mono">${f(s.currentRatio,2)}</td><td>${ub(s.upside)}</td><td class="mono">${s.dividendYield>0?f(s.dividendYield,2)+'%':'—'}</td></tr>`).join('')}
-function rDT(d){document.querySelector('#dvT tbody').innerHTML=d.map((s,i)=>`<tr><td class="mono" style="color:var(--t3)">${i+1}</td><td><span class="sym">${s.symbol}</span></td><td><span class="company-name">${s.name}</span></td><td><span class="sector-badge ${sc(s.sector)}">${s.sector||'—'}</span></td><td class="mono">${f$(s.price)}</td><td class="mono" style="color:var(--grn)">${f(s.dividendYield,2)}%</td><td>${ub(s.upside)}</td><td class="mono">${f(s.pbRatio,2)}</td><td class="mono">${f(s.grossMargin,1)}%</td><td class="mono">${f(s.netMargin,1)}%</td></tr>`).join('')}
-function rST(d){const sorted=[...d].sort((a,b)=>Math.abs(b.compositeScore)-Math.abs(a.compositeScore));document.querySelector('#sT tbody').innerHTML=sorted.map((s,i)=>`<tr><td class="mono" style="color:var(--t3)">${i+1}</td><td><span class="sym">${s.symbol}</span></td><td><span class="company-name">${s.name}</span></td><td><span class="sector-badge ${sc(s.sector)}">${s.sector||'—'}</span></td><td class="mono">${f$(s.price)}</td><td>${fp(s.revenueGrowth)}</td><td>${fp(s.netIncomeGrowth)}</td><td>${fp(s.epsGrowth)}</td><td>${fp(s.grossProfitGrowth)}</td><td>${fp(s.operatingIncomeGrowth)}</td><td>${fsc(s.compositeScore)}</td></tr>`).join('')}
-function popSec(id,d){const s=[...new Set(d.map(x=>x.sector).filter(Boolean))].sort();document.getElementById(id).innerHTML='<option value="">All Sectors</option>'+s.map(x=>`<option value="${x}">${x}</option>`).join('')}
-function filt(tid,q){document.querySelectorAll('#'+tid+' tbody tr').forEach(r=>{r.style.display=r.textContent.toLowerCase().includes(q.toLowerCase())?'':'none'})}
-function filtS(tid,s){document.querySelectorAll('#'+tid+' tbody tr').forEach(r=>{if(!s){r.style.display='';return}const rs=r.querySelector('.sector-badge');r.style.display=rs&&rs.textContent===s?'':'none'})}
-let SS={};function srt(tid,c){const k=tid+c;const a=SS[k]=!SS[k];const tb=document.querySelector('#'+tid+' tbody');const rows=Array.from(tb.rows);rows.sort((x,y)=>{let av=x.cells[c]?.textContent.replace(/[^0-9.\-]/g,'')||'',bv=y.cells[c]?.textContent.replace(/[^0-9.\-]/g,'')||'';const an=parseFloat(av),bn=parseFloat(bv);if(!isNaN(an)&&!isNaN(bn))return a?an-bn:bn-an;return a?av.localeCompare(bv):bv.localeCompare(av)});rows.forEach(r=>tb.appendChild(r));document.querySelectorAll('#'+tid+' thead th').forEach((th,i)=>th.classList.toggle('sorted',i===c))}
-function aSort(){const c=parseInt(document.getElementById('sSort').value);SS['sT'+c]=false;srt('sT',c)}
+function rGT(d){document.querySelector('#gT tbody').innerHTML=d.map(function(s,i){return'<tr><td class="mono" style="color:var(--t3)">'+(i+1)+'</td><td><span class="sym">'+s.symbol+'</span></td><td><span class="company-name">'+s.name+'</span></td><td><span class="sector-badge '+sc(s.sector)+'">'+(s.sector||'—')+'</span></td><td class="mono">'+f$(s.price)+'</td><td>'+fp(s.revenueGrowth)+'</td><td>'+fp(s.netIncomeGrowth)+'</td><td>'+fp(s.epsGrowth)+'</td><td>'+fp(s.operatingIncomeGrowth)+'</td><td>'+fsc(s.compositeScore)+'</td></tr>'}).join('')}
+function rVT(d){document.querySelector('#vT tbody').innerHTML=d.map(function(s,i){return'<tr><td class="mono" style="color:var(--t3)">'+(i+1)+'</td><td><span class="sym">'+s.symbol+'</span></td><td><span class="company-name">'+s.name+'</span></td><td><span class="sector-badge '+sc(s.sector)+'">'+(s.sector||'—')+'</span></td><td class="mono">'+f$(s.price)+'</td><td class="mono">'+f$(s.dcfValue)+'</td><td>'+ub(s.upside)+'</td><td class="mono">'+f(s.pbRatio)+'</td><td class="mono">'+f(s.psRatio)+'</td><td class="mono">'+f(s.grossMargin,1)+'%</td><td class="mono">'+f(s.netMargin,1)+'%</td><td class="mono">'+(s.dividendYield>0?f(s.dividendYield,2)+'%':'—')+'</td></tr>'}).join('')}
+function rQT(d){document.querySelector('#qT tbody').innerHTML=d.map(function(s,i){return'<tr><td class="mono" style="color:var(--t3)">'+(i+1)+'</td><td><span class="sym">'+s.symbol+'</span></td><td><span class="company-name">'+s.name+'</span></td><td><span class="sector-badge '+sc(s.sector)+'">'+(s.sector||'—')+'</span></td><td class="mono">'+f$(s.price)+'</td><td class="mono positive">'+f(s.grossMargin,1)+'%</td><td class="mono">'+f(s.netMargin,1)+'%</td><td class="mono">'+f(s.currentRatio,2)+'</td><td>'+ub(s.upside)+'</td><td class="mono">'+(s.dividendYield>0?f(s.dividendYield,2)+'%':'—')+'</td></tr>'}).join('')}
+function rDT(d){document.querySelector('#dvT tbody').innerHTML=d.map(function(s,i){return'<tr><td class="mono" style="color:var(--t3)">'+(i+1)+'</td><td><span class="sym">'+s.symbol+'</span></td><td><span class="company-name">'+s.name+'</span></td><td><span class="sector-badge '+sc(s.sector)+'">'+(s.sector||'—')+'</span></td><td class="mono">'+f$(s.price)+'</td><td class="mono" style="color:var(--grn)">'+f(s.dividendYield,2)+'%</td><td>'+ub(s.upside)+'</td><td class="mono">'+f(s.pbRatio,2)+'</td><td class="mono">'+f(s.grossMargin,1)+'%</td><td class="mono">'+f(s.netMargin,1)+'%</td></tr>'}).join('')}
+function rST(d){var sorted=d.slice().sort(function(a,b){return Math.abs(b.compositeScore)-Math.abs(a.compositeScore)});document.querySelector('#sT tbody').innerHTML=sorted.map(function(s,i){return'<tr><td class="mono" style="color:var(--t3)">'+(i+1)+'</td><td><span class="sym">'+s.symbol+'</span></td><td><span class="company-name">'+s.name+'</span></td><td><span class="sector-badge '+sc(s.sector)+'">'+(s.sector||'—')+'</span></td><td class="mono">'+f$(s.price)+'</td><td>'+fp(s.revenueGrowth)+'</td><td>'+fp(s.netIncomeGrowth)+'</td><td>'+fp(s.epsGrowth)+'</td><td>'+fp(s.grossProfitGrowth)+'</td><td>'+fp(s.operatingIncomeGrowth)+'</td><td>'+fsc(s.compositeScore)+'</td></tr>'}).join('')}
+function popSec(id,d){var s=[];d.forEach(function(x){if(x.sector&&s.indexOf(x.sector)===-1)s.push(x.sector)});s.sort();document.getElementById(id).innerHTML='<option value="">All Sectors</option>'+s.map(function(x){return'<option value="'+x+'">'+x+'</option>'}).join('')}
+function filt(tid,q){var lq=q.toLowerCase();document.querySelectorAll('#'+tid+' tbody tr').forEach(function(r){r.style.display=r.textContent.toLowerCase().indexOf(lq)!==-1?'':'none'})}
+function filtS(tid,s){document.querySelectorAll('#'+tid+' tbody tr').forEach(function(r){if(!s){r.style.display='';return}var rs=r.querySelector('.sector-badge');r.style.display=rs&&rs.textContent===s?'':'none'})}
+var SS={};function srt(tid,c){var k=tid+c;var a=SS[k]=!SS[k];var tb=document.querySelector('#'+tid+' tbody');var rows=Array.from(tb.rows);rows.sort(function(x,y){var av=x.cells[c]?x.cells[c].textContent.replace(/[^0-9.\-]/g,''):'',bv=y.cells[c]?y.cells[c].textContent.replace(/[^0-9.\-]/g,''):'';var an=parseFloat(av),bn=parseFloat(bv);if(!isNaN(an)&&!isNaN(bn))return a?an-bn:bn-an;return a?av.localeCompare(bv):bv.localeCompare(av)});rows.forEach(function(r){tb.appendChild(r)});document.querySelectorAll('#'+tid+' thead th').forEach(function(th,i){th.classList.toggle('sorted',i===c)})}
+function aSort(){var c=parseInt(document.getElementById('sSort').value);SS['sT'+c]=false;srt('sT',c)}
 loadData();
 </script></body></html>
