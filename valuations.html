@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Valuations Intelligence | JustHodl.AI</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg0:#060a10;--bg1:#0c1220;--bg2:#111b2e;--bg3:#182240;--brd:#1a2744;--brd2:#253560;--t1:#e8edf5;--t2:#8896b3;--t3:#556685;--accent:#f0b429;--green:#22c55e;--red:#ef4444;--blue:#3b82f6;--purple:#a78bfa;--cyan:#22d3ee;--orange:#fb923c;--gold:#f0b429;--silver:#94a3b8;--copper:#d97706}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg0);color:var(--t1);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+.mono{font-family:'JetBrains Mono',monospace}
+.topbar{background:linear-gradient(180deg,#0a1225,var(--bg0));border-bottom:1px solid var(--brd);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(20px)}
+.topbar-left{display:flex;align-items:center;gap:16px}
+.logo{font-size:20px;font-weight:700;background:linear-gradient(135deg,#f0b429,#fb923c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.5px}
+.logo-sub{font-size:10px;color:var(--t3);letter-spacing:3px;text-transform:uppercase;margin-top:2px}
+.topbar-right{display:flex;align-items:center;gap:16px;font-size:12px;color:var(--t3)}
+.live-dot{width:8px;height:8px;background:var(--green);border-radius:50%;animation:pulse 2s infinite;display:inline-block}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(34,197,94,.4)}50%{opacity:.7;box-shadow:0 0 0 6px rgba(34,197,94,0)}}
+.home-btn{color:var(--accent);text-decoration:none;font-weight:600;font-size:13px;padding:6px 14px;border:1px solid var(--accent);border-radius:6px;transition:all .2s}
+.home-btn:hover{background:var(--accent);color:#000}
+.gauge-section{text-align:center;padding:40px 24px 20px;position:relative}
+.gauge-section::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:400px;height:400px;background:radial-gradient(circle,rgba(240,180,41,.06),transparent 70%);pointer-events:none}
+.gauge-title{font-size:11px;letter-spacing:4px;text-transform:uppercase;color:var(--t3);margin-bottom:20px}
+.gauge-ring{position:relative;width:200px;height:200px;margin:0 auto 16px}
+.gauge-ring svg{width:200px;height:200px;transform:rotate(-90deg)}
+.gauge-ring circle{fill:none;stroke-width:8}
+.gauge-bg{stroke:var(--bg3)}
+.gauge-fill{stroke-linecap:round;transition:stroke-dashoffset 1.5s ease}
+.gauge-value{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.gauge-value .score{font-size:52px;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:1}
+.gauge-value .regime{font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-top:6px;padding:4px 12px;border-radius:4px}
+.gauge-stats{display:flex;justify-content:center;gap:40px;margin-top:16px}
+.gauge-stat{text-align:center}
+.gauge-stat .n{font-size:24px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.gauge-stat .l{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-top:2px}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--brd);padding:0 24px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tab{padding:12px 20px;font-size:13px;font-weight:600;color:var(--t3);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;display:flex;align-items:center;gap:8px}
+.tab:hover{color:var(--t2)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab .icon{font-size:16px}
+.panel{display:none;padding:20px 24px}
+.panel.active{display:block}
+.section-title{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--t3);margin:20px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--brd)}
+.price-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px}
+.price-card{background:var(--bg1);border:1px solid var(--brd);border-radius:10px;padding:14px;position:relative;overflow:hidden}
+.price-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:10px 10px 0 0}
+.price-card.up::before{background:var(--green)}
+.price-card.down::before{background:var(--red)}
+.price-card.gold-c::before{background:var(--gold)}
+.price-card .ticker{font-size:11px;letter-spacing:2px;color:var(--t3);text-transform:uppercase}
+.price-card .price{font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;margin:4px 0}
+.price-card .change{font-size:12px;font-family:'JetBrains Mono',monospace;padding:2px 6px;border-radius:4px;display:inline-block}
+.price-card .change.up{background:rgba(34,197,94,.15);color:var(--green)}
+.price-card .change.down{background:rgba(239,68,68,.15);color:var(--red)}
+.metrics-table{width:100%;border-collapse:collapse;font-size:13px}
+.metrics-table th{text-align:left;padding:10px 12px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--t3);border-bottom:1px solid var(--brd);font-weight:600;position:sticky;top:0;background:var(--bg0)}
+.metrics-table td{padding:10px 12px;border-bottom:1px solid rgba(26,39,68,.5);vertical-align:middle}
+.metrics-table tr:hover{background:rgba(240,180,41,.03)}
+.metrics-table tr.highlighted{background:rgba(240,180,41,.06);border-left:3px solid var(--accent)}
+.metrics-table .metric-name{font-weight:600;color:var(--t1)}
+.metrics-table .metric-desc{font-size:11px;color:var(--t3);margin-top:2px}
+.val{font-family:'JetBrains Mono',monospace;font-weight:500}
+.pct-pill{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-family:'JetBrains Mono',monospace;font-weight:600}
+.pct-pill.extreme-over{background:rgba(239,68,68,.2);color:#f87171}
+.pct-pill.over{background:rgba(249,115,22,.2);color:#fb923c}
+.pct-pill.slight-over{background:rgba(245,158,11,.15);color:#fbbf24}
+.pct-pill.fair{background:rgba(34,197,94,.15);color:#4ade80}
+.pct-pill.under{background:rgba(6,182,212,.15);color:#22d3ee}
+.pct-pill.deep-under{background:rgba(59,130,246,.2);color:#60a5fa}
+.zscore-bar{width:80px;height:6px;background:var(--bg3);border-radius:3px;display:inline-block;position:relative;vertical-align:middle}
+.zscore-bar .fill{height:100%;border-radius:3px;position:absolute;left:50%}
+.zscore-bar .fill.positive{border-radius:0 3px 3px 0}
+.zscore-bar .fill.negative{border-radius:3px 0 0 3px;right:50%;left:auto}
+.widget-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:20px}
+.widget{background:var(--bg1);border:1px solid var(--brd);border-radius:10px;padding:16px;position:relative}
+.widget .w-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-bottom:8px}
+.widget .w-value{font-size:28px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.widget .w-sub{font-size:11px;color:var(--t3);margin-top:4px}
+.widget .w-bar{height:6px;background:var(--bg3);border-radius:3px;margin-top:10px;overflow:hidden}
+.widget .w-bar .fill{height:100%;border-radius:3px;transition:width .8s ease}
+.spectrum{display:flex;height:10px;border-radius:5px;overflow:hidden;margin:12px 0}
+.spectrum .seg{flex:1}
+.spectrum .seg:nth-child(1){background:#3b82f6}
+.spectrum .seg:nth-child(2){background:#06b6d4}
+.spectrum .seg:nth-child(3){background:#22c55e}
+.spectrum .seg:nth-child(4){background:#f59e0b}
+.spectrum .seg:nth-child(5){background:#f97316}
+.spectrum .seg:nth-child(6){background:#ef4444}
+.spectrum-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--t3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+.spectrum-marker{position:relative;height:0}
+.spectrum-marker .dot{position:absolute;top:-16px;width:12px;height:12px;background:var(--t1);border:2px solid var(--accent);border-radius:50%;transform:translateX(-50%);box-shadow:0 0 10px rgba(240,180,41,.4)}
+.insight{background:linear-gradient(135deg,var(--bg2),var(--bg1));border:1px solid var(--brd);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;padding:16px;margin-bottom:16px}
+.insight .insight-title{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.insight .insight-text{font-size:13px;color:var(--t2);line-height:1.6}
+.loading{text-align:center;padding:60px;color:var(--t3)}
+.loading .spinner{width:40px;height:40px;border:3px solid var(--brd);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:768px){.price-strip{grid-template-columns:repeat(2,1fr)}.widget-grid{grid-template-columns:1fr}.gauge-stats{gap:20px}.metrics-table{font-size:11px}.metrics-table th,.metrics-table td{padding:8px 6px}.tabs{padding:0 12px}.panel{padding:16px 12px}}
+</style>
+</head>
+<body>
+<div class="topbar"><div class="topbar-left"><div><div class="logo">JustHodl.AI</div><div class="logo-sub">Valuations Intelligence</div></div></div><div class="topbar-right"><span><span class="live-dot"></span>&nbsp; Updated: <span id="ts" class="mono">—</span></span><a href="/" class="home-btn">← Main Terminal</a></div></div>
+<div class="gauge-section"><div class="gauge-title">Composite Valuation Score</div><div class="gauge-ring"><svg viewBox="0 0 200 200"><circle class="gauge-bg" cx="100" cy="100" r="88"/><circle class="gauge-fill" id="gaugeFill" cx="100" cy="100" r="88" stroke-dasharray="553" stroke-dashoffset="553"/></svg><div class="gauge-value"><div class="score" id="compositeScore">—</div><div class="regime" id="compositeRegime">LOADING</div></div></div><div class="gauge-stats"><div class="gauge-stat"><div class="n" id="statOver" style="color:var(--red)">—</div><div class="l">Overvalued</div></div><div class="gauge-stat"><div class="n" id="statFair" style="color:var(--green)">—</div><div class="l">Fair Value</div></div><div class="gauge-stat"><div class="n" id="statUnder" style="color:var(--blue)">—</div><div class="l">Undervalued</div></div><div class="gauge-stat"><div class="n" id="statTotal" style="color:var(--t2)">—</div><div class="l">Total Metrics</div></div></div></div>
+<div class="tabs"><div class="tab active" onclick="showTab('overview')"><span class="icon">📊</span> Overview</div><div class="tab" onclick="showTab('sp500')"><span class="icon">🏛️</span> S&P 500</div><div class="tab" onclick="showTab('gold')"><span class="icon">🥇</span> Gold & Metals</div><div class="tab" onclick="showTab('crypto')"><span class="icon">₿</span> Crypto</div><div class="tab" onclick="showTab('commodities')"><span class="icon">🛢️</span> Oil & Commodities</div><div class="tab" onclick="showTab('matrix')"><span class="icon">📋</span> Full Matrix</div></div>
+<div class="panel active" id="p-overview"><div class="loading"><div class="spinner"></div>Loading valuations data...</div></div>
+<div class="panel" id="p-sp500"></div>
+<div class="panel" id="p-gold"></div>
+<div class="panel" id="p-crypto"></div>
+<div class="panel" id="p-commodities"></div>
+<div class="panel" id="p-matrix"></div>
+<script>
+const DATA_URL='https://justhodl-dashboard-live.s3.amazonaws.com/valuations-data.json';
+let D=null;
+function showTab(id){document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.getAttribute('onclick').includes(id)));document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.getElementById('p-'+id).classList.add('active')}
+function fmt(v,d=2){if(v==null||v==undefined)return'—';return typeof v==='number'?v.toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d}):v}
+function fmtPct(v){if(v==null)return'—';return(v>0?'+':'')+v.toFixed(1)+'%'}
+function pctClass(v){if(v==null)return'fair';if(v>80)return'extreme-over';if(v>40)return'over';if(v>15)return'slight-over';if(v>-15)return'fair';if(v>-40)return'under';return'deep-under'}
+function valColor(pct){if(pct>80)return'#ef4444';if(pct>40)return'#f97316';if(pct>15)return'#f59e0b';if(pct>-15)return'#22c55e';if(pct>-40)return'#22d3ee';return'#3b82f6'}
+function renderGauge(d){let c=d.composite||{};let score=c.score||50;let color=c.color||'#f59e0b';document.getElementById('compositeScore').textContent=Math.round(score);document.getElementById('compositeScore').style.color=color;let rEl=document.getElementById('compositeRegime');rEl.textContent=c.regime||'LOADING';rEl.style.background=color+'22';rEl.style.color=color;let offset=553-(score/100)*553;let gf=document.getElementById('gaugeFill');gf.style.stroke=color;gf.style.strokeDashoffset=offset;let s=d.summary||{};document.getElementById('statOver').textContent=s.overvalued_count||0;document.getElementById('statFair').textContent=s.fair_value_count||0;document.getElementById('statUnder').textContent=s.undervalued_count||0;document.getElementById('statTotal').textContent=s.total_metrics||0;document.getElementById('ts').textContent=d.generated?new Date(d.generated).toLocaleString():'—'}
+function renderPriceStrip(cards){let h='<div class="price-strip">';cards.forEach(c=>{let cls=c.change>0?'up':(c.change<0?'down':'gold-c');let chg=c.change!=null?'<span class="change '+(c.change>=0?'up':'down')+'">'+(c.change>=0?'+':'')+fmt(c.change)+'%</span>':'';h+='<div class="price-card '+cls+'"><div class="ticker">'+c.label+'</div><div class="price">'+(c.prefix||'')+fmt(c.value,c.decimals||2)+'</div>'+chg+'</div>'});h+='</div>';return h}
+function renderMetricsTable(metrics){let h='<table class="metrics-table"><thead><tr><th>Metric</th><th>Current</th><th>Average</th><th>% Above Avg</th><th>Z-Score</th><th>Valuation</th></tr></thead><tbody>';metrics.forEach(m=>{let pct=m.pct_above_avg;let cls=pctClass(pct);let highlighted=m.highlighted?' highlighted':'';let zw=Math.min(Math.abs(m.zscore||0)*15,40);let zdir=(m.zscore||0)>=0?'positive':'negative';let zcolor=valColor(pct);let label='Fair Value';if(pct>80)label='Extreme';else if(pct>40)label='Overvalued';else if(pct>15)label='Rich';else if(pct>-15)label='Fair';else if(pct>-40)label='Cheap';else label='Deep Value';h+='<tr class="'+highlighted+'"><td><div class="metric-name">'+m.name+'</div><div class="metric-desc">'+(m.description||'')+'</div></td><td class="val">'+fmt(m.current,m.current<10?3:1)+'</td><td class="val" style="color:var(--t3)">'+fmt(m.average,m.average<10?3:1)+'</td><td><span class="pct-pill '+cls+'">'+fmtPct(pct)+'</span></td><td><div style="display:flex;align-items:center;gap:6px"><span class="val" style="font-size:11px;color:var(--t3)">'+fmt(m.zscore,1)+'</span><div class="zscore-bar"><div class="fill '+zdir+'" style="width:'+zw+'px;background:'+zcolor+'"></div></div></div></td><td style="color:'+zcolor+';font-weight:600;font-size:12px">'+label+'</td></tr>'});h+='</tbody></table>';return h}
+function renderWidgets(data){let widgets=[];if(data.metrics){data.metrics.forEach(m=>{let pct=m.pct_above_avg||0;let color=valColor(pct);let barWidth=Math.min(Math.max((pct+100)/2,5),95);widgets.push('<div class="widget"><div class="w-label">'+m.name+'</div><div class="w-value" style="color:'+color+'">'+fmt(m.current,m.current<10?4:2)+'</div><div class="w-sub">Avg: '+fmt(m.average,m.average<10?4:2)+' | '+fmtPct(pct)+' above avg | Z: '+fmt(m.zscore,1)+'</div><div class="w-bar"><div class="fill" style="width:'+barWidth+'%;background:'+color+'"></div></div><div style="display:flex;justify-content:space-between;font-size:9px;color:var(--t3);margin-top:4px;text-transform:uppercase;letter-spacing:1px"><span>Deep Value</span><span>Fair</span><span>Extreme</span></div></div>')})}return'<div class="widget-grid">'+widgets.join('')+'</div>'}
+function renderInsight(title,text){return'<div class="insight"><div class="insight-title">'+title+'</div><div class="insight-text">'+text+'</div></div>'}
+function generateInsight(d){let c=d.composite||{};let s=d.summary||{};let score=c.score||50;let lines=[];if(score>=70)lines.push('Markets are significantly overvalued across multiple metrics. Historically, these levels have preceded meaningful corrections within 12-18 months. Consider defensive positioning.');else if(score>=55)lines.push('Valuations are moderately elevated above historical averages. Expected forward returns from these levels are typically below average. Selectivity is key.');else if(score>=45)lines.push('Valuations are near historical fair value across most metrics. This environment typically supports average forward returns. Balanced allocation is appropriate.');else lines.push('Multiple metrics indicate below-average valuations. Historically, these conditions preceded above-average forward returns.');if(s.most_overvalued)lines.push('Most overvalued: '+s.most_overvalued+'.');if(s.most_undervalued)lines.push('Most undervalued: '+s.most_undervalued+'.');return lines.join(' ')}
+function renderOverview(d){let sp=d.sp500||{},gm=d.gold_metals||{},cr=d.crypto||{},oc=d.oil_commodities||{};let h='';h+=renderInsight('Market Valuation Assessment',generateInsight(d));h+='<div class="section-title">Valuation Spectrum</div>';h+='<div class="spectrum-labels"><span>Deep Value</span><span>Cheap</span><span>Fair</span><span>Rich</span><span>Expensive</span><span>Extreme</span></div>';h+='<div class="spectrum"><div class="seg"></div><div class="seg"></div><div class="seg"></div><div class="seg"></div><div class="seg"></div><div class="seg"></div></div>';let mp=Math.min(Math.max(((d.composite||{}).score||50)/100*100,2),98);h+='<div class="spectrum-marker"><div class="dot" style="left:'+mp+'%"></div></div><br>';h+='<div class="section-title">Key Prices</div>';h+=renderPriceStrip([{label:'S&P 500',value:sp.sp500_price,decimals:0},{label:'Shiller PE',value:sp.cape,decimals:1},{label:'10Y Yield',value:sp.treasury_10y,decimals:2},{label:'VIX',value:sp.vix,decimals:1},{label:'Gold',value:gm.gold_price,prefix:'$',decimals:0},{label:'BTC',value:cr.btc_price,prefix:'$',decimals:0},{label:'WTI Oil',value:oc.wti,prefix:'$',decimals:2},{label:'Copper',value:oc.copper,prefix:'$',decimals:2}]);h+='<div class="section-title">All Metrics — Ranked by Valuation</div>';let sorted=(d.all_metrics||[]).slice().sort((a,b)=>(b.pct_above_avg||0)-(a.pct_above_avg||0));h+=renderMetricsTable(sorted);document.getElementById('p-overview').innerHTML=h}
+function renderSP500(d){let sp=d.sp500||{};let h='';h+=renderInsight('S&P 500 Valuation Summary','CAPE at '+fmt(sp.cape,1)+' vs long-term avg ~17.6. Buffett Indicator at '+fmt(sp.buffett_indicator,2)+' vs historical avg 0.69. Earnings yield '+fmt(sp.earnings_yield,2)+'% vs 10Y at '+fmt(sp.treasury_10y,2)+'%. S&P in gold: '+fmt(sp.sp_in_gold,2)+' oz (avg: 1.66).');h+='<div class="section-title">Key Prices</div>';h+=renderPriceStrip([{label:'S&P 500',value:sp.sp500_price,decimals:0},{label:'SPY',value:sp.spy_price,prefix:'$',decimals:2},{label:'CAPE',value:sp.cape,decimals:1},{label:'Buffett Ind.',value:sp.buffett_indicator,decimals:2},{label:'Earnings Yield',value:sp.earnings_yield,decimals:2},{label:'EY-10Y Spread',value:sp.ey_vs_10y,decimals:2}]);h+='<div class="section-title">Valuation Widgets</div>';h+=renderWidgets(sp);h+='<div class="section-title">Detailed Metrics</div>';h+=renderMetricsTable(sp.metrics||[]);document.getElementById('p-sp500').innerHTML=h}
+function renderGold(d){let gm=d.gold_metals||{};let h='';h+=renderInsight('Gold & Metals Assessment','Gold at $'+fmt(gm.gold_price,0)+'. Real yield at '+fmt(gm.real_yield,2)+'% — '+(gm.real_yield<0?'negative real yields bullish for gold':'positive real yields create headwind')+'. DXY at '+fmt(gm.dxy,1)+'. GDX miners at $'+fmt(gm.gdx_price,2)+'.');h+='<div class="section-title">Key Prices</div>';h+=renderPriceStrip([{label:'Gold',value:gm.gold_price,prefix:'$',decimals:0},{label:'Silver (SLV)',value:gm.silver_price,prefix:'$',decimals:2},{label:'Platinum',value:gm.platinum_price,prefix:'$',decimals:2},{label:'GDX Miners',value:gm.gdx_price,prefix:'$',decimals:2},{label:'Real Yield',value:gm.real_yield,decimals:2},{label:'Dollar Index',value:gm.dxy,decimals:1}]);h+='<div class="section-title">Valuation Widgets</div>';h+=renderWidgets(gm);h+='<div class="section-title">Detailed Metrics</div>';h+=renderMetricsTable(gm.metrics||[]);document.getElementById('p-gold').innerHTML=h}
+function renderCrypto(d){let cr=d.crypto||{};let h='';h+=renderInsight('Crypto Valuation Assessment','BTC at $'+fmt(cr.btc_price,0)+', ETH at $'+fmt(cr.eth_price,0)+'. ETH/BTC: '+fmt(cr.eth_btc,5)+'. BTC dominance: '+fmt(cr.btc_dominance,1)+'%. Fear & Greed: '+(cr.fear_greed||'N/A')+'/100. BTC 200d MA: $'+fmt(cr.btc_200d_ma,0)+', 4yr avg: $'+fmt(cr.btc_4yr_avg,0)+'.');h+='<div class="section-title">Key Prices</div>';h+=renderPriceStrip([{label:'Bitcoin',value:cr.btc_price,prefix:'$',decimals:0},{label:'Ethereum',value:cr.eth_price,prefix:'$',decimals:0},{label:'ETH/BTC',value:cr.eth_btc,decimals:5},{label:'BTC Dominance',value:cr.btc_dominance,decimals:1},{label:'Fear & Greed',value:cr.fear_greed,decimals:0},{label:'Total MCap (T)',value:cr.total_market_cap?cr.total_market_cap/1e12:null,prefix:'$',decimals:2}]);h+='<div class="section-title">Valuation Widgets</div>';h+=renderWidgets(cr);h+='<div class="section-title">Detailed Metrics</div>';h+=renderMetricsTable(cr.metrics||[]);document.getElementById('p-crypto').innerHTML=h}
+function renderCommodities(d){let oc=d.oil_commodities||{};let h='';h+=renderInsight('Oil & Commodities Assessment','WTI at $'+fmt(oc.wti,2)+', Brent at $'+fmt(oc.brent,2)+'. Brent-WTI spread: $'+fmt(oc.brent_wti_spread,2)+'. Gold at $'+fmt(oc.gold,0)+', Copper at $'+fmt(oc.copper,2)+'. XLE at $'+fmt(oc.xle_price,2)+'.');h+='<div class="section-title">Key Prices</div>';h+=renderPriceStrip([{label:'WTI Crude',value:oc.wti,prefix:'$',decimals:2},{label:'Brent Crude',value:oc.brent,prefix:'$',decimals:2},{label:'Brent-WTI Spread',value:oc.brent_wti_spread,prefix:'$',decimals:2},{label:'Gold',value:oc.gold,prefix:'$',decimals:0},{label:'Copper',value:oc.copper,prefix:'$',decimals:2},{label:'XLE Energy',value:oc.xle_price,prefix:'$',decimals:2}]);h+='<div class="section-title">Valuation Widgets</div>';h+=renderWidgets(oc);h+='<div class="section-title">Detailed Metrics</div>';h+=renderMetricsTable(oc.metrics||[]);document.getElementById('p-commodities').innerHTML=h}
+function renderMatrix(d){let h='';h+='<div class="section-title">Complete Valuation Matrix — All Asset Classes</div>';let all=(d.all_metrics||[]).slice();let cats={sp500:'S&P 500 Equity',gold:'Gold & Precious Metals',crypto:'Crypto Assets',commodities:'Oil & Commodities'};Object.keys(cats).forEach(cat=>{let filtered=all.filter(m=>m.category===cat);if(filtered.length){h+='<div style="margin:20px 0 8px;font-size:12px;font-weight:700;color:var(--accent);letter-spacing:2px;text-transform:uppercase">'+cats[cat]+'</div>';h+=renderMetricsTable(filtered)}});document.getElementById('p-matrix').innerHTML=h}
+function update(d){D=d;renderGauge(d);renderOverview(d);renderSP500(d);renderGold(d);renderCrypto(d);renderCommodities(d);renderMatrix(d)}
+async function loadData(){try{let r=await fetch(DATA_URL+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);update(await r.json())}catch(e){console.error(e);document.getElementById('p-overview').innerHTML='<div class="loading" style="color:var(--red)"><div style="font-size:40px;margin-bottom:12px">⚠️</div>Failed to load. Run Lambda:<br><code class="mono" style="color:var(--accent);font-size:11px;margin-top:8px;display:block">aws lambda invoke --function-name justhodl-valuations-agent --payload \'{}\' --cli-read-timeout 120 --region us-east-1 /tmp/val.json</code></div>'}}
+loadData();setInterval(loadData,300000);
+</script>
+</body>
+</html>
