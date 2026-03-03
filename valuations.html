@@ -98,6 +98,36 @@ body{background:var(--bg0);color:var(--t1);font-family:'DM Sans',sans-serif;min-
 @keyframes spin{to{transform:rotate(360deg)}}
 @media(max-width:768px){.price-strip{grid-template-columns:repeat(2,1fr)}.widget-grid{grid-template-columns:1fr}.gauge-stats{gap:20px}.metrics-table{font-size:11px}.metrics-table th,.metrics-table td{padding:8px 6px}.tabs{padding:0 12px}.panel{padding:16px 12px}}
 </style>
+<script>
+/* PATCH: Prevent duplicate rendering on data refresh */
+(function(){
+  document.addEventListener('DOMContentLoaded', function(){
+    var dedupe = function(container){
+      var dominated = {};
+      Array.from(container.children).forEach(function(c){
+        var k = (c.className||'') + '|' + (c.textContent||'').trim().substring(0,60);
+        if(dominated[k]){ c.remove(); }
+        else { dominated[k] = true; }
+      });
+    };
+    /* Wrap any existing loadData/refreshData to clear first */
+    var origFetch = window.fetch;
+    var renderCount = 0;
+    var observer = new MutationObserver(function(muts){
+      muts.forEach(function(m){
+        if(m.type==='childList' && m.addedNodes.length > 3){
+          setTimeout(function(){ dedupe(m.target); }, 100);
+        }
+      });
+    });
+    setTimeout(function(){
+      document.querySelectorAll('.tab-content, .metrics-grid, .widget-grid, [id*=tab], [id*=content], [id*=overview], [id*=sp500], [id*=gold], [id*=crypto], [id*=oil], [id*=matrix]').forEach(function(el){
+        observer.observe(el, {childList:true, subtree:false});
+      });
+    }, 500);
+  });
+})();
+</script>
 </head>
 <body>
 <div class="topbar"><div class="topbar-left"><div><div class="logo">JustHodl.AI</div><div class="logo-sub">Valuations Intelligence</div></div></div><div class="topbar-right"><span><span class="live-dot"></span>&nbsp; Updated: <span id="ts" class="mono">—</span></span><a href="/" class="home-btn">← Main Terminal</a></div></div>
