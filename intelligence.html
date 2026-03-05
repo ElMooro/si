@@ -220,19 +220,19 @@ html+='</div>';
 // Topped
 if(SS.topped&&SS.topped.length){
 html+='<div class="sig-card"><h4 style="color:var(--yellow)">⚠️ TOPPED <span>'+SS.topped.length+'</span></h4>';
-SS.topped.forEach(function(s){html+='<div class="sig-item"><span class="sig-sym">'+s.symbol+'</span><span class="sig-price">$'+s.price+'</span><span class="sig-extra" style="color:var(--yellow)">'+s.trend+'</span></div>'});
+SS.topped.forEach(function(s){html+='<div class="sig-item"><span class="sig-sym">'+s.symbol+'</span><span class="sig-price">$'+s.price+'</span><span class="sig-extra" style="color:var(--yellow)">'+(typeof s.trend==='object'?s.trend.status||s.trend.signal||JSON.stringify(s.trend):s.trend)+'</span></div>'});
 html+='</div>';
 }
 // At Risk
 if(SS.at_risk&&SS.at_risk.length){
 html+='<div class="sig-card"><h4 style="color:var(--orange)">🟠 AT RISK <span>'+SS.at_risk.length+'</span></h4>';
-SS.at_risk.forEach(function(s){html+='<div class="sig-item"><span class="sig-sym">'+s.symbol+'</span><span class="sig-price">$'+s.price+'</span><span class="sig-extra">'+s.trend+'</span></div>'});
+SS.at_risk.forEach(function(s){html+='<div class="sig-item"><span class="sig-sym">'+s.symbol+'</span><span class="sig-price">$'+s.price+'</span><span class="sig-extra">'+(typeof s.trend==='object'?s.trend.status||s.trend.signal||JSON.stringify(s.trend):s.trend)+'</span></div>'});
 html+='</div>';
 }
 // Bottomed
 if(SS.bottomed&&SS.bottomed.length){
 html+='<div class="sig-card"><h4 style="color:var(--green)">🟢 BOTTOMED <span>'+SS.bottomed.length+'</span></h4>';
-SS.bottomed.forEach(function(s){html+='<div class="sig-item"><span class="sig-sym" style="color:var(--green)">'+s.symbol+'</span><span class="sig-price">$'+s.price+'</span><span class="sig-extra">'+s.trend+'</span></div>'});
+SS.bottomed.forEach(function(s){html+='<div class="sig-item"><span class="sig-sym" style="color:var(--green)">'+s.symbol+'</span><span class="sig-price">$'+s.price+'</span><span class="sig-extra">'+(typeof s.trend==='object'?s.trend.status||s.trend.signal||JSON.stringify(s.trend):s.trend)+'</span></div>'});
 html+='</div>';
 }
 // Trend summary
@@ -261,7 +261,7 @@ html+='</div>';
 // Sector picks
 if(ML.sector_winners&&ML.sector_winners.length){
 html+='<div style="display:flex;gap:12px;margin:10px 0;flex-wrap:wrap">';
-html+='<div style="flex:1;min-width:200px;padding:12px;border-radius:8px;background:var(--green-bg);border:1px solid rgba(0,230,118,.15)"><div style="font-size:10px;color:var(--green);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Winners</div><div style="font-size:13px">'+ML.sector_winners.join(', ')+'</div></div>';
+html+='<div style="flex:1;min-width:200px;padding:12px;border-radius:8px;background:var(--green-bg);border:1px solid rgba(0,230,118,.15)"><div style="font-size:10px;color:var(--green);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Winners</div><div style="font-size:13px">'+ML.sector_winners.map(function(w){return typeof w==='object'?(w.sector||w.name||w.etf||JSON.stringify(w)):w}).join(', ')+'</div></div>';
 if(ML.sector_losers&&ML.sector_losers.length){html+='<div style="flex:1;min-width:200px;padding:12px;border-radius:8px;background:var(--red-bg);border:1px solid rgba(255,23,68,.15)"><div style="font-size:10px;color:var(--red);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Losers</div><div style="font-size:13px">'+ML.sector_losers.join(', ')+'</div></div>'}
 html+='</div>';
 }

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Edge Intelligence | JustHodl.AI</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:#0a0e1a;color:#e0e8ff;font-family:'Courier New',monospace;min-height:100vh}
+    .header{background:linear-gradient(135deg,#0d1b2a,#1a2744);padding:20px 30px;border-bottom:1px solid #1e3a5f;display:flex;align-items:center;gap:15px}
+    .header h1{font-size:1.4rem;color:#00d4ff;letter-spacing:2px}
+    .header .sub{font-size:.75rem;color:#4a9eff;opacity:.8}
+    .nav{background:#0d1420;padding:8px 30px;border-bottom:1px solid #1e3a5f;display:flex;gap:20px;flex-wrap:wrap}
+    .nav a{color:#4a9eff;text-decoration:none;font-size:.75rem;padding:4px 10px;border-radius:3px;transition:all .2s}
+    .nav a:hover{background:#1a3a5f;color:#00d4ff}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;padding:20px}
+    .card{background:#0d1b2a;border:1px solid #1e3a5f;border-radius:8px;padding:16px}
+    .card h3{color:#00d4ff;font-size:.85rem;letter-spacing:1px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #1e3a5f}
+    .metric{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(30,58,95,.4)}
+    .metric:last-child{border:none}
+    .metric .label{color:#8098b0;font-size:.75rem}
+    .metric .val{font-size:.85rem;font-weight:600}
+    .green{color:#00ff88} .red{color:#ff4444} .yellow{color:#ffcc00} .blue{color:#00d4ff}
+    .score-bar{height:6px;background:#1e3a5f;border-radius:3px;margin-top:8px;overflow:hidden}
+    .score-fill{height:100%;border-radius:3px;transition:width .8s ease}
+    .status-tag{display:inline-block;padding:2px 8px;border-radius:3px;font-size:.7rem;font-weight:700}
+    .loading{text-align:center;padding:40px;color:#4a9eff;font-size:.9rem}
+    .error{color:#ff4444;text-align:center;padding:20px}
+    .timestamp{text-align:right;color:#4a6080;font-size:.7rem;padding:10px 20px}
+    .composite-score{text-align:center;padding:20px;background:linear-gradient(135deg,#0d1b2a,#1a2744);border-radius:8px;border:1px solid #00d4ff33}
+    .composite-score .big-num{font-size:3rem;font-weight:700;color:#00d4ff}
+    .composite-score .regime{font-size:.9rem;color:#8098b0;margin-top:5px}
+    .alert-bar{background:#1a1000;border:1px solid #ff880044;border-radius:4px;padding:8px 12px;margin-bottom:6px;font-size:.75rem}
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>⚡ EDGE INTELLIGENCE</h1>
+      <div class="sub">5-ENGINE COMPETITIVE EDGE SYSTEM | AUTO-REFRESH 6H</div>
+    </div>
+    <div style="margin-left:auto;font-size:.7rem;color:#4a6080" id="last-update">Loading...</div>
+  </div>
+  <div class="nav">
+    <a href="/">🏠 Terminal</a>
+    <a href="/flow.html">🌊 Flow</a>
+    <a href="/intelligence.html">🧠 Intel</a>
+    <a href="/valuations.html">📊 Valuations</a>
+    <a href="/positioning/">📍 CFTC</a>
+    <a href="/edge.html" style="background:#1a3a5f;color:#00d4ff">⚡ Edge</a>
+  </div>
+
+  <div id="main-content">
+    <div class="loading">⚡ Loading Edge Intelligence Data...</div>
+  </div>
+
+  <div class="timestamp" id="ts"></div>
+
+  <script>
+  const S3 = 'https://justhodl-dashboard-live.s3.amazonaws.com/edge-data.json';
+  const EDGE_URL = 'https://[EDGE_LAMBDA_URL].lambda-url.us-east-1.on.aws/';
+
+  function scoreColor(s) {
+    if (s >= 70) return 'green';
+    if (s >= 40) return 'yellow';
+    return 'red';
+  }
+
+  function renderCard(title, data) {
+    if (!data || typeof data !== 'object') return '';
+    let rows = '';
+    for (const [k, v] of Object.entries(data)) {
+      if (k.startsWith('_') || typeof v === 'object') continue;
+      const disp = typeof v === 'number' ? (v > 100 ? v.toFixed(0) : v.toFixed(2)) : String(v);
+      rows += `<div class="metric"><span class="label">${k.replace(/_/g,' ').toUpperCase()}</span><span class="val">${disp}</span></div>`;
+    }
+    return `<div class="card"><h3>${title}</h3>${rows}</div>`;
+  }
+
+  function render(d) {
+    const container = document.getElementById('main-content');
+    const score = d.composite_score || d.edge_score || d.score || 0;
+    const regime = d.regime || d.market_regime || 'CALCULATING';
+    const alerts = d.alerts || [];
+
+    let html = '<div style="padding:20px">';
+
+    // Composite score
+    html += `<div class="composite-score" style="max-width:300px;margin:0 auto 20px">
+      <div class="big-num ${scoreColor(score)}">${typeof score === 'number' ? score.toFixed(0) : score}</div>
+      <div class="regime">EDGE SCORE — ${regime}</div>
+      <div class="score-bar"><div class="score-fill" style="width:${score}%;background:${score >= 70 ? '#00ff88' : score >= 40 ? '#ffcc00' : '#ff4444'}"></div></div>
+    </div>`;
+
+    // Alerts
+    if (alerts.length > 0) {
+      html += '<div style="max-width:800px;margin:0 auto 20px">';
+      alerts.forEach(a => {
+        html += `<div class="alert-bar">🔔 ${typeof a === 'object' ? (a.message || JSON.stringify(a)) : a}</div>`;
+      });
+      html += '</div>';
+    }
+
+    // Engine cards
+    html += '<div class="grid">';
+
+    const sections = [
+      ['OPTIONS FLOW & POSITIONING', d.options_flow || d.options],
+      ['FUND FLOW & SENTIMENT',      d.fund_flow    || d.sentiment],
+      ['EARNINGS MOMENTUM',          d.earnings     || d.earnings_momentum],
+      ['GLOBAL LIQUIDITY',           d.liquidity    || d.global_liquidity],
+      ['CORRELATION BREAKDOWN',      d.correlation  || d.correlations],
+    ];
+
+    sections.forEach(([title, data]) => {
+      if (data) html += renderCard(title, data);
+    });
+
+    // Render any remaining top-level sections
+    const rendered_keys = new Set(['composite_score','edge_score','score','regime','alerts',
+      'options_flow','options','fund_flow','sentiment','earnings','earnings_momentum',
+      'liquidity','global_liquidity','correlation','correlations','_saved_at','generated_at','timestamp']);
+    for (const [k, v] of Object.entries(d)) {
+      if (!rendered_keys.has(k) && typeof v === 'object' && v !== null) {
+        html += renderCard(k.replace(/_/g,' ').toUpperCase(), v);
+      }
+    }
+
+    html += '</div></div>';
+    container.innerHTML = html;
+
+    const ts = d._saved_at || d.generated_at || d.timestamp || '';
+    document.getElementById('ts').textContent = ts ? `Last updated: ${ts}` : '';
+    document.getElementById('last-update').textContent = `Updated: ${new Date().toLocaleTimeString()}`;
+  }
+
+  async function loadData() {
+    try {
+      const r = await fetch(S3 + '?t=' + Date.now());
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const d = await r.json();
+      render(d);
+    } catch(e) {
+      // Fallback: call Lambda directly
+      try {
+        const r2 = await fetch(EDGE_URL + '?fresh=1');
+        const d2 = await r2.json();
+        render(d2);
+      } catch(e2) {
+        document.getElementById('main-content').innerHTML =
+          `<div class="error" style="padding:40px">⚠ Edge data unavailable<br><small>${e.message}</small><br>
+          <button onclick="loadData()" style="margin-top:15px;padding:8px 20px;background:#1a3a5f;color:#00d4ff;border:1px solid #00d4ff;cursor:pointer;border-radius:4px">Retry</button></div>`;
+      }
+    }
+  }
+
+  loadData();
+  setInterval(loadData, 3600000); // 1hr auto-refresh
+  </script>
+</body>
+</html>
