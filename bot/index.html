@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Telegram Intelligence Bot | JustHodl.AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#04060d;--bg2:#080c18;--bg3:#0c1220;--border:#1a2540;--border2:#1e3060;--cyan:#00d4ff;--cyan2:#0090bb;--green:#00ff88;--red:#ff2255;--orange:#ff8c00;--yellow:#ffd700;--purple:#a855f7;--tg:#2AABEE;--tg2:#1a8fd1;--text:#d0dff5;--text2:#5a7a9a;--text3:#2a4060;--mono:'JetBrains Mono',monospace;--display:'Orbitron',monospace}
+*{margin:0;padding:0;box-sizing:border-box}html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:13px;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+nav{position:sticky;top:0;z-index:100;background:rgba(4,6,13,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;height:48px;overflow-x:auto}
+.nav-logo{font-family:var(--display);font-size:11px;font-weight:700;color:var(--cyan);letter-spacing:2px;margin-right:24px;white-space:nowrap;flex-shrink:0}
+nav a{color:var(--text2);text-decoration:none;font-size:11px;padding:0 14px;height:48px;display:flex;align-items:center;border-bottom:2px solid transparent;transition:all 0.2s;white-space:nowrap;flex-shrink:0}
+nav a:hover{color:var(--text)}nav a.active{color:var(--tg);border-bottom-color:var(--tg)}
+main{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:40px 24px 80px}
+.hero{text-align:center;padding:60px 0 50px;position:relative}
+.hero-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:500px;height:300px;background:radial-gradient(ellipse,rgba(42,171,238,0.12) 0%,transparent 70%);pointer-events:none}
+.bot-icon{width:80px;height:80px;background:linear-gradient(135deg,var(--tg),var(--tg2));border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-size:36px;box-shadow:0 0 40px rgba(42,171,238,0.4),0 0 80px rgba(42,171,238,0.15);animation:pulse-tg 3s ease-in-out infinite}
+@keyframes pulse-tg{0%,100%{box-shadow:0 0 40px rgba(42,171,238,0.4),0 0 80px rgba(42,171,238,0.15)}50%{box-shadow:0 0 60px rgba(42,171,238,0.7),0 0 120px rgba(42,171,238,0.25)}}
+.hero h1{font-family:var(--display);font-size:clamp(20px,3vw,32px);font-weight:900;color:#fff;letter-spacing:3px;margin-bottom:12px}
+.hero h1 span{color:var(--tg)}.hero-sub{color:var(--text2);font-size:13px;letter-spacing:1px;margin-bottom:32px}
+.status-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.2);border-radius:20px;padding:6px 16px;font-size:11px;color:var(--green);letter-spacing:1px;margin-bottom:36px}
+.status-dot{width:7px;height:7px;background:var(--green);border-radius:50%;animation:blink 1.5s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+.hero-btns{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap}
+.btn-primary{display:inline-flex;align-items:center;gap:10px;background:var(--tg);color:#fff;padding:14px 32px;border-radius:4px;font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:1px;text-decoration:none;transition:all 0.2s;border:none;cursor:pointer}
+.btn-primary:hover{background:var(--tg2);transform:translateY(-1px);box-shadow:0 8px 24px rgba(42,171,238,0.3)}
+.btn-secondary{display:inline-flex;align-items:center;gap:8px;background:transparent;color:var(--cyan);padding:14px 24px;border-radius:4px;border:1px solid var(--border2);font-family:var(--mono);font-size:12px;letter-spacing:1px;text-decoration:none;transition:all 0.2s}
+.btn-secondary:hover{border-color:var(--cyan2);background:rgba(0,212,255,0.05)}
+.section-label{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+.section-label span{font-family:var(--display);font-size:10px;letter-spacing:3px;color:var(--text2);text-transform:uppercase}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.card{background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:24px;transition:border-color 0.2s;margin-bottom:0}
+.card:hover{border-color:var(--border2)}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.card-title{font-family:var(--display);font-size:10px;letter-spacing:2px;color:var(--text2);text-transform:uppercase}
+.card-badge{font-size:10px;padding:3px 8px;border-radius:2px;letter-spacing:1px}
+.badge-live{background:rgba(0,255,136,0.1);color:var(--green);border:1px solid rgba(0,255,136,0.2)}
+.badge-auto{background:rgba(42,171,238,0.1);color:var(--tg);border:1px solid rgba(42,171,238,0.2)}
+.badge-ai{background:rgba(168,85,247,0.1);color:var(--purple);border:1px solid rgba(168,85,247,0.2)}
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:768px){.grid-2,.grid-3{grid-template-columns:1fr}}
+.cmd-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:20px;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden}
+.cmd-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent,var(--cyan));opacity:0;transition:opacity 0.2s}
+.cmd-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.4)}
+.cmd-card:hover::before{opacity:1}
+.cmd-icon{font-size:24px;margin-bottom:12px;display:block}
+.cmd-name{font-family:var(--display);font-size:10px;letter-spacing:2px;color:var(--text);margin-bottom:8px}
+.cmd-trigger{font-size:11px;color:var(--text2);background:rgba(255,255,255,0.04);display:inline-block;padding:2px 8px;border-radius:3px;margin-bottom:10px;border:1px solid var(--border)}
+.cmd-desc{font-size:11px;color:var(--text2);line-height:1.6}
+.chat-window{background:#17212b;border:1px solid var(--border);border-radius:8px;overflow:hidden;font-family:var(--mono)}
+.chat-topbar{background:#232e3c;padding:12px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,0.06)}
+.chat-avatar{width:36px;height:36px;background:linear-gradient(135deg,var(--tg),var(--tg2));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.chat-name{font-size:13px;font-weight:600;color:#fff}.chat-online{font-size:11px;color:var(--green)}
+.chat-body{padding:16px;display:flex;flex-direction:column;gap:12px;min-height:380px;max-height:380px;overflow-y:auto}
+.msg{max-width:85%;animation:msg-in 0.3s ease}
+@keyframes msg-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.msg.user{align-self:flex-end}.msg.bot{align-self:flex-start}
+.msg-bubble{padding:10px 14px;border-radius:8px;font-size:12px;line-height:1.6}
+.msg.user .msg-bubble{background:#2b5278;color:#e8f4fd;border-bottom-right-radius:2px}
+.msg.bot .msg-bubble{background:#232e3c;color:#d0dff5;border-bottom-left-radius:2px;border-left:2px solid var(--tg)}
+.msg-time{font-size:10px;color:var(--text3);margin-top:4px;text-align:right}
+.msg.bot .msg-time{text-align:left}
+.msg-bold{color:#fff;font-weight:600}.msg-green{color:var(--green)}.msg-yellow{color:var(--yellow)}.msg-cyan{color:var(--cyan)}.msg-tg{color:var(--tg)}
+.inline-kb{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.kb-btn{background:rgba(42,171,238,0.1);border:1px solid rgba(42,171,238,0.25);border-radius:4px;padding:5px 10px;font-size:11px;color:var(--tg);cursor:pointer;transition:all 0.15s;font-family:var(--mono)}
+.kb-btn:hover{background:rgba(42,171,238,0.2);border-color:rgba(42,171,238,0.5)}
+.chat-input-bar{background:#232e3c;padding:12px 16px;display:flex;align-items:center;gap:10px;border-top:1px solid rgba(255,255,255,0.06)}
+.chat-input{flex:1;background:#17212b;border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:8px 16px;color:var(--text);font-family:var(--mono);font-size:12px;outline:none}
+.chat-send{width:36px;height:36px;background:var(--tg);border:none;border-radius:50%;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+.chat-send:hover{background:var(--tg2)}
+.typing-indicator{display:none;align-items:center;gap:4px;padding:10px 14px;background:#232e3c;border-radius:8px;border-bottom-left-radius:2px;border-left:2px solid var(--tg);width:fit-content}
+.typing-indicator.show{display:flex}
+.typing-dot{width:6px;height:6px;background:var(--text2);border-radius:50%;animation:typing 1.2s ease-in-out infinite}
+.typing-dot:nth-child(2){animation-delay:0.2s}.typing-dot:nth-child(3){animation-delay:0.4s}
+@keyframes typing{0%,60%,100%{transform:translateY(0);opacity:0.4}30%{transform:translateY(-4px);opacity:1}}
+.alert-list{display:flex;flex-direction:column;gap:12px}
+.alert-item{display:flex;align-items:flex-start;gap:16px;padding:16px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;transition:border-color 0.2s}
+.alert-item:hover{border-color:var(--border2)}
+.alert-icon{font-size:22px;flex-shrink:0;margin-top:2px}
+.alert-content h4{font-size:12px;color:var(--text);margin-bottom:4px;letter-spacing:0.5px}
+.alert-content p{font-size:11px;color:var(--text2);line-height:1.6}
+.alert-tag{margin-left:auto;flex-shrink:0;font-size:10px;padding:3px 8px;border-radius:2px;letter-spacing:1px}
+.ep-table{width:100%;border-collapse:collapse}
+.ep-table td,.ep-table th{padding:10px 14px;border-bottom:1px solid var(--border);font-size:11px;text-align:left}
+.ep-table th{color:var(--text3);font-size:10px;letter-spacing:1px;text-transform:uppercase}
+.ep-table tr:last-child td{border-bottom:none}
+.ep-table tr:hover td{background:rgba(255,255,255,0.02)}
+.ep-url{font-size:10px;color:var(--cyan2);font-family:var(--mono)}.dot-live{color:var(--green)}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:48px}
+@media(max-width:768px){.stats-row{grid-template-columns:repeat(2,1fr)}}
+.stat-card{background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:20px;text-align:center}
+.stat-val{font-family:var(--display);font-size:22px;font-weight:700;color:var(--text);margin-bottom:4px}
+.stat-val.cyan{color:var(--cyan)}.stat-val.green{color:var(--green)}.stat-val.tg{color:var(--tg)}.stat-val.purple{color:var(--purple)}
+.stat-label{font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase}
+.step{display:flex;gap:20px;padding:20px 0;border-bottom:1px solid var(--border)}
+.step:last-child{border-bottom:none}
+.step-num{width:32px;height:32px;background:rgba(42,171,238,0.1);border:1px solid rgba(42,171,238,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:11px;color:var(--tg);flex-shrink:0;margin-top:2px}
+.step-content h4{font-size:13px;color:var(--text);margin-bottom:6px}
+.step-content p{font-size:11px;color:var(--text2);line-height:1.7}
+.step-content code{background:rgba(0,212,255,0.06);border:1px solid var(--border);padding:2px 6px;border-radius:3px;color:var(--cyan);font-family:var(--mono);font-size:11px}
+section{margin-bottom:56px}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-logo">JUSTHODL.AI</div>
+  <a href="/index.html">TERMINAL</a>
+  <a href="/positioning/">CFTC</a>
+  <a href="/crypto-intel.html">CRYPTO</a>
+  <a href="/flow.html">FLOW</a>
+  <a href="/edge.html">EDGE</a>
+  <a href="/valuations.html">VALUATIONS</a>
+  <a href="/charts.html">CHARTS</a>
+  <a href="/ath.html">ATH</a>
+  <a href="/bot/" class="active">🤖 BOT</a>
+</nav>
+<main>
+  <div class="hero">
+    <div class="hero-glow"></div>
+    <div class="bot-icon">🤖</div>
+    <h1>JUSTHODL <span>INTELLIGENCE</span> BOT</h1>
+    <p class="hero-sub">INSTITUTIONAL MARKET INTELLIGENCE &middot; DELIVERED TO TELEGRAM &middot; POWERED BY AWS LAMBDA</p>
+    <div class="status-badge"><div class="status-dot"></div>LIVE &middot; WEBHOOK ACTIVE &middot; AWS LAMBDA us-east-1</div>
+    <div class="hero-btns">
+      <a href="https://t.me/Justhodl_bot" target="_blank" class="btn-primary">&#9992;&#65039; OPEN IN TELEGRAM</a>
+      <a href="#commands" class="btn-secondary">VIEW COMMANDS &darr;</a>
+    </div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-val cyan">7</div><div class="stat-label">Lambda Endpoints</div></div>
+    <div class="stat-card"><div class="stat-val green">700+</div><div class="stat-label">Real-Time Metrics</div></div>
+    <div class="stat-card"><div class="stat-val tg">2hr</div><div class="stat-label">Alert Frequency</div></div>
+    <div class="stat-card"><div class="stat-val purple">&infin;</div><div class="stat-label">AI Queries</div></div>
+  </div>
+  <section>
+    <div class="section-label"><span>Live Demo</span></div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">INTERACTIVE PREVIEW</div><div class="card-badge badge-live">&#9679; SIMULATED</div></div>
+      <div class="chat-window">
+        <div class="chat-topbar">
+          <div class="chat-avatar">🤖</div>
+          <div><div class="chat-name">JustHodl Bot</div><div class="chat-online">&#9679; online</div></div>
+        </div>
+        <div class="chat-body" id="chatBody"></div>
+        <div class="chat-input-bar">
+          <input class="chat-input" id="chatInput" placeholder="Try: /briefing  /khalid  /crypto  or ask anything..." />
+          <button class="chat-send" onclick="sendDemo()">&#10148;</button>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section id="commands">
+    <div class="section-label"><span>Commands</span></div>
+    <div class="grid-3">
+      <div class="cmd-card" style="--accent:var(--cyan)" onclick="window.open('https://t.me/Justhodl_bot','_blank')">
+        <span class="cmd-icon">📊</span><div class="cmd-name">MORNING BRIEFING</div>
+        <div class="cmd-trigger">/briefing</div>
+        <p class="cmd-desc">Full intelligence pull — Khalid Index, VIX, crypto, CFTC signals, AI macro outlook. Auto-delivered daily at 7AM UTC.</p>
+      </div>
+      <div class="cmd-card" style="--accent:var(--yellow)" onclick="window.open('https://t.me/Justhodl_bot','_blank')">
+        <span class="cmd-icon">🎯</span><div class="cmd-name">KHALID INDEX</div>
+        <div class="cmd-trigger">/khalid</div>
+        <p class="cmd-desc">Proprietary composite risk score 0–100, market regime, VIX, yield curve, credit spreads, unemployment, CPI.</p>
+      </div>
+      <div class="cmd-card" style="--accent:var(--orange)" onclick="window.open('https://t.me/Justhodl_bot','_blank')">
+        <span class="cmd-icon">&#8383;</span><div class="cmd-name">CRYPTO INTEL</div>
+        <div class="cmd-trigger">/crypto</div>
+        <p class="cmd-desc">BTC &amp; ETH prices, Fear &amp; Greed Index, DeFi TVL, ETH gas, funding rates, ML regime classification.</p>
+      </div>
+      <div class="cmd-card" style="--accent:var(--red)" onclick="window.open('https://t.me/Justhodl_bot','_blank')">
+        <span class="cmd-icon">📉</span><div class="cmd-name">CFTC POSITIONING</div>
+        <div class="cmd-trigger">/cftc</div>
+        <p class="cmd-desc">Smart money across 29 contracts, 7 sectors. Extreme positions, reversal candidates, weekly COT data.</p>
+      </div>
+      <div class="cmd-card" style="--accent:var(--purple)" onclick="window.open('https://t.me/Justhodl_bot','_blank')">
+        <span class="cmd-icon">🔬</span><div class="cmd-name">EDGE ENGINE</div>
+        <div class="cmd-trigger">/edge</div>
+        <p class="cmd-desc">5-engine composite — options flow, fund flows, earnings momentum, global liquidity, correlation breakdown.</p>
+      </div>
+      <div class="cmd-card" style="--accent:var(--tg)" onclick="window.open('https://t.me/Justhodl_bot','_blank')">
+        <span class="cmd-icon">💬</span><div class="cmd-name">AI QUERY</div>
+        <div class="cmd-trigger">/ask [question]</div>
+        <p class="cmd-desc">Natural language query against live data. Claude answers with real numbers from your Lambda endpoints.</p>
+      </div>
+    </div>
+  </section>
+  <section>
+    <div class="section-label"><span>Proactive Alerts</span></div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">AUTO-TRIGGERED INTELLIGENCE</div><div class="card-badge badge-auto">EVENTBRIDGE &middot; 2HR</div></div>
+      <div class="alert-list">
+        <div class="alert-item"><div class="alert-icon">📊</div><div class="alert-content"><h4>Daily Morning Briefing</h4><p>Every day at 7:00 AM UTC — full intelligence briefing pushed to all subscribers automatically.</p></div><div class="alert-tag badge-auto">DAILY 07:00 UTC</div></div>
+        <div class="alert-item"><div class="alert-icon">🚨</div><div class="alert-content"><h4>Regime Change Alert</h4><p>Instant push when market regime shifts — NEUTRAL &rarr; CAUTION, CAUTION &rarr; CRISIS, or BULL &rarr; BEAR.</p></div><div class="alert-tag badge-live">INSTANT</div></div>
+        <div class="alert-item"><div class="alert-icon">&#9889;</div><div class="alert-content"><h4>Extreme Fear / Greed</h4><p>Fires when Fear &amp; Greed Index crosses extreme territory (&lt;20 or &gt;80). Historically significant signal.</p></div><div class="alert-tag badge-live">THRESHOLD</div></div>
+        <div class="alert-item"><div class="alert-icon">🎯</div><div class="alert-content"><h4>Khalid Index Extreme</h4><p>Alert when Khalid Index hits Crisis Zone (&lt;15) or Euphoria Zone (&gt;85). Highest-conviction macro signals.</p></div><div class="alert-tag badge-live">THRESHOLD</div></div>
+      </div>
+    </div>
+  </section>
+  <section>
+    <div class="section-label"><span>Wired Lambda Endpoints</span></div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">LIVE DATA SOURCES</div><div class="card-badge badge-live">&#9679; ALL ACTIVE</div></div>
+      <table class="ep-table">
+        <thead><tr><th>System</th><th>Lambda</th><th>Data</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Main Report</td><td class="ep-url">S3 report.json</td><td>Khalid Index, VIX, yield curve, spreads, 700+ metrics</td><td><span class="dot-live">&#9679;</span> LIVE</td></tr>
+          <tr><td>CFTC Positioning</td><td class="ep-url">35t3serkv4gn2hk7u...</td><td>29 contracts, 7 sectors, COT smart money signals</td><td><span class="dot-live">&#9679;</span> LIVE</td></tr>
+          <tr><td>Crypto Enricher</td><td class="ep-url">s7davga7fy3lusiix...</td><td>DeFi TVL, ETH gas, funding rates, ML regime</td><td><span class="dot-live">&#9679;</span> LIVE</td></tr>
+          <tr><td>Edge Engine</td><td class="ep-url">vsxv2775x5aojiuwa...</td><td>5-engine composite score, tactical allocation signal</td><td><span class="dot-live">&#9679;</span> LIVE</td></tr>
+          <tr><td>Khalid Metrics</td><td class="ep-url">2ijajv2pntkgj5yw5...</td><td>Custom metrics, ECB data, weighted risk categories</td><td><span class="dot-live">&#9679;</span> LIVE</td></tr>
+          <tr><td>AI Chat</td><td class="ep-url">zh3c6izcbzcqwcia4...</td><td>Claude-powered analysis on live market data</td><td><span class="dot-live">&#9679;</span> LIVE</td></tr>
+          <tr><td>Financial Secretary</td><td class="ep-url">nqzbtg3pnxhcyj4rd...</td><td>Company fundamentals, stock analysis, crypto prices</td><td><span class="dot-live">&#9679;</span> LIVE</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <section>
+    <div class="section-label"><span>Quick Start</span></div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><div class="card-title">GET STARTED</div><div class="card-badge badge-ai">AI-POWERED</div></div>
+        <div class="step"><div class="step-num">1</div><div class="step-content"><h4>Open the Bot</h4><p>Search <code>@Justhodl_bot</code> on Telegram or tap the button above. Send <code>/start</code> to activate.</p></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-content"><h4>Subscribe to Alerts</h4><p>Send <code>/subscribe</code> to register for proactive alerts — regime changes, extreme sentiment, daily briefing.</p></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-content"><h4>Pull Intelligence</h4><p>Use <code>/briefing</code> for full market snapshot. Or type naturally — the AI responds with live data.</p></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-content"><h4>Deep Research</h4><p>Use <code>/ask [question]</code> for anything: CFTC positioning on gold, current DeFi TVL, macro regime analysis.</p></div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">INFRASTRUCTURE</div><div class="card-badge badge-auto">AWS LAMBDA</div></div>
+        <div class="step"><div class="step-num">&lambda;</div><div class="step-content"><h4>Lambda Function</h4><p>Deployed as <code>justhodl-telegram-bot</code> on AWS Lambda Python 3.12, 256MB, 90s timeout. Webhook model — zero idle cost.</p></div></div>
+        <div class="step"><div class="step-num">&#9200;</div><div class="step-content"><h4>EventBridge Schedule</h4><p>Rule <code>justhodl-telegram-alerts</code> fires every 2 hours for threshold checks and 7AM daily briefing.</p></div></div>
+        <div class="step"><div class="step-num">&#128190;</div><div class="step-content"><h4>State Persistence</h4><p>Subscriber list stored in <code>s3://justhodl-dashboard-live/telegram/alert_state.json</code>. Survives restarts.</p></div></div>
+        <div class="step"><div class="step-num">&#128279;</div><div class="step-content"><h4>Webhook</h4><p>Function URL <code>bw5im6uuow...</code> registered with Telegram. No API Gateway needed — fully serverless.</p></div></div>
+      </div>
+    </div>
+  </section>
+</main>
+<script>
+const body=document.getElementById('chatBody'),input=document.getElementById('chatInput');
+const FLOWS={'/start':{r:'🤖 <b style="color:#fff">JustHodl.AI Intelligence Bot</b><br>━━━━━━━━━━━━━━━━━━━━━━━<br>Institutional-grade market intelligence.<br><br><span style="color:#2AABEE">📊 /briefing</span> — Morning briefing<br><span style="color:#2AABEE">🎯 /khalid</span> — Khalid Index<br><span style="color:#2AABEE">₿ /crypto</span> — Crypto intel<br><span style="color:#2AABEE">📉 /cftc</span> — CFTC positioning<br><span style="color:#2AABEE">🔔 /subscribe</span> — Enable alerts',b:['📊 /briefing','🎯 /khalid','₿ /crypto','🔔 /subscribe']},'/briefing':{r:'📊 <b style="color:#fff">Morning Briefing</b><br>━━━━━━━━━━━━━━━━━━━━━━━<br><b style="color:#fff">🎯 Khalid Index: 52/100</b><br>Regime: 🟡 <span style="color:#ffd700">NEUTRAL</span><br><br><b style="color:#fff">Risk Metrics</b><br>• VIX: <span style="color:#00ff88">18.4</span><br>• Yield Curve: <span style="color:#ffd700">-0.12%</span><br>• HY Spread: <span style="color:#00ff88">312bps</span><br><br><b style="color:#fff">₿ Crypto</b><br>• BTC: <span style="color:#00ff88">$84,200</span><br>• Fear &amp; Greed: 😐 Neutral (52)<br>• DeFi TVL: <span style="color:#00d4ff">$95.5B</span>',b:['/cftc','/crypto','/edge']},'/khalid':{r:'🎯 <b style="color:#fff">Khalid Index</b><br>━━━━━━━━━━━━━━━━━━━━━━━<br><code style="color:#00d4ff">[█████░░░░░]</code> 52/100<br>Regime: 🟡 <span style="color:#ffd700">NEUTRAL</span><br><br><b style="color:#fff">Components</b><br>• VIX: <span style="color:#00ff88">18.4</span><br>• Yield Curve: -0.120%<br>• HY Spread: 312bps<br>• Unemployment: 4.1%<br>• CPI YoY: 3.2%',b:['/briefing','/cftc']},'/crypto':{r:'₿ <b style="color:#fff">Crypto Intelligence</b><br>━━━━━━━━━━━━━━━━━━━━━━━<br>• BTC: <span style="color:#00ff88">$84,200</span><br>• ETH: <span style="color:#00ff88">$2,840</span><br>• Fear &amp; Greed: 😐 Neutral (52)<br>• DeFi TVL: <span style="color:#00d4ff">$95.5B</span><br>• ETH Gas: 8 Gwei<br>• ML Regime: <span style="color:#ffd700">ACCUMULATION</span><br><br><b style="color:#fff">Funding Rates</b><br>• BTC: +0.0102%<br>• ETH: +0.0085%',b:['/briefing','/edge']},'/cftc':{r:'📉 <b style="color:#fff">CFTC Positioning</b><br>━━━━━━━━━━━━━━━━━━━━━━━<br>Sentiment: <span style="color:#00ff88">RISK-ON</span><br><br><b style="color:#fff">Sector Positioning</b><br>• Equity Indices: Bullish (73)<br>• Treasuries: Neutral (48)<br>• Metals: <span style="color:#00ff88">Strong Buy (81)</span><br>• Energy: Bearish (31)<br><br><b style="color:#fff">Smart Money Signals</b><br>• Gold: Extreme Long → <span style="color:#ffd700">Reversal Risk</span>',b:['/edge','/briefing']},'/subscribe':{r:'🔔 <b style="color:#fff">Proactive alerts enabled!</b><br><br>You\'ll receive:<br>• 📊 Daily briefing (7 AM UTC)<br>• 🚨 Regime change alerts<br>• ⚡ Extreme fear/greed<br>• 🎯 Khalid Index extremes<br><br><span style="color:#00ff88">✅ Subscribed successfully</span>',b:['/briefing','/khalid']},'/edge':{r:'🔬 <b style="color:#fff">Edge Intelligence Engine</b><br>━━━━━━━━━━━━━━━━━━━━━━━<br>Composite: <span style="color:#ffd700">58/100</span><br>Allocation: <span style="color:#00ff88">60% EQUITY</span><br><br><b style="color:#fff">Engine Breakdown</b><br>• Options Flow: 62<br>• Fund Flows: 71<br>• Earnings Momentum: 55<br>• Global Liquidity: 48',b:['/cftc','/khalid']}};
+const DEFAULT={r:'🤖 <b style="color:#fff">JustHodl AI</b><br><br>Khalid Index at <span style="color:#ffd700">52 (Neutral)</span>. VIX 18.4 suggests mild caution. BTC holding $84K with neutral sentiment. CFTC shows smart money long equities and gold — classic late-cycle hedging. Position sizing should reflect regime uncertainty.',b:['/briefing','/khalid','/cftc']};
+function now(){return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
+function addMsg(type,html,btns){
+  const d=document.createElement('div');d.className='msg '+type;
+  d.innerHTML='<div class="msg-bubble">'+html+'</div><div class="msg-time">'+now()+'</div>';
+  if(btns&&btns.length){const kb=document.createElement('div');kb.className='inline-kb';btns.forEach(b=>{const btn=document.createElement('button');btn.className='kb-btn';btn.textContent=b;btn.onclick=()=>triggerDemo(b.startsWith('/')?b.split(' ')[0]:'/'+b.split('/')[1]);kb.appendChild(btn)});d.appendChild(kb)}
+  body.appendChild(d);body.scrollTop=body.scrollHeight;
+}
+function showTyping(){const t=document.createElement('div');t.className='msg bot';t.id='typing';t.innerHTML='<div class="typing-indicator show"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';body.appendChild(t);body.scrollTop=body.scrollHeight;return t}
+function triggerDemo(cmd){
+  const flow=FLOWS[cmd]||DEFAULT;
+  addMsg('user',cmd);const t=showTyping();
+  setTimeout(()=>{t.remove();addMsg('bot',flow.r,flow.b)},900+Math.random()*400);
+}
+function sendDemo(){
+  const val=input.value.trim();if(!val)return;input.value='';
+  const lower=val.toLowerCase();
+  let cmd=val.startsWith('/')?val.split(' ')[0]:null;
+  if(!cmd){if(lower.includes('btc')||lower.includes('crypto'))cmd='/crypto';else if(lower.includes('khalid')||lower.includes('regime'))cmd='/khalid';else if(lower.includes('cftc')||lower.includes('futures'))cmd='/cftc';else if(lower.includes('brief')||lower.includes('morning'))cmd='/briefing';else cmd='natural';}
+  addMsg('user',val);const t=showTyping();
+  const flow=FLOWS[cmd]||DEFAULT;
+  setTimeout(()=>{t.remove();addMsg('bot',flow.r,flow.b)},800+Math.random()*600);
+}
+input.addEventListener('keydown',e=>{if(e.key==='Enter')sendDemo()});
+setTimeout(()=>triggerDemo('/start'),600);
+</script>
+</body>
+</html>
