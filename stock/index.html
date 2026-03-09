@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JustHodl Stock Analyzer</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0e1a;color:#e2e8f0;font-family:'Segoe UI',sans-serif;min-height:100vh}
+.header{background:linear-gradient(135deg,#1a1f35,#0d1226);border-bottom:1px solid #2d3748;padding:16px 24px;display:flex;align-items:center;gap:16px}
+.header h1{font-size:1.4rem;color:#63b3ed;font-weight:700}
+.search-bar{display:flex;gap:8px;margin-left:auto}
+.search-bar input{background:#1e2536;border:1px solid #2d3748;color:#e2e8f0;padding:8px 16px;border-radius:8px;font-size:1rem;width:180px;outline:none}
+.search-bar input:focus{border-color:#63b3ed}
+.search-bar button{background:#3182ce;color:#fff;border:none;padding:8px 20px;border-radius:8px;cursor:pointer;font-weight:600;font-size:1rem}
+.search-bar button:hover{background:#2b6cb0}
+.container{max-width:1600px;margin:0 auto;padding:20px}
+.ticker-header{display:flex;align-items:baseline;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.ticker-header .symbol{font-size:2rem;font-weight:800;color:#63b3ed}
+.ticker-header .name{font-size:1.1rem;color:#a0aec0}
+.ticker-header .price{font-size:2rem;font-weight:700;color:#48bb78;margin-left:auto}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:16px}
+.card{background:#1a1f35;border:1px solid #2d3748;border-radius:12px;padding:16px}
+.card h3{font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;color:#718096;margin-bottom:6px}
+.card .val{font-size:1.3rem;font-weight:700;color:#e2e8f0}
+.card .sub{font-size:0.75rem;color:#718096;margin-top:2px}
+.card.bullish .val{color:#48bb78}
+.card.bearish .val{color:#f56565}
+.card.neutral .val{color:#ed8936}
+.section{background:#1a1f35;border:1px solid #2d3748;border-radius:12px;padding:20px;margin-bottom:16px}
+.section h2{font-size:0.8rem;text-transform:uppercase;letter-spacing:2px;color:#63b3ed;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid #2d3748}
+.chart-container{position:relative;width:100%;height:420px}
+.chart-container-sm{position:relative;width:100%;height:240px}
+.timeframe-btns{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.timeframe-btns button{background:#2d3748;color:#a0aec0;border:none;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:0.8rem}
+.timeframe-btns button.active{background:#3182ce;color:#fff}
+.signals-grid{display:flex;flex-wrap:wrap;gap:8px}
+.signal-badge{padding:4px 12px;border-radius:20px;font-size:0.75rem;font-weight:600}
+.signal-badge.bull{background:rgba(72,187,120,0.2);color:#48bb78;border:1px solid rgba(72,187,120,0.3)}
+.signal-badge.bear{background:rgba(245,101,101,0.2);color:#f56565;border:1px solid rgba(245,101,101,0.3)}
+.signal-badge.neutral{background:rgba(237,137,54,0.2);color:#ed8936;border:1px solid rgba(237,137,54,0.3)}
+.earnings-table{width:100%;border-collapse:collapse}
+.earnings-table th{text-align:left;padding:8px 12px;font-size:0.7rem;text-transform:uppercase;color:#718096;border-bottom:1px solid #2d3748}
+.earnings-table td{padding:8px 12px;font-size:0.85rem;border-bottom:1px solid #1e2536}
+.earnings-table .beat{color:#48bb78;font-weight:600}
+.earnings-table .miss{color:#f56565;font-weight:600}
+.loading{text-align:center;padding:60px;color:#718096;font-size:1.1rem}
+.tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid #2d3748;flex-wrap:wrap}
+.tab{padding:8px 20px;cursor:pointer;color:#718096;font-size:0.85rem;font-weight:600;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab.active{color:#63b3ed;border-bottom-color:#63b3ed}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.news-item{padding:12px 0;border-bottom:1px solid #1e2536}
+.news-item:last-child{border-bottom:none}
+.news-item .title{font-size:0.9rem;color:#e2e8f0;margin-bottom:4px}
+.news-item .meta{font-size:0.75rem;color:#718096}
+@media(max-width:768px){.grid-4{grid-template-columns:repeat(2,1fr)}.grid-2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>JustHodl Stock Analyzer</h1>
+  <div class="search-bar">
+    <input type="text" id="tickerInput" placeholder="AAPL, NVDA, TSLA..." value="AAPL" onkeydown="if(event.key==='Enter')analyze()">
+    <button onclick="analyze()">Analyze</button>
+  </div>
+</div>
+<div class="container">
+  <div id="loading" class="loading">Enter a ticker symbol to begin analysis</div>
+  <div id="content" style="display:none">
+    <div class="ticker-header">
+      <div class="symbol" id="hSymbol"></div>
+      <div class="name" id="hName"></div>
+      <div style="margin-left:auto;text-align:right">
+        <div class="price" id="hPrice"></div>
+        <div id="hMeta" style="font-size:0.8rem;color:#718096"></div>
+      </div>
+    </div>
+    <div class="grid-4" id="keyMetrics"></div>
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('chart')">Price & Technicals</div>
+      <div class="tab" onclick="switchTab('fundamentals')">Fundamentals</div>
+      <div class="tab" onclick="switchTab('earnings')">Earnings</div>
+      <div class="tab" onclick="switchTab('financials')">Financials</div>
+      <div class="tab" onclick="switchTab('news')">News</div>
+    </div>
+    <div id="tab-chart" class="tab-content active">
+      <div class="section">
+        <h2>Price History (Back to 2000)</h2>
+        <div class="timeframe-btns">
+          <button onclick="setTF('1M')" id="tf-1M">1M</button>
+          <button onclick="setTF('3M')" id="tf-3M">3M</button>
+          <button onclick="setTF('6M')" id="tf-6M">6M</button>
+          <button onclick="setTF('1Y')" id="tf-1Y">1Y</button>
+          <button onclick="setTF('3Y')" id="tf-3Y">3Y</button>
+          <button onclick="setTF('5Y')" id="tf-5Y">5Y</button>
+          <button onclick="setTF('10Y')" id="tf-10Y">10Y</button>
+          <button class="active" onclick="setTF('ALL')" id="tf-ALL">ALL</button>
+        </div>
+        <div class="chart-container"><canvas id="priceChart"></canvas></div>
+      </div>
+      <div class="grid-2">
+        <div class="section"><h2>RSI (14)</h2><div class="chart-container-sm"><canvas id="rsiChart"></canvas></div></div>
+        <div class="section"><h2>Volume</h2><div class="chart-container-sm"><canvas id="volChart"></canvas></div></div>
+      </div>
+      <div class="section"><h2>Technical Signals</h2><div class="signals-grid" id="signalsGrid"></div></div>
+      <div class="grid-4" id="techCards"></div>
+    </div>
+    <div id="tab-fundamentals" class="tab-content">
+      <div class="section"><h2>Valuation</h2><div class="grid-4" id="valuationCards"></div></div>
+      <div class="section"><h2>Profitability</h2><div class="grid-4" id="profitCards"></div></div>
+      <div class="grid-2">
+        <div class="section"><h2>Analyst Price Targets</h2><div class="chart-container-sm"><canvas id="ptChart"></canvas></div></div>
+        <div class="section"><h2>Return Metrics</h2><div class="chart-container-sm"><canvas id="returnChart"></canvas></div></div>
+      </div>
+      <div class="section"><h2>Company</h2><p id="description" style="color:#a0aec0;line-height:1.7;font-size:0.9rem"></p></div>
+    </div>
+    <div id="tab-earnings" class="tab-content">
+      <div class="section"><h2>EPS History</h2><div class="chart-container"><canvas id="earningsChart"></canvas></div></div>
+      <div class="section">
+        <h2>EPS Beat / Miss Detail</h2>
+        <table class="earnings-table">
+          <thead><tr><th>Date</th><th>EPS Actual</th><th>EPS Est</th><th>Surprise</th><th>Revenue</th><th>Rev Est</th></tr></thead>
+          <tbody id="earningsTable"></tbody>
+        </table>
+      </div>
+      <div class="section" id="divSection"><h2>Dividend History</h2><div class="chart-container-sm"><canvas id="divChart"></canvas></div></div>
+    </div>
+    <div id="tab-financials" class="tab-content">
+      <div class="section"><h2>Revenue, Net Income & EBITDA</h2><div class="chart-container"><canvas id="revenueChart"></canvas></div></div>
+      <div class="grid-2">
+        <div class="section"><h2>Cash Flow Breakdown</h2><div class="chart-container-sm"><canvas id="cfChart"></canvas></div></div>
+        <div class="section"><h2>Balance Sheet</h2><div class="chart-container-sm"><canvas id="bsChart"></canvas></div></div>
+      </div>
+    </div>
+    <div id="tab-news" class="tab-content">
+      <div class="section"><h2>Latest News</h2><div id="newsList"></div></div>
+    </div>
+  </div>
+</div>
+<script>
+const STOCK_URL='https://enxmdjjowjfwiydpslyykokjee0qdvml.lambda-url.us-east-1.on.aws/';
+const POLY_KEY='zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d';
+let charts={};
+let allPriceData=[];
+
+function fmt(v,pre='$',dec=2){
+  if(v==null||v===undefined)return'N/A';
+  const f=parseFloat(v);if(isNaN(f))return'N/A';
+  if(Math.abs(f)>=1e12)return pre+(f/1e12).toFixed(2)+'T';
+  if(Math.abs(f)>=1e9)return pre+(f/1e9).toFixed(2)+'B';
+  if(Math.abs(f)>=1e6)return pre+(f/1e6).toFixed(2)+'M';
+  return pre+f.toFixed(dec);
+}
+function pct(v,dec=1){if(v==null)return'N/A';const f=parseFloat(v);return(f>=0?'+':'')+f.toFixed(dec)+'%';}
+function num(v,dec=2){if(v==null)return'N/A';const f=parseFloat(v);if(isNaN(f))return'N/A';return f.toFixed(dec);}
+function dc(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+function card(title,val,sub='',cls=''){return`<div class="card ${cls}"><h3>${title}</h3><div class="val">${val}</div><div class="sub">${sub}</div></div>`;}
+
+function switchTab(name){
+  const tabs=['chart','fundamentals','earnings','financials','news'];
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',tabs[i]===name));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+function setTF(tf){
+  document.querySelectorAll('.timeframe-btns button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tf-'+tf).classList.add('active');
+  if(!allPriceData.length)return;
+  const cutoffs={_1M:30,_3M:90,_6M:180,_1Y:365,_3Y:1095,_5Y:1825,'_10Y':3650,ALL:99999};
+  const days=cutoffs['_'+tf]||cutoffs[tf]||99999;
+  const cutoff=Date.now()-days*86400000;
+  drawPriceChart(allPriceData.filter(d=>new Date(d.t).getTime()>=cutoff));
+}
+
+async function analyze(){
+  const ticker=document.getElementById('tickerInput').value.trim().toUpperCase();
+  if(!ticker)return;
+  document.getElementById('loading').style.display='block';
+  document.getElementById('loading').textContent='Analyzing '+ticker+'...';
+  document.getElementById('content').style.display='none';
+  try{
+    const [res,polyRes]=await Promise.all([
+      fetch(STOCK_URL+'?ticker='+ticker),
+      fetch('https://api.polygon.io/v2/aggs/ticker/'+ticker+'/range/1/week/1999-01-01/'+new Date().toISOString().split('T')[0]+'?adjusted=true&sort=asc&limit=1500&apiKey='+POLY_KEY)
+    ]);
+    const d=await res.json();
+    const poly=await polyRes.json();
+    allPriceData=(poly.results||[]).map(r=>({t:r.t,o:r.o,h:r.h,l:r.l,c:r.c,v:r.v,date:new Date(r.t).toISOString().split('T')[0]}));
+    renderAll(d);
+    document.getElementById('loading').style.display='none';
+    document.getElementById('content').style.display='block';
+  }catch(e){
+    document.getElementById('loading').textContent='Error: '+e.message;
+    console.error(e);
+  }
+}
+
+function renderAll(d){
+  const tech=d.technicals||{},fund=d.fundamentals||{},earn=d.earnings||[];
+  const divs=d.dividends||[],news=d.news||[],inc=d.income_trend||[];
+  const cf=d.cash_flow||{},bs=d.balance_sheet||{};
+  const price=tech.price||0;
+
+  document.getElementById('hSymbol').textContent=d.ticker||'';
+  document.getElementById('hName').textContent=(fund.name||d.ticker||'')+(fund.sector?' · '+fund.sector:'')+(fund.industry?' · '+fund.industry:'');
+  document.getElementById('hPrice').textContent='$'+parseFloat(price||0).toFixed(2);
+  document.getElementById('hMeta').textContent=(fund.exchange||'')+(fund.country?' · '+fund.country:'')+(fund.employees?' · '+parseInt(fund.employees).toLocaleString()+' employees':'');
+
+  const rsi=tech.rsi;
+  document.getElementById('keyMetrics').innerHTML=
+    card('Market Cap',fmt(fund.market_cap),fund.exchange||'')+
+    card('P/E TTM',num(fund.pe_ttm,1),'EPS: $'+num(fund.eps,2))+
+    card('RSI (14)',num(rsi,1),rsi<30?'Oversold':rsi>70?'Overbought':rsi<45?'Bearish':rsi>55?'Bullish':'Neutral',rsi<30?'bullish':rsi>70?'bearish':'neutral')+
+    card('vs 200MA',pct(tech.dist_200ma_pct),'SMA200: $'+num(tech.sma200,2),tech.dist_200ma_pct>=0?'bullish':'bearish')+
+    card('52W High','$'+num(tech.wk52_high,2),'Current: $'+num(price,2))+
+    card('52W Low','$'+num(tech.wk52_low,2),'Range: $'+num(tech.wk52_low,2)+' - $'+num(tech.wk52_high,2))+
+    card('Analyst Target',fmt(fund.pt_consensus),'Upside: '+pct(fund.pt_consensus&&price?(fund.pt_consensus/price-1)*100:null))+
+    card('Beta',num(fund.beta,2),'vs S&P 500');
+
+  document.getElementById('techCards').innerHTML=
+    card('MACD',num(tech.macd,3),tech.macd>=0?'Bullish':'Bearish',tech.macd>=0?'bullish':'bearish')+
+    card('StochRSI',num(tech.stoch_rsi,1),tech.stoch_rsi<20?'Oversold':tech.stoch_rsi>80?'Overbought':'Neutral')+
+    card('ATR (14)','$'+num(tech.atr,2),'Volatility')+
+    card('Vol Ratio',num(tech.vol_ratio,2)+'x','vs 20d avg',tech.vol_ratio>1.5?'bullish':'neutral')+
+    card('BB Upper','$'+num(tech.bb_upper,2),'Bollinger')+
+    card('BB Lower','$'+num(tech.bb_lower,2),'Bollinger')+
+    card('SMA 50','$'+num(tech.sma50,2),pct(tech.dist_50ma_pct)+' from price')+
+    card('1Y Return',pct(tech.pct_1y),'3M: '+pct(tech.pct_3m),tech.pct_1y>=0?'bullish':'bearish');
+
+  const sigs=(tech.signals||'').split('|').map(s=>s.trim()).filter(Boolean);
+  document.getElementById('signalsGrid').innerHTML=sigs.map(s=>{
+    const bull=['ABOVE_200MA','GOLDEN_CROSS','MACD_BULL','OVERSOLD','BB_OVERSOLD'].includes(s);
+    const bear=['BELOW_200MA','DEATH_CROSS','MACD_BEAR','OVERBOUGHT','BB_OVERBOUGHT'].includes(s);
+    return '<span class="signal-badge '+(bull?'bull':bear?'bear':'neutral')+'">'+s+'</span>';
+  }).join('');
+
+  if(allPriceData.length){drawPriceChart(allPriceData);drawRsiChart(allPriceData);drawVolChart(allPriceData);}
+
+  // Valuation
+  document.getElementById('valuationCards').innerHTML=
+    card('P/E TTM',num(fund.pe_ttm,1))+card('P/B TTM',num(fund.pb_ttm,1))+
+    card('P/S TTM',num(fund.ps_ttm,1))+card('PEG',num(fund.peg,2))+
+    card('EV/EBITDA',num(fund.ev_ebitda,1))+card('FCF Yield',num(fund.fcf_yield,2)+'%')+
+    card('D/E Ratio',num(fund.debt_equity,2))+card('Current Ratio',num(fund.current_ratio,2));
+  document.getElementById('profitCards').innerHTML=
+    card('Gross Margin',num(fund.gross_margin,1)+'%','','bullish')+card('Net Margin',num(fund.profit_margin,1)+'%','','bullish')+
+    card('ROE',num(fund.roe,1)+'%','','bullish')+card('ROA',num(fund.roa,1)+'%','','bullish')+
+    card('ROIC',num(fund.roic,1)+'%')+card('Earnings Yield',num(fund.earnings_yield,2)+'%')+
+    card('CEO',fund.ceo||'N/A')+card('Employees',fund.employees?parseInt(fund.employees).toLocaleString():'N/A');
+  document.getElementById('description').textContent=fund.description||'';
+
+  // PT chart
+  if(fund.pt_low&&fund.pt_consensus&&fund.pt_high){
+    dc('ptChart');
+    charts['ptChart']=new Chart(document.getElementById('ptChart'),{type:'bar',
+      data:{labels:['Low','Median','Consensus','High','Current'],
+        datasets:[{data:[fund.pt_low,fund.pt_median,fund.pt_consensus,fund.pt_high,price],
+          backgroundColor:['#e53e3e','#ed8936','#3182ce','#48bb78','#9f7aea'],borderRadius:6}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+        scales:{y:{ticks:{color:'#a0aec0',callback:v=>'$'+v},grid:{color:'#2d3748'}},x:{ticks:{color:'#a0aec0'},grid:{display:false}}}}});
+  }
+  dc('returnChart');
+  charts['returnChart']=new Chart(document.getElementById('returnChart'),{type:'bar',
+    data:{labels:['Gross Margin','Net Margin','ROE','ROA','ROIC'],
+      datasets:[{data:[fund.gross_margin,fund.profit_margin,fund.roe,fund.roa,fund.roic],
+        backgroundColor:['#48bb78','#3182ce','#805ad5','#38b2ac','#ed8936'],borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{y:{ticks:{color:'#a0aec0',callback:v=>v+'%'},grid:{color:'#2d3748'}},x:{ticks:{color:'#a0aec0'},grid:{display:false}}}}});
+
+  // Earnings
+  if(earn.length){
+    const rev=earn.slice().reverse();
+    dc('earningsChart');
+    charts['earningsChart']=new Chart(document.getElementById('earningsChart'),{type:'bar',
+      data:{labels:rev.map(e=>(e.date||'').slice(0,7)),
+        datasets:[
+          {label:'Actual EPS',data:rev.map(e=>e.eps_act),backgroundColor:'#3182ce',borderRadius:4},
+          {label:'Estimated EPS',data:rev.map(e=>e.eps_est),backgroundColor:'#4a5568',borderRadius:4}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#a0aec0'}}},
+        scales:{y:{ticks:{color:'#a0aec0'},grid:{color:'#2d3748'}},x:{ticks:{color:'#a0aec0'},grid:{display:false}}}}});
+    document.getElementById('earningsTable').innerHTML=earn.map(e=>{
+      const s=e.surprise_pct;
+      return '<tr><td>'+(e.date||'N/A')+'</td><td>$'+num(e.eps_act,2)+'</td><td>$'+num(e.eps_est,2)+'</td><td class="'+(s==null?'':s>=0?'beat':'miss')+'">'+(s==null?'N/A':(s>=0?'+':'')+s.toFixed(1)+'%')+'</td><td>'+fmt(e.revenue)+'</td><td>'+fmt(e.revenue_est)+'</td></tr>';
+    }).join('');
+  }
+  if(divs.length&&divs[0].dividend){
+    const dr=divs.slice().reverse();
+    dc('divChart');
+    charts['divChart']=new Chart(document.getElementById('divChart'),{type:'bar',
+      data:{labels:dr.map(d=>(d.date||'').slice(0,7)),datasets:[{label:'Dividend',data:dr.map(d=>d.dividend),backgroundColor:'#48bb78',borderRadius:4}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+        scales:{y:{ticks:{color:'#a0aec0',callback:v=>'$'+v},grid:{color:'#2d3748'}},x:{ticks:{color:'#a0aec0'},grid:{display:false}}}}});
+  } else {
+    document.getElementById('divSection').innerHTML='<h2>DIVIDENDS</h2><p style="color:#718096;padding:20px 0">No dividend data</p>';
+  }
+
+  // Financials
+  if(inc.length){
+    const ir=inc.slice().reverse();
+    dc('revenueChart');
+    charts['revenueChart']=new Chart(document.getElementById('revenueChart'),{type:'bar',
+      data:{labels:ir.map(i=>(i.date||'').slice(0,7)),datasets:[
+        {label:'Revenue ($B)',data:ir.map(i=>i.revenue?+(i.revenue/1e9).toFixed(2):null),backgroundColor:'#3182ce',borderRadius:4},
+        {label:'Net Income ($B)',data:ir.map(i=>i.net_income?+(i.net_income/1e9).toFixed(2):null),backgroundColor:'#48bb78',borderRadius:4},
+        {label:'EBITDA ($B)',data:ir.map(i=>i.ebitda?+(i.ebitda/1e9).toFixed(2):null),backgroundColor:'#ed8936',borderRadius:4}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#a0aec0'}}},
+        scales:{y:{ticks:{color:'#a0aec0',callback:v=>'$'+v+'B'},grid:{color:'#2d3748'}},x:{ticks:{color:'#a0aec0'},grid:{display:false}}}}});
+  }
+  dc('cfChart');
+  charts['cfChart']=new Chart(document.getElementById('cfChart'),{type:'bar',
+    data:{labels:['Operating CF','Free CF','CapEx','Buybacks'],
+      datasets:[{data:[cf.operating_cf,cf.free_cf,cf.capex?Math.abs(cf.capex):null,cf.buybacks?Math.abs(cf.buybacks):null].map(v=>v?+(v/1e9).toFixed(2):null),
+        backgroundColor:['#3182ce','#48bb78','#e53e3e','#805ad5'],borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{y:{ticks:{color:'#a0aec0',callback:v=>'$'+v+'B'},grid:{color:'#2d3748'}},x:{ticks:{color:'#a0aec0'},grid:{display:false}}}}});
+  dc('bsChart');
+  charts['bsChart']=new Chart(document.getElementById('bsChart'),{type:'bar',
+    data:{labels:['Total Assets','Cash','Total Debt','Net Debt','Equity'],
+      datasets:[{data:[bs.total_assets,bs.cash_and_st||bs.cash,bs.total_debt,bs.net_debt,bs.total_equity].map(v=>v?+(v/1e9).toFixed(2):null),
+        backgroundColor:['#3182ce','#48bb78','#e53e3e','#ed8936','#9f7aea'],borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{y:{ticks:{color:'#a0aec0',callback:v=>'$'+v+'B'},grid:{color:'#2d3748'}},x:{ticks:{color:'#a0aec0'},grid:{display:false}}}}});
+
+  document.getElementById('newsList').innerHTML=news.map(n=>'<div class="news-item"><div class="title">'+( n.title||'')+'</div><div class="meta">'+(n.source||'')+' · '+(n.published||'')+'</div></div>').join('')||'<p style="color:#718096">No news available</p>';
+}
+
+function drawPriceChart(data){
+  if(!data||!data.length)return;
+  const labels=data.map(d=>d.date);
+  const closes=data.map(d=>d.c);
+  const sma=(arr,p)=>arr.map((_,i)=>i>=p-1?+(arr.slice(i-p+1,i+1).reduce((a,b)=>a+b)/p).toFixed(2):null);
+  dc('priceChart');
+  charts['priceChart']=new Chart(document.getElementById('priceChart'),{type:'line',
+    data:{labels,datasets:[
+      {label:'Price',data:closes,borderColor:'#63b3ed',borderWidth:1.5,pointRadius:0,fill:true,backgroundColor:'rgba(99,179,237,0.05)',tension:0.1},
+      {label:'SMA 50',data:sma(closes,50),borderColor:'#ed8936',borderWidth:1,pointRadius:0,tension:0.1},
+      {label:'SMA 200',data:sma(closes,200),borderColor:'#f56565',borderWidth:1,pointRadius:0,tension:0.1}]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{labels:{color:'#a0aec0'}},tooltip:{backgroundColor:'#1a1f35',titleColor:'#63b3ed',bodyColor:'#e2e8f0'}},
+      scales:{y:{ticks:{color:'#a0aec0',callback:v=>'$'+v.toFixed(0)},grid:{color:'#2d3748'}},x:{ticks:{color:'#a0aec0',maxTicksLimit:14},grid:{display:false}}}}});
+}
+
+function drawRsiChart(data){
+  if(!data||data.length<15)return;
+  const closes=data.map(d=>d.c);
+  const rsiArr=[];
+  for(let i=14;i<closes.length;i++){
+    const s=closes.slice(i-14,i+1);
+    const deltas=s.slice(1).map((v,j)=>v-s[j]);
+    const g=deltas.filter(d=>d>0).reduce((a,b)=>a+b,0)/14;
+    const l=(-deltas.filter(d=>d<0).reduce((a,b)=>a+b,0)/14)||0.001;
+    rsiArr.push(+(100-100/(1+g/l)).toFixed(1));
+  }
+  const labels=data.slice(14).map(d=>d.date);
+  dc('rsiChart');
+  charts['rsiChart']=new Chart(document.getElementById('rsiChart'),{type:'line',
+    data:{labels,datasets:[{label:'RSI',data:rsiArr,borderColor:'#9f7aea',borderWidth:1.5,pointRadius:0,tension:0.1}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{y:{min:0,max:100,ticks:{color:'#a0aec0'},grid:{color:'#2d3748'}},x:{ticks:{color:'#a0aec0',maxTicksLimit:10},grid:{display:false}}}}});
+}
+
+function drawVolChart(data){
+  if(!data||!data.length)return;
+  dc('volChart');
+  charts['volChart']=new Chart(document.getElementById('volChart'),{type:'bar',
+    data:{labels:data.map(d=>d.date),datasets:[{label:'Volume',data:data.map(d=>+(d.v/1e6).toFixed(1)),backgroundColor:'rgba(99,179,237,0.4)',borderRadius:2}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{y:{ticks:{color:'#a0aec0',callback:v=>v+'M'},grid:{color:'#2d3748'}},x:{ticks:{color:'#a0aec0',maxTicksLimit:10},grid:{display:false}}}}});
+}
+
+window.onload=()=>analyze();
+</script>
+</body>
+</html>
