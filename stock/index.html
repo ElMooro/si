@@ -3,377 +3,325 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JustHodl Stock Analyzer</title>
+<title>JustHodl | Stock Analyzer</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:#0a0e1a;color:#e2e8f0;font-family:'Segoe UI',sans-serif;min-height:100vh}
-.header{background:linear-gradient(135deg,#1a1f35,#0d1226);border-bottom:1px solid #2d3748;padding:16px 24px;display:flex;align-items:center;gap:16px}
-.header h1{font-size:1.4rem;color:#63b3ed;font-weight:700}
-.search-bar{display:flex;gap:8px;margin-left:auto}
-.search-bar input{background:#1e2536;border:1px solid #2d3748;color:#e2e8f0;padding:8px 16px;border-radius:8px;font-size:1rem;width:180px;outline:none}
-.search-bar input:focus{border-color:#63b3ed}
-.search-bar button{background:#3182ce;color:#fff;border:none;padding:8px 20px;border-radius:8px;cursor:pointer;font-weight:600;font-size:1rem}
-.search-bar button:hover{background:#2b6cb0}
-.container{max-width:1600px;margin:0 auto;padding:20px}
-.ticker-header{display:flex;align-items:baseline;gap:16px;margin-bottom:20px;flex-wrap:wrap}
-.ticker-header .symbol{font-size:2rem;font-weight:800;color:#63b3ed}
-.ticker-header .name{font-size:1.1rem;color:#a0aec0}
-.ticker-header .price{font-size:2rem;font-weight:700;color:#48bb78;margin-left:auto}
-.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
-.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
-.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:16px}
-.card{background:#1a1f35;border:1px solid #2d3748;border-radius:12px;padding:16px}
-.card h3{font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;color:#718096;margin-bottom:6px}
-.card .val{font-size:1.3rem;font-weight:700;color:#e2e8f0}
-.card .sub{font-size:0.75rem;color:#718096;margin-top:2px}
-.card.bullish .val{color:#48bb78}
-.card.bearish .val{color:#f56565}
-.card.neutral .val{color:#ed8936}
-.section{background:#1a1f35;border:1px solid #2d3748;border-radius:12px;padding:20px;margin-bottom:16px}
-.section h2{font-size:0.8rem;text-transform:uppercase;letter-spacing:2px;color:#63b3ed;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid #2d3748}
-.chart-container{position:relative;width:100%;height:420px}
-.chart-container-sm{position:relative;width:100%;height:240px}
-.timeframe-btns{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
-.timeframe-btns button{background:#2d3748;color:#a0aec0;border:none;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:0.8rem}
-.timeframe-btns button.active{background:#3182ce;color:#fff}
-.signals-grid{display:flex;flex-wrap:wrap;gap:8px}
-.signal-badge{padding:4px 12px;border-radius:20px;font-size:0.75rem;font-weight:600}
-.signal-badge.bull{background:rgba(72,187,120,0.2);color:#48bb78;border:1px solid rgba(72,187,120,0.3)}
-.signal-badge.bear{background:rgba(245,101,101,0.2);color:#f56565;border:1px solid rgba(245,101,101,0.3)}
-.signal-badge.neutral{background:rgba(237,137,54,0.2);color:#ed8936;border:1px solid rgba(237,137,54,0.3)}
-.earnings-table{width:100%;border-collapse:collapse}
-.earnings-table th{text-align:left;padding:8px 12px;font-size:0.7rem;text-transform:uppercase;color:#718096;border-bottom:1px solid #2d3748}
-.earnings-table td{padding:8px 12px;font-size:0.85rem;border-bottom:1px solid #1e2536}
-.earnings-table .beat{color:#48bb78;font-weight:600}
-.earnings-table .miss{color:#f56565;font-weight:600}
-.loading{text-align:center;padding:60px;color:#718096;font-size:1.1rem}
-.tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid #2d3748;flex-wrap:wrap}
-.tab{padding:8px 20px;cursor:pointer;color:#718096;font-size:0.85rem;font-weight:600;border-bottom:2px solid transparent;margin-bottom:-1px}
-.tab.active{color:#63b3ed;border-bottom-color:#63b3ed}
-.tab-content{display:none}
-.tab-content.active{display:block}
-.news-item{padding:12px 0;border-bottom:1px solid #1e2536}
+:root{--bg:#07090f;--surface:#0d1117;--panel:#111827;--border:#1f2937;--border2:#374151;--blue:#3b82f6;--blue-dim:rgba(59,130,246,0.15);--green:#10b981;--green-dim:rgba(16,185,129,0.15);--red:#ef4444;--red-dim:rgba(239,68,68,0.12);--gold:#f59e0b;--purple:#8b5cf6;--text:#f1f5f9;--muted:#64748b;--sub:#94a3b8;--mono:"JetBrains Mono",monospace;--sans:"Syne",sans-serif}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh;overflow-x:hidden}
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;gap:20px;position:sticky;top:0;z-index:100}
+.logo{font-family:var(--sans);font-weight:800;font-size:1.1rem;color:var(--blue);text-decoration:none}
+.logo span{color:var(--green)}
+.search-wrap{display:flex;gap:8px;margin-left:auto}
+.search-wrap input{background:var(--panel);border:1px solid var(--border2);color:var(--text);font-family:var(--mono);font-size:0.9rem;padding:7px 16px;border-radius:6px;width:160px;outline:none;text-transform:uppercase;letter-spacing:1px;transition:border-color 0.2s}
+.search-wrap input:focus{border-color:var(--blue)}
+.search-wrap button{background:var(--blue);color:#fff;border:none;font-family:var(--sans);font-weight:700;font-size:0.85rem;padding:7px 20px;border-radius:6px;cursor:pointer;transition:opacity 0.2s}
+.search-wrap button:hover{opacity:0.85}
+.container{max-width:1440px;margin:0 auto;padding:24px}
+.hero{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:start;margin-bottom:20px}
+.hero-left .symbol{font-family:var(--sans);font-size:2.4rem;font-weight:800;color:var(--text);line-height:1}
+.hero-left .company-name{font-size:0.85rem;color:var(--sub);margin-top:4px}
+.hero-left .sector-tag{display:inline-block;background:var(--blue-dim);color:var(--blue);border:1px solid rgba(59,130,246,0.3);font-size:0.7rem;font-weight:500;padding:2px 10px;border-radius:4px;margin-top:6px;letter-spacing:1px;text-transform:uppercase}
+.hero-right{text-align:right}
+.price-big{font-family:var(--sans);font-size:2.4rem;font-weight:800;line-height:1}
+.price-big.up{color:var(--green)}.price-big.dn{color:var(--red)}
+.price-change{font-size:0.85rem;margin-top:4px}
+.price-change.up{color:var(--green)}.price-change.dn{color:var(--red)}
+.kpi-row{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;margin-bottom:20px}
+.kpi{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+.kpi .k{font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.kpi .v{font-size:1rem;font-weight:700;color:var(--text)}
+.kpi .v.g{color:var(--green)}.kpi .v.r{color:var(--red)}.kpi .v.b{color:var(--blue)}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:20px}
+.tab-btn{background:none;border:none;color:var(--muted);font-family:var(--mono);font-size:0.78rem;font-weight:500;padding:10px 18px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;letter-spacing:0.5px;transition:color 0.15s;text-transform:uppercase}
+.tab-btn:hover{color:var(--sub)}.tab-btn.active{color:var(--blue);border-bottom-color:var(--blue)}
+.tab-pane{display:none}.tab-pane.active{display:block}
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.charts-grid.full{grid-template-columns:1fr}
+.chart-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:18px 20px;margin-bottom:0}
+.chart-card h3{font-family:var(--sans);font-size:0.78rem;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px}
+.chart-wrap{position:relative}
+.signals-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.sig{font-size:0.68rem;font-weight:700;padding:4px 10px;border-radius:4px;letter-spacing:0.5px;text-transform:uppercase}
+.sig.bull{background:var(--green-dim);color:var(--green);border:1px solid rgba(16,185,129,0.3)}
+.sig.bear{background:var(--red-dim);color:var(--red);border:1px solid rgba(239,68,68,0.3)}
+.sig.neut{background:rgba(245,158,11,0.12);color:var(--gold);border:1px solid rgba(245,158,11,0.3)}
+.data-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.data-row{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px 14px}
+.data-row .label{font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.data-row .value{font-size:0.95rem;font-weight:700;color:var(--text)}
+.data-row .sub-val{font-size:0.72rem;color:var(--muted);margin-top:2px}
+.data-table{width:100%;border-collapse:collapse;font-size:0.82rem}
+.data-table th{text-align:left;padding:8px 12px;font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);border-bottom:1px solid var(--border)}
+.data-table td{padding:9px 12px;border-bottom:1px solid rgba(31,41,55,0.5);color:var(--sub)}
+.data-table tr:hover td{background:rgba(255,255,255,0.02);color:var(--text)}
+.beat{color:var(--green)!important;font-weight:700}.miss{color:var(--red)!important;font-weight:700}.val-hi{color:var(--text)!important;font-weight:600}
+.news-item{padding:12px 0;border-bottom:1px solid var(--border)}
 .news-item:last-child{border-bottom:none}
-.news-item .title{font-size:0.9rem;color:#e2e8f0;margin-bottom:4px}
-.news-item .meta{font-size:0.75rem;color:#718096}
-@media(max-width:768px){.grid-4{grid-template-columns:repeat(2,1fr)}.grid-2{grid-template-columns:1fr}}
+.news-item a{color:var(--text);font-size:0.88rem;text-decoration:none;font-weight:500;line-height:1.4}
+.news-item a:hover{color:var(--blue)}
+.news-meta{font-size:0.7rem;color:var(--muted);margin-top:4px}
+.empty{text-align:center;padding:80px 20px;color:var(--muted)}
+.empty .icon{font-size:3rem;margin-bottom:12px;opacity:0.4}
+.empty h2{font-family:var(--sans);font-size:1.3rem;color:var(--sub);margin-bottom:8px}
+.spinner{text-align:center;padding:60px;color:var(--blue);font-size:0.85rem;letter-spacing:2px}
+.spinner::after{content:"";display:block;width:36px;height:36px;border:3px solid var(--border2);border-top-color:var(--blue);border-radius:50%;margin:16px auto 0;animation:spin 0.7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:1100px){.kpi-row{grid-template-columns:repeat(4,1fr)}.charts-grid{grid-template-columns:1fr}}
+@media(max-width:700px){.kpi-row{grid-template-columns:repeat(2,1fr)}.data-grid{grid-template-columns:repeat(2,1fr)}.hero{grid-template-columns:1fr}.hero-right{text-align:left}}
 </style>
 </head>
 <body>
 <div class="header">
-  <h1>JustHodl Stock Analyzer</h1>
-  <div class="search-bar">
-    <input type="text" id="tickerInput" placeholder="AAPL, NVDA, TSLA..." value="AAPL" onkeydown="if(event.key==='Enter')analyze()">
-    <button onclick="analyze()">Analyze</button>
+  <a class="logo" href="/">Just<span>Hodl</span>.AI</a>
+  <span style="color:var(--muted);font-size:0.75rem;letter-spacing:2px;">STOCK ANALYZER</span>
+  <div class="search-wrap">
+    <input type="text" id="tickerInput" placeholder="AAPL" maxlength="10" onkeydown="if(event.key==='Enter')analyze()">
+    <button onclick="analyze()">ANALYZE</button>
   </div>
 </div>
-<div class="container">
-  <div id="loading" class="loading">Enter a ticker symbol to begin analysis</div>
-  <div id="content" style="display:none">
-    <div class="ticker-header">
-      <div class="symbol" id="hSymbol"></div>
-      <div class="name" id="hName"></div>
-      <div style="margin-left:auto;text-align:right">
-        <div class="price" id="hPrice"></div>
-        <div id="hMeta" style="font-size:0.8rem;color:#718096"></div>
-      </div>
-    </div>
-    <div class="grid-4" id="keyMetrics"></div>
-    <div class="tabs">
-      <div class="tab active" onclick="switchTab('chart')">Price & Technicals</div>
-      <div class="tab" onclick="switchTab('fundamentals')">Fundamentals</div>
-      <div class="tab" onclick="switchTab('earnings')">Earnings</div>
-      <div class="tab" onclick="switchTab('financials')">Financials</div>
-      <div class="tab" onclick="switchTab('news')">News</div>
-    </div>
-    <div id="tab-chart" class="tab-content active">
-      <div class="section">
-        <h2>Price History (Back to 2000)</h2>
-        <div class="timeframe-btns">
-          <button onclick="setTF('1M')" id="tf-1M">1M</button>
-          <button onclick="setTF('3M')" id="tf-3M">3M</button>
-          <button onclick="setTF('6M')" id="tf-6M">6M</button>
-          <button onclick="setTF('1Y')" id="tf-1Y">1Y</button>
-          <button onclick="setTF('3Y')" id="tf-3Y">3Y</button>
-          <button onclick="setTF('5Y')" id="tf-5Y">5Y</button>
-          <button onclick="setTF('10Y')" id="tf-10Y">10Y</button>
-          <button class="active" onclick="setTF('ALL')" id="tf-ALL">ALL</button>
-        </div>
-        <div class="chart-container"><canvas id="priceChart"></canvas></div>
-      </div>
-      <div class="grid-2">
-        <div class="section"><h2>RSI (14)</h2><div class="chart-container-sm"><canvas id="rsiChart"></canvas></div></div>
-        <div class="section"><h2>Volume</h2><div class="chart-container-sm"><canvas id="volChart"></canvas></div></div>
-      </div>
-      <div class="section"><h2>Technical Signals</h2><div class="signals-grid" id="signalsGrid"></div></div>
-      <div class="grid-4" id="techCards"></div>
-    </div>
-    <div id="tab-fundamentals" class="tab-content">
-      <div class="section"><h2>Valuation</h2><div class="grid-4" id="valuationCards"></div></div>
-      <div class="section"><h2>Profitability</h2><div class="grid-4" id="profitCards"></div></div>
-      <div class="grid-2">
-        <div class="section"><h2>Analyst Price Targets</h2><div class="chart-container-sm"><canvas id="ptChart"></canvas></div></div>
-        <div class="section"><h2>Return Metrics</h2><div class="chart-container-sm"><canvas id="returnChart"></canvas></div></div>
-      </div>
-      <div class="section"><h2>Company</h2><p id="description" style="color:#a0aec0;line-height:1.7;font-size:0.9rem"></p></div>
-    </div>
-    <div id="tab-earnings" class="tab-content">
-      <div class="section"><h2>EPS History</h2><div class="chart-container"><canvas id="earningsChart"></canvas></div></div>
-      <div class="section">
-        <h2>EPS Beat / Miss Detail</h2>
-        <table class="earnings-table">
-          <thead><tr><th>Date</th><th>EPS Actual</th><th>EPS Est</th><th>Surprise</th><th>Revenue</th><th>Rev Est</th></tr></thead>
-          <tbody id="earningsTable"></tbody>
-        </table>
-      </div>
-      <div class="section" id="divSection"><h2>Dividend History</h2><div class="chart-container-sm"><canvas id="divChart"></canvas></div></div>
-    </div>
-    <div id="tab-financials" class="tab-content">
-      <div class="section"><h2>Revenue, Net Income & EBITDA</h2><div class="chart-container"><canvas id="revenueChart"></canvas></div></div>
-      <div class="grid-2">
-        <div class="section"><h2>Cash Flow Breakdown</h2><div class="chart-container-sm"><canvas id="cfChart"></canvas></div></div>
-        <div class="section"><h2>Balance Sheet</h2><div class="chart-container-sm"><canvas id="bsChart"></canvas></div></div>
-      </div>
-    </div>
-    <div id="tab-news" class="tab-content">
-      <div class="section"><h2>Latest News</h2><div id="newsList"></div></div>
-    </div>
+<div class="container" id="main">
+  <div class="empty">
+    <div class="icon">&#128202;</div>
+    <h2>Stock Analyzer</h2>
+    <p>Enter a ticker symbol above for full institutional-grade analysis<br>with 25 years of interactive historical charts.</p>
   </div>
 </div>
 <script>
-const STOCK_URL='https://enxmdjjowjfwiydpslyykokjee0qdvml.lambda-url.us-east-1.on.aws/';
-const POLY_KEY='zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d';
-let charts={};
-let allPriceData=[];
-
-function fmt(v,pre='$',dec=2){
-  if(v==null||v===undefined)return'N/A';
-  const f=parseFloat(v);if(isNaN(f))return'N/A';
-  if(Math.abs(f)>=1e12)return pre+(f/1e12).toFixed(2)+'T';
-  if(Math.abs(f)>=1e9)return pre+(f/1e9).toFixed(2)+'B';
-  if(Math.abs(f)>=1e6)return pre+(f/1e6).toFixed(2)+'M';
-  return pre+f.toFixed(dec);
-}
-function pct(v,dec=1){if(v==null)return'N/A';const f=parseFloat(v);return(f>=0?'+':'')+f.toFixed(dec)+'%';}
-function num(v,dec=2){if(v==null)return'N/A';const f=parseFloat(v);if(isNaN(f))return'N/A';return f.toFixed(dec);}
-function dc(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
-function card(title,val,sub='',cls=''){return`<div class="card ${cls}"><h3>${title}</h3><div class="val">${val}</div><div class="sub">${sub}</div></div>`;}
-
-function switchTab(name){
-  const tabs=['chart','fundamentals','earnings','financials','news'];
-  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',tabs[i]===name));
-  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
-  document.getElementById('tab-'+name).classList.add('active');
-}
-
-function setTF(tf){
-  document.querySelectorAll('.timeframe-btns button').forEach(b=>b.classList.remove('active'));
-  document.getElementById('tf-'+tf).classList.add('active');
-  if(!allPriceData.length)return;
-  const cutoffs={_1M:30,_3M:90,_6M:180,_1Y:365,_3Y:1095,_5Y:1825,'_10Y':3650,ALL:99999};
-  const days=cutoffs['_'+tf]||cutoffs[tf]||99999;
-  const cutoff=Date.now()-days*86400000;
-  drawPriceChart(allPriceData.filter(d=>new Date(d.t).getTime()>=cutoff));
-}
-
+const STOCK_URL="https://enxmdjjowjfwiydpslyykokjee0qdvml.lambda-url.us-east-1.on.aws/";
+const CD={responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},plugins:{legend:{labels:{color:"#94a3b8",font:{family:"JetBrains Mono",size:11},boxWidth:12,padding:16}},tooltip:{backgroundColor:"#111827",borderColor:"#1f2937",borderWidth:1,titleColor:"#f1f5f9",bodyColor:"#94a3b8",titleFont:{family:"Syne",size:13,weight:"700"},bodyFont:{family:"JetBrains Mono",size:12},padding:12,displayColors:true}},scales:{x:{ticks:{color:"#64748b",font:{family:"JetBrains Mono",size:10},maxTicksLimit:14},grid:{color:"rgba(31,41,55,0.8)"}},y:{ticks:{color:"#64748b",font:{family:"JetBrains Mono",size:10}},grid:{color:"rgba(31,41,55,0.8)"}}}};
+function dm(b,o){const r=JSON.parse(JSON.stringify(b));for(const k in o){if(o[k]&&typeof o[k]==="object"&&!Array.isArray(o[k])){r[k]=dm(r[k]||{},o[k]);}else{r[k]=o[k];}}return r;}
+const CH={};
+function dc(id){if(CH[id]){CH[id].destroy();delete CH[id];}}
+function mk(id,type,data,opts={}){dc(id);const c=document.getElementById(id);if(!c)return;CH[id]=new Chart(c,{type,data,options:dm(CD,opts)});}
+function fmt(v){if(v===null||v===undefined)return"N/A";const n=parseFloat(v);if(isNaN(n))return v;if(Math.abs(n)>=1e12)return"$"+(n/1e12).toFixed(2)+"T";if(Math.abs(n)>=1e9)return"$"+(n/1e9).toFixed(2)+"B";if(Math.abs(n)>=1e6)return"$"+(n/1e6).toFixed(2)+"M";return n.toFixed(2);}
+function pct(v,d=1){if(v===null||v===undefined)return"N/A";return parseFloat(v).toFixed(d)+"%";}
+function money(v,d=2){if(v===null||v===undefined)return"N/A";return"$"+parseFloat(v).toFixed(d);}
+function num(v,d=2){if(v===null||v===undefined)return"N/A";return parseFloat(v).toFixed(d);}
+function gc(v){if(!v&&v!==0)return"";return parseFloat(v)>=0?"g":"r";}
+function sc(s){s=s.toLowerCase();if(s.includes("bull")||s.includes("above")||s.includes("golden"))return"bull";if(s.includes("bear")||s.includes("below")||s.includes("death")||s.includes("oversold"))return"bear";return"neut";}
 async function analyze(){
-  const ticker=document.getElementById('tickerInput').value.trim().toUpperCase();
+  const ticker=document.getElementById("tickerInput").value.trim().toUpperCase();
   if(!ticker)return;
-  document.getElementById('loading').style.display='block';
-  document.getElementById('loading').textContent='Analyzing '+ticker+'...';
-  document.getElementById('content').style.display='none';
+  document.getElementById("main").innerHTML=`<div class="spinner">LOADING ${ticker}</div>`;
   try{
-    const [res,polyRes]=await Promise.all([
-      fetch(STOCK_URL+'?ticker='+ticker),
-      fetch('https://api.polygon.io/v2/aggs/ticker/'+ticker+'/range/1/week/1999-01-01/'+new Date().toISOString().split('T')[0]+'?adjusted=true&sort=asc&limit=1500&apiKey='+POLY_KEY)
-    ]);
-    const d=await res.json();
-    const poly=await polyRes.json();
-    allPriceData=(poly.results||[]).map(r=>({t:r.t,o:r.o,h:r.h,l:r.l,c:r.c,v:r.v,date:new Date(r.t).toISOString().split('T')[0]}));
-    renderAll(d);
-    document.getElementById('loading').style.display='none';
-    document.getElementById('content').style.display='block';
-  }catch(e){
-    document.getElementById('loading').textContent='Error: '+e.message;
-    console.error(e);
-  }
+    const res=await fetch(`${STOCK_URL}?ticker=${ticker}`);
+    const data=await res.json();
+    if(data.error)throw new Error(data.error);
+    render(data,ticker);
+  }catch(e){document.getElementById("main").innerHTML=`<div class="empty"><div class="icon">&#9888;&#65039;</div><h2>Error</h2><p>${e.message}</p></div>`;}
 }
-
-function renderAll(d){
-  const tech=d.technicals||{},fund=d.fundamentals||{},earn=d.earnings||[];
-  const divs=d.dividends||[],news=d.news||[],inc=d.income_trend||[];
-  const cf=d.cash_flow||{},bs=d.balance_sheet||{};
+function switchTab(name,btn){
+  document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+  document.querySelectorAll(".tab-pane").forEach(p=>p.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById("tab-"+name).classList.add("active");
+  setTimeout(()=>{Object.values(CH).forEach(c=>c.resize&&c.resize());},50);
+}
+function render(d,ticker){
+  const tech=d.technicals||{},fund=d.fundamentals||{},hist=d.historical||{},earns=d.earnings||[],divs=d.dividends||[],news=d.news||[],cf=d.cash_flow||{},bs=d.balance_sheet||{};
   const price=tech.price||0;
-
-  document.getElementById('hSymbol').textContent=d.ticker||'';
-  document.getElementById('hName').textContent=(fund.name||d.ticker||'')+(fund.sector?' · '+fund.sector:'')+(fund.industry?' · '+fund.industry:'');
-  document.getElementById('hPrice').textContent='$'+parseFloat(price||0).toFixed(2);
-  document.getElementById('hMeta').textContent=(fund.exchange||'')+(fund.country?' · '+fund.country:'')+(fund.employees?' · '+parseInt(fund.employees).toLocaleString()+' employees':'');
-
-  const rsi=tech.rsi;
-  document.getElementById('keyMetrics').innerHTML=
-    card('Market Cap',fmt(fund.market_cap),fund.exchange||'')+
-    card('P/E TTM',num(fund.pe_ttm,1),'EPS: $'+num(fund.eps,2))+
-    card('RSI (14)',num(rsi,1),rsi<30?'Oversold':rsi>70?'Overbought':rsi<45?'Bearish':rsi>55?'Bullish':'Neutral',rsi<30?'bullish':rsi>70?'bearish':'neutral')+
-    card('vs 200MA',pct(tech.dist_200ma_pct),'SMA200: $'+num(tech.sma200,2),tech.dist_200ma_pct>=0?'bullish':'bearish')+
-    card('52W High','$'+num(tech.wk52_high,2),'Current: $'+num(price,2))+
-    card('52W Low','$'+num(tech.wk52_low,2),'Range: $'+num(tech.wk52_low,2)+' - $'+num(tech.wk52_high,2))+
-    card('Analyst Target',fmt(fund.pt_consensus),'Upside: '+pct(fund.pt_consensus&&price?(fund.pt_consensus/price-1)*100:null))+
-    card('Beta',num(fund.beta,2),'vs S&P 500');
-
-  document.getElementById('techCards').innerHTML=
-    card('MACD',num(tech.macd,3),tech.macd>=0?'Bullish':'Bearish',tech.macd>=0?'bullish':'bearish')+
-    card('StochRSI',num(tech.stoch_rsi,1),tech.stoch_rsi<20?'Oversold':tech.stoch_rsi>80?'Overbought':'Neutral')+
-    card('ATR (14)','$'+num(tech.atr,2),'Volatility')+
-    card('Vol Ratio',num(tech.vol_ratio,2)+'x','vs 20d avg',tech.vol_ratio>1.5?'bullish':'neutral')+
-    card('BB Upper','$'+num(tech.bb_upper,2),'Bollinger')+
-    card('BB Lower','$'+num(tech.bb_lower,2),'Bollinger')+
-    card('SMA 50','$'+num(tech.sma50,2),pct(tech.dist_50ma_pct)+' from price')+
-    card('1Y Return',pct(tech.pct_1y),'3M: '+pct(tech.pct_3m),tech.pct_1y>=0?'bullish':'bearish');
-
-  const sigs=(tech.signals||'').split('|').map(s=>s.trim()).filter(Boolean);
-  document.getElementById('signalsGrid').innerHTML=sigs.map(s=>{
-    const bull=['ABOVE_200MA','GOLDEN_CROSS','MACD_BULL','OVERSOLD','BB_OVERSOLD'].includes(s);
-    const bear=['BELOW_200MA','DEATH_CROSS','MACD_BEAR','OVERBOUGHT','BB_OVERBOUGHT'].includes(s);
-    return '<span class="signal-badge '+(bull?'bull':bear?'bear':'neutral')+'">'+s+'</span>';
-  }).join('');
-
-  if(allPriceData.length){drawPriceChart(allPriceData);drawRsiChart(allPriceData);drawVolChart(allPriceData);}
-
-  // Valuation
-  document.getElementById('valuationCards').innerHTML=
-    card('P/E TTM',num(fund.pe_ttm,1))+card('P/B TTM',num(fund.pb_ttm,1))+
-    card('P/S TTM',num(fund.ps_ttm,1))+card('PEG',num(fund.peg,2))+
-    card('EV/EBITDA',num(fund.ev_ebitda,1))+card('FCF Yield',num(fund.fcf_yield,2)+'%')+
-    card('D/E Ratio',num(fund.debt_equity,2))+card('Current Ratio',num(fund.current_ratio,2));
-  document.getElementById('profitCards').innerHTML=
-    card('Gross Margin',num(fund.gross_margin,1)+'%','','bullish')+card('Net Margin',num(fund.profit_margin,1)+'%','','bullish')+
-    card('ROE',num(fund.roe,1)+'%','','bullish')+card('ROA',num(fund.roa,1)+'%','','bullish')+
-    card('ROIC',num(fund.roic,1)+'%')+card('Earnings Yield',num(fund.earnings_yield,2)+'%')+
-    card('CEO',fund.ceo||'N/A')+card('Employees',fund.employees?parseInt(fund.employees).toLocaleString():'N/A');
-  document.getElementById('description').textContent=fund.description||'';
-
-  // PT chart
-  if(fund.pt_low&&fund.pt_consensus&&fund.pt_high){
-    dc('ptChart');
-    charts['ptChart']=new Chart(document.getElementById('ptChart'),{type:'bar',
-      data:{labels:['Low','Median','Consensus','High','Current'],
-        datasets:[{data:[fund.pt_low,fund.pt_median,fund.pt_consensus,fund.pt_high,price],
-          backgroundColor:['#e53e3e','#ed8936','#3182ce','#48bb78','#9f7aea'],borderRadius:6}]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-        scales:{y:{ticks:{color:'#a0aec0',callback:v=>'$'+v},grid:{color:'#2d3748'}},x:{ticks:{color:'#a0aec0'},grid:{display:false}}}}});
-  }
-  dc('returnChart');
-  charts['returnChart']=new Chart(document.getElementById('returnChart'),{type:'bar',
-    data:{labels:['Gross Margin','Net Margin','ROE','ROA','ROIC'],
-      datasets:[{data:[fund.gross_margin,fund.profit_margin,fund.roe,fund.roa,fund.roic],
-        backgroundColor:['#48bb78','#3182ce','#805ad5','#38b2ac','#ed8936'],borderRadius:6}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-      scales:{y:{ticks:{color:'#a0aec0',callback:v=>v+'%'},grid:{color:'#2d3748'}},x:{ticks:{color:'#a0aec0'},grid:{display:false}}}}});
-
-  // Earnings
-  if(earn.length){
-    const rev=earn.slice().reverse();
-    dc('earningsChart');
-    charts['earningsChart']=new Chart(document.getElementById('earningsChart'),{type:'bar',
-      data:{labels:rev.map(e=>(e.date||'').slice(0,7)),
-        datasets:[
-          {label:'Actual EPS',data:rev.map(e=>e.eps_act),backgroundColor:'#3182ce',borderRadius:4},
-          {label:'Estimated EPS',data:rev.map(e=>e.eps_est),backgroundColor:'#4a5568',borderRadius:4}]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#a0aec0'}}},
-        scales:{y:{ticks:{color:'#a0aec0'},grid:{color:'#2d3748'}},x:{ticks:{color:'#a0aec0'},grid:{display:false}}}}});
-    document.getElementById('earningsTable').innerHTML=earn.map(e=>{
-      const s=e.surprise_pct;
-      return '<tr><td>'+(e.date||'N/A')+'</td><td>$'+num(e.eps_act,2)+'</td><td>$'+num(e.eps_est,2)+'</td><td class="'+(s==null?'':s>=0?'beat':'miss')+'">'+(s==null?'N/A':(s>=0?'+':'')+s.toFixed(1)+'%')+'</td><td>'+fmt(e.revenue)+'</td><td>'+fmt(e.revenue_est)+'</td></tr>';
-    }).join('');
-  }
-  if(divs.length&&divs[0].dividend){
-    const dr=divs.slice().reverse();
-    dc('divChart');
-    charts['divChart']=new Chart(document.getElementById('divChart'),{type:'bar',
-      data:{labels:dr.map(d=>(d.date||'').slice(0,7)),datasets:[{label:'Dividend',data:dr.map(d=>d.dividend),backgroundColor:'#48bb78',borderRadius:4}]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-        scales:{y:{ticks:{color:'#a0aec0',callback:v=>'$'+v},grid:{color:'#2d3748'}},x:{ticks:{color:'#a0aec0'},grid:{display:false}}}}});
-  } else {
-    document.getElementById('divSection').innerHTML='<h2>DIVIDENDS</h2><p style="color:#718096;padding:20px 0">No dividend data</p>';
-  }
-
-  // Financials
-  if(inc.length){
-    const ir=inc.slice().reverse();
-    dc('revenueChart');
-    charts['revenueChart']=new Chart(document.getElementById('revenueChart'),{type:'bar',
-      data:{labels:ir.map(i=>(i.date||'').slice(0,7)),datasets:[
-        {label:'Revenue ($B)',data:ir.map(i=>i.revenue?+(i.revenue/1e9).toFixed(2):null),backgroundColor:'#3182ce',borderRadius:4},
-        {label:'Net Income ($B)',data:ir.map(i=>i.net_income?+(i.net_income/1e9).toFixed(2):null),backgroundColor:'#48bb78',borderRadius:4},
-        {label:'EBITDA ($B)',data:ir.map(i=>i.ebitda?+(i.ebitda/1e9).toFixed(2):null),backgroundColor:'#ed8936',borderRadius:4}]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#a0aec0'}}},
-        scales:{y:{ticks:{color:'#a0aec0',callback:v=>'$'+v+'B'},grid:{color:'#2d3748'}},x:{ticks:{color:'#a0aec0'},grid:{display:false}}}}});
-  }
-  dc('cfChart');
-  charts['cfChart']=new Chart(document.getElementById('cfChart'),{type:'bar',
-    data:{labels:['Operating CF','Free CF','CapEx','Buybacks'],
-      datasets:[{data:[cf.operating_cf,cf.free_cf,cf.capex?Math.abs(cf.capex):null,cf.buybacks?Math.abs(cf.buybacks):null].map(v=>v?+(v/1e9).toFixed(2):null),
-        backgroundColor:['#3182ce','#48bb78','#e53e3e','#805ad5'],borderRadius:6}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-      scales:{y:{ticks:{color:'#a0aec0',callback:v=>'$'+v+'B'},grid:{color:'#2d3748'}},x:{ticks:{color:'#a0aec0'},grid:{display:false}}}}});
-  dc('bsChart');
-  charts['bsChart']=new Chart(document.getElementById('bsChart'),{type:'bar',
-    data:{labels:['Total Assets','Cash','Total Debt','Net Debt','Equity'],
-      datasets:[{data:[bs.total_assets,bs.cash_and_st||bs.cash,bs.total_debt,bs.net_debt,bs.total_equity].map(v=>v?+(v/1e9).toFixed(2):null),
-        backgroundColor:['#3182ce','#48bb78','#e53e3e','#ed8936','#9f7aea'],borderRadius:6}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-      scales:{y:{ticks:{color:'#a0aec0',callback:v=>'$'+v+'B'},grid:{color:'#2d3748'}},x:{ticks:{color:'#a0aec0'},grid:{display:false}}}}});
-
-  document.getElementById('newsList').innerHTML=news.map(n=>'<div class="news-item"><div class="title">'+( n.title||'')+'</div><div class="meta">'+(n.source||'')+' · '+(n.published||'')+'</div></div>').join('')||'<p style="color:#718096">No news available</p>';
+  const chg=fund.change_pct;
+  const pc=!chg?"":parseFloat(chg)>=0?"up":"dn";
+  const signals=(tech.signals||"NEUTRAL").split("|").map(s=>s.trim()).filter(Boolean);
+  const main=document.getElementById("main");
+  main.innerHTML=`
+<div class="hero">
+  <div class="hero-left">
+    <div class="symbol">${fund.name||ticker}</div>
+    <div class="company-name">${fund.ceo?"CEO: "+fund.ceo:""}${fund.employees?"&nbsp;|&nbsp;"+Number(fund.employees).toLocaleString()+" employees":""}</div>
+    <span class="sector-tag">${fund.sector||""}${fund.industry?" / "+fund.industry:""}</span>
+  </div>
+  <div class="hero-right">
+    <div class="price-big ${pc}">${money(price)}</div>
+    <div class="price-change ${pc}">${chg!==undefined?(parseFloat(chg)>=0?"+":"")+num(chg,2)+"%":""}</div>
+  </div>
+</div>
+<div class="kpi-row">
+  <div class="kpi"><div class="k">Market Cap</div><div class="v b">${fmt(fund.market_cap)}</div></div>
+  <div class="kpi"><div class="k">P/E TTM</div><div class="v">${num(fund.pe,1)}</div></div>
+  <div class="kpi"><div class="k">EV/EBITDA</div><div class="v">${num(fund.ev_ebitda,1)}</div></div>
+  <div class="kpi"><div class="k">Gross Margin</div><div class="v g">${pct(fund.gross_margin)}</div></div>
+  <div class="kpi"><div class="k">Net Margin</div><div class="v g">${pct(fund.net_margin)}</div></div>
+  <div class="kpi"><div class="k">ROE</div><div class="v ${gc(fund.roe)}">${pct(fund.roe)}</div></div>
+  <div class="kpi"><div class="k">Beta</div><div class="v">${num(fund.beta)}</div></div>
+  <div class="kpi"><div class="k">FCF Yield</div><div class="v g">${pct(fund.fcf_yield)}</div></div>
+</div>
+<div class="signals-row">${signals.map(s=>`<span class="sig ${sc(s)}">${s}</span>`).join("")}</div>
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('charts',this)">CHARTS</button>
+  <button class="tab-btn" onclick="switchTab('technicals',this)">TECHNICALS</button>
+  <button class="tab-btn" onclick="switchTab('fundamentals',this)">FUNDAMENTALS</button>
+  <button class="tab-btn" onclick="switchTab('earnings',this)">EARNINGS</button>
+  <button class="tab-btn" onclick="switchTab('financials',this)">FINANCIALS</button>
+  <button class="tab-btn" onclick="switchTab('dividends',this)">DIVIDENDS</button>
+  <button class="tab-btn" onclick="switchTab('news',this)">NEWS</button>
+</div>
+<div class="tab-pane active" id="tab-charts">
+  <div class="charts-grid full" style="margin-bottom:16px"><div class="chart-card"><h3>Revenue &amp; Net Income - Annual ($B)</h3><div class="chart-wrap" style="height:320px"><canvas id="chartRevenue"></canvas></div></div></div>
+  <div class="charts-grid">
+    <div class="chart-card"><h3>Earnings Per Share (EPS) - Annual</h3><div class="chart-wrap" style="height:260px"><canvas id="chartEPS"></canvas></div></div>
+    <div class="chart-card"><h3>P/E Ratio - Annual</h3><div class="chart-wrap" style="height:260px"><canvas id="chartPE"></canvas></div></div>
+  </div>
+  <div class="charts-grid">
+    <div class="chart-card"><h3>Gross Margin / Net Margin / ROE - Annual (%)</h3><div class="chart-wrap" style="height:260px"><canvas id="chartMargins"></canvas></div></div>
+    <div class="chart-card"><h3>Annual Dividends - History ($)</h3><div class="chart-wrap" style="height:260px"><canvas id="chartDivs"></canvas></div></div>
+  </div>
+</div>
+<div class="tab-pane" id="tab-technicals">
+  <div class="data-grid">
+    <div class="data-row"><div class="label">RSI (14)</div><div class="value ${parseFloat(tech.rsi)>70?"r":parseFloat(tech.rsi)<30?"g":""}">${num(tech.rsi,1)}</div><div class="sub-val">${parseFloat(tech.rsi)>70?"Overbought":parseFloat(tech.rsi)<30?"Oversold":"Neutral"}</div></div>
+    <div class="data-row"><div class="label">StochRSI</div><div class="value">${num(tech.stoch_rsi,1)}</div></div>
+    <div class="data-row"><div class="label">MACD</div><div class="value">${num(tech.macd,3)}</div></div>
+    <div class="data-row"><div class="label">ATR (14)</div><div class="value">${money(tech.atr)}</div></div>
+    <div class="data-row"><div class="label">SMA 20</div><div class="value">${money(tech.sma20)}</div></div>
+    <div class="data-row"><div class="label">SMA 50</div><div class="value">${money(tech.sma50)}</div></div>
+    <div class="data-row"><div class="label">SMA 200</div><div class="value">${money(tech.sma200)}</div></div>
+    <div class="data-row"><div class="label">Vol Ratio</div><div class="value">${num(tech.vol_ratio,2)}x</div></div>
+    <div class="data-row"><div class="label">vs 50MA</div><div class="value ${gc(tech.vs_50ma)}">${num(tech.vs_50ma,1)}%</div></div>
+    <div class="data-row"><div class="label">vs 200MA</div><div class="value ${gc(tech.vs_200ma)}">${num(tech.vs_200ma,1)}%</div></div>
+    <div class="data-row"><div class="label">52W High</div><div class="value">${money(tech.week52_high)}</div></div>
+    <div class="data-row"><div class="label">52W Low</div><div class="value">${money(tech.week52_low)}</div></div>
+    <div class="data-row"><div class="label">BB Upper</div><div class="value">${money(tech.bb_upper)}</div></div>
+    <div class="data-row"><div class="label">BB Lower</div><div class="value">${money(tech.bb_lower)}</div></div>
+    <div class="data-row"><div class="label">1M Return</div><div class="value ${gc(tech.ret_1m)}">${num(tech.ret_1m,1)}%</div></div>
+    <div class="data-row"><div class="label">3M Return</div><div class="value ${gc(tech.ret_3m)}">${num(tech.ret_3m,1)}%</div></div>
+  </div>
+</div>
+<div class="tab-pane" id="tab-fundamentals">
+  <div class="data-grid">
+    <div class="data-row"><div class="label">Market Cap</div><div class="value b">${fmt(fund.market_cap)}</div></div>
+    <div class="data-row"><div class="label">Enterprise Value</div><div class="value">${fmt(fund.ev)}</div></div>
+    <div class="data-row"><div class="label">P/E TTM</div><div class="value">${num(fund.pe,1)}</div></div>
+    <div class="data-row"><div class="label">P/B Ratio</div><div class="value">${num(fund.pb,1)}</div></div>
+    <div class="data-row"><div class="label">P/S Ratio</div><div class="value">${num(fund.ps,1)}</div></div>
+    <div class="data-row"><div class="label">PEG Ratio</div><div class="value">${num(fund.peg,2)}</div></div>
+    <div class="data-row"><div class="label">EV/EBITDA</div><div class="value">${num(fund.ev_ebitda,1)}</div></div>
+    <div class="data-row"><div class="label">FCF Yield</div><div class="value g">${pct(fund.fcf_yield)}</div></div>
+    <div class="data-row"><div class="label">Gross Margin</div><div class="value g">${pct(fund.gross_margin)}</div></div>
+    <div class="data-row"><div class="label">Net Margin</div><div class="value g">${pct(fund.net_margin)}</div></div>
+    <div class="data-row"><div class="label">ROE</div><div class="value g">${pct(fund.roe)}</div></div>
+    <div class="data-row"><div class="label">ROA</div><div class="value g">${pct(fund.roa)}</div></div>
+    <div class="data-row"><div class="label">ROIC</div><div class="value g">${pct(fund.roic)}</div></div>
+    <div class="data-row"><div class="label">Debt/Equity</div><div class="value">${num(fund.de,2)}</div></div>
+    <div class="data-row"><div class="label">Current Ratio</div><div class="value">${num(fund.current_ratio,2)}</div></div>
+    <div class="data-row"><div class="label">Beta</div><div class="value">${num(fund.beta,2)}</div></div>
+  </div>
+  <div class="chart-card">
+    <h3>Analyst Price Targets</h3>
+    <div style="display:flex;gap:24px;flex-wrap:wrap;padding:8px 0 16px">
+      <div><div style="font-size:0.7rem;color:var(--muted);margin-bottom:4px">CONSENSUS</div><div style="font-size:1.6rem;font-weight:800;color:var(--blue)">${money(fund.pt_consensus)}</div></div>
+      <div><div style="font-size:0.7rem;color:var(--muted);margin-bottom:4px">LOW TARGET</div><div style="font-size:1.6rem;font-weight:800;color:var(--red)">${money(fund.pt_low)}</div></div>
+      <div><div style="font-size:0.7rem;color:var(--muted);margin-bottom:4px">HIGH TARGET</div><div style="font-size:1.6rem;font-weight:800;color:var(--green)">${money(fund.pt_high)}</div></div>
+      <div><div style="font-size:0.7rem;color:var(--muted);margin-bottom:4px">UPSIDE</div><div style="font-size:1.6rem;font-weight:800;color:var(--gold)">${fund.pt_consensus&&price?(((fund.pt_consensus-price)/price)*100).toFixed(1)+"%":"N/A"}</div></div>
+    </div>
+    ${fund.pt_low&&fund.pt_high?`<div style="position:relative;height:8px;background:var(--border2);border-radius:4px"><div style="position:absolute;left:0;height:100%;width:${Math.min(100,Math.max(0,((price-fund.pt_low)/(fund.pt_high-fund.pt_low))*100))}%;background:linear-gradient(90deg,var(--red),var(--green));border-radius:4px"></div><div style="position:absolute;top:-4px;left:${Math.min(96,Math.max(0,((price-fund.pt_low)/(fund.pt_high-fund.pt_low))*100))}%;width:16px;height:16px;background:var(--blue);border-radius:50%;border:2px solid var(--bg);transform:translateX(-50%)"></div></div><div style="display:flex;justify-content:space-between;font-size:0.68rem;color:var(--muted);margin-top:6px"><span>${money(fund.pt_low)}</span><span style="color:var(--blue)">Current ${money(price)}</span><span>${money(fund.pt_high)}</span></div>`:""}
+  </div>
+</div>
+<div class="tab-pane" id="tab-earnings">
+  <div class="charts-grid">
+    <div class="chart-card"><h3>EPS - Actual vs Estimate</h3><div class="chart-wrap" style="height:260px"><canvas id="chartEarningsEPS"></canvas></div></div>
+    <div class="chart-card"><h3>Revenue - Actual vs Estimate ($B)</h3><div class="chart-wrap" style="height:260px"><canvas id="chartEarningsRev"></canvas></div></div>
+  </div>
+  <div class="chart-card" style="margin-bottom:16px">
+    <h3>Earnings History</h3>
+    <table class="data-table">
+      <thead><tr><th>Date</th><th>EPS Actual</th><th>EPS Est</th><th>Surprise</th><th>Revenue Actual</th><th>Revenue Est</th></tr></thead>
+      <tbody>${earns.map(e=>`<tr><td class="val-hi">${e.date||""}</td><td class="${e.eps_act!==null&&e.eps_est!==null?parseFloat(e.eps_act)>=parseFloat(e.eps_est)?"beat":"miss":""}">${e.eps_act!==null?"$"+parseFloat(e.eps_act).toFixed(2):"N/A"}</td><td>${e.eps_est!==null?"$"+parseFloat(e.eps_est).toFixed(2):"N/A"}</td><td class="${e.surprise_pct!==null?parseFloat(e.surprise_pct)>=0?"beat":"miss":""}">${e.surprise_pct!==null?(parseFloat(e.surprise_pct)>=0?"+":"")+parseFloat(e.surprise_pct).toFixed(1)+"%":"N/A"}</td><td>${e.revenue?fmt(e.revenue):"N/A"}</td><td>${e.revenue_est?fmt(e.revenue_est):"N/A"}</td></tr>`).join("")}</tbody>
+    </table>
+  </div>
+</div>
+<div class="tab-pane" id="tab-financials">
+  <div class="charts-grid">
+    <div class="chart-card"><h3>Revenue &amp; Net Income - Annual ($B)</h3><div class="chart-wrap" style="height:260px"><canvas id="chartFinRev"></canvas></div></div>
+    <div class="chart-card"><h3>Free Cash Flow Per Share - Annual ($)</h3><div class="chart-wrap" style="height:260px"><canvas id="chartFCF"></canvas></div></div>
+  </div>
+  <div class="data-grid">
+    <div class="data-row"><div class="label">Operating CF</div><div class="value g">${fmt(cf.operating)}</div></div>
+    <div class="data-row"><div class="label">Free Cash Flow</div><div class="value g">${fmt(cf.fcf)}</div></div>
+    <div class="data-row"><div class="label">CapEx</div><div class="value r">${fmt(cf.capex)}</div></div>
+    <div class="data-row"><div class="label">Buybacks</div><div class="value">${fmt(cf.buybacks)}</div></div>
+    <div class="data-row"><div class="label">Cash</div><div class="value g">${fmt(bs.cash)}</div></div>
+    <div class="data-row"><div class="label">Total Debt</div><div class="value r">${fmt(bs.debt)}</div></div>
+    <div class="data-row"><div class="label">Net Debt</div><div class="value">${fmt(bs.net_debt)}</div></div>
+    <div class="data-row"><div class="label">Total Assets</div><div class="value">${fmt(bs.assets)}</div></div>
+  </div>
+</div>
+<div class="tab-pane" id="tab-dividends">
+  <div class="charts-grid full" style="margin-bottom:16px"><div class="chart-card"><h3>Annual Dividend - Full History ($)</h3><div class="chart-wrap" style="height:280px"><canvas id="chartDivHistory"></canvas></div></div></div>
+  <div class="chart-card" style="margin-bottom:16px">
+    <h3>Dividend Payments</h3>
+    <table class="data-table">
+      <thead><tr><th>Payment Date</th><th>Amount</th><th>Yield</th><th>Frequency</th></tr></thead>
+      <tbody>${divs.map(d=>`<tr><td class="val-hi">${d.date||""}</td><td class="beat">${d.dividend?"$"+parseFloat(d.dividend).toFixed(4):"N/A"}</td><td>${d.yield?parseFloat(d.yield).toFixed(3)+"%":"N/A"}</td><td>${d.frequency||""}</td></tr>`).join("")||"<tr><td colspan=4 style=text-align:center;color:var(--muted)>No dividend history</td></tr>"}</tbody>
+    </table>
+  </div>
+</div>
+<div class="tab-pane" id="tab-news">
+  <div class="chart-card">${news.length?news.map(n=>`<div class="news-item"><a href="${n.url||"#"}" target="_blank">${n.title||""}</a><div class="news-meta">${n.source||""}&nbsp;·&nbsp;${n.published||""}</div></div>`).join(""):"<p style=color:var(--muted);padding:20px>No recent news found.</p>"}</div>
+</div>`;
+  setTimeout(()=>{drawAll(hist,earns);},60);
 }
-
-function drawPriceChart(data){
-  if(!data||!data.length)return;
-  const labels=data.map(d=>d.date);
-  const closes=data.map(d=>d.c);
-  const sma=(arr,p)=>arr.map((_,i)=>i>=p-1?+(arr.slice(i-p+1,i+1).reduce((a,b)=>a+b)/p).toFixed(2):null);
-  dc('priceChart');
-  charts['priceChart']=new Chart(document.getElementById('priceChart'),{type:'line',
-    data:{labels,datasets:[
-      {label:'Price',data:closes,borderColor:'#63b3ed',borderWidth:1.5,pointRadius:0,fill:true,backgroundColor:'rgba(99,179,237,0.05)',tension:0.1},
-      {label:'SMA 50',data:sma(closes,50),borderColor:'#ed8936',borderWidth:1,pointRadius:0,tension:0.1},
-      {label:'SMA 200',data:sma(closes,200),borderColor:'#f56565',borderWidth:1,pointRadius:0,tension:0.1}]},
-    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-      plugins:{legend:{labels:{color:'#a0aec0'}},tooltip:{backgroundColor:'#1a1f35',titleColor:'#63b3ed',bodyColor:'#e2e8f0'}},
-      scales:{y:{ticks:{color:'#a0aec0',callback:v=>'$'+v.toFixed(0)},grid:{color:'#2d3748'}},x:{ticks:{color:'#a0aec0',maxTicksLimit:14},grid:{display:false}}}}});
-}
-
-function drawRsiChart(data){
-  if(!data||data.length<15)return;
-  const closes=data.map(d=>d.c);
-  const rsiArr=[];
-  for(let i=14;i<closes.length;i++){
-    const s=closes.slice(i-14,i+1);
-    const deltas=s.slice(1).map((v,j)=>v-s[j]);
-    const g=deltas.filter(d=>d>0).reduce((a,b)=>a+b,0)/14;
-    const l=(-deltas.filter(d=>d<0).reduce((a,b)=>a+b,0)/14)||0.001;
-    rsiArr.push(+(100-100/(1+g/l)).toFixed(1));
+function drawAll(hist,earns){
+  if(!hist||!hist.labels)return;
+  const L=hist.labels;
+  // Revenue & Net Income
+  mk("chartRevenue","bar",{labels:L,datasets:[
+    {label:"Revenue ($B)",data:hist.revenue,backgroundColor:"rgba(59,130,246,0.75)",borderRadius:3,borderSkipped:false},
+    {label:"Net Income ($B)",data:hist.net_income,backgroundColor:"rgba(16,185,129,0.75)",borderRadius:3,borderSkipped:false}
+  ]},{plugins:{tooltip:{callbacks:{label:c=>` ${c.dataset.label}: $${(c.raw||0).toFixed(2)}B`}}},scales:{y:{ticks:{callback:v=>"$"+v+"B"}}}});
+  // EPS
+  mk("chartEPS","bar",{labels:L,datasets:[
+    {label:"EPS ($)",data:hist.eps,backgroundColor:hist.eps.map(v=>v>=0?"rgba(139,92,246,0.8)":"rgba(239,68,68,0.7)"),borderRadius:3}
+  ]},{plugins:{tooltip:{callbacks:{label:c=>` EPS: $${(c.raw||0).toFixed(2)}`}}},scales:{y:{ticks:{callback:v=>"$"+v}}}});
+  // P/E - filter extreme values
+  const peF=hist.pe.map(v=>(v&&Math.abs(v)<500)?v:null);
+  mk("chartPE","line",{labels:L,datasets:[
+    {label:"P/E Ratio",data:peF,borderColor:"#f59e0b",backgroundColor:"rgba(245,158,11,0.08)",borderWidth:2.5,pointRadius:4,pointHoverRadius:7,pointBackgroundColor:"#f59e0b",fill:true,tension:0.3,spanGaps:true}
+  ]},{plugins:{tooltip:{callbacks:{label:c=>` P/E: ${c.raw!==null?c.raw.toFixed(1)+"x":"N/A"}`}}}});
+  // Margins & ROE
+  mk("chartMargins","line",{labels:L,datasets:[
+    {label:"Gross Margin %",data:hist.gross_margin,borderColor:"#10b981",borderWidth:2.5,pointRadius:3,pointHoverRadius:6,fill:false,tension:0.3,spanGaps:true},
+    {label:"Net Margin %",data:hist.net_margin,borderColor:"#3b82f6",borderWidth:2.5,pointRadius:3,pointHoverRadius:6,fill:false,tension:0.3,spanGaps:true},
+    {label:"ROE %",data:hist.roe.map(v=>v&&Math.abs(v)<500?v:null),borderColor:"#ef4444",borderWidth:2.5,pointRadius:3,pointHoverRadius:6,fill:false,tension:0.3,spanGaps:true}
+  ]},{plugins:{tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${c.raw!==null?c.raw.toFixed(1)+"%":"N/A"}`}}},scales:{y:{ticks:{callback:v=>v+"%"}}}});
+  // Dividends - Charts tab
+  const dL=hist.div_labels||[],dV=hist.div_annual||[];
+  if(dL.length&&dV.some(v=>v>0)){
+    mk("chartDivs","bar",{labels:dL,datasets:[{label:"Annual Dividend ($)",data:dV,backgroundColor:"rgba(16,185,129,0.75)",borderRadius:3}]},{plugins:{tooltip:{callbacks:{label:c=>` Dividend: $${c.raw.toFixed(3)}`}}},scales:{y:{ticks:{callback:v=>"$"+v}}}});
+  }else{const c=document.getElementById("chartDivs");if(c)c.parentElement.innerHTML="<div style=height:260px;display:flex;align-items:center;justify-content:center;color:var(--muted)>No dividend history</div>";}
+  // Financials tab
+  mk("chartFinRev","bar",{labels:L,datasets:[
+    {label:"Revenue ($B)",data:hist.revenue,backgroundColor:"rgba(59,130,246,0.75)",borderRadius:3},
+    {label:"Net Income ($B)",data:hist.net_income,backgroundColor:"rgba(16,185,129,0.75)",borderRadius:3}
+  ]},{scales:{y:{ticks:{callback:v=>"$"+v+"B"}}}});
+  mk("chartFCF","bar",{labels:L,datasets:[
+    {label:"FCF/Share ($)",data:hist.fcf,backgroundColor:hist.fcf.map(v=>v>=0?"rgba(139,92,246,0.8)":"rgba(239,68,68,0.7)"),borderRadius:3}
+  ]},{plugins:{tooltip:{callbacks:{label:c=>` FCF/Share: $${(c.raw||0).toFixed(2)}`}}},scales:{y:{ticks:{callback:v=>"$"+v}}}});
+  // Dividends tab
+  if(dL.length&&dV.some(v=>v>0)){
+    mk("chartDivHistory","bar",{labels:dL,datasets:[{label:"Annual Dividend ($)",data:dV,backgroundColor:"rgba(16,185,129,0.75)",borderRadius:3}]},{plugins:{tooltip:{callbacks:{label:c=>` Annual Dividend: $${c.raw.toFixed(3)}`}}},scales:{y:{ticks:{callback:v=>"$"+v}}}});
   }
-  const labels=data.slice(14).map(d=>d.date);
-  dc('rsiChart');
-  charts['rsiChart']=new Chart(document.getElementById('rsiChart'),{type:'line',
-    data:{labels,datasets:[{label:'RSI',data:rsiArr,borderColor:'#9f7aea',borderWidth:1.5,pointRadius:0,tension:0.1}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-      scales:{y:{min:0,max:100,ticks:{color:'#a0aec0'},grid:{color:'#2d3748'}},x:{ticks:{color:'#a0aec0',maxTicksLimit:10},grid:{display:false}}}}});
+  // Earnings tab charts
+  if(earns&&earns.length){
+    const rev=earns.filter(e=>e.date).slice().reverse();
+    const el=rev.map(e=>e.date);
+    const ea=rev.map(e=>e.eps_act),ee=rev.map(e=>e.eps_est);
+    mk("chartEarningsEPS","bar",{labels:el,datasets:[
+      {label:"EPS Actual",data:ea,backgroundColor:ea.map((v,i)=>v!==null&&ee[i]!==null&&v>=ee[i]?"rgba(16,185,129,0.8)":"rgba(239,68,68,0.75)"),borderRadius:3},
+      {label:"EPS Estimate",data:ee,backgroundColor:"rgba(100,116,139,0.45)",borderRadius:3}
+    ]},{plugins:{tooltip:{callbacks:{label:c=>` ${c.dataset.label}: $${(c.raw||0).toFixed(2)}`}}},scales:{y:{ticks:{callback:v=>"$"+v}}}});
+    const ra=rev.map(e=>e.revenue?e.revenue/1e9:null),re=rev.map(e=>e.revenue_est?e.revenue_est/1e9:null);
+    mk("chartEarningsRev","bar",{labels:el,datasets:[
+      {label:"Revenue Actual ($B)",data:ra,backgroundColor:"rgba(59,130,246,0.8)",borderRadius:3},
+      {label:"Revenue Estimate ($B)",data:re,backgroundColor:"rgba(100,116,139,0.45)",borderRadius:3}
+    ]},{plugins:{tooltip:{callbacks:{label:c=>` ${c.dataset.label}: $${(c.raw||0).toFixed(2)}B`}}},scales:{y:{ticks:{callback:v=>"$"+v+"B"}}}});
+  }
 }
-
-function drawVolChart(data){
-  if(!data||!data.length)return;
-  dc('volChart');
-  charts['volChart']=new Chart(document.getElementById('volChart'),{type:'bar',
-    data:{labels:data.map(d=>d.date),datasets:[{label:'Volume',data:data.map(d=>+(d.v/1e6).toFixed(1)),backgroundColor:'rgba(99,179,237,0.4)',borderRadius:2}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-      scales:{y:{ticks:{color:'#a0aec0',callback:v=>v+'M'},grid:{color:'#2d3748'}},x:{ticks:{color:'#a0aec0',maxTicksLimit:10},grid:{display:false}}}}});
-}
-
-window.onload=()=>analyze();
+const urlT=new URLSearchParams(window.location.search).get("t");
+if(urlT){document.getElementById("tickerInput").value=urlT;analyze();}
 </script>
 </body>
 </html>
