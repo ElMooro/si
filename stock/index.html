@@ -399,7 +399,8 @@ let priceEChart=null,volumeEChart=null,allOHLCV={},priceType='candle',showMA50=f
 
 function initPriceChart(ohlcv,ticker){
   allOHLCV=ohlcv;
-  document.getElementById('priceChartTitle').textContent=ticker+' Price History - Weekly (Adjusted)';
+  const totalBars=ohlcv.dates?ohlcv.dates.length:0;
+  document.getElementById('priceChartTitle').textContent=ticker+' Price History - Weekly Adjusted ('+totalBars+' bars)';
   document.getElementById('btnMA50').className='ma-btn';
   document.getElementById('btnMA200').className='ma-btn';
   showMA50=false;showMA200=false;priceType='candle';
@@ -437,22 +438,26 @@ function buildPriceOpts(period){
   const closes=allOHLCV.closes.slice(start,end);
   const sma50=(allOHLCV.sma50||[]).slice(start,end);
   const sma200=(allOHLCV.sma200||[]).slice(start,end);
+  // Auto-switch to line if too many bars for candles (>300 = too compressed)
+  const useCandle = priceType==='candle' && dates.length<=300;
   const series=[];
-  if(priceType==='candle'){
+  if(useCandle){
     series.push({name:'Price',type:'candlestick',
       data:dates.map((_,i)=>[opens[i],closes[i],lows[i],highs[i]]),
       itemStyle:{color:'#10b981',color0:'#ef4444',borderColor:'#10b981',borderColor0:'#ef4444',borderWidth:1},
+      barMaxWidth:8,
       emphasis:{itemStyle:{borderWidth:2}}
     });
   }else{
+    // Line chart with gradient fill
     series.push({name:'Price',type:'line',data:closes,
       lineStyle:{color:'#3b82f6',width:2},
-      areaStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'rgba(59,130,246,0.3)'},{offset:1,color:'rgba(59,130,246,0.02)'}]}},
-      symbol:'none',smooth:false
+      areaStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'rgba(59,130,246,0.25)'},{offset:1,color:'rgba(59,130,246,0.01)'}]}},
+      symbol:'none',smooth:false,large:true
     });
   }
-  if(showMA50)series.push({name:'SMA 50',type:'line',data:sma50,lineStyle:{color:'#fbbf24',width:1.5},symbol:'none',smooth:false,connectNulls:true});
-  if(showMA200)series.push({name:'SMA 200',type:'line',data:sma200,lineStyle:{color:'#ef4444',width:1.5},symbol:'none',smooth:false,connectNulls:true});
+  if(showMA50)series.push({name:'SMA 50',type:'line',data:sma50,lineStyle:{color:'#fbbf24',width:1.5},symbol:'none',smooth:false,connectNulls:true,large:true});
+  if(showMA200)series.push({name:'SMA 200',type:'line',data:sma200,lineStyle:{color:'#ef4444',width:1.5},symbol:'none',smooth:false,connectNulls:true,large:true});
   return{
     backgroundColor:'transparent',animation:false,
     tooltip:{trigger:'axis',axisPointer:{type:'cross'},backgroundColor:'#111827',borderColor:'#374151',borderWidth:1,
