@@ -194,6 +194,27 @@ function render(d,ticker){
   <button class="tab-btn" onclick="switchTab('news',this)">NEWS</button>
 </div>
 <div class="tab-pane active" id="tab-charts">
+  <div class="price-chart-card">
+    <h3 id="priceChartTitle">Price History - Enter a ticker to load</h3>
+    <div class="price-toolbar">
+      <button class="tf-btn" onclick="setPricePeriod('1M',this)">1M</button>
+      <button class="tf-btn" onclick="setPricePeriod('3M',this)">3M</button>
+      <button class="tf-btn" onclick="setPricePeriod('6M',this)">6M</button>
+      <button class="tf-btn active" onclick="setPricePeriod('1Y',this)">1Y</button>
+      <button class="tf-btn" onclick="setPricePeriod('3Y',this)">3Y</button>
+      <button class="tf-btn" onclick="setPricePeriod('5Y',this)">5Y</button>
+      <button class="tf-btn" onclick="setPricePeriod('10Y',this)">10Y</button>
+      <button class="tf-btn" onclick="setPricePeriod('ALL',this)">ALL</button>
+      <span style="color:var(--border2);margin:0 6px">|</span>
+      <button class="chart-type-btn active" id="btnCandle" onclick="setPriceType('candle',this)">Candle</button>
+      <button class="chart-type-btn" id="btnLine" onclick="setPriceType('line',this)">Line</button>
+      <span style="color:var(--border2);margin:0 6px">|</span>
+      <button class="ma-btn" id="btnMA50" onclick="toggleMA(50)">SMA 50</button>
+      <button class="ma-btn" id="btnMA200" onclick="toggleMA(200)">SMA 200</button>
+    </div>
+    <div id="priceChart" style="width:100%;height:500px"></div>
+    <div id="volumeChart" style="width:100%;height:110px;margin-top:2px"></div>
+  </div>
   <div class="charts-grid full" style="margin-bottom:16px"><div class="chart-card"><button class="chart-expand-btn" onclick="expandChart('chartRevenue','Revenue &amp; Net Income ($B)')">&#x26F6; Expand</button><h3>Revenue &amp; Net Income - Annual ($B)</h3><div class="chart-wrap" style="height:320px"><canvas id="chartRevenue"></canvas></div></div></div>
   <div class="charts-grid">
     <div class="chart-card"><button class="chart-expand-btn" onclick="expandChart('chartEPS','EPS - Annual')">&#x26F6; Expand</button><h3>Earnings Per Share (EPS) - Annual</h3><div class="chart-wrap" style="height:260px"><canvas id="chartEPS"></canvas></div></div>
