@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JustHodl | Stock Analyzer</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -71,6 +73,24 @@ body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:1
 @keyframes spin{to{transform:rotate(360deg)}}
 @media(max-width:1100px){.kpi-row{grid-template-columns:repeat(4,1fr)}.charts-grid{grid-template-columns:1fr}}
 @media(max-width:700px){.kpi-row{grid-template-columns:repeat(2,1fr)}.data-grid{grid-template-columns:repeat(2,1fr)}.hero{grid-template-columns:1fr}.hero-right{text-align:left}}
+.chart-card{position:relative}
+.chart-expand-btn{position:absolute;top:12px;right:12px;background:var(--border2);border:none;color:var(--sub);cursor:pointer;border-radius:5px;padding:4px 8px;font-size:0.7rem;font-family:var(--mono);z-index:10;transition:background 0.2s}
+.chart-expand-btn:hover{background:var(--blue);color:#fff}
+.chart-zoom-btns{position:absolute;bottom:10px;right:10px;display:flex;gap:4px;z-index:10}
+.chart-zoom-btns button{background:var(--border2);border:none;color:var(--sub);cursor:pointer;border-radius:4px;padding:3px 8px;font-size:0.68rem;font-family:var(--mono);transition:background 0.2s}
+.chart-zoom-btns button:hover{background:var(--blue);color:#fff}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:1000;align-items:center;justify-content:center;padding:24px}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--panel);border:1px solid var(--border2);border-radius:14px;padding:24px;width:95vw;max-width:1300px;max-height:90vh;display:flex;flex-direction:column;gap:16px}
+.modal-header{display:flex;align-items:center;justify-content:space-between}
+.modal-header h3{font-family:var(--sans);font-size:0.9rem;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:1.5px}
+.modal-close{background:var(--border2);border:none;color:var(--text);cursor:pointer;border-radius:6px;padding:6px 14px;font-family:var(--mono);font-size:0.8rem}
+.modal-close:hover{background:var(--red)}
+.modal-chart-wrap{position:relative;flex:1;min-height:500px}
+.modal-zoom-row{display:flex;gap:8px;flex-wrap:wrap}
+.modal-zoom-row button{background:var(--border2);border:none;color:var(--sub);cursor:pointer;border-radius:5px;padding:5px 14px;font-size:0.75rem;font-family:var(--mono);transition:background 0.2s}
+.modal-zoom-row button:hover{background:var(--blue);color:#fff}
+.modal-zoom-row button.active{background:var(--blue);color:#fff}
 </style>
 </head>
 <body>
@@ -160,14 +180,14 @@ function render(d,ticker){
   <button class="tab-btn" onclick="switchTab('news',this)">NEWS</button>
 </div>
 <div class="tab-pane active" id="tab-charts">
-  <div class="charts-grid full" style="margin-bottom:16px"><div class="chart-card"><h3>Revenue &amp; Net Income - Annual ($B)</h3><div class="chart-wrap" style="height:320px"><canvas id="chartRevenue"></canvas></div></div></div>
+  <div class="charts-grid full" style="margin-bottom:16px"><div class="chart-card"><button class="chart-expand-btn" onclick="expandChart('chartRevenue','Revenue &amp; Net Income ($B)')">&#x26F6; Expand</button><h3>Revenue &amp; Net Income - Annual ($B)</h3><div class="chart-wrap" style="height:320px"><canvas id="chartRevenue"></canvas></div></div></div>
   <div class="charts-grid">
-    <div class="chart-card"><h3>Earnings Per Share (EPS) - Annual</h3><div class="chart-wrap" style="height:260px"><canvas id="chartEPS"></canvas></div></div>
-    <div class="chart-card"><h3>P/E Ratio - Annual</h3><div class="chart-wrap" style="height:260px"><canvas id="chartPE"></canvas></div></div>
+    <div class="chart-card"><button class="chart-expand-btn" onclick="expandChart('chartEPS','EPS - Annual')">&#x26F6; Expand</button><h3>Earnings Per Share (EPS) - Annual</h3><div class="chart-wrap" style="height:260px"><canvas id="chartEPS"></canvas></div></div>
+    <div class="chart-card"><button class="chart-expand-btn" onclick="expandChart('chartPE','P/E Ratio &amp; Stock Price')">&#x26F6; Expand</button><h3>P/E Ratio &amp; Stock Price - Annual</h3><div class="chart-wrap" style="height:260px"><canvas id="chartPE"></canvas></div></div>
   </div>
   <div class="charts-grid">
-    <div class="chart-card"><h3>Gross Margin / Net Margin / ROE - Annual (%)</h3><div class="chart-wrap" style="height:260px"><canvas id="chartMargins"></canvas></div></div>
-    <div class="chart-card"><h3>Annual Dividends - History ($)</h3><div class="chart-wrap" style="height:260px"><canvas id="chartDivs"></canvas></div></div>
+    <div class="chart-card"><button class="chart-expand-btn" onclick="expandChart('chartMargins','Margins &amp; ROE')">&#x26F6; Expand</button><h3>Gross Margin / Net Margin / ROE - Annual (%)</h3><div class="chart-wrap" style="height:260px"><canvas id="chartMargins"></canvas></div></div>
+    <div class="chart-card"><button class="chart-expand-btn" onclick="expandChart('chartDivs','Annual Dividends')">&#x26F6; Expand</button><h3>Annual Dividends - History ($)</h3><div class="chart-wrap" style="height:260px"><canvas id="chartDivs"></canvas></div></div>
   </div>
 </div>
 <div class="tab-pane" id="tab-technicals">
@@ -323,5 +343,25 @@ function drawAll(hist,earns){
 const urlT=new URLSearchParams(window.location.search).get("t");
 if(urlT){document.getElementById("tickerInput").value=urlT;analyze();}
 </script>
+<!-- Fullscreen Chart Modal -->
+<div class="modal-overlay" id="chartModal" onclick="closeModal(event)">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="modalTitle">Chart</h3>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="modal-zoom-row" id="modalPeriodBtns">
+          <button onclick="setModalPeriod('ALL',this)" class="active">ALL</button>
+          <button onclick="setModalPeriod('10Y',this)">10Y</button>
+          <button onclick="setModalPeriod('5Y',this)">5Y</button>
+          <button onclick="setModalPeriod('3Y',this)">3Y</button>
+          <button onclick="setModalPeriod('1Y',this)">1Y</button>
+        </div>
+        <button class="modal-zoom-row" style="background:var(--border2);border:none;color:var(--sub);cursor:pointer;border-radius:5px;padding:5px 14px;font-size:0.75rem;font-family:var(--mono)" onclick="resetModalZoom()">Reset Zoom</button>
+        <button class="modal-close" onclick="closeModalDirect()">&#10005; Close</button>
+      </div>
+    </div>
+    <div class="modal-chart-wrap"><canvas id="modalCanvas"></canvas></div>
+  </div>
+</div>
 </body>
 </html>
