@@ -296,11 +296,24 @@ function drawAll(hist,earns){
   mk("chartEPS","bar",{labels:L,datasets:[
     {label:"EPS ($)",data:hist.eps,backgroundColor:hist.eps.map(v=>v>=0?"rgba(139,92,246,0.8)":"rgba(239,68,68,0.7)"),borderRadius:3}
   ]},{plugins:{tooltip:{callbacks:{label:c=>` EPS: $${(c.raw||0).toFixed(2)}`}}},scales:{y:{ticks:{callback:v=>"$"+v}}}});
-  // P/E - filter extreme values
-  const peF=hist.pe.map(v=>(v&&Math.abs(v)<500)?v:null);
-  mk("chartPE","line",{labels:L,datasets:[
-    {label:"P/E Ratio",data:peF,borderColor:"#f59e0b",backgroundColor:"rgba(245,158,11,0.08)",borderWidth:2.5,pointRadius:4,pointHoverRadius:7,pointBackgroundColor:"#f59e0b",fill:true,tension:0.3,spanGaps:true}
-  ]},{plugins:{tooltip:{callbacks:{label:c=>` P/E: ${c.raw!==null?c.raw.toFixed(1)+"x":"N/A"}`}}}});
+  // P/E + Price overlay - dual Y axis
+  const peF=hist.pe.map(v=>(v&&v>0&&v<150)?v:null);
+  const annualPrice=hist.pe.map((pe,i)=>{
+    const eps=hist.eps[i];
+    if(pe&&pe>0&&pe<150&&eps&&eps>0) return parseFloat((pe*eps).toFixed(2));
+    return null;
+  });
+  const hasPriceData=annualPrice.some(v=>v!==null);
+  const peDS=[{label:"P/E Ratio",data:peF,borderColor:"#f59e0b",backgroundColor:"rgba(245,158,11,0.08)",borderWidth:2.5,pointRadius:4,pointHoverRadius:7,pointBackgroundColor:"#f59e0b",fill:true,tension:0.3,spanGaps:true,yAxisID:"yPE"}];
+  if(hasPriceData) peDS.push({label:"Stock Price ($)",data:annualPrice,borderColor:"#3b82f6",backgroundColor:"rgba(59,130,246,0.0)",borderWidth:2.5,pointRadius:4,pointHoverRadius:7,pointBackgroundColor:"#3b82f6",fill:false,tension:0.3,spanGaps:true,yAxisID:"yPrice"});
+  mk("chartPE","line",{labels:L,datasets:peDS},{
+    plugins:{tooltip:{callbacks:{label:c=>c.dataset.label==="P/E Ratio"?` P/E: ${c.raw!==null?c.raw.toFixed(1)+"x":"N/A"}`:` Price: $${c.raw!==null?c.raw.toFixed(2):"N/A"}`}}},
+    scales:{
+      x:{ticks:{color:"#64748b",font:{family:"JetBrains Mono",size:10},maxTicksLimit:14},grid:{color:"rgba(31,41,55,0.8)"}},
+      yPE:{type:"linear",position:"left",min:0,ticks:{color:"#f59e0b",font:{family:"JetBrains Mono",size:10},callback:v=>v+"x"},grid:{color:"rgba(31,41,55,0.8)"},title:{display:true,text:"P/E",color:"#f59e0b",font:{size:10}}},
+      yPrice:{type:"linear",position:"right",min:0,ticks:{color:"#3b82f6",font:{family:"JetBrains Mono",size:10},callback:v=>"$"+v},grid:{display:false},title:{display:true,text:"Price ($)",color:"#3b82f6",font:{size:10}}}
+    }
+  });
   // Margins & ROE
   mk("chartMargins","line",{labels:L,datasets:[
     {label:"Gross Margin %",data:hist.gross_margin,borderColor:"#10b981",borderWidth:2.5,pointRadius:3,pointHoverRadius:6,fill:false,tension:0.3,spanGaps:true},
