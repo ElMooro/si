@@ -191,16 +191,15 @@
                 <a href="carry.html" style="color:#22d3ee">Carry</a>
             <a href="auctions.html" style="color:#22d3ee">Treasury Auctions</a>
                 <a href="risk.html" style="color:#22d3ee">Systemic Risk</a>
-                <a href="valuations.html" style="color:#f0b429;font-weight:700">📊 Valuations</a>
                 <a href="charts.html" style="color:#00ff88;font-weight:700">📊 Charts</a>
-                <a href="/intelligence/" style="color:#ffc400">🧠 Intelligence</a>
+                <a href="http://justhodl-dashboard-live.s3-website-us-east-1.amazonaws.com/intelligence.html" style="color:#ffc400">🧠 Intelligence</a>
                 <a href="/euro/" style="color:#003399">🇪🇺 Euro</a>
                 <a href="/crypto/" style="color:#00f5a0">🧠 Crypto Intel</a>
-                <a href="/repo.html" style="color:#00e5ff">🔧 Repo Monitor</a>
-                <a href="/repo.html" style="color:#00e5ff">🔧 Repo Monitor</a>
+                <a href="http://justhodl-dashboard-live.s3-website-us-east-1.amazonaws.com/repo.html" style="color:#00e5ff">🔧 Repo Monitor</a>
+                <a href="http://justhodl-dashboard-live.s3-website-us-east-1.amazonaws.com/repo.html" style="color:#00e5ff">🔧 Repo Monitor</a>
                 <a href="flow.html" style="color:#f59e0b;font-weight:700">📊 Options Flow</a>
-                <a href="/ath.html" style="color:#ffd700;font-weight:700">🏆 ATH Tracker</a>
-                <a href="/agent/" style="background:linear-gradient(135deg,#00d4ff,#b06cff);color:#000;padding:6px 14px;border-radius:6px;font-weight:700;font-size:12px">🤖 AI Agent</a>
+                <a href="http://justhodl-dashboard-live.s3-website-us-east-1.amazonaws.com/ath.html" style="color:#ffd700;font-weight:700">🏆 ATH Tracker</a>
+                <a href="https://justhodl.ai/stocks/" style="color:#00e676;font-weight:700">📊 Stock Picks</a>
                 <a href="downloads.html" style="background:linear-gradient(135deg,#ff9500,#e08600);color:#000;padding:6px 14px;border-radius:6px;font-weight:700;font-size:12px">⬇ Downloads</a>
                 
                 <!-- Analytics Dropdown -->
@@ -258,8 +257,7 @@
             </div>
             <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
         </div>
-    <a href="/khalid" class="nav-link" style="color:#ffd700;font-weight:700;">&#9733; Khalid</a><a href="/bot/" style="color:#2AABEE">🤖 BOT</a>
-    </nav>
+    <a href="/khalid" class="nav-link" style="color:#ffd700;font-weight:700;">&#9733; Khalid</a></nav>
     
     <!-- Mobile Menu -->
     <div class="mobile-menu" id="mobileMenu">
@@ -950,5 +948,35 @@
             });
         });
     </script>
+<!-- CFTC Futures Positioning Widget v1.0 -->
+<div id="cftc-positioning-widget" style="display:none"></div>
+<script>
+(function(){
+var CA="https://35t3serkv4gn2hk7utwvp7t2sa0flbum.lambda-url.us-east-1.on.aws";
+function lp(){
+fetch(CA+"/signals?t="+Date.now()).then(function(r){return r.json()}).then(function(s){
+var ps=s.positioning_score||0,ra=s.risk_appetite||0,cs=(s.crisis_indicators||{}).score||0,sm=s.smart_money||"NEUTRAL",ex=s.extreme_positions||[],sec=s.sector_positioning||{};
+var cl=cs>=50?"#ff4757":cs>=25?"#ffd43b":"#00e68a",pl=ps>0?"#00e68a":ps<0?"#ff4757":"#8896b0",sl=sm==="ACCUMULATING"?"#00e68a":sm==="DISTRIBUTING"?"#ff4757":"#8896b0";
+var sh="";for(var c in sec){var d=sec[c];sh+="<span style='margin-right:12px;font-size:11px'><span style='color:#5a6a85'>"+c.replace(/_/g," ").toUpperCase()+"</span> <span style='color:"+(d.bias==="BULLISH"?"#00e68a":d.bias==="BEARISH"?"#ff4757":"#8896b0")+"'>"+d.bias+"</span> <span style='color:#5a6a85'>("+d.bullish+"B/"+d.bearish+"S)</span></span>"}
+var eh="";ex.slice(0,4).forEach(function(e){eh+="<span style='margin-right:8px;padding:2px 6px;border-radius:3px;font-size:10px;background:rgba(255,212,59,.12);color:#ffd43b;border:1px solid rgba(255,212,59,.25)'>"+e.contract+" "+e.ratio.toFixed(1)+"%"+(e.risk==="HIGH REVERSAL RISK"?" !!":"")+"</span>"});
+var w=document.getElementById("cftc-positioning-widget");w.style.display="block";
+w.innerHTML="<div style='background:linear-gradient(145deg,#0e1628,#131f35);border:1px solid #1a2744;border-radius:12px;padding:16px;margin:10px 20px;font-family:JetBrains Mono,monospace'>"
++"<div style='display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #1a2744'>"
++"<div style='display:flex;align-items:center;gap:10px'><span style='font-size:14px;font-weight:700;color:#e8edf5'>FUTURES POSITIONING</span><span style='font-size:10px;padding:2px 8px;background:rgba(77,171,247,.12);color:#4dabf7;border-radius:4px'>CFTC COT</span><span style='font-size:10px;padding:2px 8px;background:rgba(0,230,138,.12);color:#00e68a;border-radius:4px'>29 CONTRACTS</span></div>"
++"<a href='https://justhodl.ai/positioning/' target='_blank' style='color:#4dabf7;text-decoration:none;font-size:11px;padding:4px 10px;border:1px solid #1a2744;border-radius:4px'>Full Dashboard &rarr;</a></div>"
++"<div style='display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:12px'>"
++"<div style='background:#06090f;border-radius:8px;padding:10px;border-left:3px solid "+pl+"'><div style='font-size:10px;color:#5a6a85;letter-spacing:1px;margin-bottom:4px'>POSITIONING</div><div style='font-size:24px;font-weight:700;color:"+pl+"'>"+("+"+str(ps) if ps>0 else str(ps))+"</div></div>"
++"<div style='background:#06090f;border-radius:8px;padding:10px;border-left:3px solid "+(ra>60 and "#00e68a" or (ra<40 and "#ff4757" or "#ffd43b"))+"'><div style='font-size:10px;color:#5a6a85;letter-spacing:1px;margin-bottom:4px'>RISK APPETITE</div><div style='font-size:24px;font-weight:700;color:"+(ra>60 and "#00e68a" or (ra<40 and "#ff4757" or "#ffd43b"))+"'>"+str(round(ra))+"</div></div>"
++"<div style='background:#06090f;border-radius:8px;padding:10px;border-left:3px solid "+cl+"'><div style='font-size:10px;color:#5a6a85;letter-spacing:1px;margin-bottom:4px'>CRISIS SCORE</div><div style='font-size:24px;font-weight:700;color:"+cl+"'>"+str(cs)+"<span style='font-size:12px;color:#5a6a85'>/100</span></div></div>"
++"<div style='background:#06090f;border-radius:8px;padding:10px;border-left:3px solid "+sl+"'><div style='font-size:10px;color:#5a6a85;letter-spacing:1px;margin-bottom:4px'>SMART MONEY</div><div style='font-size:16px;font-weight:700;color:"+sl+"'>"+sm+"</div></div>"
++"</div>"
++"<div style='margin-bottom:8px'>"+sh+"</div>"
++(eh and "<div style='display:flex;flex-wrap:wrap;gap:4px;align-items:center'><span style='font-size:10px;color:#5a6a85;margin-right:6px'>EXTREMES:</span>"+eh+"</div>" or "")
++"</div>";
+}).catch(function(e){console.error("CFTC:",e)});}
+lp();setInterval(lp,300000);
+})();
+</script>
+
 </body>
 </html>
