@@ -82,6 +82,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:1
 .price-toolbar .ma-btn{background:var(--border2);border:none;color:var(--muted);font-family:var(--mono);font-size:0.72rem;padding:4px 12px;border-radius:5px;cursor:pointer}
 .price-toolbar .ma-btn.active-50{background:rgba(251,191,36,0.2);color:#fbbf24;border:1px solid rgba(251,191,36,0.4)}
 .price-toolbar .ma-btn.active-200{background:rgba(239,68,68,0.2);color:#ef4444;border:1px solid rgba(239,68,68,0.4)}
+.price-toolbar .ma-btn.active-100{background:rgba(168,85,247,0.2);color:#a855f7;border:1px solid rgba(168,85,247,0.4)}
+.price-toolbar .ma-btn.active-cross{background:rgba(99,179,237,0.2);color:#63b3ed;border:1px solid rgba(99,179,237,0.4)}
 #priceChart{width:100%;height:520px}
 #volumeChart{width:100%;height:120px;margin-top:2px}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -210,7 +212,9 @@ function render(d,ticker){
       <button class="chart-type-btn" id="btnLine" onclick="setPriceType('line',this)">Line</button>
       <span style="color:var(--border2);margin:0 6px">|</span>
       <button class="ma-btn" id="btnMA50" onclick="toggleMA(50)">SMA 50</button>
+      <button class="ma-btn" id="btnMA100" onclick="toggleMA(100)">SMA 100</button>
       <button class="ma-btn" id="btnMA200" onclick="toggleMA(200)">SMA 200</button>
+      <button class="ma-btn" id="btnCross" onclick="toggleCross()">Crosses</button>
     </div>
     <div id="priceChart" style="width:100%;height:500px"></div>
     <div id="volumeChart" style="width:100%;height:110px;margin-top:2px"></div>
@@ -395,15 +399,17 @@ const urlT=new URLSearchParams(window.location.search).get("t");
 if(urlT){document.getElementById("tickerInput").value=urlT;analyze();}
 
 // ECharts Price Chart
-let priceEChart=null,volumeEChart=null,allOHLCV={},priceType='candle',showMA50=false,showMA200=false,currentPeriod='1Y';
+let priceEChart=null,volumeEChart=null,allOHLCV={},priceType='candle',showMA50=false,showMA100=false,showMA200=false,showCross=false,currentPeriod='1Y';
 
 function initPriceChart(ohlcv,ticker){
   allOHLCV=ohlcv;
   const totalBars=ohlcv.dates?ohlcv.dates.length:0;
   document.getElementById('priceChartTitle').textContent=ticker+' Price History - Weekly Adjusted ('+totalBars+' bars)';
   document.getElementById('btnMA50').className='ma-btn';
+  document.getElementById('btnMA100').className='ma-btn';
   document.getElementById('btnMA200').className='ma-btn';
-  showMA50=false;showMA200=false;priceType='candle';
+  document.getElementById('btnCross').className='ma-btn';
+  showMA50=false;showMA100=false;showMA200=false;showCross=false;priceType='candle';
   document.querySelectorAll('.chart-type-btn').forEach(b=>b.classList.remove('active'));
   const cb=document.getElementById('btnCandle');if(cb)cb.classList.add('active');
   document.querySelectorAll('.tf-btn').forEach(b=>b.classList.remove('active'));
@@ -456,8 +462,24 @@ function buildPriceOpts(period){
       symbol:'none',smooth:false,large:true
     });
   }
+  const sma100=(allOHLCV.sma100||[]).slice(start,end);
   if(showMA50)series.push({name:'SMA 50',type:'line',data:sma50,lineStyle:{color:'#fbbf24',width:1.5},symbol:'none',smooth:false,connectNulls:true,large:true});
+  if(showMA100)series.push({name:'SMA 100',type:'line',data:sma100,lineStyle:{color:'#a855f7',width:1.5},symbol:'none',smooth:false,connectNulls:true,large:true});
   if(showMA200)series.push({name:'SMA 200',type:'line',data:sma200,lineStyle:{color:'#ef4444',width:1.5},symbol:'none',smooth:false,connectNulls:true,large:true});
+  // Golden Cross / Death Cross markers
+  const crossMarks={type:'scatter',name:'Crosses',symbol:'pin',symbolSize:18,data:[],label:{show:true,fontSize:9,fontFamily:'JetBrains Mono',position:'top'},itemStyle:{},z:10};
+  if(showCross){
+    for(let i=1;i<sma50.length;i++){
+      const p=sma50[i-1],c=sma50[i],p2=sma200[i-1],c2=sma200[i];
+      if(!p||!c||!p2||!c2)continue;
+      if(p<=p2&&c>c2){// Golden Cross
+        crossMarks.data.push({value:[dates[i],closes[i]],itemStyle:{color:'#f59e0b'},label:{formatter:'GC',color:'#f59e0b'}});
+      }else if(p>=p2&&c<c2){// Death Cross
+        crossMarks.data.push({value:[dates[i],closes[i]],itemStyle:{color:'#ef4444'},label:{formatter:'DC',color:'#ef4444'}});
+      }
+    }
+    if(crossMarks.data.length)series.push(crossMarks);
+  }
   return{
     backgroundColor:'transparent',animation:false,
     tooltip:{trigger:'axis',axisPointer:{type:'cross'},backgroundColor:'#111827',borderColor:'#374151',borderWidth:1,
@@ -476,8 +498,8 @@ function buildPriceOpts(period){
         return s;
       }
     },
-    legend:{show:(showMA50||showMA200),top:4,textStyle:{color:'#94a3b8',fontFamily:'JetBrains Mono',fontSize:11}},
-    grid:{left:64,right:64,top:(showMA50||showMA200)?36:10,bottom:10},
+    legend:{show:(showMA50||showMA100||showMA200),top:4,textStyle:{color:'#94a3b8',fontFamily:'JetBrains Mono',fontSize:11}},
+    grid:{left:64,right:64,top:(showMA50||showMA100||showMA200)?36:10,bottom:10},
     xAxis:{type:'category',data:dates,
       axisLine:{lineStyle:{color:'#1f2937'}},
       axisLabel:{color:'#64748b',fontFamily:'JetBrains Mono',fontSize:10,interval:Math.max(1,Math.floor(dates.length/14)),rotate:dates.length>300?20:0},
@@ -548,7 +570,13 @@ function setPriceType(type,btn){
 
 function toggleMA(n){
   if(n===50){showMA50=!showMA50;document.getElementById('btnMA50').className=showMA50?'ma-btn active-50':'ma-btn';}
+  else if(n===100){showMA100=!showMA100;document.getElementById('btnMA100').className=showMA100?'ma-btn active-100':'ma-btn';}
   else{showMA200=!showMA200;document.getElementById('btnMA200').className=showMA200?'ma-btn active-200':'ma-btn';}
+  renderPriceCharts();
+}
+function toggleCross(){
+  showCross=!showCross;
+  document.getElementById('btnCross').className=showCross?'ma-btn active-cross':'ma-btn';
   renderPriceCharts();
 }
 </script>
