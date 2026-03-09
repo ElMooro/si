@@ -372,6 +372,159 @@ function drawAll(hist,earns){
 }
 const urlT=new URLSearchParams(window.location.search).get("t");
 if(urlT){document.getElementById("tickerInput").value=urlT;analyze();}
+
+// ECharts Price Chart
+let priceEChart=null,volumeEChart=null,allOHLCV={},priceType='candle',showMA50=false,showMA200=false,currentPeriod='1Y';
+
+function initPriceChart(ohlcv,ticker){
+  allOHLCV=ohlcv;
+  document.getElementById('priceChartTitle').textContent=ticker+' Price History - Weekly (Adjusted)';
+  document.getElementById('btnMA50').className='ma-btn';
+  document.getElementById('btnMA200').className='ma-btn';
+  showMA50=false;showMA200=false;priceType='candle';
+  document.querySelectorAll('.chart-type-btn').forEach(b=>b.classList.remove('active'));
+  const cb=document.getElementById('btnCandle');if(cb)cb.classList.add('active');
+  document.querySelectorAll('.tf-btn').forEach(b=>b.classList.remove('active'));
+  const yb=document.querySelector('.tf-btn[onclick*="1Y"]');if(yb)yb.classList.add('active');
+  currentPeriod='1Y';
+  renderPriceCharts();
+}
+
+function getSlice(period){
+  const dates=allOHLCV.dates||[];
+  if(!dates.length)return{start:0,end:0};
+  const now=new Date(dates[dates.length-1]);
+  let cutoff=new Date(now);
+  if(period==='1M')cutoff.setMonth(cutoff.getMonth()-1);
+  else if(period==='3M')cutoff.setMonth(cutoff.getMonth()-3);
+  else if(period==='6M')cutoff.setMonth(cutoff.getMonth()-6);
+  else if(period==='1Y')cutoff.setFullYear(cutoff.getFullYear()-1);
+  else if(period==='3Y')cutoff.setFullYear(cutoff.getFullYear()-3);
+  else if(period==='5Y')cutoff.setFullYear(cutoff.getFullYear()-5);
+  else if(period==='10Y')cutoff.setFullYear(cutoff.getFullYear()-10);
+  else return{start:0,end:dates.length};
+  const idx=dates.findIndex(d=>new Date(d)>=cutoff);
+  return{start:idx<0?0:idx,end:dates.length};
+}
+
+function buildPriceOpts(period){
+  const{start,end}=getSlice(period);
+  const dates=allOHLCV.dates.slice(start,end);
+  const opens=allOHLCV.opens.slice(start,end);
+  const highs=allOHLCV.highs.slice(start,end);
+  const lows=allOHLCV.lows.slice(start,end);
+  const closes=allOHLCV.closes.slice(start,end);
+  const sma50=(allOHLCV.sma50||[]).slice(start,end);
+  const sma200=(allOHLCV.sma200||[]).slice(start,end);
+  const series=[];
+  if(priceType==='candle'){
+    series.push({name:'Price',type:'candlestick',
+      data:dates.map((_,i)=>[opens[i],closes[i],lows[i],highs[i]]),
+      itemStyle:{color:'#10b981',color0:'#ef4444',borderColor:'#10b981',borderColor0:'#ef4444',borderWidth:1},
+      emphasis:{itemStyle:{borderWidth:2}}
+    });
+  }else{
+    series.push({name:'Price',type:'line',data:closes,
+      lineStyle:{color:'#3b82f6',width:2},
+      areaStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'rgba(59,130,246,0.3)'},{offset:1,color:'rgba(59,130,246,0.02)'}]}},
+      symbol:'none',smooth:false
+    });
+  }
+  if(showMA50)series.push({name:'SMA 50',type:'line',data:sma50,lineStyle:{color:'#fbbf24',width:1.5},symbol:'none',smooth:false,connectNulls:true});
+  if(showMA200)series.push({name:'SMA 200',type:'line',data:sma200,lineStyle:{color:'#ef4444',width:1.5},symbol:'none',smooth:false,connectNulls:true});
+  return{
+    backgroundColor:'transparent',animation:false,
+    tooltip:{trigger:'axis',axisPointer:{type:'cross'},backgroundColor:'#111827',borderColor:'#374151',borderWidth:1,
+      textStyle:{color:'#f1f5f9',fontFamily:'JetBrains Mono',fontSize:12},
+      formatter:params=>{
+        let s=`<div style="font-family:Syne;font-weight:700;margin-bottom:6px;color:#63b3ed">${params[0].axisValue}</div>`;
+        params.forEach(p=>{
+          if(p.seriesType==='candlestick'){
+            const[o,c,l,h]=p.data;
+            const col=c>=o?'#10b981':'#ef4444';
+            s+=`<div style="color:${col}">O:$${o.toFixed(2)} H:$${h.toFixed(2)} L:$${l.toFixed(2)} C:<b>$${c.toFixed(2)}</b></div>`;
+          }else{
+            s+=`<div><span style="color:${p.color}">&#9679;</span> ${p.seriesName}: <b>$${(p.data||0).toFixed(2)}</b></div>`;
+          }
+        });
+        return s;
+      }
+    },
+    legend:{show:(showMA50||showMA200),top:4,textStyle:{color:'#94a3b8',fontFamily:'JetBrains Mono',fontSize:11}},
+    grid:{left:64,right:64,top:(showMA50||showMA200)?36:10,bottom:10},
+    xAxis:{type:'category',data:dates,
+      axisLine:{lineStyle:{color:'#1f2937'}},
+      axisLabel:{color:'#64748b',fontFamily:'JetBrains Mono',fontSize:10,interval:Math.max(1,Math.floor(dates.length/14)),rotate:dates.length>300?20:0},
+      splitLine:{show:false}
+    },
+    yAxis:{type:'value',position:'right',scale:true,
+      axisLine:{lineStyle:{color:'#1f2937'}},
+      axisLabel:{color:'#64748b',fontFamily:'JetBrains Mono',fontSize:10,formatter:v=>'$'+v.toFixed(0)},
+      splitLine:{lineStyle:{color:'rgba(31,41,55,0.6)'}}
+    },
+    series
+  };
+}
+
+function buildVolOpts(period){
+  const{start,end}=getSlice(period);
+  const dates=allOHLCV.dates.slice(start,end);
+  const vols=allOHLCV.volumes.slice(start,end);
+  const opens=allOHLCV.opens.slice(start,end);
+  const closes=allOHLCV.closes.slice(start,end);
+  return{
+    backgroundColor:'transparent',animation:false,
+    tooltip:{trigger:'axis',backgroundColor:'#111827',borderColor:'#374151',
+      textStyle:{color:'#94a3b8',fontFamily:'JetBrains Mono',fontSize:11},
+      formatter:p=>p[0]?`<span style="color:#64748b">Vol:</span> <b>${(p[0].data.value/1e6).toFixed(1)}M</b>`:''
+    },
+    grid:{left:64,right:64,top:4,bottom:24},
+    xAxis:{type:'category',data:dates,axisLabel:{show:false},axisLine:{lineStyle:{color:'#1f2937'}},splitLine:{show:false}},
+    yAxis:{type:'value',position:'right',
+      axisLabel:{color:'#4b5563',fontFamily:'JetBrains Mono',fontSize:9,formatter:v=>v>=1e9?(v/1e9).toFixed(1)+'B':v>=1e6?(v/1e6).toFixed(0)+'M':v>=1e3?(v/1e3).toFixed(0)+'K':v},
+      splitLine:{lineStyle:{color:'rgba(31,41,55,0.4)'}}
+    },
+    series:[{type:'bar',
+      data:vols.map((v,i)=>({value:v,itemStyle:{color:closes[i]>=opens[i]?'rgba(16,185,129,0.55)':'rgba(239,68,68,0.55)'}})),
+      barMaxWidth:8,large:true
+    }]
+  };
+}
+
+function renderPriceCharts(){
+  if(!allOHLCV.dates||!allOHLCV.dates.length)return;
+  const pEl=document.getElementById('priceChart');
+  const vEl=document.getElementById('volumeChart');
+  if(!pEl||!vEl)return;
+  if(!priceEChart||priceEChart.isDisposed()){priceEChart=echarts.init(pEl,null,{renderer:'canvas'});}
+  if(!volumeEChart||volumeEChart.isDisposed()){volumeEChart=echarts.init(vEl,null,{renderer:'canvas'});}
+  priceEChart.setOption(buildPriceOpts(currentPeriod),true);
+  volumeEChart.setOption(buildVolOpts(currentPeriod),true);
+  window.addEventListener('resize',()=>{
+    priceEChart&&!priceEChart.isDisposed()&&priceEChart.resize();
+    volumeEChart&&!volumeEChart.isDisposed()&&volumeEChart.resize();
+  });
+}
+
+function setPricePeriod(period,btn){
+  currentPeriod=period;
+  document.querySelectorAll('.tf-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderPriceCharts();
+}
+
+function setPriceType(type,btn){
+  priceType=type;
+  document.querySelectorAll('.chart-type-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderPriceCharts();
+}
+
+function toggleMA(n){
+  if(n===50){showMA50=!showMA50;document.getElementById('btnMA50').className=showMA50?'ma-btn active-50':'ma-btn';}
+  else{showMA200=!showMA200;document.getElementById('btnMA200').className=showMA200?'ma-btn active-200':'ma-btn';}
+  renderPriceCharts();
+}
 </script>
 <!-- Fullscreen Chart Modal -->
 <div class="modal-overlay" id="chartModal" onclick="closeModal(event)">
