@@ -919,7 +919,7 @@ w.innerHTML="<div style='background:linear-gradient(145deg,#0e1628,#131f35);bord
 +"<div style='background:#06090f;border-radius:8px;padding:10px;border-left:3px solid "+sl+"'><div style='font-size:10px;color:#5a6a85;letter-spacing:1px;margin-bottom:4px'>SMART MONEY</div><div style='font-size:16px;font-weight:700;color:"+sl+"'>"+sm+"</div></div>"
 +"</div>"
 +"<div style='margin-bottom:8px'>"+sh+"</div>"
-+(eh and "<div style='display:flex;flex-wrap:wrap;gap:4px;align-items:center'><span style='font-size:10px;color:#5a6a85;margin-right:6px'>EXTREMES:</span>"+eh+"</div>" or "")
++(eh ? "<div style='display:flex;flex-wrap:wrap;gap:4px;align-items:center'><span style='font-size:10px;color:#5a6a85;margin-right:6px'>EXTREMES:</span>"+eh+"</div>" : "")
 +"</div>";
 }).catch(function(e){console.error("CFTC:",e)});}
 lp();setInterval(lp,300000);
