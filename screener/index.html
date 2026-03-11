@@ -138,6 +138,8 @@ tbody td{padding:6px;color:var(--text);border-right:1px solid var(--border2);whi
   <div class="tab" data-tab="selling" onclick="setTab(this)">&#9679; INST SELLING</div>
   <div class="tab" data-tab="holding" onclick="setTab(this)">&#9675; INST HOLDING</div>
   <div class="tab" data-tab="quality" onclick="setTab(this)">&#9733; HIGH QUALITY</div>
+  <div class="tab" data-tab="ai_bullish" onclick="setTab(this)">&#9650; AI BULLISH</div>
+  <div class="tab" data-tab="ai_bearish" onclick="setTab(this)">&#9660; AI BEARISH</div>
 </div>
 <div class="filter-panel">
   <div class="filter-group">
@@ -227,7 +229,7 @@ const DATA_URL='https://justhodl-dashboard-live.s3.amazonaws.com/screener/data.j
 const LAMBDA_URL='https://sajhxaiui7tijd54pbqzeibzee0xgxho.lambda-url.us-east-1.on.aws';
 const REFRESH_MS=4*60*60*1000;
 let allStocks=[],filteredStocks=[],sortCol='marketCap',sortDir='desc',activeTab='all',dataAge=0;
-let colGroups={valuation:true,quality:true,momentum:true,scores:true,institutional:true,extended:false};
+let colGroups={valuation:true,quality:true,momentum:true,scores:true,institutional:true,sentiment:true,extended:false};
 const COLS=[
   {id:'#',label:'#',group:'fixed',fn:(r,i)=>i+1,fmt:'rank'},
   {id:'symbol',label:'Symbol',group:'fixed',fn:r=>r.symbol,fmt:'sym'},
@@ -262,6 +264,19 @@ const COLS=[
   {id:'instChgPct',label:'Inst Chg%',group:'institutional',fn:r=>r.instChgPct,fmt:'chg'},
 ];
 function fmtCell(val,fmt,rank){
+  if(fmt==='sent'){
+    if(val===null||val===undefined)return'<span style="color:#4a5568">-</span>';
+    const v=Number(val);
+    const col=v>0.1?'#00ff88':v<-0.1?'#ff4d4d':'#94a3b8';
+    const bar=Math.round(Math.abs(v)*28);
+    return'<span style="display:inline-flex;align-items:center;gap:4px;color:'+col+'">'+(v>=0?'+':'')+v.toFixed(2)+'<span style="width:'+bar+'px;height:3px;background:'+col+';border-radius:2px;opacity:.7;display:inline-block"></span></span>';
+  }
+  if(fmt==='sentbadge'){
+    const sig=(val||'neutral').toLowerCase();
+    const cfg={bullish:['#00ff88','UP'],bearish:['#ff4d4d','DN'],neutral:['#94a3b8','--']};
+    const[col,ico]=cfg[sig]||cfg.neutral;
+    return'<span style="color:'+col+';font-size:11px;font-weight:700">'+ico+' '+sig.toUpperCase()+'</span>';
+  }
   if(fmt==='rank')return`<span class="dim">${rank}</span>`;
   if(fmt==='sym')return`<a class="sym-link" href="/stock/?symbol=${val}">${val}</a>`;
   if(fmt==='name')return`<span title="${val||''}" style="font-size:10px;color:var(--white)">${(val||'').substring(0,22)}</span>`;
@@ -328,7 +343,9 @@ function sortStocks(stocks){
   });
 }
 function getFilters(){return{search:document.getElementById('searchInput').value.trim().toLowerCase(),sector:document.getElementById('sectorFilter').value,peMin:parseFloat(document.getElementById('peMin').value),peMax:parseFloat(document.getElementById('peMax').value),roeMin:parseFloat(document.getElementById('roeMin').value),marginMin:parseFloat(document.getElementById('marginMin').value),mom1mMin:parseFloat(document.getElementById('mom1mMin').value),mom1mMax:parseFloat(document.getElementById('mom1mMax').value),piotrMin:parseInt(document.getElementById('piotrMin').value),mcap:document.getElementById('mcapFilter').value};}
-function matchesMcap(s,m){const v=Number(s.marketCap||0);if(!m)return true;if(m==='mega')return v>=200e9;if(m==='large')return v>=10e9&&v<200e9;if(m==='mid')return v>=2e9&&v<10e9;if(m==='small')return v<2e9;return true;}
+function matchesMcap(s,m){const v=Number(s.marketCap||0);if(!m)  if(tab==='ai_bullish')return stock.sentimentSignal==='bullish';
+  if(tab==='ai_bearish')return stock.sentimentSignal==='bearish';
+  return true;if(m==='mega')return v>=200e9;if(m==='large')return v>=10e9&&v<200e9;if(m==='mid')return v>=2e9&&v<10e9;if(m==='small')return v<2e9;return true;}
 function matchesTab(s,t){if(t==='all')return true;if(t==='gainers')return(s.chg1m||0)>5;if(t==='losers')return(s.chg1m||0)<-5;if(t==='buying')return s.instSignal==='buying';if(t==='selling')return s.instSignal==='selling';if(t==='holding')return s.instSignal==='holding';if(t==='quality')return(s.piotroski||0)>=7&&(s.roe||0)>=15&&(s.netMargin||0)>=10;return true;}
 function applyFilters(){
   const f=getFilters();
