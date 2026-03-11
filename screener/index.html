@@ -293,7 +293,29 @@ function buildBody(stocks){
   ).join('');
 }
 function renderTable(){buildHeader();buildBody(filteredStocks);document.getElementById('resultCount').textContent=filteredStocks.length.toLocaleString();document.getElementById('sortInfo').textContent=`Sorted by ${sortCol} (${sortDir==='asc'?'ASC':'DESC'})`;}
-function handleSort(col){if(sortCol===col)sortDir=sortDir==='desc'?'asc':'desc';else{sortCol=col;sortDir='desc';}applyFilters();}
+function handleSort(col){if(sortCol===col)sortDir=sortDir==='desc'?'asc':'desc';else{sortCol=col;sortDir='desc';}
+  // AI Sentiment ─────────────────────────────────────────────
+  const SENTIMENT_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/sentiment/data.json';
+  async function loadSentiment() {
+    try {
+      const res = await fetch(SENTIMENT_URL + '?t=' + Date.now());
+      if (!res.ok) return;
+      const data = await res.json();
+      const map = {};
+      (data.sentiment || []).forEach(s => { map[s.symbol] = s; });
+      allStocks = allStocks.map(stock => ({
+        ...stock,
+        sentimentScore:  map[stock.symbol]?.sentimentScore  ?? null,
+        sentimentSignal: map[stock.symbol]?.sentimentSignal ?? 'neutral',
+        sentimentReason: map[stock.symbol]?.sentimentReason ?? '',
+        headlines:       map[stock.symbol]?.headlines       ?? [],
+      }));
+      applyFilters();
+  loadSentiment();
+    } catch(e) { console.warn('Sentiment failed:', e); }
+  }
+
+  applyFilters();}
 function sortStocks(stocks){
   const col=COLS.find(c=>c.id===sortCol);if(!col)return stocks;
   return[...stocks].sort((a,b)=>{
