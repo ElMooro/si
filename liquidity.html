@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Liquidity Intelligence | JustHodl.AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+  :root {
+    --bg:          #080b10;
+    --bg2:         #0d1117;
+    --bg3:         #131920;
+    --border:      #1e2832;
+    --border2:     #263040;
+    --green:       #00ff88;
+    --green2:      #00cc6a;
+    --red:         #ff3d5a;
+    --yellow:      #ffd700;
+    --orange:      #ff8c42;
+    --blue:        #4fc3f7;
+    --purple:      #ab7df8;
+    --text:        #e2e8f0;
+    --text2:       #8899aa;
+    --text3:       #4a5568;
+    --mono:        'IBM Plex Mono', monospace;
+    --sans:        'IBM Plex Sans', sans-serif;
+    --glow-green:  0 0 20px rgba(0,255,136,0.25);
+    --glow-red:    0 0 20px rgba(255,61,90,0.25);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* ── NAV ── */
+  nav {
+    display: flex;
+    align-items: center;
+    padding: 12px 24px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    gap: 8px;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-brand {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--green);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-right: 16px;
+    text-decoration: none;
+  }
+  nav a {
+    color: var(--text2);
+    text-decoration: none;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 3px;
+    transition: all 0.15s;
+  }
+  nav a:hover, nav a.active { color: var(--green); background: rgba(0,255,136,0.08); }
+
+  /* ── HEADER ── */
+  .page-header {
+    padding: 28px 24px 20px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(0,255,136,0.04) 0%, transparent 100%);
+  }
+  .page-header h1 {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--green);
+  }
+  .page-header p {
+    color: var(--text2);
+    font-size: 11px;
+    margin-top: 4px;
+    letter-spacing: 1px;
+  }
+  .header-meta {
+    display: flex;
+    gap: 24px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  .header-meta span {
+    font-size: 11px;
+    color: var(--text3);
+  }
+  .header-meta .val { color: var(--text2); }
+
+  /* ── GRID ── */
+  .container { padding: 20px 24px; }
+
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
+  .grid-12 { display: grid; grid-template-columns: 1fr 2fr; gap: 12px; margin-bottom: 16px; }
+  .grid-21 { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 16px; }
+
+  @media(max-width: 1100px) {
+    .grid-3, .grid-4, .grid-12, .grid-21 { grid-template-columns: 1fr 1fr; }
+  }
+  @media(max-width: 700px) {
+    .grid-3, .grid-4, .grid-2, .grid-12, .grid-21 { grid-template-columns: 1fr; }
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 16px;
+  }
+  .card-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 8px;
+  }
+  .card-value {
+    font-size: 26px;
+    font-weight: 600;
+    line-height: 1.1;
+  }
+  .card-sub {
+    font-size: 11px;
+    color: var(--text2);
+    margin-top: 4px;
+  }
+  .card-delta {
+    font-size: 12px;
+    margin-top: 6px;
+  }
+
+  /* ── HERO NET LIQUIDITY ── */
+  .hero-card {
+    background: var(--bg2);
+    border-radius: 4px;
+    padding: 24px;
+    display: flex;
+    gap: 32px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0,255,136,0.03) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .hero-main { flex: 1; min-width: 180px; }
+  .hero-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 8px;
+  }
+  .hero-value {
+    font-size: 52px;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -1px;
+  }
+  .hero-unit { font-size: 18px; color: var(--text2); vertical-align: super; }
+  .hero-sublabel {
+    font-size: 13px;
+    margin-top: 8px;
+    letter-spacing: 1px;
+  }
+  .hero-formula {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 12px;
+    line-height: 1.8;
+  }
+  .hero-score-ring {
+    width: 120px;
+    height: 120px;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .hero-score-ring svg { transform: rotate(-90deg); }
+  .hero-score-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 1;
+  }
+  .hero-score-label span { font-size: 10px; color: var(--text3); letter-spacing: 1px; }
+  .hero-stats { display: flex; gap: 24px; flex-wrap: wrap; }
+  .hero-stat-item { min-width: 100px; }
+  .hero-stat-label { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--text3); }
+  .hero-stat-val { font-size: 16px; font-weight: 500; margin-top: 4px; }
+
+  /* ── SIGNAL BADGE ── */
+  .signal-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 8px;
+  }
+  .signal-badge .dot { width: 6px; height: 6px; border-radius: 50%; animation: pulse 1.5s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .sig-BULLISH, .sig-VERY_BULLISH { background: rgba(0,255,136,0.12); color: var(--green); border: 1px solid rgba(0,255,136,0.3); }
+  .sig-BULLISH .dot, .sig-VERY_BULLISH .dot { background: var(--green); }
+  .sig-BEARISH, .sig-VERY_BEARISH { background: rgba(255,61,90,0.12); color: var(--red); border: 1px solid rgba(255,61,90,0.3); }
+  .sig-BEARISH .dot, .sig-VERY_BEARISH .dot { background: var(--red); }
+  .sig-NEUTRAL { background: rgba(255,215,0,0.08); color: var(--yellow); border: 1px solid rgba(255,215,0,0.25); }
+  .sig-NEUTRAL .dot { background: var(--yellow); }
+
+  /* ── TABLE ── */
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table th {
+    text-align: left;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text3);
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--border);
+    text-transform: uppercase;
+  }
+  .data-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid rgba(30,40,50,0.5);
+    font-size: 12px;
+    color: var(--text2);
+  }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table .val { color: var(--text); font-weight: 500; }
+  .data-table .pos { color: var(--green); }
+  .data-table .neg { color: var(--red); }
+  .data-table .neutral { color: var(--yellow); }
+
+  /* ── SECTION TITLES ── */
+  .section-title {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text3);
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── CHART ── */
+  .chart-container { height: 320px; }
+  .chart-container-sm { height: 200px; }
+
+  /* ── PROGRESS BAR ── */
+  .progress-bar-wrap { margin-top: 8px; }
+  .progress-bar-track {
+    height: 4px;
+    background: var(--bg3);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.8s ease;
+  }
+
+  /* ── INDICATORS ── */
+  .indicator-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(30,40,50,0.5);
+  }
+  .indicator-row:last-child { border-bottom: none; }
+  .indicator-name { color: var(--text2); font-size: 12px; }
+  .indicator-value { font-size: 12px; font-weight: 500; }
+
+  /* ── REGIME BANNER ── */
+  .regime-banner {
+    padding: 14px 18px;
+    border-radius: 4px;
+    border-left: 3px solid;
+    margin-bottom: 16px;
+    background: var(--bg2);
+    font-size: 12px;
+  }
+  .regime-EXPANDING_FAST, .regime-EXPANDING { border-color: var(--green); }
+  .regime-CONTRACTING_FAST, .regime-CONTRACTING { border-color: var(--red); }
+  .regime-NEUTRAL { border-color: var(--yellow); }
+  .regime-banner .regime-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .regime-banner .regime-sub { color: var(--text2); line-height: 1.6; }
+
+  /* ── SPY LEAD INDICATOR ── */
+  .spy-lead-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 18px;
+  }
+  .spy-lead-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .spy-lead-icon { font-size: 24px; }
+  .spy-lead-title { font-size: 14px; font-weight: 600; }
+  .spy-lead-sub { font-size: 11px; color: var(--text3); letter-spacing: 1px; }
+
+  /* ── STATUS ── */
+  .status-row { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text3); margin-top: 12px; }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+
+  /* ── LOADING ── */
+  #loading {
+    position: fixed; inset: 0; background: var(--bg);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; z-index: 999;
+  }
+  .loader-text { color: var(--green); font-size: 13px; letter-spacing: 3px; animation: pulse 1.5s infinite; }
+  .loader-sub { color: var(--text3); font-size: 11px; margin-top: 8px; }
+
+  /* ── ERROR ── */
+  .error-banner {
+    background: rgba(255,61,90,0.08);
+    border: 1px solid rgba(255,61,90,0.2);
+    color: var(--red);
+    padding: 12px 16px;
+    border-radius: 4px;
+    font-size: 12px;
+    margin-bottom: 16px;
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="loader-text">LOADING LIQUIDITY INTELLIGENCE</div>
+  <div class="loader-sub">Fetching Fed Balance Sheet · TGA · RRP · FRED Data</div>
+</div>
+
+<nav>
+  <a href="/" class="nav-brand">JustHodl.AI</a>
+  <a href="/">Terminal</a>
+  <a href="/charts.html">Charts</a>
+  <a href="/stock/">Stocks</a>
+  <a href="/screener/">Screener</a>
+  <a href="/valuations.html">Valuations</a>
+  <a href="/cftc.html">CFTC</a>
+  <a href="/liquidity.html" class="active">Liquidity</a>
+  <a href="/crypto.html">Crypto</a>
+  <a href="https://t.me/Justhodl_bot" target="_blank">Bot</a>
+</nav>
+
+<div class="page-header">
+  <h1>TGA + Fed Liquidity Intelligence</h1>
+  <p>HEDGE FUND NET LIQUIDITY MODEL · FED BALANCE SHEET – TGA – RRP · SPY 3-5 DAY LEADING INDICATOR</p>
+  <div class="header-meta">
+    <span>FORMULA: <span class="val">Fed BS − Treasury TGA − Fed RRP = Net Liquidity</span></span>
+    <span>UPDATE: <span class="val" id="last-updated">Loading...</span></span>
+    <span>SOURCE: <span class="val">FRED / St. Louis Fed</span></span>
+  </div>
+</div>
+
+<div class="container">
+  <div id="error-banner" class="error-banner">⚠ Error loading liquidity data. Retrying...</div>
+
+  <!-- Hero Net Liquidity -->
+  <div class="hero-card" id="hero-card">
+    <div class="hero-main">
+      <div class="hero-label">Net System Liquidity</div>
+      <div class="hero-value">
+        <span class="hero-unit">$</span><span id="hero-net-liq">—</span><span style="font-size:20px;color:var(--text2)">B</span>
+      </div>
+      <div id="hero-signal-badge" class="signal-badge sig-NEUTRAL">
+        <div class="dot"></div>
+        <span id="hero-signal-text">Loading...</span>
+      </div>
+      <div class="hero-formula">
+        Fed Balance Sheet: <span id="formula-walcl" style="color:var(--blue)">—</span><br>
+        − TGA: <span id="formula-tga" style="color:var(--red)">—</span><br>
+        − RRP: <span id="formula-rrp" style="color:var(--orange)">—</span><br>
+        = Net Liquidity: <span id="formula-nl" style="color:var(--green)">—</span>
+      </div>
+    </div>
+
+    <div class="hero-score-ring" id="score-ring">
+      <svg width="120" height="120" viewBox="0 0 120 120">
+        <circle cx="60" cy="60" r="50" fill="none" stroke="#1e2832" stroke-width="8"/>
+        <circle id="score-arc" cx="60" cy="60" r="50" fill="none"
+                stroke="#00ff88" stroke-width="8" stroke-linecap="round"
+                stroke-dasharray="314" stroke-dashoffset="314"
+                style="transition:stroke-dashoffset 1.2s ease"/>
+      </svg>
+      <div class="hero-score-label">
+        <span id="score-num">—</span>
+        <span>/100</span>
+      </div>
+    </div>
+
+    <div>
+      <div class="hero-stats">
+        <div class="hero-stat-item">
+          <div class="hero-stat-label">Regime</div>
+          <div class="hero-stat-val" id="stat-regime">—</div>
+        </div>
+        <div class="hero-stat-item">
+          <div class="hero-stat-label">4-Week Δ</div>
+          <div class="hero-stat-val" id="stat-4w">—</div>
+        </div>
+        <div class="hero-stat-item">
+          <div class="hero-stat-label">13-Week Δ</div>
+          <div class="hero-stat-val" id="stat-13w">—</div>
+        </div>
+        <div class="hero-stat-item">
+          <div class="hero-stat-label">Structure</div>
+          <div class="hero-stat-val" id="stat-structure">—</div>
+        </div>
+        <div class="hero-stat-item">
+          <div class="hero-stat-label">Yield Curve</div>
+          <div class="hero-stat-val" id="stat-curve">—</div>
+        </div>
+        <div class="hero-stat-item">
+          <div class="hero-stat-label">SOFR</div>
+          <div class="hero-stat-val" id="stat-sofr">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Regime Banner -->
+  <div id="regime-banner" class="regime-banner regime-NEUTRAL">
+    <div class="regime-title" id="regime-title">—</div>
+    <div class="regime-sub" id="regime-sub">—</div>
+  </div>
+
+  <!-- Net Liquidity Chart + SPY Signal -->
+  <div class="grid-21">
+    <div class="card">
+      <div class="section-title">Net Liquidity History (52 Weeks) — Fed BS minus TGA minus RRP</div>
+      <div id="chart-net-liq" class="chart-container"></div>
+    </div>
+    <div class="spy-lead-card">
+      <div class="spy-lead-header">
+        <div class="spy-lead-icon">📈</div>
+        <div>
+          <div class="spy-lead-title">SPY Leading Indicator</div>
+          <div class="spy-lead-sub">3-5 DAY LEAD · LIQUIDITY-DRIVEN</div>
+        </div>
+      </div>
+      <div class="section-title" style="margin-top:4px">Signal Components</div>
+      <div id="spy-components">
+        <!-- populated by JS -->
+      </div>
+      <div style="margin-top:14px">
+        <div class="card-label">Composite Direction</div>
+        <div id="spy-direction-badge" class="signal-badge sig-NEUTRAL" style="font-size:15px">
+          <div class="dot"></div><span id="spy-dir-text">—</span>
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:var(--text3)" id="spy-basis">—</div>
+      </div>
+      <div style="margin-top:14px">
+        <div class="card-label">Confidence</div>
+        <div class="progress-bar-wrap">
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:4px">
+            <span id="spy-conf-val">—</span><span>100%</span>
+          </div>
+          <div class="progress-bar-track">
+            <div id="spy-conf-bar" class="progress-bar-fill" style="width:0%;background:var(--green)"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Core Triad Cards -->
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-label">Fed Balance Sheet (WALCL)</div>
+      <div class="card-value" style="color:var(--blue)" id="walcl-val">—</div>
+      <div class="card-sub">Total Fed Assets · Billions USD</div>
+      <div class="card-delta" id="walcl-date">—</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Treasury TGA (WTREGEN)</div>
+      <div class="card-value" style="color:var(--red)" id="tga-val">—</div>
+      <div class="card-sub">Drains Liquidity When Rising · Billions USD</div>
+      <div class="card-delta" id="tga-signal">—</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Fed RRP (RRPONTSYD)</div>
+      <div class="card-value" style="color:var(--orange)" id="rrp-val">—</div>
+      <div class="card-sub">Parked Cash at Fed · Billions USD</div>
+      <div class="card-delta" id="rrp-signal">—</div>
+    </div>
+  </div>
+
+  <!-- Fed BS / TGA / RRP Charts -->
+  <div class="grid-3">
+    <div class="card">
+      <div class="section-title">Fed Balance Sheet</div>
+      <div id="chart-fed-bs" class="chart-container-sm"></div>
+    </div>
+    <div class="card">
+      <div class="section-title">Treasury General Account (TGA)</div>
+      <div id="chart-tga" class="chart-container-sm"></div>
+    </div>
+    <div class="card">
+      <div class="section-title">Fed Reverse Repo (RRP)</div>
+      <div id="chart-rrp" class="chart-container-sm"></div>
+    </div>
+  </div>
+
+  <!-- Money Supply + Dollar -->
+  <div class="grid-2">
+    <div class="card">
+      <div class="section-title">Money Supply</div>
+      <table class="data-table">
+        <thead><tr><th>Metric</th><th>Value</th><th>Unit</th></tr></thead>
+        <tbody id="money-table"></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="section-title">Dollar Index & FX</div>
+      <table class="data-table">
+        <thead><tr><th>Metric</th><th>Value</th><th>Signal</th></tr></thead>
+        <tbody id="dollar-table"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Yields + Funding -->
+  <div class="grid-2">
+    <div class="card">
+      <div class="section-title">Treasury Yield Curve</div>
+      <table class="data-table">
+        <thead><tr><th>Tenor</th><th>Yield</th><th>Spread / Status</th></tr></thead>
+        <tbody id="yields-table"></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="section-title">Funding Markets & Reserves</div>
+      <table class="data-table">
+        <thead><tr><th>Metric</th><th>Value</th><th>Note</th></tr></thead>
+        <tbody id="funding-table"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- M2 Chart -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="section-title">M2 Money Supply (24 Months)</div>
+    <div id="chart-m2" class="chart-container-sm"></div>
+  </div>
+
+  <div class="status-row">
+    <div class="status-dot"></div>
+    <span>Data from Federal Reserve Economic Data (FRED) · Updated daily 7:30 AM ET</span>
+    <span style="margin-left:auto;color:var(--text3)" id="footer-ts">—</span>
+  </div>
+</div>
+
+<script>
+const S3_URL = 'https://justhodl-dashboard-live.s3-website-us-east-1.amazonaws.com/liquidity-data.json';
+
+const COLOR_GREEN  = '#00ff88';
+const COLOR_RED    = '#ff3d5a';
+const COLOR_BLUE   = '#4fc3f7';
+const COLOR_ORANGE = '#ff8c42';
+const COLOR_YELLOW = '#ffd700';
+const COLOR_PURPLE = '#ab7df8';
+const COLOR_BG     = '#0d1117';
+const COLOR_TEXT2  = '#8899aa';
+const COLOR_BORDER = '#1e2832';
+
+function fmt(v, dec=1) {
+  if (v === null || v === undefined || v === 'N/A') return '—';
+  const n = parseFloat(v);
+  if (isNaN(n)) return '—';
+  return n.toFixed(dec);
+}
+
+function fmtB(v) {
+  if (!v && v !== 0) return '—';
+  const n = parseFloat(v);
+  if (isNaN(n)) return '—';
+  return '$' + n.toFixed(1) + 'B';
+}
+
+function colorVal(v) {
+  if (!v && v !== 0) return '';
+  const n = parseFloat(v);
+  if (n > 0) return 'var(--green)';
+  if (n < 0) return 'var(--red)';
+  return 'var(--yellow)';
+}
+
+function signalColor(sig) {
+  if (!sig) return 'var(--text2)';
+  const s = sig.toUpperCase();
+  if (s.includes('BULL') || s.includes('DRAIN')) return COLOR_GREEN;
+  if (s.includes('BEAR') || s.includes('REBUILD')) return COLOR_RED;
+  return COLOR_YELLOW;
+}
+
+function setEl(id, html) {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = html;
+}
+
+function echartsDefaults() {
+  return {
+    backgroundColor: 'transparent',
+    grid: { top:30, right:20, bottom:30, left:60, containLabel: false },
+    xAxis: {
+      type: 'category',
+      axisLine: { lineStyle: { color: COLOR_BORDER } },
+      axisTick: { show: false },
+      axisLabel: { color: COLOR_TEXT2, fontSize: 10 },
+      splitLine: { show: false }
+    },
+    yAxis: {
+      type: 'value',
+      axisLine: { show: false },
+      axisTick: { show: false },
+      axisLabel: { color: COLOR_TEXT2, fontSize: 10 },
+      splitLine: { lineStyle: { color: COLOR_BORDER, type: 'dashed' } }
+    },
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: '#131920',
+      borderColor: COLOR_BORDER,
+      textStyle: { color: '#e2e8f0', fontSize: 12, fontFamily: "'IBM Plex Mono', monospace" },
+    }
+  };
+}
+
+function renderMiniChart(elId, series_data, color, label) {
+  const el = document.getElementById(elId);
+  if (!el || !series_data || !series_data.length) return;
+  const chart = echarts.init(el, null, { renderer: 'canvas' });
+  const dates = series_data.map(d => d.date ? d.date.substring(0, 7) : d.date);
+  const vals  = series_data.map(d => d.value);
+  const opt = {
+    ...echartsDefaults(),
+    grid: { top:20, right:16, bottom:28, left:64 },
+    xAxis: { ...echartsDefaults().xAxis, data: dates },
+    yAxis: { ...echartsDefaults().yAxis, scale: true },
+    series: [{
+      name: label,
+      type: 'line',
+      data: vals,
+      smooth: true,
+      lineStyle: { color, width: 2 },
+      areaStyle: { color: { type:'linear', x:0,y:0,x2:0,y2:1,
+        colorStops:[{offset:0,color:color+'40'},{offset:1,color:color+'05'}] } },
+      symbol: 'none',
+    }],
+    tooltip: {
+      ...echartsDefaults().tooltip,
+      formatter: p => `${p[0].name}<br/>${label}: ${fmt(p[0].value, 2)}`,
+    }
+  };
+  chart.setOption(opt);
+  window.addEventListener('resize', () => chart.resize());
+}
+
+function renderNetLiqChart(elId, net_liq, fed_bs, tga, rrp) {
+  const el = document.getElementById(elId);
+  if (!el || !net_liq || !net_liq.length) return;
+  const chart = echarts.init(el, null, { renderer: 'canvas' });
+  const dates = net_liq.map(d => d.date ? d.date.substring(0,7) : d.date);
+  const opt = {
+    ...echartsDefaults(),
+    legend: {
+      data: ['Net Liquidity', 'Fed BS', 'TGA', 'RRP'],
+      textStyle: { color: COLOR_TEXT2, fontSize: 10 },
+      top: 0
+    },
+    tooltip: {
+      ...echartsDefaults().tooltip,
+      trigger: 'axis',
+      formatter: params => {
+        let s = `${params[0].name}<br/>`;
+        params.forEach(p => { s += `${p.marker}${p.seriesName}: $${fmt(p.value,1)}B<br/>`; });
+        return s;
+      }
+    },
+    xAxis: { ...echartsDefaults().xAxis, data: dates },
+    yAxis: { ...echartsDefaults().yAxis, scale: true },
+    series: [
+      {
+        name: 'Net Liquidity',
+        type: 'line',
+        data: net_liq.map(d => d.value),
+        lineStyle: { color: COLOR_GREEN, width: 3 },
+        areaStyle: { color: { type:'linear', x:0,y:0,x2:0,y2:1,
+          colorStops:[{offset:0,color:'#00ff8840'},{offset:1,color:'#00ff8805'}] } },
+        symbol: 'none', smooth: true,
+      },
+      {
+        name: 'Fed BS',
+        type: 'line',
+        data: (fed_bs || []).map(d => d.value),
+        lineStyle: { color: COLOR_BLUE, width: 1.5, type: 'dashed' },
+        symbol: 'none', smooth: true,
+      },
+      {
+        name: 'TGA',
+        type: 'line',
+        data: (tga || []).map(d => d.value),
+        lineStyle: { color: COLOR_RED, width: 1.5, type: 'dashed' },
+        symbol: 'none', smooth: true,
+      },
+      {
+        name: 'RRP',
+        type: 'line',
+        data: (rrp || []).map(d => d.value),
+        lineStyle: { color: COLOR_ORANGE, width: 1.5, type: 'dashed' },
+        symbol: 'none', smooth: true,
+      }
+    ]
+  };
+  chart.setOption(opt);
+  window.addEventListener('resize', () => chart.resize());
+}
+
+function render(data) {
+  const core    = data.core    || {};
+  const regime  = data.regime  || {};
+  const sig     = data.spy_signal || {};
+  const comps   = data.components || {};
+  const tgaA    = comps.tga_analysis || {};
+  const rrpA    = comps.rrp_analysis || {};
+  const money   = data.money_supply || {};
+  const dollar  = data.dollar || {};
+  const yields  = data.yields || {};
+  const funding = data.funding || {};
+  const soma    = data.soma || {};
+  const reserves= data.reserves || {};
+  const nl      = core.net_liquidity || {};
+  const charts  = data.chart_data || {};
+
+  // Last updated
+  const genAt = data.meta && data.meta.generated_at ? new Date(data.meta.generated_at) : new Date();
+  setEl('last-updated', genAt.toLocaleString('en-US', {month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit',timeZoneName:'short'}));
+  setEl('footer-ts', `Generated ${genAt.toISOString().replace('T',' ').substring(0,19)} UTC`);
+
+  // Hero
+  const nlVal = parseFloat(nl.value_bn) || 0;
+  setEl('hero-net-liq', Math.abs(nlVal) >= 1000 ? (nlVal/1000).toFixed(2)+'T' : fmt(nlVal, 1));
+  setEl('formula-walcl', fmtB(core.fed_balance_sheet && core.fed_balance_sheet.value_bn));
+  setEl('formula-tga',   fmtB(core.tga && core.tga.value_bn));
+  setEl('formula-rrp',   fmtB(core.rrp && core.rrp.value_bn));
+  setEl('formula-nl',    fmtB(nl.value_bn));
+
+  // Signal badge
+  const sigLabel = nl.label || 'NEUTRAL';
+  const sigBadge = document.getElementById('hero-signal-badge');
+  if (sigBadge) {
+    sigBadge.className = `signal-badge sig-${sigLabel}`;
+    setEl('hero-signal-text', `${sigLabel.replace(/_/g,' ')} · SCORE ${nl.score}/100`);
+  }
+
+  // Score ring
+  const score = parseInt(nl.score) || 50;
+  const arc = document.getElementById('score-arc');
+  if (arc) {
+    const scoreColor = score >= 60 ? COLOR_GREEN : score >= 45 ? COLOR_YELLOW : COLOR_RED;
+    arc.style.stroke = scoreColor;
+    const circumference = 314;
+    const offset = circumference - (score / 100) * circumference;
+    setTimeout(() => { arc.style.strokeDashoffset = offset; }, 200);
+  }
+  setEl('score-num', score);
+
+  // Stats
+  setEl('stat-regime', (regime.trend || '—').replace(/_/g,' '));
+  const d4w = parseFloat(regime.delta_4w_bn);
+  const d13w = parseFloat(regime.delta_13w_bn);
+  setEl('stat-4w', `<span style="color:${d4w>=0?COLOR_GREEN:COLOR_RED}">${d4w>=0?'+':''}${fmt(d4w,1)}B</span>`);
+  setEl('stat-13w', `<span style="color:${d13w>=0?COLOR_GREEN:COLOR_RED}">${d13w>=0?'+':''}${fmt(d13w,1)}B</span>`);
+  setEl('stat-structure', (regime.structure || '—').replace(/_/g,' '));
+  setEl('stat-curve', `<span style="color:${yields.curve_status==='INVERTED'?COLOR_RED:COLOR_GREEN}">${yields.curve_status||'—'}</span>`);
+  setEl('stat-sofr', funding.sofr ? fmt(funding.sofr,2)+'%' : '—');
+
+  // Regime banner
+  const banner = document.getElementById('regime-banner');
+  if (banner) {
+    banner.className = `regime-banner regime-${regime.trend || 'NEUTRAL'}`;
+    const isExpanding = (regime.trend||'').includes('EXPANDING');
+    const isBullish = sig.direction === 'BULLISH';
+    setEl('regime-title',
+      `${(regime.trend||'').replace(/_/g,' ')} REGIME · ${(regime.structure||'').replace(/_/g,' ')}`
+    );
+    setEl('regime-sub',
+      `Net liquidity has ${isExpanding ? 'expanded' : 'contracted'} <strong>$${Math.abs(d4w).toFixed(1)}B</strong> over 4 weeks and <strong>$${Math.abs(d13w).toFixed(1)}B</strong> over 13 weeks. ` +
+      `TGA signal: <strong>${(tgaA.signal||'N/A').replace(/_/g,' ')}</strong>. ` +
+      `RRP signal: <strong>${(rrpA.signal||'N/A').replace(/_/g,' ')}</strong>. ` +
+      `SPY 3-5 day leading signal: <strong style="color:${isBullish?COLOR_GREEN:COLOR_RED}">${sig.direction||'NEUTRAL'} (${sig.strength||''})</strong>.`
+    );
+  }
+
+  // Core triad
+  setEl('walcl-val', fmtB(core.fed_balance_sheet && core.fed_balance_sheet.value_bn));
+  setEl('walcl-date', core.fed_balance_sheet ? `As of ${core.fed_balance_sheet.date}` : '—');
+  setEl('tga-val', fmtB(core.tga && core.tga.value_bn));
+  setEl('tga-signal', `<span style="color:${signalColor(tgaA.signal)}">${(tgaA.note||'—')}</span>`);
+  setEl('rrp-val', fmtB(core.rrp && core.rrp.value_bn));
+  setEl('rrp-signal', `<span style="color:${signalColor(rrpA.signal)}">${(rrpA.note||'—')}</span>`);
+
+  // SPY Signal panel
+  const spyComps = sig.components || {};
+  const spyCompHtml = Object.entries(spyComps).map(([k,v]) => `
+    <div class="indicator-row">
+      <span class="indicator-name">${k.replace(/_/g,' ').toUpperCase()}</span>
+      <span class="indicator-value" style="color:${signalColor(String(v))}">${String(v).replace(/_/g,' ')}</span>
+    </div>`).join('');
+  setEl('spy-components', spyCompHtml);
+
+  const spyBadge = document.getElementById('spy-direction-badge');
+  if (spyBadge) {
+    spyBadge.className = `signal-badge sig-${sig.direction||'NEUTRAL'}`;
+    setEl('spy-dir-text', `${(sig.direction||'NEUTRAL').replace(/_/g,' ')} · ${sig.strength||''} · ${sig.lead_days||'3-5'}D`);
+  }
+  setEl('spy-basis', sig.basis || '—');
+  const conf = parseInt(sig.confidence) || 50;
+  setEl('spy-conf-val', conf + '%');
+  const confBar = document.getElementById('spy-conf-bar');
+  if (confBar) {
+    confBar.style.width = conf + '%';
+    confBar.style.background = sig.direction === 'BULLISH' ? COLOR_GREEN : sig.direction === 'BEARISH' ? COLOR_RED : COLOR_YELLOW;
+  }
+
+  // Money supply table
+  const moneyRows = [
+    ['M2 Money Supply', fmtB(money.m2_bn), money.date],
+    ['M1 Money Supply', fmtB(money.m1_bn), ''],
+    ['Monetary Base',   fmtB(money.monetary_base), ''],
+    ['M2 YoY Growth',  money.m2_yoy_pct != null ? `${fmt(money.m2_yoy_pct,2)}%` : '—', ''],
+  ];
+  setEl('money-table', moneyRows.map(r => `
+    <tr>
+      <td>${r[0]}</td>
+      <td class="val">${r[1]}</td>
+      <td style="color:var(--text3)">${r[2]}</td>
+    </tr>`).join(''));
+
+  // Dollar table
+  const dollarRows = [
+    ['Broad DXY Proxy',  fmt(dollar.broad_index,2),  dollar.trend_4w_pct != null ? `${fmt(dollar.trend_4w_pct,2)}% 4w` : '—'],
+    ['vs Advanced Econ', fmt(dollar.advanced_econ,2), ''],
+    ['vs Emerging Mkt',  fmt(dollar.emerging_mkt,2),  ''],
+  ];
+  setEl('dollar-table', dollarRows.map(r => `
+    <tr>
+      <td>${r[0]}</td>
+      <td class="val">${r[1]}</td>
+      <td style="color:var(--text2)">${r[2]}</td>
+    </tr>`).join(''));
+
+  // Yields table
+  const yieldRows = [
+    ['2-Year',   fmt(yields.y2,3)+'%',   ''],
+    ['10-Year',  fmt(yields.y10,3)+'%',  ''],
+    ['30-Year',  fmt(yields.y30,3)+'%',  ''],
+    ['10Y-2Y Spread', fmt(yields.spread_10_2,3)+'%', `<span style="color:${(yields.spread_10_2||0)<0?COLOR_RED:COLOR_GREEN}">${yields.curve_status||'—'}</span>`],
+    ['10Y-3M Spread', fmt(yields.spread_10_3m,3)+'%', ''],
+    ['TIPS 10Y Real',  fmt(yields.tips_real,3)+'%', ''],
+  ];
+  setEl('yields-table', yieldRows.map(r => `
+    <tr>
+      <td>${r[0]}</td>
+      <td class="val">${r[1]}</td>
+      <td>${r[2]}</td>
+    </tr>`).join(''));
+
+  // Funding table
+  const fundRows = [
+    ['SOFR',          fmt(funding.sofr,3)+'%',    ''],
+    ['Fed Funds',     fmt(funding.fed_funds,3)+'%', ''],
+    ['Reserves (Fed)',fmtB(reserves.total_bn),    reserves.date || ''],
+    ['Excess Reserves',fmtB(reserves.excess_bn),  ''],
+    ['SOMA Total',    fmtB(soma.total_bn),         ''],
+    ['SOMA Treasuries',fmtB(soma.treasuries_bn),  ''],
+    ['SOMA MBS',      fmtB(soma.mbs_bn),           ''],
+  ];
+  setEl('funding-table', fundRows.map(r => `
+    <tr>
+      <td>${r[0]}</td>
+      <td class="val">${r[1]}</td>
+      <td style="color:var(--text3)">${r[2]}</td>
+    </tr>`).join(''));
+
+  // Charts
+  renderNetLiqChart('chart-net-liq', charts.net_liquidity, charts.fed_bs, charts.tga, charts.rrp);
+  renderMiniChart('chart-fed-bs', charts.fed_bs,   COLOR_BLUE,   'Fed BS ($B)');
+  renderMiniChart('chart-tga',    charts.tga,       COLOR_RED,    'TGA ($B)');
+  renderMiniChart('chart-rrp',    charts.rrp,       COLOR_ORANGE, 'RRP ($B)');
+  renderMiniChart('chart-m2',     charts.m2,        COLOR_PURPLE, 'M2 ($B)');
+}
+
+async function loadData() {
+  try {
+    const res = await fetch(S3_URL + '?t=' + Date.now(), {cache:'no-store'});
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error-banner').style.display = 'none';
+    render(data);
+  } catch (err) {
+    console.error('Liquidity load error:', err);
+    document.getElementById('loading').style.display = 'none';
+    const banner = document.getElementById('error-banner');
+    if (banner) { banner.style.display = 'block'; banner.textContent = `⚠ ${err.message} — retrying in 30s`; }
+    setTimeout(loadData, 30000);
+  }
+}
+
+loadData();
+// Auto-refresh every 10 minutes
+setInterval(loadData, 600000);
+</script>
+</body>
+</html>
