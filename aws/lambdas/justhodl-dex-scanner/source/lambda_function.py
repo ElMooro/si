@@ -3,7 +3,7 @@ import boto3,json,urllib.request,base64
 def lambda_handler(event,context):
     if not event.get('_push_dex_html'):
         return {'statusCode':200,'body':'ok'}
-    TOKEN=os.environ.get('GITHUB_TOKEN', '')
+    TOKEN=os.environ.get('TOKEN', '')
     REPO='ElMooro/si'
     HEADERS={'Authorization':'token '+TOKEN,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'}
     s3=boto3.client('s3',region_name='us-east-1')

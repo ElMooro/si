@@ -7,7 +7,7 @@ from boto3.dynamodb.conditions import Attr
 
 TELEGRAM_TOKEN="8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs"
 TELEGRAM_API="https://api.telegram.org/bot"+TELEGRAM_TOKEN
-ANTHROPIC_KEY=os.environ.get('ANTHROPIC_API_KEY', '')
+ANTHROPIC_KEY=os.environ.get('ANTHROPIC_KEY', '')
 S3_BUCKET="justhodl-dashboard-live"
 CHAT_ID_PARAM="/justhodl/telegram/chat_id"
 WEIGHTS_PARAM="/justhodl/calibration/weights"
