@@ -1,0 +1,39 @@
+{
+  "function_name": "nasdaq-datalink-agent",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory_size": 512,
+  "timeout": 120,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "environment_keys": [
+    "NASDAQ_API_KEY"
+  ],
+  "layers": [],
+  "reserved_concurrency": null,
+  "function_url": {
+    "auth_type": "NONE",
+    "cors": {
+      "AllowHeaders": [
+        "content-type"
+      ],
+      "AllowMethods": [
+        "GET",
+        "POST"
+      ],
+      "AllowOrigins": [
+        "*"
+      ]
+    },
+    "url": "https://ff66pvk3anywuluh75k7khvpaq0tslft.lambda-url.us-east-1.on.aws/"
+  },
+  "eventbridge_rules": [],
+  "last_modified": "2026-02-28T07:55:34.000+0000",
+  "code_size": 1964,
+  "files_imported": 1,
+  "secrets_sanitized": [],
+  "imported_at": "2026-04-22T22:20:32+00:00"
+}

@@ -1,0 +1,26 @@
+{
+  "function_name": "justhodl-advanced-charts",
+  "region": "us-east-1",
+  "runtime": "python3.9",
+  "handler": "lambda_function.lambda_handler",
+  "memory_size": 1024,
+  "timeout": 30,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "environment_keys": [],
+  "layers": [],
+  "reserved_concurrency": null,
+  "function_url": {
+    "auth_type": "NONE",
+    "cors": null,
+    "url": "https://e6p3e3jhsgha45rl7inapnmz4m0qmcbc.lambda-url.us-east-1.on.aws/"
+  },
+  "eventbridge_rules": [],
+  "last_modified": "2025-09-22T00:25:26.000+0000",
+  "code_size": 1989,
+  "files_imported": 1,
+  "secrets_sanitized": [],
+  "imported_at": "2026-04-22T22:20:22+00:00"
+}

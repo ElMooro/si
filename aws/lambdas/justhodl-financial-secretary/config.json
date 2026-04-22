@@ -1,0 +1,38 @@
+{
+  "function_name": "justhodl-financial-secretary",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory_size": 1024,
+  "timeout": 300,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "environment_keys": [
+    "ALPHAVANTAGE_KEY",
+    "ANTHROPIC_API_KEY",
+    "CMC_API_KEY",
+    "EMAIL_FROM",
+    "EMAIL_TO",
+    "FRED_API_KEY",
+    "NEWS_API_KEY",
+    "POLYGON_API_KEY",
+    "S3_BUCKET"
+  ],
+  "layers": [],
+  "reserved_concurrency": null,
+  "function_url": {
+    "auth_type": "NONE",
+    "cors": null,
+    "url": "https://nqzbtg3pnxhcyj4rdlmft2vu4y0xxfvk.lambda-url.us-east-1.on.aws/"
+  },
+  "eventbridge_rules": [
+    "secretary-4h-scan"
+  ],
+  "last_modified": "2026-03-02T01:51:12.000+0000",
+  "code_size": 11042,
+  "files_imported": 1,
+  "secrets_sanitized": [],
+  "imported_at": "2026-04-22T22:20:26+00:00"
+}

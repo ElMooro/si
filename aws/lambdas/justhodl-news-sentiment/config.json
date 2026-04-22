@@ -1,0 +1,40 @@
+{
+  "function_name": "justhodl-news-sentiment",
+  "region": "us-east-1",
+  "runtime": "python3.11",
+  "handler": "lambda_function.lambda_handler",
+  "memory_size": 512,
+  "timeout": 600,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "environment_keys": [
+    "ANTHROPIC_KEY"
+  ],
+  "layers": [],
+  "reserved_concurrency": null,
+  "function_url": {
+    "auth_type": "NONE",
+    "cors": {
+      "AllowHeaders": [
+        "*"
+      ],
+      "AllowMethods": [
+        "*"
+      ],
+      "AllowOrigins": [
+        "*"
+      ]
+    },
+    "url": "https://rtfrjcj43osvg4u4vza5bhf4pm0udfmo.lambda-url.us-east-1.on.aws/"
+  },
+  "eventbridge_rules": [
+    "justhodl-sentiment-daily"
+  ],
+  "last_modified": "2026-03-11T05:40:04.823+0000",
+  "code_size": 3363,
+  "files_imported": 1,
+  "secrets_sanitized": [],
+  "imported_at": "2026-04-22T22:20:28+00:00"
+}

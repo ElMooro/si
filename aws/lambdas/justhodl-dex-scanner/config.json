@@ -1,0 +1,42 @@
+{
+  "function_name": "justhodl-dex-scanner",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory_size": 256,
+  "timeout": 120,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "environment_keys": [],
+  "layers": [],
+  "reserved_concurrency": null,
+  "function_url": {
+    "auth_type": "NONE",
+    "cors": {
+      "AllowHeaders": [
+        "content-type"
+      ],
+      "AllowMethods": [
+        "GET",
+        "POST"
+      ],
+      "AllowOrigins": [
+        "*"
+      ],
+      "MaxAge": 86400
+    },
+    "url": "https://52l5bxsxrsd6kyx6p74kqx7cfa0wxkks.lambda-url.us-east-1.on.aws/"
+  },
+  "eventbridge_rules": [
+    "justhodl-dex-scanner-15min"
+  ],
+  "last_modified": "2026-03-08T06:23:48.000+0000",
+  "code_size": 787,
+  "files_imported": 1,
+  "secrets_sanitized": [
+    "GitHub PAT on line 5 \u2192 os.environ['GITHUB_TOKEN']"
+  ],
+  "imported_at": "2026-04-22T22:20:25+00:00"
+}

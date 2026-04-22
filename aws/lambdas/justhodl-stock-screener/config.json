@@ -1,0 +1,39 @@
+{
+  "function_name": "justhodl-stock-screener",
+  "region": "us-east-1",
+  "runtime": "python3.11",
+  "handler": "lambda_function.lambda_handler",
+  "memory_size": 1024,
+  "timeout": 600,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "environment_keys": [],
+  "layers": [],
+  "reserved_concurrency": null,
+  "function_url": {
+    "auth_type": "NONE",
+    "cors": {
+      "AllowHeaders": [
+        "*"
+      ],
+      "AllowMethods": [
+        "*"
+      ],
+      "AllowOrigins": [
+        "*"
+      ],
+      "MaxAge": 86400
+    },
+    "url": "https://sajhxaiui7tijd54pbqzeibzee0xgxho.lambda-url.us-east-1.on.aws/"
+  },
+  "eventbridge_rules": [
+    "justhodl-stock-screener-4h"
+  ],
+  "last_modified": "2026-03-11T04:58:11.000+0000",
+  "code_size": 3213,
+  "files_imported": 1,
+  "secrets_sanitized": [],
+  "imported_at": "2026-04-22T22:20:30+00:00"
+}

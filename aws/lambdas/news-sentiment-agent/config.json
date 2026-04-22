@@ -1,0 +1,40 @@
+{
+  "function_name": "news-sentiment-agent",
+  "region": "us-east-1",
+  "runtime": "python3.9",
+  "handler": "lambda_news_agent.lambda_handler",
+  "memory_size": 512,
+  "timeout": 30,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "environment_keys": [
+    "NEWSAPI_KEY"
+  ],
+  "layers": [],
+  "reserved_concurrency": null,
+  "function_url": {
+    "auth_type": "NONE",
+    "cors": {
+      "AllowHeaders": [
+        "*"
+      ],
+      "AllowMethods": [
+        "*"
+      ],
+      "AllowOrigins": [
+        "*"
+      ]
+    },
+    "url": "https://kcm6voksx75rzhyxkblfagcbeq0fxdyb.lambda-url.us-east-1.on.aws/"
+  },
+  "eventbridge_rules": [
+    "news-sentiment-update"
+  ],
+  "last_modified": "2025-09-21T17:02:16.000+0000",
+  "code_size": 334,
+  "files_imported": 1,
+  "secrets_sanitized": [],
+  "imported_at": "2026-04-22T22:20:32+00:00"
+}

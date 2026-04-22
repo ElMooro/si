@@ -1,0 +1,35 @@
+{
+  "function_name": "justhodl-daily-report-v3",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory_size": 1024,
+  "timeout": 900,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "environment_keys": [
+    "EMAIL_FROM",
+    "EMAIL_TO",
+    "FRED_API_KEY",
+    "NEWS_API_KEY",
+    "POLYGON_API_KEY",
+    "S3_BUCKET"
+  ],
+  "layers": [],
+  "reserved_concurrency": null,
+  "function_url": null,
+  "eventbridge_rules": [
+    "justhodl-daily-8am",
+    "justhodl-daily-v3",
+    "justhodl-v9-auto-refresh",
+    "justhodl-v9-evening",
+    "justhodl-v9-morning"
+  ],
+  "last_modified": "2026-03-05T03:23:09.000+0000",
+  "code_size": 29532,
+  "files_imported": 1,
+  "secrets_sanitized": [],
+  "imported_at": "2026-04-22T22:20:24+00:00"
+}

@@ -1,0 +1,38 @@
+{
+  "function_name": "fedliquidityapi",
+  "region": "us-east-1",
+  "runtime": "python3.9",
+  "handler": "lambda_function.lambda_handler",
+  "memory_size": 256,
+  "timeout": 30,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-role",
+  "environment_keys": [],
+  "layers": [],
+  "reserved_concurrency": null,
+  "function_url": {
+    "auth_type": "NONE",
+    "cors": {
+      "AllowHeaders": [
+        "*"
+      ],
+      "AllowMethods": [
+        "*"
+      ],
+      "AllowOrigins": [
+        "*"
+      ]
+    },
+    "url": "https://mjqyipzzwjcmx44irtvijecswm0nkikf.lambda-url.us-east-1.on.aws/"
+  },
+  "eventbridge_rules": [
+    "fedliquidityapi-auto-update"
+  ],
+  "last_modified": "2025-09-20T01:16:20.000+0000",
+  "code_size": 6104,
+  "files_imported": 1,
+  "secrets_sanitized": [],
+  "imported_at": "2026-04-22T22:20:21+00:00"
+}

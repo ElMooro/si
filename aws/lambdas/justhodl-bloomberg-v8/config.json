@@ -1,0 +1,32 @@
+{
+  "function_name": "justhodl-bloomberg-v8",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory_size": 2048,
+  "timeout": 300,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "environment_keys": [
+    "ALPHAVANTAGE_API_KEY",
+    "ANTHROPIC_API_KEY",
+    "CMC_API_KEY",
+    "FRED_API_KEY",
+    "NEWS_API_KEY",
+    "POLYGON_API_KEY",
+    "S3_BUCKET"
+  ],
+  "layers": [],
+  "reserved_concurrency": null,
+  "function_url": null,
+  "eventbridge_rules": [
+    "bloomberg-terminal-refresh"
+  ],
+  "last_modified": "2026-02-19T17:34:16.354+0000",
+  "code_size": 7700,
+  "files_imported": 1,
+  "secrets_sanitized": [],
+  "imported_at": "2026-04-22T22:20:22+00:00"
+}

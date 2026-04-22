@@ -1,0 +1,38 @@
+{
+  "function_name": "bea-economic-agent",
+  "region": "us-east-1",
+  "runtime": "python3.9",
+  "handler": "lambda_bea_agent.lambda_handler",
+  "memory_size": 256,
+  "timeout": 60,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "environment_keys": [
+    "BEA_API_KEY"
+  ],
+  "layers": [],
+  "reserved_concurrency": null,
+  "function_url": {
+    "auth_type": "NONE",
+    "cors": {
+      "AllowHeaders": [
+        "*"
+      ],
+      "AllowMethods": [
+        "*"
+      ],
+      "AllowOrigins": [
+        "*"
+      ]
+    },
+    "url": "https://hnqqkbf7y6avoda5v4rexwk3440ibbru.lambda-url.us-east-1.on.aws/"
+  },
+  "eventbridge_rules": [],
+  "last_modified": "2025-09-19T18:57:47.975+0000",
+  "code_size": 1678,
+  "files_imported": 1,
+  "secrets_sanitized": [],
+  "imported_at": "2026-04-22T22:20:19+00:00"
+}

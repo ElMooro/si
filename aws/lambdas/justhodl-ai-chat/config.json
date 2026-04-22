@@ -1,0 +1,42 @@
+{
+  "function_name": "justhodl-ai-chat",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory_size": 512,
+  "timeout": 60,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "environment_keys": [
+    "ANTHROPIC_API_KEY",
+    "S3_BUCKET"
+  ],
+  "layers": [],
+  "reserved_concurrency": 3,
+  "function_url": {
+    "auth_type": "NONE",
+    "cors": {
+      "AllowHeaders": [
+        "content-type",
+        "x-justhodl-token"
+      ],
+      "AllowMethods": [
+        "POST"
+      ],
+      "AllowOrigins": [
+        "https://justhodl.ai",
+        "https://www.justhodl.ai"
+      ],
+      "MaxAge": 300
+    },
+    "url": "https://zh3c6izcbzcqwcia4m6dmjnupy0dbnns.lambda-url.us-east-1.on.aws/"
+  },
+  "eventbridge_rules": [],
+  "last_modified": "2026-04-22T15:54:59.000+0000",
+  "code_size": 4988,
+  "files_imported": 1,
+  "secrets_sanitized": [],
+  "imported_at": "2026-04-22T22:20:22+00:00"
+}

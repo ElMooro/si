@@ -1,0 +1,36 @@
+{
+  "function_name": "justhodl-treasury-proxy",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory_size": 256,
+  "timeout": 30,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "environment_keys": [],
+  "layers": [],
+  "reserved_concurrency": null,
+  "function_url": {
+    "auth_type": "NONE",
+    "cors": {
+      "AllowHeaders": [
+        "*"
+      ],
+      "AllowMethods": [
+        "*"
+      ],
+      "AllowOrigins": [
+        "*"
+      ]
+    },
+    "url": "https://x6ssu4ow2iinjhsmgdwqzqspqm0dtglv.lambda-url.us-east-1.on.aws/"
+  },
+  "eventbridge_rules": [],
+  "last_modified": "2026-02-22T19:07:56.000+0000",
+  "code_size": 2119,
+  "files_imported": 1,
+  "secrets_sanitized": [],
+  "imported_at": "2026-04-22T22:20:31+00:00"
+}

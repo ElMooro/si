@@ -1,0 +1,28 @@
+{
+  "function_name": "fmp-stock-picks-agent",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory_size": 512,
+  "timeout": 900,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/economyapi-lambda-role",
+  "environment_keys": [
+    "FMP_API_KEY",
+    "S3_BUCKET"
+  ],
+  "layers": [],
+  "reserved_concurrency": null,
+  "function_url": null,
+  "eventbridge_rules": [
+    "fmp-movers-hourly",
+    "fmp-stock-picks-daily"
+  ],
+  "last_modified": "2026-03-02T09:52:28.000+0000",
+  "code_size": 6530,
+  "files_imported": 1,
+  "secrets_sanitized": [],
+  "imported_at": "2026-04-22T22:20:22+00:00"
+}

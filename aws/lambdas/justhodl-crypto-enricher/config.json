@@ -1,0 +1,42 @@
+{
+  "function_name": "justhodl-crypto-enricher",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory_size": 256,
+  "timeout": 120,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "environment_keys": [
+    "CMC_API_KEY",
+    "S3_BUCKET"
+  ],
+  "layers": [],
+  "reserved_concurrency": null,
+  "function_url": {
+    "auth_type": "NONE",
+    "cors": {
+      "AllowHeaders": [
+        "content-type"
+      ],
+      "AllowMethods": [
+        "GET",
+        "POST"
+      ],
+      "AllowOrigins": [
+        "*"
+      ]
+    },
+    "url": "https://s7davga7fy3lusiixxcorul4vq0icsgk.lambda-url.us-east-1.on.aws/"
+  },
+  "eventbridge_rules": [
+    "justhodl-crypto-enricher-daily"
+  ],
+  "last_modified": "2026-03-03T02:29:43.038+0000",
+  "code_size": 3638,
+  "files_imported": 1,
+  "secrets_sanitized": [],
+  "imported_at": "2026-04-22T22:20:24+00:00"
+}

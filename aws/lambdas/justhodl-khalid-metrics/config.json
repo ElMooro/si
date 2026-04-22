@@ -1,0 +1,43 @@
+{
+  "function_name": "justhodl-khalid-metrics",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory_size": 512,
+  "timeout": 240,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "environment_keys": [
+    "ANTHROPIC_API_KEY",
+    "FRED_API_KEY",
+    "POLYGON_API_KEY",
+    "S3_BUCKET"
+  ],
+  "layers": [],
+  "reserved_concurrency": null,
+  "function_url": {
+    "auth_type": "NONE",
+    "cors": {
+      "AllowHeaders": [
+        "content-type"
+      ],
+      "AllowMethods": [
+        "*"
+      ],
+      "AllowOrigins": [
+        "*"
+      ]
+    },
+    "url": "https://2ijajv2pntkgj5yw5c3ukh5oq40xsyaf.lambda-url.us-east-1.on.aws/"
+  },
+  "eventbridge_rules": [
+    "justhodl-khalid-metrics-refresh"
+  ],
+  "last_modified": "2026-02-27T06:33:16.000+0000",
+  "code_size": 7514,
+  "files_imported": 1,
+  "secrets_sanitized": [],
+  "imported_at": "2026-04-22T22:20:27+00:00"
+}

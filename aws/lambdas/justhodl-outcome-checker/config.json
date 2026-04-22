@@ -1,0 +1,24 @@
+{
+  "function_name": "justhodl-outcome-checker",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory_size": 256,
+  "timeout": 300,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "environment_keys": [],
+  "layers": [],
+  "reserved_concurrency": null,
+  "function_url": null,
+  "eventbridge_rules": [
+    "justhodl-outcome-checker-weekly"
+  ],
+  "last_modified": "2026-03-11T09:12:10.000+0000",
+  "code_size": 3486,
+  "files_imported": 1,
+  "secrets_sanitized": [],
+  "imported_at": "2026-04-22T22:20:29+00:00"
+}

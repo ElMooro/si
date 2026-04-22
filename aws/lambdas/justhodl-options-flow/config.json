@@ -1,0 +1,45 @@
+{
+  "function_name": "justhodl-options-flow",
+  "region": "us-east-1",
+  "runtime": "python3.11",
+  "handler": "lambda_function.lambda_handler",
+  "memory_size": 1024,
+  "timeout": 300,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "environment_keys": [
+    "AV_KEY",
+    "FRED_KEY",
+    "NEWS_KEY",
+    "POLYGON_KEY"
+  ],
+  "layers": [],
+  "reserved_concurrency": null,
+  "function_url": {
+    "auth_type": "NONE",
+    "cors": {
+      "AllowHeaders": [
+        "content-type"
+      ],
+      "AllowMethods": [
+        "GET",
+        "POST"
+      ],
+      "AllowOrigins": [
+        "*"
+      ],
+      "MaxAge": 86400
+    },
+    "url": "https://g65enkjk3uu4woaoy764ow3q340sppvg.lambda-url.us-east-1.on.aws/"
+  },
+  "eventbridge_rules": [
+    "justhodl-flow-refresh"
+  ],
+  "last_modified": "2026-03-05T04:26:37.000+0000",
+  "code_size": 9350,
+  "files_imported": 1,
+  "secrets_sanitized": [],
+  "imported_at": "2026-04-22T22:20:29+00:00"
+}

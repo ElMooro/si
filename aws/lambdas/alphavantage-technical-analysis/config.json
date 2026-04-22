@@ -1,0 +1,37 @@
+{
+  "function_name": "alphavantage-technical-analysis",
+  "region": "us-east-1",
+  "runtime": "python3.9",
+  "handler": "lambda_function.lambda_handler",
+  "memory_size": 512,
+  "timeout": 30,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "environment_keys": [],
+  "layers": [],
+  "reserved_concurrency": null,
+  "function_url": {
+    "auth_type": "NONE",
+    "cors": {
+      "AllowHeaders": [
+        "*"
+      ],
+      "AllowMethods": [
+        "*"
+      ],
+      "AllowOrigins": [
+        "*"
+      ],
+      "MaxAge": 86400
+    },
+    "url": "https://ngqq4e3hmqi6j5nky2mzoixc5e0yybrh.lambda-url.us-east-1.on.aws/"
+  },
+  "eventbridge_rules": [],
+  "last_modified": "2025-09-21T19:58:08.000+0000",
+  "code_size": 770,
+  "files_imported": 1,
+  "secrets_sanitized": [],
+  "imported_at": "2026-04-22T22:20:19+00:00"
+}

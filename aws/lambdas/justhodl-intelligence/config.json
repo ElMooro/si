@@ -1,0 +1,27 @@
+{
+  "function_name": "justhodl-intelligence",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory_size": 256,
+  "timeout": 120,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "environment_keys": [
+    "S3_BUCKET"
+  ],
+  "layers": [],
+  "reserved_concurrency": null,
+  "function_url": null,
+  "eventbridge_rules": [
+    "justhodl-intel-daily",
+    "justhodl-intel-hourly"
+  ],
+  "last_modified": "2026-02-23T08:14:48.187+0000",
+  "code_size": 9198,
+  "files_imported": 1,
+  "secrets_sanitized": [],
+  "imported_at": "2026-04-22T22:20:27+00:00"
+}

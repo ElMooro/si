@@ -1,0 +1,28 @@
+{
+  "function_name": "justhodl-repo-monitor",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory_size": 512,
+  "timeout": 300,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "environment_keys": [
+    "FRED_API_KEY",
+    "S3_BUCKET"
+  ],
+  "layers": [],
+  "reserved_concurrency": null,
+  "function_url": null,
+  "eventbridge_rules": [
+    "justhodl-repo-30min",
+    "justhodl-repo-daily"
+  ],
+  "last_modified": "2026-02-23T07:12:36.000+0000",
+  "code_size": 11062,
+  "files_imported": 1,
+  "secrets_sanitized": [],
+  "imported_at": "2026-04-22T22:20:29+00:00"
+}
