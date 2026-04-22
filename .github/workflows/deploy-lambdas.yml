@@ -1,0 +1,96 @@
+name: Deploy Lambdas
+
+# Triggers whenever Claude (or anyone) pushes changes under aws/lambdas/*/source/**
+# Detects which lambda changed, zips its source/ dir, and updates the live function.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'aws/lambdas/*/source/**'
+      - 'aws/lambdas/*/config.json'
+  workflow_dispatch:
+    inputs:
+      function:
+        description: 'Lambda name to redeploy (leave blank to deploy all)'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    name: Deploy changed Lambdas
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Detect changed Lambdas
+        id: detect
+        run: |
+          set -e
+          if [ -n "${{ github.event.inputs.function }}" ]; then
+            echo "Manual dispatch for: ${{ github.event.inputs.function }}"
+            echo "targets=${{ github.event.inputs.function }}" >> $GITHUB_OUTPUT
+          else
+            changed=$(git diff --name-only HEAD^ HEAD | grep '^aws/lambdas/' || true)
+            targets=$(echo "$changed" | awk -F/ '{print $3}' | sort -u | paste -sd ' ' -)
+            echo "Changed Lambdas: $targets"
+            echo "targets=$targets" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Deploy each changed Lambda
+        if: steps.detect.outputs.targets != ''
+        run: |
+          set -e
+          for fn in ${{ steps.detect.outputs.targets }}; do
+            dir="aws/lambdas/$fn"
+            if [ ! -d "$dir/source" ]; then
+              echo "::warning::$dir/source not found — skipping"
+              continue
+            fi
+            echo "──── Deploying $fn ────"
+
+            # Read config
+            if [ -f "$dir/config.json" ]; then
+              fn_name=$(jq -r '.function_name // empty' "$dir/config.json")
+              [ -n "$fn_name" ] && fn="$fn_name"
+            fi
+
+            # Build zip
+            tmp=$(mktemp -d)
+            (cd "$dir/source" && zip -qr "$tmp/deploy.zip" .)
+            echo "Built $(du -h $tmp/deploy.zip | cut -f1) zip for $fn"
+
+            # Deploy
+            aws lambda update-function-code \
+              --function-name "$fn" \
+              --zip-file "fileb://$tmp/deploy.zip" \
+              --region "${{ secrets.AWS_REGION }}" \
+              --query 'LastModified' --output text
+
+            aws lambda wait function-updated \
+              --function-name "$fn" \
+              --region "${{ secrets.AWS_REGION }}"
+
+            echo "✅ $fn deployed"
+            rm -rf "$tmp"
+          done
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "### Lambda Deploy Summary" >> $GITHUB_STEP_SUMMARY
+          echo "Targets: \`${{ steps.detect.outputs.targets }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "Triggered by: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
