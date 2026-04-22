@@ -15,7 +15,7 @@ on:
         required: true
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   run:
@@ -27,6 +27,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
+          # Use default GITHUB_TOKEN so we can push back reports
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -68,6 +70,20 @@ jobs:
             python3 "$s"
             echo "✅ $s completed"
           done
+
+      - name: Commit any new/changed reports
+        if: success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ -n "$(git status --porcelain aws/ops/reports/ 2>/dev/null)" ]; then
+            git add aws/ops/reports/
+            git commit -m "ops: auto-commit reports from run ${{ github.run_id }}"
+            git push
+            echo "Committed new reports"
+          else
+            echo "No report changes to commit"
+          fi
 
       - name: Summary
         if: always()
