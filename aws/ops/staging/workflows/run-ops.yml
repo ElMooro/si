@@ -62,6 +62,7 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           ANTHROPIC_API_KEY_NEW: ${{ secrets.ANTHROPIC_API_KEY_NEW }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          PYTHONPATH: ${{ github.workspace }}/aws/ops
         run: |
           set -e
           for s in ${{ steps.pick.outputs.scripts }}; do
@@ -73,14 +74,16 @@ jobs:
           done
 
       - name: Commit any new/changed reports or imports
-        if: success()
+        if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Always pull latest to avoid push-rejected races
+          git pull --rebase origin main || true
           if [ -n "$(git status --porcelain aws/ops/reports/ aws/lambdas/ 2>/dev/null)" ]; then
             git add aws/ops/reports/ aws/lambdas/
-            git commit -m "ops: auto-commit from run ${{ github.run_id }} [skip-deploy]"
-            git push
+            git commit -m "ops: auto-commit from run ${{ github.run_id }} (${{ job.status }}) [skip-deploy]"
+            git push || (git pull --rebase origin main && git push)
             echo "Committed changes"
           else
             echo "No changes to commit"
