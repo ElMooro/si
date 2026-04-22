@@ -25,6 +25,7 @@ deploys not-yet-in-git (made outside CI/CD) are picked up.
 import io
 import json
 import os
+import re
 import shutil
 import sys
 import urllib.request
@@ -36,6 +37,64 @@ import boto3
 from botocore.exceptions import ClientError
 
 REGION = "us-east-1"
+
+# ─── Secret sanitization patterns ────────────────────────────────────
+# Each entry: (human_label, regex, env_var_to_use_instead)
+# regex must have the secret value in group 1.
+# We replace the entire matched line with a properly-scoped env lookup.
+SECRET_PATTERNS = [
+    (
+        "Anthropic API key",
+        re.compile(r"(['\"])sk-ant-[A-Za-z0-9_\-]{20,}\1"),
+        "ANTHROPIC_API_KEY",
+    ),
+    (
+        "GitHub PAT",
+        re.compile(r"(['\"])ghp_[A-Za-z0-9]{30,}\1"),
+        "GITHUB_TOKEN",
+    ),
+    (
+        "Generic AWS secret key",
+        re.compile(r"(['\"])[A-Za-z0-9/+=]{40}\1"),
+        None,  # don't auto-replace — false-positive risk
+    ),
+]
+
+
+def sanitize_source(text: str, fn_name: str, log_fn) -> tuple[str, list[str]]:
+    """
+    Scan Python source for hardcoded secrets and replace them with
+    os.environ.get(...) reads. Returns (sanitized_text, replacements_log).
+    """
+    replacements = []
+    out = text
+
+    for label, pattern, env_var in SECRET_PATTERNS:
+        if env_var is None:
+            # Detection-only for this pattern — just log
+            for m in pattern.finditer(out):
+                replacements.append(f"{label} (not auto-replaced): line {out.count(chr(10), 0, m.start()) + 1}")
+            continue
+
+        def _replace(match):
+            line_no = out.count("\n", 0, match.start()) + 1
+            replacements.append(f"{label} on line {line_no} → os.environ['{env_var}']")
+            return f"os.environ.get('{env_var}', '')"
+
+        new_out, n = pattern.subn(_replace, out)
+        if n > 0:
+            # Ensure `import os` is present
+            if not re.search(r"^import os(\s|$)", new_out, re.MULTILINE):
+                new_out = "import os\n" + new_out
+            out = new_out
+
+    if replacements:
+        log_fn(f"    🛡 sanitized {fn_name}: {len(replacements)} secret(s) redacted")
+        for r in replacements:
+            log_fn(f"       - {r}")
+
+    return out, replacements
+
 
 # The 27 active Lambdas from audit 2026-04-22
 ACTIVE_LIST = [
@@ -125,13 +184,28 @@ def import_function(fn_name: str, repo_root: Path) -> dict:
         shutil.rmtree(src_dir)
     src_dir.mkdir(parents=True, exist_ok=True)
 
-    # Extract zip
+    # Extract zip, sanitizing any .py files that contain hardcoded secrets
     file_count = 0
+    sanitization_log = []
     with zipfile.ZipFile(io.BytesIO(zbytes)) as zf:
         for entry in zf.namelist():
-            # Skip obviously-binary vendored bloat (pycache, .dist-info)
-            # but keep them in repo for now — future cleanup can use .gitignore
-            zf.extract(entry, src_dir)
+            if entry.endswith("/"):
+                continue  # skip dir entries
+            data = zf.read(entry)
+            target_path = src_dir / entry
+            target_path.parent.mkdir(parents=True, exist_ok=True)
+
+            if entry.endswith(".py"):
+                try:
+                    text = data.decode("utf-8", errors="strict")
+                    sanitized, repls = sanitize_source(text, fn_name, log)
+                    if repls:
+                        sanitization_log.extend(repls)
+                        data = sanitized.encode("utf-8")
+                except UnicodeDecodeError:
+                    pass  # binary .py (unlikely) — leave alone
+
+            target_path.write_bytes(data)
             file_count += 1
 
     # Fetch Function URL config (if any)
@@ -182,6 +256,7 @@ def import_function(fn_name: str, repo_root: Path) -> dict:
         "last_modified":       cfg.get("LastModified"),
         "code_size":           cfg.get("CodeSize"),
         "files_imported":      file_count,
+        "secrets_sanitized":   sanitization_log,
         "imported_at":         datetime.now(timezone.utc).isoformat(timespec="seconds"),
     }
 
@@ -209,6 +284,7 @@ def import_function(fn_name: str, repo_root: Path) -> dict:
         "status": "imported",
         "files": file_count,
         "size_kb": round(cfg.get("CodeSize", 0) / 1024),
+        "sanitized": len(sanitization_log),
     }
 
 
@@ -236,14 +312,27 @@ def main():
     skipped  = [o for o in outcomes if o["status"].startswith("skipped")]
     errored  = [o for o in outcomes if o["status"].startswith("error")]
     missing  = [o for o in outcomes if o["status"] == "not-found"]
+    sanitized_fns = [o for o in imported if o.get("sanitized", 0) > 0]
+    total_secrets = sum(o.get("sanitized", 0) for o in imported)
 
     log("")
     log("══════════════════ SUMMARY ══════════════════")
-    log(f"  Imported:  {len(imported)}")
-    log(f"  Skipped:   {len(skipped)}")
-    log(f"  Not found: {len(missing)}")
-    log(f"  Errored:   {len(errored)}")
+    log(f"  Imported:         {len(imported)}")
+    log(f"  Skipped:          {len(skipped)}")
+    log(f"  Not found:        {len(missing)}")
+    log(f"  Errored:          {len(errored)}")
+    log(f"  🛡 Functions sanitized: {len(sanitized_fns)} ({total_secrets} secret(s) total)")
     log("═════════════════════════════════════════════")
+
+    if sanitized_fns:
+        log("")
+        log("Secrets redacted from these functions (live code still has them!):")
+        for o in sanitized_fns:
+            log(f"  - {o['name']}: {o['sanitized']} redaction(s)")
+        log("")
+        log("⚠ IMPORTANT: the LIVE Lambda code still contains the secrets.")
+        log("  Run follow-up script 5_redeploy_sanitized.py to push the cleaned")
+        log("  versions back to AWS. Also consider rotating those keys.")
 
     for o in skipped + missing + errored:
         log(f"  ! {o['name']}: {o['status']}")
