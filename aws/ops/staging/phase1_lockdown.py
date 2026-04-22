@@ -28,7 +28,7 @@ import time
 import urllib.error
 import urllib.request
 import zipfile
-from datetime import datetime
+from datetime import datetime, timezone
 
 import boto3
 from botocore.exceptions import ClientError
@@ -44,7 +44,7 @@ ALLOWED_ORIGINS      = ["https://justhodl.ai", "https://www.justhodl.ai"]
 RESERVED_CONCURRENCY = 3
 PATCH_MARKER         = "_get_auth_token"
 
-def log(msg): print(f"[{datetime.utcnow().strftime('%H:%M:%S')}] {msg}", flush=True)
+def log(msg): print(f"[{datetime.now(timezone.utc).strftime('%H:%M:%S')}] {msg}", flush=True)
 
 AUTH_MODULE = '''
 # ── AUTH MODULE (token from SSM + origin allowlist) ──────────────────
@@ -172,7 +172,7 @@ def tighten():
         FunctionName=LAMBDA_NAME,
         Cors={
             "AllowOrigins": ALLOWED_ORIGINS,
-            "AllowMethods": ["POST", "OPTIONS"],
+            "AllowMethods": ["POST"],  # OPTIONS preflight is auto-handled by Lambda URL service
             "AllowHeaders": ["Content-Type", "x-justhodl-token"],
             "MaxAge": 300,
         },
