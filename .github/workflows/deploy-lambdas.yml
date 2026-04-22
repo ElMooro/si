@@ -27,7 +27,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 10
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -40,20 +40,32 @@ jobs:
         id: detect
         run: |
           set -e
-          # Escape hatch: skip if the triggering commit says so (e.g. initial
-          # version-control import commit, or any commit that just pulls code
-          # from AWS into the repo).
-          commit_msg=$(git log -1 --pretty=%B)
+          # Use the actual commit that triggered this workflow, not HEAD —
+          # during rapid multi-push sequences HEAD may be newer than the
+          # triggering event's sha, causing diffs to miss the real change.
+          triggering_sha="${{ github.event.after || github.sha }}"
+          parent_sha="${{ github.event.before }}"
+          echo "Triggering commit: $triggering_sha"
+          echo "Parent commit: $parent_sha"
+
+          # Check the specific triggering commit's message for [skip-deploy]
+          commit_msg=$(git log -1 --pretty=%B "$triggering_sha" 2>/dev/null || git log -1 --pretty=%B)
           if echo "$commit_msg" | grep -qF '[skip-deploy]'; then
             echo "Commit message contains [skip-deploy] — exiting"
             echo "targets=" >> $GITHUB_OUTPUT
             exit 0
           fi
+
           if [ -n "${{ github.event.inputs.function }}" ]; then
             echo "Manual dispatch for: ${{ github.event.inputs.function }}"
             echo "targets=${{ github.event.inputs.function }}" >> $GITHUB_OUTPUT
           else
-            changed=$(git diff --name-only HEAD^ HEAD | grep '^aws/lambdas/' || true)
+            # Fallback to HEAD^ if we don't have both refs
+            if [ -n "$parent_sha" ] && [ "$parent_sha" != "0000000000000000000000000000000000000000" ]; then
+              changed=$(git diff --name-only "$parent_sha" "$triggering_sha" 2>/dev/null | grep '^aws/lambdas/' || true)
+            else
+              changed=$(git diff --name-only HEAD^ HEAD | grep '^aws/lambdas/' || true)
+            fi
             targets=$(echo "$changed" | awk -F/ '{print $3}' | sort -u | paste -sd ' ' -)
             echo "Changed Lambdas: $targets"
             echo "targets=$targets" >> $GITHUB_OUTPUT
