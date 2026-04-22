@@ -47,5 +47,10 @@ You are an expert financial analyst. Answer questions about the market data, pro
             resp=json.loads(r.read())
         reply=resp.get('content',[{}])[0].get('text','No response')
         return{'statusCode':200,'headers':headers,'body':json.dumps({'reply':reply})}
+    except urllib.error.HTTPError as e:
+        detail = ''
+        try: detail = e.read().decode('utf-8', errors='ignore')[:600]
+        except Exception: pass
+        return {'statusCode':500,'headers':headers,'body':json.dumps({'error':f'HTTP {e.code}: {e.reason}', 'anthropic_body': detail, 'key_prefix': ANTHROPIC_KEY[:12]})}
     except Exception as e:
-        return{'statusCode':500,'headers':headers,'body':json.dumps({'error':str(e)})}
+        return {'statusCode':500,'headers':headers,'body':json.dumps({'error':str(e)})}
