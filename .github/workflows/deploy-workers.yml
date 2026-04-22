@@ -1,0 +1,106 @@
+name: Deploy Cloudflare Workers
+
+# Deploys any Cloudflare Worker when its source changes.
+# Reads the Lambda auth token from AWS SSM and sets it as an encrypted
+# Worker Secret so it never appears in repo code or logs.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'cloudflare/workers/*/**'
+  workflow_dispatch:
+    inputs:
+      worker:
+        description: 'Worker name to redeploy (leave blank to deploy all changed)'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy changed Workers
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install wrangler
+        run: npm install -g wrangler@latest
+
+      - name: Detect changed Workers
+        id: detect
+        run: |
+          set -e
+          if [ -n "${{ github.event.inputs.worker }}" ]; then
+            targets="${{ github.event.inputs.worker }}"
+          else
+            targets=$(git diff --name-only HEAD^ HEAD \
+              | grep '^cloudflare/workers/' \
+              | awk -F/ '{print $3}' | sort -u | paste -sd ' ' -)
+          fi
+          echo "Targets: $targets"
+          echo "targets=$targets" >> $GITHUB_OUTPUT
+
+      - name: Fetch AI_CHAT_TOKEN from SSM
+        if: steps.detect.outputs.targets != ''
+        id: ssm
+        run: |
+          TOKEN=$(aws ssm get-parameter \
+            --name /justhodl/ai-chat/auth-token \
+            --with-decryption \
+            --region ${{ secrets.AWS_REGION }} \
+            --query 'Parameter.Value' --output text)
+          echo "::add-mask::$TOKEN"
+          echo "AI_CHAT_TOKEN=$TOKEN" >> $GITHUB_ENV
+
+      - name: Deploy each changed Worker
+        if: steps.detect.outputs.targets != ''
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -e
+          for w in ${{ steps.detect.outputs.targets }}; do
+            dir="cloudflare/workers/$w"
+            if [ ! -d "$dir" ]; then
+              echo "::warning::$dir not found — skipping"
+              continue
+            fi
+            echo "──── Deploying $w ────"
+            cd "$dir"
+
+            # Deploy first so secrets can be attached
+            wrangler deploy
+
+            # Attach the Lambda auth token as an encrypted Worker Secret
+            if [ "$w" = "justhodl-ai-proxy" ]; then
+              echo "$AI_CHAT_TOKEN" | wrangler secret put AI_CHAT_TOKEN
+            fi
+
+            echo "✅ $w deployed"
+            cd - > /dev/null
+          done
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "### Cloudflare Workers Deploy" >> $GITHUB_STEP_SUMMARY
+          echo "Targets: \`${{ steps.detect.outputs.targets }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,11 @@
+name = "justhodl-ai-proxy"
+main = "src/index.js"
+compatibility_date = "2025-10-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Observability: send logs to CF dashboard
+[observability]
+enabled = true
+
+# No public vars — auth token is set as an encrypted Secret via `wrangler secret put AI_CHAT_TOKEN`
+# (done automatically by the GitHub Actions deploy workflow, sourced from AWS SSM).
