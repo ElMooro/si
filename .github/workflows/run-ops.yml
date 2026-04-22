@@ -60,6 +60,7 @@ jobs:
         if: steps.pick.outputs.scripts != ''
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_API_KEY_NEW: ${{ secrets.ANTHROPIC_API_KEY_NEW }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         run: |
           set -e
