@@ -57,7 +57,7 @@ def conf_ext(s,c=50,r=50):
 def lambda_handler(event,context):
     logged=[]
     # data.json
-    d=fs3("data.json")
+    d=fs3("data/report.json")
     ki=d.get("khalid_index")
     if ki is not None:
         ki=float(ki)

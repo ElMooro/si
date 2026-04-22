@@ -15,7 +15,7 @@ def lambda_handler(event, context):
         import boto3
         s3=boto3.client('s3',region_name='us-east-1')
         try:
-            obj=s3.get_object(Bucket=BUCKET,Key='data.json')
+            obj=s3.get_object(Bucket=BUCKET,Key='data/report.json')
             market_data=json.loads(obj['Body'].read())
         except:
             market_data={}

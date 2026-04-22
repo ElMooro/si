@@ -104,7 +104,7 @@ def save_templates(t):
 
 def load_all():
     keys={
-        "main":"data.json",
+        "main":"data/report.json",
         "intel":"intelligence-report.json",
         "crypto":"crypto-intel.json",
         "edge":"edge-data.json",

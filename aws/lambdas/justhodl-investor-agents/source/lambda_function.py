@@ -63,7 +63,7 @@ def get_stock_data(ticker):
 
 def get_macro_context():
     try:
-        obj=s3_client.get_object(Bucket=BUCKET,Key="data.json")
+        obj=s3_client.get_object(Bucket=BUCKET,Key="data/report.json")
         data=json.loads(obj["Body"].read().decode("utf-8"))
         ki=data.get("khalidIndex",{})
         regime=data.get("macroRegime",{})

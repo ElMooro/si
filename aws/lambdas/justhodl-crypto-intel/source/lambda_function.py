@@ -2833,7 +2833,7 @@ def gen_ai(results, tech):
 
 
 
-    md=s3_read('data.json') or {};rd=s3_read('repo-data.json') or {};pd=s3_read('predictions.json') or {}
+    md=s3_read('data/report.json') or {};rd=s3_read('repo-data.json') or {};pd=s3_read('predictions.json') or {}
 
 
 

@@ -140,7 +140,7 @@ def build_context(message):
                 mc  = d.get('usd_market_cap', 0)
                 lines.append(f"[LIVE CRYPTO] {sym}: ${p:,.4f} ({chg:+.2f}% 24h) | MCap:${mc/1e9:.2f}B")
 
-    report = get_s3('data.json')
+    report = get_s3('data/report.json')
     if report:
         ki = report.get('khalid_index', report.get('khalidIndex', {}))
         if isinstance(ki, dict):
