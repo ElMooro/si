@@ -40,7 +40,7 @@ Generated: {market_data.get('generated','Unknown')}
 
 You are an expert financial analyst. Answer questions about the market data, provide analysis, suggest trades, explain the Khalid Index, and help with any financial questions. Be direct, data-driven, and use actual numbers from the data above. Format responses with markdown for readability."""
 
-        data=json.dumps({"model":"claude-sonnet-4-20250514","max_tokens":2000,"system":system_prompt,"messages":messages}).encode()
+        data=json.dumps({"model": "claude-haiku-4-5-20251001","max_tokens":2000,"system":system_prompt,"messages":messages}).encode()
         req=urllib.request.Request('https://api.anthropic.com/v1/messages',data=data,headers={'Content-Type':'application/json','x-api-key':ANTHROPIC_KEY,'anthropic-version':'2023-06-01'})
         ctx=ssl.create_default_context()
         with urllib.request.urlopen(req,timeout=30,context=ctx) as r:

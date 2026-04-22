@@ -60,10 +60,11 @@ def lambda_handler(event,context):
     d=fs3("data/report.json")
     ki=d.get("khalid_index")
     if ki is not None:
-        ki=float(ki)
+        if isinstance(ki, dict): ki=float(ki.get("score", 0))
+        else: ki=float(ki)
         val="HIGH_RISK" if ki>=70 else "ELEVATED" if ki>=55 else "MODERATE" if ki>=40 else "LOW_RISK"
         logged.append(log_sig("khalid_index",val,dir_score(ki,35,65),conf_ext(ki),"SPY",[7,14,30],meta={"score":ki,"regime":d.get("regime")}))
-    regime=d.get("regime","")
+    regime=d.get("regime","") or (d.get("khalid_index",{}).get("regime","") if isinstance(d.get("khalid_index"), dict) else "")
     if regime:
         rm={"BULL":"UP","RECOVERY":"UP","RISK_ON":"UP","BEAR":"DOWN","CRISIS":"DOWN","CORRECTION":"DOWN","NEUTRAL":"NEUTRAL","UNKNOWN":"NEUTRAL"}
         logged.append(log_sig("edge_regime",regime,rm.get(regime.upper(),"NEUTRAL"),0.70,"SPY",[14,30],meta={"regime":regime}))

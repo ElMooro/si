@@ -145,8 +145,8 @@ def extract_metrics(data,weights):
     return {
         "khalid_raw":ki,
         "khalid_weight":kw,
-        "khalid_adj":round(float(ki)*kw,1) if ki else 0,
-        "khalid_regime":d.get("regime") or regime_d.get("khalid","UNKNOWN"),
+        "khalid_adj":round(float(ki["score"] if isinstance(ki, dict) else ki)*kw,1) if ki else 0,
+        "khalid_regime":(ki.get("regime") if isinstance(ki, dict) else None) or d.get("regime") or regime_d.get("khalid","UNKNOWN"),
         "edge_score":edge.get("composite_score","N/A"),
         "edge_regime":edge.get("regime","N/A"),
         "ml_risk":scores.get("ml_risk_score","N/A"),
