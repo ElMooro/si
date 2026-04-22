@@ -61,3 +61,7 @@ wrangler dev --local
 Cloudflare dashboard → Workers & Pages → `justhodl-ai-proxy` → Logs tab.
 With `observability` enabled in wrangler.toml, every request logs the
 status code, CPU time, and any console output.
+
+## Deployment log
+
+- 2026-04-22 — initial deploy
