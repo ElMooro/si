@@ -3,6 +3,10 @@ main = "src/index.js"
 compatibility_date = "2025-10-01"
 compatibility_flags = ["nodejs_compat"]
 
+# Publish to <worker>.<account-subdomain>.workers.dev
+# (Cloudflare made this opt-in as of 2025-09-17 for security.)
+workers_dev = true
+
 # Observability: send logs to CF dashboard
 [observability]
 enabled = true
