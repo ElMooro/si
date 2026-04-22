@@ -1,0 +1,77 @@
+name: Run Ops Script
+
+# Runs any Python script pushed to aws/ops/pending/*.py with AWS credentials.
+# After a successful run the script should be manually moved to aws/ops/history/
+# (or left in pending/ if it's idempotent and meant to be re-run).
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'aws/ops/pending/*.py'
+  workflow_dispatch:
+    inputs:
+      script:
+        description: 'Script path relative to repo root (e.g. aws/ops/pending/phase1_lockdown.py)'
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  run:
+    name: Execute ops script
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install boto3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Determine script(s) to run
+        id: pick
+        run: |
+          if [ -n "${{ github.event.inputs.script }}" ]; then
+            echo "scripts=${{ github.event.inputs.script }}" >> $GITHUB_OUTPUT
+          else
+            scripts=$(git diff --name-only HEAD^ HEAD | grep '^aws/ops/pending/.*\.py$' | paste -sd ' ' -)
+            echo "Scripts to run: $scripts"
+            echo "scripts=$scripts" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run script(s)
+        if: steps.pick.outputs.scripts != ''
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          set -e
+          for s in ${{ steps.pick.outputs.scripts }}; do
+            echo "══════════════════════════════════════════"
+            echo "  Running: $s"
+            echo "══════════════════════════════════════════"
+            python3 "$s"
+            echo "✅ $s completed"
+          done
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "### Ops Run Summary" >> $GITHUB_STEP_SUMMARY
+          echo "Scripts: \`${{ steps.pick.outputs.scripts }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
