@@ -40,6 +40,15 @@ jobs:
         id: detect
         run: |
           set -e
+          # Escape hatch: skip if the triggering commit says so (e.g. initial
+          # version-control import commit, or any commit that just pulls code
+          # from AWS into the repo).
+          commit_msg=$(git log -1 --pretty=%B)
+          if echo "$commit_msg" | grep -qF '[skip-deploy]'; then
+            echo "Commit message contains [skip-deploy] — exiting"
+            echo "targets=" >> $GITHUB_OUTPUT
+            exit 0
+          fi
           if [ -n "${{ github.event.inputs.function }}" ]; then
             echo "Manual dispatch for: ${{ github.event.inputs.function }}"
             echo "targets=${{ github.event.inputs.function }}" >> $GITHUB_OUTPUT

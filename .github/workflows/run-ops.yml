@@ -71,18 +71,18 @@ jobs:
             echo "✅ $s completed"
           done
 
-      - name: Commit any new/changed reports
+      - name: Commit any new/changed reports or imports
         if: success()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [ -n "$(git status --porcelain aws/ops/reports/ 2>/dev/null)" ]; then
-            git add aws/ops/reports/
-            git commit -m "ops: auto-commit reports from run ${{ github.run_id }}"
+          if [ -n "$(git status --porcelain aws/ops/reports/ aws/lambdas/ 2>/dev/null)" ]; then
+            git add aws/ops/reports/ aws/lambdas/
+            git commit -m "ops: auto-commit from run ${{ github.run_id }} [skip-deploy]"
             git push
-            echo "Committed new reports"
+            echo "Committed changes"
           else
-            echo "No report changes to commit"
+            echo "No changes to commit"
           fi
 
       - name: Summary
