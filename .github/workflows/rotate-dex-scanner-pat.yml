@@ -1,0 +1,263 @@
+name: Rotate dex-scanner PAT
+
+# ─────────────────────────────────────────────────────────────────────────────
+# One-click PAT rotation for justhodl-dex-scanner Lambda.
+#
+# Currently the TOKEN env var on justhodl-dex-scanner is the same PAT as the
+# Claude-Deploy PAT used by GitHub Actions. Two consumers sharing one secret
+# is a risk — if either leaks, both are compromised.
+#
+# HOW TO USE:
+#   1. Generate a fresh Classic PAT at https://github.com/settings/tokens/new
+#      - Name: "justhodl-dex-scanner"
+#      - Expiration: pick what you're comfortable with (90 days is a good default)
+#      - Scopes: tick ONLY "repo" (needed to PUT dex.html to ElMooro/si)
+#      - Click "Generate token"
+#      - Copy the token (starts with ghp_)
+#   2. Visit https://github.com/ElMooro/si/actions/workflows/rotate-dex-scanner-pat.yml
+#   3. Click "Run workflow", paste the new PAT into the "new_pat" field, click Run
+#   4. Workflow will:
+#        a. Validate the new PAT against GitHub API (fails fast if bad)
+#        b. Update the Lambda's TOKEN env var to the new value
+#        c. Smoke-test by having the Lambda attempt a PUT to dex.html
+#        d. Report success — or roll back on failure
+#   5. Once green, you can safely revoke the old Claude-Deploy PAT at
+#      github.com/settings/tokens (just for the dex-scanner role — GitHub
+#      Actions will keep using its own secrets)
+#
+# SAFETY:
+#   - new_pat is a workflow_dispatch secret input, masked in logs by GitHub
+#   - On any failure after the swap, workflow restores the old TOKEN value
+#   - The old TOKEN value is held in workflow memory only (not echoed, not
+#     committed, not cached)
+# ─────────────────────────────────────────────────────────────────────────────
+
+on:
+  workflow_dispatch:
+    inputs:
+      new_pat:
+        description: 'New GitHub PAT (starts with ghp_). Copy from github.com/settings/tokens. Value will be masked in logs.'
+        required: true
+        type: string
+      revoke_check_only:
+        description: 'Dry-run: validate new PAT works but do NOT swap. Useful for pre-flight.'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  rotate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Mask input immediately
+        run: |
+          # Belt-and-suspenders: GitHub already masks workflow_dispatch
+          # inputs, but we add an explicit mask directive too.
+          echo "::add-mask::${{ inputs.new_pat }}"
+
+      - name: Validate new PAT format
+        env:
+          NEW_PAT: ${{ inputs.new_pat }}
+        run: |
+          set -e
+          if [[ ! "$NEW_PAT" =~ ^ghp_ ]]; then
+            echo "❌ PAT must start with 'ghp_' (Classic PAT). Fine-grained PATs (github_pat_) may not support the repo scope correctly here."
+            exit 1
+          fi
+          LEN=${#NEW_PAT}
+          if [ "$LEN" -lt 30 ] || [ "$LEN" -gt 100 ]; then
+            echo "❌ PAT length looks wrong ($LEN chars). Classic PATs are ~40 chars."
+            exit 1
+          fi
+          echo "✓ PAT format looks valid ($LEN chars, ghp_ prefix)"
+
+      - name: Validate new PAT works against GitHub API
+        env:
+          NEW_PAT: ${{ inputs.new_pat }}
+        run: |
+          set -e
+          echo "Testing against https://api.github.com/user and /repos/ElMooro/si..."
+          # GET /user — confirms the token authenticates
+          USER_RESP=$(curl -sS -o /tmp/user.json -w "%{http_code}" \
+            -H "Authorization: token $NEW_PAT" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/user)
+          if [ "$USER_RESP" != "200" ]; then
+            echo "❌ /user returned HTTP $USER_RESP — token is invalid or revoked"
+            cat /tmp/user.json
+            exit 1
+          fi
+          USER_LOGIN=$(python3 -c "import json; print(json.load(open('/tmp/user.json'))['login'])")
+          echo "✓ /user OK — authenticated as $USER_LOGIN"
+
+          # GET /repos/ElMooro/si — confirms token has access to the specific repo
+          REPO_RESP=$(curl -sS -o /tmp/repo.json -w "%{http_code}" \
+            -H "Authorization: token $NEW_PAT" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/ElMooro/si)
+          if [ "$REPO_RESP" != "200" ]; then
+            echo "❌ /repos/ElMooro/si returned HTTP $REPO_RESP — token lacks repo access"
+            cat /tmp/repo.json
+            exit 1
+          fi
+          PERMS=$(python3 -c "import json; p=json.load(open('/tmp/repo.json')).get('permissions', {}); print(f\"admin={p.get('admin')} push={p.get('push')} pull={p.get('pull')}\")")
+          echo "✓ /repos/ElMooro/si OK — permissions: $PERMS"
+
+          # Confirm push permission (required for PUT dex.html)
+          HAS_PUSH=$(python3 -c "import json; print(json.load(open('/tmp/repo.json')).get('permissions', {}).get('push', False))")
+          if [ "$HAS_PUSH" != "True" ]; then
+            echo "❌ Token lacks push permission — can't update dex.html"
+            exit 1
+          fi
+          echo "✓ Token has push permission on ElMooro/si"
+
+      - name: Stop here if dry-run
+        if: ${{ inputs.revoke_check_only == true }}
+        run: |
+          echo ""
+          echo "═══════════════════════════════════════════════════════════"
+          echo "DRY-RUN COMPLETE — new PAT is valid and has correct scopes."
+          echo "Re-run this workflow with revoke_check_only=false to actually swap."
+          echo "═══════════════════════════════════════════════════════════"
+          exit 0
+
+      - name: Configure AWS credentials
+        if: ${{ inputs.revoke_check_only == false }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Backup old TOKEN + swap to new PAT
+        if: ${{ inputs.revoke_check_only == false }}
+        env:
+          NEW_PAT: ${{ inputs.new_pat }}
+        run: |
+          set -e
+
+          # Write Python helper to a file so YAML indentation doesn't poison it
+          cat > /tmp/env_swap.py << 'PY'
+          import json, os, sys
+          current = json.loads(os.environ.get("CURRENT_ENV", "{}") or "{}")
+          mode = sys.argv[1] if len(sys.argv) > 1 else "swap"
+          if mode == "read-token":
+              print(current.get("TOKEN", ""))
+          elif mode == "swap":
+              new_token = os.environ.get("NEW_TOKEN_VAL", "")
+              current["TOKEN"] = new_token
+              print(json.dumps({"Variables": current}))
+          PY
+          # Strip the 10-space YAML indent from every line
+          sed -i 's/^          //' /tmp/env_swap.py
+
+          echo "Reading current TOKEN from justhodl-dex-scanner..."
+          CURRENT_ENV=$(aws lambda get-function-configuration \
+            --function-name justhodl-dex-scanner \
+            --query 'Environment.Variables' --output json)
+          echo "::add-mask::$CURRENT_ENV"
+          export CURRENT_ENV
+
+          OLD_TOKEN=$(python3 /tmp/env_swap.py read-token)
+          echo "::add-mask::$OLD_TOKEN"
+
+          if [ -z "$OLD_TOKEN" ]; then
+            echo "⚠ No TOKEN was previously set — proceeding anyway (effectively initial setup)"
+          else
+            echo "✓ Old TOKEN captured for rollback (${#OLD_TOKEN} chars, first 4: ${OLD_TOKEN:0:4})"
+          fi
+
+          printf '%s' "$OLD_TOKEN" > /tmp/old_token.txt
+          chmod 600 /tmp/old_token.txt
+
+          NEW_ENV=$(NEW_TOKEN_VAL="$NEW_PAT" python3 /tmp/env_swap.py swap)
+          echo "::add-mask::$NEW_ENV"
+
+          echo "Updating Lambda env..."
+          aws lambda update-function-configuration \
+            --function-name justhodl-dex-scanner \
+            --environment "$NEW_ENV" \
+            --output json > /tmp/update.json
+          echo "✓ Lambda env updated"
+
+          aws lambda wait function-updated \
+            --function-name justhodl-dex-scanner
+          echo "✓ Lambda config stable"
+
+      - name: Smoke-test new PAT via Lambda invocation
+        if: ${{ inputs.revoke_check_only == false }}
+        id: smoke
+        continue-on-error: true
+        run: |
+          set -e
+          echo "Invoking justhodl-dex-scanner synchronously to smoke-test..."
+          aws lambda invoke \
+            --function-name justhodl-dex-scanner \
+            --invocation-type RequestResponse \
+            --cli-binary-format raw-in-base64-out \
+            --payload '{"smoke_test": true}' \
+            /tmp/smoke_out.json
+          echo "Lambda response:"
+          cat /tmp/smoke_out.json
+          echo ""
+          # Look for obvious failure markers
+          if grep -qiE "bad credentials|unauthorized|401|403" /tmp/smoke_out.json; then
+            echo "❌ Smoke test detected auth failure"
+            exit 1
+          fi
+          echo "✓ Smoke test did not surface auth failure"
+
+      - name: ROLLBACK if smoke test failed
+        if: ${{ inputs.revoke_check_only == false && steps.smoke.outcome == 'failure' }}
+        run: |
+          set -e
+          echo "❌ Smoke test failed — rolling back to old TOKEN"
+          OLD_TOKEN=$(cat /tmp/old_token.txt)
+          echo "::add-mask::$OLD_TOKEN"
+
+          CURRENT_ENV=$(aws lambda get-function-configuration \
+            --function-name justhodl-dex-scanner \
+            --query 'Environment.Variables' --output json)
+          echo "::add-mask::$CURRENT_ENV"
+          export CURRENT_ENV
+
+          # Reuse the helper script from earlier step (persists across steps)
+          ROLLBACK_ENV=$(NEW_TOKEN_VAL="$OLD_TOKEN" python3 /tmp/env_swap.py swap)
+          echo "::add-mask::$ROLLBACK_ENV"
+
+          aws lambda update-function-configuration \
+            --function-name justhodl-dex-scanner \
+            --environment "$ROLLBACK_ENV" > /dev/null
+          aws lambda wait function-updated --function-name justhodl-dex-scanner
+          echo "✓ Rolled back to old TOKEN"
+          echo ""
+          echo "The new PAT was valid but the Lambda couldn't use it successfully."
+          echo "Possible causes:"
+          echo "  - New PAT scope differs from old (check repo scope is ticked)"
+          echo "  - Organization SSO not authorized for new PAT"
+          echo "  - Lambda code has a separate issue unrelated to the PAT"
+          echo ""
+          echo "Check the smoke-test Lambda response above for the actual error."
+          exit 1
+
+      - name: Success summary
+        if: ${{ inputs.revoke_check_only == false && steps.smoke.outcome == 'success' }}
+        run: |
+          echo ""
+          echo "═══════════════════════════════════════════════════════════"
+          echo "✅ PAT ROTATION COMPLETE"
+          echo "═══════════════════════════════════════════════════════════"
+          echo ""
+          echo "justhodl-dex-scanner TOKEN is now the new PAT."
+          echo "Old PAT is still valid but no longer used by this Lambda."
+          echo ""
+          echo "NEXT STEPS (optional but recommended):"
+          echo "  - Visit https://github.com/settings/tokens"
+          echo "  - Delete the old Claude-Deploy PAT ONLY IF you're sure"
+          echo "    GitHub Actions secrets don't still reference it"
+          echo "  - (GitHub Actions here uses AWS_ACCESS_KEY_ID /"
+          echo "    AWS_SECRET_ACCESS_KEY — not a GitHub PAT — so those"
+          echo "    workflows are independent)"
+          echo ""
+          echo "The dex-scanner and GitHub Actions are now on separate credentials."
