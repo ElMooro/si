@@ -1,0 +1,181 @@
+# Deep shape audit — where do the real numeric values live?
+
+**Status:** success  
+**Duration:** 1.1s  
+**Finished:** 2026-04-23T22:12:54+00:00  
+
+## Log
+## 1. FRED — shape of one complete series
+
+- `22:12:54`   fred top-level categories: ['treasury', 'dxy', 'commodities', 'ice_bofa', 'risk', 'liquidity', 'macro', 'inflation', 'credit', 'global_cycle', 'pmi_world', 'ecb', 'global_liquidity', 'systemic_risk']
+- `22:12:54` 
+  DGS10 is in category: treasury
+- `22:12:54`   Full shape:
+- `22:12:54`     current: 4.3
+- `22:12:54`     date: 2026-04-22
+- `22:12:54`     prev: 4.3
+- `22:12:54`     change: 0.0
+- `22:12:54`     pct_change: 0.0
+- `22:12:54`     week_pct: 0.23
+- `22:12:54`     month_pct: -0.92
+- `22:12:54`     quarter_pct: 0.0
+- `22:12:54`     high: 4.44
+- `22:12:54`     low: 3.97
+- `22:12:54`     ... (4 more)
+- `22:12:54` 
+  VIXCLS is in category: risk
+- `22:12:54`     current: 18.92
+- `22:12:54`     date: 2026-04-22
+- `22:12:54`     prev: 19.5
+- `22:12:54`     change: -0.58
+- `22:12:54`     pct_change: -2.97
+- `22:12:54`     week_pct: 4.13
+- `22:12:54`     month_pct: -29.35
+- `22:12:54`     quarter_pct: -5.82
+- `22:12:54`     high: 31.05
+- `22:12:54`     low: 13.47
+- `22:12:54`     ... (4 more)
+## 2. flow-data.json — full top-level shape
+
+- `22:12:54`   success: True
+- `22:12:54`   timestamp: 2026-04-23T22:12:42.628944Z
+- `22:12:54`   engine: JustHodl Options Flow & Sentiment Engine v3.0
+- `22:12:54`   data: dict[9]
+- `22:12:54`     vix_complex: dict[3]
+- `22:12:54`   (max depth reached)
+- `22:12:54`     skew: dict[0]
+- `22:12:54`   (max depth reached)
+- `22:12:54`     put_call: dict[10]
+- `22:12:54`   (max depth reached)
+- `22:12:54`     gamma_exposure: dict[9]
+- `22:12:54`   (max depth reached)
+- `22:12:54`     fund_flows: dict[4]
+- `22:12:54`   (max depth reached)
+- `22:12:54`     sentiment: dict[8]
+- `22:12:54`   (max depth reached)
+- `22:12:54`     unusual_activity: list[0]
+- `22:12:54`     market_internals: dict[10]
+- `22:12:54`   (max depth reached)
+- `22:12:54`     trading_signals: list[2]
+- `22:12:54`   meta: dict[3]
+- `22:12:54`     data_sources: list[4]
+- `22:12:54`     refresh_interval: 300
+- `22:12:54`     execution_ms: 9538
+## 3. crypto-intel.json — full top-level shape
+
+- `22:12:54`   generated_at: 2026-04-23T22:09:44Z
+- `22:12:54`   fetch_time: 42.2
+- `22:12:54`   version: 4.1
+- `22:12:54`   tvl: dict[4]
+- `22:12:54`     status: success
+- `22:12:54`     total: 84552372218.4667
+- `22:12:54`     formatted: $84.6B
+- `22:12:54`     top_chains: list[8]
+- `22:12:54`   stablecoins: dict[8]
+- `22:12:54`     status: ok
+- `22:12:54`     stablecoins: list[25]
+- `22:12:54`     total_mcap: 312753643186
+- `22:12:54`     total_mcap_fmt: $312.75B
+- `22:12:54`     minting_count: 10
+- `22:12:54`     burning_count: 9
+- `22:12:54`     stable_count: 6
+- `22:12:54`     net_signal: NEUTRAL
+- `22:12:54`   global_market: dict[9]
+- `22:12:54`     status: ok
+- `22:12:54`     total_mcap: 2685721897618
+- `22:12:54`     total_mcap_fmt: $2.69T
+- `22:12:54`     total_volume: 106997105451
+- `22:12:54`     total_volume_fmt: $107.00B
+- `22:12:54`     btc_dominance: 58.2
+- `22:12:54`     eth_dominance: 10.5
+- `22:12:54`     mcap_change_24h: -0.83
+- `22:12:54`     active_coins: 17556
+- `22:12:54`   cmc_movers: dict[3]
+- `22:12:54`     status: ok
+- `22:12:54`     top_gainers: list[0]
+- `22:12:54`     top_losers: list[0]
+- `22:12:54`   dex: dict[4]
+- `22:12:54`     status: ok
+- `22:12:54`     total_24h_volume: 8409994056
+- `22:12:54`     total_24h_fmt: $8.41B
+- `22:12:54`     top_dexes: list[10]
+- `22:12:54`   top_coins: dict[2]
+- `22:12:54`     status: ok
+- `22:12:54`     coins: list[25]
+- `22:12:54`   open_interest: dict[2]
+- `22:12:54`     status: error
+- `22:12:54`     open_interest: list[0]
+- `22:12:54`   yields: dict[2]
+- `22:12:54`     status: ok
+- `22:12:54`     top_yields: list[15]
+- `22:12:54`   whale_txs: dict[4]
+- `22:12:54`     status: ok
+- `22:12:54`     large_txs: list[0]
+- `22:12:54`     whale_count: 0
+- `22:12:54`     total_whale_btc: 0
+- `22:12:54`   onchain_ratios: dict[6]
+- `22:12:54`     status: ok
+- `22:12:54`     mvrv_approx: 0.81
+- `22:12:54`     signal: FAIR
+- `22:12:54`     market_cap: 1579393482688
+- `22:12:54`     market_cap_fmt: $1.58T
+- `22:12:54`     momentum_30d: 4.25
+- `22:12:54`   eth_gas: dict[4]
+- `22:12:54`     rapid: 1.1
+- `22:12:54`     fast: 0.6
+- `22:12:54`     standard: 0.5
+- `22:12:54`     slow: 0.5
+- `22:12:54`   fear_greed: dict[7]
+- `22:12:54`     status: ok
+- `22:12:54`     current: 46
+- `22:12:54`     label: Fear
+- `22:12:54`     history: list[30]
+- `22:12:54`     full_history: list[562]
+- `22:12:54`     avg_7d: 31
+- `22:12:54`     avg_30d: 17
+- `22:12:54`   btc_onchain: dict[2]
+- `22:12:54`     status: ok
+- `22:12:54`     metrics: dict[3]
+- `22:12:54`   (max depth reached)
+- `22:12:54`   funding: dict[6]
+- `22:12:54`     status: success
+- `22:12:54`     rates: list[10]
+- `22:12:54`     avg_rate_pct: -0.0076
+- `22:12:54`     leverage_sentiment: NEUTRAL
+- `22:12:54`     long_count: 2
+- `22:12:54`     short_count: 8
+- `22:12:54`   technicals: dict[2]
+- `22:12:54`     status: ok
+- `22:12:54`     coins: dict[5]
+- `22:12:54`   (max depth reached)
+- `22:12:54`   risk_score: dict[4]
+- `22:12:54`     score: 50
+- `22:12:54`     regime: ELEVATED
+- `22:12:54`     action: CAUTION
+- `22:12:54`     signals: list[0]
+- `22:12:54`   ai_intelligence: dict[5]
+- `22:12:54`     status: ok
+- `22:12:54`     analysis: **MARKET REGIME & WYCKOFF PHASE**  BTC: DISTRIBUTION phase (consensus view) - Cl
+- `22:12:54`     model: claude-sonnet-4-20250514
+- `22:12:54`     generated_at: 2026-04-23T22:09:44Z
+- `22:12:54`     macro: dict[5]
+- `22:12:54`   (max depth reached)
+## 4. Stocks — SPY full shape
+
+- `22:12:54`   price: 708.45
+- `22:12:54`   date: 2026-04-23
+- `22:12:54`   open: 709.5
+- `22:12:54`   high: 712.3598
+- `22:12:54`   low: 702.2803
+- `22:12:54`   volume: 55973640.458405
+- `22:12:54`   day_change: -2.76
+- `22:12:54`   day_pct: -0.39
+- `22:12:54`   week_pct: 0.97
+- `22:12:54`   month_pct: 8.46
+- `22:12:54`   quarter_pct: 4.56
+- `22:12:54`   ytd_pct: 3.89
+- `22:12:54`   sma20: 677.54
+- `22:12:54`   sma50: 676.55
+- `22:12:54`   sma200: 668.21
+- `22:12:54`   ... (22 more)
+- `22:12:54` Done
