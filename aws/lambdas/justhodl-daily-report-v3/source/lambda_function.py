@@ -6,7 +6,7 @@ Portfolio Construction | Risk Signals | Auto 8AM+6PM ET
 =====================================================
 """
 import json, urllib.request, os, time, boto3
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 FRED_KEY = os.environ.get('FRED_API_KEY', '2f057499936072679d8843d7fce99989')

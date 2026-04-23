@@ -257,7 +257,7 @@ def fetch_fred():
     if len(results) >= len(FRED_SERIES) * 0.7:  # at least 70% populated
         try:
             s3.put_object(
-                Bucket=BUCKET, Key="data/fred-cache.json",
+                Bucket=BUCKET, Key="data/fred-cache-secretary.json",
                 Body=json.dumps(results, default=str).encode(),
                 ContentType="application/json", CacheControl="max-age=1800",
             )
@@ -267,7 +267,7 @@ def fetch_fred():
         # Severe failure — fall back to cached copy from earlier runs
         print(f"FRED populated only {len(results)}/{len(FRED_SERIES)}, loading cache")
         try:
-            obj = s3.get_object(Bucket=BUCKET, Key="data/fred-cache.json")
+            obj = s3.get_object(Bucket=BUCKET, Key="data/fred-cache-secretary.json")
             cached = json.loads(obj["Body"].read().decode())
             # Merge: prefer live if present, else cached
             for sid, data in cached.items():
