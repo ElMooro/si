@@ -122,7 +122,7 @@ FRED_SERIES = {
     'NAPMPI':('global_cycle','ISM Prices'), 'NAPMPRI':('global_cycle','ISM Prices Paid'),
     'NAPMSDI':('global_cycle','ISM Supplier Deliveries'), 'NAPMII':('global_cycle','ISM Inventories'),
     'NAPMEI':('global_cycle','ISM Employment'), 'NMFBAI':('global_cycle','ISM Non-Mfg Activity'),
-    'MANEMP':('global_cycle','ISM Mfg Employment V2'), 'MPMICTMN':('global_cycle','OECD Mfg PMI'),
+    'MANEMP':('global_cycle','Mfg Employment (thousands)'), 'MPMICTMN':('global_cycle','OECD Mfg PMI'),
     'IPMAN':('global_cycle','IP Manufacturing'), 'MCUMFN':('global_cycle','Mfg Capacity Util'),
     'ACDGNO':('global_cycle','Core Cap Goods Orders'), 'AMTMTI':('global_cycle','Mfg Trade Inventories'),
     'IPMANSICS':('global_cycle','IP Mfg SIC'), 'MNFCTIRSA':('global_cycle','Mfg Inventories'),
@@ -946,10 +946,10 @@ def compute_ki(fd, sd):
         if s: score+=s; signals.append(('Unemployment',s,f"{d['current']:.1f}%"))
 
     # 8. PMI
-    v = gv('global_cycle','MANEMP')
+    v = gv('global_cycle','NAPM')  # fixed: was MANEMP (employment count, not PMI)
     if v:
         s = 5 if v>55 else 3 if v>52 else -3 if v<48 else -5 if v<45 else 0
-        if s: score+=s; signals.append(('ISM Mfg',s,f'{v:.1f}'))
+        if s: score+=s; signals.append(('ISM Manufacturing PMI',s,f'{v:.1f}'))
 
     # 9. Net Liquidity
     fed_a = gv('liquidity','WALCL'); tga = gv('liquidity','WTREGEN'); rrp = gv('liquidity','RRPONTSYD')
