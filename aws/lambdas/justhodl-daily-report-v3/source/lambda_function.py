@@ -324,6 +324,106 @@ def _cache_entry_is_fresh_today(entry):
     except Exception:
         return False
 
+def _infer_fred_cadence_days(obs_list):
+    """Given a list of FRED observations (dicts with 'date'), infer the
+    typical publishing cadence in days. Returns None if not enough data."""
+    if not obs_list or len(obs_list) < 2:
+        return None
+    # Observations are newest-first after reverse-sort in fetch_fred
+    try:
+        d0 = datetime.strptime(obs_list[0]["date"], "%Y-%m-%d")
+        d1 = datetime.strptime(obs_list[1]["date"], "%Y-%m-%d")
+        gap = (d0 - d1).days
+    except Exception:
+        return None
+    if gap <= 0:
+        return None
+    # Look at up to 5 most recent gaps and take median to resist outliers
+    gaps = [gap]
+    for i in range(1, min(5, len(obs_list) - 1)):
+        try:
+            a = datetime.strptime(obs_list[i]["date"], "%Y-%m-%d")
+            b = datetime.strptime(obs_list[i + 1]["date"], "%Y-%m-%d")
+            g = (a - b).days
+            if g > 0:
+                gaps.append(g)
+        except Exception:
+            pass
+    gaps.sort()
+    return gaps[len(gaps) // 2]  # median
+
+
+def _classify_cadence(days):
+    """Round a gap (days) to its canonical cadence."""
+    if days is None:
+        return "unknown", 1  # treat as daily; we'll re-fetch
+    if days <= 3:
+        return "daily", 1
+    if days <= 10:
+        return "weekly", 7
+    if days <= 45:
+        return "monthly", 30
+    if days <= 120:
+        return "quarterly", 90
+    if days <= 400:
+        return "annual", 365
+    return "annual+", 365
+
+
+def _should_skip_fetch(cache_entry):
+    """Return (skip_bool, reason_str). Implements smart TTL.
+
+    Three conditions to skip:
+      A. We fetched this series < 60 min ago (race-condition shield when
+         multiple Lambdas run close together)
+      B. Next expected FRED publication is still in the future
+         (computed from latest_obs + inferred_cadence)
+      C. Latest observation is from today (catch-all for daily series
+         that just published)
+    """
+    if not cache_entry or not isinstance(cache_entry, list) or not cache_entry:
+        return False, "no-cache"
+
+    now_utc = datetime.now(timezone.utc)
+
+    # Condition A: very recent fetch
+    meta = cache_entry[0].get("_meta") if isinstance(cache_entry[0], dict) else None
+    if isinstance(meta, dict):
+        fetched_at = meta.get("fetched_at")
+        if fetched_at:
+            try:
+                fa = datetime.fromisoformat(fetched_at.replace("Z", "+00:00"))
+                if (now_utc - fa).total_seconds() < 3600:
+                    return True, "recent-fetch"
+            except Exception:
+                pass
+
+    # Condition B: next publication still in future
+    latest = cache_entry[0]
+    latest_date_str = latest.get("date") if isinstance(latest, dict) else None
+    if not latest_date_str:
+        return False, "no-date"
+    try:
+        latest_date = datetime.strptime(latest_date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+    except Exception:
+        return False, "bad-date"
+
+    cadence_days = _infer_fred_cadence_days(cache_entry)
+    label, canonical = _classify_cadence(cadence_days)
+    # Next expected publication (+ 1 day buffer since FRED publishes at various hours)
+    next_pub = latest_date + timedelta(days=canonical + 1)
+    if now_utc < next_pub:
+        return True, f"{label}-not-due-until-{next_pub.date()}"
+
+    # Condition C: same-day catch
+    today_et = datetime.now(timezone(timedelta(hours=-5))).strftime("%Y-%m-%d")
+    if latest_date_str >= today_et:
+        return True, "today"
+
+    return False, "due"
+
+
+
 def fetch_fred(sid):
     for attempt in range(3):
         try:
@@ -336,6 +436,9 @@ def fetch_fred(sid):
                     if o['value'] != '.':
                         try: out.append({'date': o['date'], 'value': float(o['value'])})
                         except: pass
+                # v3.2 — stamp the first observation with fetched_at for TTL tracking
+                if out:
+                    out[0]['_meta'] = {'fetched_at': datetime.now(timezone.utc).isoformat()}
                 return out if out else []
         except urllib.error.HTTPError as e:
             if e.code == 429:
@@ -1504,17 +1607,21 @@ def lambda_handler(event, context):
     fred_raw = {}
     fred_cache = _load_fred_cache()
     all_sids = list(FRED_SERIES.keys())
-    # Skip live fetches for series whose cached data already reflects today
+    # v3.2 — smart TTL based on inferred publishing cadence
     to_fetch = []
-    skipped_fresh = 0
+    skip_reasons = {}
     for sid in all_sids:
         cached = fred_cache.get(sid)
-        if cached and _cache_entry_is_fresh_today(cached):
-            fred_raw[sid] = cached
-            skipped_fresh += 1
-        else:
-            to_fetch.append(sid)
-    print(f"[V10] FRED: {skipped_fresh}/{len(all_sids)} already fresh in cache, fetching {len(to_fetch)}")
+        if cached:
+            should_skip, reason = _should_skip_fetch(cached)
+            if should_skip:
+                fred_raw[sid] = cached
+                bucket = reason.split("-")[0] if "-" in reason else reason
+                skip_reasons[bucket] = skip_reasons.get(bucket, 0) + 1
+                continue
+        to_fetch.append(sid)
+    skipped_fresh = sum(skip_reasons.values())
+    print(f"[V10] FRED v3.2: skipped {skipped_fresh} via smart TTL ({skip_reasons}), fetching {len(to_fetch)}")
 
     batch_sz = 8
     for i in range(0, len(to_fetch), batch_sz):

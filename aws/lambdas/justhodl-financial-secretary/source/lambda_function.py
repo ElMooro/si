@@ -58,6 +58,106 @@ def http_post(url, data, headers=None, timeout=30):
         return None
 
 
+def _infer_fred_cadence_days(obs_list):
+    """Given a list of FRED observations (dicts with 'date'), infer the
+    typical publishing cadence in days. Returns None if not enough data."""
+    if not obs_list or len(obs_list) < 2:
+        return None
+    # Observations are newest-first after reverse-sort in fetch_fred
+    try:
+        d0 = datetime.strptime(obs_list[0]["date"], "%Y-%m-%d")
+        d1 = datetime.strptime(obs_list[1]["date"], "%Y-%m-%d")
+        gap = (d0 - d1).days
+    except Exception:
+        return None
+    if gap <= 0:
+        return None
+    # Look at up to 5 most recent gaps and take median to resist outliers
+    gaps = [gap]
+    for i in range(1, min(5, len(obs_list) - 1)):
+        try:
+            a = datetime.strptime(obs_list[i]["date"], "%Y-%m-%d")
+            b = datetime.strptime(obs_list[i + 1]["date"], "%Y-%m-%d")
+            g = (a - b).days
+            if g > 0:
+                gaps.append(g)
+        except Exception:
+            pass
+    gaps.sort()
+    return gaps[len(gaps) // 2]  # median
+
+
+def _classify_cadence(days):
+    """Round a gap (days) to its canonical cadence."""
+    if days is None:
+        return "unknown", 1  # treat as daily; we'll re-fetch
+    if days <= 3:
+        return "daily", 1
+    if days <= 10:
+        return "weekly", 7
+    if days <= 45:
+        return "monthly", 30
+    if days <= 120:
+        return "quarterly", 90
+    if days <= 400:
+        return "annual", 365
+    return "annual+", 365
+
+
+def _should_skip_fetch(cache_entry):
+    """Return (skip_bool, reason_str). Implements smart TTL.
+
+    Three conditions to skip:
+      A. We fetched this series < 60 min ago (race-condition shield when
+         multiple Lambdas run close together)
+      B. Next expected FRED publication is still in the future
+         (computed from latest_obs + inferred_cadence)
+      C. Latest observation is from today (catch-all for daily series
+         that just published)
+    """
+    if not cache_entry or not isinstance(cache_entry, list) or not cache_entry:
+        return False, "no-cache"
+
+    now_utc = datetime.now(timezone.utc)
+
+    # Condition A: very recent fetch
+    meta = cache_entry[0].get("_meta") if isinstance(cache_entry[0], dict) else None
+    if isinstance(meta, dict):
+        fetched_at = meta.get("fetched_at")
+        if fetched_at:
+            try:
+                fa = datetime.fromisoformat(fetched_at.replace("Z", "+00:00"))
+                if (now_utc - fa).total_seconds() < 3600:
+                    return True, "recent-fetch"
+            except Exception:
+                pass
+
+    # Condition B: next publication still in future
+    latest = cache_entry[0]
+    latest_date_str = latest.get("date") if isinstance(latest, dict) else None
+    if not latest_date_str:
+        return False, "no-date"
+    try:
+        latest_date = datetime.strptime(latest_date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+    except Exception:
+        return False, "bad-date"
+
+    cadence_days = _infer_fred_cadence_days(cache_entry)
+    label, canonical = _classify_cadence(cadence_days)
+    # Next expected publication (+ 1 day buffer since FRED publishes at various hours)
+    next_pub = latest_date + timedelta(days=canonical + 1)
+    if now_utc < next_pub:
+        return True, f"{label}-not-due-until-{next_pub.date()}"
+
+    # Condition C: same-day catch
+    today_et = datetime.now(timezone(timedelta(hours=-5))).strftime("%Y-%m-%d")
+    if latest_date_str >= today_et:
+        return True, "today"
+
+    return False, "due"
+
+
+
 # ═══ FRED — 26 series ═══
 FRED_SERIES = {
     "WALCL":"Fed Balance Sheet","RRPONTSYD":"Reverse Repo","WTREGEN":"TGA","WRESBAL":"Bank Reserves",
@@ -103,10 +203,53 @@ def fetch_fred():
                     "date": obs[0]["date"],
                     "history": [float(o["value"]) for o in obs[:30] if o.get("value", ".") != "."],
                 }
-    # Throttled: 3 workers caps burst ~3 req/s = 180/min — sits near limit.
-    # Use 2 for extra headroom when daily-report-v3 is also running.
+    # v3.2 — cache-first skip pass via smart TTL
+    try:
+        _cache_obj = s3.get_object(Bucket=BUCKET, Key="data/fred-cache.json")
+        _fred_cache = json.loads(_cache_obj["Body"].read().decode())
+    except Exception as _e:
+        _fred_cache = {}
+    _to_fetch = []
+    _skipped = {"daily": 0, "weekly": 0, "monthly": 0, "quarterly": 0, "annual": 0, "annual+": 0, "recent-fetch": 0, "today": 0, "unknown": 0}
+    for sid, nm in FRED_SERIES.items():
+        cached = _fred_cache.get(sid)
+        if cached:
+            # Secretary cache entries are dict-shaped, not list-shaped. Convert
+            # list-of-obs → dict-of-summary only applies here, but for the skip
+            # check we need the list of observations. Store both when possible.
+            obs_list = cached.get("history") if isinstance(cached, dict) else cached
+            if obs_list and isinstance(obs_list, list) and obs_list and isinstance(obs_list[0], (int, float)):
+                # secretary history is list of floats, no dates — skip check won't work
+                obs_list = None
+            elif isinstance(cached, list):
+                obs_list = cached
+            if obs_list:
+                skip, reason = _should_skip_fetch(obs_list)
+                if skip:
+                    # Translate daily-report list format → secretary dict format
+                    if isinstance(cached, list) and cached and isinstance(cached[0], dict):
+                        latest = cached[0]
+                        prev = cached[1] if len(cached) > 1 else latest
+                        prev_1m = cached[min(22, len(cached) - 1)] if len(cached) > 22 else latest
+                        results[sid] = {
+                            "name": nm, "value": latest.get("value"),
+                            "prev": prev.get("value"),
+                            "chg_1d": round(latest.get("value", 0) - prev.get("value", 0), 4),
+                            "chg_1m": round(latest.get("value", 0) - prev_1m.get("value", 0), 4),
+                            "date": latest.get("date"),
+                            "history": [o.get("value") for o in cached[:30]],
+                            "_from_cache": True,
+                        }
+                    else:
+                        results[sid] = dict(cached, _from_cache=True) if isinstance(cached, dict) else cached
+                    # Tally reason (short-label: take part before '-')
+                    _skipped[reason.split("-")[0] if "-" in reason else reason] = _skipped.get(reason.split("-")[0] if "-" in reason else reason, 0) + 1
+                    continue
+        _to_fetch.append((sid, nm))
+    print(f"[FRED-v3.2] skipped {sum(_skipped.values())} via smart TTL ({_skipped}), fetching {len(_to_fetch)}")
+
     with ThreadPoolExecutor(max_workers=2) as ex:
-        futs = {ex.submit(_get, sid, nm): sid for sid, nm in FRED_SERIES.items()}
+        futs = {ex.submit(_get, sid, nm): sid for sid, nm in _to_fetch}
         for f in as_completed(futs):
             f.result()
 
