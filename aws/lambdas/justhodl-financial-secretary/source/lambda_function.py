@@ -1,6 +1,6 @@
 
 """
-JUSTHODL FINANCIAL SECRETARY v2.1
+JUSTHODL FINANCIAL SECRETARY v2.2
 Self-Hosted AI Financial Analyst & Personal Portfolio Secretary
 AWS: 857687956942 | Region: us-east-1
 
@@ -73,10 +73,24 @@ FRED_SERIES = {
 
 
 def fetch_fred():
+    """v2.2 — throttled, retrying, falls back to S3 cache on full failure."""
     results = {}
-    def _get(sid, nm):
+    import time as _time
+    def _get(sid, nm, attempt=0):
         url = f"https://api.stlouisfed.org/fred/series/observations?series_id={sid}&api_key={FRED_KEY}&file_type=json&sort_order=desc&limit=60"
-        d = http_get(url)
+        try:
+            req = urllib.request.Request(url, headers={})
+            with urllib.request.urlopen(req, timeout=12, context=ctx) as r:
+                d = json.loads(r.read().decode())
+        except urllib.error.HTTPError as e:
+            if e.code == 429 and attempt < 2:
+                _time.sleep(2 * (attempt + 1))
+                return _get(sid, nm, attempt + 1)
+            print(f"FRED {sid} HTTP {e.code}")
+            return
+        except Exception as e:
+            print(f"FRED {sid} err: {e}")
+            return
         if d and "observations" in d:
             obs = [o for o in d["observations"] if o.get("value", ".") != "."]
             if obs:
@@ -89,10 +103,38 @@ def fetch_fred():
                     "date": obs[0]["date"],
                     "history": [float(o["value"]) for o in obs[:30] if o.get("value", ".") != "."],
                 }
-    with ThreadPoolExecutor(max_workers=10) as ex:
+    # Throttled: 3 workers caps burst ~3 req/s = 180/min — sits near limit.
+    # Use 2 for extra headroom when daily-report-v3 is also running.
+    with ThreadPoolExecutor(max_workers=2) as ex:
         futs = {ex.submit(_get, sid, nm): sid for sid, nm in FRED_SERIES.items()}
         for f in as_completed(futs):
             f.result()
+
+    # Cache fresh result to S3 for future fallback use
+    if len(results) >= len(FRED_SERIES) * 0.7:  # at least 70% populated
+        try:
+            s3.put_object(
+                Bucket=BUCKET, Key="data/fred-cache.json",
+                Body=json.dumps(results, default=str).encode(),
+                ContentType="application/json", CacheControl="max-age=1800",
+            )
+        except Exception as e:
+            print(f"FRED cache write err: {e}")
+    else:
+        # Severe failure — fall back to cached copy from earlier runs
+        print(f"FRED populated only {len(results)}/{len(FRED_SERIES)}, loading cache")
+        try:
+            obj = s3.get_object(Bucket=BUCKET, Key="data/fred-cache.json")
+            cached = json.loads(obj["Body"].read().decode())
+            # Merge: prefer live if present, else cached
+            for sid, data in cached.items():
+                if sid not in results:
+                    data["_from_cache"] = True
+                    results[sid] = data
+            print(f"FRED after cache merge: {len(results)}/{len(FRED_SERIES)}")
+        except Exception as e:
+            print(f"FRED cache read err: {e}")
+
     return results
 
 
@@ -365,36 +407,76 @@ def fetch_tier2():
 
 
 def format_sector_rotation(sr):
-    """Return (leaders_list, laggards_list) strings for display."""
+    """v2.2 — live shape is {top_inflow, top_outflow, rotation_signal}."""
     if not sr or not isinstance(sr, dict):
         return [], []
-    # Common shape: {'leaders': [{'ticker','name','chg'}], 'laggards': [...]}
-    leaders_raw = sr.get("leaders") or sr.get("top") or []
-    laggards_raw = sr.get("laggards") or sr.get("bottom") or []
-    def _fmt(entries):
-        out = []
-        for e in entries[:5]:
+    leaders = []
+    laggards = []
+    if sr.get("top_inflow"):
+        name = sr.get("top_inflow_name") or sr.get("top_inflow")
+        flow = sr.get("top_inflow_flow")
+        if flow is not None:
+            try:
+                leaders.append(f"{name} (inflow ${float(flow):+.0f}M)")
+            except Exception:
+                leaders.append(f"{name}")
+        else:
+            leaders.append(f"{name}")
+    if sr.get("top_outflow"):
+        name = sr.get("top_outflow_name") or sr.get("top_outflow")
+        flow = sr.get("top_outflow_flow")
+        if flow is not None:
+            try:
+                laggards.append(f"{name} (outflow ${float(flow):+.0f}M)")
+            except Exception:
+                laggards.append(f"{name}")
+        else:
+            laggards.append(f"{name}")
+    # Legacy: also check for list shape
+    if not leaders and sr.get("leaders"):
+        for e in (sr.get("leaders") or [])[:5]:
             if isinstance(e, dict):
                 tkr = e.get("ticker") or e.get("symbol") or e.get("name", "?")
                 chg = e.get("chg") or e.get("change_pct") or e.get("change")
-                if chg is not None:
-                    out.append(f"{tkr} {chg:+.2f}%")
-                else:
-                    out.append(str(tkr))
-        return out
-    return _fmt(leaders_raw), _fmt(laggards_raw)
+                leaders.append(f"{tkr} {chg:+.2f}%" if chg is not None else str(tkr))
+    if not laggards and sr.get("laggards"):
+        for e in (sr.get("laggards") or [])[:5]:
+            if isinstance(e, dict):
+                tkr = e.get("ticker") or e.get("symbol") or e.get("name", "?")
+                chg = e.get("chg") or e.get("change_pct") or e.get("change")
+                laggards.append(f"{tkr} {chg:+.2f}%" if chg is not None else str(tkr))
+    return leaders, laggards
 
 
 # ═══ LIQUIDITY ═══
 def calc_liquidity(fred):
-    fed_bs = fred.get("WALCL", {}).get("value", 0)
-    rrp = fred.get("RRPONTSYD", {}).get("value", 0)
-    tga = fred.get("WTREGEN", {}).get("value", 0)
-    reserves = fred.get("WRESBAL", {}).get("value", 0)
-    net_liq = (fed_bs - rrp - tga) / 1000 if fed_bs else 0
-    fed_bs_chg = fred.get("WALCL", {}).get("chg_1m", 0)
-    rrp_chg = fred.get("RRPONTSYD", {}).get("chg_1m", 0)
-    tga_chg = fred.get("WTREGEN", {}).get("chg_1m", 0)
+    """v2.2 — returns regime=UNKNOWN instead of silently zeroing out."""
+    walcl = fred.get("WALCL")
+    rrp = fred.get("RRPONTSYD")
+    tga = fred.get("WTREGEN")
+    reserves = fred.get("WRESBAL")
+
+    # If the core 3 are missing entirely, don't lie about the regime
+    if not (walcl and rrp and tga):
+        print(f"calc_liquidity: core series missing (walcl={bool(walcl)} rrp={bool(rrp)} tga={bool(tga)}) — returning UNKNOWN")
+        return {
+            "net_liquidity": None, "net_liq_change_1m": None, "regime": "UNKNOWN",
+            "fed_balance_sheet": None, "rrp": None, "tga": None, "reserves": None,
+            "sofr": (fred.get("SOFR") or {}).get("value"),
+            "stress_index": (fred.get("STLFSI2") or {}).get("value"),
+            "nfci": (fred.get("NFCI") or {}).get("value"),
+            "error": "FRED data unavailable — likely rate-limit (429). Showing last-known regime would be misleading.",
+            "components": {},
+        }
+
+    fed_bs = walcl.get("value", 0)
+    rrp_v = rrp.get("value", 0)
+    tga_v = tga.get("value", 0)
+    reserves_v = (reserves or {}).get("value", 0)
+    net_liq = (fed_bs - rrp_v - tga_v) / 1000 if fed_bs else 0
+    fed_bs_chg = walcl.get("chg_1m", 0)
+    rrp_chg = rrp.get("chg_1m", 0)
+    tga_chg = tga.get("chg_1m", 0)
     net_liq_chg = (fed_bs_chg - rrp_chg - tga_chg) / 1000
     if net_liq_chg > 50:
         regime = "EXPANSION"
@@ -411,12 +493,12 @@ def calc_liquidity(fred):
         "net_liq_change_1m": round(net_liq_chg, 1),
         "regime": regime,
         "fed_balance_sheet": round(fed_bs / 1000, 1),
-        "rrp": round(rrp / 1000, 1),
-        "tga": round(tga / 1000, 1),
-        "reserves": round(reserves / 1000, 1),
-        "sofr": fred.get("SOFR", {}).get("value", 0),
-        "stress_index": fred.get("STLFSI2", {}).get("value", 0),
-        "nfci": fred.get("NFCI", {}).get("value", 0),
+        "rrp": round(rrp_v / 1000, 1),
+        "tga": round(tga_v / 1000, 1),
+        "reserves": round(reserves_v / 1000, 1),
+        "sofr": (fred.get("SOFR") or {}).get("value", 0),
+        "stress_index": (fred.get("STLFSI2") or {}).get("value", 0),
+        "nfci": (fred.get("NFCI") or {}).get("value", 0),
         "components": {
             "fed_bs_trend": "expanding" if fed_bs_chg > 0 else "contracting",
             "rrp_trend": "draining" if rrp_chg < 0 else "building",
@@ -996,14 +1078,23 @@ Data freshness: stocks {freshness.get('stocks', '?')} · crypto {freshness.get('
   </tr></table>
 </div>
 """
+    # v2.2 — safe display for when liquidity is UNKNOWN
+    net_liq_val = liq.get("net_liquidity")
+    if net_liq_val is None:
+        net_liq_display = "N/A"
+        regime_display = "UNKNOWN (data unavailable)"
+    else:
+        net_liq_display = f"${net_liq_val:,.0f}B"
+        regime_display = liq.get("regime", "--")
+
     return f"""<!DOCTYPE html><html><body style="background:#0a0a0f;color:#e0e0e0;font-family:sans-serif;padding:20px">
 <div style="max-width:800px;margin:0 auto">
 <h1 style="color:#00ddff">JUSTHODL SECRETARY v2 | {ts}</h1>
 <div style="display:flex;gap:12px;margin:20px 0">
 <div style="flex:1;background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px;text-align:center">
 <div style="color:#888;font-size:11px">NET LIQUIDITY</div>
-<div style="font-size:24px;font-weight:700;color:{lc}">${liq.get('net_liquidity', 0):,.0f}B</div>
-<div style="color:{lc}">{liq.get('regime', '--')}</div>
+<div style="font-size:24px;font-weight:700;color:{lc}">{net_liq_display}</div>
+<div style="color:{lc}">{regime_display}</div>
 </div>
 <div style="flex:1;background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px;text-align:center">
 <div style="color:#888;font-size:11px">RISK</div>
@@ -1107,7 +1198,7 @@ def run_full_scan():
     fred_latest = max(fred_latest_dates) if fred_latest_dates else "?"
 
     scan = {
-        "version": "2.1",
+        "version": "2.2",
         "type": "secretary_scan",
         "timestamp": now.strftime("%Y-%m-%d %H:%M:%S ET"),
         "scan_time_seconds": round(time.time() - start, 1),
@@ -1145,7 +1236,7 @@ def run_full_scan():
     s3.put_object(Bucket=BUCKET, Key=f"data/secretary-history/{now.strftime('%Y-%m-%d_%H%M')}.json",
                   Body=json.dumps(scan, default=str),
                   ContentType="application/json")
-    subj = f"Secretary v2.1: {liq['regime']} | Risk {risk['composite']:.0f} | {len(buys)} Buys | {now.strftime('%b %d %I:%M %p')}"
+    subj = f"Secretary v2.2: {liq['regime']} | Risk {risk['composite']:.0f} | {len(buys)} Buys | {now.strftime('%b %d %I:%M %p')}"
     send_email(subj, build_email_html(scan))
     print(f"=== DONE {time.time() - start:.1f}s ===")
     return scan
@@ -1211,7 +1302,7 @@ def lambda_handler(event, context):
             return respond(200, {"recommendations": data.get("recommendations", [])})
         except Exception:
             return respond(200, {"status": "run_scan_first"})
-    return respond(200, {"service": "JustHodl Financial Secretary v2.1",
+    return respond(200, {"service": "JustHodl Financial Secretary v2.2",
                          "endpoints": {"GET /latest": "Latest scan", "POST /scan": "Force scan",
                                        "POST /chat": "Chat", "GET /price/TICKER": "Price",
                                        "GET /news/TICKER": "News", "GET /history/TICKER": "History",
