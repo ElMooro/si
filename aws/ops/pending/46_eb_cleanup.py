@@ -85,12 +85,12 @@ def verify_and_describe_rule(rule_name, expected_lambda_fragment):
     # contain our expected fragment. Any surprise target = skip.
     for arn in target_arns:
         if ":lambda:" not in arn:
-            return False, state, target_arns, f"unexpected non-Lambda target: {arn}"
+            return False, state, targets, f"unexpected non-Lambda target: {arn}"
         lambda_name = arn.split(":")[-1]
         if expected_lambda_fragment not in lambda_name:
-            return False, state, target_arns, f"target Lambda {lambda_name} does not match expected {expected_lambda_fragment}"
+            return False, state, targets, f"target Lambda {lambda_name} does not match expected {expected_lambda_fragment}"
 
-    return True, state, target_arns, None
+    return True, state, targets, None
 
 
 def safe_delete(rule_name, targets):
