@@ -1,6 +1,6 @@
 
 """
-JUSTHODL FINANCIAL SECRETARY v2.0
+JUSTHODL FINANCIAL SECRETARY v2.1
 Self-Hosted AI Financial Analyst & Personal Portfolio Secretary
 AWS: 857687956942 | Region: us-east-1
 
@@ -285,6 +285,104 @@ def fetch_yesterday_snapshot():
     except Exception as e:
         print(f"yesterday snapshot fetch: {e}")
     return None
+
+
+# ═══ v2.1 — TIER 2 PULLS ═══
+def fetch_tier2():
+    """Pull options-flow + crypto-intel from S3. Returns {'options', 'crypto', 'sector_rotation'}."""
+    out = {"options": None, "crypto": None, "sector_rotation": None}
+    try:
+        obj = s3.get_object(Bucket=BUCKET, Key="flow-data.json")
+        fd = json.loads(obj["Body"].read().decode())
+        data = fd.get("data", {})
+        pc = data.get("put_call") or {}
+        gex = data.get("gamma_exposure") or {}
+        flows = data.get("fund_flows") or {}
+        sentiment = data.get("sentiment") or {}
+        signals = data.get("trading_signals") or []
+        out["options"] = {
+            "put_call_ratio": pc.get("total_put_call_ratio"),
+            "pc_signal": pc.get("pc_signal", ""),
+            "pc_description": pc.get("pc_description", ""),
+            "gamma_regime": gex.get("regime", ""),
+            "gamma_description": gex.get("description", ""),
+            "max_gamma_strike": gex.get("max_gamma_strike"),
+            "spy_price": gex.get("spy_price"),
+            "total_gex": gex.get("total_gex"),
+            "net_premium": pc.get("net_premium"),
+            "trading_signals": [
+                {
+                    "type": s.get("type", ""),
+                    "strength": s.get("strength", ""),
+                    "message": s.get("message", "")[:140],
+                    "confidence": s.get("confidence", 0),
+                }
+                for s in signals[:5]
+            ],
+            "sentiment_composite": (sentiment.get("composite") or {}).get("score"),
+            "sentiment_label": (sentiment.get("composite") or {}).get("label", ""),
+            "timestamp": fd.get("timestamp"),
+        }
+        out["sector_rotation"] = flows.get("sector_rotation") or {}
+    except Exception as e:
+        print(f"fetch options flow: {e}")
+
+    try:
+        obj = s3.get_object(Bucket=BUCKET, Key="crypto-intel.json")
+        ci = json.loads(obj["Body"].read().decode())
+        gm = ci.get("global_market") or {}
+        sc = ci.get("stablecoins") or {}
+        fg = ci.get("fear_greed") or {}
+        funding = ci.get("funding") or {}
+        ratios = ci.get("onchain_ratios") or {}
+        whale = ci.get("whale_txs") or {}
+        top = (ci.get("top_coins") or {}).get("coins") or []
+        out["crypto"] = {
+            "btc_dominance": gm.get("btc_dominance"),
+            "eth_dominance": gm.get("eth_dominance"),
+            "total_mcap_fmt": gm.get("total_mcap_fmt"),
+            "mcap_change_24h": gm.get("mcap_change_24h"),
+            "total_volume_fmt": gm.get("total_volume_fmt"),
+            "stablecoin_net_signal": sc.get("net_signal"),
+            "stablecoin_minting": sc.get("minting_count"),
+            "stablecoin_burning": sc.get("burning_count"),
+            "fear_greed_value": (fg.get("current") if isinstance(fg, dict) else None),
+            "fear_greed_label": (fg.get("label") if isinstance(fg, dict) else None) or (fg.get("classification") if isinstance(fg, dict) else None),
+            "funding_summary": (funding.get("summary") if isinstance(funding, dict) else None) or funding,
+            "mvrv_approx": (ratios.get("mvrv_approx") if isinstance(ratios, dict) else None),
+            "risk_score": ci.get("risk_score"),
+            "whale_count_24h": whale.get("whale_count"),
+            "top_movers": [
+                {"symbol": c.get("symbol"), "price": c.get("price"), "change_24h": c.get("change_24h")}
+                for c in top[:10] if c.get("symbol")
+            ],
+            "timestamp": ci.get("generated_at"),
+        }
+    except Exception as e:
+        print(f"fetch crypto intel: {e}")
+
+    return out
+
+
+def format_sector_rotation(sr):
+    """Return (leaders_list, laggards_list) strings for display."""
+    if not sr or not isinstance(sr, dict):
+        return [], []
+    # Common shape: {'leaders': [{'ticker','name','chg'}], 'laggards': [...]}
+    leaders_raw = sr.get("leaders") or sr.get("top") or []
+    laggards_raw = sr.get("laggards") or sr.get("bottom") or []
+    def _fmt(entries):
+        out = []
+        for e in entries[:5]:
+            if isinstance(e, dict):
+                tkr = e.get("ticker") or e.get("symbol") or e.get("name", "?")
+                chg = e.get("chg") or e.get("change_pct") or e.get("change")
+                if chg is not None:
+                    out.append(f"{tkr} {chg:+.2f}%")
+                else:
+                    out.append(str(tkr))
+        return out
+    return _fmt(leaders_raw), _fmt(laggards_raw)
 
 
 # ═══ LIQUIDITY ═══
@@ -649,7 +747,7 @@ def ask_claude(prompt, max_tokens=3000):
     return "AI analysis unavailable"
 
 
-def generate_ai_briefing(liq, risk, recs, fred, crypto, news, cftc, deltas):
+def generate_ai_briefing(liq, risk, recs, fred, crypto, news, cftc, deltas, tier2=None):
     top_buys = [r for r in recs if r["action"] == "BUY"][:8]
     buy_str = "\n".join([f"  {r['ticker']}: ${r['price']:.2f} (chg:{r['change_pct']:+.1f}%, rs:{r.get('rel_strength_vs_spy', 0):+.1f}pp, up:{r['upside_pct']}%/dn:{r['downside_pct']}%) — {', '.join(r['reasons'][:2])}" for r in top_buys])
     crypto_str = "\n".join([f"  {c['symbol']}: ${c['price']:,.2f} (24h:{c['change_24h']:+.1f}%, 7d:{c['change_7d']:+.1f}%)" for c in (crypto or [])[:8]])
@@ -675,6 +773,38 @@ def generate_ai_briefing(liq, risk, recs, fred, crypto, news, cftc, deltas):
             f"hit rate on prev picks: {deltas.get('hit_rate_pct', 0):.0f}%"
         )
 
+    # v2.1 — tier 2 enrichment
+    tier2_str = ""
+    if tier2 and isinstance(tier2, dict):
+        opts = tier2.get("options") or {}
+        crypto_i = tier2.get("crypto") or {}
+        pc = opts.get("put_call_ratio")
+        pc_sig = opts.get("pc_signal", "")
+        gex_regime = opts.get("gamma_regime", "")
+        max_gex = opts.get("max_gamma_strike")
+        spy_p = opts.get("spy_price")
+        net_prem = opts.get("net_premium")
+        tier2_str += f"\nOPTIONS FLOW: put/call={pc} ({pc_sig}) | gamma={gex_regime} | max-gamma strike=${max_gex} (SPY @ ${spy_p}) | net premium=${net_prem:,.0f}" if pc is not None else ""
+        trsigs = opts.get("trading_signals") or []
+        if trsigs:
+            tier2_str += "\n  signals: " + " | ".join(f"{s['type']}({s['strength']})" for s in trsigs[:3])
+        btc_dom = crypto_i.get("btc_dominance")
+        mcap_chg = crypto_i.get("mcap_change_24h")
+        fg_v = crypto_i.get("fear_greed_value")
+        fg_l = crypto_i.get("fear_greed_label")
+        sc_sig = crypto_i.get("stablecoin_net_signal")
+        mvrv = crypto_i.get("mvrv_approx")
+        crypto_risk = crypto_i.get("risk_score")
+        if btc_dom is not None:
+            tier2_str += f"\nCRYPTO: BTC_dom={btc_dom}% total_mcap_chg_24h={mcap_chg}% stablecoins={sc_sig} fear_greed={fg_v}({fg_l}) MVRV={mvrv} crypto_risk={crypto_risk}"
+        # Sector rotation
+        sr = tier2.get("sector_rotation") or {}
+        ldrs, lags = format_sector_rotation(sr)
+        if ldrs:
+            tier2_str += f"\nSECTOR LEADERS: {', '.join(ldrs)}"
+        if lags:
+            tier2_str += f"\nSECTOR LAGGARDS: {', '.join(lags)}"
+
     prompt = f"""You are Khalid's personal financial secretary. Analyze REAL market data and give a **specific, data-driven** briefing. Do NOT reuse templated language. Each trade recommendation needs a unique rationale grounded in the numbers below.
 
 LIQUIDITY: Net=${liq['net_liquidity']:,.0f}B Regime={liq['regime']} 1M_Chg=${liq['net_liq_change_1m']:+,.0f}B
@@ -686,7 +816,7 @@ ISM PMI: {fred.get('NAPM', {}).get('value', 'N/A')} (ACTUAL PMI, not employment 
 CPI (latest): {fred.get('CPIAUCSL', {}).get('value', 'N/A')} · Core: {fred.get('CPILFESL', {}).get('value', 'N/A')}
 DOLLAR: {fred.get('DTWEXBGS', {}).get('value', 'N/A')} · OIL: ${fred.get('DCOILWTICO', {}).get('value', 'N/A')}
 
-CFTC POSITIONING: {cftc_str}
+CFTC POSITIONING: {cftc_str}{tier2_str}
 
 {deltas_str}
 
@@ -789,6 +919,83 @@ Data freshness: stocks {freshness.get('stocks', '?')} · crypto {freshness.get('
 </div>
 """
 
+
+    # v2.1 — tier 2 cards
+    tier2 = scan.get("tier2") or {}
+    opts = tier2.get("options") or {}
+    crypto_i = tier2.get("crypto") or {}
+    sr = tier2.get("sector_rotation") or {}
+
+    tier2_html = ""
+    if opts.get("put_call_ratio") is not None:
+        pc = opts.get("put_call_ratio")
+        pc_sig = opts.get("pc_signal", "") or "—"
+        gex_reg = opts.get("gamma_regime", "") or "—"
+        max_gex = opts.get("max_gamma_strike")
+        spy_p = opts.get("spy_price")
+        # Color put/call: < 0.7 = complacency (red for warning), > 1.2 = fear (green for hedged)
+        pc_color = "#ff8800" if (pc is not None and pc < 0.5) else "#44cc44" if (pc is not None and pc > 1.0) else "#e0e0e0"
+        gex_color = "#44cc44" if "POSITIVE" in str(gex_reg).upper() else "#ff8800" if "NEGATIVE" in str(gex_reg).upper() else "#e0e0e0"
+        trsigs = opts.get("trading_signals") or []
+        sig_lines = "".join([f"<li style='font-size:12px'><b>{s['type']}</b> ({s['strength']}): {s['message'][:100]}</li>" for s in trsigs[:4]]) or "<li style='font-size:12px;color:#888'>No active signals</li>"
+        tier2_html += f"""
+<div style="background:#161b22;border:1px solid #30363d;border-radius:8px;padding:20px;margin:20px 0">
+  <h2 style="color:#00ddff">OPTIONS FLOW</h2>
+  <table style="width:100%;font-size:13px"><tr>
+    <td style="padding:6px"><div style="color:#888;font-size:11px">PUT/CALL RATIO</div><div style="font-size:22px;font-weight:700;color:{pc_color}">{pc:.2f}</div><div style="font-size:11px;color:#888">{pc_sig}</div></td>
+    <td style="padding:6px"><div style="color:#888;font-size:11px">GAMMA REGIME</div><div style="font-size:18px;font-weight:700;color:{gex_color}">{gex_reg}</div><div style="font-size:11px;color:#888">Max gamma @ ${max_gex} · SPY ${spy_p}</div></td>
+  </tr></table>
+  <div style="margin-top:12px;font-size:12px;color:#aaa">Top signals:</div>
+  <ul style="line-height:1.5">{sig_lines}</ul>
+</div>
+"""
+
+    if crypto_i.get("btc_dominance") is not None:
+        btc_dom = crypto_i.get("btc_dominance")
+        mcap_chg = crypto_i.get("mcap_change_24h")
+        fg_v = crypto_i.get("fear_greed_value") or "—"
+        fg_l = crypto_i.get("fear_greed_label") or ""
+        sc_sig = crypto_i.get("stablecoin_net_signal") or "—"
+        sc_color = "#44cc44" if "INFLOW" in str(sc_sig).upper() else "#ff8800" if "OUTFLOW" in str(sc_sig).upper() else "#e0e0e0"
+        mcap_color = "#44cc44" if (mcap_chg or 0) > 0 else "#ff4444"
+        crypto_risk = crypto_i.get("risk_score") or "—"
+        movers = crypto_i.get("top_movers") or []
+        mover_rows = "".join([f"<tr><td style='padding:4px;color:#00ddff'>{m['symbol']}</td><td style='padding:4px;font-family:monospace'>${m['price']:,.4f}</td><td style='padding:4px;color:{'#00ff88' if (m.get('change_24h') or 0) > 0 else '#ff4444'}'>{(m.get('change_24h') or 0):+.2f}%</td></tr>" for m in movers[:8]])
+        tier2_html += f"""
+<div style="background:#161b22;border:1px solid #30363d;border-radius:8px;padding:20px;margin:20px 0">
+  <h2 style="color:#00ddff">CRYPTO INTEL</h2>
+  <table style="width:100%;font-size:13px"><tr>
+    <td style="padding:6px"><div style="color:#888;font-size:11px">BTC DOMINANCE</div><div style="font-size:22px;font-weight:700">{btc_dom:.1f}%</div></td>
+    <td style="padding:6px"><div style="color:#888;font-size:11px">TOTAL MCAP 24h</div><div style="font-size:22px;font-weight:700;color:{mcap_color}">{(mcap_chg or 0):+.2f}%</div></td>
+    <td style="padding:6px"><div style="color:#888;font-size:11px">FEAR/GREED</div><div style="font-size:22px;font-weight:700">{fg_v}</div><div style="font-size:11px;color:#888">{fg_l}</div></td>
+    <td style="padding:6px"><div style="color:#888;font-size:11px">STABLECOIN FLOW</div><div style="font-size:18px;font-weight:700;color:{sc_color}">{sc_sig}</div></td>
+    <td style="padding:6px"><div style="color:#888;font-size:11px">RISK SCORE</div><div style="font-size:22px;font-weight:700">{crypto_risk}</div></td>
+  </tr></table>
+  <div style="margin-top:12px;font-size:12px;color:#aaa">Top coins:</div>
+  <table style="width:100%;font-size:12px;border-collapse:collapse">{mover_rows}</table>
+</div>
+"""
+
+    ldrs, lags = [], []
+    if sr:
+        try:
+            ldrs = [f"{e.get('ticker') or e.get('symbol')} {(e.get('chg') or e.get('change_pct') or 0):+.2f}%" for e in (sr.get("leaders") or sr.get("top") or [])[:5] if isinstance(e, dict)]
+            lags = [f"{e.get('ticker') or e.get('symbol')} {(e.get('chg') or e.get('change_pct') or 0):+.2f}%" for e in (sr.get("laggards") or sr.get("bottom") or [])[:5] if isinstance(e, dict)]
+        except Exception:
+            ldrs, lags = [], []
+
+    if ldrs or lags:
+        ldrs_html = "".join([f"<li style='color:#00ff88'>{l}</li>" for l in ldrs]) or "<li style='color:#888'>—</li>"
+        lags_html = "".join([f"<li style='color:#ff4444'>{l}</li>" for l in lags]) or "<li style='color:#888'>—</li>"
+        tier2_html += f"""
+<div style="background:#161b22;border:1px solid #30363d;border-radius:8px;padding:20px;margin:20px 0">
+  <h2 style="color:#00ddff">SECTOR ROTATION</h2>
+  <table style="width:100%"><tr>
+    <td style="padding:6px;vertical-align:top;width:50%"><div style="color:#00ff88;font-size:12px;margin-bottom:6px">LEADERS</div><ul style="line-height:1.6;font-size:13px">{ldrs_html}</ul></td>
+    <td style="padding:6px;vertical-align:top;width:50%"><div style="color:#ff4444;font-size:12px;margin-bottom:6px">LAGGARDS</div><ul style="line-height:1.6;font-size:13px">{lags_html}</ul></td>
+  </tr></table>
+</div>
+"""
     return f"""<!DOCTYPE html><html><body style="background:#0a0a0f;color:#e0e0e0;font-family:sans-serif;padding:20px">
 <div style="max-width:800px;margin:0 auto">
 <h1 style="color:#00ddff">JUSTHODL SECRETARY v2 | {ts}</h1>
@@ -809,6 +1016,7 @@ Data freshness: stocks {freshness.get('stocks', '?')} · crypto {freshness.get('
 </div>
 </div>
 {deltas_html}
+{tier2_html}
 <div style="background:#161b22;border:1px solid #30363d;border-radius:8px;padding:20px;margin:20px 0">
 <h2 style="color:#00ddff">AI ANALYSIS</h2>
 <div style="font-size:13px;line-height:1.7">{ai_html}</div>
@@ -871,6 +1079,7 @@ def run_full_scan():
         f_fg = ex.submit(fetch_fear_greed)
         f_existing = ex.submit(fetch_existing_data)
         f_yesterday = ex.submit(fetch_yesterday_snapshot)
+        f_tier2 = ex.submit(fetch_tier2)
         fred = f_fred.result()
         stocks = f_stocks.result()
         crypto = f_crypto.result()
@@ -878,6 +1087,7 @@ def run_full_scan():
         fg = f_fg.result()
         existing = f_existing.result()
         yesterday = f_yesterday.result()
+        tier2 = f_tier2.result()
 
     cftc = existing.get("cftc", {})
     print(f"  Data: FRED={len(fred)} Stocks={len(stocks)} Crypto={len(crypto)} News={len(news)} CFTC={bool(cftc)} Yesterday={bool(yesterday)}")
@@ -889,7 +1099,7 @@ def run_full_scan():
     buys = [r for r in recs if r["action"] == "BUY"]
     print(f"  Liq={liq['regime']} Risk={risk['composite']:.0f} Buys={len(buys)} Deltas={deltas.get('available')}")
 
-    ai = generate_ai_briefing(liq, risk, recs, fred, crypto, news, cftc, deltas)
+    ai = generate_ai_briefing(liq, risk, recs, fred, crypto, news, cftc, deltas, tier2)
     print(f"  AI={len(ai)} chars")
 
     now = datetime.now(timezone(timedelta(hours=-5)))
@@ -897,7 +1107,7 @@ def run_full_scan():
     fred_latest = max(fred_latest_dates) if fred_latest_dates else "?"
 
     scan = {
-        "version": "2.0",
+        "version": "2.1",
         "type": "secretary_scan",
         "timestamp": now.strftime("%Y-%m-%d %H:%M:%S ET"),
         "scan_time_seconds": round(time.time() - start, 1),
@@ -921,6 +1131,7 @@ def run_full_scan():
             "eth": next((c for c in crypto if c["symbol"] == "ETH"), {}),
         },
         "cftc": cftc,
+        "tier2": tier2,
         "data_freshness": {
             "stocks": "real-time (Polygon)",
             "crypto": "real-time (CoinMarketCap)",
@@ -934,7 +1145,7 @@ def run_full_scan():
     s3.put_object(Bucket=BUCKET, Key=f"data/secretary-history/{now.strftime('%Y-%m-%d_%H%M')}.json",
                   Body=json.dumps(scan, default=str),
                   ContentType="application/json")
-    subj = f"Secretary v2: {liq['regime']} | Risk {risk['composite']:.0f} | {len(buys)} Buys | {now.strftime('%b %d %I:%M %p')}"
+    subj = f"Secretary v2.1: {liq['regime']} | Risk {risk['composite']:.0f} | {len(buys)} Buys | {now.strftime('%b %d %I:%M %p')}"
     send_email(subj, build_email_html(scan))
     print(f"=== DONE {time.time() - start:.1f}s ===")
     return scan
@@ -1000,7 +1211,7 @@ def lambda_handler(event, context):
             return respond(200, {"recommendations": data.get("recommendations", [])})
         except Exception:
             return respond(200, {"status": "run_scan_first"})
-    return respond(200, {"service": "JustHodl Financial Secretary v2.0",
+    return respond(200, {"service": "JustHodl Financial Secretary v2.1",
                          "endpoints": {"GET /latest": "Latest scan", "POST /scan": "Force scan",
                                        "POST /chat": "Chat", "GET /price/TICKER": "Price",
                                        "GET /news/TICKER": "News", "GET /history/TICKER": "History",
