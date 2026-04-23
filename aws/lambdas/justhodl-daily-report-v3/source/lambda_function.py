@@ -281,6 +281,49 @@ TICKER_NAMES = {
 # ============================================================
 # DATA FETCH FUNCTIONS
 # ============================================================
+# ============================================================
+# v3.1 — FRED CACHE LAYER (shared with secretary)
+# ============================================================
+_FRED_CACHE_KEY = "data/fred-cache.json"
+
+def _load_fred_cache():
+    """Load shared FRED cache from S3. Returns {} on any error."""
+    try:
+        import boto3 as _b
+        _s3 = _b.client("s3", region_name="us-east-1")
+        obj = _s3.get_object(Bucket="justhodl-dashboard-live", Key=_FRED_CACHE_KEY)
+        return json.loads(obj["Body"].read().decode())
+    except Exception as e:
+        print(f"[FRED-CACHE] load err (non-fatal): {e}")
+        return {}
+
+def _save_fred_cache(cache_data):
+    """Save merged FRED data back to shared cache."""
+    try:
+        import boto3 as _b
+        _s3 = _b.client("s3", region_name="us-east-1")
+        _s3.put_object(
+            Bucket="justhodl-dashboard-live", Key=_FRED_CACHE_KEY,
+            Body=json.dumps(cache_data, default=str).encode(),
+            ContentType="application/json", CacheControl="max-age=1800",
+        )
+    except Exception as e:
+        print(f"[FRED-CACHE] save err (non-fatal): {e}")
+
+def _cache_entry_is_fresh_today(entry):
+    """Return True if cache entry's latest observation is from today (US Eastern).
+    Series that only update daily won't need a re-fetch within the same day."""
+    if not entry or not isinstance(entry, list) or not entry:
+        return False
+    latest = entry[0] if isinstance(entry[0], dict) else None
+    if not latest or not latest.get("date"):
+        return False
+    try:
+        today_et = datetime.now(timezone(timedelta(hours=-5))).strftime("%Y-%m-%d")
+        return latest["date"] >= today_et
+    except Exception:
+        return False
+
 def fetch_fred(sid):
     for attempt in range(3):
         try:
@@ -1457,26 +1500,54 @@ def lambda_handler(event, context):
         return {'statusCode':200,'body':json.dumps({'action':'init_ath','tickers':len(ath),'status':'complete'})}
     print(f"[V10] Start {datetime.utcnow().isoformat()}")
 
-    # ── PHASE 1: FRED (batched 8 at a time, 5 workers, 2.5s gap, retry on 429) ──
+    # ── PHASE 1 v3.1: FRED with S3 cache + throttle (2 workers, 3.5s gap, 429 retry) ──
     fred_raw = {}
+    fred_cache = _load_fred_cache()
     all_sids = list(FRED_SERIES.keys())
+    # Skip live fetches for series whose cached data already reflects today
+    to_fetch = []
+    skipped_fresh = 0
+    for sid in all_sids:
+        cached = fred_cache.get(sid)
+        if cached and _cache_entry_is_fresh_today(cached):
+            fred_raw[sid] = cached
+            skipped_fresh += 1
+        else:
+            to_fetch.append(sid)
+    print(f"[V10] FRED: {skipped_fresh}/{len(all_sids)} already fresh in cache, fetching {len(to_fetch)}")
+
     batch_sz = 8
-    for i in range(0, len(all_sids), batch_sz):
-        batch = all_sids[i:i+batch_sz]
-        with ThreadPoolExecutor(max_workers=4) as ex:
+    for i in range(0, len(to_fetch), batch_sz):
+        batch = to_fetch[i:i+batch_sz]
+        with ThreadPoolExecutor(max_workers=2) as ex:  # v3.1: reduced from 4
             fm = {ex.submit(fetch_fred, sid): sid for sid in batch}
             for f in as_completed(fm):
                 sid = fm[f]
                 try:
                     d = f.result()
-                    if d: fred_raw[sid] = d
-                except: pass
-        if i + batch_sz < len(all_sids):
-            time.sleep(2.5)
+                    if d:
+                        fred_raw[sid] = d
+                except Exception:
+                    pass
+        if i + batch_sz < len(to_fetch):
+            time.sleep(3.5)  # v3.1: lengthened from 2.5s
         if (i // batch_sz) % 5 == 0:
-            print(f"  FRED batch {i//batch_sz+1}: {len(fred_raw)} series")
+            print(f"  FRED batch {i//batch_sz+1}: total {len(fred_raw)} series")
 
-    print(f"[V10] FRED: {len(fred_raw)}/{len(all_sids)} in {time.time()-t0:.1f}s")
+    # Cache-backstop: any series we couldn't fetch live, fall back to cache
+    used_cache_backstop = 0
+    for sid in all_sids:
+        if sid not in fred_raw and sid in fred_cache:
+            fred_raw[sid] = fred_cache[sid]
+            used_cache_backstop += 1
+    if used_cache_backstop:
+        print(f"[V10] FRED: {used_cache_backstop} series from cache backstop")
+
+    print(f"[V10] FRED: {len(fred_raw)}/{len(all_sids)} in {time.time()-t0:.1f}s (skipped {skipped_fresh} fresh, backstop {used_cache_backstop})")
+
+    # Write merged result back to cache if healthy (>=70% populated)
+    if len(fred_raw) >= len(all_sids) * 0.7:
+        _save_fred_cache(fred_raw)
 
     # Process into categories
     fd = {}
