@@ -560,7 +560,7 @@ def format_sector_rotation(sr):
         flow = sr.get("top_inflow_flow")
         if flow is not None:
             try:
-                leaders.append(f"{name} (inflow ${float(flow):+.0f}M)")
+                leaders.append(f"{name} (inflow ${float(flow)/1e6:+.0f}M)")
             except Exception:
                 leaders.append(f"{name}")
         else:
@@ -570,7 +570,7 @@ def format_sector_rotation(sr):
         flow = sr.get("top_outflow_flow")
         if flow is not None:
             try:
-                laggards.append(f"{name} (outflow ${float(flow):+.0f}M)")
+                laggards.append(f"{name} (outflow ${float(flow)/1e6:+.0f}M)")
             except Exception:
                 laggards.append(f"{name}")
         else:
