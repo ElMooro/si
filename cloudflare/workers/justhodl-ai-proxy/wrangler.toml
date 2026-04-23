@@ -7,6 +7,13 @@ compatibility_flags = ["nodejs_compat"]
 # (Cloudflare made this opt-in as of 2025-09-17 for security.)
 workers_dev = true
 
+# Bind the branded custom domain. Cloudflare auto-provisions TLS and a
+# proxied A record for this hostname. Requires the justhodl.ai zone to
+# be on Cloudflare (nameserver-migrated 2026-04-23).
+[[routes]]
+pattern = "api.justhodl.ai"
+custom_domain = true
+
 # Observability: send logs to CF dashboard
 [observability]
 enabled = true
