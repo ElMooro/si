@@ -194,7 +194,7 @@ STOCK_TICKERS = [
     'NFLX','INTC','CSCO','ORCL','ADBE','QCOM','TXN','NOW','SHOP','UBER',
     'PLTR','MU','AMAT','LRCX','KLAC','SNPS','CDNS','PANW','CRWD','ZS',
     # Mega Caps - Finance
-    'JPM','V','MA','BAC','WFC','GS','MS','BLK','SCHW','C','AXP','BX','KKR','COF','USB',
+    'JPM','V','MA','BAC','WFC','GS','MS','BLK','SCHW','C','AXP','BX','KKR','COF','USB','BRK.B',
     # Mega Caps - Healthcare
     'UNH','JNJ','LLY','ABBV','MRK','PFE','TMO','ABT','ISRG','AMGN','GILD','MDT','ELV','BMY',
     # Mega Caps - Consumer
