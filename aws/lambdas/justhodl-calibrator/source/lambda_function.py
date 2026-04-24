@@ -26,16 +26,46 @@ SSM_REPORT_PATH  = "/justhodl/calibration/report"
 
 # ─── Default weights (used before enough data exists) ─────────────────────
 DEFAULT_WEIGHTS = {
-    "khalid_index":        1.00,
-    "cftc_gold":           0.80,
-    "cftc_spx":            0.80,
-    "cftc_bitcoin":        0.75,
-    "cftc_crude":          0.70,
-    "screener_top_pick":   0.85,
-    "edge_regime":         0.75,
-    "crypto_btc_signal":   0.70,
-    "crypto_eth_signal":   0.65,
-    "valuation_composite": 0.80,
+    # ─── Core signals (well-validated)
+    "khalid_index":         1.00,
+    "screener_top_pick":    0.85,
+    "valuation_composite":  0.80,
+
+    # ─── CFTC positioning signals
+    "cftc_gold":            0.80,
+    "cftc_spx":             0.80,
+    "cftc_bitcoin":         0.75,
+    "cftc_crude":           0.70,
+
+    # ─── Edge / regime
+    "edge_regime":          0.75,
+    "edge_composite":       0.70,
+    "market_phase":         0.75,
+
+    # ─── Crypto signals
+    "crypto_btc_signal":    0.70,
+    "crypto_eth_signal":    0.65,
+    "crypto_fear_greed":    0.55,  # NOTE: sentiment indicator, accuracy historically low
+    "crypto_risk_score":    0.55,  # NOTE: sentiment indicator, accuracy historically low
+    "btc_mvrv":             0.70,
+
+    # ─── Risk / stress
+    "carry_risk":           0.65,
+    "ml_risk":              0.65,
+    "plumbing_stress":      0.70,
+
+    # ─── Momentum
+    "momentum_spy":         0.55,  # short-horizon, more noise
+    "momentum_gld":         0.55,
+    "momentum_uso":         0.55,
+
+    # ─── Valuation
+    "cape_ratio":           0.75,
+    "buffett_indicator":    0.75,
+
+    # ─── Screener individual
+    "screener_buy":         0.65,
+    "screener_sell":        0.65,
 }
 
 # Minimum samples needed before we trust computed accuracy over defaults

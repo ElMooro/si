@@ -79,12 +79,12 @@ def lambda_handler(event,context):
     if fgs is not None:
         fgs=float(fgs)
         v,p,cf=("EXTREME_FEAR","UP",0.80) if fgs<=20 else ("FEAR","UP",0.60) if fgs<=35 else ("EXTREME_GREED","DOWN",0.80) if fgs>=80 else ("GREED","DOWN",0.60) if fgs>=65 else ("NEUTRAL","NEUTRAL",0.40)
-        logged.append(log_sig("crypto_fear_greed",v,p,cf,"BTC-USD",[3,7,14],meta={"score":fgs,"label":fg.get("label")}))
+        logged.append(log_sig("crypto_fear_greed",v,p,cf,"BTC-USD",[1,3,7,14],meta={"score":fgs,"label":fg.get("label")}))
     rs=c.get("risk_score",{})
     rv=rs.get("score")
     if rv is not None:
         rv=float(rv)
-        logged.append(log_sig("crypto_risk_score",rs.get("regime","?"),dir_score(rv,35,65),conf_ext(rv),"BTC-USD",[3,7,14],meta={"score":rv,"action":rs.get("action")}))
+        logged.append(log_sig("crypto_risk_score",rs.get("regime","?"),dir_score(rv,35,65),conf_ext(rv),"BTC-USD",[1,3,7,14],meta={"score":rv,"action":rs.get("action")}))
     tech=c.get("technicals",{})
     btc=tech.get("BTC",tech.get("bitcoin",{}))
     if isinstance(btc,dict):
@@ -93,7 +93,7 @@ def lambda_handler(event,context):
         if bs:
             p2="UP" if any(x in str(bs).upper() for x in ["BUY","BULL","UP"]) else "DOWN" if any(x in str(bs).upper() for x in ["SELL","BEAR","DOWN"]) else "NEUTRAL"
             cf2=0.85 if br and (float(br)<=30 or float(br)>=70) else 0.72
-            logged.append(log_sig("crypto_btc_signal",bs,p2,cf2,"BTC-USD",[3,7,14],price=bp,meta={"rsi":br,"price":bp}))
+            logged.append(log_sig("crypto_btc_signal",bs,p2,cf2,"BTC-USD",[1,3,7,14],price=bp,meta={"rsi":br,"price":bp}))
     oc=c.get("onchain_ratios",{})
     mvrv=oc.get("mvrv") or oc.get("MVRV")
     if mvrv is not None:
@@ -105,7 +105,7 @@ def lambda_handler(event,context):
     es=e.get("composite_score")
     if es is not None:
         es=float(es)
-        logged.append(log_sig("edge_composite",str(es),dir_score(es,35,65),conf_ext(es),"SPY",[7,14],meta={"score":es,"regime":e.get("regime")}))
+        logged.append(log_sig("edge_composite",str(es),dir_score(es,35,65),conf_ext(es),"SPY",[1,7,14],meta={"score":es,"regime":e.get("regime")}))
     for tk,chg in (e.get("correlation",{}).get("changes",{}) or {}).items():
         if chg is None: continue
         chg=float(chg); p3="UP" if chg>0.5 else "DOWN" if chg<-0.5 else "NEUTRAL"; cf3=min(0.80,abs(chg)/3.0)
@@ -117,7 +117,7 @@ def lambda_handler(event,context):
     if sc is not None:
         sc=float(sc)
         v3,p3,cf3=("HIGH_STRESS","DOWN",0.80) if sc>=60 else ("ELEVATED","DOWN",0.65) if sc>=40 else ("MODERATE","NEUTRAL",0.50) if sc>=20 else ("NORMAL","UP",0.55)
-        logged.append(log_sig("plumbing_stress",v3,p3,cf3,"SPY",[7,14,30],meta={"score":sc,"status":st.get("status"),"red_flags":st.get("red_flags")}))
+        logged.append(log_sig("plumbing_stress",v3,p3,cf3,"SPY",[1,7,14,30],meta={"score":sc,"status":st.get("status"),"red_flags":st.get("red_flags")}))
     # intelligence-report.json
     ir=fs3("intelligence-report.json")
     sc2=ir.get("scores",{})
