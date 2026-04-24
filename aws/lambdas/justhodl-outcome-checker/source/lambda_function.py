@@ -8,6 +8,7 @@ import json
 import boto3
 import time
 import urllib.request
+import urllib.error
 from datetime import datetime, timezone
 from decimal import Decimal
 from boto3.dynamodb.conditions import Attr
@@ -34,65 +35,127 @@ def float_to_decimal(obj):
     return obj
 
 
-# ─── Price fetchers ────────────────────────────────────────────────────────
+# ─── Price fetchers (v2 — endpoints that actually work on our plan) ─────
+# Replaced 2026-04-24: old /v2/last/trade needs paid Polygon ($29/mo),
+# old /v3/quote-short was retired by FMP Aug 2025. All outcomes were
+# silently failing with HTTP 403 before this fix.
+
 def get_current_price_polygon(ticker):
-    """Get latest price for any ticker from Polygon."""
-    url = f"https://api.polygon.io/v2/last/trade/{ticker}?apiKey={POLYGON_KEY}"
+    """Get latest (previous day close) price from Polygon — free tier."""
+    url = f"https://api.polygon.io/v2/aggs/ticker/{ticker}/prev?adjusted=true&apiKey={POLYGON_KEY}"
     try:
         with urllib.request.urlopen(url, timeout=10) as r:
             data = json.loads(r.read().decode())
-            return float(data.get("results", {}).get("p", 0) or 0)
+            results = data.get("results") or []
+            if results and isinstance(results, list):
+                return float(results[0].get("c") or 0)
+    except urllib.error.HTTPError as e:
+        print(f"[PRICE] Polygon HTTP {e.code} for {ticker}")
     except Exception as e:
         print(f"[PRICE] Polygon error for {ticker}: {e}")
-        return None
+    return None
 
 
 def get_current_price_fmp(ticker):
-    """Fallback: get price from FMP."""
-    url = f"https://financialmodelingprep.com/api/v3/quote-short/{ticker}?apikey={FMP_KEY}"
+    """Get current price from FMP /stable/quote — modern premium endpoint."""
+    url = f"https://financialmodelingprep.com/stable/quote?symbol={ticker}&apikey={FMP_KEY}"
     try:
         with urllib.request.urlopen(url, timeout=10) as r:
             data = json.loads(r.read().decode())
-            if data and isinstance(data, list):
-                return float(data[0].get("price", 0) or 0)
+            if data and isinstance(data, list) and len(data) > 0:
+                price = data[0].get("price")
+                if price is not None:
+                    return float(price)
+    except urllib.error.HTTPError as e:
+        print(f"[PRICE] FMP HTTP {e.code} for {ticker}")
     except Exception as e:
         print(f"[PRICE] FMP error for {ticker}: {e}")
     return None
 
 
-def get_price(ticker):
-    """Get current price with fallback chain."""
-    # Crypto tickers need special handling
-    crypto_map = {
-        "BTC-USD": "X:BTCUSD",
-        "ETH-USD": "X:ETHUSD",
+def get_coingecko_price(ticker):
+    """Crypto fallback via CoinGecko (free, no key needed)."""
+    coingecko_map = {
+        "BTC-USD": "bitcoin",
+        "BTC":     "bitcoin",
+        "ETH-USD": "ethereum",
+        "ETH":     "ethereum",
+        "SOL-USD": "solana",
+        "SOL":     "solana",
     }
+    cg_id = coingecko_map.get(ticker.upper())
+    if not cg_id:
+        return None
+    url = f"https://api.coingecko.com/api/v3/simple/price?ids={cg_id}&vs_currencies=usd"
+    try:
+        with urllib.request.urlopen(url, timeout=10) as r:
+            data = json.loads(r.read().decode())
+            return float(data.get(cg_id, {}).get("usd") or 0)
+    except Exception as e:
+        print(f"[PRICE] CoinGecko error for {ticker}: {e}")
+    return None
 
-    polygon_ticker = crypto_map.get(ticker, ticker)
-    price = get_current_price_polygon(polygon_ticker)
 
-    if not price:
-        price = get_current_price_fmp(ticker)
+def get_price(ticker):
+    """
+    Get current price with fallback chain.
+      1. Crypto → CoinGecko first (most reliable, free)
+      2. Stocks/ETFs → FMP /stable first (real-time on our tier)
+      3. Polygon /prev as fallback (free tier, previous close)
+      4. S3 report.json as last resort
+    """
+    if not ticker:
+        return None
 
-    # Last resort: check S3 report.json
-    if not price:
-        try:
-            obj    = s3.get_object(Bucket=S3_BUCKET, Key="report.json")
-            report = json.loads(obj["Body"].read().decode())
-            price_map = {
-                "SPY":     report.get("sp500"),
-                "BTC-USD": report.get("btcPrice"),
-                "ETH-USD": report.get("ethPrice"),
-                "GLD":     report.get("goldPrice"),
-                "USO":     report.get("oilPrice"),
-            }
-            price = price_map.get(ticker)
-            if price:
-                price = float(price)
-        except Exception:
-            pass
+    # Crypto path: CoinGecko first
+    if ticker.upper() in ("BTC-USD", "ETH-USD", "SOL-USD", "BTC", "ETH", "SOL"):
+        price = get_coingecko_price(ticker)
+        if price:
+            return price
+        # Fall back to Polygon crypto endpoint
+        polygon_crypto_map = {
+            "BTC-USD": "X:BTCUSD", "BTC": "X:BTCUSD",
+            "ETH-USD": "X:ETHUSD", "ETH": "X:ETHUSD",
+        }
+        polygon_ticker = polygon_crypto_map.get(ticker.upper(), ticker)
+        price = get_current_price_polygon(polygon_ticker)
+        if price:
+            return price
 
-    return price
+    # Stocks/ETFs: FMP first (real-time), then Polygon /prev
+    price = get_current_price_fmp(ticker)
+    if price:
+        return price
+
+    price = get_current_price_polygon(ticker)
+    if price:
+        return price
+
+    # Last resort: S3 report.json (note: schema is nested under stocks[ticker].price)
+    try:
+        obj = s3.get_object(Bucket=S3_BUCKET, Key="data/report.json")
+        report = json.loads(obj["Body"].read().decode())
+        # Try direct stocks map
+        stocks = report.get("stocks") or {}
+        if ticker in stocks and isinstance(stocks[ticker], dict):
+            price = stocks[ticker].get("price")
+            if price is not None:
+                return float(price)
+        # Legacy fallback keys
+        legacy_map = {
+            "SPY":     report.get("sp500"),
+            "BTC-USD": report.get("btcPrice"),
+            "ETH-USD": report.get("ethPrice"),
+            "GLD":     report.get("goldPrice"),
+            "USO":     report.get("oilPrice"),
+        }
+        price = legacy_map.get(ticker)
+        if price:
+            return float(price)
+    except Exception:
+        pass
+
+    return None
 
 
 def get_benchmark_price(benchmark="SPY"):
