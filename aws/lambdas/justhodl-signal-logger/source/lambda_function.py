@@ -177,7 +177,8 @@ def lambda_handler(event,context):
         if isinstance(ki, dict): ki=float(ki.get("score", 0))
         else: ki=float(ki)
         val="HIGH_RISK" if ki>=70 else "ELEVATED" if ki>=55 else "MODERATE" if ki>=40 else "LOW_RISK"
-        logged.append(log_sig("khalid_index",val,dir_score(ki,35,65),conf_ext(ki),"SPY",[7,14,30],meta={"score":ki,"regime":d.get("regime")}))
+        ki_rat=f"Khalid Index {ki:.0f} = {val} ({d.get('regime') or 'unknown'} regime)"
+        logged.append(log_sig("khalid_index",val,dir_score(ki,35,65),conf_ext(ki),"SPY",[7,14,30],meta={"score":ki,"regime":d.get("regime")},rationale=ki_rat))
     regime=d.get("regime","") or (d.get("khalid_index",{}).get("regime","") if isinstance(d.get("khalid_index"), dict) else "")
     if regime:
         rm={"BULL":"UP","RECOVERY":"UP","RISK_ON":"UP","BEAR":"DOWN","CRISIS":"DOWN","CORRECTION":"DOWN","NEUTRAL":"NEUTRAL","UNKNOWN":"NEUTRAL"}
@@ -193,7 +194,8 @@ def lambda_handler(event,context):
     if fgs is not None:
         fgs=float(fgs)
         v,p,cf=("EXTREME_FEAR","UP",0.80) if fgs<=20 else ("FEAR","UP",0.60) if fgs<=35 else ("EXTREME_GREED","DOWN",0.80) if fgs>=80 else ("GREED","DOWN",0.60) if fgs>=65 else ("NEUTRAL","NEUTRAL",0.40)
-        logged.append(log_sig("crypto_fear_greed",v,p,cf,"BTC-USD",[1,3,7,14],meta={"score":fgs,"label":fg.get("label")}))
+        fg_rat=f"Fear & Greed {int(fgs)} ({fg.get('label') or v}) — contrarian {p} signal"
+        logged.append(log_sig("crypto_fear_greed",v,p,cf,"BTC-USD",[1,3,7,14],meta={"score":fgs,"label":fg.get("label")},rationale=fg_rat))
     rs=c.get("risk_score",{})
     rv=rs.get("score")
     if rv is not None:
@@ -213,7 +215,9 @@ def lambda_handler(event,context):
     if mvrv is not None:
         mvrv=float(mvrv)
         v2,p2,cf2=("UNDERVALUED","UP",0.80) if mvrv<1.0 else ("OVERVALUED","DOWN",0.80) if mvrv>3.5 else ("ELEVATED","DOWN",0.65) if mvrv>2.5 else ("FAIR","NEUTRAL",0.40)
-        logged.append(log_sig("btc_mvrv",v2,p2,cf2,"BTC-USD",[14,30,60],meta={"mvrv":mvrv}))
+        mvrv_mag=10.0 if mvrv<0.8 else (-15.0 if mvrv>3.5 else (-8.0 if mvrv>2.5 else 0))
+        mvrv_rat=f"MVRV {mvrv:.2f} = {v2} (historic UP at <1, DOWN at >3)"
+        logged.append(log_sig("btc_mvrv",v2,p2,cf2,"BTC-USD",[14,30,60],meta={"mvrv":mvrv},magnitude=mvrv_mag,rationale=mvrv_rat))
     # edge-data.json
     e=fs3("edge-data.json")
     es=e.get("composite_score")
@@ -223,7 +227,10 @@ def lambda_handler(event,context):
     for tk,chg in (e.get("correlation",{}).get("changes",{}) or {}).items():
         if chg is None: continue
         chg=float(chg); p3="UP" if chg>0.5 else "DOWN" if chg<-0.5 else "NEUTRAL"; cf3=min(0.80,abs(chg)/3.0)
-        if cf3>=0.3: logged.append(log_sig(f"momentum_{tk.lower()}",f"{chg:+.2f}%",p3,cf3,tk,[1,3,7],meta={"change":chg}))
+        if cf3>=0.3:
+            mom_mag=chg if abs(chg)<10 else (10 if chg>0 else -10)  # cap at ±10% to filter outliers
+            mom_rat=f"{tk} momentum: {chg:+.2f}% recent change → {p3} {abs(chg):.1f}% over 1-7d"
+            logged.append(log_sig(f"momentum_{tk.lower()}",f"{chg:+.2f}%",p3,cf3,tk,[1,3,7],meta={"change":chg},magnitude=mom_mag,rationale=mom_rat))
     # repo-data.json
     r=fs3("repo-data.json")
     st=r.get("stress",{})
@@ -231,7 +238,8 @@ def lambda_handler(event,context):
     if sc is not None:
         sc=float(sc)
         v3,p3,cf3=("HIGH_STRESS","DOWN",0.80) if sc>=60 else ("ELEVATED","DOWN",0.65) if sc>=40 else ("MODERATE","NEUTRAL",0.50) if sc>=20 else ("NORMAL","UP",0.55)
-        logged.append(log_sig("plumbing_stress",v3,p3,cf3,"SPY",[1,7,14,30],meta={"score":sc,"status":st.get("status"),"red_flags":st.get("red_flags")}))
+        plumb_rat=f"Plumbing stress {sc:.0f} = {v3} ({st.get('status') or '?'}); red_flags={st.get('red_flags') or 0}"
+        logged.append(log_sig("plumbing_stress",v3,p3,cf3,"SPY",[1,7,14,30],meta={"score":sc,"status":st.get("status"),"red_flags":st.get("red_flags")},rationale=plumb_rat))
     # intelligence-report.json
     ir=fs3("intelligence-report.json")
     sc2=ir.get("scores",{})
@@ -251,12 +259,16 @@ def lambda_handler(event,context):
     if cape is not None:
         cape=float(cape)
         v5,p5,cf5=("EXTREMELY_EXPENSIVE","DOWN",0.80) if cape>35 else ("EXPENSIVE","DOWN",0.65) if cape>28 else ("CHEAP","UP",0.65) if cape<15 else ("FAIR","NEUTRAL",0.45)
-        logged.append(log_sig("cape_ratio",v5,p5,cf5,"SPY",[30,60,90],meta={"cape":cape}))
+        cape_mag=-8.0 if cape>35 else (-4.0 if cape>28 else (5.0 if cape<15 else 0))
+        cape_rat=f"Shiller CAPE {cape:.1f} = {v5} (historical avg ~17, frothy >28)"
+        logged.append(log_sig("cape_ratio",v5,p5,cf5,"SPY",[30,60,90],meta={"cape":cape},magnitude=cape_mag,rationale=cape_rat))
     buffett=vd.get("buffett_indicator") or vd.get("market_cap_gdp")
     if buffett is not None:
         buffett=float(buffett)
         v6,p6,cf6=("EXTREMELY_OVERVALUED","DOWN",0.80) if buffett>200 else ("OVERVALUED","DOWN",0.65) if buffett>150 else ("UNDERVALUED","UP",0.65) if buffett<100 else ("FAIR","NEUTRAL",0.45)
-        logged.append(log_sig("buffett_indicator",v6,p6,cf6,"SPY",[30,60,90],meta={"buffett":buffett}))
+        buff_mag=-10.0 if buffett>200 else (-5.0 if buffett>150 else (5.0 if buffett<100 else 0))
+        buff_rat=f"Buffett Indicator (Mkt Cap/GDP) {buffett:.0f}% = {v6} — historic balance at ~100%"
+        logged.append(log_sig("buffett_indicator",v6,p6,cf6,"SPY",[30,60,90],meta={"buffett":buffett},magnitude=buff_mag,rationale=buff_rat))
     # screener
     sc3=fs3("screener/data.json")
     for i,st2 in enumerate(sc3.get("stocks",[])[:15]):
