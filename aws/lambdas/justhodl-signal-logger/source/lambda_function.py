@@ -88,7 +88,29 @@ def lget(url,path=""):
     except Exception as e:
         print(f"[LAMBDA] {e}"); return {}
 
-def log_sig(stype,val,pred,conf,against,windows,price=None,meta=None,bench=None):
+# Captures Khalid regime once per Lambda invocation; populated by lambda_handler
+_REGIME_SNAPSHOT={"regime":None,"khalid_score":None}
+
+def _capture_regime_snapshot():
+    """Read data/report.json once, capture regime + khalid_score for this run.
+    Called from lambda_handler at start of invocation."""
+    try:
+        d=fs3("data/report.json")
+        ki=d.get("khalid_index")
+        if isinstance(ki,dict):
+            _REGIME_SNAPSHOT["khalid_score"]=int(float(ki.get("score",0))) if ki.get("score") is not None else None
+            _REGIME_SNAPSHOT["regime"]=ki.get("regime") or d.get("regime")
+        elif ki is not None:
+            _REGIME_SNAPSHOT["khalid_score"]=int(float(ki))
+            _REGIME_SNAPSHOT["regime"]=d.get("regime")
+        else:
+            _REGIME_SNAPSHOT["regime"]=d.get("regime")
+        print(f"[REGIME] snapshot: regime={_REGIME_SNAPSHOT['regime']}, score={_REGIME_SNAPSHOT['khalid_score']}")
+    except Exception as e:
+        print(f"[REGIME] snapshot failed (non-fatal): {e}")
+
+def log_sig(stype,val,pred,conf,against,windows,price=None,meta=None,bench=None,
+            magnitude=None,target_price=None,rationale=None,supporting=None):
     table=dynamodb.Table(SIGNALS_TABLE)
     now=datetime.now(timezone.utc)
     sid=str(uuid.uuid4())
@@ -102,6 +124,17 @@ def log_sig(stype,val,pred,conf,against,windows,price=None,meta=None,bench=None)
     if bench and pred in ("OUTPERFORM","UNDERPERFORM"):
         bench_price=get_baseline_price(bench)
 
+    # Compute predicted_target_price from magnitude × baseline (Q1.2 — both)
+    computed_target=None
+    if target_price is not None:
+        computed_target=float(target_price)
+    elif magnitude is not None and price:
+        # +X% magnitude → target_price = baseline × (1 + X/100)
+        # NEUTRAL/0 magnitude leaves target = baseline
+        computed_target=float(price)*(1.0+float(magnitude)/100.0)
+
+    horizon_primary=max(windows) if windows else None
+
     item={"signal_id":sid,"signal_type":stype,"signal_value":str(val),
           "predicted_direction":pred,"confidence":f2d(float(conf)),
           "measure_against":against,"baseline_price":f2d(float(price)) if price else None,
@@ -110,7 +143,17 @@ def log_sig(stype,val,pred,conf,against,windows,price=None,meta=None,bench=None)
           "check_timestamps":ts,"outcomes":{},"accuracy_scores":{},
           "logged_at":now.isoformat(),"logged_epoch":int(now.timestamp()),
           "status":"pending","metadata":f2d(meta or {}),
-          "ttl":int((now+timedelta(days=365)).timestamp())}
+          "ttl":int((now+timedelta(days=365)).timestamp()),
+          # ─── Schema v2 fields (Week 2A) ────────────────────
+          "schema_version":"2",
+          "predicted_magnitude_pct":f2d(float(magnitude)) if magnitude is not None else None,
+          "predicted_target_price":f2d(float(computed_target)) if computed_target is not None else None,
+          "horizon_days_primary":int(horizon_primary) if horizon_primary else None,
+          "regime_at_log":_REGIME_SNAPSHOT.get("regime"),
+          "khalid_score_at_log":_REGIME_SNAPSHOT.get("khalid_score"),
+          "rationale":str(rationale) if rationale else None,
+          "supporting_signals":list(supporting) if supporting else None,
+          }
     table.put_item(Item=item)
     bp_str=f" baseline=${price:.2f}" if price else " baseline=None"
     print(f"[LOG] {stype}={val} {pred} conf={conf:.2f}{bp_str}")
@@ -123,6 +166,9 @@ def conf_ext(s,c=50,r=50):
     return min(1.0,abs(s-c)/r)
 
 def lambda_handler(event,context):
+    # Capture Khalid regime once for this invocation; every log_sig() call
+    # reads from _REGIME_SNAPSHOT to populate regime_at_log + khalid_score_at_log
+    _capture_regime_snapshot()
     logged=[]
     # data.json
     d=fs3("data/report.json")
