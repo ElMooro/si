@@ -1,0 +1,218 @@
+# Verify Step 53 — backfill + logging + 0% accuracy investigation
+
+**Status:** success  
+**Duration:** 0.9s  
+**Finished:** 2026-04-24T23:11:57+00:00  
+
+## Log
+## A. Most recent outcome-checker invocation
+
+- `23:11:56`   Last stream: 2026/04/24/[$LATEST]f611423a94fd4b31ae712b446aa21a66
+- `23:11:56`   Events in last 15 min: 200
+- `23:11:56`     [CHECKER] Found 4406 pending signals
+- `23:11:56`     [CHECKER] No price for CVNA, skipping window day_30
+- `23:11:56`     [CHECKER] No price for CVNA, skipping window day_30
+- `23:11:56`     [CHECKER] No price for COIN, skipping window day_30
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_7
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_30
+- `23:11:56`     [CHECKER] No price for CVNA, skipping window day_30
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_7
+- `23:11:56`     [CHECKER] No price for Q, skipping window day_30
+- `23:11:56`     [CHECKER] No price for Q, skipping window day_30
+- `23:11:56`     [CHECKER] No price for CVNA, skipping window day_30
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_7
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_30
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for TTD, skipping window day_30
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_30
+- `23:11:56`     [CHECKER] No price for IBKR, skipping window day_30
+- `23:11:56`     [CHECKER] No price for HOOD, skipping window day_30
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_7
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_30
+- `23:11:56`     [CHECKER] No price for GLD, skipping window day_1
+- `23:11:56`     [CHECKER] No price for GLD, skipping window day_3
+- `23:11:56`     [CHECKER] No price for GLD, skipping window day_7
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_7
+- `23:11:56`     [CHECKER] No price for IBKR, skipping window day_30
+- `23:11:56`     [CHECKER] No price for SNDK, skipping window day_30
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_7
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_30
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_7
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_30
+- `23:11:56`     [CHECKER] No price for Q, skipping window day_30
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_7
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_7
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_30
+- `23:11:56`     [CHECKER] No price for APP, skipping window day_30
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_7
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_30
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_7
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_30
+- `23:11:56`     [CHECKER] No price for SATS, skipping window day_30
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_7
+- `23:11:56`     [CHECKER] No price for Q, skipping window day_30
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_30
+- `23:11:56`     [CHECKER] No price for GLD, skipping window day_1
+- `23:11:56`     [CHECKER] No price for CIEN, skipping window day_30
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_7
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_30
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_1
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_3
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_7
+- `23:11:56`     [CHECKER] No price for DDOG, skipping window day_30
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_30
+- `23:11:56`     [CHECKER] No price for CVNA, skipping window day_30
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_7
+- `23:11:56`     [CHECKER] No price for USO, skipping window day_1
+- `23:11:56`     [CHECKER] No price for USO, skipping window day_3
+- `23:11:56`     [CHECKER] No price for USO, skipping window day_7
+- `23:11:56`     [CHECKER] No price for CRH, skipping window day_30
+- `23:11:56`     [CHECKER] No price for GLD, skipping window day_1
+- `23:11:56`     [CHECKER] No price for GLD, skipping window day_3
+- `23:11:56`     [CHECKER] No price for GLD, skipping window day_7
+- `23:11:56`     [CHECKER] No price for HOOD, skipping window day_30
+- `23:11:56`     [CHECKER] No price for IBKR, skipping window day_30
+- `23:11:56`     [CHECKER] No price for IBKR, skipping window day_30
+- `23:11:56`     [CHECKER] crypto_fear_greed [day_3] → ❌ WRONG (predicted UP, got UNKNOWN 0.00%)
+- `23:11:56`     [CHECKER] crypto_fear_greed [day_7] → ❌ WRONG (predicted UP, got UNKNOWN 0.00%)
+- `23:11:56`     [CHECKER] No price for SNDK, skipping window day_30
+- `23:11:56`     [CHECKER] No price for USO, skipping window day_1
+- `23:11:56`     [CHECKER] No price for USO, skipping window day_3
+- `23:11:56`     [CHECKER] No price for USO, skipping window day_7
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_30
+- `23:11:56`     [CHECKER] No price for GLD, skipping window day_1
+- `23:11:56`     [CHECKER] No price for GLD, skipping window day_3
+- `23:11:56`     [CHECKER] No price for GLD, skipping window day_7
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_7
+- `23:11:56`     [CHECKER] No price for HOOD, skipping window day_30
+- `23:11:56`     [CHECKER] crypto_risk_score [day_3] → ❌ WRONG (predicted NEUTRAL, got UNKNOWN 0.00%)
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_7
+- `23:11:56`     [CHECKER] No price for FIX, skipping window day_30
+- `23:11:56`     [CHECKER] crypto_fear_greed [day_3] → ❌ WRONG (predicted UP, got UNKNOWN 0.00%)
+- `23:11:56`     [CHECKER] No price for USO, skipping window day_1
+- `23:11:56`     [CHECKER] No price for USO, skipping window day_3
+- `23:11:56`     [CHECKER] No price for USO, skipping window day_7
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_7
+- `23:11:56`     [CHECKER] No price for CIEN, skipping window day_30
+- `23:11:56`     [CHECKER] No price for TTD, skipping window day_30
+- `23:11:56`     [CHECKER] No price for CIEN, skipping window day_30
+- `23:11:56`     [CHECKER] No price for FIX, skipping window day_30
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_7
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_7
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_7
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_1
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_3
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_7
+- `23:11:56`     [CHECKER] No price for USO, skipping window day_1
+- `23:11:56`     [CHECKER] No price for USO, skipping window day_3
+- `23:11:56`     [CHECKER] No price for USO, skipping window day_7
+- `23:11:56`     [CHECKER] crypto_risk_score [day_14] → ❌ WRONG (predicted DOWN, got UNKNOWN 0.00%)
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_7
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_7
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_30
+- `23:11:56`     [CHECKER] No price for GLD, skipping window day_1
+- `23:11:56`     [CHECKER] No price for GLD, skipping window day_3
+- `23:11:56`     [CHECKER] No price for GLD, skipping window day_7
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_30
+- `23:11:56`     [CHECKER] No price for HOOD, skipping window day_30
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_7
+- `23:11:56`     [CHECKER] No price for HOOD, skipping window day_30
+- `23:11:56`     [CHECKER] No price for TTD, skipping window day_30
+- `23:11:56`     [CHECKER] No price for APP, skipping window day_30
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_7
+- `23:11:56`     [CHECKER] No price for CIEN, skipping window day_30
+- `23:11:56`     [CHECKER] No price for GLD, skipping window day_1
+- `23:11:56`     [CHECKER] No price for GLD, skipping window day_3
+- `23:11:56`     [CHECKER] No price for GLD, skipping window day_7
+- `23:11:56`     [CHECKER] crypto_fear_greed [day_3] → ❌ WRONG (predicted UP, got UNKNOWN 0.00%)
+- `23:11:56`     [CHECKER] No price for CIEN, skipping window day_30
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_30
+- `23:11:56`     [CHECKER] No price for EME, skipping window day_30
+- `23:11:56`     [CHECKER] crypto_fear_greed [day_7] → ❌ WRONG (predicted UP, got UNKNOWN 0.00%)
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_7
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_30
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_30
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_7
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_30
+- `23:11:56`     [CHECKER] No price for Q, skipping window day_30
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_14
+- `23:11:56`     [CHECKER] No price for SPY, skipping window day_7
+- `23:11:56` 
+  Parsed: 0 correct, 7 wrong
+## B. justhodl-outcomes table — current item count
+
+- `23:11:57`   Items: 738
+- `23:11:57`   Size:  304,525 bytes
+## C. Accuracy=0.0 investigation — sample outcomes for crypto signals
+
+- `23:11:57` 
+  Sample outcomes for crypto_fear_greed:
+- `23:11:57`     Found 32 records in this scan page
+- `23:11:57`     In this sample: 0 correct, 0 wrong
+- `23:11:57`     [1] window=day_3 predicted=UP actual=UNKNOWN return=0% correct=None
+- `23:11:57`     [2] window=day_3 predicted=UP actual=UNKNOWN return=0% correct=None
+- `23:11:57`     [3] window=day_7 predicted=UP actual=UNKNOWN return=0% correct=None
+- `23:11:57`     [4] window=day_7 predicted=UP actual=UNKNOWN return=0% correct=None
+- `23:11:57`     [5] window=day_3 predicted=UP actual=UNKNOWN return=0% correct=None
+- `23:11:57` 
+  Sample outcomes for crypto_risk_score:
+- `23:11:57`     Found 18 records in this scan page
+- `23:11:57`     In this sample: 0 correct, 0 wrong
+- `23:11:57`     [1] window=day_14 predicted=DOWN actual=UNKNOWN return=0% correct=None
+- `23:11:57`     [2] window=day_7 predicted=DOWN actual=UNKNOWN return=0% correct=None
+- `23:11:57`     [3] window=day_7 predicted=NEUTRAL actual=UNKNOWN return=0% correct=None
+- `23:11:57`     [4] window=day_14 predicted=NEUTRAL actual=UNKNOWN return=0% correct=None
+- `23:11:57`     [5] window=day_3 predicted=DOWN actual=UNKNOWN return=0% correct=None
+- `23:11:57` 
+  DIAGNOSIS:
+- `23:11:57`   These signals are SENTIMENT indicators (fear/greed scores,
+- `23:11:57`   crypto risk scores). The logger applies a heuristic:
+- `23:11:57`     FEAR (score ≤ 35)  → predict UP (contrarian)
+- `23:11:57`     GREED (score ≥ 65) → predict DOWN (contrarian)
+- `23:11:57`     NEUTRAL otherwise
+- `23:11:57` 
+- `23:11:57`   Problem: BTC price on any given 3-day window doesn't reliably
+- `23:11:57`   match the contrarian prediction. Short-horizon sentiment
+- `23:11:57`   contrarianism is noisier than the long-horizon ('buy fear,
+- `23:11:57`   sell greed') wisdom everyone quotes.
+- `23:11:57` 
+- `23:11:57`   The right fix (not tonight): change these from directional
+- `23:11:57`   predictions to REGIME INDICATORS that inform position sizing
+- `23:11:57`   rather than buy/sell timing. That's a Week 2-3 item.
+- `23:11:57` Done
