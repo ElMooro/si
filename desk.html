@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Desk | JustHodl.AI</title>
+  <meta name="description" content="Hedge fund desk — consolidated view of regime, divergences, COT extremes, opportunities, and sized recommendations.">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:#0a0e1a;color:#e0e8ff;font-family:'Courier New',monospace;min-height:100vh;padding-bottom:40px}
+    .header{background:linear-gradient(135deg,#0d1b2a,#1a2744);padding:20px 30px;border-bottom:1px solid #1e3a5f;display:flex;align-items:center;gap:15px;flex-wrap:wrap}
+    .header h1{font-size:1.4rem;color:#00d4ff;letter-spacing:2px}
+    .header .sub{font-size:.75rem;color:#4a9eff;opacity:.8}
+    .nav{background:#0d1420;padding:8px 30px;border-bottom:1px solid #1e3a5f;display:flex;gap:20px;flex-wrap:wrap}
+    .nav a{color:#4a9eff;text-decoration:none;font-size:.75rem;padding:4px 10px;border-radius:3px;transition:all .2s}
+    .nav a:hover{background:#1a3a5f;color:#00d4ff}
+    .nav a.active{background:#1a3a5f;color:#00d4ff}
+
+    /* Top status strip — the at-a-glance bar */
+    .status-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0;background:#0d1b2a;border-bottom:1px solid #1e3a5f}
+    .strip-cell{padding:14px 20px;border-right:1px solid #1e3a5f;text-align:center}
+    .strip-cell:last-child{border-right:none}
+    .strip-label{font-size:.65rem;color:#4a6080;letter-spacing:1.5px;margin-bottom:4px;text-transform:uppercase}
+    .strip-value{font-size:1.4rem;font-weight:700;color:#e0e8ff}
+    .strip-sub{font-size:.7rem;color:#8098b0;margin-top:2px}
+
+    /* Section structure */
+    section{margin:24px 30px}
+    .section-title{font-size:.9rem;color:#00d4ff;letter-spacing:2px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #1e3a5f;text-transform:uppercase}
+    .section-title .sub{font-size:.7rem;color:#4a6080;margin-left:10px;letter-spacing:0;text-transform:none}
+
+    /* Cards / rows */
+    .grid-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+    .card{background:#0d1b2a;border:1px solid #1e3a5f;border-radius:6px;padding:14px}
+    .card h3{color:#00d4ff;font-size:.78rem;letter-spacing:1.5px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #1e3a5f}
+    .card-empty{padding:14px;text-align:center;color:#4a6080;font-size:.75rem;background:#0d1b2a;border:1px dashed #1e3a5f;border-radius:6px}
+
+    /* Metric line item inside cards */
+    .metric{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(30,58,95,.3);font-size:.75rem}
+    .metric:last-child{border-bottom:none}
+    .metric .label{color:#8098b0}
+    .metric .val{font-weight:600}
+
+    /* Status colors */
+    .red{color:#ff4444} .green{color:#00ff88} .yellow{color:#ffcc00}
+    .blue{color:#00d4ff} .grey{color:#8098b0} .pink{color:#ff66aa}
+    .bg-red{background:rgba(255,68,68,.12);border-color:rgba(255,68,68,.4)}
+    .bg-green{background:rgba(0,255,136,.10);border-color:rgba(0,255,136,.3)}
+    .bg-yellow{background:rgba(255,204,0,.10);border-color:rgba(255,204,0,.3)}
+
+    /* Tags */
+    .tag{display:inline-block;padding:2px 7px;border-radius:3px;font-size:.65rem;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+    .tag-risk-off{background:#ff444433;color:#ff6680;border:1px solid #ff444466}
+    .tag-risk-on{background:#00ff8833;color:#00ff88;border:1px solid #00ff8866}
+    .tag-neutral{background:#4a608033;color:#a0b8d0;border:1px solid #4a608066}
+
+    /* Recommendations table */
+    .rec-table{width:100%;border-collapse:collapse;font-size:.75rem}
+    .rec-table th{text-align:left;padding:8px 10px;color:#4a6080;font-size:.65rem;letter-spacing:1.5px;font-weight:600;border-bottom:1px solid #1e3a5f;text-transform:uppercase}
+    .rec-table td{padding:8px 10px;border-bottom:1px solid rgba(30,58,95,.3)}
+    .rec-table tbody tr:hover{background:rgba(0,212,255,.05)}
+    .rec-table .symbol{font-weight:700;color:#00d4ff}
+    .rec-table .size-bar{display:inline-block;height:6px;background:#00d4ff;border-radius:2px;vertical-align:middle;margin-right:6px}
+
+    /* Divergence/extreme rows */
+    .signal-row{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;margin-bottom:6px;background:#0a131f;border:1px solid #1e3a5f;border-radius:4px;font-size:.78rem}
+    .signal-row.extreme{border-color:#ffcc0066;background:rgba(255,204,0,.04)}
+    .signal-row.alert{border-color:#ff444466;background:rgba(255,68,68,.06)}
+    .signal-row .name{color:#e0e8ff;font-weight:600}
+    .signal-row .desc{color:#8098b0;font-size:.7rem;margin-top:2px}
+    .signal-row .z{font-weight:700;font-family:'Courier New',monospace}
+
+    /* Timestamp */
+    .timestamp{text-align:right;color:#4a6080;font-size:.7rem;padding:14px 30px 6px;font-style:italic}
+    .footer-note{padding:14px 30px;color:#4a6080;font-size:.7rem;text-align:center;font-style:italic}
+    .footer-note a{color:#4a9eff}
+
+    /* Loading + errors */
+    .loading{text-align:center;padding:30px;color:#4a9eff;font-size:.85rem}
+    .error{color:#ff4444;padding:8px 12px;background:rgba(255,68,68,.08);border:1px solid rgba(255,68,68,.4);border-radius:4px;font-size:.75rem;margin:4px 0}
+
+    /* Refresh control */
+    .refresh-bar{padding:8px 30px;display:flex;justify-content:flex-end;gap:12px;align-items:center;background:#0a131f;border-bottom:1px solid #1e3a5f;font-size:.7rem;color:#4a6080}
+    .refresh-btn{background:#1a3a5f;color:#00d4ff;border:1px solid #00d4ff44;padding:4px 10px;border-radius:3px;cursor:pointer;font-family:inherit;font-size:.7rem}
+    .refresh-btn:hover{background:#00d4ff22}
+
+    /* Cluster grouping in recommendations */
+    .cluster-group{background:#0a131f;border-left:3px solid #00d4ff;padding:8px 12px;margin:6px 0;border-radius:0 4px 4px 0}
+    .cluster-header{font-size:.65rem;color:#4a9eff;letter-spacing:1.5px;margin-bottom:6px;text-transform:uppercase}
+
+    /* Mobile tightening */
+    @media (max-width: 700px){
+      section{margin:16px 12px}
+      .header{padding:12px 16px}
+      .nav{padding:8px 16px}
+      .strip-cell{padding:10px 8px}
+      .strip-value{font-size:1.1rem}
+      .rec-table{font-size:.7rem}
+      .rec-table th, .rec-table td{padding:5px 4px}
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div style="flex:1">
+      <h1>⚡ HEDGE FUND DESK</h1>
+      <div class="sub">CONSOLIDATED RISK + OPPORTUNITY VIEW | UPDATES 13:45 UTC WEEKDAYS</div>
+    </div>
+    <div class="sub" id="lastUpdate" style="text-align:right">loading…</div>
+  </div>
+
+  <div class="nav">
+    <a href="index.html">Home</a>
+    <a href="reports.html">Reports</a>
+    <a href="intelligence.html">Intelligence</a>
+    <a href="edge.html">Edge</a>
+    <a href="screener/">Screener</a>
+    <a href="liquidity.html">Liquidity</a>
+    <a href="dex.html">DEX</a>
+    <a href="desk.html" class="active">Desk</a>
+  </div>
+
+  <div class="refresh-bar">
+    <span id="dataFreshness">Auto-refresh: 5 min</span>
+    <button class="refresh-btn" onclick="loadAll()">↻ Refresh now</button>
+  </div>
+
+  <!-- TOP STATUS STRIP — at-a-glance regime / drawdown / exposure -->
+  <div class="status-strip" id="statusStrip">
+    <div class="strip-cell">
+      <div class="strip-label">Bond Regime</div>
+      <div class="strip-value" id="regimeValue">—</div>
+      <div class="strip-sub" id="regimeStrength">strength —</div>
+    </div>
+    <div class="strip-cell">
+      <div class="strip-label">Max Gross</div>
+      <div class="strip-value" id="maxGross">—</div>
+      <div class="strip-sub">regime-adjusted ceiling</div>
+    </div>
+    <div class="strip-cell">
+      <div class="strip-label">Drawdown</div>
+      <div class="strip-value" id="drawdown">—</div>
+      <div class="strip-sub" id="drawdownTrigger">multiplier ×—</div>
+    </div>
+    <div class="strip-cell">
+      <div class="strip-label">Active Setups</div>
+      <div class="strip-value" id="setupCount">—</div>
+      <div class="strip-sub" id="clusterCount">— clusters</div>
+    </div>
+    <div class="strip-cell">
+      <div class="strip-label">Recommended</div>
+      <div class="strip-value" id="totalSize">—</div>
+      <div class="strip-sub">total position</div>
+    </div>
+  </div>
+
+  <!-- RISK PANEL -->
+  <section>
+    <div class="section-title">⚠ Risk &amp; Warnings <span class="sub">— what the system is watching</span></div>
+    <div class="grid-row">
+      <div class="card">
+        <h3>BOND REGIME — Phase 1A</h3>
+        <div id="regimePanel" class="loading">loading…</div>
+      </div>
+      <div class="card">
+        <h3>CROSS-ASSET DIVERGENCES — Phase 1B</h3>
+        <div id="divergencePanel" class="loading">loading…</div>
+      </div>
+      <div class="card">
+        <h3>COT POSITIONING EXTREMES — Phase 2A</h3>
+        <div id="cotPanel" class="loading">loading…</div>
+      </div>
+    </div>
+    <div id="warningsPanel" style="margin-top:12px"></div>
+  </section>
+
+  <!-- OPPORTUNITY PANEL -->
+  <section>
+    <div class="section-title">✦ Sized Recommendations <span class="sub">— Phase 3 risk-adjusted output</span></div>
+    <div id="recommendationsPanel" class="loading">loading…</div>
+  </section>
+
+  <!-- CONTEXT PANEL -->
+  <section>
+    <div class="section-title">⊙ Context <span class="sub">— supporting layers</span></div>
+    <div class="grid-row">
+      <div class="card">
+        <h3>WATCHLIST DEBATE — Loop 4</h3>
+        <div id="debatePanel" class="loading">loading…</div>
+      </div>
+      <div class="card">
+        <h3>HYPOTHETICAL PNL — Loop 2</h3>
+        <div id="pnlPanel" class="loading">loading…</div>
+      </div>
+      <div class="card">
+        <h3>VALUE TRAPS — names to AVOID</h3>
+        <div id="trapsPanel" class="loading">loading…</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer-note">
+    All recommendations are HYPOTHETICAL for tracking only. The system never trades and never auto-rebalances.<br>
+    Past hypothetical performance does not predict future returns. Not investment advice. Execute manually if at all.
+  </div>
+  <div class="timestamp" id="generatedAt">—</div>
+
+  <script>
+    const S3 = "https://justhodl-dashboard-live.s3.amazonaws.com/";
+    const REFRESH_MS = 5 * 60 * 1000;
+
+    async function fetchJson(key){
+      try {
+        const r = await fetch(S3 + key + "?t=" + Date.now());
+        if (!r.ok) return null;
+        return await r.json();
+      } catch (e) {
+        console.warn("fetch", key, e);
+        return null;
+      }
+    }
+
+    function fmt(n, dp=1){
+      if (n === null || n === undefined || isNaN(n)) return "—";
+      return Number(n).toFixed(dp);
+    }
+
+    function pct(n, dp=1){
+      const f = fmt(n, dp);
+      return f === "—" ? "—" : f + "%";
+    }
+
+    function regimeTag(regime){
+      if (regime === "RISK_OFF") return `<span class="tag tag-risk-off">${regime}</span>`;
+      if (regime === "RISK_ON")  return `<span class="tag tag-risk-on">${regime}</span>`;
+      return `<span class="tag tag-neutral">${regime || 'NEUTRAL'}</span>`;
+    }
+
+    function regimeColor(regime){
+      if (regime === "RISK_OFF") return "red";
+      if (regime === "RISK_ON")  return "green";
+      return "yellow";
+    }
+
+    function ddColor(dd){
+      if (dd === null || dd === undefined) return "grey";
+      if (dd <= -10) return "red";
+      if (dd <= -5)  return "yellow";
+      return "green";
+    }
+
+    function timeAgo(iso){
+      if (!iso) return "?";
+      try {
+        const t = new Date(iso);
+        const mins = Math.floor((Date.now() - t.getTime()) / 60000);
+        if (mins < 60) return `${mins}m ago`;
+        if (mins < 60*24) return `${Math.floor(mins/60)}h ago`;
+        return `${Math.floor(mins/(60*24))}d ago`;
+      } catch (e) { return "?"; }
+    }
+
+    // ─── Data renderers ────────────────────────────────────────────────
+    function renderStatusStrip(risk, regime){
+      const r = regime || {};
+      const rs = risk || {};
+      const dd = rs.drawdown_status || {};
+      const summary = rs.summary || {};
+
+      document.getElementById("regimeValue").innerHTML =
+        regimeTag(r.regime || "NEUTRAL");
+      document.getElementById("regimeStrength").textContent =
+        `strength ${fmt(r.regime_strength, 1)}/100`;
+
+      document.getElementById("maxGross").textContent =
+        rs.max_gross_exposure_pct !== undefined ? rs.max_gross_exposure_pct + "%" : "—";
+
+      const ddPct = dd.current_dd_pct;
+      const ddEl = document.getElementById("drawdown");
+      ddEl.textContent = ddPct !== undefined ? fmt(ddPct, 1) + "%" : "0%";
+      ddEl.className = "strip-value " + ddColor(ddPct);
+      document.getElementById("drawdownTrigger").textContent =
+        `multiplier ×${dd.size_multiplier ?? "1.0"}`;
+
+      document.getElementById("setupCount").textContent =
+        summary.n_candidate_ideas ?? "—";
+      document.getElementById("clusterCount").textContent =
+        (summary.n_clusters ?? "—") + " clusters";
+
+      document.getElementById("totalSize").textContent =
+        summary.total_recommended_size_pct !== undefined ?
+          fmt(summary.total_recommended_size_pct, 1) + "%" : "—";
+    }
+
+    function renderRegimePanel(regime){
+      const el = document.getElementById("regimePanel");
+      if (!regime) { el.innerHTML = '<div class="card-empty">no data</div>'; return; }
+
+      const signals = regime.signals || [];
+      const extreme = signals.filter(s => s.extreme);
+
+      let html = `<div class="metric"><span class="label">Current</span>
+        <span class="val">${regimeTag(regime.regime)}</span></div>`;
+      html += `<div class="metric"><span class="label">Strength</span>
+        <span class="val ${regimeColor(regime.regime)}">${fmt(regime.regime_strength, 1)}/100</span></div>`;
+      html += `<div class="metric"><span class="label">Indicators at extreme</span>
+        <span class="val">${regime.indicators_extreme}/${regime.indicators_total}</span></div>`;
+      html += `<div class="metric"><span class="label">Risk-off / Risk-on</span>
+        <span class="val">${regime.n_risk_off} / ${regime.n_risk_on}</span></div>`;
+      html += `<div class="metric"><span class="label">Days in regime</span>
+        <span class="val">${fmt(regime.days_in_regime, 1)}</span></div>`;
+
+      if (extreme.length > 0) {
+        html += '<div style="margin-top:10px"><div class="label" style="color:#ffcc00;font-size:.7rem;letter-spacing:1px">EXTREMES:</div>';
+        for (const s of extreme) {
+          html += `<div class="signal-row extreme">
+            <span class="name">${s.name}</span>
+            <span class="z ${s.z > 0 ? 'red' : 'green'}">z=${(s.z >= 0 ? '+' : '') + fmt(s.z, 2)}</span>
+          </div>`;
+        }
+        html += '</div>';
+      } else {
+        html += '<div style="margin-top:8px;color:#8098b0;font-size:.7rem">No indicators at >2σ extreme — bond market calm.</div>';
+      }
+      el.innerHTML = html;
+    }
+
+    function renderDivergencePanel(div){
+      const el = document.getElementById("divergencePanel");
+      if (!div) { el.innerHTML = '<div class="card-empty">no data</div>'; return; }
+
+      const summary = div.summary || {};
+      const rels = (div.relationships || []).filter(r => r.status === "ok");
+      const extreme = rels.filter(r => r.extreme);
+
+      let html = `<div class="metric"><span class="label">Processed</span>
+        <span class="val">${summary.n_processed}/${summary.n_relationships_total}</span></div>`;
+      html += `<div class="metric"><span class="label">At &gt;2σ extreme</span>
+        <span class="val ${extreme.length > 0 ? 'yellow' : 'green'}">${extreme.length}</span></div>`;
+      html += `<div class="metric"><span class="label">At &gt;3σ alert</span>
+        <span class="val ${summary.n_alert_worthy > 0 ? 'red' : 'grey'}">${summary.n_alert_worthy ?? 0}</span></div>`;
+
+      if (extreme.length > 0) {
+        html += '<div style="margin-top:10px"><div class="label" style="color:#ffcc00;font-size:.7rem;letter-spacing:1px">DIVERGENCES:</div>';
+        for (const r of extreme.slice(0, 5)) {
+          const cls = r.alert_worthy ? "alert" : "extreme";
+          html += `<div class="signal-row ${cls}">
+            <div>
+              <div class="name">${r.name}</div>
+              <div class="desc">${r.mispricing}</div>
+            </div>
+            <span class="z ${r.z_score > 0 ? 'red' : 'green'}">z=${(r.z_score >= 0 ? '+' : '') + fmt(r.z_score, 2)}</span>
+          </div>`;
+        }
+        html += '</div>';
+      } else {
+        html += '<div style="margin-top:8px;color:#8098b0;font-size:.7rem">No cross-asset relationships at extreme.</div>';
+      }
+      el.innerHTML = html;
+    }
+
+    function renderCotPanel(cot){
+      const el = document.getElementById("cotPanel");
+      if (!cot) { el.innerHTML = '<div class="card-empty">no data — first scheduled run is Friday 19:00 UTC</div>'; return; }
+
+      const summary = cot.summary || {};
+      const contracts = (cot.contracts || []).filter(c => c.status === "ok");
+      const extreme = contracts.filter(c => c.extreme);
+
+      let html = `<div class="metric"><span class="label">Contracts processed</span>
+        <span class="val">${summary.n_processed}/${summary.n_contracts_total}</span></div>`;
+      html += `<div class="metric"><span class="label">At extreme</span>
+        <span class="val ${extreme.length > 0 ? 'yellow' : 'green'}">${extreme.length}</span></div>`;
+      html += `<div class="metric"><span class="label">Category clusters</span>
+        <span class="val ${summary.n_cluster_alerts > 0 ? 'red' : 'grey'}">${summary.n_cluster_alerts ?? 0}</span></div>`;
+
+      if (extreme.length > 0) {
+        html += '<div style="margin-top:10px"><div class="label" style="color:#ffcc00;font-size:.7rem;letter-spacing:1px">EXTREMES:</div>';
+        for (const c of extreme.slice(0, 6)) {
+          const sign = c.extreme === "high" ? "↑" : "↓";
+          const cls = c.extreme === "high" ? "red" : "green";
+          html += `<div class="signal-row extreme">
+            <div>
+              <div class="name">${c.contract} <span class="grey" style="font-weight:400">${c.name}</span></div>
+              <div class="desc">${c.category}</div>
+            </div>
+            <span class="z ${cls}">${fmt(c.percentile, 1)}p ${sign}</span>
+          </div>`;
+        }
+        html += '</div>';
+      } else {
+        html += '<div style="margin-top:8px;color:#8098b0;font-size:.7rem">No contracts at &gt;95th or &lt;5th percentile.</div>';
+      }
+      el.innerHTML = html;
+    }
+
+    function renderRecommendations(risk){
+      const el = document.getElementById("recommendationsPanel");
+      if (!risk) { el.innerHTML = '<div class="card-empty">no risk recommendations data</div>'; return; }
+
+      const recs = risk.sized_recommendations || [];
+      if (recs.length === 0) {
+        el.innerHTML = '<div class="card-empty">No active recommendations</div>';
+        return;
+      }
+
+      // Group by cluster
+      const byCluster = {};
+      for (const r of recs) {
+        const cid = r.cluster || "unclustered";
+        byCluster[cid] = byCluster[cid] || [];
+        byCluster[cid].push(r);
+      }
+
+      // Sort clusters by total size descending
+      const clusters = Object.entries(byCluster)
+        .map(([id, members]) => ({
+          id,
+          members,
+          total: members.reduce((acc, m) => acc + (m.recommended_size_pct || 0), 0),
+        }))
+        .sort((a, b) => b.total - a.total);
+
+      // Find max size for bar scaling
+      const maxSize = Math.max(...recs.map(r => r.recommended_size_pct || 0), 0.01);
+
+      let html = '<table class="rec-table"><thead><tr>'
+        + '<th>SYM</th><th>NAME</th><th>SECTOR</th>'
+        + '<th>CONV</th><th>DIMS</th><th>CLUSTER</th>'
+        + '<th>SIZE %</th><th>RATIONALE</th>'
+        + '</tr></thead><tbody>';
+
+      for (const cluster of clusters) {
+        for (const r of cluster.members.sort((a, b) => (b.recommended_size_pct || 0) - (a.recommended_size_pct || 0))) {
+          const dims = r.phase2b_dims ? `${r.phase2b_dims}/4` : "—";
+          const sizeBarWidth = ((r.recommended_size_pct || 0) / maxSize * 80).toFixed(0);
+          const sectorShort = (r.sector || "").length > 14 ? (r.sector || "").slice(0, 13) + "…" : (r.sector || "—");
+          const clusterDisplay = (cluster.members.length > 1)
+            ? `<span class="blue">${cluster.id.replace(/^sector_/, "").replace(/_/g, " ")} (${cluster.members.length})</span>`
+            : `<span class="grey">solo</span>`;
+          html += `<tr>
+            <td class="symbol">${r.symbol}</td>
+            <td>${(r.name || r.symbol).slice(0, 22)}</td>
+            <td class="grey">${sectorShort}</td>
+            <td>${fmt(r.raw_conviction, 2)}</td>
+            <td class="grey">${dims}</td>
+            <td>${clusterDisplay}</td>
+            <td><span class="size-bar" style="width:${sizeBarWidth}px"></span><strong>${fmt(r.recommended_size_pct, 2)}%</strong></td>
+            <td class="grey" style="font-size:.7rem">${r.reasoning || "—"}</td>
+          </tr>`;
+        }
+      }
+      html += '</tbody></table>';
+      el.innerHTML = html;
+    }
+
+    function renderWarnings(risk){
+      const el = document.getElementById("warningsPanel");
+      const warnings = risk?.warnings || [];
+      if (warnings.length === 0) { el.innerHTML = ""; return; }
+
+      let html = '';
+      for (const w of warnings) {
+        const cls = w.level === "high" ? "alert" : (w.level === "medium" ? "extreme" : "");
+        html += `<div class="signal-row ${cls}" style="font-size:.75rem">
+          <span class="name">[${(w.level || "info").toUpperCase()}]</span>
+          <span style="flex:1;text-align:right;color:#a0b8d0">${w.message}</span>
+        </div>`;
+      }
+      el.innerHTML = html;
+    }
+
+    function renderDebate(debate){
+      const el = document.getElementById("debatePanel");
+      if (!debate || !debate.summary) {
+        el.innerHTML = '<div class="card-empty">first scheduled run tonight at 03:00 UTC</div>';
+        return;
+      }
+      const summary = debate.summary;
+      const tickers = Object.entries(summary).slice(0, 8);
+      let html = `<div class="metric"><span class="label">Tickers analyzed</span>
+        <span class="val">${debate.n_tickers || tickers.length}</span></div>`;
+      for (const [tk, info] of tickers) {
+        const sigClass = info.consensus_signal?.includes("BUY") ? "green" :
+                         info.consensus_signal?.includes("SELL") ? "red" : "grey";
+        const novClass = info.avg_novelty < 0.2 ? "yellow" : "grey";
+        html += `<div class="metric">
+          <span class="label">${tk}</span>
+          <span class="val">
+            <span class="${sigClass}">${info.consensus_signal || "—"}</span>
+            <span class="grey" style="font-size:.65rem"> conv ${info.consensus_conviction || "—"}/10</span>
+          </span>
+        </div>`;
+      }
+      el.innerHTML = html;
+    }
+
+    function renderPnl(pnl){
+      const el = document.getElementById("pnlPanel");
+      if (!pnl) { el.innerHTML = '<div class="card-empty">no PnL data — Loop 2 still warming up</div>'; return; }
+
+      const bh = pnl.buy_and_hold || {};
+      const ks = pnl.khalid_strategy || {};
+      const delta = pnl.delta_pct || 0;
+      const deltaCls = delta > 0 ? "green" : (delta < 0 ? "red" : "grey");
+
+      let html = `<div class="metric"><span class="label">Inception</span>
+        <span class="val grey">${pnl.inception || "—"}</span></div>`;
+      html += `<div class="metric"><span class="label">Days running</span>
+        <span class="val">${pnl.days_since_inception || 0}</span></div>`;
+      html += `<div class="metric"><span class="label">Buy &amp; hold</span>
+        <span class="val ${(bh.return_pct || 0) >= 0 ? 'green' : 'red'}">${fmt(bh.return_pct, 2)}%</span></div>`;
+      html += `<div class="metric"><span class="label">Khalid strategy</span>
+        <span class="val ${(ks.return_pct || 0) >= 0 ? 'green' : 'red'}">${fmt(ks.return_pct, 2)}%</span></div>`;
+      html += `<div class="metric"><span class="label">System alpha (Δ)</span>
+        <span class="val ${deltaCls}">${(delta >= 0 ? '+' : '') + fmt(delta, 2)}%</span></div>`;
+      html += `<div class="metric"><span class="label">Current regime</span>
+        <span class="val">${regimeTag(pnl.current_regime || pnl.current_phase)}</span></div>`;
+      el.innerHTML = html;
+    }
+
+    function renderTraps(opps){
+      const el = document.getElementById("trapsPanel");
+      if (!opps) { el.innerHTML = '<div class="card-empty">no data</div>'; return; }
+      const traps = opps.value_traps || [];
+      if (traps.length === 0) { el.innerHTML = '<div style="color:#8098b0;font-size:.7rem;text-align:center;padding:14px">No value traps tracked</div>'; return; }
+
+      let html = `<div style="color:#8098b0;font-size:.7rem;margin-bottom:8px">Names that LOOK cheap but FAIL quality gate.</div>`;
+      for (const t of traps.slice(0, 8)) {
+        html += `<div class="metric">
+          <span class="label">
+            <span class="red">${t.symbol}</span>
+            <span class="grey" style="font-size:.65rem"> ${(t.sector||"").slice(0,12)}</span>
+          </span>
+          <span class="val grey" style="font-size:.65rem">PE ${fmt(t.peRatio, 1)} · ${t.trap_reason || "—"}</span>
+        </div>`;
+      }
+      el.innerHTML = html;
+    }
+
+    // ─── Main loader ───────────────────────────────────────────────────
+    async function loadAll(){
+      const t0 = Date.now();
+      const [regime, divergence, cot, risk, opps, pnl, debate] = await Promise.all([
+        fetchJson("regime/current.json"),
+        fetchJson("divergence/current.json"),
+        fetchJson("cot/extremes/current.json"),
+        fetchJson("risk/recommendations.json"),
+        fetchJson("opportunities/asymmetric-equity.json"),
+        fetchJson("portfolio/pnl-daily.json"),
+        fetchJson("investor-debate/_index.json"),
+      ]);
+      const elapsed = Date.now() - t0;
+
+      renderStatusStrip(risk, regime);
+      renderRegimePanel(regime);
+      renderDivergencePanel(divergence);
+      renderCotPanel(cot);
+      renderRecommendations(risk);
+      renderWarnings(risk);
+      renderDebate(debate);
+      renderPnl(pnl);
+      renderTraps(opps);
+
+      // Update timestamps
+      const lastUpdate = risk?.as_of || regime?.as_of;
+      if (lastUpdate) {
+        document.getElementById("lastUpdate").textContent =
+          `last update: ${timeAgo(lastUpdate)}`;
+      }
+      document.getElementById("generatedAt").textContent =
+        `Loaded ${elapsed}ms · regime ${timeAgo(regime?.as_of)} · risk ${timeAgo(risk?.as_of)} · divergence ${timeAgo(divergence?.as_of)} · COT ${timeAgo(cot?.as_of)}`;
+    }
+
+    loadAll();
+    setInterval(loadAll, REFRESH_MS);
+  </script>
+</body>
+</html>
