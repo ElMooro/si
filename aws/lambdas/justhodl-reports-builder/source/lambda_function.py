@@ -228,6 +228,90 @@ def compute_khalid_timeline(signals):
     return [p for p in points if p["ts"] >= cutoff]
 
 
+def compute_morning_archive(s3_client, days=30):
+    """Build a daily morning brief archive from archive/intelligence/.
+
+    For each day in the past `days` days, picks the snapshot closest
+    to 12:05 UTC (= 8:05 ET, when morning-intelligence runs). Extracts
+    canonical fields suitable for display in reports.html Section 1.
+    """
+    from datetime import datetime, timezone, timedelta, date
+    bucket = "justhodl-dashboard-live"
+
+    # Collect intelligence/ keys for the last `days` days
+    today = datetime.now(timezone.utc).date()
+    cutoff_date = today - timedelta(days=days)
+    keys_by_date = {}  # date -> list of (key, hhmm_distance_from_1205)
+
+    paginator = s3_client.get_paginator("list_objects_v2")
+    # Iterate the days backwards (today back to cutoff)
+    for offset in range(days):
+        d = today - timedelta(days=offset)
+        prefix = f"archive/intelligence/{d.year}/{d.month:02d}/{d.day:02d}/"
+        try:
+            for page in paginator.paginate(Bucket=bucket, Prefix=prefix):
+                for obj in page.get("Contents", []):
+                    k = obj["Key"]
+                    # Filename like 1205.json — strip the .json
+                    fn = k.rsplit("/", 1)[-1]
+                    m = re.match(r"(\d{4})\.json", fn)
+                    if not m:
+                        continue
+                    hhmm = int(m.group(1))
+                    # Distance from 12:05 UTC (= 1205) in minutes
+                    h = hhmm // 100
+                    minute = hhmm % 100
+                    minutes = h * 60 + minute
+                    target = 12 * 60 + 5  # 12:05 UTC
+                    distance = abs(minutes - target)
+                    keys_by_date.setdefault(d, []).append((k, distance))
+        except Exception as e:
+            print(f"morning_archive: list error for {d}: {e}")
+
+    # For each day, pick the closest-to-1205 key
+    chosen = {}
+    for d, items in keys_by_date.items():
+        items.sort(key=lambda x: x[1])
+        chosen[d] = items[0][0]
+
+    # Fetch each chosen snapshot and build the archive entry
+    archive = []
+    for d in sorted(chosen.keys(), reverse=True):  # newest first
+        k = chosen[d]
+        try:
+            obj = s3_client.get_object(Bucket=bucket, Key=k)
+            data = json.loads(obj["Body"].read().decode("utf-8"))
+        except Exception as e:
+            print(f"morning_archive: fetch error for {k}: {e}")
+            continue
+
+        # Extract canonical fields. Use .get with defaults so missing
+        # fields don't break.
+        scores = data.get("scores") or {}
+        forecast = data.get("forecast") or {}
+        archive.append({
+            "date": d.isoformat(),
+            "key": k,
+            "generated_at": data.get("generated_at") or data.get("timestamp"),
+            "regime": data.get("regime"),
+            "phase": data.get("phase"),
+            "phase_color": data.get("phase_color"),
+            "headline": data.get("headline"),
+            "headline_detail": data.get("headline_detail"),
+            "action_required": data.get("action_required"),
+            "khalid_score": scores.get("khalid_index") or scores.get("khalid"),
+            "carry_risk": scores.get("carry_risk"),
+            "ml_risk": scores.get("ml_risk") or scores.get("ml_intelligence"),
+            "plumbing": scores.get("plumbing_stress") or scores.get("plumbing"),
+            "vix": data.get("vix") or scores.get("vix"),
+            "forecast_summary": forecast.get("summary") if isinstance(forecast, dict) else None,
+            "risks_count": len(data.get("risks") or []),
+            "signal_count": len(data.get("signals") or []),
+        })
+
+    return archive
+
+
 def lambda_handler(event, context):
     """Build scorecard.json from SSM + DynamoDB and write to S3."""
     # 1. SSM calibration data
@@ -254,6 +338,12 @@ def lambda_handler(event, context):
     timeline = compute_khalid_timeline(signals)
 
     # 5. Build output
+    morning_archive = []
+    try:
+        morning_archive = compute_morning_archive(s3, days=30)
+    except Exception as e:
+        print(f"morning_archive failed: {e}")
+
     out = {
         "meta": {
             "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -271,6 +361,7 @@ def lambda_handler(event, context):
         "khalid_timeline": timeline,
         "calibration_weights": weights if isinstance(weights, dict) else {},
         "calibration_accuracy": accuracy if isinstance(accuracy, dict) else {},
+        "morning_archive": morning_archive,
     }
 
     # 6. Write to S3
@@ -288,6 +379,7 @@ def lambda_handler(event, context):
             "ok": True,
             "scorecard_rows": len(scorecard),
             "timeline_points": len(timeline),
+            "morning_archive_days": len(morning_archive),
             "signals_seen": len(signals),
             "outcomes_seen": len(outcomes),
         }),
