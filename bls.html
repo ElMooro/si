@@ -1,12 +1,11 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>BLS Employment Crisis Detection Platform - Comprehensive</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-<style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLS Employment Crisis Detection Platform - Comprehensive</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
         * {
             margin: 0;
             padding: 0;
@@ -299,108 +298,101 @@
             color: white;
         }
     </style>
-<link href="/assets/sidebar.css" rel="stylesheet"/><style id="jh-suppress-legacy">
-/* JustHodl: hide legacy page navs in favour of shared sidebar */
-body > nav,
-body > header,
-body > .topbar,
-body > .top-bar,
-body > .top-nav,
-body > .navbar,
-body > .navigation,
-.jh-page > nav:first-child,
-.jh-page > header:first-child,
-.jh-page > .topbar:first-child,
-.jh-page > .top-bar:first-child,
-.jh-page > .navbar:first-child{
-  display: none !important;
-}
-/* Reset any body padding-top that was reserving space for fixed nav */
-body{
-  padding-top: 0 !important;
-  margin: 0 !important;
-}
-</style></head>
-<body><div id="sidebar"></div><div class="jh-page">
-<div class="container">
-<h1>📊 BLS Employment Crisis Detection Platform - Real Federal Data</h1>
-<div class="controls">
-<button class="btn" onclick="fetchAllData()">📊 Fetch Latest BLS Data</button>
-<button class="btn" onclick="runCrisisDetection()">⚠️ Run Crisis Detection</button>
-<button class="btn" onclick="exportReport()">📄 Export Report</button>
-<button class="btn" onclick="clearSelection()">🔄 Clear Selection</button>
-</div>
-<div class="filter-controls">
-<button class="filter-btn active" onclick="filterCategory('all')">All Metrics</button>
-<button class="filter-btn" onclick="filterCategory('core')">Core Employment</button>
-<button class="filter-btn" onclick="filterCategory('demographic')">Demographics</button>
-<button class="filter-btn" onclick="filterCategory('jolts')">JOLTS</button>
-<button class="filter-btn" onclick="filterCategory('industry')">Industry</button>
-<button class="filter-btn" onclick="filterCategory('alternative')">Alternative Measures</button>
-<button class="filter-btn" onclick="filterCategory('states')">State Data</button>
-</div>
-<!-- Core Employment Metrics -->
-<div class="category-section" data-category="core">
-<div class="category-title">📈 Core Employment Indicators</div>
-<div class="metrics-grid" id="coreMetrics"></div>
-</div>
-<!-- Alternative Unemployment Measures -->
-<div class="category-section" data-category="alternative">
-<div class="category-title">📊 Alternative Unemployment Measures (U-1 to U-6)</div>
-<div class="metrics-grid" id="altMetrics"></div>
-</div>
-<!-- Demographic Unemployment -->
-<div class="category-section" data-category="demographic">
-<div class="category-title">👥 Demographic Unemployment Rates</div>
-<div class="metrics-grid" id="demographicMetrics"></div>
-</div>
-<!-- State Unemployment -->
-<div class="category-section" data-category="states">
-<div class="category-title">🗺️ State Unemployment Rates</div>
-<div class="metrics-grid" id="stateMetrics"></div>
-</div>
-<!-- JOLTS Data -->
-<div class="category-section" data-category="jolts">
-<div class="category-title">💼 JOLTS - Job Openings and Labor Turnover</div>
-<div class="metrics-grid" id="joltsMetrics"></div>
-</div>
-<!-- Industry Specific -->
-<div class="category-section" data-category="industry">
-<div class="category-title">🏭 Industry-Specific Employment</div>
-<div class="metrics-grid" id="industryMetrics"></div>
-</div>
-<!-- Hours and Earnings -->
-<div class="category-section" data-category="industry">
-<div class="category-title">⏰ Hours and Earnings</div>
-<div class="metrics-grid" id="hoursMetrics"></div>
-</div>
-<div class="chart-container">
-<canvas id="mainChart"></canvas>
-</div>
-<div class="data-table-container">
-<h2 class="section-title">📊 Comprehensive Data Summary - All Indicators</h2>
-<table class="data-table" id="dataTable">
-<thead>
-<tr>
-<th>Category</th>
-<th>Indicator</th>
-<th>Current Value</th>
-<th>MoM %</th>
-<th>YoY %</th>
-<th>Crisis Level</th>
-<th>Distance</th>
-<th>Status</th>
-<th>Updated</th>
-</tr>
-</thead>
-<tbody id="tableBody"></tbody>
-</table>
-</div>
-<div class="loading" id="loading" style="display: none;">
+</head>
+<body>
+    <div class="container">
+        <h1>📊 BLS Employment Crisis Detection Platform - Real Federal Data</h1>
+        
+        <div class="controls">
+            <button class="btn" onclick="fetchAllData()">📊 Fetch Latest BLS Data</button>
+            <button class="btn" onclick="runCrisisDetection()">⚠️ Run Crisis Detection</button>
+            <button class="btn" onclick="exportReport()">📄 Export Report</button>
+            <button class="btn" onclick="clearSelection()">🔄 Clear Selection</button>
+        </div>
+        
+        <div class="filter-controls">
+            <button class="filter-btn active" onclick="filterCategory('all')">All Metrics</button>
+            <button class="filter-btn" onclick="filterCategory('core')">Core Employment</button>
+            <button class="filter-btn" onclick="filterCategory('demographic')">Demographics</button>
+            <button class="filter-btn" onclick="filterCategory('jolts')">JOLTS</button>
+            <button class="filter-btn" onclick="filterCategory('industry')">Industry</button>
+            <button class="filter-btn" onclick="filterCategory('alternative')">Alternative Measures</button>
+            <button class="filter-btn" onclick="filterCategory('states')">State Data</button>
+        </div>
+        
+        <!-- Core Employment Metrics -->
+        <div class="category-section" data-category="core">
+            <div class="category-title">📈 Core Employment Indicators</div>
+            <div class="metrics-grid" id="coreMetrics"></div>
+        </div>
+        
+        <!-- Alternative Unemployment Measures -->
+        <div class="category-section" data-category="alternative">
+            <div class="category-title">📊 Alternative Unemployment Measures (U-1 to U-6)</div>
+            <div class="metrics-grid" id="altMetrics"></div>
+        </div>
+        
+        <!-- Demographic Unemployment -->
+        <div class="category-section" data-category="demographic">
+            <div class="category-title">👥 Demographic Unemployment Rates</div>
+            <div class="metrics-grid" id="demographicMetrics"></div>
+        </div>
+        
+        <!-- State Unemployment -->
+        <div class="category-section" data-category="states">
+            <div class="category-title">🗺️ State Unemployment Rates</div>
+            <div class="metrics-grid" id="stateMetrics"></div>
+        </div>
+        
+        <!-- JOLTS Data -->
+        <div class="category-section" data-category="jolts">
+            <div class="category-title">💼 JOLTS - Job Openings and Labor Turnover</div>
+            <div class="metrics-grid" id="joltsMetrics"></div>
+        </div>
+        
+        <!-- Industry Specific -->
+        <div class="category-section" data-category="industry">
+            <div class="category-title">🏭 Industry-Specific Employment</div>
+            <div class="metrics-grid" id="industryMetrics"></div>
+        </div>
+        
+        <!-- Hours and Earnings -->
+        <div class="category-section" data-category="industry">
+            <div class="category-title">⏰ Hours and Earnings</div>
+            <div class="metrics-grid" id="hoursMetrics"></div>
+        </div>
+        
+        <div class="chart-container">
+            <canvas id="mainChart"></canvas>
+        </div>
+        
+        <div class="data-table-container">
+            <h2 class="section-title">📊 Comprehensive Data Summary - All Indicators</h2>
+            <table class="data-table" id="dataTable">
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Indicator</th>
+                        <th>Current Value</th>
+                        <th>MoM %</th>
+                        <th>YoY %</th>
+                        <th>Crisis Level</th>
+                        <th>Distance</th>
+                        <th>Status</th>
+                        <th>Updated</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+        
+        <div id="loading" class="loading" style="display: none;">
             Loading real-time BLS employment data...</div>
-<div class="error" id="error" style="display: none;"></div>
-</div>
-<script>
+        
+        <div id="error" class="error" style="display: none;"></div>
+    </div>
+
+    <script>
         // BLS API Configuration - Your actual API endpoint
         const BLS_API_URL = 'https://tajry2f7v3.execute-api.us-east-1.amazonaws.com/prod/data';
         
@@ -1164,5 +1156,5 @@ body{
             fetchAllData();
         });
     </script>
-</div><script src="/assets/sidebar.js"></script></body>
+</body>
 </html>

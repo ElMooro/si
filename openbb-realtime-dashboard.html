@@ -1,12 +1,13 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Real-Time Dashboard - OpenBB Financial Intelligence</title>
-<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-<style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Dashboard - OpenBB Financial Intelligence</title>
+    
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    
+    <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -581,115 +582,101 @@
             }
         }
     </style>
-<link href="/assets/sidebar.css" rel="stylesheet"/><style id="jh-suppress-legacy">
-/* JustHodl: hide legacy page navs in favour of shared sidebar */
-body > nav,
-body > header,
-body > .topbar,
-body > .top-bar,
-body > .top-nav,
-body > .navbar,
-body > .navigation,
-.jh-page > nav:first-child,
-.jh-page > header:first-child,
-.jh-page > .topbar:first-child,
-.jh-page > .top-bar:first-child,
-.jh-page > .navbar:first-child{
-  display: none !important;
-}
-/* Reset any body padding-top that was reserving space for fixed nav */
-body{
-  padding-top: 0 !important;
-  margin: 0 !important;
-}
-</style></head>
-<body><div id="sidebar"></div><div class="jh-page">
-<!-- Navigation -->
-<nav>
-<div class="nav-logo">📊 OPENBB</div>
-<div class="nav-links">
-<a href="index.html">Home</a>
-<a href="macroeconomic-platform.html">Macro Dashboard</a>
-<a href="ai_predictions.html">AI Signals</a>
-<a href="exponential-search-dashboard.html">Search</a>
-<a class="active" href="openbb-realtime-dashboard.html">Live Data</a>
-<a href="scraper_dashboard.html">Scraper Monitor</a>
-<a href="ai-predictions-supabase.html">Login</a>
-</div>
-<div class="connection-status">
-<div class="status-dot" id="statusDot"></div>
-<span class="status-text" id="statusText">Disconnected</span>
-</div>
-</nav>
-<!-- Loading Overlay -->
-<div class="loading-overlay" id="loadingOverlay" style="display: none;">
-<div class="loading-content">
-<div class="loading-spinner" style="width: 60px; height: 60px; margin: 0 auto 20px;"></div>
-<p style="color: #fff; font-size: 18px;">Loading Financial Indicators...</p>
-</div>
-</div>
-<!-- Main Container -->
-<div class="main-container">
-<!-- Header -->
-<div class="header-section">
-<h1 class="page-title">🚀 Real-Time Financial Indicators</h1>
-<p class="page-subtitle">Live data from <span id="totalIndicators">739</span> financial indicators</p>
-</div>
-<!-- Search and Filter Section -->
-<div class="search-section">
-<div class="search-container">
-<div class="autocomplete-container">
-<input autocomplete="off" class="search-input" id="searchInput" placeholder="Search indicators... (e.g., ICE BofA, unemployment, CISS)" type="text"/>
-<div class="autocomplete-dropdown" id="autocompleteDropdown"></div>
-</div>
-<button class="search-btn" onclick="searchIndicators()">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-logo">📊 OPENBB</div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="macroeconomic-platform.html">Macro Dashboard</a>
+            <a href="ai_predictions.html">AI Signals</a>
+            <a href="exponential-search-dashboard.html">Search</a>
+            <a href="openbb-realtime-dashboard.html" class="active">Live Data</a>
+            <a href="scraper_dashboard.html">Scraper Monitor</a>
+            <a href="ai-predictions-supabase.html">Login</a>
+        </div>
+        <div class="connection-status">
+            <div class="status-dot" id="statusDot"></div>
+            <span class="status-text" id="statusText">Disconnected</span>
+        </div>
+    </nav>
+    
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+        <div class="loading-content">
+            <div class="loading-spinner" style="width: 60px; height: 60px; margin: 0 auto 20px;"></div>
+            <p style="color: #fff; font-size: 18px;">Loading Financial Indicators...</p>
+        </div>
+    </div>
+    
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Header -->
+        <div class="header-section">
+            <h1 class="page-title">🚀 Real-Time Financial Indicators</h1>
+            <p class="page-subtitle">Live data from <span id="totalIndicators">739</span> financial indicators</p>
+        </div>
+        
+        <!-- Search and Filter Section -->
+        <div class="search-section">
+            <div class="search-container">
+                <div class="autocomplete-container">
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search indicators... (e.g., ICE BofA, unemployment, CISS)" autocomplete="off">
+                    <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>
+                </div>
+                <button class="search-btn" onclick="searchIndicators()">
                     🔍 Search
                 </button>
-<button class="search-btn" onclick="clearSearch()" style="background: #333;">
+                <button class="search-btn" style="background: #333;" onclick="clearSearch()">
                     ✖ Clear
                 </button>
-</div>
-<div class="filter-container">
-<div class="filter-tag" onclick="filterBySource('fred')">FRED</div>
-<div class="filter-tag" onclick="filterBySource('ecb')">ECB</div>
-<div class="filter-tag" onclick="filterBySource('treasury')">Treasury</div>
-<div class="filter-tag" onclick="filterByTag('interest-rates')">Interest Rates</div>
-<div class="filter-tag" onclick="filterByTag('employment')">Employment</div>
-<div class="filter-tag" onclick="filterByTag('financial-stress')">Financial Stress</div>
-<div class="filter-tag active" onclick="filterBySource('')">All Sources</div>
-</div>
-</div>
-<!-- Risk and Liquidity Histograms -->
-<div class="histogram-section">
-<div class="histogram-card">
-<h3 class="histogram-title">
+            </div>
+            <div class="filter-container">
+                <div class="filter-tag" onclick="filterBySource('fred')">FRED</div>
+                <div class="filter-tag" onclick="filterBySource('ecb')">ECB</div>
+                <div class="filter-tag" onclick="filterBySource('treasury')">Treasury</div>
+                <div class="filter-tag" onclick="filterByTag('interest-rates')">Interest Rates</div>
+                <div class="filter-tag" onclick="filterByTag('employment')">Employment</div>
+                <div class="filter-tag" onclick="filterByTag('financial-stress')">Financial Stress</div>
+                <div class="filter-tag active" onclick="filterBySource('')">All Sources</div>
+            </div>
+        </div>
+        
+        <!-- Risk and Liquidity Histograms -->
+        <div class="histogram-section">
+            <div class="histogram-card">
+                <h3 class="histogram-title">
                     ⚠️ Risk Distribution
                     <button onclick="editRiskIndicators()" style="margin-left: auto; padding: 4px 8px; background: #252525; border: 1px solid #383838; color: #ccc; border-radius: 4px; cursor: pointer; font-size: 12px;">Edit</button>
-</h3>
-<div class="histogram-chart" id="riskHistogram"></div>
-</div>
-<div class="histogram-card">
-<h3 class="histogram-title">
+                </h3>
+                <div class="histogram-chart" id="riskHistogram"></div>
+            </div>
+            <div class="histogram-card">
+                <h3 class="histogram-title">
                     💧 Liquidity Distribution
                     <button onclick="editLiquidityIndicators()" style="margin-left: auto; padding: 4px 8px; background: #252525; border: 1px solid #383838; color: #ccc; border-radius: 4px; cursor: pointer; font-size: 12px;">Edit</button>
-</h3>
-<div class="histogram-chart" id="liquidityHistogram"></div>
-</div>
-</div>
-<!-- Indicators Grid -->
-<div class="indicators-grid" id="indicatorsGrid">
-<!-- Indicators will be loaded here -->
-</div>
-<!-- Pagination -->
-<div class="pagination" id="pagination">
-<button class="pagination-btn" onclick="goToPage(1)">First</button>
-<button class="pagination-btn" id="prevBtn" onclick="previousPage()">Previous</button>
-<span class="page-info">Page <span id="currentPage">1</span> of <span id="totalPages">1</span></span>
-<button class="pagination-btn" id="nextBtn" onclick="nextPage()">Next</button>
-<button class="pagination-btn" onclick="goToPage(totalPages)">Last</button>
-</div>
-</div>
-<script>
+                </h3>
+                <div class="histogram-chart" id="liquidityHistogram"></div>
+            </div>
+        </div>
+        
+        <!-- Indicators Grid -->
+        <div class="indicators-grid" id="indicatorsGrid">
+            <!-- Indicators will be loaded here -->
+        </div>
+        
+        <!-- Pagination -->
+        <div class="pagination" id="pagination">
+            <button class="pagination-btn" onclick="goToPage(1)">First</button>
+            <button class="pagination-btn" id="prevBtn" onclick="previousPage()">Previous</button>
+            <span class="page-info">Page <span id="currentPage">1</span> of <span id="totalPages">1</span></span>
+            <button class="pagination-btn" id="nextBtn" onclick="nextPage()">Next</button>
+            <button class="pagination-btn" onclick="goToPage(totalPages)">Last</button>
+        </div>
+    </div>
+    
+    <script>
         // Configuration
         const OPENSEARCH_API = 'https://n7gw03k076.execute-api.us-east-1.amazonaws.com/prod';
         const INDICATORS_PER_PAGE = 40;
@@ -1694,5 +1681,5 @@ Data Points: ${indicator.data_points_count || 0}
             });
         }
     </script>
-</div><script src="/assets/sidebar.js"></script></body>
+</body>
 </html>

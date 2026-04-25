@@ -1,9 +1,8 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="utf-8"/><meta content="width=device-width,initial-scale=1.0" name="viewport"/>
-<title>Options Flow &amp; Sentiment | JustHodl.AI</title>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Options Flow & Sentiment | JustHodl.AI</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#0a0e17;--card:#111827;--card2:#1a2332;--border:#1e2d3d;--text:#e2e8f0;--dim:#64748b;--green:#22c55e;--red:#ef4444;--yellow:#f59e0b;--blue:#3b82f6;--purple:#a855f7;--cyan:#06b6d4;--orange:#f97316;--accent:#3b82f6}
@@ -67,34 +66,13 @@ tr:hover{background:rgba(255,255,255,.02)}
 @media(max-width:1024px){.grid2,.grid3{grid-template-columns:1fr}.grid4{grid-template-columns:1fr 1fr}}
 @media(max-width:640px){.content{padding:12px}.tabs{padding:6px 12px}}
 </style>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<link href="/assets/sidebar.css" rel="stylesheet"/><style id="jh-suppress-legacy">
-/* JustHodl: hide legacy page navs in favour of shared sidebar */
-body > nav,
-body > header,
-body > .topbar,
-body > .top-bar,
-body > .top-nav,
-body > .navbar,
-body > .navigation,
-.jh-page > nav:first-child,
-.jh-page > header:first-child,
-.jh-page > .topbar:first-child,
-.jh-page > .top-bar:first-child,
-.jh-page > .navbar:first-child{
-  display: none !important;
-}
-/* Reset any body padding-top that was reserving space for fixed nav */
-body{
-  padding-top: 0 !important;
-  margin: 0 !important;
-}
-</style></head>
-<body><div id="sidebar"></div><div class="jh-page">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
 <div class="topbar">
 <div style="display:flex;align-items:center;gap:16px">
-<a class="back-link" href="index.html">← Dashboard</a>
-<h1>Options Flow &amp; Sentiment Intelligence</h1>
+<a href="index.html" class="back-link">← Dashboard</a>
+<h1>Options Flow & Sentiment Intelligence</h1>
 </div>
 <div class="meta"><span class="live"></span>Live | <span id="lastUpdate">Loading...</span></div>
 </div>
@@ -394,5 +372,5 @@ loadData();
 const now=new Date();const h=now.getUTCHours(),day=now.getUTCDay();
 if(day>0&&day<6&&h>=13&&h<=21){setInterval(loadData,300000)}else{setInterval(loadData,900000)}
 </script>
-</div><script src="/assets/sidebar.js"></script></body>
+</body>
 </html>

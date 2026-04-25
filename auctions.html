@@ -1,12 +1,11 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JustHodl.AI | Treasury Auction Monitor</title>
 <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&amp;family=DM+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg0:#060a12;--bg1:#0b0f1a;--bg2:#111827;--bg3:#1a2035;--bg4:#232b42;--brd:#1e2a45;--brd2:#2d3a5c;--t1:#e2e8f0;--t2:#94a3b8;--t3:#64748b;--green:#10b981;--red:#ef4444;--blue:#3b82f6;--yellow:#f59e0b;--orange:#f97316;--purple:#a78bfa;--cyan:#22d3ee;--pink:#ec4899;--gold:#fbbf24}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -108,120 +107,106 @@ a{color:var(--cyan);text-decoration:none}
 @media(max-width:1200px){.hero{grid-template-columns:repeat(3,1fr)}.chart-row{grid-template-columns:1fr}.crisis-metrics{grid-template-columns:1fr 1fr}}
 @media(max-width:768px){.hero{grid-template-columns:1fr 1fr}.crisis-metrics{grid-template-columns:1fr}}
 </style>
-<link href="/assets/sidebar.css" rel="stylesheet"/><style id="jh-suppress-legacy">
-/* JustHodl: hide legacy page navs in favour of shared sidebar */
-body > nav,
-body > header,
-body > .topbar,
-body > .top-bar,
-body > .top-nav,
-body > .navbar,
-body > .navigation,
-.jh-page > nav:first-child,
-.jh-page > header:first-child,
-.jh-page > .topbar:first-child,
-.jh-page > .top-bar:first-child,
-.jh-page > .navbar:first-child{
-  display: none !important;
-}
-/* Reset any body padding-top that was reserving space for fixed nav */
-body{
-  padding-top: 0 !important;
-  margin: 0 !important;
-}
-</style></head>
-<body><div id="sidebar"></div><div class="jh-page">
+</head>
+<body>
 <div class="topbar">
-<div class="logo"><span class="hl">TREASURY</span>AUCTIONS<sub>Crisis Benchmark Monitor v3.0</sub></div>
-<div class="topbar-r">
-<a class="nav-link" href="index.html">Terminal</a>
-<a class="nav-link" href="fred.html">FRED</a>
-<a class="nav-link" href="carry.html">Carry</a>
-<div class="live"><div class="dot"></div> LIVE</div>
-<span class="mono" id="clock"></span>
-</div>
+  <div class="logo"><span class="hl">TREASURY</span>AUCTIONS<sub>Crisis Benchmark Monitor v3.0</sub></div>
+  <div class="topbar-r">
+    <a href="index.html" class="nav-link">Terminal</a>
+    <a href="fred.html" class="nav-link">FRED</a>
+    <a href="carry.html" class="nav-link">Carry</a>
+    <div class="live"><div class="dot"></div> LIVE</div>
+    <span id="clock" class="mono"></span>
+  </div>
 </div>
 <div class="filters">
-<div class="fbtn-group" id="typeFilter">
-<button class="fbtn active" data-type="all">All</button>
-<button class="fbtn" data-type="Bill">Bills</button>
-<button class="fbtn" data-type="Note">Notes</button>
-<button class="fbtn" data-type="Bond">Bonds</button>
-<button class="fbtn" data-type="TIPS">TIPS</button>
-<button class="fbtn" data-type="FRN">FRN</button>
-<button class="fbtn" data-type="CMB">CMB</button>
-</div>
-<div class="fbtn-group" id="rangeFilter">
-<button class="fbtn" data-days="14">2W</button>
-<button class="fbtn" data-days="30">1M</button>
-<button class="fbtn active" data-days="90">3M</button>
-<button class="fbtn" data-days="180">6M</button>
-<button class="fbtn" data-days="365">1Y</button>
-</div>
-<span id="filterInfo" style="font-size:10px;color:var(--t3);margin-left:8px">Loading...</span>
+  <div class="fbtn-group" id="typeFilter">
+    <button class="fbtn active" data-type="all">All</button>
+    <button class="fbtn" data-type="Bill">Bills</button>
+    <button class="fbtn" data-type="Note">Notes</button>
+    <button class="fbtn" data-type="Bond">Bonds</button>
+    <button class="fbtn" data-type="TIPS">TIPS</button>
+    <button class="fbtn" data-type="FRN">FRN</button>
+    <button class="fbtn" data-type="CMB">CMB</button>
+  </div>
+  <div class="fbtn-group" id="rangeFilter">
+    <button class="fbtn" data-days="14">2W</button>
+    <button class="fbtn" data-days="30">1M</button>
+    <button class="fbtn active" data-days="90">3M</button>
+    <button class="fbtn" data-days="180">6M</button>
+    <button class="fbtn" data-days="365">1Y</button>
+  </div>
+  <span style="font-size:10px;color:var(--t3);margin-left:8px" id="filterInfo">Loading...</span>
 </div>
 <div class="hero">
-<div class="hc go"><div class="hc-lbl">Total Auctioned</div><div class="hc-val gold" id="vTotal">--</div><div class="hc-sub" id="sTotal">Recent period</div></div>
-<div class="hc g"><div class="hc-lbl">Avg Bid-to-Cover</div><div class="hc-val" id="vBtc">--</div><div class="hc-sub" id="sBtc">Demand ratio</div></div>
-<div class="hc" id="hGrade"><div class="hc-lbl">Avg Auction Grade</div><div class="hc-val" id="vGrade">--</div><div class="hc-sub" id="sGrade">Overall quality</div></div>
-<div class="hc" id="hTail"><div class="hc-lbl">Avg Tail (bps)</div><div class="hc-val" id="vTail">--</div><div class="hc-sub" id="sTail">Yield surprise</div></div>
-<div class="hc" id="hIndirect"><div class="hc-lbl">Avg Indirect Bid</div><div class="hc-val" id="vIndirect">--</div><div class="hc-sub" id="sIndirect">Foreign demand proxy</div></div>
+  <div class="hc go"><div class="hc-lbl">Total Auctioned</div><div class="hc-val gold" id="vTotal">--</div><div class="hc-sub" id="sTotal">Recent period</div></div>
+  <div class="hc g"><div class="hc-lbl">Avg Bid-to-Cover</div><div class="hc-val" id="vBtc">--</div><div class="hc-sub" id="sBtc">Demand ratio</div></div>
+  <div class="hc" id="hGrade"><div class="hc-lbl">Avg Auction Grade</div><div class="hc-val" id="vGrade">--</div><div class="hc-sub" id="sGrade">Overall quality</div></div>
+  <div class="hc" id="hTail"><div class="hc-lbl">Avg Tail (bps)</div><div class="hc-val" id="vTail">--</div><div class="hc-sub" id="sTail">Yield surprise</div></div>
+  <div class="hc" id="hIndirect"><div class="hc-lbl">Avg Indirect Bid</div><div class="hc-val" id="vIndirect">--</div><div class="hc-sub" id="sIndirect">Foreign demand proxy</div></div>
 </div>
+
 <!-- CRISIS COMPARISON -->
 <div class="section">
-<div class="sh"><div class="st">Crisis Comparison: Every Financial Crisis Since 1990 <span class="badge b-red">16 CRISES</span></div></div>
-<div class="crisis-tl" id="crisisChips"></div>
-<div class="crisis-detail" id="crisisDetailBox"></div>
-<div id="stressSection"></div>
+  <div class="sh"><div class="st">Crisis Comparison: Every Financial Crisis Since 1990 <span class="badge b-red">16 CRISES</span></div></div>
+  <div class="crisis-tl" id="crisisChips"></div>
+  <div id="crisisDetailBox" class="crisis-detail"></div>
+  <div id="stressSection"></div>
 </div>
+
 <!-- CRISIS CHARTS -->
 <div class="section">
-<div class="sh"><div class="st">Auction Analytics vs Historical Crises <span class="badge b-purple">BENCHMARKED</span></div></div>
-<div class="radar-wrap">
-<div class="chart-box"><h4>Bid-to-Cover: Current vs All Crises</h4><div id="chBtcCrisis" style="height:340px"></div></div>
-<div class="chart-box"><h4>Auction Tail (bps): Current vs All Crises</h4><div id="chTailCrisis" style="height:340px"></div></div>
+  <div class="sh"><div class="st">Auction Analytics vs Historical Crises <span class="badge b-purple">BENCHMARKED</span></div></div>
+  <div class="radar-wrap">
+    <div class="chart-box"><h4>Bid-to-Cover: Current vs All Crises</h4><div id="chBtcCrisis" style="height:340px"></div></div>
+    <div class="chart-box"><h4>Auction Tail (bps): Current vs All Crises</h4><div id="chTailCrisis" style="height:340px"></div></div>
+  </div>
+  <div class="radar-wrap">
+    <div class="chart-box"><h4>Dealer Takedown %: Current vs All Crises</h4><div id="chDealerCrisis" style="height:340px"></div></div>
+    <div class="chart-box"><h4>Indirect Bidders %: Current vs All Crises</h4><div id="chIndirectCrisis" style="height:340px"></div></div>
+  </div>
 </div>
-<div class="radar-wrap">
-<div class="chart-box"><h4>Dealer Takedown %: Current vs All Crises</h4><div id="chDealerCrisis" style="height:340px"></div></div>
-<div class="chart-box"><h4>Indirect Bidders %: Current vs All Crises</h4><div id="chIndirectCrisis" style="height:340px"></div></div>
-</div>
-</div>
+
 <!-- AUCTION TABLE -->
 <div class="section">
-<div class="sh"><div class="st">Auction Results <span class="badge b-gold">GRADED</span></div><div id="lastRefresh" style="font-size:10px;color:var(--t3)"></div></div>
-<div class="at-wrap"><table class="at">
-<thead><tr>
-<th onclick="sortTable(0)">Date</th><th onclick="sortTable(1)">Type</th><th onclick="sortTable(2)">Term</th>
-<th onclick="sortTable(3)">CUSIP</th><th onclick="sortTable(4)">Size ($B)</th>
-<th onclick="sortTable(5)">High Yield/Rate</th><th onclick="sortTable(6)">Tail (bps)</th>
-<th onclick="sortTable(7)">Bid/Cover</th><th onclick="sortTable(8)">Indirect %</th>
-<th onclick="sortTable(9)">Direct %</th><th onclick="sortTable(10)">Dealer %</th>
-<th onclick="sortTable(11)">Grade</th><th>Assessment</th>
-</tr></thead>
-<tbody id="atBody"></tbody>
-</table></div>
+  <div class="sh"><div class="st">Auction Results <span class="badge b-gold">GRADED</span></div><div style="font-size:10px;color:var(--t3)" id="lastRefresh"></div></div>
+  <div class="at-wrap"><table class="at">
+    <thead><tr>
+      <th onclick="sortTable(0)">Date</th><th onclick="sortTable(1)">Type</th><th onclick="sortTable(2)">Term</th>
+      <th onclick="sortTable(3)">CUSIP</th><th onclick="sortTable(4)">Size ($B)</th>
+      <th onclick="sortTable(5)">High Yield/Rate</th><th onclick="sortTable(6)">Tail (bps)</th>
+      <th onclick="sortTable(7)">Bid/Cover</th><th onclick="sortTable(8)">Indirect %</th>
+      <th onclick="sortTable(9)">Direct %</th><th onclick="sortTable(10)">Dealer %</th>
+      <th onclick="sortTable(11)">Grade</th><th>Assessment</th>
+    </tr></thead>
+    <tbody id="atBody"></tbody>
+  </table></div>
 </div>
+
 <!-- AI ANALYSIS -->
 <div class="section">
-<div class="sh"><div class="st">Market Impact Analysis <span class="badge b-info">AI</span></div></div>
-<div class="analysis" id="analysisBox"><h4>Loading auction data...</h4></div>
+  <div class="sh"><div class="st">Market Impact Analysis <span class="badge b-info">AI</span></div></div>
+  <div class="analysis" id="analysisBox"><h4>Loading auction data...</h4></div>
 </div>
+
 <!-- LIVE CHARTS -->
 <div class="section">
-<div class="sh"><div class="st">Live Auction Trends <span class="badge b-gold">REALTIME</span></div></div>
-<div class="chart-row">
-<div class="chart-box"><h4>Bid-to-Cover Over Time</h4><div id="chBtc" style="height:260px"></div></div>
-<div class="chart-box"><h4>Tail (bps) Over Time</h4><div id="chTail" style="height:260px"></div></div>
+  <div class="sh"><div class="st">Live Auction Trends <span class="badge b-gold">REALTIME</span></div></div>
+  <div class="chart-row">
+    <div class="chart-box"><h4>Bid-to-Cover Over Time</h4><div id="chBtc" style="height:260px"></div></div>
+    <div class="chart-box"><h4>Tail (bps) Over Time</h4><div id="chTail" style="height:260px"></div></div>
+  </div>
+  <div class="chart-row">
+    <div class="chart-box"><h4>Bidder Composition</h4><div id="chBidders" style="height:260px"></div></div>
+    <div class="chart-box"><h4>Offering Size ($B)</h4><div id="chSize" style="height:260px"></div></div>
+  </div>
 </div>
-<div class="chart-row">
-<div class="chart-box"><h4>Bidder Composition</h4><div id="chBidders" style="height:260px"></div></div>
-<div class="chart-box"><h4>Offering Size ($B)</h4><div id="chSize" style="height:260px"></div></div>
-</div>
-</div>
+
 <div class="status-bar">
-<span id="sMsg">Initializing...</span>
-<div class="prog" id="prog"><div class="prog-fill" id="pFill"></div></div>
+  <span id="sMsg">Initializing...</span>
+  <div class="prog" id="prog"><div class="prog-fill" id="pFill"></div></div>
 </div>
+
 <script>
 var PROXY='https://x6ssu4ow2iinjhsmgdwqzqspqm0dtglv.lambda-url.us-east-1.on.aws/';
 var allAuctions=[],filtered=[],upcoming=[],currentType='all',currentDays=90,sortCol=-1,sortAsc=false;
@@ -624,5 +609,5 @@ setInterval(function(){loadData();},15*60*1000);
 buildCrisisChips();
 loadData();
 </script>
-</div><script src="/assets/sidebar.js"></script></body>
+</body>
 </html>

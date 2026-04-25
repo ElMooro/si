@@ -1,12 +1,11 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JustHodl.AI | FRED Intelligence Terminal</title>
 <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&amp;family=DM+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg0:#080c14;--bg1:#0d1117;--bg2:#161b22;--bg3:#1c2333;--bg4:#21283b;--brd:#30363d;--brd2:#484f58;--t1:#e6edf3;--t2:#8b949e;--t3:#6e7681;--green:#3fb950;--red:#f85149;--blue:#58a6ff;--yellow:#d29922;--orange:#db6d28;--purple:#bc8cff;--cyan:#39d2c0;--teal:#2ea043}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -70,33 +69,12 @@ body{background:var(--bg0);color:var(--t1);font-family:DM Sans,sans-serif;min-he
 .empty h3{font-size:16px;color:var(--t2);margin-bottom:8px}
 @media(max-width:768px){.grid{grid-template-columns:1fr}.search{width:100%}.controls{padding:10px}}
 </style>
-<link href="/assets/sidebar.css" rel="stylesheet"/><style id="jh-suppress-legacy">
-/* JustHodl: hide legacy page navs in favour of shared sidebar */
-body > nav,
-body > header,
-body > .topbar,
-body > .top-bar,
-body > .top-nav,
-body > .navbar,
-body > .navigation,
-.jh-page > nav:first-child,
-.jh-page > header:first-child,
-.jh-page > .topbar:first-child,
-.jh-page > .top-bar:first-child,
-.jh-page > .navbar:first-child{
-  display: none !important;
-}
-/* Reset any body padding-top that was reserving space for fixed nav */
-body{
-  padding-top: 0 !important;
-  margin: 0 !important;
-}
-</style></head>
-<body><div id="sidebar"></div><div class="jh-page">
-<div class="topbar"><div class="topbar-left"><div class="logo">JUSTHODL.AI <span>FRED Terminal</span></div></div><div class="topbar-right"><span><span class="live-dot"></span> LIVE</span><span class="mono" id="rateText">0 loaded</span><div class="rate-bar"><div class="rate-fill" id="rateFill" style="width:0%"></div></div><span class="mono" id="clock"></span></div></div>
+</head>
+<body>
+<div class="topbar"><div class="topbar-left"><div class="logo">JUSTHODL.AI <span>FRED Terminal</span></div></div><div class="topbar-right"><span><span class="live-dot"></span> LIVE</span><span id="rateText" class="mono">0 loaded</span><div class="rate-bar"><div class="rate-fill" id="rateFill" style="width:0%"></div></div><span id="clock" class="mono"></span></div></div>
 <div class="stats-bar"><div class="stat"><b id="totalCount">0</b> Series</div><div class="stat"><b id="loadedCount">0</b> Loaded</div><div class="stat"><b id="cachedCount">0</b> Cached</div><div class="stat"><b id="staleCount">0</b> Stale</div><div class="stat">Updated: <b id="lastUpdate">--</b></div><div class="stat" style="margin-left:auto">Proxy: <b id="proxyStatus" style="color:var(--green)">...</b></div></div>
 <div class="tabs" id="tabBar"></div>
-<div class="controls"><input class="search" id="search" oninput="render()" placeholder="Search series ID or name..."/><button class="btn primary" onclick="loadTab()">Load Tab</button><button class="btn primary" onclick="loadAll()">Load All</button><button class="btn" onclick="refreshStale()">Refresh Stale</button><button class="btn danger" onclick="clearCache()">Clear Cache</button><button class="btn" onclick="exportCSV()">CSV</button><select class="btn" id="sortSelect" onchange="render()"><option value="name">Sort: Name</option><option value="value">Sort: Value</option><option value="chg1d">Sort: 1D</option><option value="chg1w">Sort: 1W</option><option value="chg1m">Sort: 1M</option><option value="chg1y">Sort: 1Y</option></select></div>
+<div class="controls"><input class="search" id="search" placeholder="Search series ID or name..." oninput="render()"><button class="btn primary" onclick="loadTab()">Load Tab</button><button class="btn primary" onclick="loadAll()">Load All</button><button class="btn" onclick="refreshStale()">Refresh Stale</button><button class="btn danger" onclick="clearCache()">Clear Cache</button><button class="btn" onclick="exportCSV()">CSV</button><select id="sortSelect" class="btn" onchange="render()"><option value="name">Sort: Name</option><option value="value">Sort: Value</option><option value="chg1d">Sort: 1D</option><option value="chg1w">Sort: 1W</option><option value="chg1m">Sort: 1M</option><option value="chg1y">Sort: 1Y</option></select></div>
 <div class="grid" id="grid"></div>
 <div class="modal-overlay" id="chartModal" onclick="if(event.target===this)closeChart()"><div class="modal" style="position:relative"><button class="modal-close" onclick="closeChart()">X</button><h3 id="chartTitle"></h3><div class="sub" id="chartSub"></div><div id="chartDiv" style="width:100%;height:400px"></div></div></div>
 <div class="status-bar"><span id="statusMsg">Ready</span><div><div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div></div></div>
@@ -162,5 +140,5 @@ function updateClock(){var n=new Date();document.getElementById('clock').textCon
 document.addEventListener('keydown',function(e){if(e.key==='Escape')closeChart();});
 init();
 </script>
-</div><script src="/assets/sidebar.js"></script></body>
+</body>
 </html>

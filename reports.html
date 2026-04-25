@@ -1,11 +1,10 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width,initial-scale=1.0" name="viewport"/>
-<title>JustHodl.AI | Reports &amp; Performance</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&amp;family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>JustHodl.AI | Reports & Performance</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
 :root{--bg:#050810;--bg1:#0a0f1a;--bg2:#0f1524;--bg3:#141c2e;--brd:#1a2540;--brd2:#243050;--t1:#e8ecf4;--t2:#8b95ad;--t3:#5a6580;--t4:#3a4560;--green:#00e676;--green-bg:rgba(0,230,118,.06);--red:#ff1744;--red-bg:rgba(255,23,68,.06);--yellow:#ffc400;--yellow-bg:rgba(255,196,0,.06);--blue:#2979ff;--blue-bg:rgba(41,121,255,.06);--cyan:#00e5ff;--orange:#ff6d00;--orange-bg:rgba(255,109,0,.06);--purple:#7c4dff}
@@ -104,51 +103,31 @@ body{background:var(--bg);color:var(--t1);font-family:'IBM Plex Sans',system-ui,
 @keyframes pulse-y { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
 .headline-box { position: relative; }
 </style>
-<link href="/assets/sidebar.css" rel="stylesheet"/><style id="jh-suppress-legacy">
-/* JustHodl: hide legacy page navs in favour of shared sidebar */
-body > nav,
-body > header,
-body > .topbar,
-body > .top-bar,
-body > .top-nav,
-body > .navbar,
-body > .navigation,
-.jh-page > nav:first-child,
-.jh-page > header:first-child,
-.jh-page > .topbar:first-child,
-.jh-page > .top-bar:first-child,
-.jh-page > .navbar:first-child{
-  display: none !important;
-}
-/* Reset any body padding-top that was reserving space for fixed nav */
-body{
-  padding-top: 0 !important;
-  margin: 0 !important;
-}
-</style></head>
-<body><div id="sidebar"></div><div class="jh-page">
+</head>
+<body>
 <div class="header">
-<div>
-<div class="logo">📊 REPORTS &amp; PERFORMANCE</div>
-<div class="logo-sub">JustHodl.AI — Signal Scorecard &amp; Khalid Timeline</div>
-</div>
-<div class="hdr-right">
-<a class="nav-link" href="/">🏠 Terminal</a>
-<a class="nav-link" href="/intelligence.html">🧠 Intelligence</a>
-<a class="nav-link" href="/trading-signals.html">📡 Signals</a>
-<a class="nav-link" href="/health.html">❤️ Health</a>
-<a class="nav-link" href="/desk.html">🎯 Desk</a>
-<div class="live"><div class="dot"></div><span>LIVE</span></div>
-<div class="mono" id="ts" style="font-size:11px;color:var(--t3)">…</div>
-</div>
+  <div>
+    <div class="logo">📊 REPORTS &amp; PERFORMANCE</div>
+    <div class="logo-sub">JustHodl.AI — Signal Scorecard &amp; Khalid Timeline</div>
+  </div>
+  <div class="hdr-right">
+    <a href="/" class="nav-link">🏠 Terminal</a>
+    <a href="/intelligence.html" class="nav-link">🧠 Intelligence</a>
+    <a href="/trading-signals.html" class="nav-link">📡 Signals</a>
+    <a href="/health.html" class="nav-link">❤️ Health</a>
+    <a href="/desk.html" class="nav-link">🎯 Desk</a>
+    <div class="live"><div class="dot"></div><span>LIVE</span></div>
+    <div class="mono" style="font-size:11px;color:var(--t3)" id="ts">…</div>
+  </div>
 </div>
 <div class="container" id="main">
-<div class="loading">
-<div class="spinner"></div>
-<div style="font-size:14px">Loading reports data…</div>
-<div style="font-size:12px;color:var(--t4);margin-top:6px">Reading signals + outcomes + calibration</div>
+  <div class="loading">
+    <div class="spinner"></div>
+    <div style="font-size:14px">Loading reports data…</div>
+    <div style="font-size:12px;color:var(--t4);margin-top:6px">Reading signals + outcomes + calibration</div>
+  </div>
 </div>
-</div>
+
 <script>
 const URL = "https://justhodl-dashboard-live.s3.amazonaws.com/reports/scorecard.json";
 const REFRESH_MS = 5 * 60 * 1000;
@@ -444,5 +423,5 @@ async function loadData() {
 loadData();
 setInterval(loadData, REFRESH_MS);
 </script>
-</div><script src="/assets/sidebar.js"></script></body>
+</body>
 </html>

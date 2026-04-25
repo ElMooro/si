@@ -1,12 +1,11 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JustHodl Charts | Professional Trading Terminal</title>
 <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg0:#0c0e15;--bg1:#131722;--bg2:#1e222d;--bg3:#2a2e39;--bg4:#363a45;
@@ -498,429 +497,432 @@ button{cursor:pointer;font-family:'Inter',sans-serif}
 /* Print */
 @media print{.topbar,.bottom-bar,.left-toolbar,.right-panel{display:none!important}.chart-area{height:100vh}}
 </style>
-<link href="/assets/sidebar.css" rel="stylesheet"/><style id="jh-suppress-legacy">
-/* JustHodl: hide legacy page navs in favour of shared sidebar */
-body > nav,
-body > header,
-body > .topbar,
-body > .top-bar,
-body > .top-nav,
-body > .navbar,
-body > .navigation,
-.jh-page > nav:first-child,
-.jh-page > header:first-child,
-.jh-page > .topbar:first-child,
-.jh-page > .top-bar:first-child,
-.jh-page > .navbar:first-child{
-  display: none !important;
-}
-/* Reset any body padding-top that was reserving space for fixed nav */
-body{
-  padding-top: 0 !important;
-  margin: 0 !important;
-}
-</style></head>
-<body><div id="sidebar"></div><div class="jh-page">
+</head>
+<body>
 <div class="app" id="app">
-<!-- TOP BAR -->
-<div class="topbar">
-<span class="logo" onclick="location.href='index.html'">JustHodl</span>
-<div class="sep"></div>
-<!-- Symbol Search -->
-<div class="sym-search" id="symSearch">
-<button class="sym-btn" id="symBtn" onclick="toggleSearch()">
-<span id="symTicker">AAPL</span>
-<span class="price" id="symPrice"></span>
-<span class="chg" id="symChg"></span>
-</button>
-<div class="search-drop" id="searchDrop">
-<div class="search-head">
-<input autocomplete="off" id="searchInput" placeholder="Search symbol, name, or ISIN..." type="text"/>
-</div>
-<div class="search-tabs">
-<div class="search-tab active" data-filter="all">All</div>
-<div class="search-tab" data-filter="stocks">Stocks</div>
-<div class="search-tab" data-filter="crypto">Crypto</div>
-<div class="search-tab" data-filter="forex">Forex</div>
-<div class="search-tab" data-filter="etf">ETFs</div>
-<div class="search-tab" data-filter="indices">Indices</div>
-</div>
-<div class="search-results" id="searchResults"></div>
-</div>
-</div>
-<div class="sep"></div>
-<!-- Timeframes -->
-<div class="tf-group" id="tfGroup">
-<button class="tf-btn" data-m="1" data-t="minute">1m</button>
-<button class="tf-btn" data-m="2" data-t="minute">2m</button>
-<button class="tf-btn" data-m="3" data-t="minute">3m</button>
-<button class="tf-btn" data-m="5" data-t="minute">5m</button>
-<button class="tf-btn" data-m="10" data-t="minute">10m</button>
-<button class="tf-btn" data-m="15" data-t="minute">15m</button>
-<button class="tf-btn" data-m="30" data-t="minute">30m</button>
-<button class="tf-btn" data-m="1" data-t="hour">1H</button>
-<button class="tf-btn" data-m="2" data-t="hour">2H</button>
-<button class="tf-btn" data-m="4" data-t="hour">4H</button>
-<button class="tf-btn active" data-m="1" data-t="day">1D</button>
-<button class="tf-btn" data-m="3" data-t="day">3D</button>
-<button class="tf-btn" data-m="1" data-t="week">1W</button>
-<button class="tf-btn" data-m="1" data-t="month">1M</button>
-<button class="tf-btn" data-m="3" data-t="month">3M</button>
-<button class="tf-btn" data-m="1" data-t="quarter">Q</button>
-<button class="tf-btn" data-m="1" data-t="year">1Y</button>
-</div>
-<!-- Date Range -->
-<div class="sep"></div>
-<div style="display:flex;align-items:center;gap:4px">
-<select id="histRange" onchange="setHistoryRange(this.value)" style="background:var(--bg3);border:1px solid var(--brd);color:var(--t2);padding:3px 6px;border-radius:3px;font-size:11px;cursor:pointer">
-<option value="auto">Auto Range</option>
-<option value="1d">1 Day</option>
-<option value="5d">5 Days</option>
-<option value="1m">1 Month</option>
-<option value="3m">3 Months</option>
-<option value="6m">6 Months</option>
-<option value="ytd">YTD</option>
-<option value="1y">1 Year</option>
-<option value="2y">2 Years</option>
-<option selected="" value="5y">5 Years</option>
-<option value="10y">10 Years</option>
-<option value="20y">20 Years</option>
-<option value="max">Max (All History)</option>
-<option value="custom">Custom Range...</option>
-</select>
-</div>
-<div class="sep"></div>
-<!-- Chart Types -->
-<div class="ct-group" id="ctGroup">
-<button class="ct-btn active" data-type="candles" title="Candlestick">🕯</button>
-<button class="ct-btn" data-type="bars" title="Bars">📊</button>
-<button class="ct-btn" data-type="line" title="Line">📈</button>
-<button class="ct-btn" data-type="area" title="Area">🏔</button>
-<button class="ct-btn" data-type="heikin" title="Heikin-Ashi">⛩</button>
-<button class="ct-btn" data-type="baseline" title="Baseline">⚖</button>
-<button class="ct-btn" data-type="hollow" title="Hollow Candles">🔲</button>
-<button class="ct-btn" data-type="renko" title="Renko">🧱</button>
-<button class="ct-btn" data-type="linebreak" title="Line Break">📉</button>
-<button class="ct-btn" data-type="columns" title="Columns">▐</button>
-<button class="ct-btn" data-type="stepline" title="Step Line">⌐</button>
-<button class="ct-btn" data-type="hlcarea" title="HLC Area">◇</button>
-<button class="ct-btn" data-type="renko" title="Renko">🧱</button>
-<button class="ct-btn" data-type="range" title="Range">📏</button>
-</div>
-<div class="sep"></div>
-<!-- Indicators -->
-<button class="ind-btn" onclick="openIndicatorModal()">
-<span>ƒx</span> Indicators
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <span class="logo" onclick="location.href='index.html'">JustHodl</span>
+    <div class="sep"></div>
+
+    <!-- Symbol Search -->
+    <div class="sym-search" id="symSearch">
+      <button class="sym-btn" id="symBtn" onclick="toggleSearch()">
+        <span id="symTicker">AAPL</span>
+        <span class="price" id="symPrice"></span>
+        <span class="chg" id="symChg"></span>
+      </button>
+      <div class="search-drop" id="searchDrop">
+        <div class="search-head">
+          <input type="text" id="searchInput" placeholder="Search symbol, name, or ISIN..." autocomplete="off">
+        </div>
+        <div class="search-tabs">
+          <div class="search-tab active" data-filter="all">All</div>
+          <div class="search-tab" data-filter="stocks">Stocks</div>
+          <div class="search-tab" data-filter="crypto">Crypto</div>
+          <div class="search-tab" data-filter="forex">Forex</div>
+          <div class="search-tab" data-filter="etf">ETFs</div>
+          <div class="search-tab" data-filter="indices">Indices</div>
+        </div>
+        <div class="search-results" id="searchResults"></div>
+      </div>
+    </div>
+    <div class="sep"></div>
+
+    <!-- Timeframes -->
+    <div class="tf-group" id="tfGroup">
+      <button class="tf-btn" data-m="1" data-t="minute">1m</button>
+      <button class="tf-btn" data-m="2" data-t="minute">2m</button>
+      <button class="tf-btn" data-m="3" data-t="minute">3m</button>
+      <button class="tf-btn" data-m="5" data-t="minute">5m</button>
+      <button class="tf-btn" data-m="10" data-t="minute">10m</button>
+      <button class="tf-btn" data-m="15" data-t="minute">15m</button>
+      <button class="tf-btn" data-m="30" data-t="minute">30m</button>
+      <button class="tf-btn" data-m="1" data-t="hour">1H</button>
+      <button class="tf-btn" data-m="2" data-t="hour">2H</button>
+      <button class="tf-btn" data-m="4" data-t="hour">4H</button>
+      <button class="tf-btn active" data-m="1" data-t="day">1D</button>
+      <button class="tf-btn" data-m="3" data-t="day">3D</button>
+      <button class="tf-btn" data-m="1" data-t="week">1W</button>
+      <button class="tf-btn" data-m="1" data-t="month">1M</button>
+      <button class="tf-btn" data-m="3" data-t="month">3M</button>
+      <button class="tf-btn" data-m="1" data-t="quarter">Q</button>
+      <button class="tf-btn" data-m="1" data-t="year">1Y</button>
+    </div>
+    <!-- Date Range -->
+    <div class="sep"></div>
+    <div style="display:flex;align-items:center;gap:4px">
+      <select id="histRange" onchange="setHistoryRange(this.value)" style="background:var(--bg3);border:1px solid var(--brd);color:var(--t2);padding:3px 6px;border-radius:3px;font-size:11px;cursor:pointer">
+        <option value="auto">Auto Range</option>
+        <option value="1d">1 Day</option>
+        <option value="5d">5 Days</option>
+        <option value="1m">1 Month</option>
+        <option value="3m">3 Months</option>
+        <option value="6m">6 Months</option>
+        <option value="ytd">YTD</option>
+        <option value="1y">1 Year</option>
+        <option value="2y">2 Years</option>
+        <option value="5y" selected>5 Years</option>
+        <option value="10y">10 Years</option>
+        <option value="20y">20 Years</option>
+        <option value="max">Max (All History)</option>
+        <option value="custom">Custom Range...</option>
+      </select>
+    </div>
+    <div class="sep"></div>
+
+    <!-- Chart Types -->
+    <div class="ct-group" id="ctGroup">
+      <button class="ct-btn active" data-type="candles" title="Candlestick">🕯</button>
+      <button class="ct-btn" data-type="bars" title="Bars">📊</button>
+      <button class="ct-btn" data-type="line" title="Line">📈</button>
+      <button class="ct-btn" data-type="area" title="Area">🏔</button>
+      <button class="ct-btn" data-type="heikin" title="Heikin-Ashi">⛩</button>
+      <button class="ct-btn" data-type="baseline" title="Baseline">⚖</button>
+      <button class="ct-btn" data-type="hollow" title="Hollow Candles">🔲</button>
+      <button class="ct-btn" data-type="renko" title="Renko">🧱</button>
+      <button class="ct-btn" data-type="linebreak" title="Line Break">📉</button>
+      <button class="ct-btn" data-type="columns" title="Columns">▐</button>
+      <button class="ct-btn" data-type="stepline" title="Step Line">⌐</button>
+      <button class="ct-btn" data-type="hlcarea" title="HLC Area">◇</button>
+      <button class="ct-btn" data-type="renko" title="Renko">🧱</button>
+      <button class="ct-btn" data-type="range" title="Range">📏</button>
+    </div>
+    <div class="sep"></div>
+
+    <!-- Indicators -->
+    <button class="ind-btn" onclick="openIndicatorModal()">
+      <span>ƒx</span> Indicators
     </button>
-<div class="sep"></div>
-<!-- Compare -->
-<button class="cmp-btn" onclick="openCompareModal()">⊕ Compare</button>
-<button class="cmp-btn" onclick="openSpreadDialog()">÷ Spread/Ratio</button>
-<div class="sep"></div>
-<!-- Replay -->
-<button class="icon-btn" id="replayBtn" onclick="toggleReplay()" title="Replay">⏪</button>
-<!-- Templates -->
-<button class="icon-btn" id="tmplBtn" onclick="openTemplateModal()" title="Chart Templates">📋</button>
-<!-- Alerts -->
-<button class="icon-btn" id="alertBtnTop" onclick="openAlertModal()" title="Alerts">🔔</button>
-<!-- Screenshot -->
-<button class="icon-btn" onclick="takeScreenshot()" title="Screenshot">📷</button>
-<!-- Export -->
-<button class="icon-btn" onclick="exportCSV()" title="Export CSV">💾</button>
-<div class="topbar-right">
-<!-- Layout Buttons -->
-<button class="icon-btn" onclick="setLayout(1)" title="Single Chart">◻</button>
-<button class="icon-btn" onclick="setLayout('2h')" title="Split Horizontal">◫</button>
-<button class="icon-btn" onclick="setLayout('2v')" title="Split Vertical">⬒</button>
-<button class="icon-btn" onclick="setLayout(4)" title="Quad">⊞</button>
-<button class="icon-btn" onclick="setLayout(6)" title="Six Charts">⊟</button>
-<div class="sep"></div>
-<!-- Panel Toggles -->
-<button class="icon-btn" id="panelWatchlist" onclick="togglePanel('watchlist')" title="Watchlist">☰</button>
-<button class="icon-btn" id="panelScreener" onclick="togglePanel('screener')" title="Screener">🔍</button>
-<button class="icon-btn" id="panelNews" onclick="togglePanel('news')" title="News">📰</button>
-<button class="icon-btn" id="panelDetails" onclick="togglePanel('details')" title="Details">ℹ</button>
-<button class="icon-btn" id="panelFinancials" onclick="togglePanel('financials')" title="Financials">💰</button>
-<button class="icon-btn" id="panelDividends" onclick="togglePanel('dividends')" title="Dividends &amp; Splits">💵</button>
-<button class="icon-btn" id="panelTA" onclick="togglePanel('ta')" title="Tech Analysis">📐</button>
-<button class="icon-btn" id="panelHeatmap" onclick="togglePanel('heatmap')" title="Sector Heatmap">🗺</button>
-<button class="icon-btn" id="panelNotes" onclick="togglePanel('notes')" title="Notes">📝</button>
-<button class="icon-btn" id="panelHotkeys" onclick="togglePanel('hotkeys')" title="Hotkeys">⌨</button>
-<div class="sep"></div>
-<button class="icon-btn" onclick="toggleFullscreen()" title="Fullscreen">⛶</button>
-<button class="icon-btn" onclick="openSettings()" title="Settings">⚙</button>
+    <div class="sep"></div>
+
+    <!-- Compare -->
+    <button class="cmp-btn" onclick="openCompareModal()">⊕ Compare</button>
+    <button class="cmp-btn" onclick="openSpreadDialog()">÷ Spread/Ratio</button>
+    <div class="sep"></div>
+
+    <!-- Replay -->
+    <button class="icon-btn" id="replayBtn" onclick="toggleReplay()" title="Replay">⏪</button>
+
+    <!-- Templates -->
+    <button class="icon-btn" id="tmplBtn" onclick="openTemplateModal()" title="Chart Templates">📋</button>
+
+    <!-- Alerts -->
+    <button class="icon-btn" id="alertBtnTop" onclick="openAlertModal()" title="Alerts">🔔</button>
+
+    <!-- Screenshot -->
+    <button class="icon-btn" onclick="takeScreenshot()" title="Screenshot">📷</button>
+
+    <!-- Export -->
+    <button class="icon-btn" onclick="exportCSV()" title="Export CSV">💾</button>
+
+    <div class="topbar-right">
+      <!-- Layout Buttons -->
+      <button class="icon-btn" onclick="setLayout(1)" title="Single Chart">◻</button>
+      <button class="icon-btn" onclick="setLayout('2h')" title="Split Horizontal">◫</button>
+      <button class="icon-btn" onclick="setLayout('2v')" title="Split Vertical">⬒</button>
+      <button class="icon-btn" onclick="setLayout(4)" title="Quad">⊞</button>
+      <button class="icon-btn" onclick="setLayout(6)" title="Six Charts">⊟</button>
+      <div class="sep"></div>
+      <!-- Panel Toggles -->
+      <button class="icon-btn" id="panelWatchlist" onclick="togglePanel('watchlist')" title="Watchlist">☰</button>
+      <button class="icon-btn" id="panelScreener" onclick="togglePanel('screener')" title="Screener">🔍</button>
+      <button class="icon-btn" id="panelNews" onclick="togglePanel('news')" title="News">📰</button>
+      <button class="icon-btn" id="panelDetails" onclick="togglePanel('details')" title="Details">ℹ</button>
+      <button class="icon-btn" id="panelFinancials" onclick="togglePanel('financials')" title="Financials">💰</button>
+      <button class="icon-btn" id="panelDividends" onclick="togglePanel('dividends')" title="Dividends & Splits">💵</button>
+      <button class="icon-btn" id="panelTA" onclick="togglePanel('ta')" title="Tech Analysis">📐</button>
+      <button class="icon-btn" id="panelHeatmap" onclick="togglePanel('heatmap')" title="Sector Heatmap">🗺</button>
+      <button class="icon-btn" id="panelNotes" onclick="togglePanel('notes')" title="Notes">📝</button>
+      <button class="icon-btn" id="panelHotkeys" onclick="togglePanel('hotkeys')" title="Hotkeys">⌨</button>
+      <div class="sep"></div>
+      <button class="icon-btn" onclick="toggleFullscreen()" title="Fullscreen">⛶</button>
+      <button class="icon-btn" onclick="openSettings()" title="Settings">⚙</button>
+    </div>
+  </div>
+
+  <!-- REPLAY BAR -->
+  <div class="replay-bar" id="replayBar">
+    <button onclick="replayStep(-10)">⏮</button>
+    <button onclick="replayStep(-1)">◀</button>
+    <button id="replayPlayBtn" onclick="replayToggle()">▶ Play</button>
+    <button onclick="replayStep(1)">▶</button>
+    <button onclick="replayStep(10)">⏭</button>
+    <span class="replay-date" id="replayDate">--</span>
+    <span class="replay-speed" id="replaySpeed">1x</span>
+    <button onclick="replayChangeSpeed()">Speed</button>
+    <div style="flex:1"></div>
+    <button onclick="toggleReplay()">✕ Exit Replay</button>
+  </div>
+
+  <div class="main-area">
+    <!-- LEFT TOOLBAR -->
+    <div class="left-toolbar" id="leftToolbar">
+      <button class="tool-btn" data-tool="crosshair" title="Crosshair" onclick="setTool('crosshair')">+</button>
+      <div class="tool-divider"></div>
+      <button class="tool-btn" data-tool="trendline" title="Trend Line" onclick="setTool('trendline')">╲</button>
+      <button class="tool-btn" data-tool="ray" title="Ray" onclick="setTool('ray')">╱</button>
+      <button class="tool-btn" data-tool="hline" title="Horizontal Line" onclick="setTool('hline')">─</button>
+      <button class="tool-btn" data-tool="vline" title="Vertical Line" onclick="setTool('vline')">│</button>
+      <button class="tool-btn" data-tool="channel" title="Parallel Channel" onclick="setTool('channel')">▬</button>
+      <div class="tool-divider"></div>
+      <button class="tool-btn" data-tool="fib" title="Fibonacci Retracement" onclick="setTool('fib')">F</button>
+      <button class="tool-btn" data-tool="fibext" title="Fibonacci Extension" onclick="setTool('fibext')">Fₑ</button>
+      <button class="tool-btn" data-tool="fibfan" title="Fibonacci Fan" onclick="setTool('fibfan')">F⌿</button>
+      <div class="tool-divider"></div>
+      <button class="tool-btn" data-tool="rect" title="Rectangle" onclick="setTool('rect')">▭</button>
+      <button class="tool-btn" data-tool="circle" title="Circle" onclick="setTool('circle')">○</button>
+      <button class="tool-btn" data-tool="triangle" title="Triangle" onclick="setTool('triangle')">△</button>
+      <div class="tool-divider"></div>
+      <button class="tool-btn" data-tool="text" title="Text" onclick="setTool('text')">T</button>
+      <button class="tool-btn" data-tool="arrow" title="Arrow" onclick="setTool('arrow')">↗</button>
+      <button class="tool-btn" data-tool="callout" title="Callout" onclick="setTool('callout')">💬</button>
+      <div class="tool-divider"></div>
+      <button class="tool-btn" data-tool="measure" title="Price Range" onclick="setTool('measure')">📏</button>
+      <button class="tool-btn" data-tool="ruler" title="Date Range" onclick="setTool('ruler')">📐</button>
+      <div class="tool-divider"></div>
+      <button class="tool-btn" data-tool="brush" title="Brush" onclick="setTool('brush')">🖌</button>
+      <button class="tool-btn" data-tool="highlighter" title="Highlighter" onclick="setTool('highlighter')">🖍</button>
+      <div class="tool-divider"></div>
+      <button class="tool-btn" title="Lock Drawings" onclick="toggleLockDrawings()">🔒</button>
+      <button class="tool-btn" title="Show/Hide Drawings" onclick="toggleDrawingsVisible()">👁</button>
+      <button class="tool-btn" title="Delete All Drawings" onclick="deleteAllDrawings()" style="color:var(--red)">🗑</button>
+      <div style="flex:1"></div>
+      <button class="tool-btn" title="Magnet Mode" onclick="toggleMagnet()">🧲</button>
+      <button class="tool-btn" title="Stay in Drawing Mode" onclick="toggleStayInDrawing()">📌</button>
+    </div>
+
+    <!-- CHART AREA -->
+    <div class="chart-area" id="chartArea">
+      <div class="chart-header" id="chartHeader">
+        <span class="sym-label" id="headerSym">AAPL</span>
+        <div class="price-info" id="priceInfo">
+          <span><span class="lbl">O</span><span class="val" id="piO">-</span></span>
+          <span><span class="lbl">H</span><span class="val" id="piH">-</span></span>
+          <span><span class="lbl">L</span><span class="val" id="piL">-</span></span>
+          <span><span class="lbl">C</span><span class="val" id="piC">-</span></span>
+          <span><span class="lbl">Vol</span><span class="val" id="piV">-</span></span>
+        </div>
+        <div class="compare-legend" id="compareLegend" style="display:none"></div>
+      </div>
+      <div class="chart-grid layout-1" id="chartGrid">
+        <div class="chart-cell active" id="cell0" onclick="setActiveCell(0)">
+          <div class="chart-watermark" id="watermark0">AAPL</div>
+          <div class="cell-chart" id="chartDiv0"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="right-panel" id="rightPanel">
+      <div class="panel-tabs" id="panelTabs"></div>
+      <div class="panel-content" id="panelContent"></div>
+    </div>
+  </div>
+
+  <!-- BOTTOM BAR -->
+  <div class="bottom-bar">
+    <div class="market-status">
+      <div class="dot" id="mktDot"></div>
+      <span id="mktStatus">--</span>
+    </div>
+    <span id="mktTime" class="mono" style="font-size:10px">--</span>
+    <select class="tz-select" id="tzSelect" onchange="setTimezone(this.value)">
+      <option value="America/New_York">ET</option>
+      <option value="America/Chicago">CT</option>
+      <option value="America/Denver">MT</option>
+      <option value="America/Los_Angeles">PT</option>
+      <option value="UTC">UTC</option>
+      <option value="Europe/London">GMT</option>
+      <option value="Europe/Berlin">CET</option>
+      <option value="Asia/Tokyo">JST</option>
+      <option value="Asia/Shanghai">CST</option>
+      <option value="Asia/Kolkata">IST</option>
+    </select>
+    <div class="spacer"></div>
+    <span id="crossInfo" class="mono" style="font-size:10px;color:var(--t3)"></span>
+    <div class="spacer"></div>
+    <span id="dailyPerf" class="perf mono">--</span>
+    <span class="mono" style="font-size:10px;color:var(--t3)">|</span>
+    <span id="weekPerf" class="perf mono">--</span>
+    <span class="mono" style="font-size:10px;color:var(--t3)">|</span>
+    <span id="monthPerf" class="perf mono">--</span>
+  </div>
 </div>
-</div>
-<!-- REPLAY BAR -->
-<div class="replay-bar" id="replayBar">
-<button onclick="replayStep(-10)">⏮</button>
-<button onclick="replayStep(-1)">◀</button>
-<button id="replayPlayBtn" onclick="replayToggle()">▶ Play</button>
-<button onclick="replayStep(1)">▶</button>
-<button onclick="replayStep(10)">⏭</button>
-<span class="replay-date" id="replayDate">--</span>
-<span class="replay-speed" id="replaySpeed">1x</span>
-<button onclick="replayChangeSpeed()">Speed</button>
-<div style="flex:1"></div>
-<button onclick="toggleReplay()">✕ Exit Replay</button>
-</div>
-<div class="main-area">
-<!-- LEFT TOOLBAR -->
-<div class="left-toolbar" id="leftToolbar">
-<button class="tool-btn" data-tool="crosshair" onclick="setTool('crosshair')" title="Crosshair">+</button>
-<div class="tool-divider"></div>
-<button class="tool-btn" data-tool="trendline" onclick="setTool('trendline')" title="Trend Line">╲</button>
-<button class="tool-btn" data-tool="ray" onclick="setTool('ray')" title="Ray">╱</button>
-<button class="tool-btn" data-tool="hline" onclick="setTool('hline')" title="Horizontal Line">─</button>
-<button class="tool-btn" data-tool="vline" onclick="setTool('vline')" title="Vertical Line">│</button>
-<button class="tool-btn" data-tool="channel" onclick="setTool('channel')" title="Parallel Channel">▬</button>
-<div class="tool-divider"></div>
-<button class="tool-btn" data-tool="fib" onclick="setTool('fib')" title="Fibonacci Retracement">F</button>
-<button class="tool-btn" data-tool="fibext" onclick="setTool('fibext')" title="Fibonacci Extension">Fₑ</button>
-<button class="tool-btn" data-tool="fibfan" onclick="setTool('fibfan')" title="Fibonacci Fan">F⌿</button>
-<div class="tool-divider"></div>
-<button class="tool-btn" data-tool="rect" onclick="setTool('rect')" title="Rectangle">▭</button>
-<button class="tool-btn" data-tool="circle" onclick="setTool('circle')" title="Circle">○</button>
-<button class="tool-btn" data-tool="triangle" onclick="setTool('triangle')" title="Triangle">△</button>
-<div class="tool-divider"></div>
-<button class="tool-btn" data-tool="text" onclick="setTool('text')" title="Text">T</button>
-<button class="tool-btn" data-tool="arrow" onclick="setTool('arrow')" title="Arrow">↗</button>
-<button class="tool-btn" data-tool="callout" onclick="setTool('callout')" title="Callout">💬</button>
-<div class="tool-divider"></div>
-<button class="tool-btn" data-tool="measure" onclick="setTool('measure')" title="Price Range">📏</button>
-<button class="tool-btn" data-tool="ruler" onclick="setTool('ruler')" title="Date Range">📐</button>
-<div class="tool-divider"></div>
-<button class="tool-btn" data-tool="brush" onclick="setTool('brush')" title="Brush">🖌</button>
-<button class="tool-btn" data-tool="highlighter" onclick="setTool('highlighter')" title="Highlighter">🖍</button>
-<div class="tool-divider"></div>
-<button class="tool-btn" onclick="toggleLockDrawings()" title="Lock Drawings">🔒</button>
-<button class="tool-btn" onclick="toggleDrawingsVisible()" title="Show/Hide Drawings">👁</button>
-<button class="tool-btn" onclick="deleteAllDrawings()" style="color:var(--red)" title="Delete All Drawings">🗑</button>
-<div style="flex:1"></div>
-<button class="tool-btn" onclick="toggleMagnet()" title="Magnet Mode">🧲</button>
-<button class="tool-btn" onclick="toggleStayInDrawing()" title="Stay in Drawing Mode">📌</button>
-</div>
-<!-- CHART AREA -->
-<div class="chart-area" id="chartArea">
-<div class="chart-header" id="chartHeader">
-<span class="sym-label" id="headerSym">AAPL</span>
-<div class="price-info" id="priceInfo">
-<span><span class="lbl">O</span><span class="val" id="piO">-</span></span>
-<span><span class="lbl">H</span><span class="val" id="piH">-</span></span>
-<span><span class="lbl">L</span><span class="val" id="piL">-</span></span>
-<span><span class="lbl">C</span><span class="val" id="piC">-</span></span>
-<span><span class="lbl">Vol</span><span class="val" id="piV">-</span></span>
-</div>
-<div class="compare-legend" id="compareLegend" style="display:none"></div>
-</div>
-<div class="chart-grid layout-1" id="chartGrid">
-<div class="chart-cell active" id="cell0" onclick="setActiveCell(0)">
-<div class="chart-watermark" id="watermark0">AAPL</div>
-<div class="cell-chart" id="chartDiv0"></div>
-</div>
-</div>
-</div>
-<!-- RIGHT PANEL -->
-<div class="right-panel" id="rightPanel">
-<div class="panel-tabs" id="panelTabs"></div>
-<div class="panel-content" id="panelContent"></div>
-</div>
-</div>
-<!-- BOTTOM BAR -->
-<div class="bottom-bar">
-<div class="market-status">
-<div class="dot" id="mktDot"></div>
-<span id="mktStatus">--</span>
-</div>
-<span class="mono" id="mktTime" style="font-size:10px">--</span>
-<select class="tz-select" id="tzSelect" onchange="setTimezone(this.value)">
-<option value="America/New_York">ET</option>
-<option value="America/Chicago">CT</option>
-<option value="America/Denver">MT</option>
-<option value="America/Los_Angeles">PT</option>
-<option value="UTC">UTC</option>
-<option value="Europe/London">GMT</option>
-<option value="Europe/Berlin">CET</option>
-<option value="Asia/Tokyo">JST</option>
-<option value="Asia/Shanghai">CST</option>
-<option value="Asia/Kolkata">IST</option>
-</select>
-<div class="spacer"></div>
-<span class="mono" id="crossInfo" style="font-size:10px;color:var(--t3)"></span>
-<div class="spacer"></div>
-<span class="perf mono" id="dailyPerf">--</span>
-<span class="mono" style="font-size:10px;color:var(--t3)">|</span>
-<span class="perf mono" id="weekPerf">--</span>
-<span class="mono" style="font-size:10px;color:var(--t3)">|</span>
-<span class="perf mono" id="monthPerf">--</span>
-</div>
-</div>
+
 <!-- TOAST CONTAINER -->
 <div class="toast-container" id="toastContainer"></div>
+
 <!-- CONTEXT MENU -->
 <div class="ctx-menu" id="ctxMenu">
-<div class="ctx-item" onclick="ctxAction('addAlert')">🔔 Add Alert<span class="ctx-key">Alt+A</span></div>
-<div class="ctx-item" onclick="ctxAction('addToWatchlist')">⊕ Add to Watchlist</div>
-<div class="ctx-divider"></div>
-<div class="ctx-item" onclick="ctxAction('hline')">─ Add Horizontal Line</div>
-<div class="ctx-item" onclick="ctxAction('trendline')">╲ Add Trend Line</div>
-<div class="ctx-item" onclick="ctxAction('fib')">F Fibonacci Retracement</div>
-<div class="ctx-divider"></div>
-<div class="ctx-item" onclick="ctxAction('resetZoom')">🔄 Reset Zoom<span class="ctx-key">Home</span></div>
-<div class="ctx-item" onclick="ctxAction('screenshot')">📷 Screenshot<span class="ctx-key">Alt+S</span></div>
-<div class="ctx-item" onclick="ctxAction('export')">💾 Export Data</div>
-<div class="ctx-divider"></div>
-<div class="ctx-item danger" onclick="ctxAction('removeAll')">🗑 Remove All Drawings</div>
+  <div class="ctx-item" onclick="ctxAction('addAlert')">🔔 Add Alert<span class="ctx-key">Alt+A</span></div>
+  <div class="ctx-item" onclick="ctxAction('addToWatchlist')">⊕ Add to Watchlist</div>
+  <div class="ctx-divider"></div>
+  <div class="ctx-item" onclick="ctxAction('hline')">─ Add Horizontal Line</div>
+  <div class="ctx-item" onclick="ctxAction('trendline')">╲ Add Trend Line</div>
+  <div class="ctx-item" onclick="ctxAction('fib')">F Fibonacci Retracement</div>
+  <div class="ctx-divider"></div>
+  <div class="ctx-item" onclick="ctxAction('resetZoom')">🔄 Reset Zoom<span class="ctx-key">Home</span></div>
+  <div class="ctx-item" onclick="ctxAction('screenshot')">📷 Screenshot<span class="ctx-key">Alt+S</span></div>
+  <div class="ctx-item" onclick="ctxAction('export')">💾 Export Data</div>
+  <div class="ctx-divider"></div>
+  <div class="ctx-item danger" onclick="ctxAction('removeAll')">🗑 Remove All Drawings</div>
 </div>
+
 <!-- INDICATOR MODAL -->
 <div class="modal-overlay" id="indicatorModal">
-<div class="modal ind-modal">
-<div class="modal-header">
-<h3>Indicators, Metrics &amp; Strategies</h3>
-<button class="modal-close" onclick="closeModal('indicatorModal')">✕</button>
+  <div class="modal ind-modal">
+    <div class="modal-header">
+      <h3>Indicators, Metrics & Strategies</h3>
+      <button class="modal-close" onclick="closeModal('indicatorModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input class="ind-search" id="indSearch" placeholder="Search indicators..." oninput="filterIndicators()">
+      <div class="ind-cats" id="indCats"></div>
+      <div class="ind-list" id="indList"></div>
+    </div>
+  </div>
 </div>
-<div class="modal-body">
-<input class="ind-search" id="indSearch" oninput="filterIndicators()" placeholder="Search indicators..."/>
-<div class="ind-cats" id="indCats"></div>
-<div class="ind-list" id="indList"></div>
-</div>
-</div>
-</div>
+
 <!-- COMPARE MODAL -->
 <div class="modal-overlay" id="compareModal">
-<div class="modal">
-<div class="modal-header">
-<h3>Compare Symbols</h3>
-<button class="modal-close" onclick="closeModal('compareModal')">✕</button>
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Compare Symbols</h3>
+      <button class="modal-close" onclick="closeModal('compareModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;align-items:center;gap:8px;padding:0 0 8px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--t2);cursor:pointer">
+          <input type="checkbox" id="comparePctMode" onchange="reloadCompareOverlays()">
+          <span>% Performance Mode</span>
+        </label>
+        <span style="font-size:10px;color:var(--t3)">(Normalize all symbols to % change)</span>
+      </div>
+      <input class="ind-search" id="compareSearch" placeholder="Enter symbol to compare..." oninput="searchCompare()">
+      <div class="ind-list" id="compareResults"></div>
+    </div>
+  </div>
 </div>
-<div class="modal-body">
-<div style="display:flex;align-items:center;gap:8px;padding:0 0 8px">
-<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--t2);cursor:pointer">
-<input id="comparePctMode" onchange="reloadCompareOverlays()" type="checkbox"/>
-<span>% Performance Mode</span>
-</label>
-<span style="font-size:10px;color:var(--t3)">(Normalize all symbols to % change)</span>
-</div>
-<input class="ind-search" id="compareSearch" oninput="searchCompare()" placeholder="Enter symbol to compare..."/>
-<div class="ind-list" id="compareResults"></div>
-</div>
-</div>
-</div>
+
 <!-- TEMPLATE MODAL -->
 <div class="modal-overlay" id="templateModal">
-<div class="modal">
-<div class="modal-header">
-<h3>Chart Templates</h3>
-<button class="modal-close" onclick="closeModal('templateModal')">✕</button>
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Chart Templates</h3>
+      <button class="modal-close" onclick="closeModal('templateModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <input class="ind-search" id="tmplName" placeholder="Template name..." style="margin:0;flex:1">
+        <button class="btn btn-primary" onclick="saveTemplate()">Save Current</button>
+      </div>
+      <div id="tmplList"></div>
+    </div>
+  </div>
 </div>
-<div class="modal-body">
-<div style="display:flex;gap:8px;margin-bottom:12px">
-<input class="ind-search" id="tmplName" placeholder="Template name..." style="margin:0;flex:1"/>
-<button class="btn btn-primary" onclick="saveTemplate()">Save Current</button>
-</div>
-<div id="tmplList"></div>
-</div>
-</div>
-</div>
+
 <!-- ALERT MODAL -->
 <div class="modal-overlay" id="alertModal">
-<div class="modal">
-<div class="modal-header">
-<h3>Create Alert</h3>
-<button class="modal-close" onclick="closeModal('alertModal')">✕</button>
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Create Alert</h3>
+      <button class="modal-close" onclick="closeModal('alertModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert-form">
+        <label>Symbol</label>
+        <input id="alertSym" value="AAPL">
+        <label>Condition</label>
+        <select id="alertCond">
+          <option value="crosses_above">Price Crosses Above</option>
+          <option value="crosses_below">Price Crosses Below</option>
+          <option value="greater_than">Price Greater Than</option>
+          <option value="less_than">Price Less Than</option>
+          <option value="pct_up">% Change Up</option>
+          <option value="pct_down">% Change Down</option>
+        </select>
+        <label>Value</label>
+        <input id="alertVal" type="number" step="0.01" placeholder="Enter price or %">
+        <label>Message (optional)</label>
+        <input id="alertMsg" placeholder="Alert message...">
+        <button class="btn-add-alert" onclick="createAlert()">Create Alert</button>
+      </div>
+    </div>
+  </div>
 </div>
-<div class="modal-body">
-<div class="alert-form">
-<label>Symbol</label>
-<input id="alertSym" value="AAPL"/>
-<label>Condition</label>
-<select id="alertCond">
-<option value="crosses_above">Price Crosses Above</option>
-<option value="crosses_below">Price Crosses Below</option>
-<option value="greater_than">Price Greater Than</option>
-<option value="less_than">Price Less Than</option>
-<option value="pct_up">% Change Up</option>
-<option value="pct_down">% Change Down</option>
-</select>
-<label>Value</label>
-<input id="alertVal" placeholder="Enter price or %" step="0.01" type="number"/>
-<label>Message (optional)</label>
-<input id="alertMsg" placeholder="Alert message..."/>
-<button class="btn-add-alert" onclick="createAlert()">Create Alert</button>
-</div>
-</div>
-</div>
-</div>
+
 <!-- SETTINGS MODAL -->
 <div class="modal-overlay" id="settingsModal">
-<div class="modal">
-<div class="modal-header">
-<h3>Chart Settings</h3>
-<button class="modal-close" onclick="closeModal('settingsModal')">✕</button>
-</div>
-<div class="modal-body">
-<div class="panel-section">
-<div class="panel-section-title">Appearance</div>
-<label style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;color:var(--t2)">
-<input checked="" id="setGrid" onchange="updateSettings()" type="checkbox"/> Show Grid Lines
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Chart Settings</h3>
+      <button class="modal-close" onclick="closeModal('settingsModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="panel-section">
+        <div class="panel-section-title">Appearance</div>
+        <label style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;color:var(--t2)">
+          <input type="checkbox" id="setGrid" checked onchange="updateSettings()"> Show Grid Lines
         </label>
-<label style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;color:var(--t2)">
-<input checked="" id="setCrosshair" onchange="updateSettings()" type="checkbox"/> Show Crosshair
+        <label style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;color:var(--t2)">
+          <input type="checkbox" id="setCrosshair" checked onchange="updateSettings()"> Show Crosshair
         </label>
-<label style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;color:var(--t2)">
-<input checked="" id="setWatermark" onchange="updateSettings()" type="checkbox"/> Show Watermark
+        <label style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;color:var(--t2)">
+          <input type="checkbox" id="setWatermark" checked onchange="updateSettings()"> Show Watermark
         </label>
-<label style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;color:var(--t2)">
-<input checked="" id="setVolume" onchange="updateSettings()" type="checkbox"/> Show Volume
+        <label style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;color:var(--t2)">
+          <input type="checkbox" id="setVolume" checked onchange="updateSettings()"> Show Volume
         </label>
-<label style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;color:var(--t2)">
-<input checked="" id="setAutoScale" onchange="updateSettings()" type="checkbox"/> Auto Scale
+        <label style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;color:var(--t2)">
+          <input type="checkbox" id="setAutoScale" checked onchange="updateSettings()"> Auto Scale
         </label>
-<label style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;color:var(--t2)">
-<input id="setLogScale" onchange="updateSettings()" type="checkbox"/> Logarithmic Scale
+        <label style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;color:var(--t2)">
+          <input type="checkbox" id="setLogScale" onchange="updateSettings()"> Logarithmic Scale
         </label>
-<label style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;color:var(--t2)">
-<input id="setExtHours" onchange="updateSettings()" type="checkbox"/> Extended Hours
+        <label style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;color:var(--t2)">
+          <input type="checkbox" id="setExtHours" onchange="updateSettings()"> Extended Hours
         </label>
-<label style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;color:var(--t2)">
-<input checked="" id="setShowPatterns" onchange="updateSettings()" type="checkbox"/> Candlestick Patterns
+        <label style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;color:var(--t2)">
+          <input type="checkbox" id="setShowPatterns" checked onchange="updateSettings()"> Candlestick Patterns
         </label>
-<label style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;color:var(--t2)">
-<input checked="" id="setAutoSR" onchange="updateSettings()" type="checkbox"/> Auto Support/Resistance
+        <label style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;color:var(--t2)">
+          <input type="checkbox" id="setAutoSR" checked onchange="updateSettings()"> Auto Support/Resistance
         </label>
-</div>
-<div class="panel-section">
-<div class="panel-section-title">Colors</div>
-<label style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;color:var(--t2)">
-          Up Color: <input id="colorUp" onchange="updateSettings()" type="color" value="#26a69a"/>
-</label>
-<label style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;color:var(--t2)">
-          Down Color: <input id="colorDn" onchange="updateSettings()" type="color" value="#ef5350"/>
-</label>
-<label style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;color:var(--t2)">
-          Background: <input id="colorBg" onchange="updateSettings()" type="color" value="#131722"/>
-</label>
-</div>
-<div class="panel-section">
-<div class="panel-section-title">Data</div>
-<label style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;color:var(--t2)">
+      </div>
+      <div class="panel-section">
+        <div class="panel-section-title">Colors</div>
+        <label style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;color:var(--t2)">
+          Up Color: <input type="color" id="colorUp" value="#26a69a" onchange="updateSettings()">
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;color:var(--t2)">
+          Down Color: <input type="color" id="colorDn" value="#ef5350" onchange="updateSettings()">
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;color:var(--t2)">
+          Background: <input type="color" id="colorBg" value="#131722" onchange="updateSettings()">
+        </label>
+      </div>
+      <div class="panel-section">
+        <div class="panel-section-title">Data</div>
+        <label style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;color:var(--t2)">
           Auto-Refresh: 
           <select id="setRefresh" onchange="updateSettings()" style="background:var(--bg3);border:1px solid var(--brd);color:var(--t1);padding:2px 6px;border-radius:4px;font-size:12px">
-<option value="0">Off</option>
-<option selected="" value="15">15s</option>
-<option value="30">30s</option>
-<option value="60">1m</option>
-<option value="300">5m</option>
-</select>
-</label>
+            <option value="0">Off</option>
+            <option value="15" selected>15s</option>
+            <option value="30">30s</option>
+            <option value="60">1m</option>
+            <option value="300">5m</option>
+          </select>
+        </label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="resetSettings()">Reset Defaults</button>
+      <button class="btn btn-primary" onclick="closeModal('settingsModal')">Done</button>
+    </div>
+  </div>
 </div>
-</div>
-<div class="modal-footer">
-<button class="btn btn-secondary" onclick="resetSettings()">Reset Defaults</button>
-<button class="btn btn-primary" onclick="closeModal('settingsModal')">Done</button>
-</div>
-</div>
-</div>
+
 <script>
 // ==========================================
 // CONFIGURATION & STATE
@@ -5324,5 +5326,5 @@ window.addEventListener('resize', () => {
   });
 });
 </script>
-</div><script src="/assets/sidebar.js"></script></body>
+</body>
 </html>

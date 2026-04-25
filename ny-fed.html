@@ -1,15 +1,16 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>OpenBB Financial Intelligence Platform - NY Fed v3.0 Integration</title>
-<!-- Required Libraries -->
-<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenBB Financial Intelligence Platform - NY Fed v3.0 Integration</title>
+    
+    <!-- Required Libraries -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
         /* Core Styles */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -586,249 +587,247 @@
             }
         }
     </style>
-<link href="/assets/sidebar.css" rel="stylesheet"/><style id="jh-suppress-legacy">
-/* JustHodl: hide legacy page navs in favour of shared sidebar */
-body > nav,
-body > header,
-body > .topbar,
-body > .top-bar,
-body > .top-nav,
-body > .navbar,
-body > .navigation,
-.jh-page > nav:first-child,
-.jh-page > header:first-child,
-.jh-page > .topbar:first-child,
-.jh-page > .top-bar:first-child,
-.jh-page > .navbar:first-child{
-  display: none !important;
-}
-/* Reset any body padding-top that was reserving space for fixed nav */
-body{
-  padding-top: 0 !important;
-  margin: 0 !important;
-}
-</style></head>
-<body><div id="sidebar"></div><div class="jh-page">
-<!-- Market Phase Banner -->
-<div class="market-phase-banner" id="marketPhaseBanner">
+</head>
+<body>
+    <!-- Market Phase Banner -->
+    <div class="market-phase-banner" id="marketPhaseBanner">
         📈 MARKET STATUS: CONNECTING TO NY FED API v3.0...
     </div>
-<header class="header">
-<div class="logo">
+    
+    <header class="header">
+        <div class="logo">
             📊 OpenBB Platform
             <span style="font-size: 0.875rem; color: #888;">NY Fed v3.0 Integration</span>
-</div>
-<div class="header-stats">
-<div class="stat-item">
-<div class="stat-value" id="activeIndicators">18</div>
-<div class="stat-label">Real-Time Indicators</div>
-</div>
-<div class="stat-item">
-<div class="stat-value" id="historicalYears">25+</div>
-<div class="stat-label">Years Historical</div>
-</div>
-<div class="stat-item">
-<div class="stat-value" id="dataPoints">--</div>
-<div class="stat-label">Data Points</div>
-</div>
-<div class="stat-item">
-<div class="stat-value" id="cacheAge">--</div>
-<div class="stat-label">Cache Age (min)</div>
-</div>
-</div>
-<div class="risk-indicator">
-<span>CMDI Risk:</span>
-<span class="risk-level risk-low" id="riskLevel">LOADING...</span>
-</div>
-<div class="api-status">
-<div class="api-indicator">
-<div class="status-dot loading" id="nyFedApiStatus"></div>
-<span>NY Fed API</span>
-</div>
-<div class="api-indicator">
-<div class="status-dot loading" id="dataStatus"></div>
-<span>Data Stream</span>
-</div>
-<div class="api-indicator">
-<div class="status-dot loading" id="historicalStatus"></div>
-<span>Historical</span>
-</div>
-</div>
-</header>
-<div class="container">
-<!-- Navigation Tabs -->
-<div class="tabs-nav">
-<button class="tab-btn active" data-tab="overview">📈 Overview</button>
-<button class="tab-btn" data-tab="cmdi">🚨 CMDI Crisis Detection</button>
-<button class="tab-btn" data-tab="primary-dealers">🏦 Primary Dealers</button>
-<button class="tab-btn" data-tab="financial-stability">💰 Financial Stability</button>
-<button class="tab-btn" data-tab="rates">📊 Reference Rates</button>
-<button class="tab-btn" data-tab="repo">🔄 Repo Markets</button>
-<button class="tab-btn" data-tab="historical">📅 Historical Analysis</button>
-</div>
-<!-- Overview Tab -->
-<div class="tab-content active" id="overview">
-<!-- Key Metrics -->
-<h2 style="margin-bottom: 1rem;">🎯 Key Financial Indicators</h2>
-<div class="metrics-grid" id="keyMetrics">
-<div class="loading">
-<div class="spinner"></div>
-</div>
-</div>
-<!-- Summary Grid -->
-<h2 style="margin-bottom: 1rem; margin-top: 2rem;">📊 All Indicators Summary</h2>
-<div class="data-grid" id="overviewGrid">
-<div class="loading">
-<div class="spinner"></div>
-</div>
-</div>
-<div class="last-update" id="lastUpdate">Last Update: --</div>
-</div>
-<!-- CMDI Crisis Detection Tab -->
-<div class="tab-content" id="cmdi">
-<div class="chart-container">
-<div class="chart-header">
-<h2 class="chart-title">Corporate Bond Market Distress Index (CMDI)</h2>
-<div class="chart-controls">
-<button class="chart-btn active" onclick="updateCMDIChart('current')">Current</button>
-<button class="chart-btn" onclick="updateCMDIChart('1Y')">1 Year</button>
-<button class="chart-btn" onclick="updateCMDIChart('5Y')">5 Years</button>
-<button class="chart-btn" onclick="updateCMDIChart('ALL')">All (2000-2025)</button>
-</div>
-</div>
-<div id="cmdiChart"></div>
-</div>
-<!-- CMDI Historical Stats -->
-<div class="historical-stats" id="cmdiStats">
-<div class="stat-box">
-<div class="stat-box-label">Historical Min</div>
-<div class="stat-box-value positive" id="cmdiMin">--</div>
-</div>
-<div class="stat-box">
-<div class="stat-box-label">Historical Max</div>
-<div class="stat-box-value negative" id="cmdiMax">--</div>
-</div>
-<div class="stat-box">
-<div class="stat-box-label">Historical Avg</div>
-<div class="stat-box-value neutral" id="cmdiAvg">--</div>
-</div>
-<div class="stat-box">
-<div class="stat-box-label">Crisis Periods</div>
-<div class="stat-box-value negative" id="cmdiCrisis">--</div>
-</div>
-</div>
-<div class="data-grid" id="cmdiGrid">
-<div class="loading">
-<div class="spinner"></div>
-</div>
-</div>
-</div>
-<!-- Primary Dealers Tab -->
-<div class="tab-content" id="primary-dealers">
-<div class="chart-container">
-<div class="chart-header">
-<h2 class="chart-title">Primary Dealer Statistics</h2>
-</div>
-<div id="primaryDealersChart"></div>
-</div>
-<div class="data-grid" id="primaryDealersGrid">
-<div class="loading">
-<div class="spinner"></div>
-</div>
-</div>
-</div>
-<!-- Financial Stability Tab -->
-<div class="tab-content" id="financial-stability">
-<div class="chart-container">
-<div class="chart-header">
-<h2 class="chart-title">Financial Stability Indicators</h2>
-</div>
-<div id="financialStabilityChart"></div>
-</div>
-<div class="data-grid" id="financialStabilityGrid">
-<div class="loading">
-<div class="spinner"></div>
-</div>
-</div>
-</div>
-<!-- Reference Rates Tab -->
-<div class="tab-content" id="rates">
-<div class="data-table">
-<table>
-<thead>
-<tr>
-<th>Rate</th>
-<th>Current Value</th>
-<th>Date</th>
-<th>Description</th>
-<th>Source</th>
-</tr>
-</thead>
-<tbody id="ratesTable">
-<tr>
-<td colspan="5" style="text-align: center;">Loading rates...</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="data-grid" id="ratesGrid">
-<div class="loading">
-<div class="spinner"></div>
-</div>
-</div>
-</div>
-<!-- Repo Markets Tab -->
-<div class="tab-content" id="repo">
-<div class="data-grid" id="repoGrid">
-<div class="loading">
-<div class="spinner"></div>
-</div>
-</div>
-</div>
-<!-- Historical Analysis Tab -->
-<div class="tab-content" id="historical">
-<div class="historical-controls">
-<label>Start Date:</label>
-<input class="date-input" id="histStartDate" type="date" value="2020-01-01"/>
-<label>End Date:</label>
-<input class="date-input" id="histEndDate" type="date"/>
-<label>Indicator:</label>
-<select class="date-input" id="histIndicator">
-<option value="CMDI_OVERALL">CMDI Overall</option>
-<option value="CMDI_INVESTMENT_GRADE">CMDI Investment Grade</option>
-<option value="CMDI_HIGH_YIELD">CMDI High Yield</option>
-<option value="GLOBAL_SUPPLY_CHAIN_PRESSURE">Supply Chain Pressure</option>
-<option value="FINANCIAL_STRESS_INDEX">Financial Stress Index</option>
-</select>
-<button class="chart-btn" onclick="loadHistoricalData()">Load Data</button>
-</div>
-<div class="chart-container">
-<div class="chart-header">
-<h2 class="chart-title">Historical Analysis (2000-2025)</h2>
-</div>
-<div id="historicalChart"></div>
-</div>
-<div class="historical-stats" id="historicalStats">
-<div class="stat-box">
-<div class="stat-box-label">Data Points</div>
-<div class="stat-box-value" id="histDataPoints">--</div>
-</div>
-<div class="stat-box">
-<div class="stat-box-label">Period Coverage</div>
-<div class="stat-box-value" id="histPeriod">--</div>
-</div>
-<div class="stat-box">
-<div class="stat-box-label">Min Value</div>
-<div class="stat-box-value positive" id="histMin">--</div>
-</div>
-<div class="stat-box">
-<div class="stat-box-label">Max Value</div>
-<div class="stat-box-value negative" id="histMax">--</div>
-</div>
-</div>
-</div>
-</div>
-<script>
+        </div>
+        
+        <div class="header-stats">
+            <div class="stat-item">
+                <div class="stat-value" id="activeIndicators">18</div>
+                <div class="stat-label">Real-Time Indicators</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="historicalYears">25+</div>
+                <div class="stat-label">Years Historical</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="dataPoints">--</div>
+                <div class="stat-label">Data Points</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="cacheAge">--</div>
+                <div class="stat-label">Cache Age (min)</div>
+            </div>
+        </div>
+        
+        <div class="risk-indicator">
+            <span>CMDI Risk:</span>
+            <span class="risk-level risk-low" id="riskLevel">LOADING...</span>
+        </div>
+        
+        <div class="api-status">
+            <div class="api-indicator">
+                <div class="status-dot loading" id="nyFedApiStatus"></div>
+                <span>NY Fed API</span>
+            </div>
+            <div class="api-indicator">
+                <div class="status-dot loading" id="dataStatus"></div>
+                <span>Data Stream</span>
+            </div>
+            <div class="api-indicator">
+                <div class="status-dot loading" id="historicalStatus"></div>
+                <span>Historical</span>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <!-- Navigation Tabs -->
+        <div class="tabs-nav">
+            <button class="tab-btn active" data-tab="overview">📈 Overview</button>
+            <button class="tab-btn" data-tab="cmdi">🚨 CMDI Crisis Detection</button>
+            <button class="tab-btn" data-tab="primary-dealers">🏦 Primary Dealers</button>
+            <button class="tab-btn" data-tab="financial-stability">💰 Financial Stability</button>
+            <button class="tab-btn" data-tab="rates">📊 Reference Rates</button>
+            <button class="tab-btn" data-tab="repo">🔄 Repo Markets</button>
+            <button class="tab-btn" data-tab="historical">📅 Historical Analysis</button>
+        </div>
+        
+        <!-- Overview Tab -->
+        <div class="tab-content active" id="overview">
+            <!-- Key Metrics -->
+            <h2 style="margin-bottom: 1rem;">🎯 Key Financial Indicators</h2>
+            <div class="metrics-grid" id="keyMetrics">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+            
+            <!-- Summary Grid -->
+            <h2 style="margin-bottom: 1rem; margin-top: 2rem;">📊 All Indicators Summary</h2>
+            <div class="data-grid" id="overviewGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+            
+            <div class="last-update" id="lastUpdate">Last Update: --</div>
+        </div>
+        
+        <!-- CMDI Crisis Detection Tab -->
+        <div class="tab-content" id="cmdi">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">Corporate Bond Market Distress Index (CMDI)</h2>
+                    <div class="chart-controls">
+                        <button class="chart-btn active" onclick="updateCMDIChart('current')">Current</button>
+                        <button class="chart-btn" onclick="updateCMDIChart('1Y')">1 Year</button>
+                        <button class="chart-btn" onclick="updateCMDIChart('5Y')">5 Years</button>
+                        <button class="chart-btn" onclick="updateCMDIChart('ALL')">All (2000-2025)</button>
+                    </div>
+                </div>
+                <div id="cmdiChart"></div>
+            </div>
+            
+            <!-- CMDI Historical Stats -->
+            <div class="historical-stats" id="cmdiStats">
+                <div class="stat-box">
+                    <div class="stat-box-label">Historical Min</div>
+                    <div class="stat-box-value positive" id="cmdiMin">--</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-box-label">Historical Max</div>
+                    <div class="stat-box-value negative" id="cmdiMax">--</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-box-label">Historical Avg</div>
+                    <div class="stat-box-value neutral" id="cmdiAvg">--</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-box-label">Crisis Periods</div>
+                    <div class="stat-box-value negative" id="cmdiCrisis">--</div>
+                </div>
+            </div>
+            
+            <div class="data-grid" id="cmdiGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Primary Dealers Tab -->
+        <div class="tab-content" id="primary-dealers">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">Primary Dealer Statistics</h2>
+                </div>
+                <div id="primaryDealersChart"></div>
+            </div>
+            <div class="data-grid" id="primaryDealersGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Financial Stability Tab -->
+        <div class="tab-content" id="financial-stability">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">Financial Stability Indicators</h2>
+                </div>
+                <div id="financialStabilityChart"></div>
+            </div>
+            <div class="data-grid" id="financialStabilityGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Reference Rates Tab -->
+        <div class="tab-content" id="rates">
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Rate</th>
+                            <th>Current Value</th>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Source</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ratesTable">
+                        <tr>
+                            <td colspan="5" style="text-align: center;">Loading rates...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="data-grid" id="ratesGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Repo Markets Tab -->
+        <div class="tab-content" id="repo">
+            <div class="data-grid" id="repoGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Historical Analysis Tab -->
+        <div class="tab-content" id="historical">
+            <div class="historical-controls">
+                <label>Start Date:</label>
+                <input type="date" id="histStartDate" class="date-input" value="2020-01-01">
+                <label>End Date:</label>
+                <input type="date" id="histEndDate" class="date-input">
+                <label>Indicator:</label>
+                <select id="histIndicator" class="date-input">
+                    <option value="CMDI_OVERALL">CMDI Overall</option>
+                    <option value="CMDI_INVESTMENT_GRADE">CMDI Investment Grade</option>
+                    <option value="CMDI_HIGH_YIELD">CMDI High Yield</option>
+                    <option value="GLOBAL_SUPPLY_CHAIN_PRESSURE">Supply Chain Pressure</option>
+                    <option value="FINANCIAL_STRESS_INDEX">Financial Stress Index</option>
+                </select>
+                <button class="chart-btn" onclick="loadHistoricalData()">Load Data</button>
+            </div>
+            
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">Historical Analysis (2000-2025)</h2>
+                </div>
+                <div id="historicalChart"></div>
+            </div>
+            
+            <div class="historical-stats" id="historicalStats">
+                <div class="stat-box">
+                    <div class="stat-box-label">Data Points</div>
+                    <div class="stat-box-value" id="histDataPoints">--</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-box-label">Period Coverage</div>
+                    <div class="stat-box-value" id="histPeriod">--</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-box-label">Min Value</div>
+                    <div class="stat-box-value positive" id="histMin">--</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-box-label">Max Value</div>
+                    <div class="stat-box-value negative" id="histMax">--</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
         // NY Fed API v3.0 Configuration
         const NYFED_CONFIG = {
             baseUrl: 'https://jc6ripzwk1.execute-api.us-east-1.amazonaws.com/prod',
@@ -1789,5 +1788,5 @@ body{
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', initializePlatform);
     </script>
-</div><script src="/assets/sidebar.js"></script></body>
+</body>
 </html>

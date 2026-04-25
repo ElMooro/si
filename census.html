@@ -1,11 +1,10 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Fed Liquidity Dashboard - Live Market Intelligence</title>
-<style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fed Liquidity Dashboard - Live Market Intelligence</title>
+    <style>
         * {
             margin: 0;
             padding: 0;
@@ -592,144 +591,133 @@
             opacity: 0.3;
         }
     </style>
-<link href="/assets/sidebar.css" rel="stylesheet"/><style id="jh-suppress-legacy">
-/* JustHodl: hide legacy page navs in favour of shared sidebar */
-body > nav,
-body > header,
-body > .topbar,
-body > .top-bar,
-body > .top-nav,
-body > .navbar,
-body > .navigation,
-.jh-page > nav:first-child,
-.jh-page > header:first-child,
-.jh-page > .topbar:first-child,
-.jh-page > .top-bar:first-child,
-.jh-page > .navbar:first-child{
-  display: none !important;
-}
-/* Reset any body padding-top that was reserving space for fixed nav */
-body{
-  padding-top: 0 !important;
-  margin: 0 !important;
-}
-</style></head>
-<body><div id="sidebar"></div><div class="jh-page">
-<div class="dashboard">
-<!-- Header -->
-<div class="header">
-<div class="header-content">
-<div>
-<h1 class="title">Fed Liquidity Terminal</h1>
-<div class="subtitle">Real-time Federal Reserve &amp; Market Intelligence</div>
-</div>
-<div class="status-bar">
-<div class="status-pill">
-<div class="pulse-dot"></div>
-<span id="api-status">Connecting...</span>
-</div>
-<div class="status-pill">
-<span id="series-count">0 Series</span>
-</div>
-<div class="status-pill">
-<span id="last-update">--:--</span>
-</div>
-<button class="btn" onclick="refreshData()">
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <div>
+                    <h1 class="title">Fed Liquidity Terminal</h1>
+                    <div class="subtitle">Real-time Federal Reserve & Market Intelligence</div>
+                </div>
+                <div class="status-bar">
+                    <div class="status-pill">
+                        <div class="pulse-dot"></div>
+                        <span id="api-status">Connecting...</span>
+                    </div>
+                    <div class="status-pill">
+                        <span id="series-count">0 Series</span>
+                    </div>
+                    <div class="status-pill">
+                        <span id="last-update">--:--</span>
+                    </div>
+                    <button class="btn" onclick="refreshData()">
                         Refresh
                     </button>
-</div>
-</div>
-</div>
-<!-- Risk Panel -->
-<div class="risk-panel">
-<h2 class="risk-title">
-<span>🎯</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Risk Panel -->
+        <div class="risk-panel">
+            <h2 class="risk-title">
+                <span>🎯</span>
                 Risk Intelligence System
             </h2>
-<div class="risk-grid" id="risk-grid">
-<div class="loading">
-<div class="spinner"></div>
-<p>Analyzing market conditions...</p>
-</div>
-</div>
-</div>
-<!-- Stats Summary -->
-<div class="stats-row" id="stats-row">
-<div class="stat-card">
-<div class="stat-label">Fed Balance Sheet</div>
-<div class="stat-value" id="fed-balance">--</div>
-</div>
-<div class="stat-card">
-<div class="stat-label">M2 Money Supply</div>
-<div class="stat-value" id="m2-supply">--</div>
-</div>
-<div class="stat-card">
-<div class="stat-label">VIX Index</div>
-<div class="stat-value" id="vix-index">--</div>
-</div>
-<div class="stat-card">
-<div class="stat-label">10Y-2Y Spread</div>
-<div class="stat-value" id="yield-spread">--</div>
-</div>
-<div class="stat-card">
-<div class="stat-label">Dollar Index</div>
-<div class="stat-value" id="dollar-index">--</div>
-</div>
-<div class="stat-card">
-<div class="stat-label">Fed Funds Rate</div>
-<div class="stat-value" id="fed-rate">--</div>
-</div>
-</div>
-<!-- Tabs -->
-<div class="tabs">
-<button class="tab active" onclick="switchTab('all')">
+            <div class="risk-grid" id="risk-grid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Analyzing market conditions...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Summary -->
+        <div class="stats-row" id="stats-row">
+            <div class="stat-card">
+                <div class="stat-label">Fed Balance Sheet</div>
+                <div class="stat-value" id="fed-balance">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">M2 Money Supply</div>
+                <div class="stat-value" id="m2-supply">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">VIX Index</div>
+                <div class="stat-value" id="vix-index">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">10Y-2Y Spread</div>
+                <div class="stat-value" id="yield-spread">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Dollar Index</div>
+                <div class="stat-value" id="dollar-index">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Fed Funds Rate</div>
+                <div class="stat-value" id="fed-rate">--</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('all')">
                 All Series
             </button>
-<button class="tab" onclick="switchTab('favorites')">
+            <button class="tab" onclick="switchTab('favorites')">
                 ⭐ Favorites
             </button>
-<button class="tab" onclick="switchTab('critical')">
+            <button class="tab" onclick="switchTab('critical')">
                 🔴 Critical Indicators
             </button>
-</div>
-<!-- Controls -->
-<div class="controls">
-<div class="search-box">
-<input class="search-input" id="search-input" oninput="filterSeries()" placeholder="Search by series ID or name..." type="text"/>
-</div>
-<div class="filter-group">
-<button class="filter-btn active" onclick="setFilter('all', this)">All</button>
-<button class="filter-btn" onclick="setFilter('positive', this)">📈 Positive</button>
-<button class="filter-btn" onclick="setFilter('negative', this)">📉 Negative</button>
-</div>
-</div>
-<!-- Tab Contents -->
-<div class="tab-content active" id="all-tab">
-<div class="series-grid" id="all-series">
-<div class="loading">
-<div class="spinner"></div>
-<p>Loading market data...</p>
-</div>
-</div>
-</div>
-<div class="tab-content" id="favorites-tab">
-<div class="series-grid" id="favorites-series">
-<div class="no-data">
-<div class="no-data-icon">⭐</div>
-<p>No favorites yet. Click the star icon on any series to add it here.</p>
-</div>
-</div>
-</div>
-<div class="tab-content" id="critical-tab">
-<div class="series-grid" id="critical-series">
-<div class="loading">
-<div class="spinner"></div>
-<p>Loading critical indicators...</p>
-</div>
-</div>
-</div>
-</div>
-<script>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" class="search-input" id="search-input" 
+                       placeholder="Search by series ID or name..." 
+                       oninput="filterSeries()">
+            </div>
+            <div class="filter-group">
+                <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
+                <button class="filter-btn" onclick="setFilter('positive', this)">📈 Positive</button>
+                <button class="filter-btn" onclick="setFilter('negative', this)">📉 Negative</button>
+            </div>
+        </div>
+
+        <!-- Tab Contents -->
+        <div id="all-tab" class="tab-content active">
+            <div class="series-grid" id="all-series">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading market data...</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="favorites-tab" class="tab-content">
+            <div class="series-grid" id="favorites-series">
+                <div class="no-data">
+                    <div class="no-data-icon">⭐</div>
+                    <p>No favorites yet. Click the star icon on any series to add it here.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="critical-tab" class="tab-content">
+            <div class="series-grid" id="critical-series">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading critical indicators...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
         const API_URL = 'https://gxjvtintcxjn3f7cxvkirfm5wy0doaoy.lambda-url.us-east-1.on.aws';
         
         let allSeries = [];
@@ -1036,5 +1024,5 @@ body{
             setInterval(fetchData, 300000);
         });
     </script>
-</div><script src="/assets/sidebar.js"></script></body>
+</body>
 </html>

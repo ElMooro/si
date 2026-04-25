@@ -1,12 +1,13 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>AI Predictions - OpenBB Financial Intelligence</title>
-<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-<style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Predictions - OpenBB Financial Intelligence</title>
+    
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    
+    <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -356,105 +357,93 @@
             }
         }
     </style>
-<link href="/assets/sidebar.css" rel="stylesheet"/><style id="jh-suppress-legacy">
-/* JustHodl: hide legacy page navs in favour of shared sidebar */
-body > nav,
-body > header,
-body > .topbar,
-body > .top-bar,
-body > .top-nav,
-body > .navbar,
-body > .navigation,
-.jh-page > nav:first-child,
-.jh-page > header:first-child,
-.jh-page > .topbar:first-child,
-.jh-page > .top-bar:first-child,
-.jh-page > .navbar:first-child{
-  display: none !important;
-}
-/* Reset any body padding-top that was reserving space for fixed nav */
-body{
-  padding-top: 0 !important;
-  margin: 0 !important;
-}
-</style></head>
-<body><div id="sidebar"></div><div class="jh-page">
-<!-- Navigation -->
-<nav>
-<div class="nav-logo">📊 OPENBB</div>
-<div class="nav-links">
-<a href="index.html">Home</a>
-<a href="macroeconomic-platform.html">Macro Dashboard</a>
-<a class="active" href="ai_predictions.html">AI Signals</a>
-<a href="exponential-search-dashboard.html">Search</a>
-<a href="openbb-realtime-dashboard.html">Live Data</a>
-<a href="scraper_dashboard.html">Scraper Monitor</a>
-<a href="ai-predictions-supabase.html">Login</a>
-</div>
-</nav>
-<!-- Main Container -->
-<div class="main-container">
-<!-- Header -->
-<div class="header-section">
-<h1 class="page-title">🤖 AI Market Predictions</h1>
-<p class="page-subtitle">Machine learning signals updated daily with crisis detection</p>
-</div>
-<!-- Status Section -->
-<div class="status-section">
-<div class="status-item">
-<div class="status-dot" id="statusDot"></div>
-<span id="statusText">Connecting to AI model...</span>
-</div>
-<div class="status-item">
-<span id="lastUpdate">Last update: —</span>
-</div>
-<button class="refresh-button" id="refreshButton" onclick="loadPredictions()">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-logo">📊 OPENBB</div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="macroeconomic-platform.html">Macro Dashboard</a>
+            <a href="ai_predictions.html" class="active">AI Signals</a>
+            <a href="exponential-search-dashboard.html">Search</a>
+            <a href="openbb-realtime-dashboard.html">Live Data</a>
+            <a href="scraper_dashboard.html">Scraper Monitor</a>
+            <a href="ai-predictions-supabase.html">Login</a>
+        </div>
+    </nav>
+    
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Header -->
+        <div class="header-section">
+            <h1 class="page-title">🤖 AI Market Predictions</h1>
+            <p class="page-subtitle">Machine learning signals updated daily with crisis detection</p>
+        </div>
+        
+        <!-- Status Section -->
+        <div class="status-section">
+            <div class="status-item">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="statusText">Connecting to AI model...</span>
+            </div>
+            <div class="status-item">
+                <span id="lastUpdate">Last update: —</span>
+            </div>
+            <button class="refresh-button" id="refreshButton" onclick="loadPredictions()">
                 🔄 Refresh Predictions
             </button>
-</div>
-<!-- Signal Overview -->
-<div class="signal-overview" id="signalOverview" style="display: none;">
-<div class="signal-card">
-<div class="signal-label">Current Signal</div>
-<div class="signal-value" id="currentSignal">—</div>
-<div class="timestamp" id="signalTime">—</div>
-</div>
-<div class="signal-card">
-<div class="signal-label">Confidence Score</div>
-<div class="confidence-score" id="confidenceScore">—</div>
-<div class="timestamp">Model Confidence</div>
-</div>
-<div class="signal-card">
-<div class="signal-label">Crisis Risk</div>
-<div class="signal-value" id="crisisRisk">—</div>
-<div class="timestamp" id="riskLevel">—</div>
-</div>
-</div>
-<!-- Loading State -->
-<div class="loading" id="loadingState">
-<div class="loading-spinner"></div>
-<p>Loading AI predictions from S3...</p>
-</div>
-<!-- Error State -->
-<div class="error-message" id="errorMessage" style="display: none;"></div>
-<!-- Assets Section -->
-<div class="assets-section" id="assetsSection" style="display: none;">
-<h2 class="section-header">Asset-Level Predictions</h2>
-<div class="assets-grid" id="assetsGrid"></div>
-</div>
-<!-- Charts Section -->
-<div id="chartsSection" style="display: none;">
-<div class="chart-container">
-<h3 class="chart-title">Market Signals History (30 Days)</h3>
-<div class="plotly-chart" id="signalsChart"></div>
-</div>
-<div class="chart-container">
-<h3 class="chart-title">Confidence Score Trend</h3>
-<div class="plotly-chart" id="confidenceChart"></div>
-</div>
-</div>
-</div>
-<script>
+        </div>
+        
+        <!-- Signal Overview -->
+        <div class="signal-overview" id="signalOverview" style="display: none;">
+            <div class="signal-card">
+                <div class="signal-label">Current Signal</div>
+                <div class="signal-value" id="currentSignal">—</div>
+                <div class="timestamp" id="signalTime">—</div>
+            </div>
+            <div class="signal-card">
+                <div class="signal-label">Confidence Score</div>
+                <div class="confidence-score" id="confidenceScore">—</div>
+                <div class="timestamp">Model Confidence</div>
+            </div>
+            <div class="signal-card">
+                <div class="signal-label">Crisis Risk</div>
+                <div class="signal-value" id="crisisRisk">—</div>
+                <div class="timestamp" id="riskLevel">—</div>
+            </div>
+        </div>
+        
+        <!-- Loading State -->
+        <div class="loading" id="loadingState">
+            <div class="loading-spinner"></div>
+            <p>Loading AI predictions from S3...</p>
+        </div>
+        
+        <!-- Error State -->
+        <div class="error-message" id="errorMessage" style="display: none;"></div>
+        
+        <!-- Assets Section -->
+        <div class="assets-section" id="assetsSection" style="display: none;">
+            <h2 class="section-header">Asset-Level Predictions</h2>
+            <div class="assets-grid" id="assetsGrid"></div>
+        </div>
+        
+        <!-- Charts Section -->
+        <div id="chartsSection" style="display: none;">
+            <div class="chart-container">
+                <h3 class="chart-title">Market Signals History (30 Days)</h3>
+                <div class="plotly-chart" id="signalsChart"></div>
+            </div>
+            
+            <div class="chart-container">
+                <h3 class="chart-title">Confidence Score Trend</h3>
+                <div class="plotly-chart" id="confidenceChart"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
         // Configuration
         const S3_URL = 'https://macro-data-lake.s3.amazonaws.com/predictions/ai_output.json';
         let predictionData = null;
@@ -686,5 +675,5 @@ body{
             }
         });
     </script>
-</div><script src="/assets/sidebar.js"></script></body>
+</body>
 </html>
