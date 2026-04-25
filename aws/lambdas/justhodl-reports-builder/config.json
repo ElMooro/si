@@ -1,0 +1,9 @@
+{
+  "FunctionName": "justhodl-reports-builder",
+  "Runtime": "python3.12",
+  "Handler": "lambda_function.lambda_handler",
+  "MemorySize": 512,
+  "Timeout": 120,
+  "Description": "Builds reports/scorecard.json from SSM calibration + DDB signals/outcomes",
+  "Role": "arn:aws:iam::857687956942:role/lambda-execution-role"
+}
