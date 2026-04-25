@@ -5,6 +5,29 @@ from decimal import Decimal
 from collections import defaultdict
 from boto3.dynamodb.conditions import Attr
 
+# Calibration helper — Loop 1: weight signals by historical accuracy
+try:
+    from calibration import blend_score, get_calibration
+    _CALIBRATION_AVAILABLE = True
+except Exception as _e:
+    print(f"WARN: calibration module unavailable: {_e}")
+    _CALIBRATION_AVAILABLE = False
+    def blend_score(scores, default_weight=1.0):
+        if not scores: return {"value": 0.0, "raw_value": 0.0, "contributions": [],
+                                "total_weight": 0.0, "is_calibrated": False, "n_calibrated": 0}
+        n = len(scores)
+        avg = sum(float(v) for v in scores.values() if v is not None) / n if n else 0.0
+        return {"value": avg, "raw_value": avg, "contributions": [],
+                "total_weight": float(n), "is_calibrated": False, "n_calibrated": 0}
+    def get_calibration():
+        class _C:
+            is_meaningful = False
+            weights = {}
+            accuracy = {}
+            def weight(self, _): return 1.0
+            def is_signal_calibrated(self, _): return False
+        return _C()
+
 TELEGRAM_TOKEN="8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs"
 TELEGRAM_API="https://api.telegram.org/bot"+TELEGRAM_TOKEN
 ANTHROPIC_KEY=os.environ.get('ANTHROPIC_KEY', '')
@@ -138,7 +161,13 @@ def extract_metrics(data,weights):
     btc_fund=next((r for r in fund_rates if r.get("symbol")=="BTC"),{})
     eth_fund=next((r for r in fund_rates if r.get("symbol")=="ETH"),{})
     ki=d.get("khalid_index") or scores.get("khalid_index",0)
-    kw=weights.get("khalid_index",1.0)
+    # Loop 1: use shared calibration helper instead of raw weights dict.
+    # Helper applies the is_meaningful gate (≥30 scored outcomes per
+    # signal); falls back to 1.0 when calibrator data is sparse, so
+    # we don't apply noisy 0.5 default weights from a calibrator that
+    # has 0 scored outcomes today.
+    _cal = get_calibration() if _CALIBRATION_AVAILABLE else None
+    kw = _cal.weight("khalid_index") if _cal is not None else 1.0
     picks=[s.get("symbol","?")+"(P:"+str(s.get("piotroskiScore","?"))+")" for s in data.get("screener",{}).get("stocks",[])[:5]]
     alerts=[str(a.get("message",a))[:80] for a in edge.get("alerts",[])[:3]]
     top_w=sorted([(k,v) for k,v in weights.items()],key=lambda x:x[1],reverse=True)[:5]
@@ -167,6 +196,23 @@ def extract_metrics(data,weights):
         "fg":fg.get("current","N/A"),
         "fg_label":fg.get("label","N/A"),
         "crypto_risk":rs.get("score","N/A"),
+        # ─── Loop 1: calibration-weighted multi-signal composite ───
+        # Blends khalid_index + plumbing_stress + ml_risk + carry_risk
+        # weighted by historical accuracy. is_calibrated is True only
+        # after the calibrator has scored ≥30 outcomes for at least
+        # one signal (~ early May 2026 onward).
+        **(lambda inputs=({k:v for k,v in [
+            ("khalid_index", float(ki["score"]) if isinstance(ki, dict) and ki.get("score") is not None
+                              else (float(ki) if isinstance(ki, (int, float)) and ki else None)),
+            ("plumbing_stress", float(stress.get("score")) if stress.get("score") not in (None, "N/A") else None),
+            ("ml_risk", float(scores.get("ml_risk_score")) if scores.get("ml_risk_score") not in (None, "N/A") else None),
+            ("carry_risk", float(scores.get("carry_risk_score")) if scores.get("carry_risk_score") not in (None, "N/A") else None),
+        ] if v is not None}): {
+            "blended_composite": round(blend_score(inputs)["value"], 2) if inputs else None,
+            "raw_composite": round(blend_score(inputs)["raw_value"], 2) if inputs else None,
+            "calibration_active": blend_score(inputs)["is_calibrated"] if inputs else False,
+            "calibration_n_signals": len(inputs),
+        })(),
         "crypto_regime":rs.get("regime","N/A"),
         "crypto_action":rs.get("action","N/A"),
         "btc_price":btc.get("price"),
