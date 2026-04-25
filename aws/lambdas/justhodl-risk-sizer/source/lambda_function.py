@@ -110,18 +110,24 @@ def correlation(a, b):
     return cov / ((a_var * b_var) ** 0.5)
 
 
-def cluster_by_correlation(symbols, returns_by_symbol, threshold=CLUSTER_CORRELATION_THRESHOLD):
-    """Greedy clustering: for each symbol, find others with corr > threshold."""
+def cluster_by_correlation(symbols, returns_by_symbol, sector_by_symbol=None, threshold=CLUSTER_CORRELATION_THRESHOLD):
+    """Cluster symbols by 60-day return correlation when data exists, else by sector.
+
+    For symbols with sufficient return data we use the original 0.65 correlation
+    threshold (precise but data-dependent). For symbols WITHOUT return data —
+    most Phase 2B output, since data/report.json only carries ~80 major ETFs/
+    names and the screener has 503 — we fall back to sector grouping. INCY +
+    RMD = Healthcare → 1 cluster, etc. Less precise but vastly better than
+    treating every name as its own cluster (which makes per-cluster caps useless).
+    """
+    if sector_by_symbol is None:
+        sector_by_symbol = {}
     clusters = []
     assigned = set()
 
+    # Pass 1: correlation-based clusters for symbols with return data
     for sym in symbols:
-        if sym in assigned:
-            continue
-        if sym not in returns_by_symbol:
-            # Symbol with no return data goes alone (defensive)
-            clusters.append({"id": f"isolated_{sym}", "members": [sym], "avg_correlation": 0, "size": 1})
-            assigned.add(sym)
+        if sym in assigned or sym not in returns_by_symbol:
             continue
         cluster_members = [sym]
         cluster_corrs = []
@@ -135,11 +141,43 @@ def cluster_by_correlation(symbols, returns_by_symbol, threshold=CLUSTER_CORRELA
         for m in cluster_members:
             assigned.add(m)
         clusters.append({
-            "id": f"cluster_{cluster_members[0]}",
+            "id": f"corr_{cluster_members[0]}",
+            "method": "correlation",
             "members": sorted(cluster_members),
             "avg_correlation": round(statistics.mean(cluster_corrs), 3) if cluster_corrs else 0,
             "size": len(cluster_members),
         })
+
+    # Pass 2: sector-based clusters for the remainder
+    by_sector = {}
+    for sym in symbols:
+        if sym in assigned:
+            continue
+        sector = sector_by_symbol.get(sym, "Unknown")
+        by_sector.setdefault(sector, []).append(sym)
+
+    for sector, members in by_sector.items():
+        if len(members) == 1:
+            # Single-member sector → still mark as sector cluster, not isolated
+            clusters.append({
+                "id": f"sector_{sector.lower().replace(' ', '_')}",
+                "method": "sector_single",
+                "members": members,
+                "avg_correlation": 0,
+                "size": 1,
+                "sector": sector,
+            })
+        else:
+            clusters.append({
+                "id": f"sector_{sector.lower().replace(' ', '_')}",
+                "method": "sector",
+                "members": sorted(members),
+                "avg_correlation": 0,  # sector grouping doesn\'t compute corr
+                "size": len(members),
+                "sector": sector,
+            })
+        for m in members:
+            assigned.add(m)
 
     return clusters
 
@@ -308,7 +346,8 @@ def lambda_handler(event, context):
 
     print(f"  ideas with return data for clustering: {len(returns_by_symbol)}/{len(ideas)}")
 
-    clusters = cluster_by_correlation(list(ideas.keys()), returns_by_symbol)
+    sector_by_symbol = {sym: idea.get("sector") for sym, idea in ideas.items()}
+    clusters = cluster_by_correlation(list(ideas.keys()), returns_by_symbol, sector_by_symbol)
     # Sort clusters by size, large clusters first
     clusters.sort(key=lambda c: -c["size"])
     print(f"  clusters: {len(clusters)}")
