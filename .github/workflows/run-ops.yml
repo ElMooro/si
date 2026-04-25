@@ -85,8 +85,8 @@ jobs:
           shopt -s nullglob
           ROOT_HTML=( ./*.html )
           shopt -u nullglob
-          if [ -n "$(git status --porcelain aws/ops/reports/ aws/ops/audit/ aws/lambdas/ "${ROOT_HTML[@]}" cloudflare/ 2>/dev/null)" ]; then
-            git add aws/ops/reports/ aws/ops/audit/ aws/lambdas/ "${ROOT_HTML[@]}" cloudflare/ 2>/dev/null || git add aws/ops/reports/ aws/ops/audit/ aws/lambdas/
+          if [ -n "$(git status --porcelain aws/ops/reports/ aws/ops/audit/ aws/lambdas/ aws/shared/ "${ROOT_HTML[@]}" cloudflare/ 2>/dev/null)" ]; then
+            git add aws/ops/reports/ aws/ops/audit/ aws/lambdas/ aws/shared/ "${ROOT_HTML[@]}" cloudflare/ 2>/dev/null || git add aws/ops/reports/ aws/ops/audit/ aws/lambdas/
             git commit -m "ops: auto-commit from run ${{ github.run_id }} (${{ job.status }}) [skip-deploy]"
             git push || (git pull --rebase origin main && git push)
             echo "Committed changes"
