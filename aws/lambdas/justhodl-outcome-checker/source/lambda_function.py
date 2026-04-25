@@ -247,6 +247,27 @@ def check_pending_signals():
         existing_outcomes = dict(signal.get("outcomes", {}))
         pred_type   = "relative" if pred_dir in ("OUTPERFORM", "UNDERPERFORM") else "directional"
 
+        # Skip signals with no baseline_price — can't be scored.
+        # Mark them as 'unscoreable' so they don't clog future scans.
+        # (Patched 2026-04-25 by ops/112: pre-Week-1-fix signals never had
+        # baseline_price captured; keeping them in pending status caused
+        # 4,307 null-correct outcome records.)
+        if baseline <= 0 and not existing_outcomes:
+            try:
+                table.update_item(
+                    Key={"signal_id": signal_id},
+                    UpdateExpression="SET #s = :s, last_checked = :t",
+                    ExpressionAttributeValues={
+                        ":s": "unscoreable",
+                        ":t": now_iso,
+                    },
+                    ExpressionAttributeNames={"#s": "status"},
+                )
+                print(f"[CHECKER] {signal_type} [{signal_id[:8]}] → UNSCOREABLE (no baseline_price)")
+            except Exception as e:
+                print(f"[CHECKER] failed to mark {signal_id[:8]} unscoreable: {e}")
+            continue
+
         outcomes_updated = False
 
         for window_key, check_time_iso in check_ts.items():
