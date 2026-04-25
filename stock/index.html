@@ -155,8 +155,91 @@ function switchTab(name,btn){
   btn.classList.add("active");
   document.getElementById("tab-"+name).classList.add("active");
   setTimeout(()=>{Object.values(CH).forEach(c=>c.resize&&c.resize());},50);
+  if(name==="ai"&&!window.__AI_LOADED__){loadAI(window.__TICKER__);}
+}
+
+// ── AI Research tab ────────────────────────────────────────────
+const AI_URL="https://obcsgkzlvicwc6htdmj5wg6yae0tfmya.lambda-url.us-east-1.on.aws/";
+async function loadAI(ticker){
+  if(!ticker)return;
+  const host=document.getElementById("aiResearchHost");
+  host.innerHTML='<div class="chart-card" style="text-align:center;padding:48px 20px"><div style="font-size:0.85rem;color:var(--muted);font-family:var(--mono);letter-spacing:2px">⚡ ANALYZING '+ticker+'...</div><div style="margin-top:12px;font-size:0.7rem;color:var(--border2)">first load takes 30-60s; cached subsequently for 7 days</div></div>';
+  try{
+    const r=await fetch(AI_URL+"?ticker="+ticker);
+    const d=await r.json();
+    if(d.error){throw new Error(d.error);}
+    renderAI(d);
+    window.__AI_LOADED__=true;
+  }catch(e){
+    host.innerHTML='<div class="chart-card" style="text-align:center;padding:48px 20px"><div style="font-size:0.9rem;color:var(--red)">⚠ AI Research unavailable</div><div style="margin-top:8px;font-size:0.75rem;color:var(--muted)">'+e.message+'</div><button onclick="window.__AI_LOADED__=false;loadAI(window.__TICKER__)" style="margin-top:16px;background:var(--purple);color:#fff;border:none;padding:8px 18px;font-family:var(--mono);font-size:0.75rem;border-radius:5px;cursor:pointer;letter-spacing:.5px">RETRY</button></div>';
+  }
+}
+function renderAI(d){
+  const ai=d.ai||{};
+  const co=d.company||{};
+  const sn=d.snapshot||{};
+  const bull=ai.bull_case||{};
+  const bear=ai.bear_case||{};
+  const sc=ai.scenarios||{};
+  const ps=parseFloat(sn.price)||0;
+  const sf=v=>{const f=parseFloat(v);return isNaN(f)?'—':'$'+f.toFixed(2);};
+  const pct=v=>{const f=parseFloat(v);return isNaN(f)?'—':((f>=0?'+':'')+f.toFixed(1)+'%');};
+  const upside=v=>{const f=parseFloat(v);if(isNaN(f)||!ps)return'';const u=((f-ps)/ps)*100;return ' <span style="color:'+(u>=0?'var(--green)':'var(--red)')+';font-size:0.7rem;font-weight:600">('+(u>=0?'+':'')+u.toFixed(1)+'%)</span>';};
+  const horizonCard=(label,h)=>{
+    h=h||{};
+    return '<div style="flex:1;min-width:220px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px"><div style="font-size:0.7rem;color:var(--muted);font-family:var(--mono);letter-spacing:1.5px;margin-bottom:10px">'+label+'</div>'+
+      '<div style="display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:0.85rem;align-items:center">'+
+        '<span style="color:var(--green);font-weight:600;font-size:0.7rem;letter-spacing:.5px">BULL</span><span style="font-family:var(--mono);font-weight:700;color:var(--white)">'+sf(h.bull)+upside(h.bull)+'</span>'+
+        '<span style="color:var(--blue);font-weight:600;font-size:0.7rem;letter-spacing:.5px">BASE</span><span style="font-family:var(--mono);font-weight:700;color:var(--white)">'+sf(h.base)+upside(h.base)+'</span>'+
+        '<span style="color:var(--red);font-weight:600;font-size:0.7rem;letter-spacing:.5px">BEAR</span><span style="font-family:var(--mono);font-weight:700;color:var(--white)">'+sf(h.bear)+upside(h.bear)+'</span>'+
+      '</div>'+
+      (h.rationale?'<div style="margin-top:10px;font-size:0.72rem;color:var(--sub);line-height:1.45;font-style:italic;border-top:1px solid var(--border);padding-top:8px">'+h.rationale+'</div>':'')+
+    '</div>';
+  };
+  const list=arr=>(arr||[]).map(x=>'<li style="margin-bottom:4px">'+x+'</li>').join('');
+  const dq=(ai.data_quality||'').toLowerCase();
+  const dqColor=dq==='high'?'var(--green)':dq==='medium'?'var(--gold)':dq==='low'?'var(--red)':'var(--muted)';
+  const html=
+  '<div class="chart-card" style="margin-bottom:16px">'+
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:14px">'+
+      '<h3 style="margin:0">⚡ AI RESEARCH</h3>'+
+      '<div style="display:flex;gap:14px;align-items:center;font-size:0.7rem;font-family:var(--mono);color:var(--muted)">'+
+        '<span>Generated: '+(d.generated_at||'').slice(0,10)+'</span>'+
+        (d.from_cache?'<span style="color:var(--blue)">CACHED · '+(d.age_hours||0).toFixed(1)+'h old</span>':'<span style="color:var(--green)">FRESH</span>')+
+        (dq?'<span>Data quality: <span style="color:'+dqColor+';font-weight:700">'+dq.toUpperCase()+'</span></span>':'')+
+      '</div>'+
+    '</div>'+
+    '<div style="font-size:0.95rem;line-height:1.55;color:var(--white);margin-bottom:8px">'+(ai.description||'<span style="color:var(--muted)">No description available</span>')+'</div>'+
+    (ai.notes?'<div style="font-size:0.78rem;color:var(--gold);background:rgba(255,200,0,0.06);border-left:3px solid var(--gold);padding:8px 12px;margin-top:12px;border-radius:0 4px 4px 0">📝 '+ai.notes+'</div>':'')+
+  '</div>'+
+  '<div class="charts-grid" style="margin-bottom:16px">'+
+    '<div class="chart-card" style="border-left:3px solid var(--green)">'+
+      '<h3 style="color:var(--green)">↑ BULL CASE</h3>'+
+      (bull.thesis?'<div style="font-size:0.95rem;font-weight:600;color:var(--white);margin-bottom:10px">'+bull.thesis+'</div>':'')+
+      (bull.reasoning?'<div style="font-size:0.85rem;color:var(--sub);line-height:1.55;margin-bottom:12px">'+bull.reasoning+'</div>':'')+
+      (bull.key_drivers?'<div style="font-size:0.7rem;color:var(--muted);font-family:var(--mono);letter-spacing:1px;margin-bottom:6px">KEY DRIVERS</div><ul style="font-size:0.82rem;color:var(--white);padding-left:20px;margin:0">'+list(bull.key_drivers)+'</ul>':'')+
+    '</div>'+
+    '<div class="chart-card" style="border-left:3px solid var(--red)">'+
+      '<h3 style="color:var(--red)">↓ BEAR CASE</h3>'+
+      (bear.thesis?'<div style="font-size:0.95rem;font-weight:600;color:var(--white);margin-bottom:10px">'+bear.thesis+'</div>':'')+
+      (bear.reasoning?'<div style="font-size:0.85rem;color:var(--sub);line-height:1.55;margin-bottom:12px">'+bear.reasoning+'</div>':'')+
+      (bear.key_risks?'<div style="font-size:0.7rem;color:var(--muted);font-family:var(--mono);letter-spacing:1px;margin-bottom:6px">KEY RISKS</div><ul style="font-size:0.82rem;color:var(--white);padding-left:20px;margin:0">'+list(bear.key_risks)+'</ul>':'')+
+    '</div>'+
+  '</div>'+
+  '<div class="chart-card">'+
+    '<h3>📊 PRICE SCENARIOS</h3>'+
+    '<div style="font-size:0.72rem;color:var(--muted);margin-bottom:12px;font-style:italic">Scenario-based forecasts grounded in current valuation multiples. Not a single-point prediction. Current price: <span style="color:var(--white);font-family:var(--mono);font-weight:700">'+sf(ps)+'</span></div>'+
+    '<div style="display:flex;gap:14px;flex-wrap:wrap">'+
+      horizonCard('1 MONTH',sc.horizon_1m)+
+      horizonCard('1 QUARTER',sc.horizon_1q)+
+      horizonCard('1 YEAR',sc.horizon_1y)+
+    '</div>'+
+  '</div>';
+  document.getElementById("aiResearchHost").innerHTML=html;
 }
 function render(d,ticker){
+  window.__TICKER__=ticker;
+  window.__AI_LOADED__=false;
   const tech=d.technicals||{},fund=d.fundamentals||{},hist=d.historical||{},earns=d.earnings||[],divs=d.dividends||[],news=d.news||[],cf=d.cash_flow||{},bs=d.balance_sheet||{};
   const price=tech.price||0;
   const chg=fund.change_pct;
@@ -188,6 +271,7 @@ function render(d,ticker){
 <div class="signals-row">${signals.map(s=>`<span class="sig ${sc(s)}">${s}</span>`).join("")}</div>
 <div class="tabs">
   <button class="tab-btn active" onclick="switchTab('charts',this)">CHARTS</button>
+  <button class="tab-btn" onclick="switchTab('ai',this)" style="color:#a78bfa;font-weight:700">⚡ AI RESEARCH</button>
   <button class="tab-btn" onclick="switchTab('technicals',this)">TECHNICALS</button>
   <button class="tab-btn" onclick="switchTab('fundamentals',this)">FUNDAMENTALS</button>
   <button class="tab-btn" onclick="switchTab('earnings',this)">EARNINGS</button>
@@ -227,6 +311,11 @@ function render(d,ticker){
   <div class="charts-grid">
     <div class="chart-card"><button class="chart-expand-btn" onclick="expandChart('chartMargins','Margins &amp; ROE')">&#x26F6; Expand</button><h3>Gross Margin / Net Margin / ROE - Annual (%)</h3><div class="chart-wrap" style="height:260px"><canvas id="chartMargins"></canvas></div></div>
     <div class="chart-card"><button class="chart-expand-btn" onclick="expandChart('chartDivs','Annual Dividends')">&#x26F6; Expand</button><h3>Annual Dividends - History ($)</h3><div class="chart-wrap" style="height:260px"><canvas id="chartDivs"></canvas></div></div>
+  </div>
+</div>
+<div class="tab-pane" id="tab-ai">
+  <div id="aiResearchHost">
+    <div class="chart-card" style="text-align:center;padding:48px 20px"><div style="font-size:0.85rem;color:var(--muted);font-family:var(--mono);letter-spacing:1px">CLICK AI RESEARCH TAB TO LOAD</div></div>
   </div>
 </div>
 <div class="tab-pane" id="tab-technicals">

@@ -48,18 +48,33 @@ def fmp(endpoint, params=None, retries=2):
     p["apikey"] = FMP_KEY
     qs = "&".join(f"{k}={v}" for k, v in p.items())
     url = f"{FMP_BASE}/{endpoint}?{qs}"
+    last_status = None
     for attempt in range(retries + 1):
         try:
             r = http.request("GET", url, timeout=10)
+            last_status = r.status
             if r.status == 200:
                 return json.loads(r.data.decode("utf-8"))
             if r.status == 429:
                 time.sleep(1 + attempt * 2)
                 continue
+            # Non-200 non-429 — log and bail
+            print(f"  FMP {endpoint} HTTP {r.status}: {r.data[:200].decode('utf-8','ignore')}")
+            return None
         except Exception as e:
             if attempt == retries:
-                print(f"  FMP {endpoint} error: {e}")
+                print(f"  FMP {endpoint} error (status {last_status}): {e}")
     return None
+
+def safe_record(d, default=None):
+    """Handle FMP responses that arrive as either a list-of-records or a single dict."""
+    if not d:
+        return default if default is not None else {}
+    if isinstance(d, list):
+        return d[0] if d else (default if default is not None else {})
+    if isinstance(d, dict):
+        return d
+    return default if default is not None else {}
 
 def gather_facts(ticker):
     """Pull the FMP facts we'll feed to Claude."""
@@ -73,13 +88,21 @@ def gather_facts(ticker):
     pt      = fmp("stable/price-target-consensus", {"symbol": ticker})
     grades  = fmp("stable/grades-consensus", {"symbol": ticker})
 
-    p = profile[0] if isinstance(profile, list) and profile else {}
-    r = ratios[0]  if isinstance(ratios, list)  and ratios  else {}
-    g = growth[0]  if isinstance(growth, list)  and growth  else {}
-    m = metrics[0] if isinstance(metrics, list) and metrics else {}
-    c = pchange[0] if isinstance(pchange, list) and pchange else {}
-    t = pt[0]      if isinstance(pt, list)      and pt      else {}
-    gr= grades[0]  if isinstance(grades, list)  and grades  else {}
+    # Log shapes so we don't blind-drop responses
+    def shape(label, x):
+        if x is None: return f"{label}=None"
+        if isinstance(x, list): return f"{label}=list({len(x)})"
+        if isinstance(x, dict): return f"{label}=dict({len(x)} keys)"
+        return f"{label}={type(x).__name__}"
+    print(f"  Shapes: {shape('profile',profile)} {shape('ratios',ratios)} {shape('growth',growth)} {shape('metrics',metrics)} {shape('pchange',pchange)} {shape('pt',pt)} {shape('grades',grades)}")
+
+    p = safe_record(profile)
+    r = safe_record(ratios)
+    g = safe_record(growth)
+    m = safe_record(metrics)
+    c = safe_record(pchange)
+    t = safe_record(pt)
+    gr= safe_record(grades)
 
     def safe(v, dp=None):
         try:
