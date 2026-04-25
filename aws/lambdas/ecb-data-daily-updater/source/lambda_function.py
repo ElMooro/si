@@ -16,7 +16,9 @@ def lambda_handler(event, context):
     for indicator in indicators:
         if 'value' not in indicator or indicator['value'] is None:
             # Generate appropriate simulated values based on type
-            if 'CISS' in indicator.get('symbol', '') and 'SS_CI' in indicator.get('symbol', ''):
+            # Handle both legacy dict shape and newer string shape
+        sym = indicator.get('symbol', '') if isinstance(indicator, dict) else (indicator or '')
+        if 'CISS' in sym and 'SS_CI' in sym:
                 # Main CISS values (0.1 to 0.5)
                 indicator['value'] = round(random.uniform(0.1, 0.5), 4)
             elif 'CISS' in indicator.get('symbol', ''):

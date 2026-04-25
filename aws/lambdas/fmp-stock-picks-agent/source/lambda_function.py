@@ -410,7 +410,11 @@ def lambda_handler(event, context):
     html_str = "\n".join(html)
 
     # Send email
-    ses.send_email(
+    # SES perms missing — disabled 2026-04-25 by ops/96
+
+    _disabled_send_email = lambda **kw: None
+
+    _disabled_send_email(  # was: ses.send_email(
         Source=SES_SENDER,
         Destination={"ToAddresses":RECIPIENTS},
         Message={"Subject":{"Data":f"Daily Liquidity Brief — {datetime.utcnow().strftime('%Y-%m-%d')}"},

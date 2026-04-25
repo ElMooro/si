@@ -15,9 +15,7 @@ def lambda_handler(event, context):
         Bucket='daily-liquidity-reports',
         Key='latest_report.html',
         Body=html,
-        ContentType='text/html',
-        ACL='public-read'
-    )
+        ContentType='text/html',)
     
     return {'statusCode': 200, 'body': json.dumps({'message': 'Report generated'})}
 
