@@ -159,7 +159,11 @@ function switchTab(name,btn){
 }
 
 // ── AI Research tab ────────────────────────────────────────────
-const AI_URL="https://obcsgkzlvicwc6htdmj5wg6yae0tfmya.lambda-url.us-east-1.on.aws/";
+// Routed via Cloudflare Worker (api.justhodl.ai) — direct Lambda URLs
+// can be blocked by some adblock lists. api.justhodl.ai is on our own
+// domain so it's always reachable. Worker forwards GET to the
+// justhodl-stock-ai-research Lambda upstream.
+const AI_URL="https://api.justhodl.ai/research";
 async function loadAI(ticker){
   if(!ticker)return;
   const host=document.getElementById("aiResearchHost");
