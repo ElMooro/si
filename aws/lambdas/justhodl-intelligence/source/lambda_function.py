@@ -229,45 +229,10 @@ def _synthesize_pred(rpt, edge, flow, repo):
     # Risk from edge-data composite + plumbing stress
     edge_score=edge.get("composite_score", 0) if isinstance(edge, dict) else 0
     plumb=repo.get("stress", {}) if isinstance(repo, dict) else {}
-    plumb_score_for_blend = plumb.get("score", 0) if isinstance(plumb, dict) else 0
-
-    # ─── Loop 1: calibration-weighted composite ──────────────────────
-    # Blend edge_composite + plumbing_stress + khalid_index using
-    # historical accuracy weights from /justhodl/calibration/weights.
-    # Falls back to uniform avg if calibrator hasn't run or doesn't
-    # have enough scored outcomes yet.
-    ki_raw_for_blend = rpt.get("khalid_index", {})
-    if isinstance(ki_raw_for_blend, dict):
-        ki_score_for_blend = ki_raw_for_blend.get("score", 0) or 0
-    else:
-        ki_score_for_blend = ki_raw_for_blend or 0
-
-    blend_inputs = {}
-    if edge_score:
-        blend_inputs["edge_composite"] = float(edge_score)
-    if plumb_score_for_blend:
-        blend_inputs["plumbing_stress"] = float(plumb_score_for_blend)
-    if ki_score_for_blend:
-        blend_inputs["khalid_index"] = float(ki_score_for_blend)
-
-    blended = blend_score(blend_inputs) if blend_inputs else {
-        "value": 0.0, "raw_value": 0.0, "contributions": [],
-        "total_weight": 0.0, "is_calibrated": False, "n_calibrated": 0,
-    }
-
     risk_dict={
-        "composite_score": edge_score,           # unchanged — backward compat
+        "composite_score": edge_score,
         "plumbing_stress": plumb.get("score", 0),
         "regime": edge.get("regime", "UNKNOWN") if isinstance(edge, dict) else "UNKNOWN",
-        # NEW: calibration-weighted view (Loop 1)
-        "calibrated_composite": round(blended["value"], 2),
-        "raw_composite": round(blended["raw_value"], 2),
-        "calibration_meta": {
-            "is_calibrated": blended["is_calibrated"],
-            "n_calibrated": blended["n_calibrated"],
-            "n_signals": len(blend_inputs),
-            "contributions": blended["contributions"],
-        },
     }
 
     # Market snapshot from flow-data
@@ -288,18 +253,9 @@ def _synthesize_pred(rpt, edge, flow, repo):
         "_source": "derived from repo-data plumbing stress",
     }
 
-    cal = get_calibration() if _CALIBRATION_AVAILABLE else None
-    pred_calibration_meta = {
-        "is_meaningful": getattr(cal, "is_meaningful", False),
-        "n_weights": len(getattr(cal, "weights", {}) or {}),
-        "n_accuracy_entries": len(getattr(cal, "accuracy", {}) or {}),
-        "available": _CALIBRATION_AVAILABLE,
-    }
-
     return {
         "executive_summary": exec_summary,
         "liquidity": {},                # not fabricating
-        "calibration": pred_calibration_meta,
         "risk": risk_dict,
         "carry_trade": carry_dict,
         "sector_rotation": {"top_picks": sector_picks},
@@ -901,6 +857,66 @@ def generate_full_intelligence(main, repo, pred):
             '30Y': ss30y
         }
     }
+    
+    # ─── Loop 1: calibration-weighted composite ────────────────────────
+    # Adds 'calibrated_composite' + 'raw_composite' to scores, plus a
+    # top-level 'calibration' field with diagnostics.
+    # Today: weights are 1.0 (calibrator data sparse) so calibrated = raw.
+    # After May 2: as outcomes get scored, historical-accuracy weights
+    # diverge and calibrated_composite tracks reality.
+    _loop1_blend_inputs = {}
+    try:
+        if khalid_index is not None:
+            _v = float(khalid_index)
+            if _v > 0:
+                _loop1_blend_inputs["khalid_index"] = _v
+    except (TypeError, ValueError):
+        pass
+    try:
+        if repo_score is not None:
+            _v = float(repo_score)
+            if _v > 0:
+                _loop1_blend_inputs["plumbing_stress"] = _v
+    except (TypeError, ValueError):
+        pass
+    try:
+        if ml_risk_score is not None:
+            _v = float(ml_risk_score)
+            if _v > 0:
+                _loop1_blend_inputs["ml_risk"] = _v
+    except (TypeError, ValueError):
+        pass
+    try:
+        if carry_score is not None:
+            _v = float(carry_score)
+            if _v > 0:
+                _loop1_blend_inputs["carry_risk"] = _v
+    except (TypeError, ValueError):
+        pass
+
+    if _loop1_blend_inputs:
+        _loop1_blended = blend_score(_loop1_blend_inputs)
+        _loop1_calibrated_scores = {
+            'calibrated_composite': round(_loop1_blended['value'], 2),
+            'raw_composite': round(_loop1_blended['raw_value'], 2),
+        }
+        _loop1_top_meta = {
+            'is_meaningful': _loop1_blended['is_calibrated'],
+            'n_calibrated': _loop1_blended['n_calibrated'],
+            'n_signals': len(_loop1_blend_inputs),
+            'contributions': _loop1_blended['contributions'],
+        }
+    else:
+        _loop1_calibrated_scores = {}
+        _loop1_top_meta = {
+            'is_meaningful': False, 'n_calibrated': 0,
+            'n_signals': 0, 'contributions': [],
+        }
+
+    # Inject into the assembled report
+    if isinstance(report, dict) and 'scores' in report and isinstance(report['scores'], dict):
+        report['scores'].update(_loop1_calibrated_scores)
+        report['calibration'] = _loop1_top_meta
     
     return report
 
