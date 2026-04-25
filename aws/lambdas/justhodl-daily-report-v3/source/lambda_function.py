@@ -212,6 +212,8 @@ STOCK_TICKERS = [
     'GLD','SLV','USO','UNG','DBA','PDBC','DBC','IAU','PPLT','COPX',
     # FX ETFs
     'UUP','FXE','FXY','FXB','FXA','FXC',
+    # Crypto ETFs (added 2026-04-25 — needed by divergence scanner BTC/Nasdaq, Gold/BTC pairs + PnL tracker)
+    'IBIT','GBTC','ETHA','FBTC','ARKB',
     # International
     'EEM','VWO','EFA','VEA','IEMG','INDA','FXI','EWJ','EWZ','EWG',
     # REITs
