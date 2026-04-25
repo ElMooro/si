@@ -289,5 +289,172 @@ def lambda_handler(event, context):
     except Exception as e:
         print(f"[HISTORY] {e}")
 
+    # ─── Telegram alerter (state-transition based, with cooldown) ─────
+    try:
+        run_alerter(components, system)
+    except Exception as e:
+        print(f"[ALERTER] non-fatal error: {e}")
+
     print(f"[DONE] system={system} red={counts['red']} yellow={counts['yellow']} green={counts['green']}")
     return {"statusCode": 200, "body": json.dumps(dashboard, default=str)[:500]}
+
+
+# ═══════════════════════════════════════════════════════════════════════
+#  Telegram alerting layer
+# ═══════════════════════════════════════════════════════════════════════
+
+import urllib.request
+import urllib.error
+
+ALERT_STATE_KEY = "_health/last_alerted.json"
+TELEGRAM_COOLDOWN_SEC = 24 * 3600  # 24h per component
+
+def load_alert_state():
+    """Load the last-alerted-status per component from S3."""
+    try:
+        obj = s3.get_object(Bucket=BUCKET, Key=ALERT_STATE_KEY)
+        return json.loads(obj["Body"].read())
+    except ClientError:
+        return {"components": {}, "system": "unknown"}
+    except Exception as e:
+        print(f"[ALERTER] load state failed: {e}")
+        return {"components": {}, "system": "unknown"}
+
+
+def save_alert_state(state):
+    s3.put_object(
+        Bucket=BUCKET,
+        Key=ALERT_STATE_KEY,
+        Body=json.dumps(state, indent=2, default=str).encode(),
+        ContentType="application/json",
+    )
+
+
+def get_telegram_creds():
+    """Token from env (TELEGRAM_BOT_TOKEN), chat_id from SSM."""
+    import os
+    token = os.environ.get("TELEGRAM_BOT_TOKEN")
+    if not token:
+        print("[ALERTER] TELEGRAM_BOT_TOKEN env var missing; skipping")
+        return None, None
+    try:
+        resp = ssm.get_parameter(Name="/justhodl/telegram/chat_id")
+        chat_id = resp["Parameter"]["Value"]
+        return token, chat_id
+    except Exception as e:
+        print(f"[ALERTER] chat_id fetch failed: {e}")
+        return None, None
+
+
+def send_telegram(text):
+    token, chat_id = get_telegram_creds()
+    if not token or not chat_id:
+        return False
+    try:
+        url = f"https://api.telegram.org/bot{token}/sendMessage"
+        data = json.dumps({
+            "chat_id": chat_id,
+            "text": text[:4000],  # TG hard cap is 4096
+            "parse_mode": "Markdown",
+            "disable_web_page_preview": True,
+        }).encode()
+        req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=10) as r:
+            return r.status == 200
+    except Exception as e:
+        print(f"[ALERTER] telegram send failed: {e}")
+        return False
+
+
+def run_alerter(components, system_status):
+    """State-transition alerting with per-component cooldown.
+
+    Sends a Telegram message ONLY when:
+      - A component flips from green/info → red or yellow (degradation)
+      - A component flips from red → green (recovery)
+      - And: per-component last_alerted_at > 24h ago (cooldown)
+
+    Aggregates all transitions into a single message per invocation.
+    """
+    state = load_alert_state()
+    prev = state.get("components", {})
+    now_unix = int(time.time())
+
+    # Severity gate: only alert on critical + important (not nice_to_have)
+    ALERT_SEVERITIES = {"critical", "important"}
+
+    degradations = []  # newly red/yellow
+    recoveries = []    # back to green
+
+    new_state_components = {}
+
+    for c in components:
+        cid = c.get("id", "?")
+        cur_status = c.get("status", "unknown")
+        sev = c.get("severity", "")
+        reason = c.get("reason") or c.get("error") or ""
+
+        prev_entry = prev.get(cid, {})
+        prev_status = prev_entry.get("status", "unknown")
+        prev_alerted_at = prev_entry.get("last_alerted_at", 0)
+
+        # Update state always (even when not alerting)
+        new_state_components[cid] = {
+            "status": cur_status,
+            "severity": sev,
+            "last_alerted_at": prev_alerted_at,  # may be updated below
+        }
+
+        # Skip alerting on nice_to_have or info/unknown
+        if sev not in ALERT_SEVERITIES:
+            continue
+        if cur_status in ("info", "unknown"):
+            continue
+
+        cooldown_ok = (now_unix - prev_alerted_at) > TELEGRAM_COOLDOWN_SEC
+
+        # Degradation: green → red/yellow
+        if prev_status == "green" and cur_status in ("red", "yellow") and cooldown_ok:
+            degradations.append({"id": cid, "status": cur_status, "severity": sev, "reason": reason})
+            new_state_components[cid]["last_alerted_at"] = now_unix
+
+        # Recovery: red/yellow → green
+        elif prev_status in ("red", "yellow") and cur_status == "green" and cooldown_ok:
+            recoveries.append({"id": cid, "severity": sev})
+            new_state_components[cid]["last_alerted_at"] = now_unix
+
+    # Save state regardless
+    save_alert_state({"components": new_state_components, "system": system_status, "updated_at": now_unix})
+
+    # Compose message if there's anything to send
+    if not degradations and not recoveries:
+        print(f"[ALERTER] no transitions to alert (system={system_status})")
+        return
+
+    lines = [f"*JustHodl.AI Health Alert* — system: `{system_status.upper()}`", ""]
+
+    if degradations:
+        lines.append(f"*Degradations* ({len(degradations)})")
+        for d in degradations[:10]:
+            emoji = "🔴" if d["status"] == "red" else "🟡"
+            line = f"{emoji} `{d['id']}` ({d['severity']})"
+            if d["reason"]:
+                line += f"\n   _{d['reason'][:100]}_"
+            lines.append(line)
+        if len(degradations) > 10:
+            lines.append(f"_… and {len(degradations) - 10} more_")
+        lines.append("")
+
+    if recoveries:
+        lines.append(f"*Recovered* ({len(recoveries)})")
+        for r in recoveries[:10]:
+            lines.append(f"🟢 `{r['id']}` ({r['severity']})")
+        if len(recoveries) > 10:
+            lines.append(f"_… and {len(recoveries) - 10} more_")
+        lines.append("")
+
+    lines.append(f"Dashboard: https://justhodl-dashboard-live.s3.amazonaws.com/health.html")
+
+    message = "\n".join(lines)
+    sent = send_telegram(message)
+    print(f"[ALERTER] degradations={len(degradations)} recoveries={len(recoveries)} sent={sent}")
