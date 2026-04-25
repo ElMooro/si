@@ -361,14 +361,32 @@ def lambda_handler(event, context):
             sym_to_cluster[m] = c["id"]
 
     # ─── 6. Size each idea ──────────────────────────────────────────────
+    # Step 151: composite-score-weighted sizing. Kelly produces base
+    # sizes from raw_conviction (narrow range). We multiply by a weight
+    # derived from composite_score (or raw_conviction as fallback) so
+    # high-conviction names get larger allocations BEFORE caps bite.
+    quality_signals = []
+    for sym, idea in ideas.items():
+        # Prefer phase2b_composite (0-100 scale, range usually 70-95).
+        # Fallback: raw_conviction (0.5-0.92 scale → multiply by 100).
+        qs = idea.get("phase2b_composite")
+        if qs is None or qs <= 0:
+            qs = idea.get("raw_conviction", 0.65) * 100
+        quality_signals.append((sym, qs))
+    avg_qs = (sum(qs for _, qs in quality_signals) / len(quality_signals)) if quality_signals else 1.0
+    weight_by_sym = {sym: (qs / avg_qs) if avg_qs > 0 else 1.0 for sym, qs in quality_signals}
+    # Cap weight range at [0.6x, 1.6x] to prevent extreme tilts
+    weight_by_sym = {sym: max(0.6, min(1.6, w)) for sym, w in weight_by_sym.items()}
+
     sized = []
     for sym, idea in ideas.items():
         kelly = kelly_size(idea["raw_conviction"])
+        weight = weight_by_sym.get(sym, 1.0)
+        weighted_kelly = kelly * weight
         # Apply drawdown multiplier
-        adjusted = kelly * dd_multiplier
-        # Apply regime exposure cap (proportional)
-        # If sum of all ideas\' sizes would exceed max_gross, scale all down later
-        idea["kelly_raw"] = kelly
+        adjusted = weighted_kelly * dd_multiplier
+        idea["kelly_raw"] = round(kelly, 4)
+        idea["quality_weight"] = round(weight, 3)
         idea["dd_adjusted"] = round(adjusted, 4)
         idea["cluster"] = sym_to_cluster.get(sym, "isolated")
         sized.append(idea)

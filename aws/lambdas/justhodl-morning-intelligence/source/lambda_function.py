@@ -135,7 +135,9 @@ def load_all():
         "flow":"flow-data.json",
         "screener":"screener/data.json",
         "predictions":"predictions.json",
-        "valuations":"valuations-data.json"
+        "valuations":"valuations-data.json",
+        "bond_regime":"regime/current.json",
+        "divergence":"divergence/current.json"
     }
     return {k:fs3(v) for k,v in keys.items()}
 
@@ -215,6 +217,26 @@ def extract_metrics(data,weights):
         })(),
         "crypto_regime":rs.get("regime","N/A"),
         "crypto_action":rs.get("action","N/A"),
+        # ─── Phase 1A bond regime + Phase 1B divergence — added 2026-04-25 ───
+        "bond_regime":(data.get("bond_regime") or {}).get("regime","UNKNOWN"),
+        "bond_regime_strength":(data.get("bond_regime") or {}).get("regime_strength"),
+        "bond_extreme_count":(data.get("bond_regime") or {}).get("indicators_extreme",0),
+        "bond_total_count":(data.get("bond_regime") or {}).get("indicators_total",0),
+        "bond_n_off":(data.get("bond_regime") or {}).get("n_risk_off",0),
+        "bond_n_on":(data.get("bond_regime") or {}).get("n_risk_on",0),
+        "bond_changed":(data.get("bond_regime") or {}).get("regime_changed",False),
+        "bond_extreme_signals":[
+            (s.get("name"),s.get("z"),s.get("direction"))
+            for s in ((data.get("bond_regime") or {}).get("signals") or [])
+            if s.get("extreme")
+        ][:5],
+        "divergence_extreme_count":((data.get("divergence") or {}).get("summary") or {}).get("n_extreme",0),
+        "divergence_alert_count":((data.get("divergence") or {}).get("summary") or {}).get("n_alert_worthy",0),
+        "divergence_top":[
+            (rel.get("name"),rel.get("z_score"),rel.get("mispricing"))
+            for rel in ((data.get("divergence") or {}).get("relationships") or [])
+            if rel.get("status")=="ok" and rel.get("extreme")
+        ][:3],
         "btc_price":btc.get("price"),
         "btc_24h":btc.get("change_24h"),
         "btc_7d":btc.get("change_7d"),
@@ -323,6 +345,10 @@ def build_brief(templates,m,perf,err_analysis,weights,accuracy):
         "=== LIVE DATA "+date_str+" ===",
         "KHALID: "+str(m["khalid_raw"])+"/100 weight:"+str(round(m["khalid_weight"],2))+"x adj:"+str(m["khalid_adj"])+" REGIME:"+str(m["khalid_regime"])+" PHASE:"+str(m["phase"]),
         "EDGE: "+str(m["edge_score"])+"/100 ("+str(m["edge_regime"])+") ML_RISK:"+str(m["ml_risk"])+" CARRY:"+str(m["carry_risk"])+" CRISIS_DIST:"+str(m["crisis_dist"])+"pts",
+        # ─── Phase 1A: Bond regime (added 2026-04-25) ───
+        "BOND_REGIME: "+str(m["bond_regime"])+" strength="+str(m["bond_regime_strength"])+"/100 extreme="+str(m["bond_extreme_count"])+"/"+str(m["bond_total_count"])+" (risk_off:"+str(m["bond_n_off"])+" risk_on:"+str(m["bond_n_on"])+")"+(" REGIME_CHANGED" if m["bond_changed"] else "")+(" extremes:"+",".join([s[0]+"("+("+" if s[1]>=0 else "")+str(round(s[1],1))+")" for s in m["bond_extreme_signals"]]) if m["bond_extreme_signals"] else ""),
+        # ─── Phase 1B: Cross-asset divergence ───
+        "DIVERGENCE: "+str(m["divergence_extreme_count"])+" pairs >2σ, "+str(m["divergence_alert_count"])+" >3σ alerts"+(" TOP:"+";".join([d[0]+"("+("+" if d[1]>=0 else "")+str(round(d[1],1))+")" for d in m["divergence_top"]]) if m["divergence_top"] else ""),
         "FORECAST: "+str(m["forecast"]),
         "MOVES: SPY:"+str(m["spy"])+"% TLT:"+str(m["tlt"])+"% GLD:"+str(m["gld"])+"% QQQ:"+str(m["qqq"])+"% DXY:"+str(m["uup"])+"%",
         "PLUMBING: Stress:"+str(m["stress_score"])+"/100 ("+str(m["stress_status"])+") Phase:"+str(m["stress_phase"])+" RedFlags:"+str(m["red_flags"])+" Flags:"+str(", ".join(m["flags"]) or "none"),
