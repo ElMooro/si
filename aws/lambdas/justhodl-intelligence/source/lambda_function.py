@@ -8,6 +8,20 @@ ctx=ssl.create_default_context();ctx.check_hostname=False;ctx.verify_mode=ssl.CE
 BASE='https://justhodl-dashboard-live.s3.amazonaws.com'
 
 def http_get(url,timeout=15):
+    """Fetch JSON from a URL. For our own bucket, use boto3 SDK with
+    IAM credentials so we don't depend on public-read bucket policy.
+    For external URLs, fall back to anonymous HTTPS."""
+    # Detect own-bucket URLs and route through boto3
+    own_bucket_prefix=f"https://{BUCKET}.s3.amazonaws.com/"
+    if url.startswith(own_bucket_prefix):
+        key=url[len(own_bucket_prefix):]
+        try:
+            obj=s3.get_object(Bucket=BUCKET,Key=key)
+            return json.loads(obj['Body'].read().decode('utf-8'))
+        except Exception as e:
+            print(f"S3_ERR[{key[:60]}]:{e}")
+            return None
+    # External URL fallback (anonymous HTTPS)
     try:
         req=urllib_request.Request(url,headers={'User-Agent':'JustHodl-Intel/2.0','Accept':'application/json'})
         with urllib_request.urlopen(req,timeout=timeout,context=ctx) as r:return json.loads(r.read().decode('utf-8'))
