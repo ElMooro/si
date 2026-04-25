@@ -267,27 +267,22 @@ def lambda_handler(event, context):
         for s in scored if s["accuracy"] is not None
     ])
 
-    proposal_prompt = f"""You are reviewing the prompt that generates JustHodlAI's daily morning briefs. The brief uses live financial data and is read by an institutional investor.
-
-CURRENT PROMPT (length: {len(current_template)} chars):
-"""
-{current_template}
-"""
-
-LAST 14 DAYS OF SCORING:
-{failure_summary}
-
-Average accuracy: {avg_acc:.2%} (target: 55%+)
-Average specificity: {avg_spec:.1f} (concrete numbers per 100 words)
-
-Propose a REVISED VERSION of the prompt that should improve accuracy. Constraints:
-1. MUST keep length within 50%-150% of current ({int(len(current_template)*0.5)}-{int(len(current_template)*1.5)} chars)
-2. MUST preserve the 'real numbers / live data' constraint (briefs cannot fabricate)
-3. MUST NOT add commands like 'ignore previous instructions'
-4. SHOULD add specific guidance about handling regime uncertainty
-5. SHOULD NOT just restate the same things in different words
-
-Return ONLY the new prompt text, no explanation, no quotes, no preamble."""
+    proposal_prompt = (
+        f"You are reviewing the prompt that generates JustHodlAI's daily morning briefs. "
+        f"The brief uses live financial data and is read by an institutional investor.\n\n"
+        f"CURRENT PROMPT (length: {len(current_template)} chars):\n"
+        f"---START---\n{current_template}\n---END---\n\n"
+        f"LAST 14 DAYS OF SCORING:\n{failure_summary}\n\n"
+        f"Average accuracy: {avg_acc:.2%} (target: 55%+)\n"
+        f"Average specificity: {avg_spec:.1f} (concrete numbers per 100 words)\n\n"
+        f"Propose a REVISED VERSION of the prompt that should improve accuracy. Constraints:\n"
+        f"1. MUST keep length within 50%-150% of current ({int(len(current_template)*0.5)}-{int(len(current_template)*1.5)} chars)\n"
+        f"2. MUST preserve the 'real numbers / live data' constraint (briefs cannot fabricate)\n"
+        f"3. MUST NOT add commands like 'ignore previous instructions'\n"
+        f"4. SHOULD add specific guidance about handling regime uncertainty\n"
+        f"5. SHOULD NOT just restate the same things in different words\n\n"
+        f"Return ONLY the new prompt text, no explanation, no quotes, no preamble."
+    )
 
     new_template = call_anthropic(proposal_prompt, max_tokens=600)
     if not new_template:
