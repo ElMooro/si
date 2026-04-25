@@ -179,3 +179,42 @@
 ### 🔴 `data.json` (S3 data files)
 **Requested:** Legacy orphan — KNOWN STALE
 **Status:** Age 1573.2h, expected ≤24h (65.5× over)
+
+---
+
+## Reconciliation (step 105)
+
+**Important context:** justhodl.ai is served from GitHub Pages (`ElMooro/si` repo), not from the S3 bucket directly. The S3 bucket is for backend data + a few legacy pages. So 'page not in S3' doesn't mean 'page missing from the live site'.
+
+
+### Pages reconciled
+
+| Page | In repo (justhodl.ai) | In S3 | Reality |
+|---|---|---|---|
+| `index.html` | ✓ | ✓ | 🟢 Live on justhodl.ai |
+| `pro.html` | ✓ | ✓ | 🟢 Live on justhodl.ai |
+| `agent.html` | ✓ | ✗ | 🟢 Live on justhodl.ai |
+| `charts.html` | ✓ | ✓ | 🟢 Live on justhodl.ai |
+| `valuations.html` | ✓ | ✓ | 🟢 Live on justhodl.ai |
+| `edge.html` | ✓ | ✗ | 🟢 Live on justhodl.ai |
+| `flow.html` | ✓ | ✓ | 🟢 Live on justhodl.ai |
+| `intelligence.html` | ✓ | ✓ | 🟢 Live on justhodl.ai |
+| `risk.html` | ✓ | ✗ | 🟢 Live on justhodl.ai |
+| `stocks.html` | ✓ | ✓ | 🟢 Live on justhodl.ai |
+| `ath.html` | ✓ | ✓ | 🟢 Live on justhodl.ai |
+| `trading-signals.html` | ✓ | ✗ | 🟢 Live on justhodl.ai |
+| `reports.html` | ✗ | ✗ | ⚫ MISSING entirely |
+| `ml.html` | ✓ | ✗ | 🟢 Live on justhodl.ai |
+| `dex.html` | ✓ | ✓ | 🟢 Live on justhodl.ai |
+| `liquidity.html` | ✓ | ✗ | 🟢 Live on justhodl.ai |
+| `health.html` | ✗ | ✓ | 🟡 In S3 but not on justhodl.ai |
+
+### Genuinely missing pages
+
+- `reports.html` — neither in repo nor S3. **Real gap.**
+
+### dex-scanner-data.json + ath-data.json findings
+
+These were flagged as missing but are NOT separate top-level files:
+- **DEX scanner**: Writes to `dex-scanner-data.json` per source code, but only when scheduled. Check if data exists or rule is disabled.
+- **ATH tracker**: Embedded in `data/report.json` under `ath_breakouts` key, NOT a separate file. Audit logic was wrong.
