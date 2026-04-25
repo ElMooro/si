@@ -78,6 +78,7 @@ with report("fix_justhodl_intelligence") as r:
 
     # ─── Replace load_system_data() with adapter version ──────────────
     old_load = '''def load_system_data():
+    """Load ALL data sources from S3"""
     print("Loading data.json...")
     main=http_get(f"{BASE}/data.json")
     print(f"  data.json: {'OK' if main else 'FAILED'}")
