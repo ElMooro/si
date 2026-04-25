@@ -331,7 +331,12 @@ function renderMorningArchive(archive) {
   }
   let html = `<div class="brief-grid">`;
   for (const b of archive) {
-    const regime = (b.regime || "?").toUpperCase();
+    // Regime can be either a string or a dict {khalid, ml, sector, credit, liquidity}
+    let regimeRaw = b.regime;
+    if (regimeRaw && typeof regimeRaw === "object") {
+      regimeRaw = regimeRaw.khalid || regimeRaw.overall || regimeRaw.market || "?";
+    }
+    const regime = String(regimeRaw || "?").toUpperCase();
     const dateStr = new Date(b.date + "T12:00:00Z").toLocaleDateString("en-US", {
       weekday: "short", month: "short", day: "numeric"
     });
