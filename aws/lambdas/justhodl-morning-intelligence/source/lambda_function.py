@@ -272,6 +272,13 @@ def perf_summary(outcomes):
     return out
 
 def self_improve(outcomes,templates,accuracy):
+    # Loop 3: this DAILY function is now a no-op. Prompt iteration
+    # moved to weekly justhodl-prompt-iterator Lambda which has safety
+    # guardrails (length validation, content checks, version tracking).
+    # The old daily iteration ran on noise (most outcomes have
+    # correct=None today) and could randomly degrade brief quality.
+    return templates, None
+    # ─── DISABLED CODE BELOW (preserved for reference) ───────────────
     wrong=sorted([o for o in outcomes if o.get("correct") is False],
                  key=lambda x:x.get("checked_at",""),reverse=True)[:8]
     if not wrong: return templates,None
