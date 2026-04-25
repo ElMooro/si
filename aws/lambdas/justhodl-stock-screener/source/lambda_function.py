@@ -52,6 +52,75 @@ def sp2(v):
     try: f=float(v); return round(f,2) if f==f else None
     except: return None
 
+# ── TECHNICAL INDICATORS ──────────────────────────
+def get_price_history(symbol, days=300):
+    """Fetch ~300 days of daily closes (most recent first)."""
+    data = fmp("historical-price-eod/full", f"&symbol={symbol}")
+    if not data or not isinstance(data, dict) or "historical" not in data:
+        # FMP /stable returns a list directly for some endpoints; try alternate
+        if isinstance(data, list):
+            history = data
+        else:
+            return []
+    else:
+        history = data.get("historical", [])
+    # Take just the closes
+    closes = []
+    for row in history[:days]:
+        c = row.get("close") or row.get("adjClose")
+        if c is not None:
+            try:
+                closes.append(float(c))
+            except (ValueError, TypeError):
+                pass
+    return closes
+
+def compute_sma(closes, period):
+    """Simple moving average ending at index 0 (most recent)."""
+    if len(closes) < period:
+        return None
+    return round(sum(closes[:period]) / period, 2)
+
+def detect_cross(closes, lookback_days=60):
+    """
+    Detect golden/death cross within the last `lookback_days`.
+
+    A golden cross = SMA50 crosses ABOVE SMA200.
+    A death cross  = SMA50 crosses BELOW SMA200.
+
+    Returns (signal, days_ago) where:
+      signal: 'GOLDEN' | 'DEATH' | None
+      days_ago: int days since cross, or None
+    """
+    if len(closes) < 200 + lookback_days:
+        return None, None
+
+    # closes[0] = most recent. To compute SMA at day d (d=0 most recent),
+    # we need closes[d:d+period].
+    sma50_today  = compute_sma(closes[0:],   50)
+    sma200_today = compute_sma(closes[0:],  200)
+    if sma50_today is None or sma200_today is None:
+        return None, None
+
+    # Walk backwards through history checking for the crossing event
+    for d in range(1, lookback_days + 1):
+        # SMA values d days ago
+        s50_then  = compute_sma(closes[d:],   50)
+        s200_then = compute_sma(closes[d:],  200)
+        # SMA values d-1 days ago (one day later than `then`)
+        s50_now   = compute_sma(closes[d-1:],  50)
+        s200_now  = compute_sma(closes[d-1:], 200)
+        if None in (s50_then, s200_then, s50_now, s200_now):
+            continue
+        # Golden cross: was below or equal, now above
+        if s50_then <= s200_then and s50_now > s200_now:
+            return 'GOLDEN', d
+        # Death cross: was above or equal, now below
+        if s50_then >= s200_then and s50_now < s200_now:
+            return 'DEATH', d
+
+    return None, None
+
 # ── BULK ──────────────────────────────────────────
 def get_sp500():
     for attempt in range(5):
@@ -78,6 +147,10 @@ def get_stock_data(symbol):
     km      = fmp("key-metrics-ttm",  f"&symbol={symbol}")
     ratios  = fmp("ratios-ttm",       f"&symbol={symbol}")
     growth  = fmp("financial-growth", f"&symbol={symbol}&limit=1")
+
+    # Historical prices for SMA + cross detection.
+    # Need >=260 days to detect crosses across the last ~60 days.
+    closes = get_price_history(symbol, days=300)
 
     p = profile[0] if isinstance(profile, list) and profile else {}
     k = km[0]      if isinstance(km, list)      and km      else {}
@@ -118,6 +191,9 @@ def get_stock_data(symbol):
     else:
         inst_signal = "holding"
 
+    # Cross detection — uses fetched price history
+    cross_signal, cross_days_ago = detect_cross(closes, lookback_days=60)
+
     return {
         "symbol":          symbol,
         "name":            p.get("companyName",""),
@@ -154,6 +230,11 @@ def get_stock_data(symbol):
         "instSignal":      inst_signal,
         "instHolders":     None,
         "instChgPct":      None,
+        # Technical — SMAs + cross detection (added 2026-04-25)
+        "sma50":           compute_sma(closes, 50),
+        "sma200":          compute_sma(closes, 200),
+        "crossSignal":     cross_signal,   # 'GOLDEN' | 'DEATH' | None
+        "crossDaysAgo":    cross_days_ago, # int days since cross | None
     }
 
 def process(args):

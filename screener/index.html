@@ -140,6 +140,8 @@ tbody td{padding:6px;color:var(--text);border-right:1px solid var(--border2);whi
   <div class="tab" data-tab="quality" onclick="setTab(this)">&#9733; HIGH QUALITY</div>
   <div class="tab" data-tab="ai_bullish" onclick="setTab(this)">&#9650; AI BULLISH</div>
   <div class="tab" data-tab="ai_bearish" onclick="setTab(this)">&#9660; AI BEARISH</div>
+  <div class="tab" data-tab="golden_cross" onclick="setTab(this)" style="color:#00ff88">&#9650; GOLDEN CROSS</div>
+  <div class="tab" data-tab="death_cross" onclick="setTab(this)" style="color:#ff4d4d">&#9660; DEATH CROSS</div>
 </div>
 <div class="filter-panel">
   <div class="filter-group">
@@ -254,6 +256,9 @@ const COLS=[
   {id:'chg3m',label:'3M%',group:'momentum',fn:r=>r.chg3m,fmt:'chg'},
   {id:'chg6m',label:'6M%',group:'momentum',fn:r=>r.chg6m,fmt:'chg'},
   {id:'chg1y',label:'1Y%',group:'momentum',fn:r=>r.chg1y,fmt:'chg'},
+  {id:'crossSignal',label:'Cross',group:'momentum',fn:r=>r.crossSignal?{sig:r.crossSignal,days:r.crossDaysAgo}:null,fmt:'cross'},
+  {id:'sma50',label:'SMA50',group:'extended',fn:r=>r.sma50,fmt:'price'},
+  {id:'sma200',label:'SMA200',group:'extended',fn:r=>r.sma200,fmt:'price'},
   {id:'piotroski',label:'Piotrski',group:'scores',fn:r=>r.piotroski,fmt:'piotr'},
   {id:'altmanZ',label:'Altman Z',group:'scores',fn:r=>r.altmanZ,fmt:'altman'},
   {id:'debtToEquity',label:'D/E',group:'extended',fn:r=>r.debtToEquity,fmt:'ratio'},
@@ -290,6 +295,15 @@ function fmtCell(val,fmt,rank){
   if(fmt==='piotr'){const v=Number(val);const cls=v>=7?'score-high':v>=4?'score-mid':'score-low';const w=Math.round((v/9)*44);const bc=v>=7?'var(--pos)':v>=4?'var(--warn)':'var(--neg)';return`<span class="piotr"><span class="${cls}" style="font-weight:700">${v}</span><span class="piotr-bar" style="width:${w}px;background:${bc};opacity:.5;display:inline-block"></span></span>`;}
   if(fmt==='altman'){const v=Number(val);return`<span class="${v>3?'pos':v>1.81?'':'neg'}" title="${v>=3?'Safe':v>=1.81?'Grey Zone':'Distress'}">${v.toFixed(2)}</span>`;}
   if(fmt==='inst'){const sig=(val||'unknown').toLowerCase();const bc='inst-'+sig;return`<span class="inst-badge ${bc}">${sig}</span>`;}
+  if(fmt==='cross'){
+    if(!val||!val.sig)return'<span class="na">-</span>';
+    const isGold=val.sig==='GOLDEN';
+    const col=isGold?'#00ff88':'#ff4d4d';
+    const ico=isGold?'▲':'▼';
+    const lbl=isGold?'GOLD':'DEATH';
+    const days=val.days?` ${val.days}d`:'';
+    return`<span style="color:${col};font-weight:700;font-size:10px;letter-spacing:.4px" title="${isGold?'Golden':'Death'} cross ${val.days||'?'} days ago">${ico} ${lbl}${days}</span>`;
+  }
   if(fmt==='num')return`<span class="dim">${Number(val).toLocaleString()}</span>`;
   return`<span>${val}</span>`;
 }
@@ -344,7 +358,7 @@ function sortStocks(stocks){
 }
 function getFilters(){return{search:document.getElementById('searchInput').value.trim().toLowerCase(),sector:document.getElementById('sectorFilter').value,peMin:parseFloat(document.getElementById('peMin').value),peMax:parseFloat(document.getElementById('peMax').value),roeMin:parseFloat(document.getElementById('roeMin').value),marginMin:parseFloat(document.getElementById('marginMin').value),mom1mMin:parseFloat(document.getElementById('mom1mMin').value),mom1mMax:parseFloat(document.getElementById('mom1mMax').value),piotrMin:parseInt(document.getElementById('piotrMin').value),mcap:document.getElementById('mcapFilter').value};}
 function matchesMcap(s,m){const v=Number(s.marketCap||0);if(!m)return true;if(m==='mega')return v>=200e9;if(m==='large')return v>=10e9&&v<200e9;if(m==='mid')return v>=2e9&&v<10e9;if(m==='small')return v<2e9;return true;}
-function matchesTab(s,t){if(t==='all')return true;if(t==='gainers')return(s.chg1m||0)>5;if(t==='losers')return(s.chg1m||0)<-5;if(t==='buying')return s.instSignal==='buying';if(t==='selling')return s.instSignal==='selling';if(t==='holding')return s.instSignal==='holding';if(t==='quality')return(s.piotroski||0)>=7&&(s.roe||0)>=15&&(s.netMargin||0)>=10;if(t==='ai_bullish')return s.sentimentSignal==='bullish';if(t==='ai_bearish')return s.sentimentSignal==='bearish';return true;}
+function matchesTab(s,t){if(t==='all')return true;if(t==='gainers')return(s.chg1m||0)>5;if(t==='losers')return(s.chg1m||0)<-5;if(t==='buying')return s.instSignal==='buying';if(t==='selling')return s.instSignal==='selling';if(t==='holding')return s.instSignal==='holding';if(t==='quality')return(s.piotroski||0)>=7&&(s.roe||0)>=15&&(s.netMargin||0)>=10;if(t==='ai_bullish')return s.sentimentSignal==='bullish';if(t==='ai_bearish')return s.sentimentSignal==='bearish';if(t==='golden_cross')return s.crossSignal==='GOLDEN';if(t==='death_cross')return s.crossSignal==='DEATH';return true;}
 function applyFilters(){
   const f=getFilters();
   filteredStocks=allStocks.filter(s=>{
