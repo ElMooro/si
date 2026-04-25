@@ -61,8 +61,8 @@ def check_s3_file(spec):
         # Combined: worst of the two
         statuses = [out["age_status"], out["size_status"]]
         out["status"] = "red" if "red" in statuses else "yellow" if "yellow" in statuses else "green" if "green" in statuses else "unknown"
-        # If known_broken and would be red, downgrade to "info" so it doesn't alarm
-        if spec.get("known_broken") and out["status"] == "red":
+        # If known_broken: never alarm. Force to "info" regardless.
+        if spec.get("known_broken"):
             out["status"] = "info"
     except ClientError as e:
         if e.response["Error"]["Code"] == "404":
