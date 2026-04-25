@@ -120,7 +120,7 @@ def cluster_by_correlation(symbols, returns_by_symbol, threshold=CLUSTER_CORRELA
             continue
         if sym not in returns_by_symbol:
             # Symbol with no return data goes alone (defensive)
-            clusters.append({"id": f"isolated_{sym}", "members": [sym], "avg_correlation": 0})
+            clusters.append({"id": f"isolated_{sym}", "members": [sym], "avg_correlation": 0, "size": 1})
             assigned.add(sym)
             continue
         cluster_members = [sym]
