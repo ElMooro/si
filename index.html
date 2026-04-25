@@ -1,10 +1,11 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JustHodl.AI Bloomberg Terminal V10.3 — 188 Stocks, AI Chat, 230+ FRED</title>
-    <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>JustHodl.AI Bloomberg Terminal V10.3 — 188 Stocks, AI Chat, 230+ FRED</title>
+<style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #0a0a0a; color: #e0e0e0; overflow-x: hidden; }
         
@@ -176,632 +177,625 @@
             .dashboard-stats { flex-direction: column; gap: 15px; }
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
-    <nav>
-        <div class="nav-container">
-            <div class="nav-logo">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="/assets/sidebar.css" rel="stylesheet"/><style id="jh-suppress-legacy">
+/* JustHodl: hide legacy page navs in favour of shared sidebar */
+body > nav,
+body > header,
+body > .topbar,
+body > .top-bar,
+body > .top-nav,
+body > .navbar,
+body > .navigation,
+.jh-page > nav:first-child,
+.jh-page > header:first-child,
+.jh-page > .topbar:first-child,
+.jh-page > .top-bar:first-child,
+.jh-page > .navbar:first-child{
+  display: none !important;
+}
+/* Reset any body padding-top that was reserving space for fixed nav */
+body{
+  padding-top: 0 !important;
+  margin: 0 !important;
+}
+</style></head>
+<body><div id="sidebar"></div><div class="jh-page">
+<nav>
+<div class="nav-container">
+<div class="nav-logo">
                 📊 JUSTHODL.AI
                 <span class="version-badge">v10.3</span>
-            </div>
-            <div class="nav-links">
-                <a href="#" class="active">Home</a>
-                <a href="macroeconomic-platform.html" class="dashboard-link">📈 Live Dashboard</a>
-                <a href="carry.html" style="color:#22d3ee">Carry</a>
-                <a href="auctions.html" style="color:#22d3ee">Treasury Auctions</a>
-                <a href="risk.html" style="color:#22d3ee">Systemic Risk</a>
-                <a href="charts.html" style="color:#00ff88;font-weight:700">📊 Charts</a>
-                <a href="http://justhodl-dashboard-live.s3-website-us-east-1.amazonaws.com/intelligence.html" style="color:#ffc400">🧠 Intelligence</a>
-                <a href="desk.html" style="color:#00d4ff;font-weight:700">🎯 Desk</a>
-                <a href="/euro/" style="color:#003399">🇪🇺 Euro</a>
-                <a href="/crypto/" style="color:#00f5a0">🔮 Crypto Intel</a>
-                <a href="/stock/" style="color:#63b3ed;font-weight:700">📊 Stocks</a>
-    <a href="/screener/" style="color:#a78bfa;font-weight:700">&#9654; Screener</a>
-                <a href="https://t.me/Justhodl_bot" target="_blank" style="color:#29b6f6;font-weight:700">🤖 Telegram Bot</a>
-                <a href="http://justhodl-dashboard-live.s3-website-us-east-1.amazonaws.com/repo.html" style="color:#00e5ff">🔧 Repo Monitor</a>
-                <a href="#features">Features</a>
-                <a href="#api">API</a>
-                <a href="#pricing">Pricing</a>
-                <a href="/khalid" style="color:#ffd700;font-weight:700">⭐ Khalid</a>
-            </div>
-            <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
-        </div>
-    </nav>
-    
-    <!-- Mobile Menu -->
-    <div class="mobile-menu" id="mobileMenu">
-        <a href="#">Home</a>
-        <a href="macroeconomic-platform.html">📈 Live Dashboard</a>
-        <div class="menu-section">Analytics</div>
-        <a href="ml-predictions.html">🤖 ML Predictions</a>
-        <a href="trading-signals.html">📡 Trading Signals</a>
-                        <a href="charts.html">📊 Charts</a>
-        <a href="reports.html">📊 Reports</a>
-        <div class="menu-section">Central Banks</div>
-        <a href="ecb.html">🏛️ ECB Data</a>
-        <a href="ny-fed.html">🗽 NY Fed</a>
-        <div class="menu-section">Government Data</div>
-        <a href="fred.html">📉 FRED Database</a>
-        <a href="treasury-auctions.html">💵 Treasury Auctions</a>
-        <a href="bls.html">📈 BLS Statistics</a>
-        <a href="census.html">📋 Census Bureau</a>
-        <a href="bea.html">💹 BEA Economic Data</a>
-        <a href="eia.html" class="new-badge">⚡ EIA</a>
-        <a href="nasdaq-datalink.html" class="new-badge">📊 NASDAQ</a>
-        <a href="fmp.html" class="new-badge">💹 FMP</a>
-        <a href="benzinga.html" class="new-badge">📰 Benzinga</a>
-        <div class="menu-section">Risk & Regulation</div>
-        <a href="ofr.html">⚠️ OFR Risk Data</a>
-                        <div class="dropdown-divider"></div>
-                        <div class="dropdown-header">New Data Sources</div>
-                        <a href="eia.html">⚡ EIA Energy</a>
-                        <a href="nasdaq-datalink.html">📊 NASDAQ Data Link</a>
-                        <a href="fmp.html">💹 FMP Fundamentals</a>
-                        <a href="benzinga.html">📰 Benzinga Intel</a>
-    </div>
-    
-    <!-- Secondary Navigation Bar -->
-    <div class="secondary-nav">
-        <a href="desk.html" class="new-badge" style="background:linear-gradient(135deg,#00d4ff,#0066ff);color:#fff;font-weight:700">🎯 Desk</a>
-        <a href="ml-predictions.html" class="new-badge">🤖 ML Predictions</a>
-        <a href="trading-signals.html" class="new-badge">📡 Trading Signals</a>
-        <a href="reports.html" class="new-badge">📊 Reports</a>
-        <a href="charts.html" class="new-badge">📊 Charts</a>
-        <a href="fred.html" class="new-badge">📉 FRED</a>
-        <a href="ecb.html">🏛️ ECB</a>
-        <a href="treasury-auctions.html">💵 Treasury</a>
-        <a href="bls.html">📈 BLS</a>
-        <a href="ofr.html">⚠️ OFR</a>
-        <a href="ny-fed.html">🗽 NY Fed</a>
-        <a href="census.html">📋 Census</a>
-        <a href="bea.html">💹 BEA</a>
-        <a href="eia.html" class="new-badge">⚡ EIA</a>
-        <a href="nasdaq-datalink.html" class="new-badge">📊 NASDAQ</a>
-        <a href="fmp.html" class="new-badge">💹 FMP</a>
-        <a href="benzinga.html" class="new-badge">📰 Benzinga</a>
-    </div>
-    
-    <div class="status-bar">
-        <div class="status-item">
-            <span class="status-dot live"></span>
-            <span>143 Active Indicators</span>
-        </div>
-        <div class="status-item">
-            <span class="status-dot live"></span>
-            <span>9 API Endpoints</span>
-        </div>
-        <div class="status-item">
-            <span class="status-dot live"></span>
-            <span>11 Lambda Functions</span>
-        </div>
-        <div class="status-item">
-            <span class="status-dot live"></span>
-            <span>ML Engine Active</span>
-        </div>
-        <div class="status-item">
-            <span>💰 $97/month (95.15% cheaper than Bloomberg)</span>
-        </div>
-    </div>
-    
-    <div class="risk-banner">
-        <div class="risk-level risk-low" id="currentRiskLevel">
+</div>
+<div class="nav-links">
+<a class="active" href="#">Home</a>
+<a class="dashboard-link" href="macroeconomic-platform.html">📈 Live Dashboard</a>
+<a href="carry.html" style="color:#22d3ee">Carry</a>
+<a href="auctions.html" style="color:#22d3ee">Treasury Auctions</a>
+<a href="risk.html" style="color:#22d3ee">Systemic Risk</a>
+<a href="charts.html" style="color:#00ff88;font-weight:700">📊 Charts</a>
+<a href="http://justhodl-dashboard-live.s3-website-us-east-1.amazonaws.com/intelligence.html" style="color:#ffc400">🧠 Intelligence</a>
+<a href="desk.html" style="color:#00d4ff;font-weight:700">🎯 Desk</a>
+<a href="/euro/" style="color:#003399">🇪🇺 Euro</a>
+<a href="/crypto/" style="color:#00f5a0">🔮 Crypto Intel</a>
+<a href="/stock/" style="color:#63b3ed;font-weight:700">📊 Stocks</a>
+<a href="/screener/" style="color:#a78bfa;font-weight:700">▶ Screener</a>
+<a href="https://t.me/Justhodl_bot" style="color:#29b6f6;font-weight:700" target="_blank">🤖 Telegram Bot</a>
+<a href="http://justhodl-dashboard-live.s3-website-us-east-1.amazonaws.com/repo.html" style="color:#00e5ff">🔧 Repo Monitor</a>
+<a href="#features">Features</a>
+<a href="#api">API</a>
+<a href="#pricing">Pricing</a>
+<a href="/khalid" style="color:#ffd700;font-weight:700">⭐ Khalid</a>
+</div>
+<button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
+</div>
+</nav>
+<!-- Mobile Menu -->
+<div class="mobile-menu" id="mobileMenu">
+<a href="#">Home</a>
+<a href="macroeconomic-platform.html">📈 Live Dashboard</a>
+<div class="menu-section">Analytics</div>
+<a href="ml-predictions.html">🤖 ML Predictions</a>
+<a href="trading-signals.html">📡 Trading Signals</a>
+<a href="charts.html">📊 Charts</a>
+<a href="reports.html">📊 Reports</a>
+<div class="menu-section">Central Banks</div>
+<a href="ecb.html">🏛️ ECB Data</a>
+<a href="ny-fed.html">🗽 NY Fed</a>
+<div class="menu-section">Government Data</div>
+<a href="fred.html">📉 FRED Database</a>
+<a href="treasury-auctions.html">💵 Treasury Auctions</a>
+<a href="bls.html">📈 BLS Statistics</a>
+<a href="census.html">📋 Census Bureau</a>
+<a href="bea.html">💹 BEA Economic Data</a>
+<a class="new-badge" href="eia.html">⚡ EIA</a>
+<a class="new-badge" href="nasdaq-datalink.html">📊 NASDAQ</a>
+<a class="new-badge" href="fmp.html">💹 FMP</a>
+<a class="new-badge" href="benzinga.html">📰 Benzinga</a>
+<div class="menu-section">Risk &amp; Regulation</div>
+<a href="ofr.html">⚠️ OFR Risk Data</a>
+<div class="dropdown-divider"></div>
+<div class="dropdown-header">New Data Sources</div>
+<a href="eia.html">⚡ EIA Energy</a>
+<a href="nasdaq-datalink.html">📊 NASDAQ Data Link</a>
+<a href="fmp.html">💹 FMP Fundamentals</a>
+<a href="benzinga.html">📰 Benzinga Intel</a>
+</div>
+<!-- Secondary Navigation Bar -->
+<div class="secondary-nav">
+<a class="new-badge" href="desk.html" style="background:linear-gradient(135deg,#00d4ff,#0066ff);color:#fff;font-weight:700">🎯 Desk</a>
+<a class="new-badge" href="ml-predictions.html">🤖 ML Predictions</a>
+<a class="new-badge" href="trading-signals.html">📡 Trading Signals</a>
+<a class="new-badge" href="reports.html">📊 Reports</a>
+<a class="new-badge" href="charts.html">📊 Charts</a>
+<a class="new-badge" href="fred.html">📉 FRED</a>
+<a href="ecb.html">🏛️ ECB</a>
+<a href="treasury-auctions.html">💵 Treasury</a>
+<a href="bls.html">📈 BLS</a>
+<a href="ofr.html">⚠️ OFR</a>
+<a href="ny-fed.html">🗽 NY Fed</a>
+<a href="census.html">📋 Census</a>
+<a href="bea.html">💹 BEA</a>
+<a class="new-badge" href="eia.html">⚡ EIA</a>
+<a class="new-badge" href="nasdaq-datalink.html">📊 NASDAQ</a>
+<a class="new-badge" href="fmp.html">💹 FMP</a>
+<a class="new-badge" href="benzinga.html">📰 Benzinga</a>
+</div>
+<div class="status-bar">
+<div class="status-item">
+<span class="status-dot live"></span>
+<span>143 Active Indicators</span>
+</div>
+<div class="status-item">
+<span class="status-dot live"></span>
+<span>9 API Endpoints</span>
+</div>
+<div class="status-item">
+<span class="status-dot live"></span>
+<span>11 Lambda Functions</span>
+</div>
+<div class="status-item">
+<span class="status-dot live"></span>
+<span>ML Engine Active</span>
+</div>
+<div class="status-item">
+<span>💰 $97/month (95.15% cheaper than Bloomberg)</span>
+</div>
+</div>
+<div class="risk-banner">
+<div class="risk-level risk-low" id="currentRiskLevel">
             🛡️ CURRENT MARKET RISK: LOW
         </div>
-    </div>
-    
-    <div class="hero">
-        <h1>JustHodl.AI Bloomberg Terminal V10.3</h1>
-        <p>Institutional-grade financial data platform with 143 real-time indicators, ML predictions, automated trading signals, and comprehensive risk monitoring. Built on AWS Lambda with 95.15% cost savings vs Bloomberg Terminal.</p>
-    </div>
-    
-    <!-- Dashboard CTA Section -->
-    <div class="dashboard-cta">
-        <div class="dashboard-cta-box">
-            <h2>🚀 Access Professional Trading Dashboard</h2>
-            <p>Real-time monitoring of all 143 active indicators with interactive charts, ML predictions, and automated trading signals</p>
-            <a href="macroeconomic-platform.html" class="dashboard-btn">
+</div>
+<div class="hero">
+<h1>JustHodl.AI Bloomberg Terminal V10.3</h1>
+<p>Institutional-grade financial data platform with 143 real-time indicators, ML predictions, automated trading signals, and comprehensive risk monitoring. Built on AWS Lambda with 95.15% cost savings vs Bloomberg Terminal.</p>
+</div>
+<!-- Dashboard CTA Section -->
+<div class="dashboard-cta">
+<div class="dashboard-cta-box">
+<h2>🚀 Access Professional Trading Dashboard</h2>
+<p>Real-time monitoring of all 143 active indicators with interactive charts, ML predictions, and automated trading signals</p>
+<a class="dashboard-btn" href="macroeconomic-platform.html">
                 Launch Live Dashboard →
             </a>
-            <div class="dashboard-stats">
-                <div class="dashboard-stat">
-                    <span class="dashboard-stat-value">9</span>
-                    <span class="dashboard-stat-label">Categories</span>
-                </div>
-                <div class="dashboard-stat">
-                    <span class="dashboard-stat-value">143</span>
-                    <span class="dashboard-stat-label">Indicators</span>
-                </div>
-                <div class="dashboard-stat">
-                    <span class="dashboard-stat-value">Live</span>
-                    <span class="dashboard-stat-label">Data</span>
-                </div>
-                <div class="dashboard-stat">
-                    <span class="dashboard-stat-value">30s</span>
-                    <span class="dashboard-stat-label">Refresh</span>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="live-ticker" id="liveTicker">
-        <div class="ticker-item">
-            <div class="ticker-symbol">VIX</div>
-            <div class="ticker-value" id="vixValue">16.57</div>
-            <div class="ticker-change positive">▼ 2.53%</div>
-        </div>
-        <div class="ticker-item">
-            <div class="ticker-symbol">S&P 500</div>
-            <div class="ticker-value" id="sp500Value">6,389.45</div>
-            <div class="ticker-change positive">▲ 0.71%</div>
-        </div>
-        <div class="ticker-item">
-            <div class="ticker-symbol">DXY</div>
-            <div class="ticker-value" id="dxyValue">121.61</div>
-            <div class="ticker-change negative">▼ 0.10%</div>
-        </div>
-        <div class="ticker-item">
-            <div class="ticker-symbol">10Y Treasury</div>
-            <div class="ticker-value" id="treasury10yValue">4.23%</div>
-            <div class="ticker-change positive">▲ 0.02%</div>
-        </div>
-        <div class="ticker-item">
-            <div class="ticker-symbol">Fed Balance</div>
-            <div class="ticker-value" id="fedBalanceValue">$6.64T</div>
-            <div class="ticker-change negative">QT Active</div>
-        </div>
-        <div class="ticker-item">
-            <div class="ticker-symbol">TED Spread</div>
-            <div class="ticker-value" id="tedSpreadValue">0.09%</div>
-            <div class="ticker-change positive">No Stress</div>
-        </div>
-        <div class="ticker-item">
-            <div class="ticker-symbol">GDP</div>
-            <div class="ticker-value" id="gdpValue">$30.3T</div>
-            <div class="ticker-change positive">▲ 2.1%</div>
-        </div>
-        <div class="ticker-item">
-            <div class="ticker-symbol">CPI</div>
-            <div class="ticker-value" id="cpiValue">321.5</div>
-            <div class="ticker-change negative">▲ 3.2%</div>
-        </div>
-    </div>
-    
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-number">143</div>
-            <div class="stat-label">Active Indicators</div>
-            <div class="stat-detail">Real-time from FRED API</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number">9</div>
-            <div class="stat-label">API Endpoints</div>
-            <div class="stat-detail">REST API with CORS</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number">11</div>
-            <div class="stat-label">Lambda Functions</div>
-            <div class="stat-detail">Serverless Architecture</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number">6</div>
-            <div class="stat-label">ML Features</div>
-            <div class="stat-detail">Predictions & Signals</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number">$97</div>
-            <div class="stat-label">Monthly Cost</div>
-            <div class="stat-detail">vs $2,000 Bloomberg</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number">95.15%</div>
-            <div class="stat-label">Cost Savings</div>
-            <div class="stat-detail">$22,836/year saved</div>
-        </div>
-    </div>
-    
-    <div class="ml-box" id="ml">
-        <h2 style="text-align: center; margin-bottom: 10px;">🤖 ML Predictions & Trading Signals</h2>
-        <div class="ml-grid">
-            <div class="ml-item">
-                <div class="ml-label">VIX Prediction (1D)</div>
-                <div class="ml-value">16.80</div>
-                <div class="ml-confidence">75% confidence</div>
-            </div>
-            <div class="ml-item">
-                <div class="ml-label">S&P 500 (1D)</div>
-                <div class="ml-value">6,396.67</div>
-                <div class="ml-confidence">68% confidence</div>
-            </div>
-            <div class="ml-item">
-                <div class="ml-label">Market Trend</div>
-                <div class="ml-value">BULLISH</div>
-                <div class="ml-confidence">82% confidence</div>
-            </div>
-            <div class="ml-item">
-                <div class="ml-label">Risk Level (1D)</div>
-                <div class="ml-value">LOW</div>
-                <div class="ml-confidence">82% confidence</div>
-            </div>
-            <div class="ml-item">
-                <div class="ml-label">Trading Signal</div>
-                <div class="ml-value">BUY SPY</div>
-                <div class="ml-confidence">VIX < 17</div>
-            </div>
-            <div class="ml-item">
-                <div class="ml-label">Next Update</div>
-                <div class="ml-value">29:45</div>
-                <div class="ml-confidence">Auto-refresh</div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="search-section">
-        <input type="text" class="search-box" id="searchInput" placeholder="🔍 Search 143 active indicators: Try VIX, WALCL, SOFR, TEDRATE, DXY...">
-    </div>
-    
-    <div class="features-section" id="features">
-        <h2 class="section-title">Platform Features</h2>
-        <div class="features-grid">
-            <div class="feature-card highlighted" onclick="window.location.href='flow.html'" style="border-color:#f59e0b">
-                <div class="feature-title">📊 Options Flow &amp; Sentiment Intelligence</div>
-                <div class="feature-description">Institutional-grade options flow analysis with real contract data, ETF Global fund flows, gamma exposure, 7-factor sentiment composite, and AI trading signals. Real-time P/C ratios, premium tracking, sector rotation detection, and risk appetite monitoring.</div>
-                <div class="feature-stats">
-                    <div class="feature-stat">
-                        <div class="feature-stat-value" style="color:#f59e0b">10</div>
-                        <div class="feature-stat-label">Analysis Tabs</div>
-                    </div>
-                    <div class="feature-stat">
-                        <div class="feature-stat-value" style="color:#22c55e">22</div>
-                        <div class="feature-stat-label">ETF Real Flows</div>
-                    </div>
-                    <div class="feature-stat">
-                        <div class="feature-stat-value" style="color:#3b82f6">8</div>
-                        <div class="feature-stat-label">Options Tickers</div>
-                    </div>
-                    <div class="feature-stat">
-                        <div class="feature-stat-value" style="color:#ef4444">LIVE</div>
-                        <div class="feature-stat-label">Real-Time Data</div>
-                    </div>
-                </div>
-            </div>
-            <div class="feature-card highlighted" onclick="window.location.href='macroeconomic-platform.html'">
-                <div class="feature-icon">🖥️</div>
-                <div class="feature-title">Professional Trading Dashboard</div>
-                <div class="feature-description">Full-featured dashboard with 9 category tabs, real-time data visualization, interactive Plotly charts, and comprehensive market monitoring</div>
-                <div class="feature-stats">
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">9</div>
-                        <div class="feature-stat-label">Tabs</div>
-                    </div>
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">Live</div>
-                        <div class="feature-stat-label">Updates</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="feature-card" onclick="window.location.href='ml-predictions.html'">
-                <div class="feature-icon">🤖</div>
-                <div class="feature-title">ML Predictions</div>
-                <div class="feature-description">Advanced machine learning models predicting market movements, volatility, and risk levels with confidence scores</div>
-                <div class="feature-stats">
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">Hourly</div>
-                        <div class="feature-stat-label">Updates</div>
-                    </div>
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">75%</div>
-                        <div class="feature-stat-label">Accuracy</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="feature-card" onclick="window.location.href='trading-signals.html'">
-                <div class="feature-icon">📡</div>
-                <div class="feature-title">Trading Signals</div>
-                <div class="feature-description">Automated BUY/SELL/HOLD signals based on technical indicators and ML predictions</div>
-                <div class="feature-stats">
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">Real-time</div>
-                        <div class="feature-stat-label">Alerts</div>
-                    </div>
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">24/7</div>
-                        <div class="feature-stat-label">Monitoring</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="feature-card" onclick="window.location.href='reports.html'">
-                <div class="feature-icon">📊</div>
-                <div class="feature-title">Comprehensive Reports</div>
-                <div class="feature-description">Daily, weekly, and monthly market reports with detailed analysis and forecasts</div>
-                <div class="feature-stats">
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">PDF</div>
-                        <div class="feature-stat-label">Export</div>
-                    </div>
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">Custom</div>
-                        <div class="feature-stat-label">Templates</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="feature-card" onclick="window.location.href='fred.html'">
-                <div class="feature-icon">📉</div>
-                <div class="feature-title">FRED Database</div>
-                <div class="feature-description">Federal Reserve Economic Data with 800,000+ time series from 100+ sources</div>
-                <div class="feature-stats">
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">800K+</div>
-                        <div class="feature-stat-label">Series</div>
-                    </div>
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">Real-time</div>
-                        <div class="feature-stat-label">Updates</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="feature-card" onclick="window.location.href='ecb.html'">
-                <div class="feature-icon">🏛️</div>
-                <div class="feature-title">ECB Data</div>
-                <div class="feature-description">European Central Bank data including policy rates, balance sheet, and monetary operations</div>
-                <div class="feature-stats">
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">Live</div>
-                        <div class="feature-stat-label">Feed</div>
-                    </div>
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">EUR</div>
-                        <div class="feature-stat-label">Focus</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="feature-card" onclick="window.location.href='treasury-auctions.html'">
-                <div class="feature-icon">💵</div>
-                <div class="feature-title">Treasury Auctions</div>
-                <div class="feature-description">Real-time Treasury auction results, bid-to-cover ratios, and yield analysis</div>
-                <div class="feature-stats">
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">All</div>
-                        <div class="feature-stat-label">Maturities</div>
-                    </div>
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">Historical</div>
-                        <div class="feature-stat-label">Data</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="feature-card" onclick="window.location.href='bls.html'">
-                <div class="feature-icon">📈</div>
-                <div class="feature-title">BLS Statistics</div>
-                <div class="feature-description">Bureau of Labor Statistics data including employment, CPI, PPI, and productivity metrics</div>
-                <div class="feature-stats">
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">Monthly</div>
-                        <div class="feature-stat-label">Updates</div>
-                    </div>
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">50+</div>
-                        <div class="feature-stat-label">Series</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="feature-card" onclick="window.location.href='ofr.html'">
-                <div class="feature-icon">⚠️</div>
-                <div class="feature-title">OFR Risk Data</div>
-                <div class="feature-description">Office of Financial Research systemic risk indicators and financial stability metrics</div>
-                <div class="feature-stats">
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">Daily</div>
-                        <div class="feature-stat-label">Updates</div>
-                    </div>
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">Risk</div>
-                        <div class="feature-stat-label">Focus</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="feature-card" onclick="window.location.href='ny-fed.html'">
-                <div class="feature-icon">🗽</div>
-                <div class="feature-title">NY Fed Data</div>
-                <div class="feature-description">New York Fed repo operations, SOMA holdings, and primary dealer statistics</div>
-                <div class="feature-stats">
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">Real-time</div>
-                        <div class="feature-stat-label">Repos</div>
-                    </div>
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">SOMA</div>
-                        <div class="feature-stat-label">Portfolio</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="feature-card" onclick="window.location.href='census.html'">
-                <div class="feature-icon">📋</div>
-                <div class="feature-title">Census Bureau</div>
-                <div class="feature-description">Economic census data, retail sales, housing starts, and demographic statistics</div>
-                <div class="feature-stats">
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">Economic</div>
-                        <div class="feature-stat-label">Focus</div>
-                    </div>
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">Monthly</div>
-                        <div class="feature-stat-label">Reports</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="feature-card" onclick="window.location.href='bea.html'">
-                <div class="feature-icon">💹</div>
-                <div class="feature-title">BEA Economic Data</div>
-                <div class="feature-description">Bureau of Economic Analysis GDP, personal income, and national accounts data</div>
-                <div class="feature-stats">
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">GDP</div>
-                        <div class="feature-stat-label">Focus</div>
-                    </div>
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">Quarterly</div>
-                        <div class="feature-stat-label">Updates</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">🦢</div>
-                <div class="feature-title">Black Swan Detection</div>
-                <div class="feature-description">39 risk indicators monitoring tail events, volatility spikes, and market stress</div>
-                <div class="feature-stats">
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">39</div>
-                        <div class="feature-stat-label">Indicators</div>
-                    </div>
-                    <div class="feature-stat">
-                        <div class="feature-stat-value">LOW</div>
-                        <div class="feature-stat-label">Risk</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Dashboard Preview Section -->
-    <div class="dashboard-preview">
-        <h2 class="section-title">📊 Dashboard Features</h2>
-        <div class="preview-grid">
-            <div class="preview-card">
-                <div class="preview-title">📈 Overview Tab</div>
-                <div class="preview-description">Key market metrics with live charts and real-time updates</div>
-            </div>
-            <div class="preview-card">
-                <div class="preview-title">🏛️ Federal Reserve</div>
-                <div class="preview-description">31 Fed metrics including balance sheet and QE/QT tracking</div>
-            </div>
-            <div class="preview-card">
-                <div class="preview-title">🦢 Black Swan Risk</div>
-                <div class="preview-description">39 indicators monitoring tail events and volatility</div>
-            </div>
-            <div class="preview-card">
-                <div class="preview-title">💧 Market Liquidity</div>
-                <div class="preview-description">30 metrics including SOFR, EFFR, and TED spread</div>
-            </div>
-            <div class="preview-card">
-                <div class="preview-title">💱 Currency Markets</div>
-                <div class="preview-description">24 DXY pairs and emerging market currencies</div>
-            </div>
-            <div class="preview-card">
-                <div class="preview-title">📊 Credit Markets</div>
-                <div class="preview-description">17 ICE BofA indices from AAA to distressed</div>
-            </div>
-            <div class="preview-card">
-                <div class="preview-title">⚠️ Crisis Indicators</div>
-                <div class="preview-description">18 metrics for systemic risk monitoring</div>
-            </div>
-            <div class="preview-card">
-                <div class="preview-title">🤖 ML Predictions</div>
-                <div class="preview-description">AI-powered forecasts with confidence scores</div>
-            </div>
-            <div class="preview-card">
-                <div class="preview-title">📡 Trading Signals</div>
-                <div class="preview-description">Automated BUY/SELL/HOLD recommendations</div>
-            </div>
-        </div>
-        <div style="text-align: center; margin-top: 40px;">
-            <a href="macroeconomic-platform.html" class="dashboard-btn">
+<div class="dashboard-stats">
+<div class="dashboard-stat">
+<span class="dashboard-stat-value">9</span>
+<span class="dashboard-stat-label">Categories</span>
+</div>
+<div class="dashboard-stat">
+<span class="dashboard-stat-value">143</span>
+<span class="dashboard-stat-label">Indicators</span>
+</div>
+<div class="dashboard-stat">
+<span class="dashboard-stat-value">Live</span>
+<span class="dashboard-stat-label">Data</span>
+</div>
+<div class="dashboard-stat">
+<span class="dashboard-stat-value">30s</span>
+<span class="dashboard-stat-label">Refresh</span>
+</div>
+</div>
+</div>
+</div>
+<div class="live-ticker" id="liveTicker">
+<div class="ticker-item">
+<div class="ticker-symbol">VIX</div>
+<div class="ticker-value" id="vixValue">16.57</div>
+<div class="ticker-change positive">▼ 2.53%</div>
+</div>
+<div class="ticker-item">
+<div class="ticker-symbol">S&amp;P 500</div>
+<div class="ticker-value" id="sp500Value">6,389.45</div>
+<div class="ticker-change positive">▲ 0.71%</div>
+</div>
+<div class="ticker-item">
+<div class="ticker-symbol">DXY</div>
+<div class="ticker-value" id="dxyValue">121.61</div>
+<div class="ticker-change negative">▼ 0.10%</div>
+</div>
+<div class="ticker-item">
+<div class="ticker-symbol">10Y Treasury</div>
+<div class="ticker-value" id="treasury10yValue">4.23%</div>
+<div class="ticker-change positive">▲ 0.02%</div>
+</div>
+<div class="ticker-item">
+<div class="ticker-symbol">Fed Balance</div>
+<div class="ticker-value" id="fedBalanceValue">$6.64T</div>
+<div class="ticker-change negative">QT Active</div>
+</div>
+<div class="ticker-item">
+<div class="ticker-symbol">TED Spread</div>
+<div class="ticker-value" id="tedSpreadValue">0.09%</div>
+<div class="ticker-change positive">No Stress</div>
+</div>
+<div class="ticker-item">
+<div class="ticker-symbol">GDP</div>
+<div class="ticker-value" id="gdpValue">$30.3T</div>
+<div class="ticker-change positive">▲ 2.1%</div>
+</div>
+<div class="ticker-item">
+<div class="ticker-symbol">CPI</div>
+<div class="ticker-value" id="cpiValue">321.5</div>
+<div class="ticker-change negative">▲ 3.2%</div>
+</div>
+</div>
+<div class="stats-grid">
+<div class="stat-card">
+<div class="stat-number">143</div>
+<div class="stat-label">Active Indicators</div>
+<div class="stat-detail">Real-time from FRED API</div>
+</div>
+<div class="stat-card">
+<div class="stat-number">9</div>
+<div class="stat-label">API Endpoints</div>
+<div class="stat-detail">REST API with CORS</div>
+</div>
+<div class="stat-card">
+<div class="stat-number">11</div>
+<div class="stat-label">Lambda Functions</div>
+<div class="stat-detail">Serverless Architecture</div>
+</div>
+<div class="stat-card">
+<div class="stat-number">6</div>
+<div class="stat-label">ML Features</div>
+<div class="stat-detail">Predictions &amp; Signals</div>
+</div>
+<div class="stat-card">
+<div class="stat-number">$97</div>
+<div class="stat-label">Monthly Cost</div>
+<div class="stat-detail">vs $2,000 Bloomberg</div>
+</div>
+<div class="stat-card">
+<div class="stat-number">95.15%</div>
+<div class="stat-label">Cost Savings</div>
+<div class="stat-detail">$22,836/year saved</div>
+</div>
+</div>
+<div class="ml-box" id="ml">
+<h2 style="text-align: center; margin-bottom: 10px;">🤖 ML Predictions &amp; Trading Signals</h2>
+<div class="ml-grid">
+<div class="ml-item">
+<div class="ml-label">VIX Prediction (1D)</div>
+<div class="ml-value">16.80</div>
+<div class="ml-confidence">75% confidence</div>
+</div>
+<div class="ml-item">
+<div class="ml-label">S&amp;P 500 (1D)</div>
+<div class="ml-value">6,396.67</div>
+<div class="ml-confidence">68% confidence</div>
+</div>
+<div class="ml-item">
+<div class="ml-label">Market Trend</div>
+<div class="ml-value">BULLISH</div>
+<div class="ml-confidence">82% confidence</div>
+</div>
+<div class="ml-item">
+<div class="ml-label">Risk Level (1D)</div>
+<div class="ml-value">LOW</div>
+<div class="ml-confidence">82% confidence</div>
+</div>
+<div class="ml-item">
+<div class="ml-label">Trading Signal</div>
+<div class="ml-value">BUY SPY</div>
+<div class="ml-confidence">VIX &lt; 17</div>
+</div>
+<div class="ml-item">
+<div class="ml-label">Next Update</div>
+<div class="ml-value">29:45</div>
+<div class="ml-confidence">Auto-refresh</div>
+</div>
+</div>
+</div>
+<div class="search-section">
+<input class="search-box" id="searchInput" placeholder="🔍 Search 143 active indicators: Try VIX, WALCL, SOFR, TEDRATE, DXY..." type="text"/>
+</div>
+<div class="features-section" id="features">
+<h2 class="section-title">Platform Features</h2>
+<div class="features-grid">
+<div class="feature-card highlighted" onclick="window.location.href='flow.html'" style="border-color:#f59e0b">
+<div class="feature-title">📊 Options Flow &amp; Sentiment Intelligence</div>
+<div class="feature-description">Institutional-grade options flow analysis with real contract data, ETF Global fund flows, gamma exposure, 7-factor sentiment composite, and AI trading signals. Real-time P/C ratios, premium tracking, sector rotation detection, and risk appetite monitoring.</div>
+<div class="feature-stats">
+<div class="feature-stat">
+<div class="feature-stat-value" style="color:#f59e0b">10</div>
+<div class="feature-stat-label">Analysis Tabs</div>
+</div>
+<div class="feature-stat">
+<div class="feature-stat-value" style="color:#22c55e">22</div>
+<div class="feature-stat-label">ETF Real Flows</div>
+</div>
+<div class="feature-stat">
+<div class="feature-stat-value" style="color:#3b82f6">8</div>
+<div class="feature-stat-label">Options Tickers</div>
+</div>
+<div class="feature-stat">
+<div class="feature-stat-value" style="color:#ef4444">LIVE</div>
+<div class="feature-stat-label">Real-Time Data</div>
+</div>
+</div>
+</div>
+<div class="feature-card highlighted" onclick="window.location.href='macroeconomic-platform.html'">
+<div class="feature-icon">🖥️</div>
+<div class="feature-title">Professional Trading Dashboard</div>
+<div class="feature-description">Full-featured dashboard with 9 category tabs, real-time data visualization, interactive Plotly charts, and comprehensive market monitoring</div>
+<div class="feature-stats">
+<div class="feature-stat">
+<div class="feature-stat-value">9</div>
+<div class="feature-stat-label">Tabs</div>
+</div>
+<div class="feature-stat">
+<div class="feature-stat-value">Live</div>
+<div class="feature-stat-label">Updates</div>
+</div>
+</div>
+</div>
+<div class="feature-card" onclick="window.location.href='ml-predictions.html'">
+<div class="feature-icon">🤖</div>
+<div class="feature-title">ML Predictions</div>
+<div class="feature-description">Advanced machine learning models predicting market movements, volatility, and risk levels with confidence scores</div>
+<div class="feature-stats">
+<div class="feature-stat">
+<div class="feature-stat-value">Hourly</div>
+<div class="feature-stat-label">Updates</div>
+</div>
+<div class="feature-stat">
+<div class="feature-stat-value">75%</div>
+<div class="feature-stat-label">Accuracy</div>
+</div>
+</div>
+</div>
+<div class="feature-card" onclick="window.location.href='trading-signals.html'">
+<div class="feature-icon">📡</div>
+<div class="feature-title">Trading Signals</div>
+<div class="feature-description">Automated BUY/SELL/HOLD signals based on technical indicators and ML predictions</div>
+<div class="feature-stats">
+<div class="feature-stat">
+<div class="feature-stat-value">Real-time</div>
+<div class="feature-stat-label">Alerts</div>
+</div>
+<div class="feature-stat">
+<div class="feature-stat-value">24/7</div>
+<div class="feature-stat-label">Monitoring</div>
+</div>
+</div>
+</div>
+<div class="feature-card" onclick="window.location.href='reports.html'">
+<div class="feature-icon">📊</div>
+<div class="feature-title">Comprehensive Reports</div>
+<div class="feature-description">Daily, weekly, and monthly market reports with detailed analysis and forecasts</div>
+<div class="feature-stats">
+<div class="feature-stat">
+<div class="feature-stat-value">PDF</div>
+<div class="feature-stat-label">Export</div>
+</div>
+<div class="feature-stat">
+<div class="feature-stat-value">Custom</div>
+<div class="feature-stat-label">Templates</div>
+</div>
+</div>
+</div>
+<div class="feature-card" onclick="window.location.href='fred.html'">
+<div class="feature-icon">📉</div>
+<div class="feature-title">FRED Database</div>
+<div class="feature-description">Federal Reserve Economic Data with 800,000+ time series from 100+ sources</div>
+<div class="feature-stats">
+<div class="feature-stat">
+<div class="feature-stat-value">800K+</div>
+<div class="feature-stat-label">Series</div>
+</div>
+<div class="feature-stat">
+<div class="feature-stat-value">Real-time</div>
+<div class="feature-stat-label">Updates</div>
+</div>
+</div>
+</div>
+<div class="feature-card" onclick="window.location.href='ecb.html'">
+<div class="feature-icon">🏛️</div>
+<div class="feature-title">ECB Data</div>
+<div class="feature-description">European Central Bank data including policy rates, balance sheet, and monetary operations</div>
+<div class="feature-stats">
+<div class="feature-stat">
+<div class="feature-stat-value">Live</div>
+<div class="feature-stat-label">Feed</div>
+</div>
+<div class="feature-stat">
+<div class="feature-stat-value">EUR</div>
+<div class="feature-stat-label">Focus</div>
+</div>
+</div>
+</div>
+<div class="feature-card" onclick="window.location.href='treasury-auctions.html'">
+<div class="feature-icon">💵</div>
+<div class="feature-title">Treasury Auctions</div>
+<div class="feature-description">Real-time Treasury auction results, bid-to-cover ratios, and yield analysis</div>
+<div class="feature-stats">
+<div class="feature-stat">
+<div class="feature-stat-value">All</div>
+<div class="feature-stat-label">Maturities</div>
+</div>
+<div class="feature-stat">
+<div class="feature-stat-value">Historical</div>
+<div class="feature-stat-label">Data</div>
+</div>
+</div>
+</div>
+<div class="feature-card" onclick="window.location.href='bls.html'">
+<div class="feature-icon">📈</div>
+<div class="feature-title">BLS Statistics</div>
+<div class="feature-description">Bureau of Labor Statistics data including employment, CPI, PPI, and productivity metrics</div>
+<div class="feature-stats">
+<div class="feature-stat">
+<div class="feature-stat-value">Monthly</div>
+<div class="feature-stat-label">Updates</div>
+</div>
+<div class="feature-stat">
+<div class="feature-stat-value">50+</div>
+<div class="feature-stat-label">Series</div>
+</div>
+</div>
+</div>
+<div class="feature-card" onclick="window.location.href='ofr.html'">
+<div class="feature-icon">⚠️</div>
+<div class="feature-title">OFR Risk Data</div>
+<div class="feature-description">Office of Financial Research systemic risk indicators and financial stability metrics</div>
+<div class="feature-stats">
+<div class="feature-stat">
+<div class="feature-stat-value">Daily</div>
+<div class="feature-stat-label">Updates</div>
+</div>
+<div class="feature-stat">
+<div class="feature-stat-value">Risk</div>
+<div class="feature-stat-label">Focus</div>
+</div>
+</div>
+</div>
+<div class="feature-card" onclick="window.location.href='ny-fed.html'">
+<div class="feature-icon">🗽</div>
+<div class="feature-title">NY Fed Data</div>
+<div class="feature-description">New York Fed repo operations, SOMA holdings, and primary dealer statistics</div>
+<div class="feature-stats">
+<div class="feature-stat">
+<div class="feature-stat-value">Real-time</div>
+<div class="feature-stat-label">Repos</div>
+</div>
+<div class="feature-stat">
+<div class="feature-stat-value">SOMA</div>
+<div class="feature-stat-label">Portfolio</div>
+</div>
+</div>
+</div>
+<div class="feature-card" onclick="window.location.href='census.html'">
+<div class="feature-icon">📋</div>
+<div class="feature-title">Census Bureau</div>
+<div class="feature-description">Economic census data, retail sales, housing starts, and demographic statistics</div>
+<div class="feature-stats">
+<div class="feature-stat">
+<div class="feature-stat-value">Economic</div>
+<div class="feature-stat-label">Focus</div>
+</div>
+<div class="feature-stat">
+<div class="feature-stat-value">Monthly</div>
+<div class="feature-stat-label">Reports</div>
+</div>
+</div>
+</div>
+<div class="feature-card" onclick="window.location.href='bea.html'">
+<div class="feature-icon">💹</div>
+<div class="feature-title">BEA Economic Data</div>
+<div class="feature-description">Bureau of Economic Analysis GDP, personal income, and national accounts data</div>
+<div class="feature-stats">
+<div class="feature-stat">
+<div class="feature-stat-value">GDP</div>
+<div class="feature-stat-label">Focus</div>
+</div>
+<div class="feature-stat">
+<div class="feature-stat-value">Quarterly</div>
+<div class="feature-stat-label">Updates</div>
+</div>
+</div>
+</div>
+<div class="feature-card">
+<div class="feature-icon">🦢</div>
+<div class="feature-title">Black Swan Detection</div>
+<div class="feature-description">39 risk indicators monitoring tail events, volatility spikes, and market stress</div>
+<div class="feature-stats">
+<div class="feature-stat">
+<div class="feature-stat-value">39</div>
+<div class="feature-stat-label">Indicators</div>
+</div>
+<div class="feature-stat">
+<div class="feature-stat-value">LOW</div>
+<div class="feature-stat-label">Risk</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Dashboard Preview Section -->
+<div class="dashboard-preview">
+<h2 class="section-title">📊 Dashboard Features</h2>
+<div class="preview-grid">
+<div class="preview-card">
+<div class="preview-title">📈 Overview Tab</div>
+<div class="preview-description">Key market metrics with live charts and real-time updates</div>
+</div>
+<div class="preview-card">
+<div class="preview-title">🏛️ Federal Reserve</div>
+<div class="preview-description">31 Fed metrics including balance sheet and QE/QT tracking</div>
+</div>
+<div class="preview-card">
+<div class="preview-title">🦢 Black Swan Risk</div>
+<div class="preview-description">39 indicators monitoring tail events and volatility</div>
+</div>
+<div class="preview-card">
+<div class="preview-title">💧 Market Liquidity</div>
+<div class="preview-description">30 metrics including SOFR, EFFR, and TED spread</div>
+</div>
+<div class="preview-card">
+<div class="preview-title">💱 Currency Markets</div>
+<div class="preview-description">24 DXY pairs and emerging market currencies</div>
+</div>
+<div class="preview-card">
+<div class="preview-title">📊 Credit Markets</div>
+<div class="preview-description">17 ICE BofA indices from AAA to distressed</div>
+</div>
+<div class="preview-card">
+<div class="preview-title">⚠️ Crisis Indicators</div>
+<div class="preview-description">18 metrics for systemic risk monitoring</div>
+</div>
+<div class="preview-card">
+<div class="preview-title">🤖 ML Predictions</div>
+<div class="preview-description">AI-powered forecasts with confidence scores</div>
+</div>
+<div class="preview-card">
+<div class="preview-title">📡 Trading Signals</div>
+<div class="preview-description">Automated BUY/SELL/HOLD recommendations</div>
+</div>
+</div>
+<div style="text-align: center; margin-top: 40px;">
+<a class="dashboard-btn" href="macroeconomic-platform.html">
                 🚀 Open Full Dashboard
             </a>
-            <p style="color: #888; font-size: 14px; margin-top: 15px;">No login required • Real-time data • Free access</p>
-        </div>
-    </div>
-    
-    <div class="api-section" id="api">
-        <h2 class="section-title">API Endpoints</h2>
-        <div class="api-grid">
-            <div class="api-card">
-                <h3>📊 Main Data API</h3>
-                <div class="endpoint"><span class="method">GET</span> /api/v1/health</div>
-                <div class="endpoint"><span class="method">GET</span> /api/v1/dashboard/overview</div>
-                <div class="endpoint"><span class="method">GET</span> /api/v1/dashboard/mega</div>
-                <div class="endpoint"><span class="method">GET</span> /api/v1/fed</div>
-                <div class="endpoint"><span class="method">GET</span> /api/v1/blackswan</div>
-            </div>
-            <div class="api-card">
-                <h3>💱 Market Data API</h3>
-                <div class="endpoint"><span class="method">GET</span> /api/v1/dxy</div>
-                <div class="endpoint"><span class="method">GET</span> /api/v1/ice_bofa</div>
-                <div class="endpoint"><span class="method">GET</span> /api/v1/liquidity</div>
-                <div class="endpoint"><span class="method">GET</span> /api/v1/crisis</div>
-            </div>
-        </div>
-        <p style="text-align: center; margin-top: 20px; color: #888;">
+<p style="color: #888; font-size: 14px; margin-top: 15px;">No login required • Real-time data • Free access</p>
+</div>
+</div>
+<div class="api-section" id="api">
+<h2 class="section-title">API Endpoints</h2>
+<div class="api-grid">
+<div class="api-card">
+<h3>📊 Main Data API</h3>
+<div class="endpoint"><span class="method">GET</span> /api/v1/health</div>
+<div class="endpoint"><span class="method">GET</span> /api/v1/dashboard/overview</div>
+<div class="endpoint"><span class="method">GET</span> /api/v1/dashboard/mega</div>
+<div class="endpoint"><span class="method">GET</span> /api/v1/fed</div>
+<div class="endpoint"><span class="method">GET</span> /api/v1/blackswan</div>
+</div>
+<div class="api-card">
+<h3>💱 Market Data API</h3>
+<div class="endpoint"><span class="method">GET</span> /api/v1/dxy</div>
+<div class="endpoint"><span class="method">GET</span> /api/v1/ice_bofa</div>
+<div class="endpoint"><span class="method">GET</span> /api/v1/liquidity</div>
+<div class="endpoint"><span class="method">GET</span> /api/v1/crisis</div>
+</div>
+</div>
+<p style="text-align: center; margin-top: 20px; color: #888;">
             Base URL: <code style="color: #00ff88;">https://i70jxru6md.execute-api.us-east-1.amazonaws.com/prod</code>
-        </p>
-    </div>
-    
-    <div class="cost-comparison" id="pricing">
-        <h2 class="section-title">Cost Comparison</h2>
-        <div class="cost-grid">
-            <div class="cost-item">
-                <div class="cost-platform">JustHodl.AI</div>
-                <div class="cost-amount" style="color: #00ff88;">$97/mo</div>
-                <div class="cost-savings">You pay this</div>
-            </div>
-            <div class="cost-item">
-                <div class="cost-platform">Bloomberg Terminal</div>
-                <div class="cost-amount" style="color: #ff4444;">$2,000/mo</div>
-                <div class="cost-savings">Save $1,903/mo</div>
-            </div>
-            <div class="cost-item">
-                <div class="cost-platform">Refinitiv Eikon</div>
-                <div class="cost-amount" style="color: #ff4444;">$1,800/mo</div>
-                <div class="cost-savings">Save $1,703/mo</div>
-            </div>
-            <div class="cost-item">
-                <div class="cost-platform">Annual Savings</div>
-                <div class="cost-amount" style="color: #00ff88;">$22,836</div>
-                <div class="cost-savings">95.15% cheaper</div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="footer">
-        <div>JustHodl.AI Bloomberg Terminal V10.3 © 2025-2026 — Built by Khalid</div>
-        <div style="margin-top: 10px;">AWS Account: 857687956942 | Region: us-east-1 | Owner: Khalid Afouis</div>
-        <div class="footer-links">
-            <a href="macroeconomic-platform.html" class="dashboard-footer">📈 Live Dashboard</a>
-            <a href="ml-predictions.html">🤖 ML Predictions</a>
-            <a href="trading-signals.html">📡 Trading Signals</a>
-                        <a href="charts.html">📊 Charts</a>
-            <a href="reports.html">📊 Reports</a>
-            <a href="fred.html">📉 FRED</a>
-            <a href="ecb.html">🏛️ ECB</a>
-            <a href="treasury-auctions.html">💵 Treasury</a>
-            <a href="bls.html">📈 BLS</a>
-            <a href="ofr.html">⚠️ OFR</a>
-            <a href="ny-fed.html">🗽 NY Fed</a>
-            <a href="census.html">📋 Census</a>
-            <a href="bea.html">💹 BEA</a>
-        <a href="eia.html" class="new-badge">⚡ EIA</a>
-        <a href="nasdaq-datalink.html" class="new-badge">📊 NASDAQ</a>
-        <a href="fmp.html" class="new-badge">💹 FMP</a>
-        <a href="benzinga.html" class="new-badge">📰 Benzinga</a>
-            <a href="#api">API Docs</a>
-            <a href="#pricing">Pricing</a>
-            <a href="mailto:raafouis@gmail.com">Contact</a>
-        </div>
-    </div>
-    
-    <script>
+</p>
+</div>
+<div class="cost-comparison" id="pricing">
+<h2 class="section-title">Cost Comparison</h2>
+<div class="cost-grid">
+<div class="cost-item">
+<div class="cost-platform">JustHodl.AI</div>
+<div class="cost-amount" style="color: #00ff88;">$97/mo</div>
+<div class="cost-savings">You pay this</div>
+</div>
+<div class="cost-item">
+<div class="cost-platform">Bloomberg Terminal</div>
+<div class="cost-amount" style="color: #ff4444;">$2,000/mo</div>
+<div class="cost-savings">Save $1,903/mo</div>
+</div>
+<div class="cost-item">
+<div class="cost-platform">Refinitiv Eikon</div>
+<div class="cost-amount" style="color: #ff4444;">$1,800/mo</div>
+<div class="cost-savings">Save $1,703/mo</div>
+</div>
+<div class="cost-item">
+<div class="cost-platform">Annual Savings</div>
+<div class="cost-amount" style="color: #00ff88;">$22,836</div>
+<div class="cost-savings">95.15% cheaper</div>
+</div>
+</div>
+</div>
+<div class="footer">
+<div>JustHodl.AI Bloomberg Terminal V10.3 © 2025-2026 — Built by Khalid</div>
+<div style="margin-top: 10px;">AWS Account: 857687956942 | Region: us-east-1 | Owner: Khalid Afouis</div>
+<div class="footer-links">
+<a class="dashboard-footer" href="macroeconomic-platform.html">📈 Live Dashboard</a>
+<a href="ml-predictions.html">🤖 ML Predictions</a>
+<a href="trading-signals.html">📡 Trading Signals</a>
+<a href="charts.html">📊 Charts</a>
+<a href="reports.html">📊 Reports</a>
+<a href="fred.html">📉 FRED</a>
+<a href="ecb.html">🏛️ ECB</a>
+<a href="treasury-auctions.html">💵 Treasury</a>
+<a href="bls.html">📈 BLS</a>
+<a href="ofr.html">⚠️ OFR</a>
+<a href="ny-fed.html">🗽 NY Fed</a>
+<a href="census.html">📋 Census</a>
+<a href="bea.html">💹 BEA</a>
+<a class="new-badge" href="eia.html">⚡ EIA</a>
+<a class="new-badge" href="nasdaq-datalink.html">📊 NASDAQ</a>
+<a class="new-badge" href="fmp.html">💹 FMP</a>
+<a class="new-badge" href="benzinga.html">📰 Benzinga</a>
+<a href="#api">API Docs</a>
+<a href="#pricing">Pricing</a>
+<a href="mailto:raafouis@gmail.com">Contact</a>
+</div>
+</div>
+<script>
         // Mobile menu toggle
         function toggleMobileMenu() {
             const mobileMenu = document.getElementById('mobileMenu');
@@ -928,6 +922,5 @@ w.innerHTML="<div style='background:linear-gradient(145deg,#0e1628,#131f35);bord
 lp();setInterval(lp,300000);
 })();
 </script>
-
-</body>
+</div><script src="/assets/sidebar.js"></script></body>
 </html>

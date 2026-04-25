@@ -1,10 +1,11 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Trading Signals | JustHodl.AI</title>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#06080f;--card:#0d1117;--border:#1b2332;--text:#e6edf3;--dim:#7d8590;--cyan:#58a6ff;--green:#3fb950;--red:#f85149;--yellow:#d29922;--purple:#bc8cff;--orange:#f0883e;--blue:#1f6feb}
@@ -66,10 +67,31 @@ tr:hover td{background:rgba(255,255,255,.02)}
 footer{text-align:center;padding:32px;color:var(--dim);font-size:12px;border-top:1px solid var(--border);margin-top:20px}
 @media(max-width:900px){.ban{grid-template-columns:repeat(2,1fr)}.tg{grid-template-columns:1fr}.ctr{padding:16px}}
 </style>
-</head>
-<body>
+<link href="/assets/sidebar.css" rel="stylesheet"/><style id="jh-suppress-legacy">
+/* JustHodl: hide legacy page navs in favour of shared sidebar */
+body > nav,
+body > header,
+body > .topbar,
+body > .top-bar,
+body > .top-nav,
+body > .navbar,
+body > .navigation,
+.jh-page > nav:first-child,
+.jh-page > header:first-child,
+.jh-page > .topbar:first-child,
+.jh-page > .top-bar:first-child,
+.jh-page > .navbar:first-child{
+  display: none !important;
+}
+/* Reset any body padding-top that was reserving space for fixed nav */
+body{
+  padding-top: 0 !important;
+  margin: 0 !important;
+}
+</style></head>
+<body><div id="sidebar"></div><div class="jh-page">
 <header>
-<div class="logo"><a href="/" class="nb">&#8592; Home</a><h1>Trading Signals</h1><span>LIVE</span></div>
+<div class="logo"><a class="nb" href="/">← Home</a><h1>Trading Signals</h1><span>LIVE</span></div>
 <div class="hmeta"><span><span class="dot"></span><span id="as">Loading...</span></span><span id="lu"></span></div>
 </header>
 <div class="ctr" id="app"><div class="ld"><div class="sp"></div>Loading trading signals...</div></div>
@@ -158,5 +180,5 @@ app.innerHTML=h;
 function load(){fetch(S3+"?t="+Date.now()).then(function(r){return r.json()}).then(render).catch(function(){document.getElementById("app").innerHTML="<div class='ld' style='color:var(--red)'>Failed to load. Retrying...</div>";setTimeout(load,5000)});}
 load();setInterval(load,300000);
 </script>
-</body>
+</div><script src="/assets/sidebar.js"></script></body>
 </html>

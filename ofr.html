@@ -1,15 +1,14 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpenBB OFR Financial Intelligence Platform - v8.0</title>
-    
-    <!-- Required Libraries -->
-    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
-    
-    <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OpenBB OFR Financial Intelligence Platform - v8.0</title>
+<!-- Required Libraries -->
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+<style>
         /* KEEP ALL THE ORIGINAL STYLES - No changes needed */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -442,258 +441,256 @@
             }
         }
     </style>
-</head>
-<body>
-    <!-- Market Phase Banner -->
-    <div class="market-phase-banner" id="marketPhaseBanner">
+<link href="/assets/sidebar.css" rel="stylesheet"/><style id="jh-suppress-legacy">
+/* JustHodl: hide legacy page navs in favour of shared sidebar */
+body > nav,
+body > header,
+body > .topbar,
+body > .top-bar,
+body > .top-nav,
+body > .navbar,
+body > .navigation,
+.jh-page > nav:first-child,
+.jh-page > header:first-child,
+.jh-page > .topbar:first-child,
+.jh-page > .top-bar:first-child,
+.jh-page > .navbar:first-child{
+  display: none !important;
+}
+/* Reset any body padding-top that was reserving space for fixed nav */
+body{
+  padding-top: 0 !important;
+  margin: 0 !important;
+}
+</style></head>
+<body><div id="sidebar"></div><div class="jh-page">
+<!-- Market Phase Banner -->
+<div class="market-phase-banner" id="marketPhaseBanner">
         🏦 OFR SYSTEMIC RISK STATUS: ANALYZING...
     </div>
-    
-    <header class="header">
-        <div class="logo">
+<header class="header">
+<div class="logo">
             🏦 OpenBB OFR Platform
             <span style="font-size: 0.875rem; color: #888;">v8.0</span>
-        </div>
-        
-        <div class="header-stats">
-            <div class="stat-item">
-                <div class="stat-value" id="activeIndicators">42</div>
-                <div class="stat-label">OFR Indicators</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value" id="totalCategories">8</div>
-                <div class="stat-label">Categories</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value" id="lastUpdate">--</div>
-                <div class="stat-label">Last Update</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value">$42</div>
-                <div class="stat-label">Monthly Cost</div>
-            </div>
-        </div>
-        
-        <div class="risk-indicator">
-            <span>Systemic Risk:</span>
-            <span class="risk-level risk-low" id="riskLevel">LOADING...</span>
-        </div>
-        
-        <div class="api-status">
-            <div class="api-indicator">
-                <div class="status-dot loading" id="ofrApiStatus"></div>
-                <span>OFR API</span>
-            </div>
-            <div class="api-indicator">
-                <div class="status-dot loading" id="lambdaStatus"></div>
-                <span>Lambda</span>
-            </div>
-            <div class="api-indicator">
-                <div class="status-dot loading" id="s3Status"></div>
-                <span>S3 Storage</span>
-            </div>
-        </div>
-    </header>
-    
-    <div class="container">
-        <!-- Navigation Tabs -->
-        <div class="tabs-nav">
-            <button class="tab-btn active" data-tab="overview">📊 Overview</button>
-            <button class="tab-btn" data-tab="financial-stress">💹 Financial Stress</button>
-            <button class="tab-btn" data-tab="systemic-risk">⚠️ Systemic Risk</button>
-            <button class="tab-btn" data-tab="leverage">📈 Leverage & Liquidity</button>
-            <button class="tab-btn" data-tab="markets">🏛️ Market Monitors</button>
-            <button class="tab-btn" data-tab="credit">💳 Credit Risk</button>
-            <button class="tab-btn" data-tab="concentration">🎯 Market Concentration</button>
-            <button class="tab-btn" data-tab="volatility">📉 Volatility</button>
-            <button class="tab-btn" data-tab="crisis">🚨 Crisis Indicators</button>
-            <button class="tab-btn" data-tab="ml-predictions">🤖 ML Predictions</button>
-            <button class="tab-btn" data-tab="trading-signals">📡 Trading Signals</button>
-        </div>
-        
-        <!-- Overview Tab -->
-        <div class="tab-content active" id="overview">
-            <!-- Key OFR Metrics -->
-            <div class="metrics-grid" id="keyMetrics">
-                <!-- Metrics will be added here dynamically -->
-            </div>
-            
-            <!-- Main Chart -->
-            <div class="chart-container">
-                <div class="chart-header">
-                    <h2 class="chart-title">OFR Systemic Risk Overview</h2>
-                </div>
-                <div id="mainChart"></div>
-            </div>
-            
-            <!-- All indicators grid -->
-            <div class="data-grid" id="overviewGrid">
-                <div class="loading">
-                    <div class="spinner"></div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Financial Stress Tab -->
-        <div class="tab-content" id="financial-stress">
-            <div class="chart-container">
-                <div class="chart-header">
-                    <h2 class="chart-title">Financial Stress Historical Trends</h2>
-                </div>
-                <div id="financialStressChart" class="historical-chart"></div>
-            </div>
-            <div class="data-grid" id="financialStressGrid">
-                <div class="loading">
-                    <div class="spinner"></div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Systemic Risk Tab -->
-        <div class="tab-content" id="systemic-risk">
-            <div class="chart-container">
-                <div class="chart-header">
-                    <h2 class="chart-title">Systemic Risk Historical Analysis</h2>
-                </div>
-                <div id="systemicRiskChart" class="historical-chart"></div>
-            </div>
-            <div class="data-grid" id="systemicRiskGrid">
-                <div class="loading">
-                    <div class="spinner"></div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Leverage Tab -->
-        <div class="tab-content" id="leverage">
-            <div class="chart-container">
-                <div class="chart-header">
-                    <h2 class="chart-title">Leverage & Liquidity Historical Data</h2>
-                </div>
-                <div id="leverageChart" class="historical-chart"></div>
-            </div>
-            <div class="data-grid" id="leverageGrid">
-                <div class="loading">
-                    <div class="spinner"></div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Markets Tab -->
-        <div class="tab-content" id="markets">
-            <div class="chart-container">
-                <div class="chart-header">
-                    <h2 class="chart-title">Market Monitors Historical Trends</h2>
-                </div>
-                <div id="marketsChart" class="historical-chart"></div>
-            </div>
-            <div class="data-grid" id="marketsGrid">
-                <div class="loading">
-                    <div class="spinner"></div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Credit Risk Tab -->
-        <div class="tab-content" id="credit">
-            <div class="chart-container">
-                <div class="chart-header">
-                    <h2 class="chart-title">Credit Risk Historical Analysis</h2>
-                </div>
-                <div id="creditChart" class="historical-chart"></div>
-            </div>
-            <div class="data-grid" id="creditGrid">
-                <div class="loading">
-                    <div class="spinner"></div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Market Concentration Tab -->
-        <div class="tab-content" id="concentration">
-            <div class="chart-container">
-                <div class="chart-header">
-                    <h2 class="chart-title">Market Concentration Historical Data</h2>
-                </div>
-                <div id="concentrationChart" class="historical-chart"></div>
-            </div>
-            <div class="data-grid" id="concentrationGrid">
-                <div class="loading">
-                    <div class="spinner"></div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Volatility Tab -->
-        <div class="tab-content" id="volatility">
-            <div class="chart-container">
-                <div class="chart-header">
-                    <h2 class="chart-title">Volatility Historical Trends</h2>
-                </div>
-                <div id="volatilityChart" class="historical-chart"></div>
-            </div>
-            <div class="data-grid" id="volatilityGrid">
-                <div class="loading">
-                    <div class="spinner"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Crisis Indicators Tab -->
-        <div class="tab-content" id="crisis">
-            <div class="crisis-alert" id="crisisAlert" style="display: none;">
-                <h3 style="color: #ff0000; margin-bottom: 1rem;">🚨 CRISIS WARNING DETECTED</h3>
-                <div id="crisisMessage"></div>
-            </div>
-            
-            <div class="chart-container">
-                <div class="chart-header">
-                    <h2 class="chart-title">Crisis Indicators Dashboard</h2>
-                </div>
-                <div id="crisisChart" class="historical-chart"></div>
-            </div>
-            
-            <div class="data-grid" id="crisisGrid">
-                <div class="loading">
-                    <div class="spinner"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ML Predictions Tab -->
-        <div class="tab-content" id="ml-predictions">
-            <div class="chart-container">
-                <div class="chart-header">
-                    <h2 class="chart-title">AI Risk Predictions</h2>
-                </div>
-                <div id="mlChart" class="historical-chart"></div>
-            </div>
-            
-            <div class="data-grid" id="mlGrid">
-                <div class="loading">
-                    <div class="spinner"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Trading Signals Tab -->
-        <div class="tab-content" id="trading-signals">
-            <div class="chart-container">
-                <div class="chart-header">
-                    <h2 class="chart-title">Trading Signals Based on OFR Data</h2>
-                </div>
-                <div id="tradingChart" class="historical-chart"></div>
-            </div>
-            
-            <div class="data-grid" id="tradingGrid">
-                <div class="loading">
-                    <div class="spinner"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <script>
+</div>
+<div class="header-stats">
+<div class="stat-item">
+<div class="stat-value" id="activeIndicators">42</div>
+<div class="stat-label">OFR Indicators</div>
+</div>
+<div class="stat-item">
+<div class="stat-value" id="totalCategories">8</div>
+<div class="stat-label">Categories</div>
+</div>
+<div class="stat-item">
+<div class="stat-value" id="lastUpdate">--</div>
+<div class="stat-label">Last Update</div>
+</div>
+<div class="stat-item">
+<div class="stat-value">$42</div>
+<div class="stat-label">Monthly Cost</div>
+</div>
+</div>
+<div class="risk-indicator">
+<span>Systemic Risk:</span>
+<span class="risk-level risk-low" id="riskLevel">LOADING...</span>
+</div>
+<div class="api-status">
+<div class="api-indicator">
+<div class="status-dot loading" id="ofrApiStatus"></div>
+<span>OFR API</span>
+</div>
+<div class="api-indicator">
+<div class="status-dot loading" id="lambdaStatus"></div>
+<span>Lambda</span>
+</div>
+<div class="api-indicator">
+<div class="status-dot loading" id="s3Status"></div>
+<span>S3 Storage</span>
+</div>
+</div>
+</header>
+<div class="container">
+<!-- Navigation Tabs -->
+<div class="tabs-nav">
+<button class="tab-btn active" data-tab="overview">📊 Overview</button>
+<button class="tab-btn" data-tab="financial-stress">💹 Financial Stress</button>
+<button class="tab-btn" data-tab="systemic-risk">⚠️ Systemic Risk</button>
+<button class="tab-btn" data-tab="leverage">📈 Leverage &amp; Liquidity</button>
+<button class="tab-btn" data-tab="markets">🏛️ Market Monitors</button>
+<button class="tab-btn" data-tab="credit">💳 Credit Risk</button>
+<button class="tab-btn" data-tab="concentration">🎯 Market Concentration</button>
+<button class="tab-btn" data-tab="volatility">📉 Volatility</button>
+<button class="tab-btn" data-tab="crisis">🚨 Crisis Indicators</button>
+<button class="tab-btn" data-tab="ml-predictions">🤖 ML Predictions</button>
+<button class="tab-btn" data-tab="trading-signals">📡 Trading Signals</button>
+</div>
+<!-- Overview Tab -->
+<div class="tab-content active" id="overview">
+<!-- Key OFR Metrics -->
+<div class="metrics-grid" id="keyMetrics">
+<!-- Metrics will be added here dynamically -->
+</div>
+<!-- Main Chart -->
+<div class="chart-container">
+<div class="chart-header">
+<h2 class="chart-title">OFR Systemic Risk Overview</h2>
+</div>
+<div id="mainChart"></div>
+</div>
+<!-- All indicators grid -->
+<div class="data-grid" id="overviewGrid">
+<div class="loading">
+<div class="spinner"></div>
+</div>
+</div>
+</div>
+<!-- Financial Stress Tab -->
+<div class="tab-content" id="financial-stress">
+<div class="chart-container">
+<div class="chart-header">
+<h2 class="chart-title">Financial Stress Historical Trends</h2>
+</div>
+<div class="historical-chart" id="financialStressChart"></div>
+</div>
+<div class="data-grid" id="financialStressGrid">
+<div class="loading">
+<div class="spinner"></div>
+</div>
+</div>
+</div>
+<!-- Systemic Risk Tab -->
+<div class="tab-content" id="systemic-risk">
+<div class="chart-container">
+<div class="chart-header">
+<h2 class="chart-title">Systemic Risk Historical Analysis</h2>
+</div>
+<div class="historical-chart" id="systemicRiskChart"></div>
+</div>
+<div class="data-grid" id="systemicRiskGrid">
+<div class="loading">
+<div class="spinner"></div>
+</div>
+</div>
+</div>
+<!-- Leverage Tab -->
+<div class="tab-content" id="leverage">
+<div class="chart-container">
+<div class="chart-header">
+<h2 class="chart-title">Leverage &amp; Liquidity Historical Data</h2>
+</div>
+<div class="historical-chart" id="leverageChart"></div>
+</div>
+<div class="data-grid" id="leverageGrid">
+<div class="loading">
+<div class="spinner"></div>
+</div>
+</div>
+</div>
+<!-- Markets Tab -->
+<div class="tab-content" id="markets">
+<div class="chart-container">
+<div class="chart-header">
+<h2 class="chart-title">Market Monitors Historical Trends</h2>
+</div>
+<div class="historical-chart" id="marketsChart"></div>
+</div>
+<div class="data-grid" id="marketsGrid">
+<div class="loading">
+<div class="spinner"></div>
+</div>
+</div>
+</div>
+<!-- Credit Risk Tab -->
+<div class="tab-content" id="credit">
+<div class="chart-container">
+<div class="chart-header">
+<h2 class="chart-title">Credit Risk Historical Analysis</h2>
+</div>
+<div class="historical-chart" id="creditChart"></div>
+</div>
+<div class="data-grid" id="creditGrid">
+<div class="loading">
+<div class="spinner"></div>
+</div>
+</div>
+</div>
+<!-- Market Concentration Tab -->
+<div class="tab-content" id="concentration">
+<div class="chart-container">
+<div class="chart-header">
+<h2 class="chart-title">Market Concentration Historical Data</h2>
+</div>
+<div class="historical-chart" id="concentrationChart"></div>
+</div>
+<div class="data-grid" id="concentrationGrid">
+<div class="loading">
+<div class="spinner"></div>
+</div>
+</div>
+</div>
+<!-- Volatility Tab -->
+<div class="tab-content" id="volatility">
+<div class="chart-container">
+<div class="chart-header">
+<h2 class="chart-title">Volatility Historical Trends</h2>
+</div>
+<div class="historical-chart" id="volatilityChart"></div>
+</div>
+<div class="data-grid" id="volatilityGrid">
+<div class="loading">
+<div class="spinner"></div>
+</div>
+</div>
+</div>
+<!-- Crisis Indicators Tab -->
+<div class="tab-content" id="crisis">
+<div class="crisis-alert" id="crisisAlert" style="display: none;">
+<h3 style="color: #ff0000; margin-bottom: 1rem;">🚨 CRISIS WARNING DETECTED</h3>
+<div id="crisisMessage"></div>
+</div>
+<div class="chart-container">
+<div class="chart-header">
+<h2 class="chart-title">Crisis Indicators Dashboard</h2>
+</div>
+<div class="historical-chart" id="crisisChart"></div>
+</div>
+<div class="data-grid" id="crisisGrid">
+<div class="loading">
+<div class="spinner"></div>
+</div>
+</div>
+</div>
+<!-- ML Predictions Tab -->
+<div class="tab-content" id="ml-predictions">
+<div class="chart-container">
+<div class="chart-header">
+<h2 class="chart-title">AI Risk Predictions</h2>
+</div>
+<div class="historical-chart" id="mlChart"></div>
+</div>
+<div class="data-grid" id="mlGrid">
+<div class="loading">
+<div class="spinner"></div>
+</div>
+</div>
+</div>
+<!-- Trading Signals Tab -->
+<div class="tab-content" id="trading-signals">
+<div class="chart-container">
+<div class="chart-header">
+<h2 class="chart-title">Trading Signals Based on OFR Data</h2>
+</div>
+<div class="historical-chart" id="tradingChart"></div>
+</div>
+<div class="data-grid" id="tradingGrid">
+<div class="loading">
+<div class="spinner"></div>
+</div>
+</div>
+</div>
+</div>
+<script>
         // OFR API Configuration
         const OFR_CONFIG = {
             API: {
@@ -1679,5 +1676,5 @@
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', initializePlatform);
     </script>
-</body>
+</div><script src="/assets/sidebar.js"></script></body>
 </html>

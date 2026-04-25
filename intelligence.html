@@ -1,10 +1,11 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1.0" name="viewport"/>
 <title>JustHodl.AI | Market Intelligence Report</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&amp;family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <style>
 :root{--bg:#050810;--bg1:#0a0f1a;--bg2:#0f1524;--bg3:#141c2e;--brd:#1a2540;--brd2:#243050;--t1:#e8ecf4;--t2:#8b95ad;--t3:#5a6580;--t4:#3a4560;--green:#00e676;--green-bg:rgba(0,230,118,.06);--red:#ff1744;--red-bg:rgba(255,23,68,.06);--yellow:#ffc400;--yellow-bg:rgba(255,196,0,.06);--blue:#2979ff;--blue-bg:rgba(41,121,255,.06);--cyan:#00e5ff;--orange:#ff6d00;--orange-bg:rgba(255,109,0,.06);--purple:#7c4dff}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -111,17 +112,38 @@ body{background:var(--bg);color:var(--t1);font-family:'IBM Plex Sans',system-ui,
 /* RESPONSIVE */
 @media(max-width:600px){.score-row{grid-template-columns:repeat(2,1fr)}.headline-box{padding:20px 16px}.headline-box h1{font-size:20px}.container{padding:12px 14px}}
 </style>
-</head>
-<body>
+<link href="/assets/sidebar.css" rel="stylesheet"/><style id="jh-suppress-legacy">
+/* JustHodl: hide legacy page navs in favour of shared sidebar */
+body > nav,
+body > header,
+body > .topbar,
+body > .top-bar,
+body > .top-nav,
+body > .navbar,
+body > .navigation,
+.jh-page > nav:first-child,
+.jh-page > header:first-child,
+.jh-page > .topbar:first-child,
+.jh-page > .top-bar:first-child,
+.jh-page > .navbar:first-child{
+  display: none !important;
+}
+/* Reset any body padding-top that was reserving space for fixed nav */
+body{
+  padding-top: 0 !important;
+  margin: 0 !important;
+}
+</style></head>
+<body><div id="sidebar"></div><div class="jh-page">
 <div class="header">
 <div><div class="logo">🧠 MARKET INTELLIGENCE</div><div class="logo-sub">JustHodl.AI — Cross-System Analysis</div></div>
 <div class="hdr-right">
-<a href="http://justhodl-dashboard-live.s3-website-us-east-1.amazonaws.com/repo.html" class="nav-link">🔧 Repo</a>
-<a href="http://justhodl-dashboard-live.s3-website-us-east-1.amazonaws.com/" class="nav-link">📊 Dashboard</a>
-<a href="https://justhodl.ai" class="nav-link">🏠 Terminal</a>
-<a href="/desk.html" class="nav-link">🎯 Desk</a>
+<a class="nav-link" href="http://justhodl-dashboard-live.s3-website-us-east-1.amazonaws.com/repo.html">🔧 Repo</a>
+<a class="nav-link" href="http://justhodl-dashboard-live.s3-website-us-east-1.amazonaws.com/">📊 Dashboard</a>
+<a class="nav-link" href="https://justhodl.ai">🏠 Terminal</a>
+<a class="nav-link" href="/desk.html">🎯 Desk</a>
 <div class="live"><div class="dot"></div><span>LIVE</span></div>
-<div class="mono" style="font-size:11px;color:var(--t3)" id="ts">...</div>
+<div class="mono" id="ts" style="font-size:11px;color:var(--t3)">...</div>
 </div>
 </div>
 <div class="container" id="main"><div class="loading"><div class="spinner"></div><div style="font-size:14px">Generating Cross-System Intelligence Report...</div><div style="font-size:12px;color:var(--t4);margin-top:6px">Fusing Terminal + Plumbing + ML Prediction data</div></div></div>
@@ -336,5 +358,5 @@ document.getElementById('main').innerHTML='<div class="loading" style="color:var
 }
 loadData();setInterval(loadData,300000);
 </script>
-</body>
+</div><script src="/assets/sidebar.js"></script></body>
 </html>

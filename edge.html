@@ -1,10 +1,11 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Edge Intelligence | JustHodl.AI</title>
-  <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>Edge Intelligence | JustHodl.AI</title>
+<style>
     *{margin:0;padding:0;box-sizing:border-box}
     body{background:#0a0e1a;color:#e0e8ff;font-family:'Courier New',monospace;min-height:100vh}
     .header{background:linear-gradient(135deg,#0d1b2a,#1a2744);padding:20px 30px;border-bottom:1px solid #1e3a5f;display:flex;align-items:center;gap:15px}
@@ -32,32 +33,50 @@
     .composite-score .regime{font-size:.9rem;color:#8098b0;margin-top:5px}
     .alert-bar{background:#1a1000;border:1px solid #ff880044;border-radius:4px;padding:8px 12px;margin-bottom:6px;font-size:.75rem}
   </style>
-</head>
-<body>
-  <div class="header">
-    <div>
-      <h1>⚡ EDGE INTELLIGENCE</h1>
-      <div class="sub">5-ENGINE COMPETITIVE EDGE SYSTEM | AUTO-REFRESH 6H</div>
-    </div>
-    <div style="margin-left:auto;font-size:.7rem;color:#4a6080" id="last-update">Loading...</div>
-  </div>
-  <div class="nav">
-    <a href="/">🏠 Terminal</a>
-    <a href="/flow.html">🌊 Flow</a>
-    <a href="/intelligence.html">🧠 Intel</a>
-    <a href="/valuations.html">📊 Valuations</a>
-    <a href="/positioning/">📍 CFTC</a>
-    <a href="/edge.html" style="background:#1a3a5f;color:#00d4ff">⚡ Edge</a>
-    <a href="/desk.html">🎯 Desk</a>
-  </div>
-
-  <div id="main-content">
-    <div class="loading">⚡ Loading Edge Intelligence Data...</div>
-  </div>
-
-  <div class="timestamp" id="ts"></div>
-
-  <script>
+<link href="/assets/sidebar.css" rel="stylesheet"/><style id="jh-suppress-legacy">
+/* JustHodl: hide legacy page navs in favour of shared sidebar */
+body > nav,
+body > header,
+body > .topbar,
+body > .top-bar,
+body > .top-nav,
+body > .navbar,
+body > .navigation,
+.jh-page > nav:first-child,
+.jh-page > header:first-child,
+.jh-page > .topbar:first-child,
+.jh-page > .top-bar:first-child,
+.jh-page > .navbar:first-child{
+  display: none !important;
+}
+/* Reset any body padding-top that was reserving space for fixed nav */
+body{
+  padding-top: 0 !important;
+  margin: 0 !important;
+}
+</style></head>
+<body><div id="sidebar"></div><div class="jh-page">
+<div class="header">
+<div>
+<h1>⚡ EDGE INTELLIGENCE</h1>
+<div class="sub">5-ENGINE COMPETITIVE EDGE SYSTEM | AUTO-REFRESH 6H</div>
+</div>
+<div id="last-update" style="margin-left:auto;font-size:.7rem;color:#4a6080">Loading...</div>
+</div>
+<div class="nav">
+<a href="/">🏠 Terminal</a>
+<a href="/flow.html">🌊 Flow</a>
+<a href="/intelligence.html">🧠 Intel</a>
+<a href="/valuations.html">📊 Valuations</a>
+<a href="/positioning/">📍 CFTC</a>
+<a href="/edge.html" style="background:#1a3a5f;color:#00d4ff">⚡ Edge</a>
+<a href="/desk.html">🎯 Desk</a>
+</div>
+<div id="main-content">
+<div class="loading">⚡ Loading Edge Intelligence Data...</div>
+</div>
+<div class="timestamp" id="ts"></div>
+<script>
   const S3 = 'https://justhodl-dashboard-live.s3.amazonaws.com/edge-data.json';
   const EDGE_URL = 'https://vsxv2775x5aojiuwaoqb7wipam0rmuln.lambda-url.us-east-1.on.aws/';
 
@@ -158,5 +177,5 @@
   loadData();
   setInterval(loadData, 3600000); // 1hr auto-refresh
   </script>
-</body>
+</div><script src="/assets/sidebar.js"></script></body>
 </html>

@@ -1,11 +1,12 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>JustHodl.AI | Systemic Risk Monitor</title>
 <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&amp;family=DM+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <style>
 :root{--bg0:#060a12;--bg1:#0b0f1a;--bg2:#111827;--bg3:#1a2035;--bg4:#232b42;--brd:#1e2a45;--brd2:#2d3a5c;--t1:#e2e8f0;--t2:#94a3b8;--t3:#64748b;--green:#10b981;--red:#ef4444;--blue:#3b82f6;--yellow:#f59e0b;--orange:#f97316;--purple:#a78bfa;--cyan:#22d3ee;--pink:#ec4899;--gold:#fbbf24;--teal:#14b8a6}
 *{margin:0;padding:0;box-sizing:border-box}body{background:var(--bg0);color:var(--t1);font-family:'DM Sans',sans-serif;min-height:100vh;padding-bottom:40px}.mono{font-family:'JetBrains Mono',monospace}a{color:var(--cyan);text-decoration:none}
@@ -61,72 +62,93 @@
 @media(max-width:1200px){.hero{grid-template-columns:repeat(3,1fr)}.chart-row{grid-template-columns:1fr}}
 @media(max-width:768px){.hero{grid-template-columns:1fr 1fr}}
 </style>
-</head>
-<body>
+<link href="/assets/sidebar.css" rel="stylesheet"/><style id="jh-suppress-legacy">
+/* JustHodl: hide legacy page navs in favour of shared sidebar */
+body > nav,
+body > header,
+body > .topbar,
+body > .top-bar,
+body > .top-nav,
+body > .navbar,
+body > .navigation,
+.jh-page > nav:first-child,
+.jh-page > header:first-child,
+.jh-page > .topbar:first-child,
+.jh-page > .top-bar:first-child,
+.jh-page > .navbar:first-child{
+  display: none !important;
+}
+/* Reset any body padding-top that was reserving space for fixed nav */
+body{
+  padding-top: 0 !important;
+  margin: 0 !important;
+}
+</style></head>
+<body><div id="sidebar"></div><div class="jh-page">
 <div class="topbar">
-  <div class="logo"><span class="hl">SYSTEMIC</span>RISK<sub>Global Financial Stress Monitor v1.0</sub></div>
-  <div class="topbar-r">
-    <a href="index.html" class="nav-link">Terminal</a>
-    <a href="fred.html" class="nav-link">FRED</a>
-    <a href="carry.html" class="nav-link">Carry</a>
-    <a href="auctions.html" class="nav-link">Auctions</a>
-    <div class="live"><div class="dot"></div> LIVE</div>
-    <span id="clock" class="mono"></span>
-  </div>
+<div class="logo"><span class="hl">SYSTEMIC</span>RISK<sub>Global Financial Stress Monitor v1.0</sub></div>
+<div class="topbar-r">
+<a class="nav-link" href="index.html">Terminal</a>
+<a class="nav-link" href="fred.html">FRED</a>
+<a class="nav-link" href="carry.html">Carry</a>
+<a class="nav-link" href="auctions.html">Auctions</a>
+<div class="live"><div class="dot"></div> LIVE</div>
+<span class="mono" id="clock"></span>
+</div>
 </div>
 <div class="hero" id="heroSection">
-  <div class="hc" id="hUS"><div class="hc-lbl">US CISS (ECB)</div><div class="hc-val" id="vUS">--</div><div class="hc-sub" id="sUS">Systemic stress</div></div>
-  <div class="hc" id="hEU"><div class="hc-lbl">Euro Area CISS</div><div class="hc-val" id="vEU">--</div><div class="hc-sub" id="sEU">EU systemic stress</div></div>
-  <div class="hc" id="hCN"><div class="hc-lbl">China CISS</div><div class="hc-val" id="vCN">--</div><div class="hc-sub" id="sCN">China stress</div></div>
-  <div class="hc" id="hSTL"><div class="hc-lbl">StL Fed FSI</div><div class="hc-val" id="vSTL">--</div><div class="hc-sub" id="sSTL">US financial stress</div></div>
-  <div class="hc" id="hNFCI"><div class="hc-lbl">Chicago NFCI</div><div class="hc-val" id="vNFCI">--</div><div class="hc-sub" id="sNFCI">Financial conditions</div></div>
-  <div class="hc" id="hHY"><div class="hc-lbl">HY Spread</div><div class="hc-val" id="vHY">--</div><div class="hc-sub" id="sHY">Credit risk</div></div>
+<div class="hc" id="hUS"><div class="hc-lbl">US CISS (ECB)</div><div class="hc-val" id="vUS">--</div><div class="hc-sub" id="sUS">Systemic stress</div></div>
+<div class="hc" id="hEU"><div class="hc-lbl">Euro Area CISS</div><div class="hc-val" id="vEU">--</div><div class="hc-sub" id="sEU">EU systemic stress</div></div>
+<div class="hc" id="hCN"><div class="hc-lbl">China CISS</div><div class="hc-val" id="vCN">--</div><div class="hc-sub" id="sCN">China stress</div></div>
+<div class="hc" id="hSTL"><div class="hc-lbl">StL Fed FSI</div><div class="hc-val" id="vSTL">--</div><div class="hc-sub" id="sSTL">US financial stress</div></div>
+<div class="hc" id="hNFCI"><div class="hc-lbl">Chicago NFCI</div><div class="hc-val" id="vNFCI">--</div><div class="hc-sub" id="sNFCI">Financial conditions</div></div>
+<div class="hc" id="hHY"><div class="hc-lbl">HY Spread</div><div class="hc-val" id="vHY">--</div><div class="hc-sub" id="sHY">Credit risk</div></div>
 </div>
 <div class="section">
-  <div class="sh"><div class="st">Composite Systemic Stress Gauge <span class="badge b-red">MULTI-SOURCE</span></div></div>
-  <div class="analysis" id="gaugeBox"><h4>Loading systemic risk data from ECB & FRED...</h4></div>
+<div class="sh"><div class="st">Composite Systemic Stress Gauge <span class="badge b-red">MULTI-SOURCE</span></div></div>
+<div class="analysis" id="gaugeBox"><h4>Loading systemic risk data from ECB &amp; FRED...</h4></div>
 </div>
 <div class="section">
-  <div class="sh"><div class="st">ECB CISS — Global Systemic Stress <span class="badge b-ecb">ECB DATA</span></div></div>
-  <div class="chart-row"><div class="chart-box full"><h4>CISS: US vs Euro Area vs China vs UK (Daily)</h4><div id="chCISS" style="height:320px"></div></div></div>
-  <div class="chart-row">
-    <div class="chart-box"><h4>Euro Area CISS Subindices</h4><div id="chEUSub" style="height:280px"></div></div>
-    <div class="chart-box"><h4>US CISS Subindices</h4><div id="chUSSub" style="height:280px"></div></div>
-  </div>
-  <div class="chart-row">
-    <div class="chart-box"><h4>Euro Area Sovereign Stress (SovCISS)</h4><div id="chSov" style="height:260px"></div></div>
-    <div class="chart-box"><h4>European Country CISS Comparison</h4><div id="chEUCountry" style="height:260px"></div></div>
-  </div>
+<div class="sh"><div class="st">ECB CISS — Global Systemic Stress <span class="badge b-ecb">ECB DATA</span></div></div>
+<div class="chart-row"><div class="chart-box full"><h4>CISS: US vs Euro Area vs China vs UK (Daily)</h4><div id="chCISS" style="height:320px"></div></div></div>
+<div class="chart-row">
+<div class="chart-box"><h4>Euro Area CISS Subindices</h4><div id="chEUSub" style="height:280px"></div></div>
+<div class="chart-box"><h4>US CISS Subindices</h4><div id="chUSSub" style="height:280px"></div></div>
+</div>
+<div class="chart-row">
+<div class="chart-box"><h4>Euro Area Sovereign Stress (SovCISS)</h4><div id="chSov" style="height:260px"></div></div>
+<div class="chart-box"><h4>European Country CISS Comparison</h4><div id="chEUCountry" style="height:260px"></div></div>
+</div>
 </div>
 <div class="section">
-  <div class="sh"><div class="st">US Financial Stress Indices <span class="badge b-info">FRED</span></div></div>
-  <div class="chart-row"><div class="chart-box full"><h4>US Financial Stress: StL Fed FSI vs Chicago NFCI vs KC Fed FSI</h4><div id="chFredStress" style="height:300px"></div></div></div>
+<div class="sh"><div class="st">US Financial Stress Indices <span class="badge b-info">FRED</span></div></div>
+<div class="chart-row"><div class="chart-box full"><h4>US Financial Stress: StL Fed FSI vs Chicago NFCI vs KC Fed FSI</h4><div id="chFredStress" style="height:300px"></div></div></div>
 </div>
 <div class="section">
-  <div class="sh"><div class="st">Credit Spreads & Volatility <span class="badge b-gold">MARKET SIGNALS</span></div></div>
-  <div class="chart-row">
-    <div class="chart-box"><h4>High Yield OAS & BBB Spread</h4><div id="chCredit" style="height:280px"></div></div>
-    <div class="chart-box"><h4>VIX & TED Spread</h4><div id="chVol" style="height:280px"></div></div>
-  </div>
-  <div class="chart-row">
-    <div class="chart-box"><h4>Treasury Yield Curve: 10Y-2Y & 10Y-3M</h4><div id="chCurve" style="height:280px"></div></div>
-    <div class="chart-box"><h4>Economic Policy Uncertainty Index</h4><div id="chEPU" style="height:280px"></div></div>
-  </div>
+<div class="sh"><div class="st">Credit Spreads &amp; Volatility <span class="badge b-gold">MARKET SIGNALS</span></div></div>
+<div class="chart-row">
+<div class="chart-box"><h4>High Yield OAS &amp; BBB Spread</h4><div id="chCredit" style="height:280px"></div></div>
+<div class="chart-box"><h4>VIX &amp; TED Spread</h4><div id="chVol" style="height:280px"></div></div>
+</div>
+<div class="chart-row">
+<div class="chart-box"><h4>Treasury Yield Curve: 10Y-2Y &amp; 10Y-3M</h4><div id="chCurve" style="height:280px"></div></div>
+<div class="chart-box"><h4>Economic Policy Uncertainty Index</h4><div id="chEPU" style="height:280px"></div></div>
+</div>
 </div>
 <div class="section">
-  <div class="sh"><div class="st">Stress Regime Detection <span class="badge b-purple">ALL INDICATORS</span></div></div>
-  <div class="at-wrap"><table class="at">
-    <thead><tr><th>Indicator</th><th>Source</th><th>Latest</th><th>Date</th><th>1W Chg</th><th>1M Chg</th><th>Regime</th><th>Percentile</th><th>Signal</th></tr></thead>
-    <tbody id="regimeBody"></tbody>
-  </table></div>
+<div class="sh"><div class="st">Stress Regime Detection <span class="badge b-purple">ALL INDICATORS</span></div></div>
+<div class="at-wrap"><table class="at">
+<thead><tr><th>Indicator</th><th>Source</th><th>Latest</th><th>Date</th><th>1W Chg</th><th>1M Chg</th><th>Regime</th><th>Percentile</th><th>Signal</th></tr></thead>
+<tbody id="regimeBody"></tbody>
+</table></div>
 </div>
 <div class="section">
-  <div class="sh"><div class="st">Systemic Risk Assessment <span class="badge b-red">AI</span></div></div>
-  <div class="analysis" id="analysisBox"><h4>Loading multi-source data...</h4></div>
+<div class="sh"><div class="st">Systemic Risk Assessment <span class="badge b-red">AI</span></div></div>
+<div class="analysis" id="analysisBox"><h4>Loading multi-source data...</h4></div>
 </div>
 <div class="status-bar">
-  <span id="sMsg">Initializing systemic risk monitor...</span>
-  <div class="prog" id="prog"><div class="prog-fill" id="pFill"></div></div>
+<span id="sMsg">Initializing systemic risk monitor...</span>
+<div class="prog" id="prog"><div class="prog-fill" id="pFill"></div></div>
 </div>
 <script>
 var ECB_PROXY='https://zzmoq2mq4vtphjyhm4i7hqpzvm0hkwsj.lambda-url.us-east-1.on.aws/';
@@ -281,5 +303,5 @@ setInterval(updClk,1000);updClk();
 setInterval(function(){loadAll();},15*60*1000);
 loadAll();
 </script>
-</body>
+</div><script src="/assets/sidebar.js"></script></body>
 </html>

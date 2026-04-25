@@ -1,10 +1,11 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1.0" name="viewport"/>
 <title>Valuations Intelligence | JustHodl.AI</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&amp;family=DM+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <style>
 :root{--bg0:#060a10;--bg1:#0c1220;--bg2:#111b2e;--bg3:#182240;--brd:#1a2744;--brd2:#253560;--t1:#e8edf5;--t2:#8896b3;--t3:#556685;--accent:#f0b429;--green:#22c55e;--red:#ef4444;--blue:#3b82f6;--purple:#a78bfa;--cyan:#22d3ee;--orange:#fb923c;--gold:#f0b429;--silver:#94a3b8;--copper:#d97706}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -128,11 +129,32 @@ body{background:var(--bg0);color:var(--t1);font-family:'DM Sans',sans-serif;min-
   });
 })();
 </script>
-</head>
-<body>
-<div class="topbar"><div class="topbar-left"><div><div class="logo">JustHodl.AI</div><div class="logo-sub">Valuations Intelligence</div></div></div><div class="topbar-right"><span><span class="live-dot"></span>&nbsp; Updated: <span id="ts" class="mono">—</span></span><a href="/" class="home-btn">← Main Terminal</a></div></div>
-<div class="gauge-section"><div class="gauge-title">Composite Valuation Score</div><div class="gauge-ring"><svg viewBox="0 0 200 200"><circle class="gauge-bg" cx="100" cy="100" r="88"/><circle class="gauge-fill" id="gaugeFill" cx="100" cy="100" r="88" stroke-dasharray="553" stroke-dashoffset="553"/></svg><div class="gauge-value"><div class="score" id="compositeScore">—</div><div class="regime" id="compositeRegime">LOADING</div></div></div><div class="gauge-stats"><div class="gauge-stat"><div class="n" id="statOver" style="color:var(--red)">—</div><div class="l">Overvalued</div></div><div class="gauge-stat"><div class="n" id="statFair" style="color:var(--green)">—</div><div class="l">Fair Value</div></div><div class="gauge-stat"><div class="n" id="statUnder" style="color:var(--blue)">—</div><div class="l">Undervalued</div></div><div class="gauge-stat"><div class="n" id="statTotal" style="color:var(--t2)">—</div><div class="l">Total Metrics</div></div></div></div>
-<div class="tabs"><div class="tab active" onclick="showTab('overview')"><span class="icon">📊</span> Overview</div><div class="tab" onclick="showTab('sp500')"><span class="icon">🏛️</span> S&P 500</div><div class="tab" onclick="showTab('gold')"><span class="icon">🥇</span> Gold & Metals</div><div class="tab" onclick="showTab('crypto')"><span class="icon">₿</span> Crypto</div><div class="tab" onclick="showTab('commodities')"><span class="icon">🛢️</span> Oil & Commodities</div><div class="tab" onclick="showTab('matrix')"><span class="icon">📋</span> Full Matrix</div></div>
+<link href="/assets/sidebar.css" rel="stylesheet"/><style id="jh-suppress-legacy">
+/* JustHodl: hide legacy page navs in favour of shared sidebar */
+body > nav,
+body > header,
+body > .topbar,
+body > .top-bar,
+body > .top-nav,
+body > .navbar,
+body > .navigation,
+.jh-page > nav:first-child,
+.jh-page > header:first-child,
+.jh-page > .topbar:first-child,
+.jh-page > .top-bar:first-child,
+.jh-page > .navbar:first-child{
+  display: none !important;
+}
+/* Reset any body padding-top that was reserving space for fixed nav */
+body{
+  padding-top: 0 !important;
+  margin: 0 !important;
+}
+</style></head>
+<body><div id="sidebar"></div><div class="jh-page">
+<div class="topbar"><div class="topbar-left"><div><div class="logo">JustHodl.AI</div><div class="logo-sub">Valuations Intelligence</div></div></div><div class="topbar-right"><span><span class="live-dot"></span>  Updated: <span class="mono" id="ts">—</span></span><a class="home-btn" href="/">← Main Terminal</a></div></div>
+<div class="gauge-section"><div class="gauge-title">Composite Valuation Score</div><div class="gauge-ring"><svg viewbox="0 0 200 200"><circle class="gauge-bg" cx="100" cy="100" r="88"></circle><circle class="gauge-fill" cx="100" cy="100" id="gaugeFill" r="88" stroke-dasharray="553" stroke-dashoffset="553"></circle></svg><div class="gauge-value"><div class="score" id="compositeScore">—</div><div class="regime" id="compositeRegime">LOADING</div></div></div><div class="gauge-stats"><div class="gauge-stat"><div class="n" id="statOver" style="color:var(--red)">—</div><div class="l">Overvalued</div></div><div class="gauge-stat"><div class="n" id="statFair" style="color:var(--green)">—</div><div class="l">Fair Value</div></div><div class="gauge-stat"><div class="n" id="statUnder" style="color:var(--blue)">—</div><div class="l">Undervalued</div></div><div class="gauge-stat"><div class="n" id="statTotal" style="color:var(--t2)">—</div><div class="l">Total Metrics</div></div></div></div>
+<div class="tabs"><div class="tab active" onclick="showTab('overview')"><span class="icon">📊</span> Overview</div><div class="tab" onclick="showTab('sp500')"><span class="icon">🏛️</span> S&amp;P 500</div><div class="tab" onclick="showTab('gold')"><span class="icon">🥇</span> Gold &amp; Metals</div><div class="tab" onclick="showTab('crypto')"><span class="icon">₿</span> Crypto</div><div class="tab" onclick="showTab('commodities')"><span class="icon">🛢️</span> Oil &amp; Commodities</div><div class="tab" onclick="showTab('matrix')"><span class="icon">📋</span> Full Matrix</div></div>
 <div class="panel active" id="p-overview"><div class="loading"><div class="spinner"></div>Loading valuations data...</div></div>
 <div class="panel" id="p-sp500"></div>
 <div class="panel" id="p-gold"></div>
@@ -163,5 +185,5 @@ function update(d){D=d;renderGauge(d);renderOverview(d);renderSP500(d);renderGol
 async function loadData(){try{let r=await fetch(DATA_URL+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);update(await r.json())}catch(e){console.error(e);document.getElementById('p-overview').innerHTML='<div class="loading" style="color:var(--red)"><div style="font-size:40px;margin-bottom:12px">⚠️</div>Failed to load. Run Lambda:<br><code class="mono" style="color:var(--accent);font-size:11px;margin-top:8px;display:block">aws lambda invoke --function-name justhodl-valuations-agent --payload \'{}\' --cli-read-timeout 120 --region us-east-1 /tmp/val.json</code></div>'}}
 loadData();setInterval(loadData,300000);
 </script>
-</body>
+</div><script src="/assets/sidebar.js"></script></body>
 </html>

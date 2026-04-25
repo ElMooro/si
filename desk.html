@@ -1,11 +1,12 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Desk | JustHodl.AI</title>
-  <meta name="description" content="Hedge fund desk — consolidated view of regime, divergences, COT extremes, opportunities, and sized recommendations.">
-  <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>Desk | JustHodl.AI</title>
+<meta content="Hedge fund desk — consolidated view of regime, divergences, COT extremes, opportunities, and sized recommendations." name="description"/>
+<style>
     *{margin:0;padding:0;box-sizing:border-box}
     body{background:#0a0e1a;color:#e0e8ff;font-family:'Courier New',monospace;min-height:100vh;padding-bottom:40px}
     .header{background:linear-gradient(135deg,#0d1b2a,#1a2744);padding:20px 30px;border-bottom:1px solid #1e3a5f;display:flex;align-items:center;gap:15px;flex-wrap:wrap}
@@ -99,113 +100,126 @@
       .rec-table th, .rec-table td{padding:5px 4px}
     }
   </style>
-</head>
-<body>
-  <div class="header">
-    <div style="flex:1">
-      <h1>⚡ HEDGE FUND DESK</h1>
-      <div class="sub">CONSOLIDATED RISK + OPPORTUNITY VIEW | UPDATES 13:45 UTC WEEKDAYS</div>
-    </div>
-    <div class="sub" id="lastUpdate" style="text-align:right">loading…</div>
-  </div>
-
-  <div class="nav">
-    <a href="index.html">Home</a>
-    <a href="reports.html">Reports</a>
-    <a href="intelligence.html">Intelligence</a>
-    <a href="edge.html">Edge</a>
-    <a href="screener/">Screener</a>
-    <a href="liquidity.html">Liquidity</a>
-    <a href="dex.html">DEX</a>
-    <a href="desk.html" class="active">Desk</a>
-  </div>
-
-  <div class="refresh-bar">
-    <span id="dataFreshness">Auto-refresh: 5 min</span>
-    <button class="refresh-btn" onclick="loadAll()">↻ Refresh now</button>
-  </div>
-
-  <!-- TOP STATUS STRIP — at-a-glance regime / drawdown / exposure -->
-  <div class="status-strip" id="statusStrip">
-    <div class="strip-cell">
-      <div class="strip-label">Bond Regime</div>
-      <div class="strip-value" id="regimeValue">—</div>
-      <div class="strip-sub" id="regimeStrength">strength —</div>
-    </div>
-    <div class="strip-cell">
-      <div class="strip-label">Max Gross</div>
-      <div class="strip-value" id="maxGross">—</div>
-      <div class="strip-sub">regime-adjusted ceiling</div>
-    </div>
-    <div class="strip-cell">
-      <div class="strip-label">Drawdown</div>
-      <div class="strip-value" id="drawdown">—</div>
-      <div class="strip-sub" id="drawdownTrigger">multiplier ×—</div>
-    </div>
-    <div class="strip-cell">
-      <div class="strip-label">Active Setups</div>
-      <div class="strip-value" id="setupCount">—</div>
-      <div class="strip-sub" id="clusterCount">— clusters</div>
-    </div>
-    <div class="strip-cell">
-      <div class="strip-label">Recommended</div>
-      <div class="strip-value" id="totalSize">—</div>
-      <div class="strip-sub">total position</div>
-    </div>
-  </div>
-
-  <!-- RISK PANEL -->
-  <section>
-    <div class="section-title">⚠ Risk &amp; Warnings <span class="sub">— what the system is watching</span></div>
-    <div class="grid-row">
-      <div class="card">
-        <h3>BOND REGIME — Phase 1A</h3>
-        <div id="regimePanel" class="loading">loading…</div>
-      </div>
-      <div class="card">
-        <h3>CROSS-ASSET DIVERGENCES — Phase 1B</h3>
-        <div id="divergencePanel" class="loading">loading…</div>
-      </div>
-      <div class="card">
-        <h3>COT POSITIONING EXTREMES — Phase 2A</h3>
-        <div id="cotPanel" class="loading">loading…</div>
-      </div>
-    </div>
-    <div id="warningsPanel" style="margin-top:12px"></div>
-  </section>
-
-  <!-- OPPORTUNITY PANEL -->
-  <section>
-    <div class="section-title">✦ Sized Recommendations <span class="sub">— Phase 3 risk-adjusted output</span></div>
-    <div id="recommendationsPanel" class="loading">loading…</div>
-  </section>
-
-  <!-- CONTEXT PANEL -->
-  <section>
-    <div class="section-title">⊙ Context <span class="sub">— supporting layers</span></div>
-    <div class="grid-row">
-      <div class="card">
-        <h3>WATCHLIST DEBATE — Loop 4</h3>
-        <div id="debatePanel" class="loading">loading…</div>
-      </div>
-      <div class="card">
-        <h3>HYPOTHETICAL PNL — Loop 2</h3>
-        <div id="pnlPanel" class="loading">loading…</div>
-      </div>
-      <div class="card">
-        <h3>VALUE TRAPS — names to AVOID</h3>
-        <div id="trapsPanel" class="loading">loading…</div>
-      </div>
-    </div>
-  </section>
-
-  <div class="footer-note">
-    All recommendations are HYPOTHETICAL for tracking only. The system never trades and never auto-rebalances.<br>
+<link href="/assets/sidebar.css" rel="stylesheet"/><style id="jh-suppress-legacy">
+/* JustHodl: hide legacy page navs in favour of shared sidebar */
+body > nav,
+body > header,
+body > .topbar,
+body > .top-bar,
+body > .top-nav,
+body > .navbar,
+body > .navigation,
+.jh-page > nav:first-child,
+.jh-page > header:first-child,
+.jh-page > .topbar:first-child,
+.jh-page > .top-bar:first-child,
+.jh-page > .navbar:first-child{
+  display: none !important;
+}
+/* Reset any body padding-top that was reserving space for fixed nav */
+body{
+  padding-top: 0 !important;
+  margin: 0 !important;
+}
+</style></head>
+<body><div id="sidebar"></div><div class="jh-page">
+<div class="header">
+<div style="flex:1">
+<h1>⚡ HEDGE FUND DESK</h1>
+<div class="sub">CONSOLIDATED RISK + OPPORTUNITY VIEW | UPDATES 13:45 UTC WEEKDAYS</div>
+</div>
+<div class="sub" id="lastUpdate" style="text-align:right">loading…</div>
+</div>
+<div class="nav">
+<a href="index.html">Home</a>
+<a href="reports.html">Reports</a>
+<a href="intelligence.html">Intelligence</a>
+<a href="edge.html">Edge</a>
+<a href="screener/">Screener</a>
+<a href="liquidity.html">Liquidity</a>
+<a href="dex.html">DEX</a>
+<a class="active" href="desk.html">Desk</a>
+</div>
+<div class="refresh-bar">
+<span id="dataFreshness">Auto-refresh: 5 min</span>
+<button class="refresh-btn" onclick="loadAll()">↻ Refresh now</button>
+</div>
+<!-- TOP STATUS STRIP — at-a-glance regime / drawdown / exposure -->
+<div class="status-strip" id="statusStrip">
+<div class="strip-cell">
+<div class="strip-label">Bond Regime</div>
+<div class="strip-value" id="regimeValue">—</div>
+<div class="strip-sub" id="regimeStrength">strength —</div>
+</div>
+<div class="strip-cell">
+<div class="strip-label">Max Gross</div>
+<div class="strip-value" id="maxGross">—</div>
+<div class="strip-sub">regime-adjusted ceiling</div>
+</div>
+<div class="strip-cell">
+<div class="strip-label">Drawdown</div>
+<div class="strip-value" id="drawdown">—</div>
+<div class="strip-sub" id="drawdownTrigger">multiplier ×—</div>
+</div>
+<div class="strip-cell">
+<div class="strip-label">Active Setups</div>
+<div class="strip-value" id="setupCount">—</div>
+<div class="strip-sub" id="clusterCount">— clusters</div>
+</div>
+<div class="strip-cell">
+<div class="strip-label">Recommended</div>
+<div class="strip-value" id="totalSize">—</div>
+<div class="strip-sub">total position</div>
+</div>
+</div>
+<!-- RISK PANEL -->
+<section>
+<div class="section-title">⚠ Risk &amp; Warnings <span class="sub">— what the system is watching</span></div>
+<div class="grid-row">
+<div class="card">
+<h3>BOND REGIME — Phase 1A</h3>
+<div class="loading" id="regimePanel">loading…</div>
+</div>
+<div class="card">
+<h3>CROSS-ASSET DIVERGENCES — Phase 1B</h3>
+<div class="loading" id="divergencePanel">loading…</div>
+</div>
+<div class="card">
+<h3>COT POSITIONING EXTREMES — Phase 2A</h3>
+<div class="loading" id="cotPanel">loading…</div>
+</div>
+</div>
+<div id="warningsPanel" style="margin-top:12px"></div>
+</section>
+<!-- OPPORTUNITY PANEL -->
+<section>
+<div class="section-title">✦ Sized Recommendations <span class="sub">— Phase 3 risk-adjusted output</span></div>
+<div class="loading" id="recommendationsPanel">loading…</div>
+</section>
+<!-- CONTEXT PANEL -->
+<section>
+<div class="section-title">⊙ Context <span class="sub">— supporting layers</span></div>
+<div class="grid-row">
+<div class="card">
+<h3>WATCHLIST DEBATE — Loop 4</h3>
+<div class="loading" id="debatePanel">loading…</div>
+</div>
+<div class="card">
+<h3>HYPOTHETICAL PNL — Loop 2</h3>
+<div class="loading" id="pnlPanel">loading…</div>
+</div>
+<div class="card">
+<h3>VALUE TRAPS — names to AVOID</h3>
+<div class="loading" id="trapsPanel">loading…</div>
+</div>
+</div>
+</section>
+<div class="footer-note">
+    All recommendations are HYPOTHETICAL for tracking only. The system never trades and never auto-rebalances.<br/>
     Past hypothetical performance does not predict future returns. Not investment advice. Execute manually if at all.
   </div>
-  <div class="timestamp" id="generatedAt">—</div>
-
-  <script>
+<div class="timestamp" id="generatedAt">—</div>
+<script>
     const S3 = "https://justhodl-dashboard-live.s3.amazonaws.com/";
     const REFRESH_MS = 5 * 60 * 1000;
 
@@ -575,5 +589,5 @@
     loadAll();
     setInterval(loadAll, REFRESH_MS);
   </script>
-</body>
+</div><script src="/assets/sidebar.js"></script></body>
 </html>

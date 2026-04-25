@@ -1,11 +1,12 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Treasury Multi-Instrument Dashboard - REAL DATA</title>
-    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-    <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Treasury Multi-Instrument Dashboard - REAL DATA</title>
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<style>
         * {
             margin: 0;
             padding: 0;
@@ -323,178 +324,188 @@
             }
         }
     </style>
-</head>
-<body>
-    <div class="header">
-        <div class="header-content">
-            <div class="logo">TREASURY MULTI-INSTRUMENT DASHBOARD</div>
-            <div class="status-bar">
-                <div class="status-indicator">
-                    <div class="status-dot" id="apiStatus"></div>
-                    <span id="statusText">Connecting...</span>
-                </div>
-                <div class="status-indicator">
-                    <span id="lastUpdate">Last Update: --</span>
-                </div>
-                <div class="status-indicator">
-                    <span id="clock"></span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="tab-nav">
-        <div class="tab-nav-inner">
-            <button class="tab-btn active" onclick="switchTab('auction-results', this)">Auction Results</button>
-            <button class="tab-btn" onclick="switchTab('all-indicators', this)">All 31 Indicators</button>
-            <button class="tab-btn" onclick="switchTab('crisis-detection', this)">Crisis Detection</button>
-            <button class="tab-btn" onclick="switchTab('liquidity-analysis', this)">Liquidity Analysis</button>
-            <button class="tab-btn" onclick="switchTab('comprehensive-summary', this)">Comprehensive Summary</button>
-            <button class="tab-btn" onclick="switchTab('yield-analysis', this)">Yield Analysis</button>
-            <button class="tab-btn" onclick="switchTab('participation', this)">Participation</button>
-            <button class="tab-btn" onclick="switchTab('historical-trends', this)">Historical Trends</button>
-            <button class="tab-btn" onclick="switchTab('market-interpretation', this)">Market Interpretation</button>
-        </div>
-    </div>
-
-    <div class="main-container">
-        <!-- Auction Results Tab -->
-        <div id="auction-results" class="tab-content active">
-            <h2 style="margin-bottom: 20px; color: #fff;">Latest Auction Results by Instrument</h2>
-            <div id="auctionResultsContent">
-                <div class="chart-loading">
-                    <div class="loading-spinner"></div>
-                    <div>Loading auction data...</div>
-                </div>
-            </div>
-            <div class="chart-container">
-                <div class="chart-header">
-                    <div class="chart-title">Bid-to-Cover Ratio Comparison</div>
-                </div>
-                <div class="chart-area" id="btcComparisonChart"></div>
-            </div>
-        </div>
-
-        <!-- All 31 Indicators Tab -->
-        <div id="all-indicators" class="tab-content">
-            <h2 style="margin-bottom: 20px; color: #fff;">All 31 Indicators by Instrument</h2>
-            <div id="indicatorsContent">
-                <div class="chart-loading">
-                    <div class="loading-spinner"></div>
-                    <div>Loading indicators...</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Crisis Detection Tab -->
-        <div id="crisis-detection" class="tab-content">
-            <h2 style="margin-bottom: 20px; color: #fff;">Crisis Detection Across All Instruments</h2>
-            <div id="crisisContent">
-                <div class="chart-loading">
-                    <div class="loading-spinner"></div>
-                    <div>Loading crisis analysis...</div>
-                </div>
-            </div>
-            <div class="chart-container">
-                <div class="chart-header">
-                    <div class="chart-title">Crisis Score by Instrument</div>
-                </div>
-                <div class="chart-area" id="crisisComparisonChart"></div>
-            </div>
-        </div>
-
-        <!-- Liquidity Analysis Tab -->
-        <div id="liquidity-analysis" class="tab-content">
-            <h2 style="margin-bottom: 20px; color: #fff;">Liquidity Analysis Across All Instruments</h2>
-            <div id="liquidityContent">
-                <div class="chart-loading">
-                    <div class="loading-spinner"></div>
-                    <div>Loading liquidity data...</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Comprehensive Summary Tab -->
-        <div id="comprehensive-summary" class="tab-content">
-            <h2 style="margin-bottom: 20px; color: #fff;">Comprehensive Summary - All Instruments</h2>
-            <div id="summaryContent">
-                <div class="chart-loading">
-                    <div class="loading-spinner"></div>
-                    <div>Loading summary...</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Yield Analysis Tab -->
-        <div id="yield-analysis" class="tab-content">
-            <h2 style="margin-bottom: 20px; color: #fff;">Yield Analysis - All Instruments</h2>
-            <div id="yieldContent">
-                <div class="chart-loading">
-                    <div class="loading-spinner"></div>
-                    <div>Loading yield data...</div>
-                </div>
-            </div>
-            <div class="chart-container">
-                <div class="chart-header">
-                    <div class="chart-title">Yield Curve - Latest Auctions</div>
-                </div>
-                <div class="chart-area" id="yieldCurveChart"></div>
-            </div>
-        </div>
-
-        <!-- Participation Tab -->
-        <div id="participation" class="tab-content">
-            <h2 style="margin-bottom: 20px; color: #fff;">Participation Analysis - All Instruments</h2>
-            <div id="participationContent">
-                <div class="chart-loading">
-                    <div class="loading-spinner"></div>
-                    <div>Loading participation data...</div>
-                </div>
-            </div>
-            <div class="chart-container">
-                <div class="chart-header">
-                    <div class="chart-title">Foreign Participation Across Instruments</div>
-                </div>
-                <div class="chart-area" id="foreignParticipationChart"></div>
-            </div>
-        </div>
-
-        <!-- Historical Trends Tab -->
-        <div id="historical-trends" class="tab-content">
-            <h2 style="margin-bottom: 20px; color: #fff;">Historical Trends - All Instruments</h2>
-            <div id="historicalContent">
-                <div class="chart-loading">
-                    <div class="loading-spinner"></div>
-                    <div>Loading historical data...</div>
-                </div>
-            </div>
-            <div class="chart-container">
-                <div class="chart-header">
-                    <div class="chart-title">30-Day Historical Bid-to-Cover Trends</div>
-                </div>
-                <div class="chart-area" id="historicalBTCChart"></div>
-            </div>
-            <div class="chart-container">
-                <div class="chart-header">
-                    <div class="chart-title">30-Day Historical Crisis Score Trends</div>
-                </div>
-                <div class="chart-area" id="historicalCrisisChart"></div>
-            </div>
-        </div>
-
-        <!-- Market Interpretation Tab -->
-        <div id="market-interpretation" class="tab-content">
-            <h2 style="margin-bottom: 20px; color: #fff;">Market Interpretation - All Instruments</h2>
-            <div id="interpretationContent" style="background: #1a1a1a; padding: 30px; border-radius: 12px; line-height: 1.8; font-size: 15px;">
-                <div class="chart-loading">
-                    <div class="loading-spinner"></div>
-                    <div>Loading market interpretation...</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
+<link href="/assets/sidebar.css" rel="stylesheet"/><style id="jh-suppress-legacy">
+/* JustHodl: hide legacy page navs in favour of shared sidebar */
+body > nav,
+body > header,
+body > .topbar,
+body > .top-bar,
+body > .top-nav,
+body > .navbar,
+body > .navigation,
+.jh-page > nav:first-child,
+.jh-page > header:first-child,
+.jh-page > .topbar:first-child,
+.jh-page > .top-bar:first-child,
+.jh-page > .navbar:first-child{
+  display: none !important;
+}
+/* Reset any body padding-top that was reserving space for fixed nav */
+body{
+  padding-top: 0 !important;
+  margin: 0 !important;
+}
+</style></head>
+<body><div id="sidebar"></div><div class="jh-page">
+<div class="header">
+<div class="header-content">
+<div class="logo">TREASURY MULTI-INSTRUMENT DASHBOARD</div>
+<div class="status-bar">
+<div class="status-indicator">
+<div class="status-dot" id="apiStatus"></div>
+<span id="statusText">Connecting...</span>
+</div>
+<div class="status-indicator">
+<span id="lastUpdate">Last Update: --</span>
+</div>
+<div class="status-indicator">
+<span id="clock"></span>
+</div>
+</div>
+</div>
+</div>
+<div class="tab-nav">
+<div class="tab-nav-inner">
+<button class="tab-btn active" onclick="switchTab('auction-results', this)">Auction Results</button>
+<button class="tab-btn" onclick="switchTab('all-indicators', this)">All 31 Indicators</button>
+<button class="tab-btn" onclick="switchTab('crisis-detection', this)">Crisis Detection</button>
+<button class="tab-btn" onclick="switchTab('liquidity-analysis', this)">Liquidity Analysis</button>
+<button class="tab-btn" onclick="switchTab('comprehensive-summary', this)">Comprehensive Summary</button>
+<button class="tab-btn" onclick="switchTab('yield-analysis', this)">Yield Analysis</button>
+<button class="tab-btn" onclick="switchTab('participation', this)">Participation</button>
+<button class="tab-btn" onclick="switchTab('historical-trends', this)">Historical Trends</button>
+<button class="tab-btn" onclick="switchTab('market-interpretation', this)">Market Interpretation</button>
+</div>
+</div>
+<div class="main-container">
+<!-- Auction Results Tab -->
+<div class="tab-content active" id="auction-results">
+<h2 style="margin-bottom: 20px; color: #fff;">Latest Auction Results by Instrument</h2>
+<div id="auctionResultsContent">
+<div class="chart-loading">
+<div class="loading-spinner"></div>
+<div>Loading auction data...</div>
+</div>
+</div>
+<div class="chart-container">
+<div class="chart-header">
+<div class="chart-title">Bid-to-Cover Ratio Comparison</div>
+</div>
+<div class="chart-area" id="btcComparisonChart"></div>
+</div>
+</div>
+<!-- All 31 Indicators Tab -->
+<div class="tab-content" id="all-indicators">
+<h2 style="margin-bottom: 20px; color: #fff;">All 31 Indicators by Instrument</h2>
+<div id="indicatorsContent">
+<div class="chart-loading">
+<div class="loading-spinner"></div>
+<div>Loading indicators...</div>
+</div>
+</div>
+</div>
+<!-- Crisis Detection Tab -->
+<div class="tab-content" id="crisis-detection">
+<h2 style="margin-bottom: 20px; color: #fff;">Crisis Detection Across All Instruments</h2>
+<div id="crisisContent">
+<div class="chart-loading">
+<div class="loading-spinner"></div>
+<div>Loading crisis analysis...</div>
+</div>
+</div>
+<div class="chart-container">
+<div class="chart-header">
+<div class="chart-title">Crisis Score by Instrument</div>
+</div>
+<div class="chart-area" id="crisisComparisonChart"></div>
+</div>
+</div>
+<!-- Liquidity Analysis Tab -->
+<div class="tab-content" id="liquidity-analysis">
+<h2 style="margin-bottom: 20px; color: #fff;">Liquidity Analysis Across All Instruments</h2>
+<div id="liquidityContent">
+<div class="chart-loading">
+<div class="loading-spinner"></div>
+<div>Loading liquidity data...</div>
+</div>
+</div>
+</div>
+<!-- Comprehensive Summary Tab -->
+<div class="tab-content" id="comprehensive-summary">
+<h2 style="margin-bottom: 20px; color: #fff;">Comprehensive Summary - All Instruments</h2>
+<div id="summaryContent">
+<div class="chart-loading">
+<div class="loading-spinner"></div>
+<div>Loading summary...</div>
+</div>
+</div>
+</div>
+<!-- Yield Analysis Tab -->
+<div class="tab-content" id="yield-analysis">
+<h2 style="margin-bottom: 20px; color: #fff;">Yield Analysis - All Instruments</h2>
+<div id="yieldContent">
+<div class="chart-loading">
+<div class="loading-spinner"></div>
+<div>Loading yield data...</div>
+</div>
+</div>
+<div class="chart-container">
+<div class="chart-header">
+<div class="chart-title">Yield Curve - Latest Auctions</div>
+</div>
+<div class="chart-area" id="yieldCurveChart"></div>
+</div>
+</div>
+<!-- Participation Tab -->
+<div class="tab-content" id="participation">
+<h2 style="margin-bottom: 20px; color: #fff;">Participation Analysis - All Instruments</h2>
+<div id="participationContent">
+<div class="chart-loading">
+<div class="loading-spinner"></div>
+<div>Loading participation data...</div>
+</div>
+</div>
+<div class="chart-container">
+<div class="chart-header">
+<div class="chart-title">Foreign Participation Across Instruments</div>
+</div>
+<div class="chart-area" id="foreignParticipationChart"></div>
+</div>
+</div>
+<!-- Historical Trends Tab -->
+<div class="tab-content" id="historical-trends">
+<h2 style="margin-bottom: 20px; color: #fff;">Historical Trends - All Instruments</h2>
+<div id="historicalContent">
+<div class="chart-loading">
+<div class="loading-spinner"></div>
+<div>Loading historical data...</div>
+</div>
+</div>
+<div class="chart-container">
+<div class="chart-header">
+<div class="chart-title">30-Day Historical Bid-to-Cover Trends</div>
+</div>
+<div class="chart-area" id="historicalBTCChart"></div>
+</div>
+<div class="chart-container">
+<div class="chart-header">
+<div class="chart-title">30-Day Historical Crisis Score Trends</div>
+</div>
+<div class="chart-area" id="historicalCrisisChart"></div>
+</div>
+</div>
+<!-- Market Interpretation Tab -->
+<div class="tab-content" id="market-interpretation">
+<h2 style="margin-bottom: 20px; color: #fff;">Market Interpretation - All Instruments</h2>
+<div id="interpretationContent" style="background: #1a1a1a; padding: 30px; border-radius: 12px; line-height: 1.8; font-size: 15px;">
+<div class="chart-loading">
+<div class="loading-spinner"></div>
+<div>Loading market interpretation...</div>
+</div>
+</div>
+</div>
+</div>
+<script>
         // Treasury API Configuration
         const TREASURY_API = {
             base: 'https://klehdyiwrl.execute-api.us-east-1.amazonaws.com/prod',
@@ -1849,5 +1860,5 @@
         // Initialize dashboard when page loads
         window.onload = init;
     </script>
-</body>
+</div><script src="/assets/sidebar.js"></script></body>
 </html>

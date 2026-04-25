@@ -1,11 +1,12 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Liquidity Intelligence | JustHodl.AI</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&amp;family=IBM+Plex+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
 <style>
   :root {
@@ -360,235 +361,237 @@
     display: none;
   }
 </style>
-</head>
-<body>
-
+<link href="/assets/sidebar.css" rel="stylesheet"/><style id="jh-suppress-legacy">
+/* JustHodl: hide legacy page navs in favour of shared sidebar */
+body > nav,
+body > header,
+body > .topbar,
+body > .top-bar,
+body > .top-nav,
+body > .navbar,
+body > .navigation,
+.jh-page > nav:first-child,
+.jh-page > header:first-child,
+.jh-page > .topbar:first-child,
+.jh-page > .top-bar:first-child,
+.jh-page > .navbar:first-child{
+  display: none !important;
+}
+/* Reset any body padding-top that was reserving space for fixed nav */
+body{
+  padding-top: 0 !important;
+  margin: 0 !important;
+}
+</style></head>
+<body><div id="sidebar"></div><div class="jh-page">
 <div id="loading">
-  <div class="loader-text">LOADING LIQUIDITY INTELLIGENCE</div>
-  <div class="loader-sub">Fetching Fed Balance Sheet · TGA · RRP · FRED Data</div>
+<div class="loader-text">LOADING LIQUIDITY INTELLIGENCE</div>
+<div class="loader-sub">Fetching Fed Balance Sheet · TGA · RRP · FRED Data</div>
 </div>
-
 <nav>
-  <a href="/" class="nav-brand">JustHodl.AI</a>
-  <a href="/">Terminal</a>
-  <a href="/charts.html">Charts</a>
-  <a href="/stock/">Stocks</a>
-  <a href="/screener/">Screener</a>
-  <a href="/valuations.html">Valuations</a>
-  <a href="/cftc.html">CFTC</a>
-  <a href="/liquidity.html" class="active">Liquidity</a>
-  <a href="/crypto.html">Crypto</a>
-  <a href="https://t.me/Justhodl_bot" target="_blank">Bot</a>
+<a class="nav-brand" href="/">JustHodl.AI</a>
+<a href="/">Terminal</a>
+<a href="/charts.html">Charts</a>
+<a href="/stock/">Stocks</a>
+<a href="/screener/">Screener</a>
+<a href="/valuations.html">Valuations</a>
+<a href="/cftc.html">CFTC</a>
+<a class="active" href="/liquidity.html">Liquidity</a>
+<a href="/crypto.html">Crypto</a>
+<a href="https://t.me/Justhodl_bot" target="_blank">Bot</a>
 </nav>
-
 <div class="page-header">
-  <h1>TGA + Fed Liquidity Intelligence</h1>
-  <p>HEDGE FUND NET LIQUIDITY MODEL · FED BALANCE SHEET – TGA – RRP · SPY 3-5 DAY LEADING INDICATOR</p>
-  <div class="header-meta">
-    <span>FORMULA: <span class="val">Fed BS − Treasury TGA − Fed RRP = Net Liquidity</span></span>
-    <span>UPDATE: <span class="val" id="last-updated">Loading...</span></span>
-    <span>SOURCE: <span class="val">FRED / St. Louis Fed</span></span>
-  </div>
+<h1>TGA + Fed Liquidity Intelligence</h1>
+<p>HEDGE FUND NET LIQUIDITY MODEL · FED BALANCE SHEET – TGA – RRP · SPY 3-5 DAY LEADING INDICATOR</p>
+<div class="header-meta">
+<span>FORMULA: <span class="val">Fed BS − Treasury TGA − Fed RRP = Net Liquidity</span></span>
+<span>UPDATE: <span class="val" id="last-updated">Loading...</span></span>
+<span>SOURCE: <span class="val">FRED / St. Louis Fed</span></span>
 </div>
-
+</div>
 <div class="container">
-  <div id="error-banner" class="error-banner">⚠ Error loading liquidity data. Retrying...</div>
-
-  <!-- Hero Net Liquidity -->
-  <div class="hero-card" id="hero-card">
-    <div class="hero-main">
-      <div class="hero-label">Net System Liquidity</div>
-      <div class="hero-value">
-        <span class="hero-unit">$</span><span id="hero-net-liq">—</span><span style="font-size:20px;color:var(--text2)">B</span>
-      </div>
-      <div id="hero-signal-badge" class="signal-badge sig-NEUTRAL">
-        <div class="dot"></div>
-        <span id="hero-signal-text">Loading...</span>
-      </div>
-      <div class="hero-formula">
-        Fed Balance Sheet: <span id="formula-walcl" style="color:var(--blue)">—</span><br>
-        − TGA: <span id="formula-tga" style="color:var(--red)">—</span><br>
-        − RRP: <span id="formula-rrp" style="color:var(--orange)">—</span><br>
-        = Net Liquidity: <span id="formula-nl" style="color:var(--green)">—</span>
-      </div>
-    </div>
-
-    <div class="hero-score-ring" id="score-ring">
-      <svg width="120" height="120" viewBox="0 0 120 120">
-        <circle cx="60" cy="60" r="50" fill="none" stroke="#1e2832" stroke-width="8"/>
-        <circle id="score-arc" cx="60" cy="60" r="50" fill="none"
-                stroke="#00ff88" stroke-width="8" stroke-linecap="round"
-                stroke-dasharray="314" stroke-dashoffset="314"
-                style="transition:stroke-dashoffset 1.2s ease"/>
-      </svg>
-      <div class="hero-score-label">
-        <span id="score-num">—</span>
-        <span>/100</span>
-      </div>
-    </div>
-
-    <div>
-      <div class="hero-stats">
-        <div class="hero-stat-item">
-          <div class="hero-stat-label">Regime</div>
-          <div class="hero-stat-val" id="stat-regime">—</div>
-        </div>
-        <div class="hero-stat-item">
-          <div class="hero-stat-label">4-Week Δ</div>
-          <div class="hero-stat-val" id="stat-4w">—</div>
-        </div>
-        <div class="hero-stat-item">
-          <div class="hero-stat-label">13-Week Δ</div>
-          <div class="hero-stat-val" id="stat-13w">—</div>
-        </div>
-        <div class="hero-stat-item">
-          <div class="hero-stat-label">Structure</div>
-          <div class="hero-stat-val" id="stat-structure">—</div>
-        </div>
-        <div class="hero-stat-item">
-          <div class="hero-stat-label">Yield Curve</div>
-          <div class="hero-stat-val" id="stat-curve">—</div>
-        </div>
-        <div class="hero-stat-item">
-          <div class="hero-stat-label">SOFR</div>
-          <div class="hero-stat-val" id="stat-sofr">—</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Regime Banner -->
-  <div id="regime-banner" class="regime-banner regime-NEUTRAL">
-    <div class="regime-title" id="regime-title">—</div>
-    <div class="regime-sub" id="regime-sub">—</div>
-  </div>
-
-  <!-- Net Liquidity Chart + SPY Signal -->
-  <div class="grid-21">
-    <div class="card">
-      <div class="section-title">Net Liquidity History (52 Weeks) — Fed BS minus TGA minus RRP</div>
-      <div id="chart-net-liq" class="chart-container"></div>
-    </div>
-    <div class="spy-lead-card">
-      <div class="spy-lead-header">
-        <div class="spy-lead-icon">📈</div>
-        <div>
-          <div class="spy-lead-title">SPY Leading Indicator</div>
-          <div class="spy-lead-sub">3-5 DAY LEAD · LIQUIDITY-DRIVEN</div>
-        </div>
-      </div>
-      <div class="section-title" style="margin-top:4px">Signal Components</div>
-      <div id="spy-components">
-        <!-- populated by JS -->
-      </div>
-      <div style="margin-top:14px">
-        <div class="card-label">Composite Direction</div>
-        <div id="spy-direction-badge" class="signal-badge sig-NEUTRAL" style="font-size:15px">
-          <div class="dot"></div><span id="spy-dir-text">—</span>
-        </div>
-        <div style="margin-top:8px;font-size:11px;color:var(--text3)" id="spy-basis">—</div>
-      </div>
-      <div style="margin-top:14px">
-        <div class="card-label">Confidence</div>
-        <div class="progress-bar-wrap">
-          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:4px">
-            <span id="spy-conf-val">—</span><span>100%</span>
-          </div>
-          <div class="progress-bar-track">
-            <div id="spy-conf-bar" class="progress-bar-fill" style="width:0%;background:var(--green)"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Core Triad Cards -->
-  <div class="grid-3">
-    <div class="card">
-      <div class="card-label">Fed Balance Sheet (WALCL)</div>
-      <div class="card-value" style="color:var(--blue)" id="walcl-val">—</div>
-      <div class="card-sub">Total Fed Assets · Billions USD</div>
-      <div class="card-delta" id="walcl-date">—</div>
-    </div>
-    <div class="card">
-      <div class="card-label">Treasury TGA (WTREGEN)</div>
-      <div class="card-value" style="color:var(--red)" id="tga-val">—</div>
-      <div class="card-sub">Drains Liquidity When Rising · Billions USD</div>
-      <div class="card-delta" id="tga-signal">—</div>
-    </div>
-    <div class="card">
-      <div class="card-label">Fed RRP (RRPONTSYD)</div>
-      <div class="card-value" style="color:var(--orange)" id="rrp-val">—</div>
-      <div class="card-sub">Parked Cash at Fed · Billions USD</div>
-      <div class="card-delta" id="rrp-signal">—</div>
-    </div>
-  </div>
-
-  <!-- Fed BS / TGA / RRP Charts -->
-  <div class="grid-3">
-    <div class="card">
-      <div class="section-title">Fed Balance Sheet</div>
-      <div id="chart-fed-bs" class="chart-container-sm"></div>
-    </div>
-    <div class="card">
-      <div class="section-title">Treasury General Account (TGA)</div>
-      <div id="chart-tga" class="chart-container-sm"></div>
-    </div>
-    <div class="card">
-      <div class="section-title">Fed Reverse Repo (RRP)</div>
-      <div id="chart-rrp" class="chart-container-sm"></div>
-    </div>
-  </div>
-
-  <!-- Money Supply + Dollar -->
-  <div class="grid-2">
-    <div class="card">
-      <div class="section-title">Money Supply</div>
-      <table class="data-table">
-        <thead><tr><th>Metric</th><th>Value</th><th>Unit</th></tr></thead>
-        <tbody id="money-table"></tbody>
-      </table>
-    </div>
-    <div class="card">
-      <div class="section-title">Dollar Index & FX</div>
-      <table class="data-table">
-        <thead><tr><th>Metric</th><th>Value</th><th>Signal</th></tr></thead>
-        <tbody id="dollar-table"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Yields + Funding -->
-  <div class="grid-2">
-    <div class="card">
-      <div class="section-title">Treasury Yield Curve</div>
-      <table class="data-table">
-        <thead><tr><th>Tenor</th><th>Yield</th><th>Spread / Status</th></tr></thead>
-        <tbody id="yields-table"></tbody>
-      </table>
-    </div>
-    <div class="card">
-      <div class="section-title">Funding Markets & Reserves</div>
-      <table class="data-table">
-        <thead><tr><th>Metric</th><th>Value</th><th>Note</th></tr></thead>
-        <tbody id="funding-table"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- M2 Chart -->
-  <div class="card" style="margin-bottom:16px">
-    <div class="section-title">M2 Money Supply (24 Months)</div>
-    <div id="chart-m2" class="chart-container-sm"></div>
-  </div>
-
-  <div class="status-row">
-    <div class="status-dot"></div>
-    <span>Data from Federal Reserve Economic Data (FRED) · Updated daily 7:30 AM ET</span>
-    <span style="margin-left:auto;color:var(--text3)" id="footer-ts">—</span>
-  </div>
+<div class="error-banner" id="error-banner">⚠ Error loading liquidity data. Retrying...</div>
+<!-- Hero Net Liquidity -->
+<div class="hero-card" id="hero-card">
+<div class="hero-main">
+<div class="hero-label">Net System Liquidity</div>
+<div class="hero-value">
+<span class="hero-unit">$</span><span id="hero-net-liq">—</span><span style="font-size:20px;color:var(--text2)">B</span>
 </div>
-
+<div class="signal-badge sig-NEUTRAL" id="hero-signal-badge">
+<div class="dot"></div>
+<span id="hero-signal-text">Loading...</span>
+</div>
+<div class="hero-formula">
+        Fed Balance Sheet: <span id="formula-walcl" style="color:var(--blue)">—</span><br/>
+        − TGA: <span id="formula-tga" style="color:var(--red)">—</span><br/>
+        − RRP: <span id="formula-rrp" style="color:var(--orange)">—</span><br/>
+        = Net Liquidity: <span id="formula-nl" style="color:var(--green)">—</span>
+</div>
+</div>
+<div class="hero-score-ring" id="score-ring">
+<svg height="120" viewbox="0 0 120 120" width="120">
+<circle cx="60" cy="60" fill="none" r="50" stroke="#1e2832" stroke-width="8"></circle>
+<circle cx="60" cy="60" fill="none" id="score-arc" r="50" stroke="#00ff88" stroke-dasharray="314" stroke-dashoffset="314" stroke-linecap="round" stroke-width="8" style="transition:stroke-dashoffset 1.2s ease"></circle>
+</svg>
+<div class="hero-score-label">
+<span id="score-num">—</span>
+<span>/100</span>
+</div>
+</div>
+<div>
+<div class="hero-stats">
+<div class="hero-stat-item">
+<div class="hero-stat-label">Regime</div>
+<div class="hero-stat-val" id="stat-regime">—</div>
+</div>
+<div class="hero-stat-item">
+<div class="hero-stat-label">4-Week Δ</div>
+<div class="hero-stat-val" id="stat-4w">—</div>
+</div>
+<div class="hero-stat-item">
+<div class="hero-stat-label">13-Week Δ</div>
+<div class="hero-stat-val" id="stat-13w">—</div>
+</div>
+<div class="hero-stat-item">
+<div class="hero-stat-label">Structure</div>
+<div class="hero-stat-val" id="stat-structure">—</div>
+</div>
+<div class="hero-stat-item">
+<div class="hero-stat-label">Yield Curve</div>
+<div class="hero-stat-val" id="stat-curve">—</div>
+</div>
+<div class="hero-stat-item">
+<div class="hero-stat-label">SOFR</div>
+<div class="hero-stat-val" id="stat-sofr">—</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Regime Banner -->
+<div class="regime-banner regime-NEUTRAL" id="regime-banner">
+<div class="regime-title" id="regime-title">—</div>
+<div class="regime-sub" id="regime-sub">—</div>
+</div>
+<!-- Net Liquidity Chart + SPY Signal -->
+<div class="grid-21">
+<div class="card">
+<div class="section-title">Net Liquidity History (52 Weeks) — Fed BS minus TGA minus RRP</div>
+<div class="chart-container" id="chart-net-liq"></div>
+</div>
+<div class="spy-lead-card">
+<div class="spy-lead-header">
+<div class="spy-lead-icon">📈</div>
+<div>
+<div class="spy-lead-title">SPY Leading Indicator</div>
+<div class="spy-lead-sub">3-5 DAY LEAD · LIQUIDITY-DRIVEN</div>
+</div>
+</div>
+<div class="section-title" style="margin-top:4px">Signal Components</div>
+<div id="spy-components">
+<!-- populated by JS -->
+</div>
+<div style="margin-top:14px">
+<div class="card-label">Composite Direction</div>
+<div class="signal-badge sig-NEUTRAL" id="spy-direction-badge" style="font-size:15px">
+<div class="dot"></div><span id="spy-dir-text">—</span>
+</div>
+<div id="spy-basis" style="margin-top:8px;font-size:11px;color:var(--text3)">—</div>
+</div>
+<div style="margin-top:14px">
+<div class="card-label">Confidence</div>
+<div class="progress-bar-wrap">
+<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:4px">
+<span id="spy-conf-val">—</span><span>100%</span>
+</div>
+<div class="progress-bar-track">
+<div class="progress-bar-fill" id="spy-conf-bar" style="width:0%;background:var(--green)"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Core Triad Cards -->
+<div class="grid-3">
+<div class="card">
+<div class="card-label">Fed Balance Sheet (WALCL)</div>
+<div class="card-value" id="walcl-val" style="color:var(--blue)">—</div>
+<div class="card-sub">Total Fed Assets · Billions USD</div>
+<div class="card-delta" id="walcl-date">—</div>
+</div>
+<div class="card">
+<div class="card-label">Treasury TGA (WTREGEN)</div>
+<div class="card-value" id="tga-val" style="color:var(--red)">—</div>
+<div class="card-sub">Drains Liquidity When Rising · Billions USD</div>
+<div class="card-delta" id="tga-signal">—</div>
+</div>
+<div class="card">
+<div class="card-label">Fed RRP (RRPONTSYD)</div>
+<div class="card-value" id="rrp-val" style="color:var(--orange)">—</div>
+<div class="card-sub">Parked Cash at Fed · Billions USD</div>
+<div class="card-delta" id="rrp-signal">—</div>
+</div>
+</div>
+<!-- Fed BS / TGA / RRP Charts -->
+<div class="grid-3">
+<div class="card">
+<div class="section-title">Fed Balance Sheet</div>
+<div class="chart-container-sm" id="chart-fed-bs"></div>
+</div>
+<div class="card">
+<div class="section-title">Treasury General Account (TGA)</div>
+<div class="chart-container-sm" id="chart-tga"></div>
+</div>
+<div class="card">
+<div class="section-title">Fed Reverse Repo (RRP)</div>
+<div class="chart-container-sm" id="chart-rrp"></div>
+</div>
+</div>
+<!-- Money Supply + Dollar -->
+<div class="grid-2">
+<div class="card">
+<div class="section-title">Money Supply</div>
+<table class="data-table">
+<thead><tr><th>Metric</th><th>Value</th><th>Unit</th></tr></thead>
+<tbody id="money-table"></tbody>
+</table>
+</div>
+<div class="card">
+<div class="section-title">Dollar Index &amp; FX</div>
+<table class="data-table">
+<thead><tr><th>Metric</th><th>Value</th><th>Signal</th></tr></thead>
+<tbody id="dollar-table"></tbody>
+</table>
+</div>
+</div>
+<!-- Yields + Funding -->
+<div class="grid-2">
+<div class="card">
+<div class="section-title">Treasury Yield Curve</div>
+<table class="data-table">
+<thead><tr><th>Tenor</th><th>Yield</th><th>Spread / Status</th></tr></thead>
+<tbody id="yields-table"></tbody>
+</table>
+</div>
+<div class="card">
+<div class="section-title">Funding Markets &amp; Reserves</div>
+<table class="data-table">
+<thead><tr><th>Metric</th><th>Value</th><th>Note</th></tr></thead>
+<tbody id="funding-table"></tbody>
+</table>
+</div>
+</div>
+<!-- M2 Chart -->
+<div class="card" style="margin-bottom:16px">
+<div class="section-title">M2 Money Supply (24 Months)</div>
+<div class="chart-container-sm" id="chart-m2"></div>
+</div>
+<div class="status-row">
+<div class="status-dot"></div>
+<span>Data from Federal Reserve Economic Data (FRED) · Updated daily 7:30 AM ET</span>
+<span id="footer-ts" style="margin-left:auto;color:var(--text3)">—</span>
+</div>
+</div>
 <script>
 const S3_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/liquidity-data.json';
 
@@ -950,5 +953,5 @@ loadData();
 // Auto-refresh every 10 minutes
 setInterval(loadData, 600000);
 </script>
-</body>
+</div><script src="/assets/sidebar.js"></script></body>
 </html>
