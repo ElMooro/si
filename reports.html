@@ -146,20 +146,23 @@ function renderHeadline(D) {
   const totalOutcomes = m.outcomes_total || 0;
   const scored = m.scored_outcomes || 0;
   const hasCalib = m.has_calibration;
+  // Compute total scoreable outcomes (sum of 'scored' across all rows)
+  const totalScored = (D.signal_scorecard || []).reduce((acc, r) => acc + (r.scored || 0), 0);
   return `
     <div class="headline-box">
       <div class="meta">PERFORMANCE REPORT — REAL DATA</div>
       <h1>System Performance &amp; Self-Calibration</h1>
       <div class="detail">
-        Tracking ${num(totalSignals)} predictions across all signal types. ${num(scored)} of ${num(totalOutcomes)} outcomes have been scored against actual market moves.
+        Tracking ${num(totalSignals)} predictions across all signal types. ${num(totalScored)} of ${num(totalOutcomes)} outcomes have been scored against actual market moves.
         ${hasCalib ? "Calibration weights are <strong style='color:var(--green)'>active</strong>." :
-          "<span style='color:var(--yellow)'>Calibrator hasn't run yet — first scheduled run is Sunday 09:00 UTC. Until then, scorecard values reflect raw outcomes only.</span>"}
+          totalScored === 0 ? "<span style='color:var(--yellow)'>No scored outcomes yet</strong> — most predictions are awaiting their check-window date (typically 7-30 days post-prediction). First real scoring expected ~early May. Pre-fix signals (1,879) are marked <strong>unscoreable</strong> and excluded.</span>" :
+          "<span style='color:var(--cyan)'>Scoring is active. Calibrator runs Sunday 09:00 UTC.</span>"}
       </div>
     </div>
     <div class="stats-row">
       <div class="stat-card"><div class="num">${num(totalSignals)}</div><div class="lbl">Total Signals Logged</div><div class="sub">all time</div></div>
-      <div class="stat-card"><div class="num">${num(totalOutcomes)}</div><div class="lbl">Outcomes Tracked</div><div class="sub">awaiting score: ${num(totalOutcomes - scored)}</div></div>
-      <div class="stat-card"><div class="num" style="color:${scored > 0 ? 'var(--green)' : 'var(--yellow)'}">${num(scored)}</div><div class="lbl">Scored</div><div class="sub">${pct(totalOutcomes ? scored / totalOutcomes : 0, 0)} of total</div></div>
+      <div class="stat-card"><div class="num">${num(totalOutcomes)}</div><div class="lbl">Outcomes Tracked</div><div class="sub">awaiting: ${num(totalOutcomes - totalScored)}</div></div>
+      <div class="stat-card"><div class="num" style="color:${totalScored > 0 ? 'var(--green)' : 'var(--yellow)'}">${num(totalScored)}</div><div class="lbl">Scored</div><div class="sub">${pct(totalOutcomes ? totalScored / totalOutcomes : 0, 0)} of total</div></div>
       <div class="stat-card"><div class="num">${(D.signal_scorecard || []).length}</div><div class="lbl">Signal Types</div><div class="sub">distinct categories</div></div>
     </div>
   `;
@@ -177,7 +180,7 @@ function renderScorecard(rows) {
   });
   const cols = [
     {key: "signal_type", label: "Signal", numeric: false},
-    {key: "total", label: "n", numeric: true},
+    {key: "total", label: "Outcomes", numeric: true},
     {key: "hit_rate", label: "Hit rate", numeric: true},
     {key: "avg_magnitude_error_pct", label: "Mag err %", numeric: true},
     {key: "trend_30d", label: "30d", numeric: true},
@@ -193,10 +196,14 @@ function renderScorecard(rows) {
   }
   html += `</tr></thead><tbody>`;
   for (const r of sorted) {
+    const scored = r.scored || 0;
+    const hitRateDisplay = scored > 0
+      ? `<span class="hr-pill ${hrClass(r.hit_rate)}">${pct(r.hit_rate, 1)}</span>`
+      : `<span class="hr-pill hr-na" title="No scored outcomes yet — predictions awaiting their check date">— <span style="opacity:.6">awaiting</span></span>`;
     html += `<tr>
       <td class="signal-name">${r.signal_type}</td>
-      <td class="num-cell center">${num(r.total)}<span class="tiny"> (${num(r.correct)}✓)</span></td>
-      <td class="num-cell"><span class="hr-pill ${hrClass(r.hit_rate)}">${pct(r.hit_rate, 1)}</span></td>
+      <td class="num-cell center">${num(r.total)} <span class="tiny">(${num(scored)} scored)</span></td>
+      <td class="num-cell">${hitRateDisplay}</td>
       <td class="num-cell">${r.avg_magnitude_error_pct === null ? "—" : num(r.avg_magnitude_error_pct, 2) + "%"}</td>
       <td class="num-cell">${pct(r.trend_30d, 0)} ${trendArrow(r.trend_30d, r.hit_rate)}</td>
       <td class="num-cell">${pct(r.trend_60d, 0)} ${trendArrow(r.trend_60d, r.hit_rate)}</td>
