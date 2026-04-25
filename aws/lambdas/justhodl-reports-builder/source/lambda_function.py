@@ -149,16 +149,15 @@ def compute_scorecard(signals, outcomes):
 def compute_khalid_timeline(signals):
     """Extract Khalid Index timeline from logged signals.
 
-    Two strategies (in priority order):
-      1. Use signals where signal_type == 'khalid_index' — these are
-         the dedicated Khalid Index logs (signal_value is the score,
-         metadata.regime is the regime label).
-      2. Fall back to khalid_score_at_log on signals with that field
-         populated (Week 2A schema v2).
+    Strategy:
+      - Filter to signals where signal_type == 'khalid_index'
+      - Use signal_value (the score) and metadata.regime
+      - Return ALL points sorted by timestamp (no date-grouping —
+        intra-day movement matters when our history is recent)
+      - Trim to last 90 days (currently won't trim much; we have
+        only ~1 day of khalid_index data so far)
     """
     points = []
-
-    # Strategy 1: dedicated khalid_index signals
     for s in signals:
         if s.get("signal_type") != "khalid_index":
             continue
@@ -166,22 +165,27 @@ def compute_khalid_timeline(signals):
         sv = s.get("signal_value")
         if sv is None or not ts:
             continue
+        # signal_value can be a string like "43" or a Decimal/float — coerce
         try:
-            score = float(sv) if not isinstance(sv, str) else float(str(sv).replace("%", "").strip())
+            if isinstance(sv, str):
+                score = float(sv.replace("%", "").strip())
+            else:
+                score = float(sv)
         except Exception:
             continue
-        regime = (s.get("metadata") or {}).get("regime") or s.get("regime")
+        meta = s.get("metadata") or {}
+        regime = meta.get("regime") or s.get("regime_at_log") or s.get("regime")
         dt = parse_iso(ts)
         if not dt:
             continue
         points.append({
-            "date": dt.date().isoformat(),
             "ts": dt.isoformat(),
+            "date": dt.date().isoformat(),
             "score": score,
             "regime": regime,
         })
 
-    # Strategy 2: fallback to khalid_score_at_log on any signal
+    # Fallback if no khalid_index signals: try khalid_score_at_log
     if len(points) < 5:
         for s in signals:
             score = s.get("khalid_score_at_log")
@@ -197,21 +201,18 @@ def compute_khalid_timeline(signals):
             if not dt:
                 continue
             points.append({
-                "date": dt.date().isoformat(),
                 "ts": dt.isoformat(),
+                "date": dt.date().isoformat(),
                 "score": score_f,
                 "regime": regime,
             })
 
-    # Group by date, take first reading of each day
-    by_date = OrderedDict()
-    for p in sorted(points, key=lambda x: x["ts"]):
-        if p["date"] not in by_date:
-            by_date[p["date"]] = p
+    # Sort by timestamp; keep ALL points (no date-grouping)
+    points.sort(key=lambda x: x["ts"])
 
-    timeline = list(by_date.values())
-    cutoff = (datetime.now(timezone.utc) - timedelta(days=90)).date().isoformat()
-    return [p for p in timeline if p["date"] >= cutoff]
+    # Trim to last 90 days
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=90)).isoformat()
+    return [p for p in points if p["ts"] >= cutoff]
 
 
 def lambda_handler(event, context):
