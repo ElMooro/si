@@ -61,16 +61,27 @@ jobs:
           NEW_PAT: ${{ inputs.new_pat }}
         run: |
           set -e
-          if [[ ! "$NEW_PAT" =~ ^ghp_ ]]; then
-            echo "❌ PAT must start with 'ghp_' (Classic PAT). Fine-grained PATs (github_pat_) may not support the repo scope correctly here."
+          # Accept both classic (ghp_*, ~40 chars) and fine-grained
+          # (github_pat_*, ~93 chars) tokens. Fine-grained PATs went GA
+          # in March 2025 and are now GitHub's recommended path.
+          if [[ "$NEW_PAT" =~ ^ghp_ ]]; then
+            PAT_TYPE="classic"
+            MIN_LEN=30
+            MAX_LEN=60
+          elif [[ "$NEW_PAT" =~ ^github_pat_ ]]; then
+            PAT_TYPE="fine-grained"
+            MIN_LEN=80
+            MAX_LEN=120
+          else
+            echo "❌ PAT must start with 'ghp_' (classic) or 'github_pat_' (fine-grained)"
             exit 1
           fi
           LEN=${#NEW_PAT}
-          if [ "$LEN" -lt 30 ] || [ "$LEN" -gt 100 ]; then
-            echo "❌ PAT length looks wrong ($LEN chars). Classic PATs are ~40 chars."
+          if [ "$LEN" -lt "$MIN_LEN" ] || [ "$LEN" -gt "$MAX_LEN" ]; then
+            echo "❌ PAT length looks wrong ($LEN chars) for $PAT_TYPE format"
             exit 1
           fi
-          echo "✓ PAT format looks valid ($LEN chars, ghp_ prefix)"
+          echo "✓ PAT format looks valid ($PAT_TYPE, $LEN chars)"
 
       - name: Validate new PAT works against GitHub API
         env:
