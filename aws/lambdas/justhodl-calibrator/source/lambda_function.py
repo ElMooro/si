@@ -219,9 +219,14 @@ def run_calibration():
     now = datetime.now(timezone.utc)
 
     # ── Load all complete outcomes ─────────────────────────────────────────
+    # Filter: correct must be True or False (excludes correct=None / legacy
+    # records from pre-baseline-fix era — see step 163, 2026-04-25). Also
+    # explicitly exclude is_legacy=true tagged records as defense in depth
+    # (they\'ll auto-purge via TTL ~30 days from tagging).
     all_outcomes = scan_all(
         OUTCOMES_TABLE,
-        Attr("correct").exists()
+        (Attr("correct").eq(True) | Attr("correct").eq(False)) &
+        Attr("is_legacy").ne(True)
     )
     all_outcomes = [decimal_to_float(o) for o in all_outcomes]
 
