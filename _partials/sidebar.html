@@ -1,0 +1,116 @@
+<!--
+  Shared sidebar — included by every page.
+  To add/remove a link, edit this file. Updates everywhere.
+
+  Loaded by /assets/sidebar.js which:
+   - Injects this HTML into <div id="sidebar"></div>
+   - Wires up filter input
+   - Marks current page as active
+   - Handles Cmd+K focus
+
+  Each link has data-name (search target) and optional data-desc.
+-->
+<aside class="jh-sidebar">
+  <div class="jh-sb-head">
+    <a href="/" class="jh-logo">
+      <span class="jh-logo-dot"></span>
+      <span class="jh-logo-text">JUSTHODL</span>
+    </a>
+    <div class="jh-sb-clock" id="jhClock">--:--:-- UTC</div>
+  </div>
+
+  <div class="jh-filter">
+    <span class="jh-filter-icon">⌕</span>
+    <input type="text" id="jhFilter" placeholder="filter pages…" autocomplete="off" spellcheck="false">
+    <kbd class="jh-filter-kbd">⌘K</kbd>
+  </div>
+
+  <nav class="jh-nav" id="jhNav">
+
+    <!-- ─── pinned / daily ─── -->
+    <div class="jh-cluster">
+      <a href="/desk-v2.html" data-name="desk" data-desc="operator console daily view">
+        <span class="jh-link-pin"></span>Desk
+      </a>
+      <a href="/reports.html" data-name="reports" data-desc="performance scorecard calibration">
+        <span class="jh-link-pin"></span>Reports
+      </a>
+      <a href="/intelligence.html" data-name="intelligence" data-desc="market intelligence khalid index">
+        <span class="jh-link-pin"></span>Intelligence
+      </a>
+      <a href="/edge.html" data-name="edge" data-desc="edge composite score">
+        <span class="jh-link-pin"></span>Edge
+      </a>
+    </div>
+
+    <!-- ─── operator: risk + recommendations ─── -->
+    <div class="jh-cluster">
+      <a href="/risk.html" data-name="risk" data-desc="systemic risk monitor">Risk Monitor</a>
+      <a href="/positioning/" data-name="positioning cot" data-desc="cftc futures positioning">Positioning</a>
+      <a href="/valuations.html" data-name="valuations" data-desc="cape buffett indicator">Valuations</a>
+      <a href="/trading-signals.html" data-name="trading signals" data-desc="trading signals">Trading Signals</a>
+    </div>
+
+    <!-- ─── analysis surfaces ─── -->
+    <div class="jh-cluster">
+      <a href="/khalid/" data-name="khalid index" data-desc="khalid metrics intelligence">Khalid Index</a>
+      <a href="/crypto/" data-name="crypto" data-desc="crypto intelligence v4">Crypto Intel</a>
+      <a href="/ml-predictions.html" data-name="ml predictions" data-desc="ml predictions engine">ML Predictions</a>
+      <a href="/ai_predictions.html" data-name="ai predictions" data-desc="ai openbb predictions">AI Predictions</a>
+    </div>
+
+    <!-- ─── markets / instruments ─── -->
+    <div class="jh-cluster">
+      <a href="/stock/" data-name="stocks stock analyzer" data-desc="stock analyzer candlestick">Stock Analyzer</a>
+      <a href="/screener/" data-name="screener stock screener" data-desc="stock screener piotroski">Screener</a>
+      <a href="/stocks/" data-name="stock picks" data-desc="stock picks intelligence">Stock Picks</a>
+      <a href="/flow.html" data-name="options flow" data-desc="options flow sentiment">Options Flow</a>
+      <a href="/dex.html" data-name="dex" data-desc="dex intelligence terminal">DEX Terminal</a>
+      <a href="/charts.html" data-name="charts" data-desc="charts trading terminal">Charts</a>
+    </div>
+
+    <!-- ─── fixed income / liquidity ─── -->
+    <div class="jh-cluster">
+      <a href="/liquidity.html" data-name="liquidity" data-desc="liquidity intelligence">Liquidity</a>
+      <a href="/treasury-auctions.html" data-name="treasury auctions" data-desc="treasury multi-instrument">Treasury</a>
+      <a href="/auctions.html" data-name="auctions" data-desc="treasury auction monitor">Auction Monitor</a>
+      <a href="/carry.html" data-name="carry trade" data-desc="global carry trade monitor">Carry Trade</a>
+    </div>
+
+    <!-- ─── macro data ─── -->
+    <div class="jh-cluster">
+      <a href="/fred.html" data-name="fred" data-desc="fred federal reserve">FRED</a>
+      <a href="/ecb.html" data-name="ecb" data-desc="ecb european central bank">ECB</a>
+      <a href="/bls.html" data-name="bls employment" data-desc="bls employment">BLS</a>
+      <a href="/census.html" data-name="census" data-desc="census fed liquidity">Census Data</a>
+      <a href="/ny-fed.html" data-name="ny fed" data-desc="ny fed">NY Fed</a>
+      <a href="/ofr.html" data-name="ofr" data-desc="office financial research">OFR</a>
+      <a href="/euro/" data-name="euro" data-desc="euro intelligence">Euro Intel</a>
+    </div>
+
+    <!-- ─── platforms / aggregators ─── -->
+    <div class="jh-cluster">
+      <a href="/macroeconomic-platform.html" data-name="macroeconomic platform" data-desc="macro platform openbb">Macro Platform</a>
+      <a href="/openbb-realtime-dashboard.html" data-name="openbb realtime dashboard" data-desc="openbb realtime">OpenBB Realtime</a>
+      <a href="/exponential-search-dashboard.html" data-name="exponential search dashboard" data-desc="exponential search">Search Dashboard</a>
+      <a href="/ai-predictions-supabase.html" data-name="ai predictions auth supabase" data-desc="authenticated ai predictions">AI Predictions (Auth)</a>
+    </div>
+
+    <!-- ─── system / utilities ─── -->
+    <div class="jh-cluster">
+      <a href="/bot/" data-name="telegram bot" data-desc="telegram bot">Telegram Bot</a>
+      <a href="/downloads.html" data-name="downloads" data-desc="downloads">Downloads</a>
+      <a href="/pro.html" data-name="pro institutional" data-desc="institutional command center">Pro Console</a>
+      <a href="/desk.html" data-name="desk legacy v1" data-desc="legacy desk v1">Desk (legacy)</a>
+    </div>
+
+  </nav>
+
+  <div class="jh-sb-foot">
+    <div class="jh-health">
+      <span class="jh-health-dot"></span>
+      <span>SYSTEM OPERATIONAL</span>
+    </div>
+    <div class="jh-ver">v2 · operator</div>
+  </div>
+</aside>

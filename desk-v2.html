@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/sidebar.css">
 <style>
 /* ──────────────────────────────────────────────────────────────
    DESIGN TOKENS — single source of truth
@@ -635,31 +636,14 @@ button:hover{
 <body>
 
 <!-- ═══════════════════════════════════════════════════════════════
-     HEADER
+     SIDEBAR — shared component, injected by /assets/sidebar.js
      ═══════════════════════════════════════════════════════════════ -->
-<div class="header">
-  <div class="logo">
-    <span class="dot"></span>
-    <span class="name">JUSTHODL</span>
-    <span class="ver">v2 · operator console</span>
-  </div>
-  <div class="nav">
-    <a href="#" class="active">DESK</a>
-    <a href="/intelligence.html">INTEL</a>
-    <a href="/reports.html">REPORTS</a>
-    <a href="/edge.html">EDGE</a>
-    <a href="/screener/">SCREENER</a>
-    <a href="/dex.html">DEX</a>
-    <a href="/liquidity.html">LIQ</a>
-  </div>
-  <div class="header-right">
-    <div class="health-pill">
-      <span class="pill-dot"></span>
-      <span>SYSTEM OPERATIONAL</span>
-    </div>
-    <div class="header-clock" id="headerClock">--:--:-- UTC</div>
-  </div>
-</div>
+<div id="sidebar"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     PAGE — shifted right by sidebar width
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="jh-page">
 
 <!-- ═══════════════════════════════════════════════════════════════
      STRIP — at-a-glance state
@@ -1244,16 +1228,13 @@ async function loadAll(){
   document.getElementById('footerLoad').textContent = `LOAD ${elapsed}MS`;
 }
 
-// Clock tick
-function tickClock(){
-  document.getElementById('headerClock').textContent = nowUTC();
-}
-setInterval(tickClock, 1000);
-tickClock();
-
 loadAll();
 setInterval(loadAll, REFRESH_MS);
 </script>
+
+</div><!-- /.jh-page -->
+
+<script src="/assets/sidebar.js"></script>
 
 </body>
 </html>

@@ -1,0 +1,286 @@
+/* ─────────────────────────────────────────────────────────────────
+   JustHodl shared sidebar
+   Loaded on every page. Single source of truth for design tokens.
+   ─────────────────────────────────────────────────────────────── */
+
+:root{
+  /* Surfaces */
+  --bg-base:       #07090f;
+  --bg-raised:     #0e1320;
+  --bg-sunken:     #04050a;
+  --bg-elevated:   #131a2a;
+  --bg-glow:       rgba(0, 212, 255, 0.04);
+
+  /* Borders */
+  --border:        rgba(120, 145, 180, 0.12);
+  --border-hover:  rgba(120, 145, 180, 0.25);
+  --border-strong: rgba(120, 145, 180, 0.35);
+  --border-faint:  rgba(120, 145, 180, 0.05);
+
+  /* Text */
+  --fg-1: #e6ecf5;
+  --fg-2: #a8b3c7;
+  --fg-3: #6b7a92;
+  --fg-4: #3a4458;
+
+  /* Status */
+  --green:  #38ffa8;
+  --green-dim: #1b8a5c;
+  --amber:  #ffb13d;
+  --amber-dim: #8a5e10;
+  --red:    #ff5c7a;
+  --red-dim: #8a2c44;
+  --cyan:   #00d4ff;
+  --cyan-dim: #0a6080;
+  --violet: #a78bfa;
+
+  /* Type */
+  --font-mono: 'IBM Plex Mono', 'Berkeley Mono', ui-monospace, monospace;
+  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+
+  /* Sizes */
+  --size-1: 3px;
+  --size-2: 6px;
+  --size-3: 9px;
+  --size-4: 12px;
+  --size-5: 15px;
+  --size-6: 18px;
+  --size-8: 24px;
+
+  --type-xxs: 10px;
+  --type-xs:  11px;
+  --type-sm:  12px;
+  --type-base: 13px;
+
+  /* Layout */
+  --sidebar-w: 220px;
+}
+
+/* ─── SIDEBAR ─────────────────────────────────────────────────── */
+.jh-sidebar{
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  width: var(--sidebar-w);
+  background: var(--bg-sunken);
+  border-right: 1px solid var(--border);
+  font-family: var(--font-sans);
+  display: flex;
+  flex-direction: column;
+  z-index: 50;
+  overflow: hidden;
+}
+
+/* head: logo + clock */
+.jh-sb-head{
+  padding: var(--size-4) var(--size-5);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--size-3);
+}
+.jh-logo{
+  font-family: var(--font-mono);
+  font-size: var(--type-sm);
+  font-weight: 600;
+  color: var(--fg-1);
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: var(--size-2);
+  text-decoration: none;
+}
+.jh-logo:hover{color: var(--cyan)}
+.jh-logo-dot{
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 10px var(--green);
+  animation: jhPulse 2.5s ease-in-out infinite;
+  flex-shrink: 0;
+}
+@keyframes jhPulse{
+  0%,100%{opacity:1; box-shadow: 0 0 10px var(--green)}
+  50%{opacity:0.5; box-shadow: 0 0 3px var(--green)}
+}
+.jh-sb-clock{
+  font-family: var(--font-mono);
+  font-size: var(--type-xxs);
+  color: var(--fg-3);
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+/* filter input */
+.jh-filter{
+  position: relative;
+  margin: var(--size-3) var(--size-4);
+  display: flex;
+  align-items: center;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  transition: border-color 0.15s;
+}
+.jh-filter:focus-within{border-color: var(--cyan)}
+.jh-filter-icon{
+  padding: 0 var(--size-2) 0 var(--size-3);
+  color: var(--fg-3);
+  font-size: var(--type-sm);
+}
+#jhFilter{
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--fg-1);
+  font-family: var(--font-mono);
+  font-size: var(--type-xs);
+  padding: var(--size-2) 0;
+  letter-spacing: 0.02em;
+}
+#jhFilter::placeholder{color: var(--fg-3)}
+.jh-filter-kbd{
+  font-family: var(--font-mono);
+  font-size: var(--type-xxs);
+  color: var(--fg-3);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  padding: 1px 4px;
+  margin-right: var(--size-2);
+  border-radius: 2px;
+  letter-spacing: 0.05em;
+  user-select: none;
+}
+
+/* nav body */
+.jh-nav{
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--size-2) 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-hover) transparent;
+}
+.jh-nav::-webkit-scrollbar{width: 4px}
+.jh-nav::-webkit-scrollbar-track{background: transparent}
+.jh-nav::-webkit-scrollbar-thumb{background: var(--border-hover); border-radius: 2px}
+
+/* clusters: visual rhythm without labels */
+.jh-cluster{
+  padding: var(--size-1) 0;
+  position: relative;
+}
+.jh-cluster::after{
+  content: '';
+  display: block;
+  margin: var(--size-2) var(--size-5) 0;
+  height: 1px;
+  background: var(--border-faint);
+}
+.jh-cluster:last-child::after{display: none}
+
+/* hide dividers when all items hidden in cluster (filter result) */
+.jh-cluster.jh-empty{display: none}
+
+/* links */
+.jh-nav a{
+  display: flex;
+  align-items: center;
+  gap: var(--size-2);
+  padding: var(--size-2) var(--size-5);
+  color: var(--fg-2);
+  font-family: var(--font-mono);
+  font-size: var(--type-xs);
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  position: relative;
+  border-left: 2px solid transparent;
+  transition: color 0.1s ease, border-color 0.1s ease;
+}
+.jh-nav a:hover{
+  color: var(--fg-1);
+}
+.jh-nav a.jh-active{
+  color: var(--cyan);
+  border-left-color: var(--cyan);
+  background: linear-gradient(90deg, rgba(0,212,255,0.06), transparent);
+}
+.jh-nav a.jh-active::before{
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0; bottom: 0;
+  width: 2px;
+  box-shadow: 0 0 8px var(--cyan);
+}
+.jh-nav a.jh-hidden{display: none}
+
+/* pin marker for daily-use links */
+.jh-link-pin{
+  width: 4px; height: 4px;
+  background: var(--cyan);
+  border-radius: 50%;
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+.jh-nav a.jh-active .jh-link-pin{opacity: 1; box-shadow: 0 0 6px var(--cyan)}
+
+/* foot */
+.jh-sb-foot{
+  padding: var(--size-3) var(--size-5);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: var(--type-xxs);
+  color: var(--fg-3);
+  letter-spacing: 0.05em;
+}
+.jh-health{
+  display: flex;
+  align-items: center;
+  gap: var(--size-2);
+  text-transform: uppercase;
+}
+.jh-health-dot{
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 5px var(--green);
+}
+.jh-ver{
+  color: var(--fg-4);
+  letter-spacing: 0.03em;
+}
+
+/* page content shifts right */
+.jh-page{
+  margin-left: var(--sidebar-w);
+  min-height: 100vh;
+}
+
+/* ─── RESPONSIVE ─────────────────────────────────────────────── */
+@media (max-width: 900px){
+  .jh-sidebar{
+    transform: translateX(calc(var(--sidebar-w) * -1 + 36px));
+    transition: transform 0.2s ease;
+  }
+  .jh-sidebar:hover, .jh-sidebar:focus-within{transform: translateX(0)}
+  .jh-sidebar:not(:hover):not(:focus-within) .jh-sb-clock,
+  .jh-sidebar:not(:hover):not(:focus-within) .jh-logo-text,
+  .jh-sidebar:not(:hover):not(:focus-within) .jh-filter-kbd,
+  .jh-sidebar:not(:hover):not(:focus-within) #jhFilter,
+  .jh-sidebar:not(:hover):not(:focus-within) .jh-nav a span:not(.jh-link-pin),
+  .jh-sidebar:not(:hover):not(:focus-within) .jh-health span:last-child,
+  .jh-sidebar:not(:hover):not(:focus-within) .jh-ver{
+    opacity: 0;
+    pointer-events: none;
+  }
+  .jh-page{margin-left: 36px}
+}
+@media (max-width: 500px){
+  .jh-sidebar{
+    transform: translateX(calc(var(--sidebar-w) * -1));
+  }
+  .jh-page{margin-left: 0}
+}
