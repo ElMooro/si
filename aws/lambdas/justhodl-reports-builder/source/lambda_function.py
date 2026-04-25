@@ -71,7 +71,12 @@ def parse_iso(s):
 
 
 def compute_scorecard(signals, outcomes):
-    """Group outcomes by signal_type and compute metrics."""
+    """Group outcomes by signal_type and compute metrics.
+
+    Critical: hit_rate is computed over SCORED outcomes only (those
+    where correct is True or False). Unscored outcomes (correct=None)
+    are not yet eligible for scoring and shouldn't drag the rate down.
+    """
     # Build signal_id -> signal map
     sig_by_id = {s.get("signal_id"): s for s in signals if s.get("signal_id")}
 
@@ -89,12 +94,17 @@ def compute_scorecard(signals, outcomes):
     scorecard = []
     for st, items in by_type.items():
         total = len(items)
-        correct = sum(1 for i in items if i.get("correct") is True)
-        hit_rate = (correct / total) if total else 0.0
+        # Filter to scored outcomes (correct is explicitly True or False).
+        # correct=None means not yet scored or unscoreable.
+        scored_items = [i for i in items if i.get("correct") in (True, False)]
+        scored = len(scored_items)
+        correct = sum(1 for i in scored_items if i.get("correct") is True)
+        hit_rate = (correct / scored) if scored else None
 
-        # Magnitude error
+        # Magnitude error — only over scored items, requires both
+        # predicted_magnitude and actual_change.
         mag_errors = []
-        for i in items:
+        for i in scored_items:
             pred = i.get("signal", {}).get("predicted_magnitude_pct")
             actual = i.get("actual_change_pct") or i.get("actual_pct")
             if pred is not None and actual is not None:
@@ -104,8 +114,8 @@ def compute_scorecard(signals, outcomes):
                     pass
         avg_mag_err = (sum(mag_errors) / len(mag_errors)) if mag_errors else None
 
-        # By horizon
-        by_horizon = defaultdict(lambda: {"total": 0, "correct": 0})
+        # By horizon — also filter to scored only
+        by_horizon = defaultdict(lambda: {"total": 0, "correct": 0, "scored": 0})
         for i in items:
             h = i.get("horizon_days") or i.get("signal", {}).get("horizon_days_primary")
             try: h = int(h) if h is not None else None
@@ -113,17 +123,19 @@ def compute_scorecard(signals, outcomes):
             if h is None:
                 continue
             by_horizon[h]["total"] += 1
-            if i.get("correct") is True:
-                by_horizon[h]["correct"] += 1
+            if i.get("correct") in (True, False):
+                by_horizon[h]["scored"] += 1
+                if i.get("correct") is True:
+                    by_horizon[h]["correct"] += 1
         for h in by_horizon:
-            t_ = by_horizon[h]["total"]
-            by_horizon[h]["hit_rate"] = (by_horizon[h]["correct"] / t_) if t_ else 0.0
+            sc = by_horizon[h]["scored"]
+            by_horizon[h]["hit_rate"] = (by_horizon[h]["correct"] / sc) if sc else None
 
-        # Trend over time windows (using scored_at)
+        # Trend over time windows (using scored_at) — scored items only
         def window_hit_rate(days):
             cutoff = now - timedelta(days=days)
-            in_window = [i for i in items
-                         if (parse_iso(i.get("scored_at") or i.get("logged_at"))
+            in_window = [i for i in scored_items
+                         if (parse_iso(i.get("scored_at") or i.get("checked_at") or i.get("logged_at"))
                              or datetime(1970, 1, 1, tzinfo=timezone.utc)) >= cutoff]
             if not in_window: return None
             c = sum(1 for i in in_window if i.get("correct") is True)
@@ -131,9 +143,10 @@ def compute_scorecard(signals, outcomes):
 
         scorecard.append({
             "signal_type": st,
-            "total": total,
-            "correct": correct,
-            "hit_rate": round(hit_rate, 4),
+            "total": total,           # all outcomes
+            "scored": scored,         # only correct in {True, False}
+            "correct": correct,       # only correct=True
+            "hit_rate": round(hit_rate, 4) if hit_rate is not None else None,
             "avg_magnitude_error_pct": round(avg_mag_err, 3) if avg_mag_err is not None else None,
             "by_horizon": dict(by_horizon),
             "trend_30d": window_hit_rate(30),
@@ -141,7 +154,7 @@ def compute_scorecard(signals, outcomes):
             "trend_90d": window_hit_rate(90),
         })
 
-    # Sort by sample size desc
+    # Sort by total desc (most data first)
     scorecard.sort(key=lambda x: -x["total"])
     return scorecard
 
