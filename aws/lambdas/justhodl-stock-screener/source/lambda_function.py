@@ -7,7 +7,7 @@ BASE     = "https://financialmodelingprep.com/stable"
 S3_BUCKET= "justhodl-dashboard-live"
 CACHE_KEY= "screener/data.json"
 CACHE_TTL= 4 * 3600
-WORKERS  = 5
+WORKERS  = 2  # was 5; reduced after adding 5th endpoint hit per stock pushed us into FMP 429 territory
 
 s3 = boto3.client("s3", region_name="us-east-1")
 
@@ -30,15 +30,37 @@ def sanitize_ratio(v, lo=-50, hi=500):
         return None
 
 
-def fmp(path, params=""):
+def fmp(path, params="", max_retries=3):
+    """
+    FMP request with exponential backoff on 429s.
+    Premium plan = 750 req/min ≈ 12.5 req/sec. With 2 workers × 5 endpoints
+    × 503 stocks we issue ~25 req/sec peak, which spikes over budget.
+    Retry with backoff smooths out the burst.
+    """
     url = f"{BASE}/{path}?apikey={FMP}{params}"
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "JustHodl/1.0"})
-        r   = urllib.request.urlopen(req, timeout=25)
-        return json.loads(r.read().decode("utf-8"))
-    except Exception as e:
-        print(f"  ERR {path}: {e}")
-        return None
+    last_err = None
+    for attempt in range(max_retries):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "JustHodl/1.0"})
+            r   = urllib.request.urlopen(req, timeout=25)
+            return json.loads(r.read().decode("utf-8"))
+        except urllib.error.HTTPError as e:
+            last_err = e
+            if e.code == 429:
+                # Exponential backoff: 1s, 3s, 9s
+                wait = 1 + (attempt * 2) + (attempt ** 2)
+                time.sleep(wait)
+                continue
+            # Non-429: don't retry, fail fast
+            print(f"  ERR {path}: {e}")
+            return None
+        except Exception as e:
+            last_err = e
+            print(f"  ERR {path}: {e}")
+            return None
+    # All retries exhausted
+    print(f"  ERR {path}: exhausted retries ({last_err})")
+    return None
 
 def sf(v):
     try: f=float(v); return round(f,4) if f==f else None
