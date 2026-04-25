@@ -346,7 +346,10 @@ def lambda_handler(event, context):
         print(f"morning_archive failed: {e}")
 
     out = {
-        "meta": {
+        # Loop 1: compute calibration meaningfulness — True when
+        # at least one signal has ≥30 scored outcomes (enough for the
+        # calibrated weight to be more than noise).
+        "meta": (lambda: {
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "signals_total": len(signals),
             "outcomes_total": len(outcomes),
@@ -357,7 +360,20 @@ def lambda_handler(event, context):
                 "accuracy_count": len(accuracy) if isinstance(accuracy, dict) else 0,
                 "report_keys": list(calib_report.keys()) if isinstance(calib_report, dict) else [],
             },
-        },
+            # ─── Loop 1 status (the actually-useful flag) ─────────────
+            "is_meaningful": (lambda acc=accuracy: any(
+                isinstance(e, dict) and (e.get("n_correct", 0) + e.get("n_wrong", 0)) >= 30
+                for e in (acc.values() if isinstance(acc, dict) else [])
+            ))(),
+            "n_calibrated_signals": (lambda acc=accuracy: sum(
+                1 for e in (acc.values() if isinstance(acc, dict) else [])
+                if isinstance(e, dict) and (e.get("n_correct", 0) + e.get("n_wrong", 0)) >= 30
+            ))(),
+            "n_signals_with_outcomes": (lambda acc=accuracy: sum(
+                1 for e in (acc.values() if isinstance(acc, dict) else [])
+                if isinstance(e, dict) and e.get("n", 0) > 0
+            ))(),
+        })(),
         "signal_scorecard": scorecard,
         "khalid_timeline": timeline,
         "calibration_weights": weights if isinstance(weights, dict) else {},

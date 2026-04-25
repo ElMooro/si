@@ -1,6 +1,29 @@
 import json, boto3, urllib.request, time, concurrent.futures
 from datetime import datetime, timezone
 
+# Calibration helper — Loop 1 (light-touch: edge-engine sub-engines
+# aren't currently tracked signal types, so weights = 1.0 today;
+# infrastructure ready for future calibration)
+try:
+    from calibration import blend_score, get_calibration
+    _CALIBRATION_AVAILABLE = True
+except Exception as _e:
+    print('WARN: calibration module unavailable: ' + str(_e))
+    _CALIBRATION_AVAILABLE = False
+    def blend_score(scores, default_weight=1.0):
+        if not scores: return {'value': 0.0, 'raw_value': 0.0, 'contributions': [],
+                                'total_weight': 0.0, 'is_calibrated': False, 'n_calibrated': 0}
+        n = len(scores)
+        avg = sum(float(v) for v in scores.values() if v is not None) / n if n else 0.0
+        return {'value': avg, 'raw_value': avg, 'contributions': [],
+                'total_weight': float(n), 'is_calibrated': False, 'n_calibrated': 0}
+    def get_calibration():
+        class _C:
+            is_meaningful = False; weights = {}; accuracy = {}
+            def weight(self, _): return 1.0
+            def is_signal_calibrated(self, _): return False
+        return _C()
+
 FRED_KEY    = '2f057499936072679d8843d7fce99989'
 POLYGON_KEY = 'zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d'
 S3_BUCKET   = 'justhodl-dashboard-live'
@@ -152,6 +175,24 @@ def lambda_handler(event, context):
         scores = [e.get('score', 50) for e in [e1, e2, e3, e4, e5]]
         composite = round(sum(scores) / len(scores))
         regime = 'RISK_ON' if composite >= 65 else ('RISK_OFF' if composite <= 35 else 'NEUTRAL')
+
+        # ─── Loop 1: calibration-weighted composite ─────────────────────
+        # Sub-engine score names aren't currently tracked signal types,
+        # so weights are 1.0 today. Will start mattering only if/when
+        # we begin scoring outcomes for these specific signals.
+        _loop1_blend = blend_score({
+            'engine_options_flow': scores[0],
+            'engine_fund_sentiment': scores[1],
+            'engine_earnings': scores[2],
+            'engine_liquidity': scores[3],
+            'engine_correlation': scores[4],
+        })
+        _loop1_meta = {
+            'is_meaningful': _loop1_blend['is_calibrated'],
+            'n_calibrated': _loop1_blend['n_calibrated'],
+            'n_signals': len(scores),
+            'contributions': _loop1_blend['contributions'],
+        }
         alerts = list(e5.get('alerts', []))
         if e1.get('vix') and e1['vix'] > 25:
             alerts.append('VIX elevated: ' + str(e1['vix']))
@@ -160,6 +201,9 @@ def lambda_handler(event, context):
         output = {
             'generated_at': datetime.now(timezone.utc).isoformat(),
             'composite_score': composite,
+            'calibrated_composite': round(_loop1_blend['value'], 2),
+            'raw_composite': round(_loop1_blend['raw_value'], 2),
+            'calibration': _loop1_meta,
             'regime': regime,
             'engine_scores': {
                 'options_flow': e1.get('score'),

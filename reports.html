@@ -93,6 +93,15 @@ body{background:var(--bg);color:var(--t1);font-family:'IBM Plex Sans',system-ui,
 .brief-action{padding:8px 12px;background:var(--bg);border-radius:6px;font-size:11px;color:var(--cyan);font-style:italic;border-left:3px solid var(--cyan)}
 
 @media(max-width:700px){.container{padding:14px 12px}.mtable{font-size:11px}.mtable th{padding:8px 6px;font-size:9px}.mtable td{padding:8px 6px}.headline-box{padding:18px 16px}.headline-box h1{font-size:18px}}
+
+.cal-badge { position: absolute; top: 16px; right: 16px; padding: 6px 14px; border-radius: 16px; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; display: inline-flex; align-items: center; gap: 6px; }
+.cal-badge.awaiting { background: rgba(255, 196, 0, 0.12); color: var(--yellow); border: 1px solid rgba(255, 196, 0, 0.4); }
+.cal-badge.active { background: rgba(0, 230, 118, 0.12); color: var(--green); border: 1px solid rgba(0, 230, 118, 0.4); box-shadow: 0 0 12px rgba(0, 230, 118, 0.2); }
+.cal-badge .dot { width: 6px; height: 6px; border-radius: 50%; }
+.cal-badge.awaiting .dot { background: var(--yellow); animation: pulse-y 2s ease-in-out infinite; }
+.cal-badge.active .dot { background: var(--green); }
+@keyframes pulse-y { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
+.headline-box { position: relative; }
 </style>
 </head>
 <body>
@@ -167,8 +176,17 @@ function renderHeadline(D) {
   const hasCalib = m.has_calibration;
   // Compute total scoreable outcomes (sum of 'scored' across all rows)
   const totalScored = (D.signal_scorecard || []).reduce((acc, r) => acc + (r.scored || 0), 0);
+  // Loop 1 calibration badge — flips to green when calibrator
+  // has scored ≥30 outcomes for at least one signal type.
+  const isMeaningful = m.is_meaningful === true;
+  const nCalibrated = m.n_calibrated_signals || 0;
+  const nWithOutcomes = m.n_signals_with_outcomes || 0;
+  const calBadge = isMeaningful
+    ? `<span class="cal-badge active" title="${nCalibrated} signal(s) have ≥30 scored outcomes — Loop 1 weights are tracking historical accuracy"><span class="dot"></span>Calibrated · ${nCalibrated} signal${nCalibrated === 1 ? '' : 's'}</span>`
+    : `<span class="cal-badge awaiting" title="No signal has ≥30 scored outcomes yet. ${nWithOutcomes} signal type(s) have outcomes pending. Calibration becomes meaningful when scoring catches up — typically early May."><span class="dot"></span>Calibration · Awaiting Data</span>`;
   return `
     <div class="headline-box">
+      ${calBadge}
       <div class="meta">PERFORMANCE REPORT — REAL DATA</div>
       <h1>System Performance &amp; Self-Calibration</h1>
       <div class="detail">
