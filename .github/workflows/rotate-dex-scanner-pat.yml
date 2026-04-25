@@ -36,7 +36,7 @@ on:
   workflow_dispatch:
     inputs:
       new_pat:
-        description: 'New GitHub PAT (starts with ghp_). Copy from github.com/settings/tokens. Value will be masked in logs.'
+        description: 'New GitHub PAT — accepts both fine-grained (github_pat_*, recommended) and classic (ghp_*). Generate at github.com/settings/personal-access-tokens/new with Contents:Read+Write on ElMooro/si. Value masked in logs.'
         required: true
         type: string
       revoke_check_only:
