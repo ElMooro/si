@@ -11,6 +11,7 @@ hourly keeps Khalid timeline fresh.
 import boto3
 import json
 import os
+import re
 from collections import defaultdict, OrderedDict
 from datetime import datetime, timezone, timedelta
 from decimal import Decimal
