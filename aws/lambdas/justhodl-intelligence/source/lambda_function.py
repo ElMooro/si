@@ -2,6 +2,30 @@ import json,boto3,os,ssl,traceback
 from datetime import datetime,timezone,timedelta
 from urllib import request as urllib_request
 
+# Calibration helper — Loop 1: weight signals by historical accuracy.
+# Falls back to uniform weighting when calibrator data is sparse.
+try:
+    from calibration import blend_score, get_calibration
+    _CALIBRATION_AVAILABLE = True
+except Exception as _e:
+    print(f"WARN: calibration module unavailable: {_e}")
+    _CALIBRATION_AVAILABLE = False
+    def blend_score(scores, default_weight=1.0):
+        if not scores: return {"value": 0.0, "raw_value": 0.0, "contributions": [],
+                                "total_weight": 0.0, "is_calibrated": False, "n_calibrated": 0}
+        n = len(scores)
+        avg = sum(float(v) for v in scores.values()) / n
+        return {"value": avg, "raw_value": avg, "contributions": [],
+                "total_weight": n, "is_calibrated": False, "n_calibrated": 0}
+    def get_calibration():
+        class _C:
+            is_meaningful = False
+            weights = {}
+            accuracy = {}
+            def weight(self, _): return 1.0
+            def is_signal_calibrated(self, _): return False
+        return _C()
+
 s3=boto3.client('s3')
 BUCKET=os.environ.get('S3_BUCKET','justhodl-dashboard-live')
 ctx=ssl.create_default_context();ctx.check_hostname=False;ctx.verify_mode=ssl.CERT_NONE
@@ -205,10 +229,45 @@ def _synthesize_pred(rpt, edge, flow, repo):
     # Risk from edge-data composite + plumbing stress
     edge_score=edge.get("composite_score", 0) if isinstance(edge, dict) else 0
     plumb=repo.get("stress", {}) if isinstance(repo, dict) else {}
+    plumb_score_for_blend = plumb.get("score", 0) if isinstance(plumb, dict) else 0
+
+    # ─── Loop 1: calibration-weighted composite ──────────────────────
+    # Blend edge_composite + plumbing_stress + khalid_index using
+    # historical accuracy weights from /justhodl/calibration/weights.
+    # Falls back to uniform avg if calibrator hasn't run or doesn't
+    # have enough scored outcomes yet.
+    ki_raw_for_blend = rpt.get("khalid_index", {})
+    if isinstance(ki_raw_for_blend, dict):
+        ki_score_for_blend = ki_raw_for_blend.get("score", 0) or 0
+    else:
+        ki_score_for_blend = ki_raw_for_blend or 0
+
+    blend_inputs = {}
+    if edge_score:
+        blend_inputs["edge_composite"] = float(edge_score)
+    if plumb_score_for_blend:
+        blend_inputs["plumbing_stress"] = float(plumb_score_for_blend)
+    if ki_score_for_blend:
+        blend_inputs["khalid_index"] = float(ki_score_for_blend)
+
+    blended = blend_score(blend_inputs) if blend_inputs else {
+        "value": 0.0, "raw_value": 0.0, "contributions": [],
+        "total_weight": 0.0, "is_calibrated": False, "n_calibrated": 0,
+    }
+
     risk_dict={
-        "composite_score": edge_score,
+        "composite_score": edge_score,           # unchanged — backward compat
         "plumbing_stress": plumb.get("score", 0),
         "regime": edge.get("regime", "UNKNOWN") if isinstance(edge, dict) else "UNKNOWN",
+        # NEW: calibration-weighted view (Loop 1)
+        "calibrated_composite": round(blended["value"], 2),
+        "raw_composite": round(blended["raw_value"], 2),
+        "calibration_meta": {
+            "is_calibrated": blended["is_calibrated"],
+            "n_calibrated": blended["n_calibrated"],
+            "n_signals": len(blend_inputs),
+            "contributions": blended["contributions"],
+        },
     }
 
     # Market snapshot from flow-data
@@ -229,9 +288,18 @@ def _synthesize_pred(rpt, edge, flow, repo):
         "_source": "derived from repo-data plumbing stress",
     }
 
+    cal = get_calibration() if _CALIBRATION_AVAILABLE else None
+    pred_calibration_meta = {
+        "is_meaningful": getattr(cal, "is_meaningful", False),
+        "n_weights": len(getattr(cal, "weights", {}) or {}),
+        "n_accuracy_entries": len(getattr(cal, "accuracy", {}) or {}),
+        "available": _CALIBRATION_AVAILABLE,
+    }
+
     return {
         "executive_summary": exec_summary,
         "liquidity": {},                # not fabricating
+        "calibration": pred_calibration_meta,
         "risk": risk_dict,
         "carry_trade": carry_dict,
         "sector_rotation": {"top_picks": sector_picks},
