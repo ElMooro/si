@@ -174,17 +174,23 @@ def _synthesize_pred(rpt, edge, flow, repo):
     if not rpt and not edge:
         return {}
 
-    # Executive summary from existing AI analysis
+    # Executive summary from existing AI analysis + edge-data ML risk
     ai_analysis=rpt.get("ai_analysis", {})
     exec_summary={}
+    edge_score=edge.get("composite_score", 0) if isinstance(edge, dict) else 0
+    # ml_risk_score = edge composite (machine-derived risk indicator, 0-100 scale)
+    ml_derived_risk=int(float(edge_score)) if edge_score else 0
     if isinstance(ai_analysis, dict):
         sections=ai_analysis.get("sections", {})
         macro=sections.get("macro", {}) if isinstance(sections, dict) else {}
         exec_summary={
             "outlook": macro.get("outlook", "UNKNOWN"),
             "key_signals": macro.get("signals", [])[:3] if isinstance(macro.get("signals"), list) else [],
-            "source": "synthesized from ai_analysis",
+            "risk_score": ml_derived_risk,
+            "source": "synthesized from ai_analysis + edge composite",
         }
+    else:
+        exec_summary={"risk_score": ml_derived_risk, "source": "edge composite only"}
 
     # Sector rotation from report.json sectors data
     sectors_raw=rpt.get("sectors", {})
@@ -213,11 +219,21 @@ def _synthesize_pred(rpt, edge, flow, repo):
         if isinstance(sentiment, dict):
             market_snap={"sentiment_composite": sentiment.get("composite", 0)}
 
+    # Carry trade risk derived from plumbing stress (carry trades blow up
+    # when repo plumbing stresses — historically correlated)
+    plumb_score=plumb.get("score", 0) if isinstance(plumb, dict) else 0
+    plumb_status=plumb.get("status", "N/A") if isinstance(plumb, dict) else "N/A"
+    carry_dict={
+        "risk_score": int(float(plumb_score)) if plumb_score else 0,
+        "risk_level": plumb_status,
+        "_source": "derived from repo-data plumbing stress",
+    }
+
     return {
         "executive_summary": exec_summary,
         "liquidity": {},                # not fabricating
         "risk": risk_dict,
-        "carry_trade": {},              # not fabricating
+        "carry_trade": carry_dict,
         "sector_rotation": {"top_picks": sector_picks},
         "trade_recommendations": [],    # empty rather than synthetic
         "market_snapshot": market_snap,
