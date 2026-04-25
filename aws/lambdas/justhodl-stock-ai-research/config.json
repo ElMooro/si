@@ -1,0 +1,24 @@
+{
+  "function_name": "justhodl-stock-ai-research",
+  "region": "us-east-1",
+  "runtime": "python3.11",
+  "handler": "lambda_function.lambda_handler",
+  "memory_size": 512,
+  "timeout": 90,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "environment_keys": ["ANTHROPIC_KEY", "FMP_KEY"],
+  "layers": [],
+  "reserved_concurrency": 5,
+  "function_url": {
+    "auth_type": "NONE",
+    "cors": {
+      "AllowHeaders": ["*"],
+      "AllowMethods": ["*"],
+      "AllowOrigins": ["*"],
+      "MaxAge": 86400
+    }
+  },
+  "eventbridge_rules": [],
+  "description": "AI research summaries for stock analyzer — company desc, bull/bear cases, scenario-based price targets. 7-day S3 cache."
+}
