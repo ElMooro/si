@@ -1,0 +1,25 @@
+{
+  "name": "multi-agent-orchestrator",
+  "runtime": "python3.11",
+  "handler": "lambda_function.lambda_handler",
+  "memory_mb": 512,
+  "timeout_s": 60,
+  "code_size_bytes": 1505,
+  "package_type": "Zip",
+  "last_modified": "2025-09-21T17:28:02.000+0000",
+  "role_arn_tail": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "",
+  "env_keys": [
+    "LIQUIDITY_URL",
+    "POLYGON_API",
+    "TREASURY_API",
+    "TREASURY_LAMBDA"
+  ],
+  "layers": [
+    "arn:aws:lambda:us-east-1:857687956942:layer:multi-agent-dependencies:1"
+  ],
+  "architectures": [
+    "x86_64"
+  ],
+  "backfilled_at": "2026-04-25T01:22:58.946050+00:00"
+}

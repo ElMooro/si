@@ -1,0 +1,20 @@
+{
+  "name": "fred-ice-bofa-api",
+  "runtime": "python3.9",
+  "handler": "lambda_function.lambda_handler",
+  "memory_mb": 1024,
+  "timeout_s": 60,
+  "code_size_bytes": 524,
+  "package_type": "Zip",
+  "last_modified": "2025-09-20T01:16:17.000+0000",
+  "role_arn_tail": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "",
+  "env_keys": [
+    "CACHE_DURATION"
+  ],
+  "layers": [],
+  "architectures": [
+    "x86_64"
+  ],
+  "backfilled_at": "2026-04-25T01:22:57.368361+00:00"
+}

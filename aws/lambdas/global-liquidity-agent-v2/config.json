@@ -1,0 +1,26 @@
+{
+  "name": "global-liquidity-agent-v2",
+  "runtime": "python3.11",
+  "handler": "khalid_no_email.lambda_handler",
+  "memory_mb": 1024,
+  "timeout_s": 300,
+  "code_size_bytes": 744,
+  "package_type": "Zip",
+  "last_modified": "2025-11-01T22:48:28.000+0000",
+  "role_arn_tail": "arn:aws:iam::857687956942:role/liquidity-agent-role-v2",
+  "description": "",
+  "env_keys": [
+    "ENABLE_ML_PREDICTIONS",
+    "ENABLE_OPTIONS_FLOW",
+    "ENABLE_REAL_TIME_ALERTS",
+    "FRED_API_KEY",
+    "S3_BUCKET",
+    "SES_SENDER",
+    "SNS_TOPIC_ARN"
+  ],
+  "layers": [],
+  "architectures": [
+    "x86_64"
+  ],
+  "backfilled_at": "2026-04-25T01:22:56.057261+00:00"
+}

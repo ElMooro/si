@@ -1,0 +1,20 @@
+{
+  "name": "ofrapi",
+  "runtime": "python3.9",
+  "handler": "ofr_lambda_complete.lambda_handler",
+  "memory_mb": 512,
+  "timeout_s": 120,
+  "code_size_bytes": 21933,
+  "package_type": "Zip",
+  "last_modified": "2025-08-13T03:19:14.000+0000",
+  "role_arn_tail": "arn:aws:iam::857687956942:role/ofr-lambda-role",
+  "description": "",
+  "env_keys": [
+    "S3_BUCKET"
+  ],
+  "layers": [],
+  "architectures": [
+    "x86_64"
+  ],
+  "backfilled_at": "2026-04-25T01:22:44.345126+00:00"
+}

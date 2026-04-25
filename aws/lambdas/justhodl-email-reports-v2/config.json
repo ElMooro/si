@@ -1,0 +1,22 @@
+{
+  "name": "justhodl-email-reports-v2",
+  "runtime": "python3.11",
+  "handler": "lambda_function.lambda_handler",
+  "memory_mb": 1024,
+  "timeout_s": 300,
+  "code_size_bytes": 6530,
+  "package_type": "Zip",
+  "last_modified": "2025-10-05T15:14:46.000+0000",
+  "role_arn_tail": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "",
+  "env_keys": [
+    "FRED_API_KEY",
+    "S3_BUCKET",
+    "SES_SENDER"
+  ],
+  "layers": [],
+  "architectures": [
+    "x86_64"
+  ],
+  "backfilled_at": "2026-04-25T01:22:49.121054+00:00"
+}

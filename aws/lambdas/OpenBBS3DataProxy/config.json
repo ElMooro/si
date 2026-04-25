@@ -1,0 +1,18 @@
+{
+  "name": "OpenBBS3DataProxy",
+  "runtime": "python3.11",
+  "handler": "lambda_function.lambda_handler",
+  "memory_mb": 512,
+  "timeout_s": 30,
+  "code_size_bytes": 2280,
+  "package_type": "Zip",
+  "last_modified": "2025-05-30T04:39:18.000+0000",
+  "role_arn_tail": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "",
+  "env_keys": [],
+  "layers": [],
+  "architectures": [
+    "x86_64"
+  ],
+  "backfilled_at": "2026-04-25T01:22:48.699537+00:00"
+}

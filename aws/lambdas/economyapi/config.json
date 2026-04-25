@@ -1,0 +1,18 @@
+{
+  "name": "economyapi",
+  "runtime": "python3.9",
+  "handler": "lambda_function.lambda_handler",
+  "memory_mb": 256,
+  "timeout_s": 30,
+  "code_size_bytes": 12328,
+  "package_type": "Zip",
+  "last_modified": "2025-09-09T03:57:48.000+0000",
+  "role_arn_tail": "arn:aws:iam::857687956942:role/economyapi-lambda-role",
+  "description": "",
+  "env_keys": [],
+  "layers": [],
+  "architectures": [
+    "x86_64"
+  ],
+  "backfilled_at": "2026-04-25T01:22:53.515506+00:00"
+}

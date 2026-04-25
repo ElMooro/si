@@ -1,0 +1,18 @@
+{
+  "name": "ecb-data-daily-updater",
+  "runtime": "python3.9",
+  "handler": "lambda_function.lambda_handler",
+  "memory_mb": 256,
+  "timeout_s": 60,
+  "code_size_bytes": 2536,
+  "package_type": "Zip",
+  "last_modified": "2025-08-10T22:05:40.000+0000",
+  "role_arn_tail": "arn:aws:iam::857687956942:role/openbb-lambda-role",
+  "description": "",
+  "env_keys": [],
+  "layers": [],
+  "architectures": [
+    "x86_64"
+  ],
+  "backfilled_at": "2026-04-25T01:22:47.927119+00:00"
+}

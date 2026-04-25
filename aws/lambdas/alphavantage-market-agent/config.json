@@ -1,0 +1,20 @@
+{
+  "name": "alphavantage-market-agent",
+  "runtime": "python3.9",
+  "handler": "lambda_alphavantage_agent.lambda_handler",
+  "memory_mb": 256,
+  "timeout_s": 60,
+  "code_size_bytes": 2249,
+  "package_type": "Zip",
+  "last_modified": "2025-09-21T14:49:06.000+0000",
+  "role_arn_tail": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "",
+  "env_keys": [
+    "ALPHAVANTAGE_API_KEY"
+  ],
+  "layers": [],
+  "architectures": [
+    "x86_64"
+  ],
+  "backfilled_at": "2026-04-25T01:22:59.408343+00:00"
+}

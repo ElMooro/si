@@ -1,0 +1,20 @@
+{
+  "name": "volatility-monitor-agent",
+  "runtime": "python3.9",
+  "handler": "lambda_volatility_agent.lambda_handler",
+  "memory_mb": 512,
+  "timeout_s": 60,
+  "code_size_bytes": 2770,
+  "package_type": "Zip",
+  "last_modified": "2025-09-19T17:28:01.028+0000",
+  "role_arn_tail": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "",
+  "env_keys": [
+    "FRED_API_KEY"
+  ],
+  "layers": [],
+  "architectures": [
+    "x86_64"
+  ],
+  "backfilled_at": "2026-04-25T01:22:46.066372+00:00"
+}

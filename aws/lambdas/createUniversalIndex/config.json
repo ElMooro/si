@@ -1,0 +1,18 @@
+{
+  "name": "createUniversalIndex",
+  "runtime": "python3.11",
+  "handler": "index_lambda.lambda_handler",
+  "memory_mb": 512,
+  "timeout_s": 300,
+  "code_size_bytes": 8329,
+  "package_type": "Zip",
+  "last_modified": "2025-05-30T16:46:30.000+0000",
+  "role_arn_tail": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Automated universal index generator",
+  "env_keys": [],
+  "layers": [],
+  "architectures": [
+    "x86_64"
+  ],
+  "backfilled_at": "2026-04-25T01:23:02.037286+00:00"
+}

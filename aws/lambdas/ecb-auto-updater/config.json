@@ -1,0 +1,18 @@
+{
+  "name": "ecb-auto-updater",
+  "runtime": "python3.9",
+  "handler": "lambda_function.lambda_handler",
+  "memory_mb": 256,
+  "timeout_s": 60,
+  "code_size_bytes": 2629,
+  "package_type": "Zip",
+  "last_modified": "2025-08-12T15:18:17.000+0000",
+  "role_arn_tail": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Auto-update ECB data weekly",
+  "env_keys": [],
+  "layers": [],
+  "architectures": [
+    "x86_64"
+  ],
+  "backfilled_at": "2026-04-25T01:22:50.889021+00:00"
+}

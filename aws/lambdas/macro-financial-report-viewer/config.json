@@ -1,0 +1,18 @@
+{
+  "name": "macro-financial-report-viewer",
+  "runtime": "python3.11",
+  "handler": "report_viewer.lambda_handler",
+  "memory_mb": 256,
+  "timeout_s": 30,
+  "code_size_bytes": 1151,
+  "package_type": "Zip",
+  "last_modified": "2025-10-03T19:45:57.000+0000",
+  "role_arn_tail": "rn:aws:iam::857687956942:role/MacroFinancialIntelligenceRole",
+  "description": "Public report viewer for Claude to fetch",
+  "env_keys": [],
+  "layers": [],
+  "architectures": [
+    "x86_64"
+  ],
+  "backfilled_at": "2026-04-25T01:22:51.657106+00:00"
+}

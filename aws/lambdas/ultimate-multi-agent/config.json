@@ -1,0 +1,22 @@
+{
+  "name": "ultimate-multi-agent",
+  "runtime": "python3.11",
+  "handler": "lambda_function.lambda_handler",
+  "memory_mb": 1024,
+  "timeout_s": 60,
+  "code_size_bytes": 1931,
+  "package_type": "Zip",
+  "last_modified": "2025-09-21T17:16:19.000+0000",
+  "role_arn_tail": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "",
+  "env_keys": [
+    "AGENT_URLS",
+    "FRED_API_KEY",
+    "POLYGON_API_KEY"
+  ],
+  "layers": [],
+  "architectures": [
+    "x86_64"
+  ],
+  "backfilled_at": "2026-04-25T01:22:55.198439+00:00"
+}

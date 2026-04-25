@@ -1,0 +1,22 @@
+{
+  "name": "ecb",
+  "runtime": "python3.9",
+  "handler": "lambda_function.lambda_handler",
+  "memory_mb": 512,
+  "timeout_s": 30,
+  "code_size_bytes": 1717,
+  "package_type": "Zip",
+  "last_modified": "2025-08-12T15:21:23.000+0000",
+  "role_arn_tail": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "ECB Data API with Unemployment - Updated Tue Aug 12 09:43:23 EDT 2025",
+  "env_keys": [
+    "BUCKET",
+    "CACHE_DURATION",
+    "KEY"
+  ],
+  "layers": [],
+  "architectures": [
+    "x86_64"
+  ],
+  "backfilled_at": "2026-04-25T01:22:55.611745+00:00"
+}

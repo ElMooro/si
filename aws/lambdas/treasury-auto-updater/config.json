@@ -1,0 +1,18 @@
+{
+  "name": "treasury-auto-updater",
+  "runtime": "python3.9",
+  "handler": "updater.lambda_handler",
+  "memory_mb": 128,
+  "timeout_s": 3,
+  "code_size_bytes": 1525,
+  "package_type": "Zip",
+  "last_modified": "2025-08-13T21:04:42.000+0000",
+  "role_arn_tail": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "",
+  "env_keys": [],
+  "layers": [],
+  "architectures": [
+    "x86_64"
+  ],
+  "backfilled_at": "2026-04-25T01:22:54.789416+00:00"
+}

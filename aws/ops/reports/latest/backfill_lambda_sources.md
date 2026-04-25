@@ -1,0 +1,171 @@
+# Backfill missing Lambda sources from AWS
+
+**Status:** success  
+**Duration:** 20.4s  
+**Finished:** 2026-04-25T01:23:03+00:00  
+
+## Data
+
+| already_in_repo | failed | pulled_config_only | pulled_full_source | too_large | total_lambdas |
+|---|---|---|---|---|---|
+| 51 | 0 | 0 | 45 | 0 | 96 |
+
+## Log
+- `01:22:43`   Total Lambdas in account: 96
+- `01:22:43`   Already in repo: 51
+- `01:22:43`   Missing (to backfill): 45
+
+- `01:22:43`   [ 1/45] justhodl-data-collector
+- `01:22:44`       downloaded 1KB
+- `01:22:44`       → 1 files extracted
+- `01:22:44`   [ 2/45] ofrapi
+- `01:22:44`       downloaded 21KB
+- `01:22:44`       → 1 files extracted
+- `01:22:44`   [ 3/45] openbb-websocket-broadcast
+- `01:22:45`       downloaded 1KB
+- `01:22:45`       → 1 files extracted
+- `01:22:45`   [ 4/45] bls-labor-agent
+- `01:22:45`       downloaded 2KB
+- `01:22:45`       → 1 files extracted
+- `01:22:45`   [ 5/45] justhodl-ultimate-orchestrator
+- `01:22:45`       downloaded 2KB
+- `01:22:45`       → 1 files extracted
+- `01:22:45`   [ 6/45] volatility-monitor-agent
+- `01:22:46`       downloaded 3KB
+- `01:22:46`       → 1 files extracted
+- `01:22:46`   [ 7/45] fedliquidityapi-test
+- `01:22:46`       downloaded 6KB
+- `01:22:46`       → 1 files extracted
+- `01:22:46`   [ 8/45] macro-report-api
+- `01:22:47`       downloaded 25KB
+- `01:22:47`       → 1 files extracted
+- `01:22:47`   [ 9/45] bond-indices-agent
+- `01:22:47`       downloaded 3KB
+- `01:22:47`       → 1 files extracted
+- `01:22:47`   [10/45] ecb-data-daily-updater
+- `01:22:48`       downloaded 2KB
+- `01:22:48`       → 1 files extracted
+- `01:22:48`   [11/45] google-trends-agent
+- `01:22:48`       downloaded 2KB
+- `01:22:48`       → 1 files extracted
+- `01:22:48`   [12/45] OpenBBS3DataProxy
+- `01:22:48`       downloaded 2KB
+- `01:22:48`       → 1 files extracted
+- `01:22:48`   [13/45] justhodl-email-reports-v2
+- `01:22:49`       downloaded 6KB
+- `01:22:49`       → 1 files extracted
+- `01:22:49`   [14/45] fmp-fundamentals-agent
+- `01:22:49`       downloaded 1KB
+- `01:22:49`       → 1 files extracted
+- `01:22:49`   [15/45] eia-energy-agent
+- `01:22:50`       downloaded 2KB
+- `01:22:50`       → 1 files extracted
+- `01:22:50`   [16/45] justhodl-liquidity-agent
+- `01:22:50`       downloaded 7KB
+- `01:22:50`       → 1 files extracted
+- `01:22:50`   [17/45] ecb-auto-updater
+- `01:22:51`       downloaded 3KB
+- `01:22:51`       → 1 files extracted
+- `01:22:51`   [18/45] justhodl-daily-macro-report
+- `01:22:51`       downloaded 1KB
+- `01:22:51`       → 1 files extracted
+- `01:22:51`   [19/45] macro-financial-report-viewer
+- `01:22:51`       downloaded 1KB
+- `01:22:51`       → 1 files extracted
+- `01:22:51`   [20/45] createEnhancedIndex
+- `01:22:52`       downloaded 8KB
+- `01:22:52`       → 1 files extracted
+- `01:22:52`   [21/45] census-economic-agent
+- `01:22:52`       downloaded 2KB
+- `01:22:52`       → 1 files extracted
+- `01:22:52`   [22/45] dollar-strength-agent
+- `01:22:53`       downloaded 3KB
+- `01:22:53`       → 1 files extracted
+- `01:22:53`   [23/45] economyapi
+- `01:22:53`       downloaded 12KB
+- `01:22:53`       → 1 files extracted
+- `01:22:53`   [24/45] aiapi-market-analyzer
+- `01:22:54`       downloaded 2KB
+- `01:22:54`       → 1 files extracted
+- `01:22:54`   [25/45] autonomous-ai-processor
+- `01:22:54`       downloaded 0KB
+- `01:22:54`       → 1 files extracted
+- `01:22:54`   [26/45] treasury-auto-updater
+- `01:22:55`       downloaded 1KB
+- `01:22:55`       → 1 files extracted
+- `01:22:55`   [27/45] ultimate-multi-agent
+- `01:22:55`       downloaded 2KB
+- `01:22:55`       → 1 files extracted
+- `01:22:55`   [28/45] ecb
+- `01:22:55`       downloaded 2KB
+- `01:22:55`       → 1 files extracted
+- `01:22:55`   [29/45] global-liquidity-agent-v2
+- `01:22:56`       downloaded 1KB
+- `01:22:56`       → 1 files extracted
+- `01:22:56`   [30/45] scrapeMacroData
+- `01:22:56`       downloaded 4KB
+- `01:22:56`       → 1 files extracted
+- `01:22:56`   [31/45] daily-liquidity-report
+- `01:22:57`       downloaded 5KB
+- `01:22:57`       → 1 files extracted
+- `01:22:57`   [32/45] fred-ice-bofa-api
+- `01:22:57`       downloaded 1KB
+- `01:22:57`       → 1 files extracted
+- `01:22:57`   [33/45] justhodl-ultimate-trading
+- `01:22:58`       downloaded 6KB
+- `01:22:58`       → 1 files extracted
+- `01:22:58`   [34/45] xccy-basis-agent
+- `01:22:58`       downloaded 2KB
+- `01:22:58`       → 1 files extracted
+- `01:22:58`   [35/45] coinmarketcap-agent
+- `01:22:58`       downloaded 8KB
+- `01:22:58`       → 1 files extracted
+- `01:22:58`   [36/45] multi-agent-orchestrator
+- `01:22:59`       downloaded 1KB
+- `01:22:59`       → 1 files extracted
+- `01:22:59`   [37/45] alphavantage-market-agent
+- `01:22:59`       downloaded 2KB
+- `01:22:59`       → 1 files extracted
+- `01:22:59`   [38/45] treasury-api
+- `01:23:00`       downloaded 52KB
+- `01:23:00`       → 1 files extracted
+- `01:23:00`   [39/45] benzinga-news-agent
+- `01:23:00`       downloaded 1KB
+- `01:23:00`       → 1 files extracted
+- `01:23:00`   [40/45] openbb-websocket-handler
+- `01:23:01`       downloaded 1KB
+- `01:23:01`       → 1 files extracted
+- `01:23:01`   [41/45] securities-banking-agent
+- `01:23:01`       downloaded 3KB
+- `01:23:01`       → 1 files extracted
+- `01:23:01`   [42/45] testEnhancedScraper
+- `01:23:01`       downloaded 2KB
+- `01:23:01`       → 1 files extracted
+- `01:23:01`   [43/45] createUniversalIndex
+- `01:23:02`       downloaded 8KB
+- `01:23:02`       → 1 files extracted
+- `01:23:02`   [44/45] global-liquidity-agent-TEST
+- `01:23:02`       downloaded 14KB
+- `01:23:02`       → 1 files extracted
+- `01:23:02`   [45/45] universal-agent-gateway
+- `01:23:03`       downloaded 2KB
+- `01:23:03`       → 1 files extracted
+## Summary
+
+- `01:23:03`   Pulled (full source):  45
+- `01:23:03`   Config-only:           0 (image-based or no URL)
+- `01:23:03`   Too large:             0
+- `01:23:03`   Failed:                0
+- `01:23:03` 
+  Top 10 pulled by file count:
+- `01:23:03`     justhodl-data-collector                               1 files         1KB
+- `01:23:03`     ofrapi                                                1 files        21KB
+- `01:23:03`     openbb-websocket-broadcast                            1 files         1KB
+- `01:23:03`     bls-labor-agent                                       1 files         2KB
+- `01:23:03`     justhodl-ultimate-orchestrator                        1 files         2KB
+- `01:23:03`     volatility-monitor-agent                              1 files         3KB
+- `01:23:03`     fedliquidityapi-test                                  1 files         6KB
+- `01:23:03`     macro-report-api                                      1 files        25KB
+- `01:23:03`     bond-indices-agent                                    1 files         3KB
+- `01:23:03`     ecb-data-daily-updater                                1 files         2KB
+- `01:23:03` Done

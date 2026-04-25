@@ -1,0 +1,28 @@
+{
+  "name": "scrapeMacroData",
+  "runtime": "python3.11",
+  "handler": "lambda_function.lambda_handler",
+  "memory_mb": 3008,
+  "timeout_s": 900,
+  "code_size_bytes": 4290,
+  "package_type": "Zip",
+  "last_modified": "2025-06-03T18:10:33.000+0000",
+  "role_arn_tail": "857687956942:role/service-role/scrapeMacroData-role-9pweui52",
+  "description": "",
+  "env_keys": [
+    "BATCH_SIZE",
+    "CONFIG_FILE",
+    "FRED_API_KEY",
+    "INDEX_NAME",
+    "MAX_INDICATORS",
+    "OPENSEARCH_ENDPOINT",
+    "S3_BUCKET"
+  ],
+  "layers": [
+    "arn:aws:lambda:us-east-1:857687956942:layer:beautifulsoup4-layer:1"
+  ],
+  "architectures": [
+    "x86_64"
+  ],
+  "backfilled_at": "2026-04-25T01:22:56.582036+00:00"
+}

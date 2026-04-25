@@ -1,0 +1,18 @@
+{
+  "name": "aiapi-market-analyzer",
+  "runtime": "python3.13",
+  "handler": "lambda_function.lambda_handler",
+  "memory_mb": 10240,
+  "timeout_s": 900,
+  "code_size_bytes": 2456,
+  "package_type": "Zip",
+  "last_modified": "2025-09-14T22:11:09.000+0000",
+  "role_arn_tail": "956942:role/service-role/aiapi-market-analyzer-role-04o8b4dk",
+  "description": "",
+  "env_keys": [],
+  "layers": [],
+  "architectures": [
+    "x86_64"
+  ],
+  "backfilled_at": "2026-04-25T01:22:53.933187+00:00"
+}
