@@ -80,8 +80,8 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           # Always pull latest to avoid push-rejected races
           git pull --rebase origin main || true
-          if [ -n "$(git status --porcelain aws/ops/reports/ aws/lambdas/ 2>/dev/null)" ]; then
-            git add aws/ops/reports/ aws/lambdas/
+          if [ -n "$(git status --porcelain aws/ops/reports/ aws/ops/audit/ aws/lambdas/ 2>/dev/null)" ]; then
+            git add aws/ops/reports/ aws/ops/audit/ aws/lambdas/
             git commit -m "ops: auto-commit from run ${{ github.run_id }} (${{ job.status }}) [skip-deploy]"
             git push || (git pull --rebase origin main && git push)
             echo "Committed changes"
