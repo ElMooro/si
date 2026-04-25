@@ -331,19 +331,20 @@ def save_alert_state(state):
 
 
 def get_telegram_creds():
-    """Token from env (TELEGRAM_BOT_TOKEN), chat_id from SSM."""
-    import os
-    token = os.environ.get("TELEGRAM_BOT_TOKEN")
-    if not token:
-        print("[ALERTER] TELEGRAM_BOT_TOKEN env var missing; skipping")
+    """Token + chat_id both from SSM."""
+    try:
+        resp = ssm.get_parameter(Name="/justhodl/telegram/bot_token", WithDecryption=True)
+        token = resp["Parameter"]["Value"]
+    except Exception as e:
+        print(f"[ALERTER] bot_token SSM fetch failed: {e}")
         return None, None
     try:
         resp = ssm.get_parameter(Name="/justhodl/telegram/chat_id")
         chat_id = resp["Parameter"]["Value"]
-        return token, chat_id
     except Exception as e:
-        print(f"[ALERTER] chat_id fetch failed: {e}")
+        print(f"[ALERTER] chat_id SSM fetch failed: {e}")
         return None, None
+    return token, chat_id
 
 
 def send_telegram(text):
