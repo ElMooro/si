@@ -1,6 +1,6 @@
 # Khalid → [NEW_NAME] Full Migration Plan
 
-**Status:** Phases 1+2+3+4+5+7 SHIPPED 2026-04-26. Phase 4b (delete OLD Lambda) due 2026-05-03. Phase 6 (drop khalid_* fallbacks) due ~2026-05-26 after 30-day grace. Phase 8 (git history rewrite) optional, undecided.
+**Status:** Phases 1+2+3+4+5+7 SHIPPED 2026-04-26. Phase 8 SKIPPED. Phase 4b (delete OLD Lambda) scheduled 2026-05-03. Phase 6 (drop khalid_* fallbacks) scheduled ~2026-05-26.
 **Decided:** new name = 'KA' (initialism).
 **Trigger:** user request 2026-04-26 to fully purge personal name from product brand.
 
@@ -134,7 +134,7 @@ Once production is fully migrated:
 - Some ops `history/` files mention Khalid as audit trail — leave (history is history)
 - Rename `_partials/sidebar.html` references
 
-## Phase 8 — Optional git history rewrite
+## Phase 8 — Git history rewrite ⏭️ SKIPPED 2026-04-26 (user decision)
 
 If user wants the ENTIRE git log scrubbed of `Khalid` (currently 200+ commits mention it), that's a separate destructive operation:
 
